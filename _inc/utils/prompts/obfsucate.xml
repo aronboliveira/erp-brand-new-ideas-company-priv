@@ -1,0 +1,100 @@
+<instructions>
+	<task>
+		<summary>
+			- Write an obfuscated version of the following code, applying the instruction I'm gonna give you next;
+			- Pay attention to the fact that some instruction may result in partially or completely different approaches depending on
+					the language I'm gonna input;
+		</summary>
+		<scriptingLanguage>
+			- Python
+		</scriptingLanguage>
+		<instructions>
+			- DO NOT include any comments in the code that explain its obfuscation logic;
+			- Fragment all the strings and serializables (lists, dictionaries, tuples, etc.) into chunks to be assembled
+					during the runtime, when they are in fact used;
+			- Shuffle the ordering of keys in dictionaries;
+			- If the language allows it for some features (like dynamically calling names of functions in JavaScript, with []),
+					also apply the split and assembly technique for these, possibly defining encoded lookup tables;
+			- Replace variables names by meaningless pseudohexcodes and pseudo-octals starting with __ (ex.: __0x10230 or __0b030);
+			- Convert numeric values into unnecessarily complex arithmetic expressions (ex.: 10 should be (3 x ((1 ** 0) * 3) + ((5 - 6) * -1));
+			- If the language supports it, convert strings into base64 and then recover it as the natural value during runtime;  
+			- Create redundanters pointers throughout the indentations and/or blocks of the code:
+					<example>
+							__0x353 = 'a'
+							...some code...
+							__0x125 = __0x353
+							...some code...
+							__0x112 = __0x125
+					</example>
+			- DO NOT place the chunks sequentially; instead, shuffle their ordering throughout;
+			- Include dummy or redundant statements to make evaluations harder to read 
+					(e.g.: if (... some seemingly reasonable check... || !![]), for JavaScript);
+			- Create redundant nesting (e.g.: unnecessary blocks, unnecessary IIFEs, excessive indentation) to make the reading harder;
+			- Initialize mutable variables with completely unrelated values without compromising its typing and then assign the real
+					value when it's close to be used (e.g.: if a variable should be 'name', then initialize it as var __0x222 = 'message');
+			- If the serializable type allows it within the language (like Lists in many languages), initialize it without critical inner
+					data, and then add it during the runtime when it's about to be used;
+			- Change the order of the functions declarations and/or expressions so it's harder to track their connections,
+					without compromissing their scope;
+			- If the language accepts it, include unused parameters in the signatures of the functions and unused switch cases;
+			- If the target language supports it, dynamically construct portions of the code (or even the entire code) at runtime;
+			- Write a manual at the end for me to be able to easily understand the code (e.g.: where are the chunks, what are
+			redundant pointers, etc.), but DO NOT comment this in the code itself;
+			- Remove all comments;
+		</instructions>
+		<script>
+			### INCLUDE HERE THE SCRIPT ###
+		</script>
+	</task>
+	<general>
+		<suggestions>
+			<comments>
+				- Do not include descriptive comments, ONLY those pointing that logic should be added or refactored, with commented out suggestions
+			</comments>
+			<punctuation>
+				- Always include trailing semicolons;
+				- Do not include new lines for readibility only;
+			</punctuation>
+			<spacing>
+				- Print width should be 80;
+				- Tab width should be 2;
+				- Remove trailing white space if present;
+			</spacing>
+			<statements>
+				- For pairs of if/else blocks that lead to single statements in both cases, replace by ternary operators;
+			</statements>
+		</suggestions>
+		<suggestions>
+			- If any catch does not have logging method call (e.g.: console.error in JS, print in Python), include it and add a templated string to detail its name and message
+			- Include more try/catch (or try/except) (or .catch for Fetch APIs in JS) blocks if you deem necessary
+			- ALWAYS wrap api calls (like fetch, axios) or related calls within a try/catch or try/except;
+			- Destructurings should NEVER happen right away. The response should always be tested for truthish first.
+			- Be defensive using opitional chaining and coalescing operators to avoid null pointer errors;
+		</suggestions>
+	</general>
+	<python>
+		<instructions>
+			<classes>
+				- Don't convert a class into a function even if it only has one method without instance properties (essentially static); instead, convert it to a class with
+						a def index as a @staticmethod;
+			</classes>
+		</instructions>
+		<instructions>
+			<indentation>
+				- Keep an indentation pattern that allows me to fold and unfold easily the blocks, statements, values for the keys in dictionaries and elements in an ArrayLike:
+						<example>
+							- Python:
+											'es': '''text text text
+															text text text'''
+						</example>
+						<cLike>
+							key: {
+								value: `text text text
+												text text text`
+							}
+						</cLike>
+				- Throughout our session, suggest user snippets templates if you keep finding repetitive patterns of code generations (with an already defined json for saving it);
+			</indentation>
+		</instructions>
+	</python>
+</instructions>

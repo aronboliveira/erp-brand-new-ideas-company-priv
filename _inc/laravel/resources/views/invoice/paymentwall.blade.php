@@ -1,0 +1,165 @@
+<head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+@php
+    $invoice = $data['invoice_id'];
+    $invoice_id = \Illuminate\Support\Facades\Crypt::decrypt($invoice);
+    $price = $data['amount'];
+
+@endphp
+{{-- {{ dd( $admin_payment_setting) }} --}}
+<script async src="https://api.paymentwall.com/brick/build/brick-default.1.5.0.min.js"> </script>
+<div id="payment-form-container"> </div>
+<script>
+  window.translations = {
+      ar: { paymentwall_unavailable: 'لا يمكن تحميل Paymentwall' },
+      da: { paymentwall_unavailable: 'Kan ikke indlæse Paymentwall' },
+      de: { paymentwall_unavailable: 'Paymentwall konnte nicht geladen werden' },
+      en: { paymentwall_unavailable: 'Cannot load Paymentwall' },
+      es: { paymentwall_unavailable: 'No se puede cargar Paymentwall' },
+      fr: { paymentwall_unavailable: 'Impossible de charger Paymentwall' },
+      he: { paymentwall_unavailable: 'לא ניתן לטעון Paymentwall' },
+      it: { paymentwall_unavailable: 'Impossibile caricare Paymentwall' },
+      ja: { paymentwall_unavailable: 'Paymentwallを読み込めません' },
+      nl: { paymentwall_unavailable: 'Kan Paymentwall niet laden' },
+      pl: { paymentwall_unavailable: 'Nie można załadować Paymentwall' },
+      pt: { paymentwall_unavailable: 'Não foi possível carregar Paymentwall' },
+      'pt-br': { paymentwall_unavailable: 'Não foi possível carregar Paymentwall' },
+      ru: { paymentwall_unavailable: 'Не удалось загрузить Paymentwall' },
+      tr: { paymentwall_unavailable: 'Paymentwall yüklenemiyor' },
+      zh: { paymentwall_unavailable: '无法加载 Paymentwall' }
+  };
+</script>
+<script defer>
+  (() => {
+      const DATA_LISTENER_ADDED   = 'data-listener-added';
+      const ERR_FB                = '# ERROR';
+      const DATA_CLIENT_LOCALIZED = 'data-client-localized';
+      const DATA_GUARD_MSG        = 'data-guard-msg';
+
+      const getLocalizedMessage = (el, key) => {
+          let msg = ERR_FB;
+          if (el?.getAttribute('data-sv-localized') === 'true'
+              || el?.getAttribute(DATA_CLIENT_LOCALIZED) === 'true') {
+              msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
+          } else {
+              let lang = (sessionStorage.getItem('erp-np-lang')
+                          || document.documentElement.lang
+                          || 'en')
+                          .toLowerCase()
+                          .replace(/_/g, '-');
+              lang = lang === 'pt-br' ? lang : lang.slice(0,2);
+              msg = window.translations?.[lang]?.[key]
+                    || el.getAttribute(DATA_GUARD_MSG)
+                    || window.translations?.['en']?.[key]
+                    || ERR_FB;
+              if (msg !== ERR_FB) {
+                  el.setAttribute(DATA_GUARD_MSG, msg);
+                  el.setAttribute(DATA_CLIENT_LOCALIZED, 'true');
+              }
+          }
+          return msg;
+      };
+
+      const handleErrorDisplay = (el, key) => {
+          const message = el
+              ? getLocalizedMessage(el, key)
+              : ERR_FB;
+          const hasBootstrap = document.querySelector('link[href*="bootstrap"]')
+                               && window.bootstrap?.Toast;
+          if (hasBootstrap) {
+              if (!document.querySelector('#error-toast')) {
+                  const toast = document.createElement('div');
+                  toast.id        = 'error-toast';
+                  toast.className = 'toast align-items-center text-bg-danger border-0';
+                  toast.setAttribute('role', 'alert');
+                  toast.setAttribute('aria-live', 'assertive');
+                  toast.setAttribute('aria-atomic', 'true');
+                  toast.innerHTML = `
+                      <div class="d-flex">
+                          <div class="toast-body">${message}</div>
+                          <button type="button"
+                                  class="btn-close btn-close-white me-2 m-auto"
+                                  data-bs-dismiss="toast"
+                                  aria-label="Close"></button>
+                      </div>`;
+                  document.body.appendChild(toast);
+              }
+              new bootstrap.Toast(
+                  document.querySelector('#error-toast')
+              ).show();
+          } else {
+              alert(message);
+          }
+      };
+
+      try {
+          if (typeof $ === 'undefined') {
+              console.error('jQuery is required');
+              return;
+          }
+          const containerId = 'payment-form-container';
+          const el = document.getElementById(containerId);
+          if (!el) return;
+
+          if (typeof Brick === 'undefined') {
+              throw new Error('Brick library missing');
+          }
+
+          const brick = new Brick({
+              public_key: '{{ $company_payment_setting['paymentwall_public_key'] }}',
+              amount:     '{{ $price }}',
+              currency:   '{{ App\Models\Utility::getValByName("site_currency") }}',
+              container:  containerId,
+              action:     '{{ route("invoice.pay.with.paymentwall",[$data["invoice_id"],"amount"=>$data["amount"]]) }}',
+              form: {
+                  merchant:       'Paymentwall',
+                  product:        '{{ Auth::user()->invoiceNumberFormat($invoice_id) }}',
+                  pay_button:     'Pay',
+                  show_zip:       true,
+                  show_cardholder:true
+              }
+          });
+
+          brick.showPaymentForm(
+              data => {
+                  try {
+                      const url = data.flag == 1
+                          ? '{{ route("error.invoice.show",[1,"invoice_id"]) }}'.replace('invoice_id', data.invoice)
+                          : '{{ route("error.invoice.show",[2,"invoice_id"]) }}'.replace('invoice_id', data.invoice);
+                      window.location.href = url;
+                  } catch {
+                      handleErrorDisplay(el, 'paymentwall_unavailable');
+                  }
+              },
+              errors => {
+                  try {
+                      const url = errors.flag == 1
+                          ? '{{ route("error.invoice.show",[1,"invoice_id"]) }}'.replace('invoice_id', errors.invoice)
+                          : '{{ route("error.invoice.show",[2,"invoice_id"]) }}'.replace('invoice_id', errors.invoice);
+                      window.location.href = url;
+                  } catch {
+                      handleErrorDisplay(el, 'paymentwall_unavailable');
+                  }
+              }
+          );
+      } catch {
+          const el = document.getElementById('payment-form-container');
+          if (el && !el.hasAttribute(DATA_LISTENER_ADDED)) {
+              el.addEventListener('click', () =>
+                  handleErrorDisplay(el, 'paymentwall_unavailable')
+              );
+              el.setAttribute(DATA_LISTENER_ADDED, 'true');
+              const obs = new MutationObserver((_, o) => {
+                  if (!document.body.contains(el)) {
+                      el.removeEventListener('click',
+                          () => handleErrorDisplay(el, 'paymentwall_unavailable')
+                      );
+                      o.disconnect();
+                  }
+              });
+              obs.observe(document.body, { childList: true, subtree: true });
+          }
+      }
+  })();
+</script>

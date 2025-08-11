@@ -1,0 +1,411 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Config\Constants\{
+  CompaniesConstants,
+  DatabaseConstants,
+  PermissionsConstants,
+  UsersConstants,
+  ViewsConstants
+};
+use App\Imports\AttendanceImport;
+use App\Models\{
+  Branch,
+  Department,
+  Employee,
+  EmployeeAttendance,
+  IpRestrict,
+  Template,
+  User,
+  Utility
+};
+use App\Traits\{ChecksLogin, ChecksPermissions};
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\{
+  JsonResponse,
+  RedirectResponse,
+  Request
+};
+use Illuminate\Support\Facades\{
+  Auth,
+  DB,
+  Log,
+  Validator
+};
+use Maatwebsite\Excel\Facades\Excel;
+
+
+final class EmployeeAttendanceController extends Controller
+{
+  use ChecksLogin, ChecksPermissions;
+  private const REDIRECT_INDEX = '/';
+
+  public function index(Request $req): \Illuminate\View\View|RedirectResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    $user = $userOrRedirect;
+    if ($c = self::guard($req, PermissionsConstants::MNG_ATD, self::REDIRECT_INDEX)) return $c;
+    $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
+    $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      ->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend('Select Department', '');
+    $query = EmployeeAttendance::query();
+    if (!in_array($user[UsersConstants::COL_TP], [PermissionsConstants::CL, PermissionsConstants::CPN])) {
+      $empId = $user?->employee->id ?? 0;
+      $query->where(UsersConstants::COL_EMP_ID, $empId);
+    } else {
+      $empIds = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        ->when($req->branch, fn ($q) => $q->where(CompaniesConstants::COL_BRC_ID, $req->branch))
+        ->when($req->department, fn ($q) => $q->where(CompaniesConstants::COL_DEP_ID, $req->department))
+        ->pluck('id');
+      $query->whereIn(UsersConstants::COL_EMP_ID, $empIds);
+    }
+    $query->when($req->type === 'monthly' && $req->month, function ($q) use ($req) {
+      [$m, $y] = [date('m', strtotime($req->month)), date('Y', strtotime($req->month))];
+      $q->whereBetween('date', ["{$y}-{$m}-01", "{$y}-{$m}-t"]);
+    })->when($req->type === 'daily' && $req->date, fn ($q) => $q->where('date', $req->date))
+      ->when(!$req->type || !in_array($req->type, ['daily', 'monthly']), function ($q) {
+        $m = date('m');
+        $y = date('Y');
+        $q->whereBetween('date', ["{$y}-{$m}-01", "{$y}-{$m}-t"]);
+      });
+    $attendances = $query->get();
+    return view(ViewsConstants::EMP_ATD . '.' . __FUNCTION__, compact('attendances', 'branches', 'departments'));
+  }
+
+  public function create(Request $req): \Illuminate\View\View|RedirectResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    $user = $userOrRedirect;
+    if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) return $c;
+    $employees = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      ->where(UsersConstants::COL_TP, 'employee')
+      ->pluck(UsersConstants::COL_NM, 'id');
+    return view(ViewsConstants::EMP_ATD . '.' . __FUNCTION__, compact('employees'));
+  }
+
+  public function store(Request $req): RedirectResponse|JsonResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    $user = $userOrRedirect;
+    if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) return $c;
+    if ($c = self::v($req, [
+      UsersConstants::COL_EMP_ID => 'required',
+      'date' => 'required|date',
+      'clock_in' => 'required',
+      'clock_out' => 'required'
+    ])) return $c;
+
+    try {
+      $start = Utility::getValByName('company_start_time');
+      $end  = Utility::getValByName('company_end_time');
+      $exists = EmployeeAttendance::where([
+        [UsersConstants::COL_EMP_ID, $req[UsersConstants::COL_EMP_ID]],
+        ['date', $req->date],
+        ['clock_out', '00:00:00']
+      ])->exists();
+      if ($exists) return redirect()
+        ->route(ViewsConstants::EMP_ATD . '.index')
+        ->with('error', __('Employee Attendance Already Created.'));
+      $lateSecs = strtotime($req->clock_in) - strtotime("{$req->date}{$start}");
+      $late = gmdate('H:i:s', max($lateSecs, 0));
+      $earlySecs = strtotime("{$req->date}{$end}") - strtotime($req->clock_out);
+      $early = gmdate('H:i:s', max($earlySecs, 0));
+      $overtime = strtotime($req->clock_out) > strtotime("{$req->date}{$end}")
+        ? gmdate('H:i:s', strtotime($req->clock_out) - strtotime("{$req->date}{$end}"))
+        : '00:00:00';
+      EmployeeAttendance::create([
+        UsersConstants::COL_EMP_ID => $req[UsersConstants::COL_EMP_ID],
+        'date' => $req->date,
+        'status' => 'Present',
+        'clock_in' => "{$req->clock_in}:00",
+        'clock_out' => "{$req->clock_out}:00",
+        'late' => $late,
+        'early_leaving' => $early,
+        'overtime' => $overtime,
+        'total_rest' => '00:00:00',
+        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+      ]);
+      return redirect()->route(ViewsConstants::EMP_ATD . '.index')
+        ->with('success', __('Employee attendance successfully created.'));
+    } catch (\Throwable $e) {
+      Log::error(__CLASS__ . '::' . __FUNCTION__ . $e->getMessage());
+      return defaultUndefinedException(
+        $req,
+        $e,
+        __CLASS__ . '::' . __FUNCTION__
+      );
+    }
+  }
+
+  public function show(): RedirectResponse
+  {
+    return redirect()->route(ViewsConstants::EMP_ATD . '.index');
+  }
+
+  public function edit(Request $req, int $id): \Illuminate\View\View|RedirectResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    $user = $userOrRedirect;
+    if ($c = self::guard($req, 'edit attendance', self::REDIRECT_INDEX)) return $c;
+    $attendance = EmployeeAttendance::findOrFail($id);
+    $employees = Employee::where(
+      DatabaseConstants::TABLE_CREATOR,
+      $user?->creatorId()
+    )->pluck(UsersConstants::COL_NM, 'id');
+    return view(ViewsConstants::EMP_ATD . '.' . __FUNCTION__, compact('attendance', 'employees'));
+  }
+
+  public function update(Request $req, int $id): RedirectResponse|JsonResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    if ($c = self::guard($req, 'edit attendance', self::REDIRECT_INDEX)) return $c;
+    $user = $userOrRedirect;
+    $attendance = EmployeeAttendance::findOrFail($id);
+    $inRaw = $req->clock_in;
+    $outRaw = $req->clock_out;
+    $date  = $attendance->date;
+    $start = Utility::getValByName('company_start_time');
+    $end   = Utility::getValByName('company_end_time');
+    $in = $inRaw ? date('H:i:s', strtotime($inRaw)) : $attendance->clock_in;
+    $out = $outRaw ? date('H:i:s', strtotime($outRaw)) : $attendance->clock_out;
+    ['late' => $late, 'earlyLeaving' => $early, 'overtime' => $ovt]
+      = self::computeDurations($in, $out, $date, $start, $end);
+    $attendance->clock_in     = $in;
+    $attendance->clock_out    = $out;
+    $attendance->late         = $late;
+    $attendance->early_leaving = $early;
+    $attendance->overtime     = $ovt;
+    $attendance->save();
+    return redirect()->route(ViewsConstants::EMP_ATD . '.index')
+      ->with('success', __('Employee attendance successfully updated.'));
+  }
+
+  public function destroy(int $id): RedirectResponse|JsonResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    if ($c = self::guard(request(), 'delete attendance', self::REDIRECT_INDEX)) return $c;
+    EmployeeAttendance::whereKey($id)->delete();
+    return redirect()->route(ViewsConstants::EMP_ATD . '.index')
+      ->with('success', __('Attendance successfully deleted.'));
+  }
+
+  public function attendance(Request $req): RedirectResponse|JsonResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    $user = $userOrRedirect;
+    $settings = Utility::settings();
+    if (
+      $settings['ip_restrict'] === 'on' &&
+      IpRestrict::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      ->where('ip', request()->ip())->exists()
+    ) return redirect()->back()
+      ->with('error', __('This ip is not allowed to clock in & clock out.'));
+    $start = Utility::getValByName('company_start_time');
+    $end  = Utility::getValByName('company_end_time');
+    $empId = $user?->employee->id ?? 0;
+    $last = EmployeeAttendance::where([
+      [UsersConstants::COL_EMP_ID, $empId],
+      ['clock_out', '00:00:00']
+    ])->latest('id')->first();
+    if ($last)
+      $last->update(['clock_out' => $end]);
+    $date = date('Y-m-d');
+    $time = date('H:i:s');
+    $late = gmdate('H:i:s', max(time() - strtotime("{$date}{$start}"), 0));
+    EmployeeAttendance::create([
+      UsersConstants::COL_EMP_ID => $empId,
+      'date' => $date,
+      'status' => 'Present',
+      'clock_in' => $time,
+      'clock_out' => '00:00:00',
+      'late' => $late,
+      'early_leaving' => '00:00:00',
+      'overtime' => '00:00:00',
+      'total_rest' => '00:00:00',
+      DatabaseConstants::TABLE_CREATOR => $user?->id,
+    ]);
+    return redirect()->back()
+      ->with('success', __('Employee Successfully Clock In.'));
+  }
+
+  public const BK_ATD = 'bulkAttendance';
+  public function bulkAttendance(Request $req): \Illuminate\View\View|RedirectResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) return $c;
+    $user = $userOrRedirect;
+    $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
+    $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      ->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend('Select Department', '');
+    $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      ->when($req->branch, fn ($q) => $q->where(CompaniesConstants::COL_BRC_ID, $req->branch))
+      ->when($req->department, fn ($q) => $q->where(CompaniesConstants::COL_DEP_ID, $req->department))
+      ->get();
+    return view(ViewsConstants::EMP_ATD . '.bulk', compact('employees', 'branches', 'departments'));
+  }
+
+  public const BK_ATD_DT = 'bulkAttendanceData';
+  public function bulkAttendanceData(Request $req): RedirectResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) return $c;
+    $user = $userOrRedirect;
+    $start = Utility::getValByName('company_start_time');
+    $end  = Utility::getValByName('company_end_time');
+    foreach ($req[UsersConstants::COL_EMP_ID] as $emp) {
+      $present = $req->input("present-{$emp}") === 'on';
+      $date = $req->date;
+      if ($present) {
+        $in = date('H:i:s', strtotime($req->input("in-{$emp}")));
+        $out = date('H:i:s', strtotime($req->input("out-{$emp}")));
+        ['late' => $late, 'earlyLeaving' => $early, 'overtime' => $ovt]
+          = self::computeDurations($in, $out, $date, $start, $end);
+        $status = 'Present';
+      } else {
+        $in = $out = $late = $early = $ovt = '00:00:00';
+        $status = 'Leave';
+      }
+      $attendance = EmployeeAttendance::where([
+        [UsersConstants::COL_EMP_ID, $emp],
+        ['date', $date],
+      ])->first() ?? new EmployeeAttendance();
+      $attendance[UsersConstants::COL_EMP_ID]  = $emp;
+      $attendance->date         = $date;
+      $attendance->status       = $status;
+      $attendance->clock_in     = $in;
+      $attendance->clock_out    = $out;
+      $attendance->late         = $late;
+      $attendance->early_leaving = $early;
+      $attendance->overtime     = $ovt;
+      $attendance->total_rest   = '00:00:00';
+      $attendance->created_by   = $user?->creatorId();
+      $attendance->save();
+    }
+    return redirect()->back()
+      ->with('success', __('Employee attendance successfully created.'));
+  }
+
+  public function importFile(): \Illuminate\View\View
+  {
+    return view(ViewsConstants::EMP_ATD . '.import');
+  }
+
+  public function import(Request $req): RedirectResponse
+  {
+    if (
+      ($userOrRedirect = self::_checkLogin())
+      instanceof RedirectResponse
+    ) return $userOrRedirect;
+    $user = $userOrRedirect;
+    if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) return $c;
+    if ($c = self::v($req, ['file' => 'required|mimes:csv,txt,xlsx'])) return $c;
+    try {
+      $rows = (new AttendanceImport())
+        ->toArray($req->file('file'))[0];
+      $errors = [];
+      $start = Utility::getValByName('company_start_time');
+      $end  = Utility::getValByName('company_end_time');
+      foreach ($rows as $i => $row) if ($i) {
+        [$email, $date, $inRaw, $outRaw] = $row;
+        $emp = Employee::where('email', $email)
+          ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+          ->first();
+        if (!$emp) {
+          $errors[] = $email;
+          continue;
+        }
+        $in = date('H:i:s', strtotime($inRaw));
+        $out = date('H:i:s', strtotime($outRaw));
+        ['late' => $late, 'earlyLeaving' => $early, 'overtime' => $ovt]
+          = self::computeDurations($in, $out, $date, $start, $end);
+        $attendance = EmployeeAttendance::where([
+          [UsersConstants::COL_EMP_ID, $emp->id],
+          ['date', $date],
+        ])->first() ?? new EmployeeAttendance();
+        $attendance[UsersConstants::COL_EMP_ID]  = $emp->id;
+        $attendance->date         = $date;
+        $attendance->status       = 'Present';
+        $attendance->clock_in     = $in;
+        $attendance->clock_out    = $out;
+        $attendance->late         = $late;
+        $attendance->early_leaving = $early;
+        $attendance->overtime     = $ovt;
+        $attendance->total_rest   = '00:00:00';
+        $attendance->created_by   = $user?->creatorId();
+        $attendance->save();
+      }
+      if ($errors) return redirect()->back()
+        ->with('error', __('These records failed: ') . implode(',', $errors));
+      return redirect()->back()
+        ->with('success', __('Record successfully imported'));
+    } catch (\Throwable $e) {
+      Log::error(__CLASS__ . '::import ' . $e->getMessage());
+      return defaultUndefinedException($req, $e, __CLASS__ . '::import');
+    }
+  }
+
+  private static function v(
+    Request $req,
+    array $rules
+  ): ?RedirectResponse {
+    $v = Validator::make($req->all(), $rules);
+    return $v->fails()
+      ? redirect()->back()->with('error', $v->getMessageBag()->first())
+      : null;
+  }
+
+  /**
+   * @param  string  $in
+   * @param  string  $out
+   * @param  string  $date
+   * @param  string  $start
+   * @param  string  $end
+   * @return array{late:string,earlyLeaving:string,overtime:string}
+   */
+  private static function computeDurations(
+    string $in,
+    string $out,
+    string $date,
+    string $start,
+    string $end
+  ): array {
+    $lateSecs = strtotime("{$date}{$in}") - strtotime("{$date}{$start}");
+    $late = gmdate('H:i:s', max($lateSecs, 0));
+    $earlySecs = strtotime("{$date}{$end}") - strtotime("{$date}{$out}");
+    $early = gmdate('H:i:s', max($earlySecs, 0));
+    $overtime = strtotime("{$date}{$out}") > strtotime("{$date}{$end}")
+      ? gmdate('H:i:s', strtotime("{$date}{$out}") - strtotime("{$date}{$end}"))
+      : '00:00:00';
+    return ['late' => $late, 'earlyLeaving' => $early, 'overtime' => $overtime];
+  }
+}

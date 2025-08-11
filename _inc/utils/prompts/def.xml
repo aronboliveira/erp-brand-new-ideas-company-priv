@@ -1,0 +1,1234 @@
+
+<instructions>
+	<general>
+		<suggestions>
+			<comments>
+				- Do not include descriptive comments, ONLY those pointing that logic should be added or refactored, with commented out suggestions
+			</comments>
+			<punctuation>
+				- Always include trailing semicolons;
+				- Do not include new lines for readibility only;
+			</punctuation>
+			<spacing>
+				- Print width should be 80;
+				- Tab width should be 2;
+				- Remove trailing white space if present;
+			</spacing>
+			<statements>
+				- For pairs of if/else blocks that lead to single statements in both cases, replace by ternary operators;
+				- Never write namespaces, class, functions or method names as hardcoded strings (rather, use dynamic reading methods);
+				- Optimize brevity of code replacing repetitive lines (ex.: assigning many attrs sequentially
+					or constructing strings with visible patterns) with iterative procedures
+			</statements>
+			<imports>
+				- Imports and exports should be sorted alphabetically in all depths
+			</imports>
+		</suggestions>
+		<errors>
+			- If any catch does not have logging method call (e.g.: console.error in JS, print in Python), include it and add a templated string to detail its name and message
+			- Include more try/catch (or try/except) (or .catch for Fetch APIs in JS) blocks if you deem necessary
+			- ALWAYS wrap api calls (like fetch, axios) or related calls within a try/catch or try/except;
+			- Destructurings should NEVER happen right away. The response should always be tested for truthish first.
+			- Be defensive using opitional chaining and coalescing operators to avoid null pointer errors;
+			- The messages logged for the user in toasts or modals should ONLY be the error messages and, if absolutely demanding, the status, never more details than that;
+			- The message in the console should not describe the function, but the Method that failed + what was the task to be done via this call (ex.: Failed to PUT for employees: ...(error data));
+			- DO NOT throw errors in the catch block unless explicitly asked to;
+		</errors>
+	</general>
+	<markup>
+		<IMPORTANT>
+			- Emojis should be wrapped in a <span> with role as img, and thus read its unicode to search a appropriate aria-label for it as an attribute;
+			- All tags should have an id, therefore create a list of suggestions for those that don't have and ask the user what they want to apply
+			- Always prefer using semantic tag names;
+			- For all tags that adding ARIA attributes wouldn't be redundant OR if it is essential (e.g.: buttons), do so;
+			- Avoid leaving text without enclosing by tags, even if it means to wrap it in a generic <span> (ask the user what cases he wants to apply);
+			- For JSX quotting:
+					- If the attribute or property is commonly templated (e.g.: className or id), assign it using ={`${...}`};
+					- Else prefer using single quotes as the main quotting, unless it is strictly necessary to use double quotes;
+			- HTML/JSX self-enclosing tags should always be written an such;
+		</IMPORTANT>
+	</markup>
+	<javascript>
+		<suggestions>
+			<variables>
+				- Do not assign variables if they are used only once. Instead, place its expression or value directly
+						in the statement where it is used;
+				- If you can chain 'const' or 'let' declarations with trailing commas, do it (ex.: const a = '', b = 0);
+				- If you find a const or function being reassigned, append before a comment as // * Constant reassignment;
+				- if you find variables initialized as var, list in your response with suggestions
+						whether to replace with const or let;
+				- Comment out unused variables with the following rules:
+						a. If it's part of an array destructuring, keep the commas ordering;
+						b. Append a comment before as // * Unused variable;
+				- Replace pseudohexcode variable names with semantic names, listing these replacement as tables in the response;
+			</variables>
+			<statements>
+				- Remove single statements curly brackets (ex.: FROM if (a === b) { console.log('equal')} TO if ( a === b ) console.log('equal'));
+				- Avoid chaining the ':' in ternary operators to a nullish value if it's an ending statement, so we don't get no-unused-expressions error.
+				- For simple direct expression chaining, prefer using && instead of if (...);
+				- Replace any dummy statement (e.g.: !![] or !0) with true IF it is necessary to keep the logic, else just remove it and derived blocking if it exists;
+				- Replace dummy trailing comma sequences with proper syntax structure;
+				- If you find unused expressions, append a comment before as // ? Unused expression
+				- If you find with statements, append a comment before as // ! With is deprecated
+				- Use forEach for the Iterable prototypes that implement it ONLY if they are already chaning other methods,
+						and it would be more semantically appropriate AND the operation to be looped is not expensive,
+							else prefer using for ... of;
+				- For extremely expensive operations (e.g.: evaluating the whole DOM with queries), use the traditional for loop, as seen in C;
+			</statements>
+			<functions>
+				- Always prefer using function declarations instead of arrow functions if they're in the global scope, else use arrow functions;
+				- Returns from HTTP methods (e.g.: from Fetch or Axios APIs) should NEVER be destructured right away,
+						instead, a res variable should be created and tested for falsish value, and only then destructured;
+				- Remove round brackets for arrow functions if the parameters tuple meets the following conditions:
+						a. Only a single parameter;
+						b. If using TypeScript, no need to declare the type of the parameter or the return type;
+				- Please pay attention for replicating every possible ajax function call (from jquery) as axios, checking the !res?.data after
+				- Always use axios, not the fetch API
+				- Write the fetch calls always within try/catch blocks, rather then using fetch API chain methods;
+				- Write the blocks of try/catches for API calls as separate functions, naming accordingly to the hit endpoint and HTTP method;
+				- Write the API Calls functions in a separate (block of code)/module;
+			</functions>
+			<assignmentsAndAttributions>
+				- If you find any loose comparison (== or !=), append a comment before as // ? Loose comparison
+				- If you find useless constructors, append a comment before as // ? Useless constructor
+			</assignmentsAndAttributions>
+			<dependencies>
+				dependencies: {
+					@tailwindcss/forms: ^0.4.0,
+					@tanstack/react-query: ^5.71.1,
+					autoprefixer: ^10.4.2,
+					axios: ^1.4.0,
+					bootstrap: ^5.3.2,
+					context: ^4.0.0,
+					date-fns: ^2.30.0,
+					emoji-mart: 5.5.2,
+					file-type: ^18.0.0,
+					gn-api-sdk-node: 3.0.4,
+					i18next: ^22.5.0,
+					i18next-browser-languagedetector: ^6.1.5,
+					lodash: ^4.17.19,
+					markdown-to-jsx: ^7.1.2,
+					mic-recorder-to-mp3: 2.2.2,
+					moment: ^2.29.4,
+					next: 15.2.4,
+					qrcode.react: 4.1.0,
+					query-string: ^7.1.1,
+					react: ^18.3.1,
+					react-color: 2.19.3,
+					react-copy-to-clipboard: 5.1.0,
+					react-csv: 2.2.2,
+					react-dom: ^18.3.1,
+					react-error-boundary: 5.0.0,
+					react-icons: ^4.8.0,
+					react-input-mask: ^2.0.4,
+					react-modal-image: ^2.5.1,
+					react-number-format: ^4.6.5,
+					react-qr-code: 2.0.15,
+					react-text-mask: 5.5.0,
+					react-trello: 2.2.11,
+					recharts: ^2.1.14,
+					socket.io-client: ^4.6.1,
+					sweetalert2: ^11.17.2,
+					tailwindcss: ^3.0.18,
+					text-mask-addons: 3.8.0,
+					use-debounce: 10.0.3,
+					use-sound: 4.0.4,
+					uuid: 11.0.5,
+					yup: 1.5.0
+				},
+				devDependencies: {
+					@date-io/date-fns: ^2.15.0,
+					@eslint/eslintrc: ^3,
+					@mui/icons-material: ^5.14.0,
+					@mui/lab: ^5.0.0-alpha.125,
+					@mui/material: ^5.14.0,
+					@mui/styles: ^5.14.0,
+					@mui/x-date-pickers: ^6.0.0,
+					@tailwindcss/postcss: ^4,
+					@testing-library/jest-dom: ^5.17.0,
+					@testing-library/react: 16.2.0,
+					@testing-library/user-event: ^14.4.3,
+					@types/node: ^20,
+					@types/react: ^19.0.0,
+					@types/react-dom: 19.0.4,
+					babel-jest: ^29.5.0,
+					cross-env: ^7.0.3,
+					dotenv: ^16.4.7,
+					eslint: ^9,
+					eslint-config-next: 15.2.4,
+					typescript: ^5,
+					vanilla-cookieconsent: ^2.9.2
+				}
+			</dependencies>
+		</suggestions>
+		<react>
+			<suggestions>
+				<hooks>
+					- Be extremely mindful about array of dependencies for useEffects, useCallbacks and useMemo;
+					- DO NOT include variables that are reassigned or have reassignments batched (such as with React.Dispatch) 
+						in the body of the callback of the hook within the array of dependencies; 
+					- Whenever you see expensive calculations of objetives in the rendering logic, implement useMemo;
+					- If you include any function being used in an dependencies array (or implement as such), wrap into into an useCallback;
+				</hooks>
+				<components>
+					- Components transpiled from Blade should receive the following naming convention:
+							If the path ends with admin/page, then it should be AdminPage; if it ends with employee/create, then
+								it should be EmployeeCreate, etc (if I don't give you the path, prepare the function name with // ? NO CLEAR NAME)
+					- If you see an component that is often mounted and unmounted (such as modals and accordions inner content),
+						refactor for using React.memo
+					- Always prefer writting components as exporting function declarations, and, IF isolated, then as a default export;
+					- Modals should be suggested to be refactored using createPortal, so ask the user about it;
+					- Always prefer importing the objects or functions from react instead of chaining with the React namespace;
+					- Do not forget to use Material UI components and, if necessary, Tailwind classes;
+				</components>
+				<tags>
+					- Repetitive sequences of tags should be replace with .map iterations
+					- Suggest to the user error-boundaries whenever you seem fit;
+				</tags>
+				<functions>
+					- For components that envolve toggling (ex.: modals, accordions, dialogs, etc.) and are rendered as JSX, wrap them in React.memo;
+					- If React Query is being used, remember that invalidateQueries needs an dictionary (with props such as queryKey) as an argument;
+				</functions>
+			</suggestions>
+		</react>
+		<next>
+			- Use resources from the App Router always;
+			- For modules that implement page core features (like HTMLHeadElement), remember to separate layout.tsx from page.tsx;
+		</next>
+	</javascript>
+	<typescript>
+		<suggestions>
+			<declarations>
+				- Write the interface or type declarations in a separate (block of code)/module;
+				- For Selects from MUI that call a handler, remember to type the event as SelectChangeEvent;
+			</declarations>
+			<variables>
+				- Do not leave variables possibly typed as never (or Iterables of never) by the compiler, as commonly caused by 
+						variables initialized as undefined or empty objects, as such, instead:
+							- If there is some logic that can explicity type the variable, declare it
+							- Else flag it with a comment appended before as // ! NEVER
+			</variables>
+			<variables>
+				- Do not leave variables possibly typed as unknown (or Iterables of unknown) by the compiler, as commonly caused by 
+						variables initialized as undefined or empty objects, as such, instead:
+							- If there is some logic that can explicity type the variable, declare it
+							- Else flag it with a comment appended before as // ! UNKNOWN
+			</variables>
+			<iterables>
+				- Iterables should always have their types explicitly declared. 
+						In the case of Arrays of more than one level of depth, all the levels above the first should be declared with generics 
+							and direct alternating (e.g.: Array<Array<string[]>[]>)
+			</iterables>
+			<frameworks>
+					<components>
+						- Always prefer defining object types as interfaces;
+						- Remember to always import JSX from react if you declare it as a return;
+					</components>
+			</frameworks>
+		</suggestions>
+	</typescript>
+	<python>
+		<importing>
+			- Never use importlib, unless strictly demanded
+		</importing>
+		<functions>
+			- Always include type hinting;
+			- All strings that call functions or method names (as harcoded strings) 
+					should use {inspect.currentframe().f_code.co_name} or the {traceback.extract_stack()}
+		</functions>
+		<instructions>
+			<classes>
+				- Don't convert a class into a function even if it only has one method without instance properties (essentially static); instead, convert it to a class with
+						a def index as a @classmethod (or a @statimethod if is a really simple procedure with no calls for authentication or from the for error_handlers.py);
+				- All strings that call class names (as hardcoded strings) should
+							 use __class__.__name__ (store it in an acronomy constant for brevity), 
+							 		chaining with self, cls or none depending if its a instance method, 
+										class method or static method
+			</classes>
+			<replacement>
+				<block>
+							logger.error(f"LeadController::index failed to authorize user: {e}")
+							messages.error(request, get_exception_class_message(PermissionDenied, __class__.__name__))
+							return redirect(get_redirect_url(request))
+				<block/>
+
+				with this:
+
+				<block>
+							default_permission_denial(request, err=e, 
+																				ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}', 
+																				logger=logger)
+
+				</block>
+
+				AND
+
+				Blocks such as this:
+				<block>
+							logger.error(f"LeadController::index failed preparing data: {e}")
+							messages.error(request,'An error occurred.')
+							return redirect(get_redirect_url(request))
+				</block>
+
+				with
+
+				<block>
+							default_undefined_exception(request, err=e, 
+																					ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}', 
+																					logger=logger)
+				</block>
+
+			</replacement>
+		</instructions>
+		<instructions>
+			<indentation>
+				- NEVER use more than one whitespace to separate arguments in the same line
+				- Keep an indentation pattern that allows me to fold and unfold easily the blocks, statements, values for the keys in dictionaries and elements in an ArrayLike:
+						<example>
+							- Python:
+							
+											'es': '''text text text
+															text text text'''
+						</example>
+						<cLike>
+							key: {
+								value: `text text text
+												text text text`
+							}
+						</cLike>
+				- Throughout our session, suggest user snippets templates if you keep finding repetitive patterns of code generations (with an already defined json for saving it);
+			</indentation>
+		</instructions>
+		<strict>
+			- Always include type hinting;
+			- Include useful and detailed server logging;
+			- Include proper error handling, treating the different kinds of possible exceptions;
+			- If the method is critical (like financial procedures), implement rollback and ACID strategies, with logging associated;
+			- If the method has severe complexity, consider implementing design patterns like Strategy or Observer;
+			- The get_redirect_url method is found in from .._helpers.http
+		</strict>
+		<django>
+		</django>
+	</python>
+	<php>
+		<functions>
+			- Always include type hinting;
+			- All strings that call functions or method names (as harcoded strings) 
+					should use dynamic methods for getting those;
+		</functions>
+		<instructions>
+			<classes>
+				- Don't convert a class into a function even if it only has one method without instance properties (essentially static); instead, convert it to a class with
+						a index method as static;
+			</classes>
+			<replacement>
+				<block>
+					\Log::error("LeadController::index failed to authorize user: " . $e->getMessage());
+					return redirect()
+							->back()
+							->with('error', 'You do not have permission to perform this action.');
+				<block/>
+				with this:
+				<block>
+            return default_permission_denial(
+                $request,
+                $e,
+                __CLASS__.'::'.__FUNCTION__
+            );
+				</block>
+				AND
+				Blocks such as this:
+				<block>
+						\Log::error("LeadController::index failed preparing data: " . $e->getMessage());
+						return redirect()
+								->back()
+								->with('error', 'An error occurred.');
+				</block>
+				with
+				<block>
+	            return default_undefined_exception(
+                $request,
+                $e,
+                __CLASS__.'::'.__FUNCTION__
+            );
+				</block>
+			</replacement>
+		</instructions>
+		<instructions>
+			<indentation>
+				- NEVER use more than one whitespace to separate arguments in the same line
+				- Keep an indentation pattern that allows me to fold and unfold easily the blocks, statements, values for the keys in dictionaries and elements in an ArrayLike:
+						<example>
+							- Python:
+							
+											'es': '''text text text
+															text text text'''
+						</example>
+						<cLike>
+							key: {
+								value: `text text text
+												text text text`
+							}
+						</cLike>
+				- Throughout our session, suggest user snippets templates if you keep finding repetitive patterns of code generations (with an already defined json for saving it);
+			</indentation>
+		</instructions>
+		<strict>
+			- Always include type hinting;
+			- Include useful and detailed server logging;
+			- Include proper error handling, treating the different kinds of possible exceptions;
+			- If the method is critical (like financial procedures), implement rollback and ACID strategies, with logging associated;
+			- If the method has severe complexity, consider implementing design patterns like Strategy or Observer;
+			- The getRedirectUrl method is found in from .._helpers.http
+		</strict>
+		<django>
+		</django>
+	</php>
+</instructions>
+
+<IMPORTANT>
+	- DO NOT USE SEMICOLONS, ONLY NEWLINES
+	- Only use static methods if there is NO NEED for the class references
+	- Every repetitive procedure within the own class (such as checks for permissions) should be abstracted into a new private method, for example:
+				@classmethod
+				def _set_auth(cls, request: HttpRequest, perm: str, suffix='') -> Union[Exception, bool]:
+						self = cls()
+						self.request = request
+						self.authorize(f'{perm} lead{f' {suffix}' if suffix else ''}')
+						return True
+	- DO NOT USE MULTIPLE WHITESPACES, only single whitespaces, newlines or no whitespace separation
+	- DO NOT ADD COMMENTS IN THE ROUTES LISTS
+	- All methods that raise any type of Exception that is not the base Exception muste have a case for handling undefined Exceptions
+	- All methods must have a return explicitly typed;
+</IMPORTANT>
+
+<modelsContext>
+
+</modelsContext>
+
+<moduleToTranspile>
+
+</moduleToTranspile> 
+
+<user>
+	from datetime import date, datetime, time, timedelta
+	import threading
+	from django.utils import timezone
+	from django.core.files.storage import default_storage
+	from dateutil.relativedelta import relativedelta
+	from django.db import models
+	from django.contrib.auth.models import AbstractUser
+	from ..utils.utility import Utility
+	from .._helpers.person import Person
+	from .._helpers.fields import (TINY_BLANK_CHAR, VALID_MYSQL_MIN_DATE, VOID, 
+																FILE_SIZE_VALIDATOR, DEFAULT_USER_TYPED, LANG_CHOICES)
+	from typing import Any, Optional, Dict, List, Union
+
+	_user = threading.local()
+
+	class CurrentUserMiddleware:
+		def __init__(self, get_response: Any) -> None:
+			self.get_response = get_response
+		def __call__(self, request: Any) -> Any:
+			_user.value = request.user
+			response = self.get_response(request)
+			return response
+
+	def get_current_user() -> Optional["User"]:
+		return getattr(_user, "value", None)
+
+	class User(Person, AbstractUser):
+		password = models.CharField(max_length=128)
+		type = models.CharField(**DEFAULT_USER_TYPED, db_index=True)
+		avatar = models.ImageField(upload_to="avatars/", storage=default_storage, validators=[FILE_SIZE_VALIDATOR], **VOID)
+		avatar_url = models.URLField(max_length=200, **VOID)
+		settings = None
+		storage_limit = models.PositiveIntegerField(**VOID)
+		lang = models.CharField(max_length=20, default="en", choices=LANG_CHOICES)
+		mode = models.CharField(**TINY_BLANK_CHAR)
+		delete_status = models.BooleanField(default=False)
+		plan = models.CharField(**TINY_BLANK_CHAR)
+		plan_expire_date = models.DateField(**VOID, validators=[VALID_MYSQL_MIN_DATE])
+		requested_plan = models.CharField(**TINY_BLANK_CHAR)
+		last_login_at = models.DateTimeField(**VOID)
+		birth_date = models.DateField(validators=[VALID_MYSQL_MIN_DATE], **VOID)
+
+		@property
+		def profile(self) -> str:
+			if self.avatar and default_storage.exists(self.avatar.name):
+				return default_storage.url(self.avatar.name)
+			return default_storage.url("avatar.png")
+
+		def auth_id(self) -> Any:
+			return self.id
+
+		def creator_id(self) -> Any:
+			return self.id if self.type in ["company", "super admin"] else self.created_by
+
+		def owner_id(self) -> Any:
+			return self.creator_id()
+
+		def owner_details(self) -> Optional["User"]:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			if self.type in ["company", "super admin"]:
+				return UserModel.objects.filter(id=self.id).first()
+			return UserModel.objects.filter(id=self.created_by).first()
+
+		def current_language(self) -> str:
+			return self.lang
+
+		def price_format(self, price: float) -> str:
+			settings_data = Utility.settings()
+			decimal_number = Utility.get_val_by_name("decimal_number") or 0
+			symbol = settings_data["site_currency_symbol"]
+			fmt = f"{{:.{decimal_number}f}}"
+			formatted = fmt.format(price)
+			return f"{symbol}{formatted}" if settings_data.get("site_currency_symbol_position") == "pre" else f"{formatted}{symbol}"
+
+		@staticmethod
+		def price_formats(price: float) -> str:
+			settings_data = Utility.settings()
+			decimal_number = Utility.get_val_by_name("decimal_number") or 0
+			symbol = settings_data["site_currency_symbol"]
+			fmt = f"{{:.{decimal_number}f}}"
+			formatted = fmt.format(price)
+			return f"{symbol}{formatted}" if settings_data.get("site_currency_symbol_position") == "pre" else f"{formatted}{symbol}"
+
+		def currency_symbol(self) -> str:
+			settings_data = Utility.settings()
+			return settings_data["site_currency_symbol"]
+
+		def date_format(self, date_value: Union[str, datetime, date]) -> str:
+			settings_data = Utility.settings()
+			if isinstance(date_value, (datetime, date)):
+				dt = date_value
+			else:
+				dt = datetime.strptime(date_value, "%Y-%m-%d")
+			return dt.strftime(settings_data["site_date_format"])
+
+		def time_format(self, time_value: Union[str, datetime, time]) -> str:
+			settings_data = Utility.settings()
+			if isinstance(time_value, (time, datetime)):
+				dt = time_value if isinstance(time_value, datetime) else datetime.combine(date.today(), time_value)
+			else:
+				dt = datetime.strptime(time_value, "%H:%M:%S")
+			return dt.strftime(settings_data["site_time_format"])
+
+		def purchase_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['purchase_prefix']}{number:05d}"
+
+		def pos_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['pos_prefix']}{number:05d}"
+
+		def invoice_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['invoice_prefix']}{number:05d}"
+
+		def proposal_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['proposal_prefix']}{number:05d}"
+
+		def contract_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['contract_prefix']}{number:05d}"
+
+		def bill_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['bill_prefix']}{number:05d}"
+
+		def expense_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['expense_prefix']}{number:05d}"
+
+		def journal_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['journal_prefix']}{number:05d}"
+
+		def get_plan(self) -> Optional[Any]:
+			from ..planning.plan import Plan
+			return Plan.objects.filter(id=self.plan).first()
+
+		def assign_plan(self, plan_id: Any, company_id: int = 0) -> Dict[str, Any]:
+			from ..planning.plan import Plan
+			from ..individuals.customer import Customer
+			from ..companies.vendor import Vendor
+			plan = Plan.objects.filter(id=plan_id).first()
+			if plan:
+				self.plan = plan.id
+				now = timezone.now()
+				if plan.duration == "month":
+					self.plan_expire_date = (now + relativedelta(months=+1)).date()
+				elif plan.duration == "year":
+					self.plan_expire_date = (now + relativedelta(years=+1)).date()
+				else:
+					self.plan_expire_date = None
+				self.save()
+				user_id = company_id if company_id != 0 else self.creator_id()
+				users = User.objects.filter(created_by=user_id).exclude(type__in=["super admin", "company", "client"])
+				clients = User.objects.filter(created_by=user_id, type="client")
+				customers = Customer.objects.filter(created_by=user_id)
+				vendors = Vendor.objects.filter(created_by=user_id)
+				if plan.max_users == -1:
+					for user in users:
+						user.is_active = True
+						user.save()
+				else:
+					user_count = 0
+					for user in users:
+						user_count += 1
+						user.is_active = user_count <= plan.max_users
+						user.save()
+				if plan.max_clients == -1:
+					for client in clients:
+						client.is_active = True
+						client.save()
+				else:
+					client_count = 0
+					for client in clients:
+						client_count += 1
+						client.is_active = client_count <= plan.max_clients
+						client.save()
+				if plan.max_customers == -1:
+					for customer in customers:
+						customer.is_active = True
+						customer.save()
+				else:
+					customer_count = 0
+					for customer in customers:
+						customer_count += 1
+						customer.is_active = customer_count <= plan.max_customers
+						customer.save()
+				if plan.max_vendors == -1:
+					for vendor in vendors:
+						vendor.is_active = True
+						vendor.save()
+				else:
+					vendor_count = 0
+					for vendor in vendors:
+						vendor_count += 1
+						vendor.is_active = vendor_count <= plan.max_vendors
+						vendor.save()
+				return {"is_success": True}
+			else:
+				return {"is_success": False, "error": "Plan is deleted."}
+
+		def customer_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['customer_prefix']}{number:05d}"
+
+		def vendor_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['vendor_prefix']}{number:05d}"
+
+		def count_users(self) -> int:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			return UserModel.objects.filter(created_by=self.creator_id()).exclude(type__in=["super admin", "company", "client"]).count()
+
+		def count_company(self) -> int:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			return UserModel.objects.filter(created_by=self.creator_id(), type="company").count()
+
+		def count_order(self) -> int:
+			from ..activity.order import Order
+			return Order.objects.count()
+
+		def count_plan(self) -> int:
+			from ..planning.plan import Plan
+			return Plan.objects.count()
+
+		def count_paid_company(self) -> int:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			return UserModel.objects.filter(created_by=self.id, type="company").exclude(plan__in=[0, 1]).count()
+
+		def count_customers(self) -> int:
+			from ..individuals.customer import Customer
+			return Customer.objects.filter(created_by=self.creator_id()).count()
+
+		def count_vendors(self) -> int:
+			from ..companies.vendor import Vendor
+			return Vendor.objects.filter(created_by=self.creator_id()).count()
+
+		def count_invoices(self) -> int:
+			from ..bills.invoice import Invoice
+			return Invoice.objects.filter(created_by=self.creator_id()).count()
+
+		def count_bills(self) -> int:
+			from ..bills.bill import Bill
+			return Bill.objects.filter(created_by=self.creator_id()).count()
+
+		def today_income(self) -> float:
+			today = timezone.now().date()
+			from django.db.models import Sum
+			from ..bills.revenue import Revenue
+			from ..bills.invoice import Invoice
+			revenue = Revenue.objects.filter(created_by=self.creator_id(), date=today).aggregate(total=Sum("amount"))["total"] or 0
+			invoices = Invoice.objects.filter(created_by=self.creator_id(), send_date=today)
+			invoice_total = sum(invoice.get_total() for invoice in invoices)
+			return revenue + invoice_total
+
+		def today_expense(self) -> float:
+			today = timezone.now().date()
+			from django.db.models import Sum
+			from ..bills.payment import Payment
+			from ..bills.bill import Bill
+			payment_total = Payment.objects.filter(created_by=self.creator_id(), date=today).aggregate(total=Sum("amount"))["total"] or 0
+			bills = Bill.objects.filter(created_by=self.creator_id(), send_date=today)
+			bill_total = sum(bill.get_total() for bill in bills)
+			return payment_total + bill_total
+
+		def income_current_month(self) -> float:
+			now = timezone.now()
+			current_year = now.year
+			current_month = now.month
+			from django.db.models import Sum
+			from ..bills.revenue import Revenue
+			from ..bills.invoice import Invoice
+			revenue = Revenue.objects.filter(created_by=self.creator_id(), date__year=current_year, date__month=current_month).aggregate(total=Sum("amount"))["total"] or 0
+			invoices = Invoice.objects.filter(created_by=self.creator_id(), send_date__year=current_year, send_date__month=current_month)
+			invoice_total = sum(invoice.get_total() for invoice in invoices)
+			return revenue + invoice_total
+
+		def income_cat(self) -> float:
+			now = timezone.now()
+			current_month = now.month
+			from django.db.models import Sum
+			from ..bills.revenue import Revenue
+			from ..bills.invoice import Invoice
+			revenue = Revenue.objects.filter(created_by=self.creator_id(), date__month=current_month).aggregate(total=Sum("amount"))["total"] or 0
+			invoices = Invoice.objects.filter(created_by=self.creator_id(), send_date__month=current_month)
+			invoice_total = sum(invoice.get_total() for invoice in invoices)
+			return revenue + invoice_total
+
+		def expense_current_month(self) -> float:
+			now = timezone.now()
+			current_month = now.month
+			from django.db.models import Sum
+			from ..bills.payment import Payment
+			from ..bills.bill import Bill
+			payment_total = Payment.objects.filter(created_by=self.creator_id(), date__month=current_month).aggregate(total=Sum("amount"))["total"] or 0
+			bills = Bill.objects.filter(created_by=self.creator_id(), send_date__month=current_month)
+			bill_total = sum(bill.get_total() for bill in bills)
+			return payment_total + bill_total
+
+		def get_inc_exp_bar_chart_data(self) -> Dict[str, Any]:
+			import calendar
+			now = timezone.now().date()
+			current_year = now.year
+			months = list(calendar.month_name)[1:]
+			data: Dict[str, Any] = {"month": months}
+			income_arr: List[Union[str, int]] = []
+			expense_arr: List[Union[str, int]] = []
+			from django.db.models import Sum
+			from ..bills.bill import Bill
+			from ..bills.invoice import Invoice
+			from ..bills.payment import Payment
+			from ..bills.revenue import Revenue
+			for month in range(1, 13):
+				monthly_income = Revenue.objects.filter(created_by=self.creator_id(), date__year=current_year, date__month=month).aggregate(total=Sum("amount"))["total"] or 0
+				invoices = Invoice.objects.filter(created_by=self.creator_id(), send_date__year=current_year, send_date__month=month)
+				invoice_total = sum(invoice.get_total() for invoice in invoices)
+				total_income = monthly_income + invoice_total
+				income_arr.append(str(format(total_income, ".2f")).replace(",", "") if total_income else 0)
+				monthly_expense = Payment.objects.filter(created_by=self.creator_id(), date__year=current_year, date__month=month).aggregate(total=Sum("amount"))["total"] or 0
+				bills = Bill.objects.filter(created_by=self.creator_id(), send_date__year=current_year, send_date__month=month)
+				bill_total = sum(bill.get_total() for bill in bills)
+				total_expense = monthly_expense + bill_total
+				expense_arr.append(str(format(total_expense, ".2f")).replace(",", "") if total_expense else 0)
+			data["income"] = income_arr
+			data["expense"] = expense_arr
+			return data
+
+		def get_inc_exp_line_chart_date(self) -> Dict[str, Any]:
+			now = timezone.now().date()
+			arr_date = [now - timedelta(days=i) for i in range(15)]
+			arr_date_format = [d.strftime("%d-%b") for d in arr_date]
+			data: Dict[str, Any] = {"day": arr_date_format}
+			income_arr: List[str] = []
+			expense_arr: List[str] = []
+			from django.db.models import Sum
+			from ..bills.bill import Bill
+			from ..bills.invoice import Invoice
+			from ..bills.payment import Payment
+			from ..bills.revenue import Revenue
+			for date_val in arr_date:
+				day_income = Revenue.objects.filter(created_by=self.creator_id(), date=date_val).aggregate(total=Sum("amount"))["total"] or 0
+				invoices = Invoice.objects.filter(created_by=self.creator_id(), send_date=date_val)
+				invoice_total = sum(invoice.get_total() for invoice in invoices)
+				income_amount = day_income + invoice_total
+				income_arr.append(str(format(income_amount, ".2f")).replace(",", ""))
+				day_expense = Payment.objects.filter(created_by=self.creator_id(), date=date_val).aggregate(total=Sum("amount"))["total"] or 0
+				bills = Bill.objects.filter(created_by=self.creator_id(), send_date=date_val)
+				bill_total = sum(bill.get_total() for bill in bills)
+				expense_amount = day_expense + bill_total
+				expense_arr.append(str(format(expense_amount, ".2f")).replace(",", ""))
+			data["income"] = income_arr
+			data["expense"] = expense_arr
+			return data
+
+		def total_company_user(self, id: int) -> int:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			return UserModel.objects.filter(created_by=id).count()
+
+		def total_company_customer(self, id: int) -> int:
+			from ..individuals.customer import Customer
+			return Customer.objects.filter(created_by=id).count()
+
+		def total_company_vendor(self, id: int) -> int:
+			from ..companies.vendor import Vendor
+			return Vendor.objects.filter(created_by=id).count()
+
+		def plan_price(self) -> Dict[str, Any]:
+			from ..configs.settings import Setting
+			user_id = self.id if self.type == "super admin" else self.created_by
+			qs = Setting.objects.filter(created_by=user_id)
+			return {s.name: s.value for s in qs}
+
+		def current_plan(self) -> Any:
+			return self.get_plan()
+
+		def weekly_invoice(self) -> Dict[str, Union[int, float]]:
+			start_date = timezone.now().date() - timedelta(days=7)
+			current_date = timezone.now().date()
+			from ..bills.invoice import Invoice
+			invoices = Invoice.objects.filter(created_by=self.creator_id(), issue_date__range=[start_date, current_date])
+			invoice_total = invoice_paid = invoice_due = 0
+			for inv in invoices:
+				total = inv.get_total()
+				due = inv.get_due()
+				invoice_total += total
+				invoice_paid += (total - due)
+				invoice_due += due
+			return {"invoiceTotal": invoice_total, "invoicePaid": invoice_paid, "invoiceDue": invoice_due}
+
+		def monthly_invoice(self) -> Dict[str, Union[int, float]]:
+			start_date = timezone.now().date() - timedelta(days=30)
+			current_date = timezone.now().date()
+			from ..bills.invoice import Invoice
+			invoices = Invoice.objects.filter(created_by=self.creator_id(), issue_date__range=[start_date, current_date])
+			invoice_total = invoice_paid = invoice_due = 0
+			for inv in invoices:
+				total = inv.get_total()
+				due = inv.get_due()
+				invoice_total += total
+				invoice_paid += (total - due)
+				invoice_due += due
+			return {"invoiceTotal": invoice_total, "invoicePaid": invoice_paid, "invoiceDue": invoice_due}
+
+		def weekly_bill(self) -> Dict[str, Union[int, float]]:
+			start_date = timezone.now().date() - timedelta(days=7)
+			current_date = timezone.now().date()
+			from ..bills.bill import Bill
+			bills = Bill.objects.filter(created_by=self.creator_id(), bill_date__range=[start_date, current_date])
+			bill_total = bill_paid = bill_due = 0
+			for bill in bills:
+				total = bill.get_total()
+				due = bill.get_due()
+				bill_total += total
+				bill_paid += (total - due)
+				bill_due += due
+			return {"billTotal": bill_total, "billPaid": bill_paid, "billDue": bill_due}
+
+		def monthly_bill(self) -> Dict[str, Union[int, float]]:
+			start_date = timezone.now().date() - timedelta(days=30)
+			current_date = timezone.now().date()
+			from ..bills.bill import Bill
+			bills = Bill.objects.filter(created_by=self.creator_id(), bill_date__range=[start_date, current_date])
+			bill_total = bill_paid = bill_due = 0
+			for bill in bills:
+				total = bill.get_total()
+				due = bill.get_due()
+				bill_total += total
+				bill_paid += (total - due)
+				bill_due += due
+			return {"billTotal": bill_total, "billPaid": bill_paid, "billDue": bill_due}
+
+		def client_estimations(self) -> Any:
+			from ..planning.estimation import Estimation
+			return Estimation.objects.filter(client_id=self.id)
+
+		def client_contracts(self) -> Any:
+			from ..planning.contract import Contract
+			return Contract.objects.filter(client_name=self.id)
+
+		def deals(self) -> Any:
+			return self.deals.all()
+
+		def leads(self) -> Any:
+			return self.leads.all()
+
+		def client_deals(self) -> Any:
+			return self.client_deals.all()
+
+		def get_branch(self, branch_id: str) -> Optional[Any]:
+			from ..companies.branch import Branch
+			return Branch.objects.filter(id=branch_id).first()
+
+		def get_department(self, department_id: str) -> Optional[Any]:
+			from ..companies.department import Department
+			return Department.objects.filter(id=department_id).first()
+
+		def get_designation(self, designation_id: str) -> Optional[Any]:
+			from ..individuals.designation import Designation
+			return Designation.objects.filter(id=designation_id).first()
+
+		def get_employee(self, employee_id: str) -> Optional[Any]:
+			from ..individuals.employee import Employee
+			return Employee.objects.filter(id=employee_id).first()
+
+		def get_leave_type(self, leave_type_id: str) -> Optional[Any]:
+			from ..planning.leave_type import LeaveType
+			return LeaveType.objects.filter(id=leave_type_id).first()
+
+		def projects(self) -> Any:
+			return self.projects.all()
+
+		def check_project(self, project_id: str) -> Optional[str]:
+			user_project_ids = list(self.projects.values_list("id", flat=True))
+			return "Owner" if project_id in user_project_ids else None
+
+		@property
+		def img_image(self) -> str:
+			from django.core.files.storage import default_storage
+			from ..individuals.employee import Employee
+			user_detail = Employee.objects.filter(user_id=self.id).first()
+			if user_detail and user_detail.avatar:
+				return default_storage.url(user_detail.avatar.name)
+			return default_storage.url("avatar.png")
+
+		def tasks(self) -> Any:
+			from ..planning.project_task import ProjectTask
+			# user = self if getattr(self, "is_authenticated", False) else type(self).objects.get(id=self.id)
+			if self.type == "company":
+				return ProjectTask.objects.filter(created_by=self.creator_id())
+			else:
+				return ProjectTask.objects.filter(assign_to__contains=str(self.id))
+
+		def bug_number_format(self, number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['bug_prefix']}{number:05d}"
+
+		def contacts(self) -> Any:
+			from ..individuals.user_contact import UserContact
+			return UserContact.objects.filter(parent_id=self.id)
+
+		def todo(self) -> Any:
+			from ..planning.user_to_do import UserToDo
+			return UserToDo.objects.filter(user_id=self.id)
+
+		def employee_instance(self) -> Any:
+			from ..individuals.employee import Employee
+			return Employee.objects.filter(user_id=self.id).first()
+
+		def total_lead(self) -> int:
+			from ..activity.lead import Lead
+			if self.type == "company":
+				return Lead.objects.filter(created_by=self.creator_id()).count()
+			elif self.type == "client":
+				return Lead.objects.filter(client=self.auth_id()).count()
+			else:
+				return Lead.objects.filter(owner=self.auth_id()).count()
+
+		def last_project_stage(self) -> Optional[Any]:
+			from ..planning.task_stage import TaskStage
+			return TaskStage.objects.filter(created_by=self.creator_id()).order_by("-order").first()
+
+		def user_project(self) -> int:
+			from ..planning.project import Project
+			if self.type != "client":
+				return self.projects.count()
+			else:
+				return Project.objects.filter(client_id=self.auth_id()).count()
+
+		def created_total_project_task(self) -> int:
+			from ..planning.project_task import ProjectTask
+			if self.type == "company":
+				return ProjectTask.objects.filter(project__created_by=self.creator_id()).count()
+			elif self.type == "client":
+				return ProjectTask.objects.filter(project__client_id=self.auth_id()).count()
+			else:
+				return ProjectTask.objects.filter(project__projectuser__user_id=self.auth_id()).count()
+
+		def project_complete_task(self, project_last_stage: Any) -> int:
+			from ..planning.project import Project
+			from ..planning.project_task import ProjectTask
+			if self.type == "company":
+				return ProjectTask.objects.filter(project__created_by=self.creator_id(), stage_id=project_last_stage).count()
+			elif self.type == "client":
+				user_projects = Project.objects.filter(client_id=self.id).values_list("id", flat=True)
+				return ProjectTask.objects.filter(project_id__in=user_projects, stage_id=project_last_stage).count()
+			else:
+				return ProjectTask.objects.filter(project__projectuser__user_id=self.auth_id(), stage_id=project_last_stage).count()
+
+		def created_top_due_task(self) -> Any:
+			today = timezone.now().date()
+			from ..planning.project import Project
+			from ..planning.project_task import ProjectTask
+			if self.type == "company":
+				return ProjectTask.objects.filter(project__created_by=self.creator_id(), end_date__gt=today).select_related("project", "projectstage").order_by("end_date")[:5]
+			elif self.type == "client":
+				user_projects = Project.objects.filter(client_id=self.id).values_list("id", flat=True)
+				return ProjectTask.objects.filter(project_id__in=user_projects, end_date__gt=today)[:5]
+			else:
+				return ProjectTask.objects.filter(project__projectuser__user_id=self.auth_id(), end_date__gt=today).select_related("project", "projectstage").order_by("end_date")[:5]
+
+		def show_dashboard(self) -> Any:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			user = self if self.type in ["company", "super admin"] else UserModel.objects.filter(id=self.created_by).first()
+			return user.plan if user else None
+
+		@staticmethod
+		def show_crm() -> str:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			current_user = get_current_user()
+			if current_user.type in ["company", "super admin"]:
+				user = UserModel.objects.filter(id=current_user.id).first()
+			else:
+				user = UserModel.objects.filter(id=current_user.created_by).first()
+			if user and user.plan:
+				from ..planning.plan import Plan
+				plan = Plan.objects.filter(id=user.plan).first()
+				return plan.crm if plan else ""
+			return ""
+
+		@staticmethod
+		def show_hrm() -> str:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			current_user = get_current_user()
+			if current_user.type in ["company", "super admin"]:
+				user = UserModel.objects.filter(id=current_user.id).first()
+			else:
+				user = UserModel.objects.filter(id=current_user.created_by).first()
+			if user and user.plan:
+				from ..planning.plan import Plan
+				plan = Plan.objects.filter(id=user.plan).first()
+				return plan.hrm if plan else ""
+			return ""
+
+		@staticmethod
+		def show_account() -> str:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			current_user = get_current_user()
+			if current_user.type in ["company", "super admin"]:
+				user = UserModel.objects.filter(id=current_user.id).first()
+			else:
+				user = UserModel.objects.filter(id=current_user.created_by).first()
+			if user and user.plan:
+				from ..planning.plan import Plan
+				plan = Plan.objects.filter(id=user.plan).first()
+				return plan.account if plan else ""
+			return ""
+
+		@staticmethod
+		def show_project() -> str:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			current_user = get_current_user()
+			if current_user.type in ["company", "super admin"]:
+				user = UserModel.objects.filter(id=current_user.id).first()
+			else:
+				user = UserModel.objects.filter(id=current_user.created_by).first()
+			if user and user.plan:
+				from ..planning.plan import Plan
+				plan = Plan.objects.filter(id=user.plan).first()
+				return plan.project if plan else ""
+			return ""
+
+		@staticmethod
+		def show_pos() -> str:
+			from django.contrib.auth import get_user_model
+			UserModel = get_user_model()
+			current_user = get_current_user()
+			if current_user.type in ["company", "super admin"]:
+				user = UserModel.objects.filter(id=current_user.id).first()
+			else:
+				user = UserModel.objects.filter(id=current_user.created_by).first()
+			if user and user.plan:
+				from ..planning.plan import Plan
+				plan = Plan.objects.filter(id=user.plan).first()
+				return plan.pos if plan else ""
+			return ""
+
+		def client_projects(self) -> Any:
+			from ..planning.project import Project
+			return Project.objects.filter(client_id=self.id)
+
+		def is_user(self) -> int:
+			return 1 if self.type == "user" else 0
+
+		def is_client(self) -> int:
+			return 1 if self.type == "client" else 0
+
+		@staticmethod
+		def default_email() -> None:
+			email_templates = [
+				"New User",
+				"New Client",
+				"New Support Ticket",
+				"Lead Assigned",
+				"Deal Assigned",
+				"New Award",
+				"Customer Invoice Sent",
+				"New Invoice Payment",
+				"New Payment Reminder",
+				"New Bill Payment",
+				"Bill Resent",
+				"Proposal Sent",
+				"Complaint Resent",
+				"Leave Action Sent",
+				"Payslip Sent",
+				"Promotion Sent",
+				"Resignation Sent",
+				"Termination Sent",
+				"Transfer Sent",
+				"Trip Sent",
+				"Vendor Bill Sent",
+				"Warning Sent",
+				"New Contract",
+			]
+			app_name = getattr(User.settings, "APP_NAME", "MyApp")
+			from ...Models.contact.email_template import EmailTemplate
+			from ...Models.contact.email_template_lang import EmailTemplateLang
+			for e_temp in email_templates:
+				if not EmailTemplate.objects.filter(name=e_temp).exists():
+					EmailTemplate.objects.create(
+						name=e_temp,
+						from_email=app_name,
+						slug=e_temp.lower().replace(" ", "_"),
+						created_by=1,
+					)
+			# Template omitted for brevity
+				@staticmethod
+		def user_default_data() -> None:
+			from ..contact.email_template import EmailTemplate
+			from ..contact.user_email_template import UserEmailTemplate
+			for email in EmailTemplate.objects.all():
+				UserEmailTemplate.objects.create(template_id=email.id, user_id=2, is_active=True)
+
+		def user_default_data_register(self, user_id: int) -> None:
+			from ..contact.email_template import EmailTemplate
+			from ..contact.user_email_template import UserEmailTemplate
+			for email in EmailTemplate.objects.all():
+				UserEmailTemplate.objects.create(template_id=email.id, user_id=user_id, is_active=True)
+
+		@staticmethod
+		def user_default_warehouse() -> None:
+			from ..companies.warehouse import Warehouse
+			Warehouse.objects.create(
+				name="North Warehouse",
+				address="723 N. Tillamook Street Portland, OR Portland, United States",
+				city="Portland",
+				city_zip=97227,
+				created_by=2,
+			)
+
+		def user_warehouse_register(self, user_id: int) -> None:
+			from ..companies.warehouse import Warehouse
+			Warehouse.objects.create(
+				name="North Warehouse",
+				address="723 N. Tillamook Street Portland, OR Portland, United States",
+				city="Portland",
+				city_zip=97227,
+				created_by=user_id,
+			)
+
+		def user_default_bank_account(self, user_id: int) -> None:
+			from ..companies.bank_account import BankAccount
+			BankAccount.objects.create(
+				holder_name="cash",
+				bank_name="",
+				account_number="-",
+				opening_balance="0.00",
+				contact_number="-",
+				bank_address="-",
+				created_by=user_id,
+			)
+
+		def extra_keyword(self) -> List[str]:
+			from django.utils.translation import gettext as _
+			key_arr = [
+				_("Sun"),
+				_("Mon"),
+				_("Tue"),
+				_("Wed"),
+				_("Thu"),
+				_("Fri"),
+				_("Last 7 Days"),
+				_("In Progress"),
+				_("Complete"),
+				_("Canceled"),
+				_("Lead User Name"),
+				_("CRM"),
+				_("POS"),
+				_("HRM"),
+				_("Old Stage Name"),
+				_("New Stage Name"),
+				_("Contract Start Date"),
+				_("Contract Name"),
+				_("Contract Price"),
+				_("Branch Name"),
+				_("Support User Name"),
+				_("Award Date"),
+				_("Holiday Title"),
+				_("Holiday Date"),
+				_("Event Start Date"),
+				_("Company Policy Name"),
+				_("Invoice Issue Date"),
+				_("Invoice Due Date"),
+				_("Budget Name"),
+				_("Budget Year"),
+				_("Revenue Amount"),
+				_("Revenue Date"),
+				_("Payment Price"),
+				_("New User"),
+				_("Lifetime"),
+				_("Coupon"),
+				_("CoinGate"),
+				_("Cashflow"),
+			]
+			return key_arr
+
+		def barcode_format(self) -> str:
+			settings_data = Utility.settings()
+			return settings_data.get("barcode_format", "code128")
+
+		def barcode_type(self) -> str:
+			settings_data = Utility.settings()
+			return settings_data.get("barcode_type", "css")
+
+		@staticmethod
+		def employee_id_format(number: int) -> str:
+			settings_data = Utility.settings()
+			return f"{settings_data['employee_prefix']}{number:05d}"
+
+		@staticmethod
+		def user_current_location() -> Optional[Any]:
+			current_user = get_current_user()
+			if not current_user:
+				return None
+			company_id = current_user.company_id()
+			from ..shapes.location import Location
+			if current_user.user_type == "company":
+				location = Location.objects.filter(id=current_user.current_location, company_id=company_id, is_active=True).first()
+				return location.id if location else 0
+			elif current_user.user_type not in ["company", "super admin"]:
+				if current_user.current_location == 0:
+					current_user.current_location = current_user.location_id
+				location = Location.objects.filter(id=current_user.current_location, company_id=company_id).first()
+				return location.id if location else None
+
+		def count_employees(self) -> int:
+			from ..individuals.employee import Employee
+			return Employee.objects.filter(created_by=self.creator_id()).count()
+
+</user>

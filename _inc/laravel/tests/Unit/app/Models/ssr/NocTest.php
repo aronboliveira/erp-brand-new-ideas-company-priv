@@ -1,0 +1,160 @@
+<?php
+
+namespace Tests\Unit\Models;
+
+use App\Models\{Noc, Utility};
+use Illuminate\Support\Carbon;
+use Mockery;
+use Tests\TestCase;
+
+class NocTest extends TestCase
+{
+	protected function tearDown(): void
+	{
+		Mockery::close();
+		parent::tearDown();
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** The $fillable array should contain 'lang', 'content', and 'created_by'.
+	 **/
+	public function fillable_array_is_correct(): void
+	{
+		$expected = ['lang', 'content', 'created_by'];
+		$this->assertSame($expected, (new Noc)->getFillable());
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** The default 'lang' attribute on a new model instance should be 'en'.
+	 **/
+	public function default_lang_attribute_is_en(): void
+	{
+		$noc = new Noc;
+		$this->assertEquals('en', $noc->getAttribute('lang'));
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** replaceVariable() should replace {date}, {employee_name}, {designation}, and {app_name}
+	 ** using Utility::settings() when provided.
+	 **/
+	public function replace_variable_uses_settings_for_app_name_and_date_defaults(): void
+	{
+		// Freeze time to a known date
+		Carbon::setTestNow(Carbon::create(2025, 12, 31, 0, 0, 0));
+
+		// Mock Utility::settings() to return a company_name
+		Mockery::mock('alias:' . Utility::class)
+			->shouldReceive('settings')
+			->once()
+			->andReturn([
+				'company_name' => 'AcmeCorp',
+			]);
+
+		$template = 'Date: {date} | Name: {employee_name} | Title: {designation} | Company: {app_name}';
+		$inputValues = [
+			'employee_name' => 'Bob Jones',
+			'designation'   => 'Engineer',
+		];
+
+		$output = Noc::replaceVariable($template, $inputValues);
+
+		// {date} should match '2025-12-31'
+		$this->assertStringContainsString('2025-12-31', $output);
+
+		// {employee_name} replaced with 'Bob Jones'
+		$this->assertStringContainsString('Bob Jones', $output);
+
+		// {designation} replaced with 'Engineer'
+		$this->assertStringContainsString('Engineer', $output);
+
+		// {app_name} replaced with 'AcmeCorp'
+		$this->assertStringContainsString('AcmeCorp', $output);
+
+		Carbon::setTestNow(); // Clear test time
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** replaceVariable() should fall back to env('APP_NAME') when Utility::settings() does not provide company_name.
+	 **/
+	public function replace_variable_falls_back_to_env_app_name_when_no_company_name(): void
+	{
+		// Freeze time
+		Carbon::setTestNow(Carbon::create(2025, 1, 1, 0, 0, 0));
+
+		// Mock Utility::settings() to return an empty array
+		Mockery::mock('alias:' . Utility::class)
+			->shouldReceive('settings')
+			->once()
+			->andReturn([]);
+
+		// Ensure env('APP_NAME') is known; default Laravel APP_NAME is in .env, but we can assert presence
+		$fallback = config('app.name');
+
+		$template = '{app_name} started at {date}';
+		$output = Noc::replaceVariable($template, []);
+
+		// {app_name} should equal config('app.name')
+		$this->assertStringContainsString($fallback, $output);
+
+		// {date} should match '2025-01-01'
+		$this->assertStringContainsString('2025-01-01', $output);
+
+		Carbon::setTestNow();
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** defaultNocCertificate() should call create() once per language (16 languages).
+	 **/
+	public function default_noc_certificate_creates_expected_number_of_records(): void
+	{
+		// Count of languages defined in defaultNocCertificate: 16
+		$creator = Mockery::mock('alias:' . Noc::class)
+			->shouldAllowMockingProtectedMethods()
+			->shouldReceive('create')
+			->times(16)
+			->andReturnUsing(function ($attrs) {
+				$this->assertArrayHasKey('lang', $attrs);
+				$this->assertArrayHasKey('content', $attrs);
+				$this->assertArrayHasKey('created_by', $attrs);
+				return new Noc($attrs);
+			});
+
+		// Invoke the method
+		Noc::defaultNocCertificate();
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** defaultNocCertificateRegister() should call create() once per language (16 languages) with provided user_id.
+	 **/
+	public function default_noc_certificate_register_creates_expected_number_of_records(): void
+	{
+		// Use a sample user ID
+		$userId = 42;
+
+		$creator = Mockery::mock('alias:' . Noc::class)
+			->shouldAllowMockingProtectedMethods()
+			->shouldReceive('create')
+			->times(16)
+			->andReturnUsing(function ($attrs) use ($userId) {
+				$this->assertEquals($userId, $attrs['created_by']);
+				$this->assertArrayHasKey('lang', $attrs);
+				$this->assertArrayHasKey('content', $attrs);
+				return new Noc($attrs);
+			});
+
+		// Invoke the method
+		Noc::defaultNocCertificateRegister($userId);
+	}
+}

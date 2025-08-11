@@ -1,0 +1,84 @@
+<?php
+
+namespace Tests\Unit\Models;
+
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\{Auth, Route};
+use App\Models\{Notification, User};
+
+class NotificationTest extends TestCase
+{
+	use RefreshDatabase;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+
+		// Create a dummy named route for deals.show used in toHtml()
+		Route::get('/deals/{id}', fn ($id) => 'deal')->name('deals.show');
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** The Notification model has the expected fillable fields.
+	 **/
+	public function it_has_expected_fillable_fields()
+	{
+		$expected = ['user_id', 'type', 'data', 'is_read'];
+		$this->assertEquals($expected, (new Notification())->getFillable());
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** toHtml() returns an empty string when data has no updated_by.
+	 **/
+	public function to_html_returns_empty_without_updated_by()
+	{
+		$notif = Notification::create([
+			'user_id' => 1,
+			'type'    => 'assign_deal',
+			'data'    => json_encode([]),
+			'is_read' => false,
+		]);
+
+		$this->assertSame('', $notif->toHtml());
+	}
+
+	/**
+	 ** @test
+	 **
+	 ** toHtml() generates the correct HTML for an 'assign_deal' notification.
+	 **/
+	public function to_html_generates_assign_deal_markup()
+	{
+		// Create and authenticate a user who is the updater
+		$user = User::factory()->create(['name' => 'Alice']);
+		Auth::login($user);
+
+		$dealId = 42;
+		$notif = Notification::create([
+			'user_id' => 1,
+			'type'    => 'assign_deal',
+			'data'    => json_encode([
+				'updated_by' => $user?->id,
+				'deal_id'    => $dealId,
+				'name'       => 'Important Deal'
+			]),
+			'is_read' => false,
+		]);
+
+		$html = $notif->toHtml();
+
+		// Should contain a link to the deal
+		$this->assertStringContainsString("/deals/{$dealId}", $html);
+		// Should include the user's name and notification text
+		$this->assertStringContainsString('Alice', $html);
+		$this->assertStringContainsString('Added you', $html);
+		$this->assertStringContainsString('<b class=\'font-weight-bold\'>Important Deal</b>', $html);
+		// Should wrap in an anchor tag
+		$this->assertStringStartsWith('<a href=', trim($html));
+	}
+}

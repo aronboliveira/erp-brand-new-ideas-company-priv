@@ -1,0 +1,41 @@
+{
+  "controllers": {
+    "searchs": {
+      "php": {
+        "pubFunctions": "public\s+(?:static\s+)?function\s+",
+        "snakeCased": "r'\$(?:bug_status(?:es)?)\s*='",
+        "avoidStringsOrProps": "(?<![$>|'])bug_status",
+        "intId": "\$table->bigIncrements\('id'\);",
+        "gSearchs": {
+          "use Illuminate\Database\Eloquent\{Model, Relations\HasOne};": ["use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;", "use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Model;"],
+          "use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};": ["use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;", "use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Model;"],
+          "use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};": ["use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;", "use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;"]
+        }
+      },
+      "python": {
+        "foreignReferences: "models\.ForeignKey\([\n\s]*([A-Z]+)",
+        "defPrimary": "primary_key=True, \*\*uuid_def_primary\(\)",
+        "@Controller": "['"][A-Z].*controller@",
+        "basicSearch": "\s*\n+class (\S*)Controller:",
+        "viewedSearch": "\s*\n+class (\S*)Controller\(View\):",
+        "indexed": "from\s\.+(?:Models|Entities|factories|migrations|seeders|Exceptions|Controllers|Middlewares|Requests|Providers)\simport\s.*[;\n]",
+        "indexed_2": "from\s\.+(?:Models|Entities|factories|migrations|seeders|Exceptions|Controllers|Middlewares|Requests|Providers)\simport\s.*[;\n]",
+        "indexed_3": "from\s\.+(?:activity|bills|bugs|charts|companies|configs|contact|individuals|info|planning|products|shapes|ssr|utils|_helpers)\s+import\s+.+",
+        "indexed_4: "from\s+\.+Models\.(?:activity|bills|bugs|charts|companies|configs|contact|individuals|info|planning|products|shapes|ssr|utils|_helpers)\s+import\s+.+"
+        "incorrectUtilityImport": "(?<!django\.)(?:utils|utility)\s+import\s+(?!Utility)"
+      }
+      "css": {
+        "singleClass": "class="[^"]*(?<=[\s"])(?<!-)container(?!-)(?=[\s"])[^"]*"
+      }
+    }
+    "replaces": {
+      "basicReplace": "\nfrom .._traits.controller import Controller\nclass $1Controller(Controller):"
+    }
+  }
+}

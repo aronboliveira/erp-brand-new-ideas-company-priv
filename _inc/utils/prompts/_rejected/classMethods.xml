@@ -1,0 +1,99 @@
+<instructions>
+	- Convert the static methods into class methods
+	- If you see a repetitive block of code for the creation and setting of an instance, create a new private
+			method as "_set_[name of the class]" in the class and use it
+	- Optimize brevity of code replacing repetitive lines (ex.: assigning many attrs sequentially
+			or constructing strings with visible patterns) with iterative procedures
+	- Adjust these new class methods to use cls instead of self or an assigned self
+	- Correct the anonymous __class__.__name__ for using cls.__name__ or (self.__class__.__name__ in instance methods)
+	- Adjust all strings that call method names (as harcoded strings) to use {inspect.currentframe().f_code.co_name} or the {traceback.extract_stack()} (store it in an acronomy for brevity);
+	- Adjust all strings that call class names (as hardcoded strings) to use __class__.__name__ (store it in an acronomy constant for brevity), chaining with self, cls or none depending if its a instance method, class method or static method
+	- Store the class name and inspect.currentframe().f_code_co_name in acronym constants for brevity
+	- DON'T add comments to write after
+	- Replace blocks such as this:
+
+	<replacement>
+		<block>
+					logger.error(f"LeadController::index failed to authorize user: {e}")
+					messages.error(request, get_exception_class_message(PermissionDenied, __class__.__name__))
+					return redirect(get_redirect_url(request))
+		<block/>
+
+		with this:
+
+		<block>
+					default_permission_denial(request, err=e, 
+																		ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}', 
+																		logger=logger)
+
+		</block>
+
+		AND
+
+		Blocks such as this:
+		<block>
+					logger.error(f"LeadController::index failed preparing data: {e}")
+					messages.error(request,'An error occurred.')
+					return redirect(get_redirect_url(request))
+		</block>
+
+		with
+
+		<block>
+					default_undefined_exception(request, err=e, 
+																			ref=f'{cls.__name__}::{inspect.currentframe().f_code.co_name}', 
+																			logger=logger)
+		</block>
+
+		Here are the methods for reference, if arguments need to be changed (such as redirect paths):
+		<errorHandlers>
+
+				from typing import Any, Union, Dict
+				from django.contrib import messages
+				from django.http import (HttpRequest, HttpResponseRedirect, 
+																HttpResponsePermanentRedirect, JsonResponse)
+				from django.shortcuts import redirect
+				from ....configs.messages_templates import get_exception_class_message
+				from .http import get_redirect_url
+				import logging
+				error_logger = logging.getLogger(__name__)
+				def default_permission_denial(request: HttpRequest,
+																			err: Any,
+																			ref: str = '#UNDEFINED_REFERENCE',
+																			logger: logging.Logger = error_logger,
+																			redirect_path: str = '/',
+																			auto_redirect: bool = True,
+																			json: Dict[str, Any] = None) -> Union[HttpResponseRedirect, 
+																																					HttpResponsePermanentRedirect,
+																																					JsonResponse,
+																																					None]:
+					from django.core.exceptions import PermissionDenied
+					logger.error(f'{ref} denied permission: {err}')
+					messages.error(request, get_exception_class_message(PermissionDenied, ref))
+					if json:
+						return JsonResponse({'error': 'Permission denied.'}, status=401)
+					return redirect(get_redirect_url(request, redirect_path)) if auto_redirect else None
+
+				def default_undefined_exception(request: HttpRequest,
+																				err: Any,
+																				ref: str = '#UNDEFINED_REFERENCE',
+																				logger: logging.Logger = error_logger,
+																				redirect_path: str = '/',
+																				auto_redirect: bool = True,
+																				json: Dict[str, Any] = None,
+																				status: int = 500) -> Union[HttpResponseRedirect,
+																																						HttpResponsePermanentRedirect,
+																																						JsonResponse,
+																																						None]:
+					logger.error(f'{ref} raised an undefined error: {err}')
+					messages.error(request, f'An undefined error was raised: {err}')
+					if json:
+						return JsonResponse({'error': json}, status=status)
+					return redirect(get_redirect_url(request, redirect_path)) if auto_redirect else None
+
+		</errorHandlers>
+	</replacement>
+
+	- DON'T CHANGE ANYTHING IN THE CODE BESIDES WHAT WAS ASKED, EVEN IF IT'S WRONG, just appy the class/method name acronyms and calls
+	- If you spot errors, comment them as TODOS only
+</instructions>

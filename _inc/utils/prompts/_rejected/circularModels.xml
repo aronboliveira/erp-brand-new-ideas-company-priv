@@ -1,0 +1,9 @@
+<circularModelReferences>
+	<context> If a class import a key class, then the value classes should be lazy to avoid circular references error</context>
+	<dict>
+		- User: [Utility];
+		- Lead: [User, Pipeline, LeadStage];
+		- Employee: [Branch, Department, Designation, PayslipType];
+		
+	</dict>
+</circularModelReferences>

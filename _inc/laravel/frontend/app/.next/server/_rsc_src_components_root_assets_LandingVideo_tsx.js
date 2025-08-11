@@ -1,0 +1,25 @@
+"use strict";
+/*
+ * ATTENTION: An "eval-source-map" devtool has been used.
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file with attached SourceMaps in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+exports.id = "_rsc_src_components_root_assets_LandingVideo_tsx";
+exports.ids = ["_rsc_src_components_root_assets_LandingVideo_tsx"];
+exports.modules = {
+
+/***/ "(rsc)/./src/components/root/assets/LandingVideo.tsx":
+/*!*****************************************************!*\
+  !*** ./src/components/root/assets/LandingVideo.tsx ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ LandingVideo)\n/* harmony export */ });\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-dev-runtime */ \"(rsc)/./node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js\");\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction LandingVideo() {\n    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"video\", {\n        preload: \"metadata\",\n        controls: true,\n        controlsList: \"nodownload nofullscreen\",\n        autoPlay: true,\n        muted: true,\n        playsInline: true,\n        loop: true,\n        crossOrigin: \"anonymous\",\n        disablePictureInPicture: true,\n        style: {\n            maxWidth: \"50vw\",\n            borderRadius: \"0.5rem\",\n            marginLeft: \"1rem\"\n        },\n        children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"source\", {\n            src: \"/cybersecurity_analist.webm\"\n        }, void 0, false, {\n            fileName: \"C:\\\\Users\\\\Aron\\\\Desktop\\\\P\\\\Prestech\\\\erp\\\\erpgo-fork\\\\erp_prestech\\\\_inc\\\\laravel\\\\frontend\\\\src\\\\components\\\\root\\\\assets\\\\LandingVideo.tsx\",\n            lineNumber: 20,\n            columnNumber: 7\n        }, this)\n    }, void 0, false, {\n        fileName: \"C:\\\\Users\\\\Aron\\\\Desktop\\\\P\\\\Prestech\\\\erp\\\\erpgo-fork\\\\erp_prestech\\\\_inc\\\\laravel\\\\frontend\\\\src\\\\components\\\\root\\\\assets\\\\LandingVideo.tsx\",\n        lineNumber: 4,\n        columnNumber: 5\n    }, this);\n}\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHJzYykvLi9zcmMvY29tcG9uZW50cy9yb290L2Fzc2V0cy9MYW5kaW5nVmlkZW8udHN4IiwibWFwcGluZ3MiOiI7Ozs7Ozs7QUFDZSxTQUFTQTtJQUN0QixxQkFDRSw4REFBQ0M7UUFDQ0MsU0FBUTtRQUNSQyxRQUFRO1FBQ1JDLGNBQWE7UUFDYkMsUUFBUTtRQUNSQyxLQUFLO1FBQ0xDLFdBQVc7UUFDWEMsSUFBSTtRQUNKQyxhQUFZO1FBQ1pDLHVCQUF1QjtRQUN2QkMsT0FBTztZQUNMQyxVQUFVO1lBQ1ZDLGNBQWM7WUFDZEMsWUFBWTtRQUNkO2tCQUVBLDRFQUFDQztZQUFPQyxLQUFJOzs7Ozs7Ozs7OztBQUdsQiIsInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxBcm9uXFxEZXNrdG9wXFxQXFxQcmVzdGVjaFxcZXJwXFxlcnBnby1mb3JrXFxlcnBfcHJlc3RlY2hcXF9pbmNcXGxhcmF2ZWxcXGZyb250ZW5kXFxzcmNcXGNvbXBvbmVudHNcXHJvb3RcXGFzc2V0c1xcTGFuZGluZ1ZpZGVvLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBKU1ggfSBmcm9tIFwicmVhY3RcIjtcclxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gTGFuZGluZ1ZpZGVvKCk6IEpTWC5FbGVtZW50IHtcclxuICByZXR1cm4gKFxyXG4gICAgPHZpZGVvXHJcbiAgICAgIHByZWxvYWQ9J21ldGFkYXRhJ1xyXG4gICAgICBjb250cm9sc1xyXG4gICAgICBjb250cm9sc0xpc3Q9J25vZG93bmxvYWQgbm9mdWxsc2NyZWVuJ1xyXG4gICAgICBhdXRvUGxheVxyXG4gICAgICBtdXRlZFxyXG4gICAgICBwbGF5c0lubGluZVxyXG4gICAgICBsb29wXHJcbiAgICAgIGNyb3NzT3JpZ2luPSdhbm9ueW1vdXMnXHJcbiAgICAgIGRpc2FibGVQaWN0dXJlSW5QaWN0dXJlXHJcbiAgICAgIHN0eWxlPXt7XHJcbiAgICAgICAgbWF4V2lkdGg6IFwiNTB2d1wiLFxyXG4gICAgICAgIGJvcmRlclJhZGl1czogXCIwLjVyZW1cIixcclxuICAgICAgICBtYXJnaW5MZWZ0OiBcIjFyZW1cIixcclxuICAgICAgfX1cclxuICAgID5cclxuICAgICAgPHNvdXJjZSBzcmM9Jy9jeWJlcnNlY3VyaXR5X2FuYWxpc3Qud2VibSc+PC9zb3VyY2U+XHJcbiAgICA8L3ZpZGVvPlxyXG4gICk7XHJcbn1cclxuIl0sIm5hbWVzIjpbIkxhbmRpbmdWaWRlbyIsInZpZGVvIiwicHJlbG9hZCIsImNvbnRyb2xzIiwiY29udHJvbHNMaXN0IiwiYXV0b1BsYXkiLCJtdXRlZCIsInBsYXlzSW5saW5lIiwibG9vcCIsImNyb3NzT3JpZ2luIiwiZGlzYWJsZVBpY3R1cmVJblBpY3R1cmUiLCJzdHlsZSIsIm1heFdpZHRoIiwiYm9yZGVyUmFkaXVzIiwibWFyZ2luTGVmdCIsInNvdXJjZSIsInNyYyJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///(rsc)/./src/components/root/assets/LandingVideo.tsx\n");
+
+/***/ })
+
+};
+;

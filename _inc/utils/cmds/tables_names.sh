@@ -1,0 +1,1 @@
+ls database/migrations | awk '{gsub(/[0-9]+/, ""); print}' | awk '{gsub(/_/, "-"); print}' | awk '{gsub(/-{2,}/, ""); print}' | awk '{gsub(/create\-/,""); print}'

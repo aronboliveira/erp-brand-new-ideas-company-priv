@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Config\Constants;
+
+class UsersConstants
+{
+	public const COL_NM = 'name';
+	public const COL_EM = 'email';
+	public const COL_PW = 'password';
+	public const COL_EM_V_AT = 'email_verified_at';
+	public const COL_TP = 'type';
+	public const COL_C_AT = 'created_at';
+	public const COL_U_AT = 'updated_at';
+	public const COL_SL = 'storage_limit';
+	public const COL_AV = 'avatar';
+	public const COL_MC = 'messenger_color';
+	public const COL_LG = 'lang';
+	public const COL_DPL = 'default_pipeline';
+	public const COL_A_ST = 'active_status';
+	public const COL_D_ST = 'delete_status';
+	public const COL_MD = 'mode';
+	public const COL_DM = 'dark_mode';
+	public const COL_IA = 'is_active';
+	public const COL_IB = 'is_banned';
+	public const COL_LLA = 'last_login_at';
+	public const COL_PL = 'plan';
+	public const COL_PED = self::COL_PL . '_expire_date';
+	public const COL_RP = 'requested_' . self::COL_PL;
+	public const COL_USER_ID = 'user_id';
+	public const COL_EMP_ID = 'employee_id';
+	public const COL_PLAN_ID = 'plan_id';
+	public const COL_PLAN_NM = 'plan_name';
+	public const COL_BRC_ID = 'branch_id';
+	public const COL_DEP_ID = 'department_id';
+	public const COL_DSG_ID = 'designation_id';
+	public const COL_TAX_ID = 'tax_payer_id';
+	public const COL_DSG_NM = 'name';
+	public const COL_SLR = 'salary';
+	public const COL_SLR_TP = 'salary_type';
+	public const COL_RT = 'remember_token';
+	public const TP_CT = 'contact';
+	public const COL_TEL = 'phone';
+	public const COL_ADR = 'address';
+	public const COL_IU = 'is_user';
+	public const COL_MSG_CL = 'messenger_color';
+	public const COL_DEL_STT = 'delete_status';
+}

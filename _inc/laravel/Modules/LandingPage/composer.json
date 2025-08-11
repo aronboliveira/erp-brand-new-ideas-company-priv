@@ -1,0 +1,30 @@
+{
+  "name": "nwidart/landingpage",
+  "description": "",
+  "authors": [
+    {
+      "name": "Nicolas Widart",
+      "email": "n.widart@gmail.com"
+    }
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Modules\\LandingPage\\": "",
+      "Modules\\LandingPage\\Config\\Constants\\": [
+        "Modules/LandingPage/Config/Constants"
+      ],
+      "Modules\\LandingPage\\Database\\Factories\\": [
+        "Modules/LandingPage/Database/Factories"
+      ],
+      "Modules\\LandingPage\\Entities\\": [
+        "Modules/LandingPage/Entities"
+      ]
+    }
+  }
+}

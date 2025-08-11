@@ -1,0 +1,443 @@
+<task>
+	Considering 
+
+	namespace App\Http\Controllers;
+
+	use Illuminate\Contracts\Validation\Factory;
+	use Illuminate\Foundation\{
+			Auth\Access\AuthorizesRequests,
+			Bus\DispatchesJobs,
+			Precognition,
+			// Validation\ValidatesRequests
+	};
+	use Illuminate\Http\Request;
+	use Illuminate\Routing\Controller as BaseController;
+	use Illuminate\Support\Facades\{Log, Route};
+	use Illuminate\Support\Str;
+	use Illuminate\Validation\{ValidationException, Validator};
+
+	abstract class Controller extends BaseController
+	{
+			use AuthorizesRequests, DispatchesJobs;
+			private const FAILURES = 'validation_failures';
+			protected const NOTICE_THRESHOLD_MS   = 50;
+			protected const WARNING_THRESHOLD_MS  = 150;
+			protected const CRITICAL_THRESHOLD_MS = 300;
+
+			/**
+			* Validate the given request with the given rules.1
+			*
+			* @param  Request  $request
+			* @param  array  $rules
+			* @param  array  $messages
+			* @param  array  $attributes
+			* @return ?array
+			*
+			* @throws ValidationException
+			*/
+			public function validate(Request $request, array $rules, array $messages = [], array $attributes = [], ?bool $shouldRedirect = true)
+			{
+					$method = __CLASS__ . '::' . __FUNCTION__;
+					Log::debug("$method - start", [
+							'input_keys' => array_keys($request->all()),
+							'rules'      => $rules,
+							'messages'   => $messages,
+							'attributes' => $attributes,
+					]);
+					$validator = $this->getValidationFactory()->make(
+							$request->all(),
+							$rules,
+							$messages,
+							$attributes
+					);
+					if ($request->isPrecognitive() && $validator instanceof Validator) {
+							Log::debug("$method - applying precognitive hooks", [
+									'rules_before' => $validator->getRulesWithoutPlaceholders()
+							]);
+							$validator->after(Precognition::afterValidationHook($request))
+									->setRules($request->filterPrecognitiveRules(
+											$validator->getRulesWithoutPlaceholders()
+									));
+					}
+					try {
+							$result = $validator->validate();
+							Log::debug("$method - validation passed", ['validated' => $result]);
+							session()->forget(self::FAILURES);
+							return $result;
+					} catch (ValidationException $e) {
+							$attempts = session()->increment(self::FAILURES, 1);
+							Log::warning("$method - validation failed", [
+									'main_error' => $e->getMessage(),
+									'errors' => $e->validator->errors()->all(),
+									'input_keys' => array_keys($request->all()),
+									'rules'      => $rules,
+									'status'    => '401'
+							]);
+							if (!$shouldRedirect || Route::is('login')) {
+									if ($attempts >= 5) {
+											Log::error("$method - too many validation attempts ({$attempts}), aborting");
+											abort(429, 'Too many attempts. Please try again later.');
+									}
+									$uuid = Str::uuid();
+									$msg = implode('\n', $e->validator->errors()->all());
+									echo <<<HTML
+									<script id="err-login-{$uuid}">
+										alert("Validation failed:\\n{$msg}");c
+										console.error('Validation failed: {$msg}');
+										setTimeout(function(){
+											var el = document.getElementById("err-{$uuid}");
+											if(el) el.remove();
+										}, 15000);
+									</script>
+									HTML;
+									return;
+							}
+							return redirect()->route('login')
+									->withErrors($e->validator)->withInput($request->except('passwords'));
+					} catch (\Throwable $e) {
+							$attempts = session()->increment(self::FAILURES, 1);
+							Log::error("$method - unexpected error during validation", [
+									'error' => $e->getMessage(),
+									'trace' => $e->getTraceAsString(),
+									'status' => '500'
+							]);
+							if (!$shouldRedirect || Route::is('login')) {
+									if ($attempts >= 5) {
+											Log::error("$method - too many validation attempts ({$attempts}), aborting");
+											abort(429, 'Too many attempts. Please try again later.');
+									}
+									$uuid = Str::uuid();
+									echo <<<HTML
+									<script id="err-login-{$uuid}">
+											alert('An unexpected error occurred: {$e->getMessage()}');
+											console.error('Validation failed: {$e->getMessage()}');
+											setTimeout(function(){
+											var el = document.getElementById("err-{$uuid}");
+											if(el) el.remove();
+										}, 15000);
+									</script>
+									HTML;
+									return;
+							}
+							return redirect()->route('login')
+									->with('error', 'An unexpected error occurred. Please try again later.');
+					}
+			}
+
+			/**
+			* Validate the given request with the given rules.
+			*
+			* @param  string  $errorBag
+			* @param  Request  $request
+			* @param  array  $rules
+			* @param  array  $messages
+			* @param  array  $attributes
+			* @return ?array
+			*
+			* @throws ValidationException
+			*/
+			public function validateWithBag($errorBag, Request $request, array $rules, array $messages = [], array $attributes = [], ?bool $shouldRedirect = true)
+			{
+					$method = __CLASS__ . '::' . __FUNCTION__;
+					Log::debug("$method - start", [
+							'input_keys' => array_keys($request->all()),
+							'rules'      => $rules,
+							'messages'   => $messages,
+							'attributes' => $attributes,
+					]);
+					$validator = $this->getValidationFactory()->make(
+							$request->all(),
+							$rules,
+							$messages,
+							$attributes
+					);
+					if ($request->isPrecognitive() && $validator instanceof Validator) {
+							Log::debug("$method - applying precognitive hooks", [
+									'rules_before' => $validator->getRulesWithoutPlaceholders()
+							]);
+							$validator->after(Precognition::afterValidationHook($request))
+									->setRules($request->filterPrecognitiveRules(
+											$validator->getRulesWithoutPlaceholders()
+									));
+					}
+					try {
+							$result = $validator->validate();
+							Log::debug("$method - validation passed", ['validated' => $result]);
+							session()->forget(self::FAILURES);
+							return $result;
+					} catch (ValidationException $e) {
+							$attempts = session()->increment(self::FAILURES, 1);
+							Log::warning("$method - validation failed", [
+									'main_error' => $e->getMessage(),
+									'errors' => $e->validator->errors()->all(),
+									'input_keys' => array_keys($request->all()),
+									'rules'      => $rules,
+									'status'    => '401',
+									'error_bag' => $errorBag,
+							]);
+							if (!$shouldRedirect || Route::is('login')) {
+									if ($attempts >= 5) {
+											Log::error("$method - too many validation attempts ({$attempts}), aborting");
+											abort(429, 'Too many attempts. Please try again later.');
+									}
+									$uuid = Str::uuid();
+									$msg = implode('\n', $e->validator->errors()->all());
+									echo <<<HTML
+									<script id="err-login-{$uuid}">
+										alert("Validation failed:\\n{$msg}");c
+										console.error('Validation failed: {$msg}');
+										setTimeout(function(){
+											var el = document.getElementById("err-{$uuid}");
+											if(el) el.remove();
+										}, 15000);
+									</script>
+									HTML;
+									$e->errorBag = $errorBag;
+									throw $e;
+							}
+							return redirect()->route('login')
+									->withErrors($e->validator)->withInput($request->except('passwords'));
+					} catch (\Throwable $e) {
+							$attempts = session()->increment(self::FAILURES, 1);
+							Log::error("$method - unexpected error during validation", [
+									'error' => $e->getMessage(),
+									'trace' => $e->getTraceAsString(),
+									'status' => '500',
+									'error_bag' => $errorBag,
+							]);
+							if (!$shouldRedirect || Route::is('login')) {
+									if ($attempts >= 5) {
+											Log::error("$method - too many validation attempts ({$attempts}), aborting");
+											abort(429, 'Too many attempts. Please try again later.');
+									}
+									$uuid = Str::uuid();
+									echo <<<HTML
+									<script id="err-login-{$uuid}">
+											alert('An unexpected error occurred: {$e->getMessage()}');
+											console.error('Validation failed: {$e->getMessage()}');
+											setTimeout(function(){
+											var el = document.getElementById("err-{$uuid}");
+											if(el) el.remove();
+										}, 15000);
+									</script>
+									HTML;
+									$e->errorBag = $errorBag;
+									throw $e;
+							}
+							return redirect()->route('login')
+									->with('error', 'An unexpected error occurred. Please try again later.');
+					}
+			}
+
+			/**
+			* Get a validation factory instance.
+			*
+			* @return \Illuminate\Contracts\Validation\Factory
+			*/
+			protected function getValidationFactory()
+			{
+					return app(Factory::class);
+			}
+
+			/**
+			* Run the validation routine against the given validator.
+			*
+			* @param  \Illuminate\Contracts\Validation\Validator|array  $validator
+			* @param  \Illuminate\Http\Request|null  $request
+			* @return ?array
+			*
+			* @throws \Illuminate\Validation\ValidationException
+			*/
+			public function validateWith($validator, ?Request $request = null)
+			{
+					Log::info('Called ' . __FUNCTION__, [
+							'validator' => is_array($validator) ? 'array' : get_class($validator),
+							'request' => $request ? $request->all() : 'null'
+					]);
+					$request = $request ?: request();
+					if (is_array($validator))
+							$validator = $this->getValidationFactory()->make($request->all(), $validator);
+					if ($request->isPrecognitive() && $validator instanceof Validator) {
+							$validator->after(Precognition::afterValidationHook($request))
+									->setRules(
+											$request->filterPrecognitiveRules($validator->getRulesWithoutPlaceholders())
+									);
+					}
+					return $validator->validate();
+			}
+
+			/**
+			* Wrap every controller action to measure and log execution time.
+			*/
+			public function callAction($method, $parameters)
+			{
+					return $this->measure($method, fn () => parent::callAction($method, $parameters), $parameters);
+			}
+
+			/**
+			* Measure and log the given callback as a controller action.
+			*
+			* @param  string   $action     The method name being executed
+			* @param  \Closure $callback   The actual action invocation
+			* @param  array    $parameters The action parameters
+			* @return mixed
+			*/
+			public function measure(string $action, \Closure $callback, array $parameters = [])
+			{
+					$class = static::class;
+					$start = microtime(true);
+					try {
+							$response = $callback();
+					} catch (\Throwable $e) {
+							$this->logExecutionTime($start, $action, 'exception');
+							Log::error("{$class}::{$action} threw exception", [
+									'exception' => get_class($e),
+									'message'   => $e->getMessage(),
+									'params'    => $parameters
+							]);
+							throw $e;
+					}
+					$this->logExecutionTime($start, $action, 'completed');
+					return $response;
+			}
+
+			/**
+			* Perform the threshold checks and emit notice/warning/critical.
+			*/
+			protected function logExecutionTime(float $startTime, string $action, string $result): void
+			{
+					$class         = static::class;
+					$executionTime = round((microtime(true) - $startTime) * 1000, 2);
+					$memoryNow     = memory_get_usage();
+					$memoryPeak    = memory_get_peak_usage();
+					$context = [
+							'action'                   => $action,
+							'execution_time_ms'        => $executionTime,
+							'memory_usage_bytes'       => $memoryNow,
+							'memory_peak_usage_bytes'  => $memoryPeak,
+							'result'                   => $result,
+							'thresholds_ms'            => [
+									'notice'   => self::NOTICE_THRESHOLD_MS,
+									'warning'  => self::WARNING_THRESHOLD_MS,
+									'critical' => self::CRITICAL_THRESHOLD_MS,
+							],
+					];
+					Log::info("{$class} action '{$action}' executed", $context);
+					if ($executionTime > self::CRITICAL_THRESHOLD_MS) {
+							Log::critical("{$class}::{$action} extremely slow (> {$context['thresholds_ms']['critical']} ms)", $context);
+							return;
+					}
+					if ($executionTime > self::WARNING_THRESHOLD_MS) {
+							Log::warning("{$class}::{$action} slow (> {$context['thresholds_ms']['warning']} ms)", $context);
+							return;
+					}
+					if ($executionTime > self::NOTICE_THRESHOLD_MS) {
+							Log::notice("{$class}::{$action} above expected (> {$context['thresholds_ms']['notice']} ms)", $context);
+					}
+			}
+	}
+
+	----
+
+	Adjust the methods I will be giving you to:
+
+	- Use dynamic variables for naming (class names, functions, etc.) as much as possible, storing scoped magic values such as __FUNCTION__ and __METHOD__ 
+			as variables at the start of the method to be passed accross the scopes;
+	- Call $this->measureProfile for controller methods, and $this->measure for middlewares method at the main scope of the method and logExecutionTime for critical steps
+	- Give more well detailed logs for error cases (with ::debug, in a separate call), facilitating latter debugging
+	- Consider this example for inference:
+			```
+				public const SHW_LG_FM = 'showLoginForm';
+				public function showLoginForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+				{
+					$action = __FUNCTION__;
+					return $this->measureProfile($action, function () use ($lang, $action) {
+						$output = new ConsoleOutput();
+						$base   = class_basename(static::class);
+						$msg    = 'Starting login form';
+						app()->runningInConsole()
+							? $output->writeln("<info>{$msg}</info>")
+							: $output->writeln("## {$base}: {$msg}");
+						Log::info("[{$base}::{$action}] starting", ['lang_param' => $lang]);
+						try {
+							$langMsg = 'Processing language';
+							app()->runningInConsole()
+								? $output->writeln("<comment>{$langMsg}</comment>")
+								: $output->writeln("## {$base}: {$langMsg}");
+							Log::info("[{$base}::{$action}] processing language parameter", ['original_lang' => $lang]);
+							$lang = self::_setLocale($lang);
+							$localeMsg = 'Locale set';
+							app()->runningInConsole()
+								? $output->writeln("<info>{$localeMsg}</info>")
+								: $output->writeln("## {$base}: {$localeMsg}");
+							Log::info("[{$base}::{$action}] locale configuration completed", ['final_lang' => $lang]);
+							$settingsMsg = 'Loading settings';
+							app()->runningInConsole()
+								? $output->writeln("<comment>{$settingsMsg}</comment>")
+								: $output->writeln("## {$base}: {$settingsMsg}");
+							Log::info("[{$base}::{$action}] retrieving application settings");
+							$settings = Utility::settings();
+							$viewMsg = 'Rendering view';
+							app()->runningInConsole()
+								? $output->writeln("<info>{$viewMsg}</info>")
+								: $output->writeln("## {$base}: {$viewMsg}");
+							$viewPath = self::SINGULAR . '.login';
+							Log::info("[{$base}::{$action}] rendering login view", [
+								'view_path'    => $viewPath,
+								'compact_vars' => [DatabaseConstants::DEFAULT_LANG, DatabaseConstants::TABLE_SETTINGS]
+							]);
+							$successMsg = "Login form ready for {$viewPath}";
+							app()->runningInConsole()
+								? $output->writeln("<info>{$successMsg}</info>")
+								: $output->writeln("## {$base}: {$successMsg}");
+							if (!ViewFacade::exists($viewPath)) {
+								$route = Route::getCurrentRoute()?->getName() ?? 'UNDEFINED ROUTE';
+								$err   = "Tried to render non-existent view [{$viewPath}] for {$route}";
+								Log::error("[{$base}::{$action}] {$err}", [DatabaseConstants::DEFAULT_LANG => $lang]);
+								$output->writeln($err);
+								return response()->json([
+									'error'   => "View [{$viewPath}] does not exist",
+									'message' => 'Not found',
+									'code'    => '404'
+								], 404);
+							}
+							Log::info("[{$base}::{$action}] login form view created successfully");
+							return view($viewPath, [
+								DatabaseConstants::DEFAULT_LANG   => $lang,
+								DatabaseConstants::TABLE_SETTINGS => $settings,
+							]);
+						} catch (\Exception $e) {
+							$errorMsg = 'Login form failed';
+							app()->runningInConsole()
+								? $output->writeln("<error>{$errorMsg}: {$e->getMessage()}</error>")
+								: $output->writeln("## {$base} ERROR: {$errorMsg}");
+							Log::error("[{$base}::{$action}] error in showLoginForm", [
+								'error'      => $e->getMessage(),
+								'file'       => $e->getFile(),
+								'line'       => $e->getLine(),
+								'lang_param' => $lang
+							]);
+							return response()->json([
+								'error'   => "View [{$viewPath}] failed to load",
+								'message' => 'Server unexpected error: ' . $e->getMessage(),
+								'code'    => '500'
+							], 500);
+						}
+					}, ['lang' => $lang]);
+				}
+			```
+
+	<IMPORTANT>
+		- Don't change ANYTHING in the procedures besides what was asked;
+		- Use only single newline between statements/lines, never double or more;
+		- Omit brackets when possible;
+		- Do any comments, EXCEPT to highlight critical points of failures, and precced then with // !
+		- Do not call "use" in any capacity, just comment the imports as suggestions;
+		- Omit brackets for one line blocks;
+		- NEVER use dynamic/magic variables (e.g.: __FUNCTION__) inside of the closure declaration. If these are used (as it should be in most cases), store these as variables right at the beginning of the method body;
+		- In case of controllers, always add a check to see if the View::exists; if it doesn't, just move the user back to where he was, and include a with() describing the 404 as ("HTTP 404: Page ${/* View Name Alias or URL */} not found!");
+		- The import comments should always be added before the function signature, not inside the body
+	</IMPORTANT>
+</task>
+
+- METHOD:

@@ -1,0 +1,56 @@
+
+<?php
+
+use App\Config\Constants\DatabaseConstants;
+use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
+use Illuminate\Support\Facades\{Log, Schema};
+
+class CreateFormFieldsTable extends Migration
+{
+    private const TABLE = 'form_fields';
+    private const COL_FORM = 'form_id';
+    private const COL_CREATOR = DatabaseConstants::TABLE_CREATOR;
+    public function up(): void
+    {
+        Schema::create(self::TABLE, function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->uuid(self::COL_FORM);
+            $table->string('name');
+            $table->string('email')->nullable();
+            $table->string('type');
+            $table->uuid(DatabaseConstants::TABLE_CREATOR);
+            $table->timestamps();
+            foreach ([
+                self::COL_FORM    => DatabaseConstants::TABLE_FORM_BUILD,
+                self::COL_CREATOR => DatabaseConstants::TABLE_USERS,
+            ] as $col => $tbl)
+                $table->foreign($col)
+                    ->references('id')
+                    ->on($tbl)
+                    ->cascadeOnDelete(); // * ADDED
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table(self::TABLE, function (Blueprint $table): void {
+            foreach ([
+                self::COL_FORM,
+                self::COL_CREATOR,
+            ] as $col) {
+                try {
+                    Schema::hasColumn(self::TABLE, $col) &&
+                        $table->dropForeign([$col]);
+                } catch (\Exception $e) {
+                    Log::warning(
+                        'Failed to drop foreign key for '
+                            . $col
+                            . ': '
+                            . $e->getMessage()
+                    );
+                }
+            }
+        });
+        Schema::dropIfExists(self::TABLE);
+    }
+}

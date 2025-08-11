@@ -1,0 +1,30 @@
+For each of these languages: 
+
+ar, da, de, en, es, fr, he, it, ja, nl, pl, pt, pt-br, ru, tr, zh
+
+------
+
+For the ones asked to javascript, write as "window.translations = {[...languages]: {....[keys]:[translated sentences]}}", resulting in window.translations[language][key] = translated sentence;
+
+For the ones asked to PHP, write as "[/* main key name */] => [[...languages] => [...keys] => [translated sentences]]", resulting in $translations['main_key_name'][language][key] = translated sentence;
+
+------
+
+Use these consts for concatenations for each language:
+
+	private const DELEGATION_AR = 'يرجى الاتصال بالدعم الفني أو مسؤول المجال.';
+	private const DELEGATION_DA = 'Kontakt venligst teknisk support eller din domæneadministrator.';
+	private const DELEGATION_DE = 'Bitte wenden Sie sich an den technischen Support oder Ihren Domain-Administrator.';
+	private const DELEGATION_EN = 'Please contact technical support or your domain administrator.';
+	private const DELEGATION_ES = 'Por favor, contacte al soporte técnico o a su administrador de dominio.';
+	private const DELEGATION_FR = 'Veuillez contacter le support technique ou votre administrateur de domaine.';
+	private const DELEGATION_HE = 'אנא פנה לתמיכה טכנית או למנהל הדומיין שלך.';
+	private const DELEGATION_IT = 'Si prega di contattare il supporto tecnico o l\'amministratore del dominio.';
+	private const DELEGATION_JA = 'テクニカルサポートまたはドメイン管理者に連絡してください。';
+	private const DELEGATION_NL = 'Neem contact op met technische ondersteuning of uw domeinbeheerder.';
+	private const DELEGATION_PL = 'Skontaktuj się z pomocą techniczną lub administratorem domeny.';
+	private const DELEGATION_PT = 'Por favor, contacte o suporte técnico ou o administrador do domínio.';
+	private const DELEGATION_PTBR = 'Por favor, entre em contato com o suporte técnico ou o administrador do domínio.';
+	private const DELEGATION_RU = 'Пожалуйста, свяжитесь со службой технической поддержки или администратором домена.';
+	private const DELEGATION_TR = 'Lütfen teknik destek veya alan yöneticinizle iletişime geçin.';
+	private const DELEGATION_ZH = '请联系技术支持或您的域管理员。';

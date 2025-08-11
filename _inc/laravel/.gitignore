@@ -1,0 +1,43 @@
+# testing
+
+**/dummy__*
+dummy__*
+**/*__test.js
+!**tests.py
+_test.js
+
+# dependencies
+
+node_modules/
+**/node_modules/
+vendor/
+**vendor/
+
+# builds
+
+dist/
+out/
+build/
+**/dist/
+**/build/
+**/out/
+
+# environment
+
+#.env
+#**/.env
+
+!env/
+!env/**
+!**/env/
+!**/venv/
+!_inc/django/env/
+!_inc/django/env/**/
+!_inc/django/env/**
+pyvenv.cfg
+
+# etc
+
+/.idea
+/vendor/srmklive/paypal/tests/Mocks/samples/sample2.pdf
+/vendor/srmklive/paypal/tests/Mocks/samples/sample.pdf

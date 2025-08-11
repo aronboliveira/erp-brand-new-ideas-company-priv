@@ -1,0 +1,8 @@
+vendor
+node_modules
+npm-debug.log
+*.log
+**/*.log
+_test*
+**/*._test*
+.DS_STORE
