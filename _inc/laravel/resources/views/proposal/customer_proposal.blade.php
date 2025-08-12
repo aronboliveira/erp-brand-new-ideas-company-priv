@@ -6,7 +6,7 @@
 		ViewClassNamesConstants,
 		ViewsConstants
 	};
-	use App\Models\Utility;
+	use App\Models\{Proposal,Utility};
 	use Illuminate\Support\Facades\Log;
 	$proposal ??= null;
 	$data ??= [];
@@ -179,15 +179,15 @@
                                                 <small>
                                                     <strong>{{__('Status')}} :</strong><br>
                                                     @if($proposal->status == 0)
-                                                        <span class="badge badge-pill badge-primary">{{ __(\App\Models\Proposal::$statuses[$proposal->status]) }}</span>
+                                                        <span class="badge badge-pill badge-primary">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
                                                     @elseif($proposal->status == 1)
-                                                        <span class="badge badge-pill badge-info">{{ __(\App\Models\Proposal::$statuses[$proposal->status]) }}</span>
+                                                        <span class="badge badge-pill badge-info">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
                                                     @elseif($proposal->status == 2)
-                                                        <span class="badge badge-pill badge-success">{{ __(\App\Models\Proposal::$statuses[$proposal->status]) }}</span>
+                                                        <span class="badge badge-pill badge-success">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
                                                     @elseif($proposal->status == 3)
-                                                        <span class="badge badge-pill badge-warning">{{ __(\App\Models\Proposal::$statuses[$proposal->status]) }}</span>
+                                                        <span class="badge badge-pill badge-warning">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
                                                     @elseif($proposal->status == 4)
-                                                        <span class="badge badge-pill badge-danger">{{ __(\App\Models\Proposal::$statuses[$proposal->status]) }}</span>
+                                                        <span class="badge badge-pill badge-danger">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
                                                     @endif
                                                 </small>
                                             </div>
@@ -242,16 +242,15 @@
                                                             $totalDiscount=0;
                                                             $taxesData=[];
                                                         @endphp
-
                                                         @foreach($iteams as $key =>$iteam)
                                                             @if(!empty($iteam->tax))
                                                                 @php
-                                                                    $taxes=\Utility::tax($iteam->tax);
+                                                                    $taxes = Utility::tax($iteam->tax);
                                                                     $totalQuantity+=$iteam->quantity;
                                                                     $totalRate+=$iteam->price;
                                                                     $totalDiscount+=$iteam->discount;
                                                                     foreach($taxes as $taxe){
-                                                                        $taxDataPrice=\Utility::taxRate($taxe->rate,$iteam->price,$iteam->quantity);
+                                                                        $taxDataPrice = Utility::taxRate($taxe->rate,$iteam->price,$iteam->quantity);
                                                                         if (array_key_exists($taxe->name,$taxesData))
                                                                         {
                                                                             $taxesData[$taxe->name] = $taxesData[$taxe->name]+$taxDataPrice;
@@ -274,7 +273,7 @@
                                                                             @php $totalTaxRate = 0;@endphp
                                                                             @foreach($taxes as $tax)
                                                                                 @php
-                                                                                    $taxPrice=\Utility::taxRate($tax->rate,$iteam->price,$iteam->quantity);
+                                                                                    $taxPrice = Utility::taxRate($tax->rate,$iteam->price,$iteam->quantity);
                                                                                     $totalTaxPrice+=$taxPrice;
                                                                                 @endphp
                                                                                 <tr>
@@ -309,11 +308,10 @@
                                                             <td class="text-end">{{$user?->priceFormat($proposal->getSubTotal())}}</td>
                                                         </tr>
                                                         <tr>
-                                                                <td colspan="6"></td>
-                                                                <td class="text-end"><b>{{__('Discount')}}</b></td>
-                                                                <td class="text-end">{{$user?->priceFormat($proposal->getTotalDiscount())}}</td>
-                                                            </tr>
-
+                                                            <td colspan="6"></td>
+                                                            <td class="text-end"><b>{{__('Discount')}}</b></td>
+                                                            <td class="text-end">{{$user?->priceFormat($proposal->getTotalDiscount())}}</td>
+                                                        </tr>
                                                         @if(!empty($taxesData))
                                                             @foreach($taxesData as $taxName => $taxPrice)
                                                                 <tr>
@@ -379,18 +377,18 @@
             </footer>
             <script src="{{ asset('js/jquery.min.js') }}"></script>
             <script src="{{ asset('assets/js/plugins/popper.min.js') }}"></script>
-            <script src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
             <script src="{{ asset('assets/js/plugins/bootstrap.min.js') }}"></script>
-            <script src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
             <script src="{{ asset('assets/js/dash.js') }}"></script>
-            <script src="{{ asset('assets/js/plugins/bootstrap-switch-button.min.js') }}"></script>
-            <script src="{{ asset('assets/js/plugins/sweetalert2.all.min.js') }}"></script>
-            <script src="{{ asset('assets/js/plugins/simple-datatables.js') }}"></script>
-            <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
             <script src="{{ asset('assets/js/plugins/main.min.js') }}"></script>
-            <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
-            <script src="{{ asset('js/jscolor.js') }}"></script>
             <script src="{{ asset('js/custom.js') }}"></script>
+            <script async src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
+            <script defer src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
+            <script defer src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
+            <script defer src="{{ asset('assets/js/plugins/bootstrap-switch-button.min.js') }}"></script>
+            <script defer src="{{ asset('assets/js/plugins/sweetalert2.all.min.js') }}"></script>
+            <script defer src="{{ asset('assets/js/plugins/simple-datatables.js') }}"></script>
+            <script defer src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
+            <script defer src="{{ asset('js/jscolor.js') }}"></script>
             @if($message = Session::get('success'))
                 <script>
                     show_toastr('success', '{!! $message !!}');

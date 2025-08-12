@@ -14,417 +14,314 @@
     {{ __('Projects Details') }}
 @endsection
 @push(StacksConstants::SHR_PRJ_SCR_PG)
-    <script>
-        loadProjectUser();
-        (function () {
-            var options = {
-                chart: {
-                    type: 'area',
-                    height: 60,
-                    sparkline: {
-                        enabled: true,
-                    },
-                },
-                colors: ["#ffa21d"],
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth',
-                    width: 2,
-                },
-                series: [{
-                    name: 'Bandwidth',
-                    data:{{ json_encode(array_map('intval',$project_data['timesheet_chart']['chart'])) }}
-                }],
-
-                tooltip: {
-                    followCursor: false,
-                    fixed: {
-                        enabled: false
-                    },
-                    x: {
-                        show: false
-                    },
-                    y: {
-                        title: {
-                            formatter: function (seriesName) {
-                                return ''
-                            }
-                        }
-                    },
-                    marker: {
-                        show: false
-                    }
-                }
-            }
-            var chart = new ApexCharts(document.querySelector("#timesheet_chart"), options);
-            chart.render();
-        })();
-
-        (function () {
-            var options = {
-                chart: {
-                    type: 'area',
-                    height: 60,
-                    sparkline: {
-                        enabled: true,
-                    },
-                },
-                colors: ["#ffa21d"],
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth',
-                    width: 2,
-                },
-                series: [{
-                    name: 'Bandwidth',
-                    data:{{ json_encode($project_data['task_chart']['chart']) }}
-                }],
-
-                tooltip: {
-                    followCursor: false,
-                    fixed: {
-                        enabled: false
-                    },
-                    x: {
-                        show: false
-                    },
-                    y: {
-                        title: {
-                            formatter: function (seriesName) {
-                                return ''
-                            }
-                        }
-                    },
-                    marker: {
-                        show: false
-                    }
-                }
-            }
-            var chart = new ApexCharts(document.querySelector("#task_chart"), options);
-            chart.render();
-        })();
-
-        $(document).on('click', '.invite_usr', function () {
-            var project_id = $('#project_id').val();
-            var user_id = $(this).attr('data-id');
-
-            $.ajax({
-                url: '{{ route('invite.project.user.member') }}',
-                method: 'POST',
-                dataType: 'json',
-                data: {
-                    'project_id': project_id,
-                    'user_id': user_id,
-                    "_token": "{{ csrf_token() }}"
-                },
-                success: function (data) {
-                    if (data.code == '200') {
-                        show_toastr(data.status, data.success, 'success')
-                        setInterval('location.reload()', 5000);
-                        loadProjectUser();
-                    } else if (data.code == '404') {
-                        show_toastr(data.status, data.errors, 'error')
-                    }
-                }
-            });
-        });
-
-        function loadProjectUser() {
-
-            var mainEle = $('#project_users');
-            var project_id = '{{$project->id}}';
-
-            $.ajax({
-                url: '{{ route('project.user') }}',
-                data: {project_id: project_id},
-                beforeSend: function () {
-                    $('#project_users').html('<tr><th colspan="2" class="h6 text-center pt-5">{{__('Loading...')}}</th></tr>');
-                },
-                success: function (data) {
-                    mainEle.html(data.html);
-                    $('[id^=fire-modal]').remove();
-                    // loadConfirm();
-                }
-            });
-        }
-
+    <script async>
+        window.translations = {
+            ar:{users_load_unavailable:'تعذّر تحميل أعضاء المشروع',chart_timesheet_unavailable:'تعذّر عرض مخطط الجداول الزمنية',chart_task_unavailable:'تعذّر عرض مخطط المهام',invite_unavailable:'تعذّر دعوة المستخدم',scrollspy_unavailable:'تعذّر تهيئة ScrollSpy',timesheet_table_unavailable:'تعذّر تحميل جدول الجداول الزمنية',timesheet_popup_unavailable:'تعذّر فتح نافذة الجدول الزمني',task_addrow_unavailable:'تعذّر إضافة صف المهمة',time_calc_unavailable:'تعذّر حساب الوقت',images_view_unavailable:'تعذّر عرض الصور',image_remove_unavailable:'تعذّر إزالة الصورة'},
+            da:{users_load_unavailable:'Kunne ikke indlæse projektbrugere',chart_timesheet_unavailable:'Kunne ikke vise timesheet-diagram',chart_task_unavailable:'Kunne ikke vise opgavediagram',invite_unavailable:'Kunne ikke invitere bruger',scrollspy_unavailable:'Kunne ikke initialisere ScrollSpy',timesheet_table_unavailable:'Kunne ikke indlæse timesheet-tabel',timesheet_popup_unavailable:'Kunne ikke åbne timesheet-popup',task_addrow_unavailable:'Kunne ikke tilføje opgaverække',time_calc_unavailable:'Kunne ikke beregne tid',images_view_unavailable:'Kan ikke vise billeder',image_remove_unavailable:'Kan ikke fjerne billede'},
+            de:{users_load_unavailable:'Projektmitglieder konnten nicht geladen werden',chart_timesheet_unavailable:'Zeiterfassungsdiagramm konnte nicht angezeigt werden',chart_task_unavailable:'Aufgabendagramm konnte nicht angezeigt werden',invite_unavailable:'Benutzer konnte nicht eingeladen werden',scrollspy_unavailable:'ScrollSpy konnte nicht initialisiert werden',timesheet_table_unavailable:'Zeiterfassungstabelle konnte nicht geladen werden',timesheet_popup_unavailable:'Zeiterfassungs-Popup konnte nicht geöffnet werden',task_addrow_unavailable:'Aufgabenzeile konnte nicht hinzugefügt werden',time_calc_unavailable:'Zeit konnte nicht berechnet werden',images_view_unavailable:'Bilder konnten nicht angezeigt werden',image_remove_unavailable:'Bild konnte nicht entfernt werden'},
+            en:{users_load_unavailable:'Cannot load project members',chart_timesheet_unavailable:'Cannot render timesheet chart',chart_task_unavailable:'Cannot render task chart',invite_unavailable:'Cannot invite user',scrollspy_unavailable:'Cannot init ScrollSpy',timesheet_table_unavailable:'Cannot load timesheet table',timesheet_popup_unavailable:'Cannot open timesheet popup',task_addrow_unavailable:'Cannot add task row',time_calc_unavailable:'Cannot compute time',images_view_unavailable:'Cannot view images',image_remove_unavailable:'Cannot remove image'},
+            es:{users_load_unavailable:'No se pueden cargar los miembros del proyecto',chart_timesheet_unavailable:'No se puede renderizar el gráfico de partes',chart_task_unavailable:'No se puede renderizar el gráfico de tareas',invite_unavailable:'No se puede invitar al usuario',scrollspy_unavailable:'No se puede inicializar ScrollSpy',timesheet_table_unavailable:'No se puede cargar la tabla de partes',timesheet_popup_unavailable:'No se puede abrir el popup de parte',task_addrow_unavailable:'No se puede añadir fila de tarea',time_calc_unavailable:'No se puede calcular el tiempo',images_view_unavailable:'No se pueden ver imágenes',image_remove_unavailable:'No se puede eliminar la imagen'},
+            fr:{users_load_unavailable:'Impossible de charger les membres du projet',chart_timesheet_unavailable:'Impossible d’afficher le graphique des feuilles de temps',chart_task_unavailable:'Impossible d’afficher le graphique des tâches',invite_unavailable:'Impossible d’inviter l’utilisateur',scrollspy_unavailable:'Impossible d’initialiser ScrollSpy',timesheet_table_unavailable:'Impossible de charger le tableau des feuilles de temps',timesheet_popup_unavailable:'Impossible d’ouvrir la fenêtre des feuilles de temps',task_addrow_unavailable:'Impossible d’ajouter une ligne de tâche',time_calc_unavailable:'Impossible de calculer le temps',images_view_unavailable:'Impossible d’afficher les images',image_remove_unavailable:'Impossible de supprimer l’image'},
+            he:{users_load_unavailable:'לא ניתן לטעון חברי פרויקט',chart_timesheet_unavailable:'לא ניתן להציג תרשים גיליונות זמנים',chart_task_unavailable:'לא ניתן להציג תרשים משימות',invite_unavailable:'לא ניתן להזמין משתמש',scrollspy_unavailable:'לא ניתן לאתחל ScrollSpy',timesheet_table_unavailable:'לא ניתן לטעון טבלת גיליונות זמנים',timesheet_popup_unavailable:'לא ניתן לפתוח חלון קופץ',task_addrow_unavailable:'לא ניתן להוסיף שורת משימה',time_calc_unavailable:'לא ניתן לחשב זמן',images_view_unavailable:'לא ניתן להציג תמונות',image_remove_unavailable:'לא ניתן להסיר תמונה'},
+            it:{users_load_unavailable:'Impossibile caricare i membri del progetto',chart_timesheet_unavailable:'Impossibile mostrare il grafico dei timesheet',chart_task_unavailable:'Impossibile mostrare il grafico delle attività',invite_unavailable:'Impossibile invitare l’utente',scrollspy_unavailable:'Impossibile inizializzare ScrollSpy',timesheet_table_unavailable:'Impossibile caricare la tabella timesheet',timesheet_popup_unavailable:'Impossibile aprire il popup timesheet',task_addrow_unavailable:'Impossibile aggiungere riga attività',time_calc_unavailable:'Impossibile calcolare il tempo',images_view_unavailable:'Impossibile visualizzare immagini',image_remove_unavailable:'Impossibile rimuovere immagine'},
+            ja:{users_load_unavailable:'プロジェクトメンバーを読み込めません',chart_timesheet_unavailable:'工数チャートを表示できません',chart_task_unavailable:'タスクチャートを表示できません',invite_unavailable:'ユーザーを招待できません',scrollspy_unavailable:'ScrollSpy を初期化できません',timesheet_table_unavailable:'工数テーブルを読み込めません',timesheet_popup_unavailable:'工数ポップアップを開けません',task_addrow_unavailable:'タスク行を追加できません',time_calc_unavailable:'時間を計算できません',images_view_unavailable:'画像を表示できません',image_remove_unavailable:'画像を削除できません'},
+            nl:{users_load_unavailable:'Kan projectleden niet laden',chart_timesheet_unavailable:'Kan timesheetgrafiek niet weergeven',chart_task_unavailable:'Kan taakgrafiek niet weergeven',invite_unavailable:'Kan gebruiker niet uitnodigen',scrollspy_unavailable:'Kan ScrollSpy niet initialiseren',timesheet_table_unavailable:'Kan timesheettabel niet laden',timesheet_popup_unavailable:'Kan timesheet-pop-up niet openen',task_addrow_unavailable:'Kan taakrij niet toevoegen',time_calc_unavailable:'Kan tijd niet berekenen',images_view_unavailable:'Kan afbeeldingen niet bekijken',image_remove_unavailable:'Kan afbeelding niet verwijderen'},
+            pl:{users_load_unavailable:'Nie można wczytać członków projektu',chart_timesheet_unavailable:'Nie można wyświetlić wykresu timesheet',chart_task_unavailable:'Nie można wyświetlić wykresu zadań',invite_unavailable:'Nie można zaprosić użytkownika',scrollspy_unavailable:'Nie można zainicjować ScrollSpy',timesheet_table_unavailable:'Nie można wczytać tabeli timesheet',timesheet_popup_unavailable:'Nie można otworzyć okna timesheet',task_addrow_unavailable:'Nie można dodać wiersza zadania',time_calc_unavailable:'Nie można obliczyć czasu',images_view_unavailable:'Nie można wyświetlić obrazów',image_remove_unavailable:'Nie można usunąć obrazu'},
+            pt:{users_load_unavailable:'Não foi possível carregar os membros do projeto',chart_timesheet_unavailable:'Não foi possível renderizar o gráfico de horas',chart_task_unavailable:'Não foi possível renderizar o gráfico de tarefas',invite_unavailable:'Não foi possível convidar o usuário',scrollspy_unavailable:'Não foi possível iniciar o ScrollSpy',timesheet_table_unavailable:'Não foi possível carregar a tabela de horas',timesheet_popup_unavailable:'Não foi possível abrir o modal de horas',task_addrow_unavailable:'Não foi possível adicionar linha de tarefa',time_calc_unavailable:'Não foi possível calcular o tempo',images_view_unavailable:'Não foi possível exibir as imagens',image_remove_unavailable:'Não foi possível remover a imagem'},
+            'pt-br':{users_load_unavailable:'Não foi possível carregar os membros do projeto',chart_timesheet_unavailable:'Não foi possível renderizar o gráfico de horas',chart_task_unavailable:'Não foi possível renderizar o gráfico de tarefas',invite_unavailable:'Não foi possível convidar o usuário',scrollspy_unavailable:'Não foi possível iniciar o ScrollSpy',timesheet_table_unavailable:'Não foi possível carregar a tabela de horas',timesheet_popup_unavailable:'Não foi possível abrir o modal de horas',task_addrow_unavailable:'Não foi possível adicionar linha de tarefa',time_calc_unavailable:'Não foi possível calcular o tempo',images_view_unavailable:'Não foi possível exibir as imagens',image_remove_unavailable:'Não foi possível remover a imagem'},
+            ru:{users_load_unavailable:'Не удалось загрузить участников проекта',chart_timesheet_unavailable:'Не удалось отобразить график табеля',chart_task_unavailable:'Не удалось отобразить график задач',invite_unavailable:'Не удалось пригласить пользователя',scrollspy_unavailable:'Не удалось инициализировать ScrollSpy',timesheet_table_unavailable:'Не удалось загрузить таблицу табеля',timesheet_popup_unavailable:'Не удалось открыть окно табеля',task_addrow_unavailable:'Не удалось добавить строку задачи',time_calc_unavailable:'Не удалось вычислить время',images_view_unavailable:'Не удалось просмотреть изображения',image_remove_unavailable:'Не удалось удалить изображение'},
+            tr:{users_load_unavailable:'Proje üyeleri yüklenemedi',chart_timesheet_unavailable:'Zaman çizelgesi grafiği oluşturulamadı',chart_task_unavailable:'Görev grafiği oluşturulamadı',invite_unavailable:'Kullanıcı davet edilemedi',scrollspy_unavailable:'ScrollSpy başlatılamadı',timesheet_table_unavailable:'Zaman çizelgesi tablosu yüklenemedi',timesheet_popup_unavailable:'Zaman çizelgesi açılır penceresi açılamadı',task_addrow_unavailable:'Görev satırı eklenemedi',time_calc_unavailable:'Süre hesaplanamadı',images_view_unavailable:'Görseller görüntülenemiyor',image_remove_unavailable:'Görsel kaldırılamıyor'},
+            zh:{users_load_unavailable:'无法加载项目成员',chart_timesheet_unavailable:'无法渲染工时图表',chart_task_unavailable:'无法渲染任务图表',invite_unavailable:'无法邀请用户',scrollspy_unavailable:'无法初始化 ScrollSpy',timesheet_table_unavailable:'无法加载工时表',timesheet_popup_unavailable:'无法打开工时弹窗',task_addrow_unavailable:'无法添加任务行',time_calc_unavailable:'无法计算时间',images_view_unavailable:'无法查看图片',image_remove_unavailable:'无法删除图片'}
+        };
     </script>
-    <script>
-        var scrollSpy = new bootstrap.ScrollSpy(document.body, {
-            target: '#useradd-sidenav',
-            offset: 300,
-        })
-        // $(".list-group-item").click(function(){
-        //     $('.list-group-item').filter(function(){
-        //         return this.href == id;
-        //     }).parent().removeClass('text-primary');
-        // });
+    <script defer>
+        (()=>{
+            const ERR_FB='# ERROR';
+            const DATA_CLIENT_LOCALIZED='data-client-localized';
+            const DATA_GUARD_MSG='data-guard-msg';
+            const DATA_LISTENER_ADDED='data-listener-added';
+            const DATA_RENDERED='data-chart-rendered';
 
-        function check_theme(color_val) {
-            $('#theme_color').prop('checked', false);
-            $('input[value="' + color_val + '"]').prop('checked', true);
-        }
-    </script>
-    <script>
-        function ajaxFilterTimesheetTableView() {
-
-            var mainEle = $('#timesheets/table-view');
-            var notfound = $('.notfound-timesheet');
-            var notfound1 = $('.notfound-timesheet1');
-
-            var week = parseInt($('#weeknumber').val());
-            var project_id = '{{ $project->id }}';
-
-            var data = {
-                week: week,
-                project_id: project_id,
+            const getLocalizedMessage=(el,key)=>{
+            let msg=ERR_FB;
+            if(el?.getAttribute('data-sv-localized')==='true'||el?.getAttribute(DATA_CLIENT_LOCALIZED)==='true'){
+                msg=el.getAttribute(DATA_GUARD_MSG)||ERR_FB;
+            }else{
+                let lang=(sessionStorage.getItem('erp-np-lang')||document.documentElement.lang||'en').toLowerCase().replace(/_/g,'-');
+                lang=lang==='pt-br'?lang:lang.slice(0,2);
+                msg=window.translations?.[lang]?.[key]||el?.getAttribute(DATA_GUARD_MSG)||window.translations?.en?.[key]||ERR_FB;
+                if(msg!==ERR_FB){ el?.setAttribute(DATA_GUARD_MSG,msg); el?.setAttribute(DATA_CLIENT_LOCALIZED,'true'); }
+            }
+            return msg;
             };
 
-            $.ajax({
-
-                url: '{{ route('timesheets.filters.table.view') }}',
-
-                data: data,
-                success: function(data) {
-
-                    $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
-                    $('.weekly-dates-div #selected_dates').val(data.selectedDate);
-
-                    $('#project_tasks').find('option').not(':first').remove();
-
-                    $.each(data.tasks, function(i, item) {
-                        $('#project_tasks').append($("<option></option>")
-                            .attr("value", i)
-                            .text(item));
-                    });
-
-                    if (data.totalrecords == 0) {
-                        mainEle.hide();
-                        notfound.css('display', 'block');
-                        notfound1.hide();
-                    } else {
-                        notfound.hide();
-                        mainEle.show();
-                    }
-
-                    mainEle.html(data.html);
+            const showToast=(text)=>{
+            const hasBootstrap=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast;
+            if(hasBootstrap){
+                if(!document.querySelector('#error-toast')){
+                const t=document.createElement('div');
+                t.id='error-toast';
+                t.className='toast align-items-center text-bg-danger border-0';
+                t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
+                t.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                document.body.appendChild(t);
                 }
-            });
-        }
+                new bootstrap.Toast(document.querySelector('#error-toast')).show();
+            }else{ alert(text); }
+            };
 
-        $(function() {
-            ajaxFilterTimesheetTableView();
-        });
+            const attachGuardOnce=(el,key,ev='pointerup')=>{
+            if(!el||el.getAttribute(DATA_LISTENER_ADDED)==='true') return;
+            const handler=()=>showToast(getLocalizedMessage(el,key));
+            el.addEventListener(ev,handler,{once:true});
+            el.setAttribute(DATA_LISTENER_ADDED,'true');
+            const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener(ev,handler); o.disconnect(); }});
+            mo.observe(document.body,{childList:true,subtree:true});
+            };
 
-        $(document).on('click', '.weekly-dates-div i', function() {
+            const renderChart=(selector, options, key)=>{
+            try{
+                if(typeof ApexCharts==='undefined'){ console.error('ApexCharts library missing'); attachGuardOnce(document.querySelector(selector)||document.body,key); return; }
+                const el=document.querySelector(selector);
+                if(!el){ attachGuardOnce(document.body,key); return; }
+                if(el.getAttribute(DATA_RENDERED)==='true') return;
+                const chart=new ApexCharts(el, options);
+                chart.render();
+                el.setAttribute(DATA_RENDERED,'true');
+            }catch{ attachGuardOnce(document.querySelector(selector)||document.body,key); }
+            };
 
-            var weeknumber = parseInt($('#weeknumber').val());
+            const routeGuard=(el)=>{
+            const url = el?.getAttribute?.('data-url');
+            const href = el?.getAttribute?.('action') || el?.getAttribute?.('href');
+            return (!url || url==='#') && (!href || href==='#');
+            };
 
-            if ($(this).hasClass('previous')) {
-
-                weeknumber--;
-                $('#weeknumber').val(weeknumber);
-
-            } else if ($(this).hasClass('next')) {
-
-                weeknumber++;
-                $('#weeknumber').val(weeknumber);
-            }
-
-            ajaxFilterTimesheetTableView();
-        });
-
-        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function(e) {
-            e.preventDefault();
-
-            var data = {};
-            var url = $(this).data('url');
-            var type = $(this).data('type');
-            var date = $(this).data('date');
-            var task_id = $(this).data('task-id');
-            var user_id = $(this).data('user-id');
-            var p_id = $(this).data('project-id');
-
-            data.date = date;
-            data.task_id = task_id;
-
-            if (user_id != undefined) {
-                data.user_id = user_id;
-            }
-
-            if (type == 'create') {
-                var title = '{{ __('Create Timesheet') }}';
-                data.p_id = '{{ $project->id }}';
-                data.project_id = data.p_id != '-1' ? data.p_id : p_id;
-
-            } else if (type == 'edit') {
-                var title = '{{ __('Edit Timesheet') }}';
-            }
-
-            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd, Do MMM YYYY") +
-                `)</small>`);
-
-            $.ajax({
-                url: url,
-                data: data,
-                dataType: 'html',
-                success: function(data) {
-                    $('#commonModal .body').html(data);
-                    // $('#commonModal .modal-body').html(data);
-                    $("#commonModal").modal('show');
-                    commonLoader();
-                    loadConfirm();
-                }
-            });
-        });
-
-        $(document).on('click', '#project_tasks', function(e) {
-            var mainEle = $('#timesheets/table-view');
-            var notfound = $('.notfound-timesheet');
-
-            var selectEle = $(this).children("option:selected");
-            var task_id = selectEle.val();
-            var selected_dates = $('#selected_dates').val();
-
-            if (task_id != '') {
-
+            const loadProjectUser=()=>{
+            const mainEle=$('#project_users');
+            const project_id='{{ $project->id }}';
+            try{
                 $.ajax({
-                    url: '{{ route('timesheets.filters.table.view') }}',
-                    data: {
-                        project_id: '{{ $project->id }}',
-                        task_id: task_id,
-                        selected_dates: selected_dates,
-                    },
-                    success: function(data) {
-
-                        notfound.hide();
-                        mainEle.show();
-
-                        $('#timesheets/table-view tbody').append(data.html);
-                        selectEle.remove();
-                    }
+                url:'{{ route('project.user') }}',
+                data:{ project_id },
+                beforeSend:()=>{ $('#project_users').html('<tr><th colspan="2" class="h6 text-center pt-5">{{ __("Loading...") }}</th></tr>'); },
+                success:(data)=>{ mainEle.html(data.html); $('[id^=fire-modal]').remove(); },
+                error:()=>attachGuardOnce(mainEle.get(0),'users_load_unavailable')
                 });
-            }
-        });
-
-        $(document).on('change', '#time_hour, #time_minute', function() {
-
-            var hour = $('#time_hour').children("option:selected").val();
-            var minute = $('#time_minute').children("option:selected").val();
-            var total = $('#totaltasktime').val().split(':');
-
-            if (hour == '00' && minute == '00') {
-                $(this).val('');
-                return;
-            }
-
-            hour = hour != '' ? hour : 0;
-            hour = parseInt(hour) + parseInt(total[0]);
-
-            minute = minute != '' ? minute : 0;
-            minute = parseInt(minute) + parseInt(total[1]);
-
-            if (minute > 50) {
-                minute = minute - 60;
-                hour++;
-            }
-
-            hour = hour < 10 ? '0' + hour : hour;
-            minute = minute < 10 ? '0' + minute : minute;
-
-            $('.display-total-time span').text('{{ __('Total Time') }} : ' + hour + ' {{ __('Hours') }} ' +
-                minute + ' {{ __('Minutes') }}');
-        });
-    </script>
-    <script type="text/javascript">
-
-        function init_slider(){
-            if($(".product-left").length){
-                var productSlider = new Swiper('.product-slider', {
-                    spaceBetween: 0,
-                    centeredSlides: false,
-                    loop:false,
-                    direction: 'horizontal',
-                    loopedSlides: 5,
-                    navigation: {
-                        nextEl: ".swiper-button-next",
-                        prevEl: ".swiper-button-prev",
-                    },
-                    resizeObserver:true,
-                });
-                var productThumbs = new Swiper('.product-thumbs', {
-                    spaceBetween: 0,
-                    centeredSlides: true,
-                    loop: false,
-                    slideToClickedSlide: true,
-                    direction: 'horizontal',
-                    slidesPerView: 7,
-                    loopedSlides: 5,
-                });
-                productSlider.controller.control = productThumbs;
-                productThumbs.controller.control = productSlider;
-            }
-        }
-
-        $(document).on('click', '.view-images', function () {
-
-            var p_url = "{{route('tracker.image.view')}}";
-            var data = {
-                'id': $(this).attr('data-id')
+            }catch{ attachGuardOnce(mainEle.get(0),'users_load_unavailable'); }
             };
-            postAjax(p_url, data, function (res) {
-                $('.image_sider_div').html(res);
-                $('#exampleModalCenter').modal('show');
-                setTimeout(function(){
-                    var total = $('.product-left').find('.product-slider').length
-                    if(total > 0){
-                        init_slider();
-                    }
 
-                },200);
+            try{
+            if(typeof $==='undefined'){ console.error('jQuery is required'); return; }
 
+            // Initial data
+            try{ loadProjectUser(); }catch{ attachGuardOnce(document.body,'users_load_unavailable'); }
+
+            // Charts (safe after DOM parse)
+            (function(){
+                const options={ chart:{ type:'area', height:60, sparkline:{enabled:true} }, colors:['#ffa21d'], dataLabels:{enabled:false}, stroke:{curve:'smooth',width:2},
+                series:[{ name:'Bandwidth', data: {{ json_encode(array_map('intval',$project_data['timesheet_chart']['chart'])) }} }],
+                tooltip:{ followCursor:false, fixed:{enabled:false}, x:{show:false}, y:{ title:{ formatter:()=>'' } }, marker:{show:false} }
+                };
+                renderChart('#timesheet_chart', options, 'chart_timesheet_unavailable');
+            })();
+
+            (function(){
+                const options={ chart:{ type:'area', height:60, sparkline:{enabled:true} }, colors:['#ffa21d'], dataLabels:{enabled:false}, stroke:{curve:'smooth',width:2},
+                series:[{ name:'Bandwidth', data: {{ json_encode($project_data['task_chart']['chart']) }} }],
+                tooltip:{ followCursor:false, fixed:{enabled:false}, x:{show:false}, y:{ title:{ formatter:()=>'' } }, marker:{show:false} }
+                };
+                renderChart('#task_chart', options, 'chart_task_unavailable');
+            })();
+
+            // Invite user (stateful → guard on pointerup)
+            $(document).on('click','.invite_usr',function(){
+                const el=this;
+                try{
+                const project_id=$('#project_id').val() ?? '{{ $project->id }}';
+                const user_id=$(el).attr('data-id') ?? '';
+                const url='{{ route('invite.project.user.member') }}';
+                $.ajax({
+                    url,
+                    method:'POST',
+                    dataType:'json',
+                    data:{ project_id, user_id, _token:'{{ csrf_token() }}' },
+                    success:(data)=>{
+                    if(String(data?.code)==='200'){ show_toastr(data.status, data.success, 'success'); setTimeout(()=>location.reload(),5000); loadProjectUser(); }
+                    else if(String(data?.code)==='404'){ show_toastr(data.status, data.errors, 'error'); }
+                    },
+                    error:()=>attachGuardOnce(el,'invite_unavailable')
+                });
+                }catch{ attachGuardOnce(el,'invite_unavailable'); }
             });
-        });
 
-        // ============================ Remove Track Image ===============================//
-        $(document).on("click", '.track-image-remove', function () {
-            var rid = $(this).attr('data-pid');
-            $('.confirm_yes').addClass('image_remove');
-            $('.confirm_yes').attr('image_id', rid);
-            $('#cModal').modal('show');
-            var total = $('.product-left').find('.swiper-slide').length
-        });
+            // Bootstrap ScrollSpy (broad failure allowed to log)
+            try{
+                if(window.bootstrap?.ScrollSpy){
+                new bootstrap.ScrollSpy(document.body,{ target:'#useradd-sidenav', offset:300 });
+                }else{ console.error('Bootstrap ScrollSpy not available'); }
+            }catch{ attachGuardOnce(document.body,'scrollspy_unavailable','click'); }
 
-        function removeImage(id){
-            var p_url = "{{route('tracker.image.remove')}}";
-            var data = {id: id};
-            deleteAjax(p_url, data, function (res) {
+            window.check_theme=(color_val)=>{ try{ $('#theme_color').prop('checked',false); $(`input[value="${color_val}"]`).prop('checked',true); }catch{} };
 
-                if(res.flag){
-                    $('#slide-thum-'+id).remove();
-                    $('#slide-'+id).remove();
-                    setTimeout(function(){
-                        var total = $('.product-left').find('.swiper-slide').length
-                        if(total > 0){
-                            init_slider();
-                        }else{
-                            $('.product-left').html('<div class="no-image"><h5 class="text-muted">Images Not Available .</h5></div>');
-                        }
+            // Timesheet table filter + pagination arrows (GET heavy → guard on pointerup)
+            const ajaxFilterTimesheetTableView=()=>{
+                const mainEle=$('#timesheets\\/table-view');
+                const notfound=$('.notfound-timesheet');
+                const notfound1=$('.notfound-timesheet1');
+                const week=parseInt($('#weeknumber').val()||'0',10);
+                const project_id='{{ $project->id }}';
+                const data={ week, project_id };
+                try{
+                $.ajax({
+                    url:'{{ route('timesheets.filters.table.view') }}',
+                    data,
+                    success:(res)=>{
+                    $('.weekly-dates-div .weekly-dates').text(res.onewWeekDate);
+                    $('.weekly-dates-div #selected_dates').val(res.selectedDate);
+                    $('#project_tasks').find('option').not(':first').remove();
+                    $.each(res.tasks,(i,item)=>{ $('#project_tasks').append($('<option></option>').attr('value',i).text(item)); });
+                    if(Number(res.totalrecords)===0){ mainEle.hide(); notfound.css('display','block'); notfound1.hide(); } else { notfound.hide(); mainEle.show(); }
+                    mainEle.html(res.html);
+                    },
+                    error:()=>attachGuardOnce(mainEle.get(0),'timesheet_table_unavailable')
+                });
+                }catch{ attachGuardOnce(mainEle.get(0),'timesheet_table_unavailable'); }
+            };
+
+            $(()=>{ try{ ajaxFilterTimesheetTableView(); }catch{ attachGuardOnce(document.body,'timesheet_table_unavailable'); } });
+
+            $(document).on('click','.weekly-dates-div i',function(){
+                try{
+                let weeknumber=parseInt($('#weeknumber').val()||'0',10);
+                if($(this).hasClass('previous')) weeknumber--;
+                else if($(this).hasClass('next')) weeknumber++;
+                $('#weeknumber').val(weeknumber);
+                ajaxFilterTimesheetTableView();
+                }catch{ attachGuardOnce(this,'timesheet_table_unavailable'); }
+            });
+
+            // Timesheet modal popup (uses data-url; route verification)
+            $(document).on('click','[data-ajax-timesheet-popup="true"]',function(e){
+                e.preventDefault();
+                const trigger=this;
+                try{
+                if(routeGuard(trigger)){ attachGuardOnce(trigger,'timesheet_popup_unavailable'); return; }
+                const url=$(trigger).data('url');
+                const type=$(trigger).data('type');
+                const date=$(trigger).data('date');
+                const task_id=$(trigger).data('task-id');
+                const user_id=$(trigger).data('user-id');
+                const p_id=$(trigger).data('project-id');
+                const data={ date, task_id };
+                if(user_id!==undefined) data.user_id=user_id;
+                let title='';
+                if(type==='create'){ title='{{ __("Create Timesheet") }}'; data.p_id='{{ $project->id }}'; data.project_id = (data.p_id!=='-1') ? data.p_id : p_id; }
+                else if(type==='edit'){ title='{{ __("Edit Timesheet") }}'; }
+                $("#commonModal .modal-title").html(`${title} <small>(${moment(date).format("ddd, Do MMM YYYY")})</small>`);
+                $.ajax({
+                    url,
+                    data,
+                    dataType:'html',
+                    success:(html)=>{ $('#commonModal .body').html(html); $("#commonModal").modal('show'); if(typeof commonLoader==='function') commonLoader(); if(typeof loadConfirm==='function') loadConfirm(); },
+                    error:()=>attachGuardOnce(trigger,'timesheet_popup_unavailable')
+                });
+                }catch{ attachGuardOnce(trigger,'timesheet_popup_unavailable'); }
+            });
+
+            // Add task row from select (GET heavy)
+            $(document).on('click','#project_tasks',function(){
+                const select=this;
+                try{
+                const mainEle=$('#timesheets\\/table-view');
+                const notfound=$('.notfound-timesheet');
+                const opt=$(select).children('option:selected');
+                const task_id=opt.val();
+                const selected_dates=$('#selected_dates').val();
+                if(!task_id) return;
+                $.ajax({
+                    url:'{{ route('timesheets.filters.table.view') }}',
+                    data:{ project_id:'{{ $project->id }}', task_id, selected_dates },
+                    success:(res)=>{ notfound.hide(); mainEle.show(); $('#timesheets\\/table-view tbody').append(res.html); opt.remove(); },
+                    error:()=>attachGuardOnce(select,'task_addrow_unavailable')
+                });
+                }catch{ attachGuardOnce(select,'task_addrow_unavailable'); }
+            });
+
+            // Total time calculator (pure UI)
+            $(document).on('change','#time_hour, #time_minute',function(){
+                try{
+                let hour=$('#time_hour').children('option:selected').val()||'0';
+                let minute=$('#time_minute').children('option:selected').val()||'0';
+                const total=String($('#totaltasktime').val()||'0:0').split(':');
+                if(hour==='00'&&minute==='00'){ $(this).val(''); return; }
+                hour=parseInt(hour||'0',10)+parseInt(total[0]||'0',10);
+                minute=parseInt(minute||'0',10)+parseInt(total[1]||'0',10);
+                if(minute>50){ minute-=60; hour++; }
+                const hh=hour<10?`0${hour}`:`${hour}`;
+                const mm=minute<10?`0${minute}`:`${minute}`;
+                $('.display-total-time span').text(`{{ __('Total Time') }} : ${hh} {{ __('Hours') }} ${mm} {{ __('Minutes') }}`);
+                }catch{ attachGuardOnce(this,'time_calc_unavailable','click'); }
+            });
+
+            // Swiper gallery helpers (user-triggered; large GET => pointerup)
+            const init_slider=()=>{
+                if(!$('.product-left').length) return;
+                if(typeof Swiper==='undefined'){ console.error('Swiper library missing'); return; }
+                const productSlider=new Swiper('.product-slider',{ spaceBetween:0, centeredSlides:false, loop:false, direction:'horizontal', loopedSlides:5, navigation:{ nextEl:'.swiper-button-next', prevEl:'.swiper-button-prev' }, resizeObserver:true });
+                const productThumbs=new Swiper('.product-thumbs',{ spaceBetween:0, centeredSlides:true, loop:false, slideToClickedSlide:true, direction:'horizontal', slidesPerView:7, loopedSlides:5 });
+                // eslint-disable-next-line no-unused-expressions
+                productSlider.controller && (productSlider.controller.control=productThumbs);
+                // eslint-disable-next-line no-unused-expressions
+                productThumbs.controller && (productThumbs.controller.control=productSlider);
+            };
+
+            $(document).on('click','.view-images',function(){
+                const el=this;
+                try{
+                const p_url='{{ route('time_trackers.image.view') }}';
+                const data={ id: $(el).attr('data-id') };
+                if(typeof postAjax!=='function'){ attachGuardOnce(el,'images_view_unavailable'); return; }
+                postAjax(p_url, data, (res)=>{
+                    $('.image_sider_div').html(res);
+                    $('#exampleModalCenter').modal('show');
+                    setTimeout(()=>{ const total=$('.product-left').find('.product-slider').length; if(total>0) init_slider(); },200);
+                });
+                }catch{ attachGuardOnce(this,'images_view_unavailable'); }
+            });
+
+            $(document).on('click','.track-image-remove',function(){
+                const rid=$(this).attr('data-pid');
+                $('.confirm_yes').addClass('image_remove').attr('image_id', rid);
+                $('#cModal').modal('show');
+            });
+
+            window.removeImage=(id)=>{
+                const el=document.querySelector('.confirm_yes.image_remove')||document.body;
+                try{
+                const p_url='{{ route('time_trackers.image.remove') }}';
+                if(typeof deleteAjax!=='function'){ attachGuardOnce(el,'image_remove_unavailable'); return; }
+                deleteAjax(p_url, { id }, (res)=>{
+                    if(res.flag){
+                    $(`#slide-thum-${id}`).remove();
+                    $(`#slide-${id}`).remove();
+                    setTimeout(()=>{
+                        const total=$('.product-left').find('.swiper-slide').length;
+                        if(total>0){ init_slider(); } else { $('.product-left').html('<div class="no-image"><h5 class="text-muted">Images Not Available .</h5></div>'); }
                     },200);
-                }
+                    }
+                    $('#cModal').modal('hide');
+                    show_toastr('error', res.msg, 'error');
+                });
+                }catch{ attachGuardOnce(el,'image_remove_unavailable'); }
+            };
 
-                $('#cModal').modal('hide');
-                show_toastr('error',res.msg,'error');
-            });
-        }
+            }catch(e){ console.error('Initialization failed', e); }
+        })();
     </script>
 @endpush
 @section(YieldingConstants::SHR_PRJ_ACT_BTN)
-    <a href="" class="pt-3">
+    <a href="#" class="pt-3">
         <select name="language" id="language" class="btn btn-primary my-2"
                 onchange="this.options[this.selectedIndex].value && (window.location = this.options[this.selectedIndex].value);">
             @foreach (\App\Models\Utility::languages() as $language)

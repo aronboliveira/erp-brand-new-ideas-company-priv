@@ -23,31 +23,99 @@
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/jscolor.js') }}"></script>
-    <script src="{{ asset('assets/libs/jquery-ui/jquery-ui.js') }}"></script>
-    <script>
-        $(function () {
-            $(".sortable").sortable();
-            $(".sortable").disableSelection();
-            $(".sortable").sortable({
-                stop: function () {
-                    var order = [];
-                    $(this).find('li').each(function (index, data) {
-                        order[index] = $(data).attr('data-id');
-                    });
-                    $.ajax({
-                        url: "{{route(ViewsConstants::PRJ_STG.'.order')}}",
-                        data: {order: order, _token: $('meta[name="csrf-token"]').attr('content')},
-                        type: 'POST',
-                        success: function (data) {
-                        },
-                        error: function (data) {
-                            data = data.responseJSON;
-                            show_toastr('{{__("Error")}}', data.error, 'error')
-                        }
-                    })
+    <script async src="{{ asset('assets/libs/jquery-ui/jquery-ui.js') }}"></script>
+    <script async>
+        window.translations = {
+            ar:{project_stage_order_unavailable:'فشل تحديث ترتيب مراحل المشروع'},
+            da:{project_stage_order_unavailable:'Opdatering af projektfaserækkefølge mislykkedes'},
+            de:{project_stage_order_unavailable:'Aktualisieren der Projektphasenreihenfolge fehlgeschlagen'},
+            en:{project_stage_order_unavailable:'Failed to update project stages order'},
+            es:{project_stage_order_unavailable:'Error al actualizar el orden de las etapas del proyecto'},
+            fr:{project_stage_order_unavailable:'Échec de la mise à jour de l’ordre des étapes du projet'},
+            he:{project_stage_order_unavailable:'עדכון סדר שלבי הפרויקט נכשל'},
+            it:{project_stage_order_unavailable:'Aggiornamento ordine fasi progetto non riuscito'},
+            ja:{project_stage_order_unavailable:'プロジェクト段階の順序を更新できませんでした'},
+            nl:{project_stage_order_unavailable:'Bijwerken van volgorde projectfasen mislukt'},
+            pl:{project_stage_order_unavailable:'Nie udało się zaktualizować kolejności etapów projektu'},
+            pt:{project_stage_order_unavailable:'Falha ao atualizar a ordem das etapas do projeto'},
+            'pt-br':{project_stage_order_unavailable:'Falha ao atualizar a ordem das etapas do projeto'},
+            ru:{project_stage_order_unavailable:'Не удалось обновить порядок этапов проекта'},
+            tr:{project_stage_order_unavailable:'Proje aşamaları sırası güncellenemedi'},
+            zh:{project_stage_order_unavailable:'无法更新项目阶段顺序'}
+        };
+    </script>
+    <script defer>
+        (() => {
+            const DATA_LISTENER_ADDED='data-listener-added';
+            const ERR_FB='# ERROR';
+            const DATA_CLIENT_LOCALIZED='data-client-localized';
+            const DATA_GUARD_MSG='data-guard-msg';
+
+            const getLocalizedMessage=(el,key)=>{
+            let msg=ERR_FB;
+            if(el?.getAttribute('data-sv-localized')==='true'||el?.getAttribute(DATA_CLIENT_LOCALIZED)==='true'){
+                msg=el.getAttribute(DATA_GUARD_MSG)||ERR_FB;
+            }else{
+                let lang=(sessionStorage.getItem('erp-np-lang')||document.documentElement.lang||'en').toLowerCase().replace(/_/g,'-');
+                lang=lang==='pt-br'?lang:lang.slice(0,2);
+                msg=window.translations?.[lang]?.[key]||window.translations?.en?.[key]||ERR_FB;
+                if(msg!==ERR_FB){ el?.setAttribute(DATA_GUARD_MSG,msg); el?.setAttribute(DATA_CLIENT_LOCALIZED,'true'); }
+            }
+            return msg;
+            };
+
+            const showToast=(text)=>{
+            const hasBootstrap=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast;
+            if(hasBootstrap){
+                if(!document.querySelector('#error-toast')){
+                const t=document.createElement('div');
+                t.id='error-toast';
+                t.className='toast align-items-center text-bg-danger border-0';
+                t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
+                t.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                document.body.appendChild(t);
                 }
+                new bootstrap.Toast(document.querySelector('#error-toast')).show();
+            }else{ alert(text); }
+            };
+
+            const attachPointerGuard=(el,key)=>{
+            if(!el||el.getAttribute(DATA_LISTENER_ADDED)==='true') return;
+            const handler=()=>showToast(getLocalizedMessage(el,key));
+            el.addEventListener('pointerup',handler,{once:true});
+            el.setAttribute(DATA_LISTENER_ADDED,'true');
+            const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener('pointerup',handler); o.disconnect(); }});
+            mo.observe(document.body,{childList:true,subtree:true});
+            };
+
+            try{
+            if(typeof $==='undefined' || !$.fn.sortable){ console.error('jQuery UI sortable is required'); return; }
+
+            $('.sortable').each(function(){
+                const listEl=this;
+                try{
+                const $list=$(listEl);
+                $list.sortable();
+                $list.disableSelection();
+                $list.on('sortstop',function(){
+                    try{
+                    const order=[];
+                    $(this).find('li').each((idx,li)=>{ order[idx]=$(li).attr('data-id')??''; });
+                    const url="{{ route(ViewsConstants::PRJ_STG.'.order') }}";
+                    if(!url || url==='#'){ attachPointerGuard(listEl,'project_stage_order_unavailable'); return; }
+                    $.ajax({
+                        url,
+                        type:'POST',
+                        data:{ order, _token:$('meta[name="csrf-token"]').attr('content') },
+                        success:()=>{},
+                        error:()=>attachPointerGuard(listEl,'project_stage_order_unavailable')
+                    });
+                    }catch{ attachPointerGuard(listEl,'project_stage_order_unavailable'); }
+                });
+                }catch{ attachPointerGuard(listEl,'project_stage_order_unavailable'); }
             });
-        });
+            }catch(e){ console.error('Initialization failed',e); }
+        })();
     </script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)

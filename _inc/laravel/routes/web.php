@@ -321,7 +321,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::post('company-settings', [SystemController::class, SystemController::SV_CP_ST])->name(ViewsConstants::CP . '.settings');
             Route::post('system-settings', [SystemController::class, SystemController::SV_SYS_ST])->name(ViewsConstants::SYS . '.settings');
             Route::post('zoom-settings', [SystemController::class, SystemController::SV_ZM_ST])->name('zoom.settings');
-            Route::post('tracker-settings', [SystemController::class, SystemController::SV_TK_ST])->name('tracker.settings');
+            Route::post('tracker-settings', [SystemController::class, SystemController::SV_TK_ST])->name('time_trackers.settings');
             Route::post('slack-settings', [SystemController::class, SystemController::SV_SLK_ST])->name('slack.settings');
             Route::post('telegram-settings', [SystemController::class, SystemController::SV_TLG_ST])->name('telegram.settings');
             Route::post('twilio-settings', [SystemController::class, SystemController::SV_TWL_ST])->name('twilio.setting');
@@ -531,15 +531,15 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             ],
         ],
         function () {
-            Route::get('debit-note', [DebitNoteController::class, 'index'])->name('debit.note');
+            Route::get(ViewsConstants::DBT_NT, [DebitNoteController::class, 'index'])->name('debit.note');
             Route::get('custom-debit-note', [DebitNoteController::class, 'customCreate'])->name(ViewsConstants::BIL . '.custom.debit.note');
             Route::post('custom-debit-note', [DebitNoteController::class, 'customStore'])->name(ViewsConstants::BIL . '.custom.debit.note');
-            Route::get('debit-note/bill', [DebitNoteController::class, 'getbill'])->name(ViewsConstants::BIL . '.get');
+            Route::get(ViewsConstants::DBT_NT . '/bill', [DebitNoteController::class, 'getbill'])->name(ViewsConstants::BIL . '.get');
             Route::get(ViewsConstants::BIL . '{id}/debit-note', [DebitNoteController::class, 'create'])->name(ViewsConstants::BIL . '.debit.note');
             Route::post(ViewsConstants::BIL . '{id}/debit-note', [DebitNoteController::class, 'store'])->name(ViewsConstants::BIL . '.debit.note');
-            Route::get(ViewsConstants::BIL . '{id}/debit-note/edit/{cn_id}', [DebitNoteController::class, 'edit'])->name(ViewsConstants::BIL . '.edit.debit.note');
-            Route::post(ViewsConstants::BIL . '{id}/debit-note/edit/{cn_id}', [DebitNoteController::class, 'update'])->name(ViewsConstants::BIL . '.edit.debit.note');
-            Route::delete(ViewsConstants::BIL . '{id}/debit-note/delete/{cn_id}', [DebitNoteController::class, 'destroy'])->name(ViewsConstants::BIL . '.delete.debit.note');
+            Route::get(ViewsConstants::BIL . '{id}/' . ViewsConstants::DBT_NT . '/edit/{cn_id}', [DebitNoteController::class, 'edit'])->name(ViewsConstants::BIL . '.edit.debit.note');
+            Route::post(ViewsConstants::BIL . '{id}/' . ViewsConstants::DBT_NT . '/edit/{cn_id}', [DebitNoteController::class, 'update'])->name(ViewsConstants::BIL . '.edit.debit.note');
+            Route::delete(ViewsConstants::BIL . '{id}/' . ViewsConstants::DBT_NT . '/delete/{cn_id}', [DebitNoteController::class, 'destroy'])->name(ViewsConstants::BIL . '.delete.debit.note');
         }
     );
 
@@ -846,7 +846,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // Email Templates
     Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 'manageEmailLang'])->name('manage.email.language')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::any('email_template_store', [EmailTemplateController::class, 'updateStatus'])->name('status.email.language')->middleware([MiddlewaresConstants::AUTH]);
+    Route::any('email_template_store', [EmailTemplateController::class, 'updateStatus'])->name('emails.status.language')->middleware([MiddlewaresConstants::AUTH]);
     Route::any('email_template_store/{pid}', [EmailTemplateController::class, 'storeEmailLang'])->name('store.email.language')->middleware([MiddlewaresConstants::AUTH]);
     Route::resource('email_template', EmailTemplateController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     // End Email Templates
@@ -1408,9 +1408,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     // Time-Tracker
     Route::post('stop-tracker', [DashboardController::class, DashboardController::STP_TRK])->name('stop.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('time-tracker', [TimeTrackerController::class, 'index'])->name('time.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('tracker/{tid}/destroy', [TimeTrackerController::class, 'Destroy'])->name('tracker.destroy');
-    Route::post('tracker/image-view', [TimeTrackerController::class, 'getTrackerImages'])->name('tracker.image.view');
-    Route::delete('tracker/image-remove', [TimeTrackerController::class, 'removeTrackerImages'])->name('tracker.image.remove');
+    Route::delete('tracker/{tid}/destroy', [TimeTrackerController::class, 'Destroy'])->name('time_trackers.destroy');
+    Route::post('tracker/image-view', [TimeTrackerController::class, 'getTrackerImages'])->name('time_trackers.image.view');
+    Route::delete('tracker/image-remove', [TimeTrackerController::class, 'removeTrackerImages'])->name('time_trackers.image.remove');
     Route::get(ViewsConstants::PRJ . '/time-tracker/{id}', [ProjectController::class, 'tracker'])->name('projecttime.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Zoom Meeting

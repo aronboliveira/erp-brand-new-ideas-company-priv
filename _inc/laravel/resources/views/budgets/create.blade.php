@@ -85,7 +85,7 @@
     <li class="breadcrumb-item">{{__('Budget Create')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer src="{{asset('js/jquery-ui.min.js')}}"></script>
+    <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script>
         window.translations = {
           ar: {

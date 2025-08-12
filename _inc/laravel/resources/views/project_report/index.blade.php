@@ -4,7 +4,7 @@
         PermissionsConstants,
         StacksConstants,
         ViewsConstants,
-        ViewClassNamesConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use App\Models\Utility;
@@ -58,8 +58,8 @@
                         @endphp
                         <div class="card-body">
                             {!! Collective\Html\FormFacade::open(['route'=>$indexRoute,'method'=>'GET','id'=>'project_report_submit']) !!}
-                                <div class="{{ ViewClassNamesConstants::R_FLX_ALC_JCE }}">
-                                    <div class="{{ ViewClassNamesConstants::CL_POS2 }} mb-0">
+                                <div class="{{ VC::R_FLX_ALC_JCE }}">
+                                    <div class="{{ VC::CL_POS2 }} mb-0">
                                         <div class="btn-box">
                                             {{ Collective\Html\FormFacade::label('users',__('Users'),['class'=>'form-label']) }}
                                             <select class="select form-select" name="all_users" id="all_users">
@@ -72,31 +72,31 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="{{ ViewClassNamesConstants::CL_POS1 }}">
+                                    <div class="{{ VC::CL_POS1 }}">
                                         <div class="btn-box">
                                             {{ Collective\Html\FormFacade::label('status',__('Status'),['class'=>'form-label']) }}
                                             {{ Collective\Html\FormFacade::select('status',[''=>'Select Status']+$status,isset($_GET['status'])?$_GET['status']:'',['class'=>'form-control select']) }}
                                         </div>
                                     </div>
-                                    <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
+                                    <div class="{{ VC::CL_POS3 }}">
                                         <div class="btn-box">
                                             {{ Collective\Html\FormFacade::label('start_date',__('Start Date'),['class'=>'form-label']) }}
                                             {{ Collective\Html\FormFacade::date('start_date',isset($_GET['start_date'])?$_GET['start_date']:'',['class'=>'form-control month-btn']) }}
                                         </div>
                                     </div>
-                                    <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
+                                    <div class="{{ VC::CL_POS3 }}">
                                         <div class="btn-box">
                                             {{ Collective\Html\FormFacade::label('end_date',__('End Date'),['class'=>'form-label']) }}
                                             {{ Collective\Html\FormFacade::date('end_date',isset($_GET['end_date'])?$_GET['end_date']:'',['class'=>'form-control month-btn']) }}
                                         </div>
                                     </div>
-                                    <div class="{{ ViewClassNamesConstants::C_AT_FEND }}">
-                                        <a href="#" class="{{ ViewClassNamesConstants::BT_SM_PM }}" onclick="document.getElementById('project_report_submit').submit();return false;" data-toggle="tooltip" data-original-title="{{ __('apply') }}">
-                                            <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_SRC }}"></i></span>
+                                    <div class="{{ VC::C_AT_FEND }}">
+                                        <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('project_report_submit').submit();return false;" data-toggle="tooltip" data-original-title="{{ __('apply') }}">
+                                            <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                         </a>
-                                        <a href="{{ $indexUrl }}" id="{{ $resetClass }}" class="{{ ViewClassNamesConstants::BT_SM_DG }} {{ $resetClass }}" data-url="{{ $indexUrl }}"
-                                        data-sv-localized="true" data-guard-msg="{{ Utility::fetchLinkMessage($lang,ViewsConstants::PRJ_RPT,'index_project_report_unavailable') ?? 'Reset route is unavailable. Please contact technical support or your domain administrator.' }}" data-toggle="tooltip" data-original-title="{{ __('Reset') }}">
-                                            <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_TRS_OFF }}"></i></span>
+                                        <a href="{{ $indexUrl }}" id="{{ $resetClass }}" class="{{ VC::BT_SM_DG }} {{ $resetClass }}" data-url="{{ $indexUrl }}"
+                                        data-sv-localized="true" data-guard-msg="{{ Utility::fetchLinkMessage($lang,ViewsConstants::PRJ_RPT,'project_report_index_route_unavailable') ?? 'Reset route is unavailable. Please contact technical support or your domain administrator.' }}" data-toggle="tooltip" data-original-title="{{ __('Reset') }}">
+                                            <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
                                         </a>
                                     </div>
                                 </div>
@@ -129,7 +129,7 @@
                             @foreach ($projects as $key => $project)
                                 <tr>
                                     <td>
-                                        <div class="{{ ViewClassNamesConstants::DFL_AIC }}">
+                                        <div class="{{ VC::DFL_AIC }}">
                                             <p class="mb-0"><a  class="name mb-0 h6 text-sm">{{ $project->project_name }}</a></p>
                                         </div>
                                     </td>
@@ -140,7 +140,7 @@
                                             @if(isset($project->users) && !empty($project->users) && count($project->users) > 0)
                                                 @foreach($project->users as $key => $user)
                                                     @if($key < 3)
-                                                        <a href="#" class="{{ ViewClassNamesConstants::AV_CC }}">
+                                                        <a href="#" class="{{ VC::AV_CC }}">
                                                             <img @if($user->avatar) src="{{asset('/storage/uploads/avatar/'.$user?->avatar)}}" @else src="{{asset('/storage/uploads/avatar/avatar.png')}}" @endif
                                                             title="{{ $user->name }}" style="height:36px;width:36px;">
                                                         </a>
@@ -149,7 +149,7 @@
                                                     @endif
                                                 @endforeach
                                                 @if(count($project->users) > 3)
-                                                    <a href="#" class="{{ ViewClassNamesConstants::AV_CC_SM }}">
+                                                    <a href="#" class="{{ VC::AV_CC_SM }}">
                                                         <img avatar="+ {{ count($project->users)-3 }}" style="height:36px;width:36px;">
                                                     </a>
                                                 @endif
@@ -173,10 +173,10 @@
                                                 $showUrl = Route::has($showRouteName) ? route($showRouteName,$project->id) : '#';
                                                 $showClass = 'show-project-report-link';
                                             @endphp
-                                            <div class="{{ ViewClassNamesConstants::ACT_BTN_WRN }}">
+                                            <div class="{{ VC::ACT_BTN_WRN }}">
                                                 <a href="{{ $showUrl }}"
                                                    id="{{ $showClass }}-{{ $project->id }}"
-                                                   class="{{ ViewClassNamesConstants::BT_SM_CT }} {{ $showClass }}"
+                                                   class="{{ VC::BT_SM_CT }} {{ $showClass }}"
                                                    data-url="{{ $showUrl }}"
                                                    data-sv-localized="true"
                                                    data-guard-msg="{{ Utility::fetchLinkMessage($lang,ViewsConstants::PRJ_RPT,'show_project_report_unavailable') ?? 'View project report route is unavailable. Please contact technical support or your domain administrator.' }}"
@@ -184,7 +184,7 @@
                                                    title="{{ __('View Project Report') }}"
                                                    data-original-title="{{ __('Detail') }}"
                                                 >
-                                                    <i class="{{ ViewClassNamesConstants::TI_EYE_WT }}"></i>
+                                                    <i class="{{ VC::TI_EYE_WT }}"></i>
                                                 </a>
                                             </div>
                                             <script defer src="{{ asset('assets/js/routes/projectReports/show.js') }}"></script>
@@ -195,20 +195,20 @@
                                                 $editUrl = Route::has($editRouteName) ? route($editRouteName,$project->id) : '#';
                                                 $editClass = 'edit-project-link';
                                             @endphp
-                                            <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
+                                            <div class="{{ VC::ACT_BTN_PRIM }}">
                                                 <a href="{{ $editUrl }}"
                                                    id="{{ $editClass }}-{{ $project->id }}"
-                                                   class="{{ ViewClassNamesConstants::BT_SM_FL_CT }} {{ $editClass }}"
+                                                   class="{{ VC::BT_SM_FL_CT }} {{ $editClass }}"
                                                    data-url="{{ $editUrl }}"
                                                    data-sv-localized="true"
-                                                   data-guard-msg="{{ Utility::fetchLinkMessage($lang,ViewsConstants::PRJ,'edit_project_report_unavailable') ?? 'Edit project route is unavailable. Please contact technical support or your domain administrator.' }}"
+                                                   data-guard-msg="{{ Utility::fetchLinkMessage($lang,ViewsConstants::PRJ,'project_report_edit_route_unavailable') ?? 'Edit project route is unavailable. Please contact technical support or your domain administrator.' }}"
                                                    data-ajax-popup="true"
                                                    data-size="lg"
                                                    data-bs-toggle="tooltip"
                                                    title="{{ __('Edit') }}"
                                                    data-title="{{ __('Edit Project') }}"
                                                 >
-                                                    <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
+                                                    <i class="{{ VC::TI_PC_WT }}"></i>
                                                 </a>
                                             </div>
                                             <script defer src="{{ asset('assets/js/routes/projects/edit.js') }}"></script>

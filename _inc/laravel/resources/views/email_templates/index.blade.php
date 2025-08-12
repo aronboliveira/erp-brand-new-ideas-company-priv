@@ -158,7 +158,7 @@
                                                 <label class="form-check-label form-switch">
                                                     <input type="checkbox" class="form-check-input email-template-checkbox" id="email_tempalte_{{!empty($EmailTemplate->template)?$EmailTemplate->template->id:''}}"
                                                            @if(!empty($EmailTemplate->template)?$EmailTemplate->template->is_active:'0' == 1) checked="checked" @endif type="checkbox" value="{{!empty($EmailTemplate->template)?$EmailTemplate->template->is_active:''}} "
-                                                           data-url="{{route('status.email.language',[!empty($EmailTemplate->template)?$EmailTemplate->template->id:''])}}"/>
+                                                           data-url="{{route('emails.status.language',[!empty($EmailTemplate->template)?$EmailTemplate->template->id:''])}}"/>
                                                     <span class="slider1 round"></span>
                                                 </label>
                                             </div>

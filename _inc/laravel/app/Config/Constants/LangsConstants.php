@@ -2337,6 +2337,56 @@ class LangsConstants
 				'bug_status_destroy_route_unavailable' => '错误状态删除路由不可用。' . self::DELEGATION_ZH
 			]
 		],
+		'business' => [
+			'ar' => [
+				'business_setting_route_unavailable' => 'مسار إعدادات الأعمال غير متاح. ' . self::DELEGATION_AR,
+			],
+			'da' => [
+				'business_setting_route_unavailable' => 'Business indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+			],
+			'de' => [
+				'business_setting_route_unavailable' => 'Geschäftseinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+			],
+			'en' => [
+				'business_setting_route_unavailable' => 'Business setting route is unavailable. ' . self::DELEGATION_EN,
+			],
+			'es' => [
+				'business_setting_route_unavailable' => 'La ruta de configuración de negocio no está disponible. ' . self::DELEGATION_ES,
+			],
+			'fr' => [
+				'business_setting_route_unavailable' => 'La route des paramètres commerciaux n\'est pas disponible. ' . self::DELEGATION_FR,
+			],
+			'he' => [
+				'business_setting_route_unavailable' => 'נתיב הגדרת העסק אינו זמין. ' . self::DELEGATION_HE,
+			],
+			'it' => [
+				'business_setting_route_unavailable' => 'La rotta delle impostazioni aziendali non è disponibile. ' . self::DELEGATION_IT,
+			],
+			'ja' => [
+				'business_setting_route_unavailable' => 'ビジネス設定ルートは利用できません。' . self::DELEGATION_JA,
+			],
+			'nl' => [
+				'business_setting_route_unavailable' => 'Bedrijfsinstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+			],
+			'pl' => [
+				'business_setting_route_unavailable' => 'Trasa ustawień biznesowych jest niedostępna. ' . self::DELEGATION_PL,
+			],
+			'pt' => [
+				'business_setting_route_unavailable' => 'A rota de definições de negócio não está disponível. ' . self::DELEGATION_PT,
+			],
+			'pt-br' => [
+				'business_setting_route_unavailable' => 'A rota de configurações de negócios não está disponível. ' . self::DELEGATION_PTBR,
+			],
+			'ru' => [
+				'business_setting_route_unavailable' => 'Маршрут бизнес-настроек недоступен. ' . self::DELEGATION_RU,
+			],
+			'tr' => [
+				'business_setting_route_unavailable' => 'İş ayarı rotası kullanılamıyor. ' . self::DELEGATION_TR,
+			],
+			'zh' => [
+				'business_setting_route_unavailable' => '业务设置路由不可用。' . self::DELEGATION_ZH,
+			]
+		],
 		'chats' => [
 			'ar' => ['messenger_index_route_unavailable' => 'مسار المراسلة غير متاح. ' . self::DELEGATION_AR],
 			'da' => ['messenger_index_route_unavailable' => 'Messenger-rute er ikke tilgængelig. ' . self::DELEGATION_DA],
@@ -7997,52 +8047,132 @@ class LangsConstants
 		],
 		ViewsConstants::PPS => [
 			'ar' => [
-				'create_proposal_route_unavailable' => 'مسار إنشاء الاقتراح غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول النطاق.'
+				'create_proposal_route_unavailable' => 'مسار إنشاء الاقتراح غير متاح. ' . self::DELEGATION_AR,
+				'proposal_index_route_unavailable' => 'مسار فهرس الاقتراحات غير متاح. ' . self::DELEGATION_AR,
+				'proposal_update_route_unavailable' => 'مسار تحديث الاقتراح غير متاح. ' . self::DELEGATION_AR,
+				'proposal_customer_route_unavailable' => 'مسار عميل الاقتراح غير متاح. ' . self::DELEGATION_AR,
+				'proposal_product_route_unavailable' => 'مسار منتج الاقتراح غير متاح. ' . self::DELEGATION_AR,
+				'proposal_store_route_unavailable' => 'مسار تخزين الاقتراح غير متاح. ' . self::DELEGATION_AR
 			],
 			'da' => [
-				'create_proposal_route_unavailable' => 'Oprettelsesrute for forslag er ikke tilgængelig. Kontakt teknisk support eller din domæneadministrator.'
+				'create_proposal_route_unavailable' => 'Oprettelsesrute for forslag er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'proposal_index_route_unavailable' => 'Forslagsindeksrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'proposal_update_route_unavailable' => 'Forslagsopdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'proposal_customer_route_unavailable' => 'Forslagskunderute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'proposal_product_route_unavailable' => 'Forslagsproduktrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'proposal_store_route_unavailable' => 'Forslagslagringsrute er ikke tilgængelig. ' . self::DELEGATION_DA
 			],
 			'de' => [
-				'create_proposal_route_unavailable' => 'Erstellungsroute für Vorschläge ist nicht verfügbar. Bitte kontaktieren Sie den technischen Support oder Ihren Domain-Administrator.'
+				'create_proposal_route_unavailable' => 'Erstellungsroute für Vorschläge ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'proposal_index_route_unavailable' => 'Vorschlagsindex-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'proposal_update_route_unavailable' => 'Vorschlagsaktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'proposal_customer_route_unavailable' => 'Vorschlagskunden-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'proposal_product_route_unavailable' => 'Vorschlagsprodukt-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'proposal_store_route_unavailable' => 'Vorschlags-Speicherroute ist nicht verfügbar. ' . self::DELEGATION_DE
 			],
 			'en' => [
-				'create_proposal_route_unavailable' => 'Create proposal route is unavailable. Please contact technical support or your domain administrator.'
+				'create_proposal_route_unavailable' => 'Create proposal route is unavailable. ' . self::DELEGATION_EN,
+				'proposal_index_route_unavailable' => 'Proposal index route is unavailable. ' . self::DELEGATION_EN,
+				'proposal_update_route_unavailable' => 'Proposal update route is unavailable. ' . self::DELEGATION_EN,
+				'proposal_customer_route_unavailable' => 'Proposal customer route is unavailable. ' . self::DELEGATION_EN,
+				'proposal_product_route_unavailable' => 'Proposal product route is unavailable. ' . self::DELEGATION_EN,
+				'proposal_store_route_unavailable' => 'Proposal store route is unavailable. ' . self::DELEGATION_EN
 			],
 			'es' => [
-				'create_proposal_route_unavailable' => 'La ruta de creación de propuestas no está disponible. Por favor, contacte al soporte técnico o a su administrador de dominio.'
+				'create_proposal_route_unavailable' => 'La ruta de creación de propuestas no está disponible. ' . self::DELEGATION_ES,
+				'proposal_index_route_unavailable' => 'La ruta de índice de propuestas no está disponible. ' . self::DELEGATION_ES,
+				'proposal_update_route_unavailable' => 'La ruta de actualización de propuestas no está disponible. ' . self::DELEGATION_ES,
+				'proposal_customer_route_unavailable' => 'La ruta de clientes de propuestas no está disponible. ' . self::DELEGATION_ES,
+				'proposal_product_route_unavailable' => 'La ruta de productos de propuestas no está disponible. ' . self::DELEGATION_ES,
+				'proposal_store_route_unavailable' => 'La ruta de almacenamiento de propuestas no está disponible. ' . self::DELEGATION_ES
 			],
 			'fr' => [
-				'create_proposal_route_unavailable' => 'La route de création de propositions n\'est pas disponible. Veuillez contacter le support technique ou votre administrateur de domaine.'
+				'create_proposal_route_unavailable' => 'La route de création de propositions n\'est pas disponible. ' . self::DELEGATION_FR,
+				'proposal_index_route_unavailable' => 'La route d\'index des propositions n\'est pas disponible. ' . self::DELEGATION_FR,
+				'proposal_update_route_unavailable' => 'La route de mise à jour des propositions n\'est pas disponible. ' . self::DELEGATION_FR,
+				'proposal_customer_route_unavailable' => 'La route des clients pour les propositions n\'est pas disponible. ' . self::DELEGATION_FR,
+				'proposal_product_route_unavailable' => 'La route des produits pour les propositions n\'est pas disponible. ' . self::DELEGATION_FR,
+				'proposal_store_route_unavailable' => 'La route de stockage des propositions n\'est pas disponible. ' . self::DELEGATION_FR
 			],
 			'he' => [
-				'create_proposal_route_unavailable' => 'נתיב יצירת ההצעה אינו זמין. אנא צור קשר עם התמיכה הטכנית או עם מנהל הדומיין שלך.'
+				'create_proposal_route_unavailable' => 'נתיב יצירת ההצעה אינו זמין. ' . self::DELEGATION_HE,
+				'proposal_index_route_unavailable' => 'נתיב אינדקס ההצעות אינו זמין. ' . self::DELEGATION_HE,
+				'proposal_update_route_unavailable' => 'נתיב עדכון ההצעה אינו זמין. ' . self::DELEGATION_HE,
+				'proposal_customer_route_unavailable' => 'נתיב הלקוח של ההצעה אינו זמין. ' . self::DELEGATION_HE,
+				'proposal_product_route_unavailable' => 'נתיב המוצר של ההצעה אינו זמין. ' . self::DELEGATION_HE,
+				'proposal_store_route_unavailable' => 'נתיב אחסון ההצעה אינו זמין. ' . self::DELEGATION_HE
 			],
 			'it' => [
-				'create_proposal_route_unavailable' => 'La rotta di creazione delle proposte non è disponibile. Contatta il supporto tecnico o il tuo amministratore di dominio.'
+				'create_proposal_route_unavailable' => 'La rotta di creazione delle proposte non è disponibile. ' . self::DELEGATION_IT,
+				'proposal_index_route_unavailable' => 'La rotta dell\'indice delle proposte non è disponibile. ' . self::DELEGATION_IT,
+				'proposal_update_route_unavailable' => 'La rotta di aggiornamento delle proposte non è disponibile. ' . self::DELEGATION_IT,
+				'proposal_customer_route_unavailable' => 'La rotta del cliente per le proposte non è disponibile. ' . self::DELEGATION_IT,
+				'proposal_product_route_unavailable' => 'La rotta del prodotto per le proposte non è disponibile. ' . self::DELEGATION_IT,
+				'proposal_store_route_unavailable' => 'La rotta di memorizzazione delle proposte non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
-				'create_proposal_route_unavailable' => '提案作成ルートは利用できません。テクニカルサポートまたはドメイン管理者に連絡してください。'
+				'create_proposal_route_unavailable' => '提案作成ルートは利用できません。' . self::DELEGATION_JA,
+				'proposal_index_route_unavailable' => '提案インデックスルートは利用できません。' . self::DELEGATION_JA,
+				'proposal_update_route_unavailable' => '提案更新ルートは利用できません。' . self::DELEGATION_JA,
+				'proposal_customer_route_unavailable' => '提案顧客ルートは利用できません。' . self::DELEGATION_JA,
+				'proposal_product_route_unavailable' => '提案商品ルートは利用できません。' . self::DELEGATION_JA,
+				'proposal_store_route_unavailable' => '提案保存ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
-				'create_proposal_route_unavailable' => 'Aanmaakroute voor voorstellen is niet beschikbaar. Neem contact op met technische ondersteuning of uw domeinbeheerder.'
+				'create_proposal_route_unavailable' => 'Aanmaakroute voor voorstellen is niet beschikbaar. ' . self::DELEGATION_NL,
+				'proposal_index_route_unavailable' => 'Voorstel indexroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'proposal_update_route_unavailable' => 'Voorstel updateroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'proposal_customer_route_unavailable' => 'Voorstel klantenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'proposal_product_route_unavailable' => 'Voorstel productroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'proposal_store_route_unavailable' => 'Voorstel opslagroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
-				'create_proposal_route_unavailable' => 'Trasa tworzenia propozycji jest niedostępna. Skontaktuj się z pomocą techniczną lub administratorem domeny.'
+				'create_proposal_route_unavailable' => 'Trasa tworzenia propozycji jest niedostępna. ' . self::DELEGATION_PL,
+				'proposal_index_route_unavailable' => 'Trasa indeksu propozycji jest niedostępna. ' . self::DELEGATION_PL,
+				'proposal_update_route_unavailable' => 'Trasa aktualizacji propozycji jest niedostępna. ' . self::DELEGATION_PL,
+				'proposal_customer_route_unavailable' => 'Trasa klienta propozycji jest niedostępna. ' . self::DELEGATION_PL,
+				'proposal_product_route_unavailable' => 'Trasa produktu propozycji jest niedostępna. ' . self::DELEGATION_PL,
+				'proposal_store_route_unavailable' => 'Trasa przechowywania propozycji jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
-				'create_proposal_route_unavailable' => 'A rota de criação de propostas não está disponível. Entre em contato com o suporte técnico ou o administrador do domínio.'
+				'create_proposal_route_unavailable' => 'A rota de criação de propostas não está disponível. ' . self::DELEGATION_PT,
+				'proposal_index_route_unavailable' => 'A rota de índice de propostas não está disponível. ' . self::DELEGATION_PT,
+				'proposal_update_route_unavailable' => 'A rota de atualização de propostas não está disponível. ' . self::DELEGATION_PT,
+				'proposal_customer_route_unavailable' => 'A rota de clientes de propostas não está disponível. ' . self::DELEGATION_PT,
+				'proposal_product_route_unavailable' => 'A rota de produtos de propostas não está disponível. ' . self::DELEGATION_PT,
+				'proposal_store_route_unavailable' => 'A rota de armazenamento de propostas não está disponível. ' . self::DELEGATION_PT
 			],
 			'pt-br' => [
-				'create_proposal_route_unavailable' => 'A rota de criação de propostas não está disponível. Entre em contato com o suporte técnico ou o administrador do domínio.'
+				'create_proposal_route_unavailable' => 'A rota de criação de propostas não está disponível. ' . self::DELEGATION_PTBR,
+				'proposal_index_route_unavailable' => 'A rota de índice de propostas não está disponível. ' . self::DELEGATION_PTBR,
+				'proposal_update_route_unavailable' => 'A rota de atualização de propostas não está disponível. ' . self::DELEGATION_PTBR,
+				'proposal_customer_route_unavailable' => 'A rota de clientes de propostas não está disponível. ' . self::DELEGATION_PTBR,
+				'proposal_product_route_unavailable' => 'A rota de produtos de propostas não está disponível. ' . self::DELEGATION_PTBR,
+				'proposal_store_route_unavailable' => 'A rota de armazenamento de propostas não está disponível. ' . self::DELEGATION_PTBR
 			],
 			'ru' => [
-				'create_proposal_route_unavailable' => 'Маршрут создания предложения недоступен. Пожалуйста, обратитесь в техническую поддержку или к администратору домена.'
+				'create_proposal_route_unavailable' => 'Маршрут создания предложения недоступен. ' . self::DELEGATION_RU,
+				'proposal_index_route_unavailable' => 'Маршрут индекса предложений недоступен. ' . self::DELEGATION_RU,
+				'proposal_update_route_unavailable' => 'Маршрут обновления предложений недоступен. ' . self::DELEGATION_RU,
+				'proposal_customer_route_unavailable' => 'Маршрут клиента предложения недоступен. ' . self::DELEGATION_RU,
+				'proposal_product_route_unavailable' => 'Маршрут товара предложения недоступен. ' . self::DELEGATION_RU,
+				'proposal_store_route_unavailable' => 'Маршрут хранения предложения недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
-				'create_proposal_route_unavailable' => 'Teklif oluşturma rotası kullanılamıyor. Lütfen teknik destek veya alan yöneticinizle iletişime geçin.'
+				'create_proposal_route_unavailable' => 'Teklif oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'proposal_index_route_unavailable' => 'Teklif indeks rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'proposal_update_route_unavailable' => 'Teklif güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'proposal_customer_route_unavailable' => 'Teklif müşteri rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'proposal_product_route_unavailable' => 'Teklif ürün rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'proposal_store_route_unavailable' => 'Teklif saklama rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
-				'create_proposal_route_unavailable' => '创建提案路由不可用。请联系技术支持或您的域管理员。'
+				'create_proposal_route_unavailable' => '创建提案路由不可用。' . self::DELEGATION_ZH,
+				'proposal_index_route_unavailable' => '提案索引路由不可用。' . self::DELEGATION_ZH,
+				'proposal_update_route_unavailable' => '提案更新路由不可用。' . self::DELEGATION_ZH,
+				'proposal_customer_route_unavailable' => '提案客户路由不可用。' . self::DELEGATION_ZH,
+				'proposal_product_route_unavailable' => '提案产品路由不可用。' . self::DELEGATION_ZH,
+				'proposal_store_route_unavailable' => '提案存储路由不可用。' . self::DELEGATION_ZH
 			]
 		],
 		ViewsConstants::PRC => [
@@ -8064,236 +8194,248 @@ class LangsConstants
 			'zh' => ['purchase_index_route_unavailable' => '购买路由不可用。' . self::DELEGATION_ZH],
 		],
 		ViewsConstants::PRJ => [
-			'ar' => ['project_index_route_unavailable' => 'مسار المشاريع غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['project_index_route_unavailable' => 'Projektrute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['project_index_route_unavailable' => 'Projekt-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['project_index_route_unavailable' => 'Projects route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['project_index_route_unavailable' => 'La ruta de proyectos no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['project_index_route_unavailable' => 'La route des projets n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['project_index_route_unavailable' => 'נתיב פרויקטים אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['project_index_route_unavailable' => 'La rotta dei progetti non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['project_index_route_unavailable' => 'プロジェクトルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['project_index_route_unavailable' => 'Projectroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['project_index_route_unavailable' => 'Trasa projektów jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['project_index_route_unavailable' => 'A rota de projetos não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['project_index_route_unavailable' => 'A rota de projetos não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['project_index_route_unavailable' => 'Маршрут проектов недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['project_index_route_unavailable' => 'Proje rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['project_index_route_unavailable' => '项目路由不可用。' . self::DELEGATION_ZH],
-		],
-		ViewsConstants::PRJ => [
 			'ar' => [
+				'project_index_route_unavailable' => 'مسار المشاريع غير متاح. ' . self::DELEGATION_AR,
 				'show_project_route_unavailable' => 'مسار عرض المشروع غير متاح. ' . self::DELEGATION_AR,
 				'project_task_route_unavailable' => 'مسار مهام المشروع غير متاح. ' . self::DELEGATION_AR,
 				'store_todo_route_unavailable' => 'مسار إنشاء المهام غير متاح. ' . self::DELEGATION_AR,
 				'update_todo_route_unavailable' => 'مسار تحديث المهام غير متاح. ' . self::DELEGATION_AR,
-				'destroy_todo_route_unavailable' => 'مسار حذف المهام غير متاح. ' . self::DELEGATION_AR
+				'destroy_todo_route_unavailable' => 'مسار حذف المهام غير متاح. ' . self::DELEGATION_AR,
+				'project_copy_store_route_unavailable' => 'مسار تخزين نسخة المشروع غير متاح. ' . self::DELEGATION_AR,
+				'project_tasks_show_route_unavailable' => 'مسار عرض مهام المشروع غير متاح. ' . self::DELEGATION_AR
 			],
 			'da' => [
+				'project_index_route_unavailable' => 'Projektrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'show_project_route_unavailable' => 'Projektvisningsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'project_task_route_unavailable' => 'Projektopgave-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'store_todo_route_unavailable' => 'Oprettelsesrute for opgaver er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'update_todo_route_unavailable' => 'Opdateringsrute for opgaver er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'destroy_todo_route_unavailable' => 'Slettelsesrute for opgaver er ikke tilgængelig. ' . self::DELEGATION_DA
+				'destroy_todo_route_unavailable' => 'Slettelsesrute for opgaver er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'project_copy_store_route_unavailable' => 'Projekt kopi gemmerute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'project_tasks_show_route_unavailable' => 'Projektopgave visningsrute er ikke tilgængelig. ' . self::DELEGATION_DA
 			],
 			'de' => [
+				'project_index_route_unavailable' => 'Projekt-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'show_project_route_unavailable' => 'Projektansichtsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'project_task_route_unavailable' => 'Projektaufgaben-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'store_todo_route_unavailable' => 'Aufgabenerstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'update_todo_route_unavailable' => 'Aufgabenaktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'destroy_todo_route_unavailable' => 'Aufgabenlöschroute ist nicht verfügbar. ' . self::DELEGATION_DE
+				'destroy_todo_route_unavailable' => 'Aufgabenlöschroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'project_copy_store_route_unavailable' => 'Projektkopie-Speicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'project_tasks_show_route_unavailable' => 'Projektaufgaben-Anzeigeroute ist nicht verfügbar. ' . self::DELEGATION_DE
 			],
 			'en' => [
+				'project_index_route_unavailable' => 'Projects route is unavailable. ' . self::DELEGATION_EN,
 				'show_project_route_unavailable' => 'Project view route is unavailable. ' . self::DELEGATION_EN,
 				'project_task_route_unavailable' => 'Project task route is unavailable. ' . self::DELEGATION_EN,
 				'store_todo_route_unavailable' => 'Todo creation route is unavailable. ' . self::DELEGATION_EN,
 				'update_todo_route_unavailable' => 'Todo update route is unavailable. ' . self::DELEGATION_EN,
-				'destroy_todo_route_unavailable' => 'Todo delete route is unavailable. ' . self::DELEGATION_EN
+				'destroy_todo_route_unavailable' => 'Todo delete route is unavailable. ' . self::DELEGATION_EN,
+				'project_copy_store_route_unavailable' => 'Project copy store route is unavailable. ' . self::DELEGATION_EN,
+				'project_tasks_show_route_unavailable' => 'Project tasks show route is unavailable. ' . self::DELEGATION_EN
 			],
 			'es' => [
-				'show_project_route_unavailable' => 'La ruta de visualización del proyecto no está disponible.' . self::DELEGATION_ES,
-				'project_task_route_unavailable' => 'La ruta de tareas del proyecto no está disponible.' . self::DELEGATION_ES,
-				'store_todo_route_unavailable' => 'La ruta de creación de tareas no está disponible.' . self::DELEGATION_ES,
-				'update_todo_route_unavailable' => 'La ruta de actualización de tareas no está disponible.' . self::DELEGATION_ES,
-				'destroy_todo_route_unavailable' => 'La ruta de eliminación de tareas no está disponible.' . self::DELEGATION_ES
+				'project_index_route_unavailable' => 'La ruta de proyectos no está disponible. ' . self::DELEGATION_ES,
+				'show_project_route_unavailable' => 'La ruta de visualización del proyecto no está disponible. ' . self::DELEGATION_ES,
+				'project_task_route_unavailable' => 'La ruta de tareas del proyecto no está disponible. ' . self::DELEGATION_ES,
+				'store_todo_route_unavailable' => 'La ruta de creación de tareas no está disponible. ' . self::DELEGATION_ES,
+				'update_todo_route_unavailable' => 'La ruta de actualización de tareas no está disponible. ' . self::DELEGATION_ES,
+				'destroy_todo_route_unavailable' => 'La ruta de eliminación de tareas no está disponible. ' . self::DELEGATION_ES,
+				'project_copy_store_route_unavailable' => 'La ruta de almacenamiento de copia de proyecto no está disponible. ' . self::DELEGATION_ES,
+				'project_tasks_show_route_unavailable' => 'La ruta de visualización de tareas del proyecto no está disponible. ' . self::DELEGATION_ES
 			],
 			'fr' => [
+				'project_index_route_unavailable' => 'La route des projets n\'est pas disponible. ' . self::DELEGATION_FR,
 				'show_project_route_unavailable' => 'La route d\'affichage du projet n\'est pas disponible. ' . self::DELEGATION_FR,
 				'project_task_route_unavailable' => 'La route des tâches du projet n\'est pas disponible. ' . self::DELEGATION_FR,
 				'store_todo_route_unavailable' => 'La route de création de tâches n\'est pas disponible. ' . self::DELEGATION_FR,
 				'update_todo_route_unavailable' => 'La route de mise à jour des tâches n\'est pas disponible. ' . self::DELEGATION_FR,
-				'destroy_todo_route_unavailable' => 'La route de suppression des tâches n\'est pas disponible. ' . self::DELEGATION_FR
+				'destroy_todo_route_unavailable' => 'La route de suppression des tâches n\'est pas disponible. ' . self::DELEGATION_FR,
+				'project_copy_store_route_unavailable' => 'La route de stockage de copie de projet n\'est pas disponible. ' . self::DELEGATION_FR,
+				'project_tasks_show_route_unavailable' => 'La route d\'affichage des tâches du projet n\'est pas disponible. ' . self::DELEGATION_FR
 			],
 			'he' => [
+				'project_index_route_unavailable' => 'נתיב פרויקטים אינו זמין. ' . self::DELEGATION_HE,
 				'show_project_route_unavailable' => 'נתיב תצוגת הפרויקט אינו זמין. ' . self::DELEGATION_HE,
 				'project_task_route_unavailable' => 'נתיב משימות הפרויקט אינו זמין. ' . self::DELEGATION_HE,
 				'store_todo_route_unavailable' => 'נתיב יצירת משימות אינו זמין. ' . self::DELEGATION_HE,
 				'update_todo_route_unavailable' => 'נתיב עדכון משימות אינו זמין. ' . self::DELEGATION_HE,
-				'destroy_todo_route_unavailable' => 'נתיב מחיקת משימות אינו זמין. ' . self::DELEGATION_HE
+				'destroy_todo_route_unavailable' => 'נתיב מחיקת משימות אינו זמין. ' . self::DELEGATION_HE,
+				'project_copy_store_route_unavailable' => 'נתיב אחסון העתקת הפרויקט אינו זמין. ' . self::DELEGATION_HE,
+				'project_tasks_show_route_unavailable' => 'נתיב הצגת משימות הפרויקט אינו זמין. ' . self::DELEGATION_HE
 			],
 			'it' => [
+				'project_index_route_unavailable' => 'La rotta dei progetti non è disponibile. ' . self::DELEGATION_IT,
 				'show_project_route_unavailable' => 'La rotta di visualizzazione del progetto non è disponibile. ' . self::DELEGATION_IT,
 				'project_task_route_unavailable' => 'La rotta delle attività del progetto non è disponibile. ' . self::DELEGATION_IT,
 				'store_todo_route_unavailable' => 'La rotta di creazione delle attività non è disponibile. ' . self::DELEGATION_IT,
 				'update_todo_route_unavailable' => 'La rotta di aggiornamento delle attività non è disponibile. ' . self::DELEGATION_IT,
-				'destroy_todo_route_unavailable' => 'La rotta di eliminazione delle attività non è disponibile. ' . self::DELEGATION_IT
+				'destroy_todo_route_unavailable' => 'La rotta di eliminazione delle attività non è disponibile. ' . self::DELEGATION_IT,
+				'project_copy_store_route_unavailable' => 'La rotta di memorizzazione della copia del progetto non è disponibile. ' . self::DELEGATION_IT,
+				'project_tasks_show_route_unavailable' => 'La rotta di visualizzazione delle attività del progetto non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
+				'project_index_route_unavailable' => 'プロジェクトルートは利用できません。' . self::DELEGATION_JA,
 				'show_project_route_unavailable' => 'プロジェクト表示ルートは利用できません。' . self::DELEGATION_JA,
 				'project_task_route_unavailable' => 'プロジェクトタスクルートは利用できません。' . self::DELEGATION_JA,
 				'store_todo_route_unavailable' => 'Todo作成ルートは利用できません。' . self::DELEGATION_JA,
 				'update_todo_route_unavailable' => 'Todo更新ルートは利用できません。' . self::DELEGATION_JA,
-				'destroy_todo_route_unavailable' => 'Todo削除ルートは利用できません。' . self::DELEGATION_JA
+				'destroy_todo_route_unavailable' => 'Todo削除ルートは利用できません。' . self::DELEGATION_JA,
+				'project_copy_store_route_unavailable' => 'プロジェクトコピー保存ルートは利用できません。' . self::DELEGATION_JA,
+				'project_tasks_show_route_unavailable' => 'プロジェクトタスク表示ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
+				'project_index_route_unavailable' => 'Projectroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'show_project_route_unavailable' => 'Projectweergaveroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'project_task_route_unavailable' => 'Projecttaakroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'store_todo_route_unavailable' => 'Taakaanmaakroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'update_todo_route_unavailable' => 'Taakupdateroute is niet beschikbaar. ' . self::DELEGATION_NL,
-				'destroy_todo_route_unavailable' => 'Taakverwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL
+				'destroy_todo_route_unavailable' => 'Taakverwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'project_copy_store_route_unavailable' => 'Projectkopie opslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'project_tasks_show_route_unavailable' => 'Projecttaakweergaveroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
+				'project_index_route_unavailable' => 'Trasa projektów jest niedostępna. ' . self::DELEGATION_PL,
 				'show_project_route_unavailable' => 'Trasa podglądu projektu jest niedostępna. ' . self::DELEGATION_PL,
 				'project_task_route_unavailable' => 'Trasa zadań projektu jest niedostępna. ' . self::DELEGATION_PL,
 				'store_todo_route_unavailable' => 'Trasa tworzenia zadań jest niedostępna. ' . self::DELEGATION_PL,
 				'update_todo_route_unavailable' => 'Trasa aktualizacji zadań jest niedostępna. ' . self::DELEGATION_PL,
-				'destroy_todo_route_unavailable' => 'Trasa usuwania zadań jest niedostępna. ' . self::DELEGATION_PL
+				'destroy_todo_route_unavailable' => 'Trasa usuwania zadań jest niedostępna. ' . self::DELEGATION_PL,
+				'project_copy_store_route_unavailable' => 'Trasa przechowywania kopii projektu jest niedostępna. ' . self::DELEGATION_PL,
+				'project_tasks_show_route_unavailable' => 'Trasa wyświetlania zadań projektu jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
-				'show_project_route_unavailable' => 'A rota de visualização do projeto não está disponível. ' . self::DELEGATION_PTBR,
-				'project_task_route_unavailable' => 'A rota de tarefas do projeto não está disponível. ' . self::DELEGATION_PTBR,
-				'store_todo_route_unavailable' => 'A rota de criação de tarefas não está disponível. ' . self::DELEGATION_PTBR,
-				'update_todo_route_unavailable' => 'A rota de atualização de tarefas não está disponível. ' . self::DELEGATION_PTBR,
-				'destroy_todo_route_unavailable' => 'A rota de exclusão de tarefas não está disponível. ' . self::DELEGATION_PTBR
+				'project_index_route_unavailable' => 'A rota de projetos não está disponível. ' . self::DELEGATION_PT,
+				'show_project_route_unavailable' => 'A rota de visualização do projeto não está disponível. ' . self::DELEGATION_PT,
+				'project_task_route_unavailable' => 'A rota de tarefas do projeto não está disponível. ' . self::DELEGATION_PT,
+				'store_todo_route_unavailable' => 'A rota de criação de tarefas não está disponível. ' . self::DELEGATION_PT,
+				'update_todo_route_unavailable' => 'A rota de atualização de tarefas não está disponível. ' . self::DELEGATION_PT,
+				'destroy_todo_route_unavailable' => 'A rota de exclusão de tarefas não está disponível. ' . self::DELEGATION_PT,
+				'project_copy_store_route_unavailable' => 'A rota de armazenamento de cópia de projeto não está disponível. ' . self::DELEGATION_PT,
+				'project_tasks_show_route_unavailable' => 'A rota de visualização de tarefas do projeto não está disponível. ' . self::DELEGATION_PT
 			],
 			'pt-br' => [
+				'project_index_route_unavailable' => 'A rota de projetos não está disponível. ' . self::DELEGATION_PTBR,
 				'show_project_route_unavailable' => 'A rota de visualização do projeto não está disponível. ' . self::DELEGATION_PTBR,
 				'project_task_route_unavailable' => 'A rota de tarefas do projeto não está disponível. ' . self::DELEGATION_PTBR,
 				'store_todo_route_unavailable' => 'A rota de criação de tarefas não está disponível. ' . self::DELEGATION_PTBR,
 				'update_todo_route_unavailable' => 'A rota de atualização de tarefas não está disponível. ' . self::DELEGATION_PTBR,
-				'destroy_todo_route_unavailable' => 'A rota de exclusão de tarefas não está disponível. ' . self::DELEGATION_PTBR
+				'destroy_todo_route_unavailable' => 'A rota de exclusão de tarefas não está disponível. ' . self::DELEGATION_PTBR,
+				'project_copy_store_route_unavailable' => 'A rota de armazenamento de cópia de projeto não está disponível. ' . self::DELEGATION_PTBR,
+				'project_tasks_show_route_unavailable' => 'A rota de visualização de tarefas do projeto não está disponível. ' . self::DELEGATION_PTBR
 			],
 			'ru' => [
+				'project_index_route_unavailable' => 'Маршрут проектов недоступен. ' . self::DELEGATION_RU,
 				'show_project_route_unavailable' => 'Маршрут просмотра проекта недоступен. ' . self::DELEGATION_RU,
 				'project_task_route_unavailable' => 'Маршрут задач проекта недоступен. ' . self::DELEGATION_RU,
 				'store_todo_route_unavailable' => 'Маршрут создания задач недоступен. ' . self::DELEGATION_RU,
 				'update_todo_route_unavailable' => 'Маршрут обновления задач недоступен. ' . self::DELEGATION_RU,
-				'destroy_todo_route_unavailable' => 'Маршрут удаления задач недоступен. ' . self::DELEGATION_RU
+				'destroy_todo_route_unavailable' => 'Маршрут удаления задач недоступен. ' . self::DELEGATION_RU,
+				'project_copy_store_route_unavailable' => 'Маршрут хранения копии проекта недоступен. ' . self::DELEGATION_RU,
+				'project_tasks_show_route_unavailable' => 'Маршрут показа задач проекта недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
+				'project_index_route_unavailable' => 'Proje rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'show_project_route_unavailable' => 'Proje görüntüleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'project_task_route_unavailable' => 'Proje görev rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'store_todo_route_unavailable' => 'Görev oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'update_todo_route_unavailable' => 'Görev güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'destroy_todo_route_unavailable' => 'Görev silme rotası kullanılamıyor. ' . self::DELEGATION_TR
+				'destroy_todo_route_unavailable' => 'Görev silme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'project_copy_store_route_unavailable' => 'Proje kopyası saklama rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'project_tasks_show_route_unavailable' => 'Proje görevlerini göster rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
+				'project_index_route_unavailable' => '项目路由不可用。' . self::DELEGATION_ZH,
 				'show_project_route_unavailable' => '项目查看路由不可用。' . self::DELEGATION_ZH,
 				'project_task_route_unavailable' => '项目任务路由不可用。' . self::DELEGATION_ZH,
 				'store_todo_route_unavailable' => '待办事项创建路由不可用。' . self::DELEGATION_ZH,
 				'update_todo_route_unavailable' => '待办事项更新路由不可用。' . self::DELEGATION_ZH,
-				'destroy_todo_route_unavailable' => '待办事项删除路由不可用。' . self::DELEGATION_ZH
+				'destroy_todo_route_unavailable' => '待办事项删除路由不可用。' . self::DELEGATION_ZH,
+				'project_copy_store_route_unavailable' => '项目副本存储路由不可用。' . self::DELEGATION_ZH,
+				'project_tasks_show_route_unavailable' => '项目任务显示路由不可用。' . self::DELEGATION_ZH
 			]
 		],
 		ViewsConstants::PRJ_RPT => [
 			'ar' => [
-				'index_project_report_unavailable' => 'مسار تقارير المشروع غير متاح. ' . self::DELEGATION_AR,
-				'view_project_report_unavailable' => 'مسار عرض تقرير المشروع غير متاح. ' . self::DELEGATION_AR,
-				'edit_project_report_unavailable' => 'مسار تعديل تقرير المشروع غير متاح. ' . self::DELEGATION_AR
+				'project_report_index_route_unavailable' => 'مسار تقارير المشروع غير متاح. ' . self::DELEGATION_AR,
+				'project_report_view_route_unavailable' => 'مسار عرض تقرير المشروع غير متاح. ' . self::DELEGATION_AR,
+				'project_report_edit_route_unavailable' => 'مسار تعديل تقرير المشروع غير متاح. ' . self::DELEGATION_AR
 			],
 			'da' => [
-				'index_project_report_unavailable' => 'Projektrapportindeksruten er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'view_project_report_unavailable' => 'Vis projektrapportrute er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'edit_project_report_unavailable' => 'Rediger projektets rute er ikke tilgængelig. ' . self::DELEGATION_DA
+				'project_report_index_route_unavailable' => 'Projektrapportindeksruten er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'project_report_view_route_unavailable' => 'Vis projektrapportrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'project_report_edit_route_unavailable' => 'Rediger projektets rute er ikke tilgængelig. ' . self::DELEGATION_DA
 			],
 			'de' => [
-				'index_project_report_unavailable' => 'Projektbericht-Indexroute ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'view_project_report_unavailable' => 'Projektbericht-Anzeigeroute ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'edit_project_report_unavailable' => 'Projektbearbeitungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+				'project_report_index_route_unavailable' => 'Projektbericht-Indexroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'project_report_view_route_unavailable' => 'Projektbericht-Anzeigeroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'project_report_edit_route_unavailable' => 'Projektbearbeitungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
 			],
 			'en' => [
-				'index_project_report_unavailable' => 'Project report index route is unavailable. ' . self::DELEGATION_EN,
-				'view_project_report_unavailable' => 'View project report route is unavailable. ' . self::DELEGATION_EN,
-				'edit_project_report_unavailable' => 'Edit project route is unavailable. ' . self::DELEGATION_EN
+				'project_report_index_route_unavailable' => 'Project report index route is unavailable. ' . self::DELEGATION_EN,
+				'project_report_view_route_unavailable' => 'View project report route is unavailable. ' . self::DELEGATION_EN,
+				'project_report_edit_route_unavailable' => 'Edit project route is unavailable. ' . self::DELEGATION_EN
 			],
 			'es' => [
-				'index_project_report_unavailable' => 'La ruta del índice de informes del proyecto no está disponible.' . self::DELEGATION_ES,
-				'view_project_report_unavailable' => 'La ruta de visualización del informe del proyecto no está disponible.' . self::DELEGATION_ES,
-				'edit_project_report_unavailable' => 'La ruta de edición del proyecto no está disponible.' . self::DELEGATION_ES
+				'project_report_index_route_unavailable' => 'La ruta del índice de informes del proyecto no está disponible.' . self::DELEGATION_ES,
+				'project_report_view_route_unavailable' => 'La ruta de visualización del informe del proyecto no está disponible.' . self::DELEGATION_ES,
+				'project_report_edit_route_unavailable' => 'La ruta de edición del proyecto no está disponible.' . self::DELEGATION_ES
 			],
 			'fr' => [
-				'index_project_report_unavailable' => 'La route de l\'index des rapports de projet est indisponible.' . self::DELEGATION_FR,
-				'view_project_report_unavailable' => 'La route de visualisation du rapport de projet est indisponible.' . self::DELEGATION_FR,
-				'edit_project_report_unavailable' => 'La route de modification du projet est indisponible.' . self::DELEGATION_FR
+				'project_report_index_route_unavailable' => 'La route de l\'index des rapports de projet est indisponible.' . self::DELEGATION_FR,
+				'project_report_view_route_unavailable' => 'La route de visualisation du rapport de projet est indisponible.' . self::DELEGATION_FR,
+				'project_report_edit_route_unavailable' => 'La route de modification du projet est indisponible.' . self::DELEGATION_FR
 			],
 			'he' => [
-				'index_project_report_unavailable' => 'מסלול דוחות פרויקט אינו זמין. ' . self::DELEGATION_HE,
-				'view_project_report_unavailable' => 'מסלול צפייה בדוח פרויקט אינו זמין. ' . self::DELEGATION_HE,
-				'edit_project_report_unavailable' => 'מסלול עריכת דוח פרויקט אינו זמין. ' . self::DELEGATION_HE
+				'project_report_index_route_unavailable' => 'מסלול דוחות פרויקט אינו זמין. ' . self::DELEGATION_HE,
+				'project_report_view_route_unavailable' => 'מסלול צפייה בדוח פרויקט אינו זמין. ' . self::DELEGATION_HE,
+				'project_report_edit_route_unavailable' => 'מסלול עריכת דוח פרויקט אינו זמין. ' . self::DELEGATION_HE
 			],
 			'it' => [
-				'index_project_report_unavailable' => 'La rotta dell\'indice del report di progetto non è disponibile. ' . self::DELEGATION_IT,
-				'view_project_report_unavailable' => 'La rotta di visualizzazione del report di progetto non è disponibile. ' . self::DELEGATION_IT,
-				'edit_project_report_unavailable' => 'La rotta di modifica del progetto non è disponibile. ' . self::DELEGATION_IT
+				'project_report_index_route_unavailable' => 'La rotta dell\'indice del report di progetto non è disponibile. ' . self::DELEGATION_IT,
+				'project_report_view_route_unavailable' => 'La rotta di visualizzazione del report di progetto non è disponibile. ' . self::DELEGATION_IT,
+				'project_report_edit_route_unavailable' => 'La rotta di modifica del progetto non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
-				'index_project_report_unavailable' => 'プロジェクトレポートインデックスルートは利用できません。' . self::DELEGATION_JA,
-				'view_project_report_unavailable' => 'プロジェクトレポート表示ルートは利用できません。' . self::DELEGATION_JA,
-				'edit_project_report_unavailable' => 'プロジェクト編集ルートは利用できません。' . self::DELEGATION_JA
+				'project_report_index_route_unavailable' => 'プロジェクトレポートインデックスルートは利用できません。' . self::DELEGATION_JA,
+				'project_report_view_route_unavailable' => 'プロジェクトレポート表示ルートは利用できません。' . self::DELEGATION_JA,
+				'project_report_edit_route_unavailable' => 'プロジェクト編集ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
-				'index_project_report_unavailable' => 'Projectrapport indexroute is niet beschikbaar. ' . self::DELEGATION_NL,
-				'view_project_report_unavailable' => 'Projectrapport weergaveroute is niet beschikbaar. ' . self::DELEGATION_NL,
-				'edit_project_report_unavailable' => 'Projectbewerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL
+				'project_report_index_route_unavailable' => 'Projectrapport indexroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'project_report_view_route_unavailable' => 'Projectrapport weergaveroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'project_report_edit_route_unavailable' => 'Projectbewerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
-				'index_project_report_unavailable' => 'Trasa indeksu raportu projektu jest niedostępna. ' . self::DELEGATION_PL,
-				'view_project_report_unavailable' => 'Trasa podglądu raportu projektu jest niedostępna. ' . self::DELEGATION_PL,
-				'edit_project_report_unavailable' => 'Trasa edycji projektu jest niedostępna. ' . self::DELEGATION_PL
+				'project_report_index_route_unavailable' => 'Trasa indeksu raportu projektu jest niedostępna. ' . self::DELEGATION_PL,
+				'project_report_view_route_unavailable' => 'Trasa podglądu raportu projektu jest niedostępna. ' . self::DELEGATION_PL,
+				'project_report_edit_route_unavailable' => 'Trasa edycji projektu jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
-				'index_project_report_unavailable' => 'A rota de índice de relatório de projeto não está disponível.' . self::DELEGATION_PT,
-				'view_project_report_unavailable' => 'A rota de visualização de relatório de projeto não está disponível.' . self::DELEGATION_PT,
-				'edit_project_report_unavailable' => 'A rota de edição do projeto não está disponível.' . self::DELEGATION_PT
+				'project_report_index_route_unavailable' => 'A rota de índice de relatório de projeto não está disponível.' . self::DELEGATION_PT,
+				'project_report_view_route_unavailable' => 'A rota de visualização de relatório de projeto não está disponível.' . self::DELEGATION_PT,
+				'project_report_edit_route_unavailable' => 'A rota de edição do projeto não está disponível.' . self::DELEGATION_PT
 			],
 			'pt-br' => [
-				'index_project_report_unavailable' => 'A rota de índice de relatório de projeto não está disponível. ' . self::DELEGATION_PTBR,
-				'view_project_report_unavailable' => 'A rota de visualização de relatório de projeto não está disponível. ' . self::DELEGATION_PTBR,
-				'edit_project_report_unavailable' => 'A rota de edição do projeto não está disponível. ' . self::DELEGATION_PTBR
+				'project_report_index_route_unavailable' => 'A rota de índice de relatório de projeto não está disponível. ' . self::DELEGATION_PTBR,
+				'project_report_view_route_unavailable' => 'A rota de visualização de relatório de projeto não está disponível. ' . self::DELEGATION_PTBR,
+				'project_report_edit_route_unavailable' => 'A rota de edição do projeto não está disponível. ' . self::DELEGATION_PTBR
 			],
 			'ru' => [
-				'index_project_report_unavailable' => 'Маршрут индекса отчетов проекта недоступен. ' . self::DELEGATION_RU,
-				'view_project_report_unavailable' => 'Маршрут просмотра отчетов проекта недоступен. ' . self::DELEGATION_RU,
-				'edit_project_report_unavailable' => 'Маршрут редактирования проекта недоступен. ' . self::DELEGATION_RU
+				'project_report_index_route_unavailable' => 'Маршрут индекса отчетов проекта недоступен. ' . self::DELEGATION_RU,
+				'project_report_view_route_unavailable' => 'Маршрут просмотра отчетов проекта недоступен. ' . self::DELEGATION_RU,
+				'project_report_edit_route_unavailable' => 'Маршрут редактирования проекта недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
-				'index_project_report_unavailable' => 'Proje raporu indeks rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'view_project_report_unavailable' => 'Proje raporu görüntüleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'edit_project_report_unavailable' => 'Proje düzenleme rotası kullanılamıyor. ' . self::DELEGATION_TR
+				'project_report_index_route_unavailable' => 'Proje raporu indeks rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'project_report_view_route_unavailable' => 'Proje raporu görüntüleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'project_report_edit_route_unavailable' => 'Proje düzenleme rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
-				'index_project_report_unavailable' => '项目报告索引路由不可用。' . self::DELEGATION_ZH,
-				'view_project_report_unavailable' => '查看项目报告路由不可用。' . self::DELEGATION_ZH,
-				'edit_project_report_unavailable' => '编辑项目路由不可用。' . self::DELEGATION_ZH
+				'project_report_index_route_unavailable' => '项目报告索引路由不可用。' . self::DELEGATION_ZH,
+				'project_report_view_route_unavailable' => '查看项目报告路由不可用。' . self::DELEGATION_ZH,
+				'project_report_edit_route_unavailable' => '编辑项目路由不可用。' . self::DELEGATION_ZH
 			]
-		],
-		ViewsConstants::PRJ_RPT => [
-			'ar' => ['project_report_index_route_unavailable' => 'مسار تقارير المشاريع غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['project_report_index_route_unavailable' => 'Projektrapportrute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['project_report_index_route_unavailable' => 'Projektberichts-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['project_report_index_route_unavailable' => 'Project Report route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['project_report_index_route_unavailable' => 'La ruta de informe de proyecto no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['project_report_index_route_unavailable' => 'La route du rapport de projet n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['project_report_index_route_unavailable' => 'נתיב דוח פרויקט אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['project_report_index_route_unavailable' => 'La rotta del report di progetto non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['project_report_index_route_unavailable' => 'プロジェクトレポートルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['project_report_index_route_unavailable' => 'Projectrapportroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['project_report_index_route_unavailable' => 'Trasa raportu projektu jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['project_report_index_route_unavailable' => 'A rota de relatório de projeto não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['project_report_index_route_unavailable' => 'A rota de relatório de projeto não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['project_report_index_route_unavailable' => 'Маршрут отчетов по проектам недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['project_report_index_route_unavailable' => 'Proje Rapor rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['project_report_index_route_unavailable' => '项目报告路由不可用。' . self::DELEGATION_ZH],
 		],
 		ViewsConstants::PRD_SV => [
 			'ar' => ['product_services_index_route_unavailable' => 'مسار المنتجات والخدمات غير متاح. ' . self::DELEGATION_AR],
@@ -8313,23 +8455,201 @@ class LangsConstants
 			'tr' => ['product_services_index_route_unavailable' => 'Ürün ve Hizmet rotası kullanılamıyor. ' . self::DELEGATION_TR],
 			'zh' => ['product_services_index_route_unavailable' => '产品和服务路由不可用。' . self::DELEGATION_ZH],
 		],
+		ViewsConstants::PRD_SV_CAT => [
+			'ar' => [
+				'product_category_index_route_unavailable' => 'مسار حفظ فئة المنتج غير متاح. ' . self::DELEGATION_AR,
+				'product_category_update_route_unavailable' => 'مسار تحديث فئة المنتج غير متاح. ' . self::DELEGATION_AR,
+				'product_category_create_route_unavailable' => 'مسار إنشاء فئة المنتج غير متاح. ' . self::DELEGATION_AR,
+				'product_category_edit_route_unavailable' => 'مسار تعديل فئة المنتج غير متاح. ' . self::DELEGATION_AR,
+				'product_category_destroy_route_unavailable' => 'مسار حذف فئة المنتج غير متاح. ' . self::DELEGATION_AR,
+			],
+			'da' => [
+				'product_category_index_route_unavailable' => 'Produktkategori gemmerute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'product_category_update_route_unavailable' => 'Produktkategori opdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'product_category_create_route_unavailable' => 'Produktkategori oprettelsesrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'product_category_edit_route_unavailable' => 'Produktkategori redigeringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'product_category_destroy_route_unavailable' => 'Produktkategori sletterute er ikke tilgængelig. ' . self::DELEGATION_DA,
+			],
+			'de' => [
+				'product_category_index_route_unavailable' => 'Produktkategorie-Speicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'product_category_update_route_unavailable' => 'Produktkategorie-Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'product_category_create_route_unavailable' => 'Produktkategorie-Erstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'product_category_edit_route_unavailable' => 'Produktkategorie-Bearbeitungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'product_category_destroy_route_unavailable' => 'Produktkategorie-Löschroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+			],
+			'en' => [
+				'product_category_index_route_unavailable' => 'Product category save route is unavailable. ' . self::DELEGATION_EN,
+				'product_category_update_route_unavailable' => 'Product category update route is unavailable. ' . self::DELEGATION_EN,
+				'product_category_create_route_unavailable' => 'Product category create route is unavailable. ' . self::DELEGATION_EN,
+				'product_category_edit_route_unavailable' => 'Product category edit route is unavailable. ' . self::DELEGATION_EN,
+				'product_category_destroy_route_unavailable' => 'Product category destroy route is unavailable. ' . self::DELEGATION_EN,
+			],
+			'es' => [
+				'product_category_index_route_unavailable' => 'La ruta de guardado de categoría de producto no está disponible. ' . self::DELEGATION_ES,
+				'product_category_update_route_unavailable' => 'La ruta de actualización de categoría de producto no está disponible. ' . self::DELEGATION_ES,
+				'product_category_create_route_unavailable' => 'La ruta de creación de categoría de producto no está disponible. ' . self::DELEGATION_ES,
+				'product_category_edit_route_unavailable' => 'La ruta de edición de categoría de producto no está disponible. ' . self::DELEGATION_ES,
+				'product_category_destroy_route_unavailable' => 'La ruta de eliminación de categoría de producto no está disponible. ' . self::DELEGATION_ES,
+			],
+			'fr' => [
+				'product_category_index_route_unavailable' => 'La route de sauvegarde de catégorie de produit n\'est pas disponible. ' . self::DELEGATION_FR,
+				'product_category_update_route_unavailable' => 'La route de mise à jour de catégorie de produit n\'est pas disponible. ' . self::DELEGATION_FR,
+				'product_category_create_route_unavailable' => 'La route de création de catégorie de produit n\'est pas disponible. ' . self::DELEGATION_FR,
+				'product_category_edit_route_unavailable' => 'La route d\'édition de catégorie de produit n\'est pas disponible. ' . self::DELEGATION_FR,
+				'product_category_destroy_route_unavailable' => 'La route de suppression de catégorie de produit n\'est pas disponible. ' . self::DELEGATION_FR,
+			],
+			'he' => [
+				'product_category_index_route_unavailable' => 'נתיב שמירת קטגוריית מוצרים אינו זמין. ' . self::DELEGATION_HE,
+				'product_category_update_route_unavailable' => 'נתיב עדכון קטגוריית מוצרים אינו זמין. ' . self::DELEGATION_HE,
+				'product_category_create_route_unavailable' => 'נתיב יצירת קטגוריית מוצרים אינו זמין. ' . self::DELEGATION_HE,
+				'product_category_edit_route_unavailable' => 'נתיב עריכת קטגוריית מוצרים אינו זמין. ' . self::DELEGATION_HE,
+				'product_category_destroy_route_unavailable' => 'נתיב מחיקת קטגוריית מוצרים אינו זמין. ' . self::DELEGATION_HE,
+			],
+			'it' => [
+				'product_category_index_route_unavailable' => 'La rotta di salvataggio della categoria prodotto non è disponibile. ' . self::DELEGATION_IT,
+				'product_category_update_route_unavailable' => 'La rotta di aggiornamento della categoria prodotto non è disponibile. ' . self::DELEGATION_IT,
+				'product_category_create_route_unavailable' => 'La rotta di creazione della categoria prodotto non è disponibile. ' . self::DELEGATION_IT,
+				'product_category_edit_route_unavailable' => 'La rotta di modifica della categoria prodotto non è disponibile. ' . self::DELEGATION_IT,
+				'product_category_destroy_route_unavailable' => 'La rotta di eliminazione della categoria prodotto non è disponibile. ' . self::DELEGATION_IT,
+			],
+			'ja' => [
+				'product_category_index_route_unavailable' => '製品カテゴリ保存ルートは利用できません。 ' . self::DELEGATION_JA,
+				'product_category_update_route_unavailable' => '製品カテゴリ更新ルートは利用できません。 ' . self::DELEGATION_JA,
+				'product_category_create_route_unavailable' => '製品カテゴリ作成ルートは利用できません。 ' . self::DELEGATION_JA,
+				'product_category_edit_route_unavailable' => '製品カテゴリ編集ルートは利用できません。 ' . self::DELEGATION_JA,
+				'product_category_destroy_route_unavailable' => '製品カテゴリ削除ルートは利用できません。 ' . self::DELEGATION_JA,
+			],
+			'nl' => [
+				'product_category_index_route_unavailable' => 'Productcategorie opslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'product_category_update_route_unavailable' => 'Productcategorie updateroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'product_category_create_route_unavailable' => 'Productcategorie aanmaakroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'product_category_edit_route_unavailable' => 'Productcategorie bewerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'product_category_destroy_route_unavailable' => 'Productcategorie verwijderroute is niet beschikbaar. ' . self::DELEGATION_NL,
+			],
+			'pl' => [
+				'product_category_index_route_unavailable' => 'Trasa zapisu kategorii produktów jest niedostępna. ' . self::DELEGATION_PL,
+				'product_category_update_route_unavailable' => 'Trasa aktualizacji kategorii produktów jest niedostępna. ' . self::DELEGATION_PL,
+				'product_category_create_route_unavailable' => 'Trasa tworzenia kategorii produktów jest niedostępna. ' . self::DELEGATION_PL,
+				'product_category_edit_route_unavailable' => 'Trasa edycji kategorii produktów jest niedostępna. ' . self::DELEGATION_PL,
+				'product_category_destroy_route_unavailable' => 'Trasa usuwania kategorii produktów jest niedostępna. ' . self::DELEGATION_PL,
+			],
+			'pt' => [
+				'product_category_index_route_unavailable' => 'A rota de salvamento de categoria de produto não está disponível. ' . self::DELEGATION_PT,
+				'product_category_update_route_unavailable' => 'A rota de atualização de categoria de produto não está disponível. ' . self::DELEGATION_PT,
+				'product_category_create_route_unavailable' => 'A rota de criação de categoria de produto não está disponível. ' . self::DELEGATION_PT,
+				'product_category_edit_route_unavailable' => 'A rota de edição de categoria de produto não está disponível. ' . self::DELEGATION_PT,
+				'product_category_destroy_route_unavailable' => 'A rota de destruição de categoria de produto não está disponível. ' . self::DELEGATION_PT,
+			],
+			'pt-br' => [
+				'product_category_index_route_unavailable' => 'A rota de salvamento de categoria de produto não está disponível. ' . self::DELEGATION_PTBR,
+				'product_category_update_route_unavailable' => 'A rota de atualização de categoria de produto não está disponível. ' . self::DELEGATION_PTBR,
+				'product_category_create_route_unavailable' => 'A rota de criação de categoria de produto não está disponível. ' . self::DELEGATION_PTBR,
+				'product_category_edit_route_unavailable' => 'A rota de edição de categoria de produto não está disponível. ' . self::DELEGATION_PTBR,
+				'product_category_destroy_route_unavailable' => 'A rota de destruição de categoria de produto não está disponível. ' . self::DELEGATION_PTBR,
+			],
+			'ru' => [
+				'product_category_index_route_unavailable' => 'Маршрут сохранения категории продуктов недоступен. ' . self::DELEGATION_RU,
+				'product_category_update_route_unavailable' => 'Маршрут обновления категории продуктов недоступен. ' . self::DELEGATION_RU,
+				'product_category_create_route_unavailable' => 'Маршрут создания категории продуктов недоступен. ' . self::DELEGATION_RU,
+				'product_category_edit_route_unavailable' => 'Маршрут редактирования категории продуктов недоступен. ' . self::DELEGATION_RU,
+				'product_category_destroy_route_unavailable' => 'Маршрут удаления категории продуктов недоступен. ' . self::DELEGATION_RU,
+			],
+			'tr' => [
+				'product_category_index_route_unavailable' => 'Ürün kategorisi kayıt rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'product_category_update_route_unavailable' => 'Ürün kategorisi güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'product_category_create_route_unavailable' => 'Ürün kategorisi oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'product_category_edit_route_unavailable' => 'Ürün kategorisi düzenleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'product_category_destroy_route_unavailable' => 'Ürün kategorisi silme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+			],
+			'zh' => [
+				'product_category_index_route_unavailable' => '产品类别保存路由不可用。 ' . self::DELEGATION_ZH,
+				'product_category_update_route_unavailable' => '产品类别更新路由不可用。 ' . self::DELEGATION_ZH,
+				'product_category_create_route_unavailable' => '产品类别创建路由不可用。 ' . self::DELEGATION_ZH,
+				'product_category_edit_route_unavailable' => '产品类别编辑路由不可用。 ' . self::DELEGATION_ZH,
+				'product_category_destroy_route_unavailable' => '产品类别删除路由不可用。 ' . self::DELEGATION_ZH,
+			]
+		],
 		ViewsConstants::PRD_STK => [
-			'ar' => ['product_stock_index_route_unavailable' => 'مسار مخزون المنتجات غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['product_stock_index_route_unavailable' => 'Produktlager-rute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['product_stock_index_route_unavailable' => 'Produktbestands-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['product_stock_index_route_unavailable' => 'Product Stock route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['product_stock_index_route_unavailable' => 'La ruta de stock de productos no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['product_stock_index_route_unavailable' => 'La route du stock de produits n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['product_stock_index_route_unavailable' => 'נתיב מלאי מוצרים אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['product_stock_index_route_unavailable' => 'La rotta della scorta di prodotti non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['product_stock_index_route_unavailable' => '製品在庫ルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['product_stock_index_route_unavailable' => 'Productvoorraadroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['product_stock_index_route_unavailable' => 'Trasa stanów magazynowych produktów jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['product_stock_index_route_unavailable' => 'A rota de estoque de produtos não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['product_stock_index_route_unavailable' => 'A rota de estoque de produtos não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['product_stock_index_route_unavailable' => 'Маршрут запасов товаров недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['product_stock_index_route_unavailable' => 'Ürün Stok rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['product_stock_index_route_unavailable' => '产品库存路由不可用。' . self::DELEGATION_ZH],
+			'ar' => [
+				'product_stock_index_route_unavailable' => 'مسار مخزون المنتجات غير متاح. ' . self::DELEGATION_AR,
+				'product_stock_update_route_unavailable' => 'مسار تحديث مخزون المنتجات غير متاح. ' . self::DELEGATION_AR,
+				'product_stock_edit_route_unavailable' => 'مسار تعديل مخزون المنتجات غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'product_stock_index_route_unavailable' => 'Produktlager-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'product_stock_update_route_unavailable' => 'Produktlager opdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'product_stock_edit_route_unavailable' => 'Produktlager redigeringsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'product_stock_index_route_unavailable' => 'Produktbestands-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'product_stock_update_route_unavailable' => 'Produktbestands-Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'product_stock_edit_route_unavailable' => 'Produktbestands-Bearbeitungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'product_stock_index_route_unavailable' => 'Product Stock route is unavailable. ' . self::DELEGATION_EN,
+				'product_stock_update_route_unavailable' => 'Product stock update route is unavailable. ' . self::DELEGATION_EN,
+				'product_stock_edit_route_unavailable' => 'Product stock edit route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'product_stock_index_route_unavailable' => 'La ruta de stock de productos no está disponible. ' . self::DELEGATION_ES,
+				'product_stock_update_route_unavailable' => 'La ruta de actualización de stock de productos no está disponible. ' . self::DELEGATION_ES,
+				'product_stock_edit_route_unavailable' => 'La ruta de edición de stock de productos no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'product_stock_index_route_unavailable' => 'La route du stock de produits n\'est pas disponible. ' . self::DELEGATION_FR,
+				'product_stock_update_route_unavailable' => 'La route de mise à jour du stock de produits n\'est pas disponible. ' . self::DELEGATION_FR,
+				'product_stock_edit_route_unavailable' => 'La route d\'édition du stock de produits n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'product_stock_index_route_unavailable' => 'נתיב מלאי מוצרים אינו זמין. ' . self::DELEGATION_HE,
+				'product_stock_update_route_unavailable' => 'נתיב עדכון מלאי מוצרים אינו זמין. ' . self::DELEGATION_HE,
+				'product_stock_edit_route_unavailable' => 'נתיב עריכת מלאי מוצרים אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'product_stock_index_route_unavailable' => 'La rotta della scorta di prodotti non è disponibile. ' . self::DELEGATION_IT,
+				'product_stock_update_route_unavailable' => 'La rotta di aggiornamento scorta prodotti non è disponibile. ' . self::DELEGATION_IT,
+				'product_stock_edit_route_unavailable' => 'La rotta di modifica scorta prodotti non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'product_stock_index_route_unavailable' => '製品在庫ルートは利用できません。' . self::DELEGATION_JA,
+				'product_stock_update_route_unavailable' => '製品在庫更新ルートは利用できません。' . self::DELEGATION_JA,
+				'product_stock_edit_route_unavailable' => '製品在庫編集ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'product_stock_index_route_unavailable' => 'Productvoorraadroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'product_stock_update_route_unavailable' => 'Productvoorraad updateroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'product_stock_edit_route_unavailable' => 'Productvoorraad bewerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'product_stock_index_route_unavailable' => 'Trasa stanów magazynowych produktów jest niedostępna. ' . self::DELEGATION_PL,
+				'product_stock_update_route_unavailable' => 'Trasa aktualizacji stanu magazynowego produktów jest niedostępna. ' . self::DELEGATION_PL,
+				'product_stock_edit_route_unavailable' => 'Trasa edycji stanu magazynowego produktów jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'product_stock_index_route_unavailable' => 'A rota de estoque de produtos não está disponível. ' . self::DELEGATION_PT,
+				'product_stock_update_route_unavailable' => 'A rota de atualização de estoque de produtos não está disponível. ' . self::DELEGATION_PT,
+				'product_stock_edit_route_unavailable' => 'A rota de edição de estoque de produtos não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'product_stock_index_route_unavailable' => 'A rota de estoque de produtos não está disponível. ' . self::DELEGATION_PTBR,
+				'product_stock_update_route_unavailable' => 'A rota de atualização de estoque de produtos não está disponível. ' . self::DELEGATION_PTBR,
+				'product_stock_edit_route_unavailable' => 'A rota de edição de estoque de produtos não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'product_stock_index_route_unavailable' => 'Маршрут запасов товаров недоступен. ' . self::DELEGATION_RU,
+				'product_stock_update_route_unavailable' => 'Маршрут обновления запасов товаров недоступен. ' . self::DELEGATION_RU,
+				'product_stock_edit_route_unavailable' => 'Маршрут редактирования запасов товаров недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'product_stock_index_route_unavailable' => 'Ürün Stok rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'product_stock_update_route_unavailable' => 'Ürün Stok güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'product_stock_edit_route_unavailable' => 'Ürün Stok düzenleme rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'product_stock_index_route_unavailable' => '产品库存路由不可用。' . self::DELEGATION_ZH,
+				'product_stock_update_route_unavailable' => '产品库存更新路由不可用。' . self::DELEGATION_ZH,
+				'product_stock_edit_route_unavailable' => '产品库存编辑路由不可用。' . self::DELEGATION_ZH
+			],
 		],
 		ViewsConstants::PRJ_TSK_STG => [
 			'ar' => ['project_task_stages_index_route_unavailable' => 'مسار مراحل مهمة المشروع غير متاح. ' . self::DELEGATION_AR],
@@ -9234,22 +9554,70 @@ class LangsConstants
 			]
 		],
 		ViewsConstants::SYS => [
-			'ar' => ['settings_index_route_unavailable' => 'مسار الإعدادات غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['settings_index_route_unavailable' => 'Indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['settings_index_route_unavailable' => 'Einstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['settings_index_route_unavailable' => 'Settings route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['settings_index_route_unavailable' => 'La ruta de configuración no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['settings_index_route_unavailable' => 'La route des paramètres n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['settings_index_route_unavailable' => 'נתיב הגדרות אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['settings_index_route_unavailable' => 'La rotta delle impostazioni non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['settings_index_route_unavailable' => '設定ルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['settings_index_route_unavailable' => 'Instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['settings_index_route_unavailable' => 'Trasa ustawień jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['settings_index_route_unavailable' => 'A rota de configurações não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['settings_index_route_unavailable' => 'A rota de configurações não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['settings_index_route_unavailable' => 'Маршрут настроек недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['settings_index_route_unavailable' => 'Ayarlar rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['settings_index_route_unavailable' => '设置路由不可用。' . self::DELEGATION_ZH],
+			'ar' => [
+				'settings_index_route_unavailable' => 'مسار الإعدادات غير متاح. ' . self::DELEGATION_AR,
+				'system_settings_route_unavailable' => 'مسار إعدادات النظام غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'settings_index_route_unavailable' => 'Indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'system_settings_route_unavailable' => 'Systemindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'settings_index_route_unavailable' => 'Einstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'system_settings_route_unavailable' => 'Systemeinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'settings_index_route_unavailable' => 'Settings route is unavailable. ' . self::DELEGATION_EN,
+				'system_settings_route_unavailable' => 'System settings route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'settings_index_route_unavailable' => 'La ruta de configuración no está disponible. ' . self::DELEGATION_ES,
+				'system_settings_route_unavailable' => 'La ruta de configuración del sistema no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'settings_index_route_unavailable' => 'La route des paramètres n\'est pas disponible. ' . self::DELEGATION_FR,
+				'system_settings_route_unavailable' => 'La route des paramètres système n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'settings_index_route_unavailable' => 'נתיב הגדרות אינו זמין. ' . self::DELEGATION_HE,
+				'system_settings_route_unavailable' => 'נתיב הגדרות המערכת אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'settings_index_route_unavailable' => 'La rotta delle impostazioni non è disponibile. ' . self::DELEGATION_IT,
+				'system_settings_route_unavailable' => 'La rotta delle impostazioni di sistema non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'settings_index_route_unavailable' => '設定ルートは利用できません。' . self::DELEGATION_JA,
+				'system_settings_route_unavailable' => 'システム設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'settings_index_route_unavailable' => 'Instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'system_settings_route_unavailable' => 'Systeeminstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'settings_index_route_unavailable' => 'Trasa ustawień jest niedostępna. ' . self::DELEGATION_PL,
+				'system_settings_route_unavailable' => 'Trasa ustawień systemowych jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'settings_index_route_unavailable' => 'A rota de configurações não está disponível. ' . self::DELEGATION_PT,
+				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'settings_index_route_unavailable' => 'A rota de configurações não está disponível. ' . self::DELEGATION_PTBR,
+				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'settings_index_route_unavailable' => 'Маршрут настроек недоступен. ' . self::DELEGATION_RU,
+				'system_settings_route_unavailable' => 'Маршрут системных настроек недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'settings_index_route_unavailable' => 'Ayarlar rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'system_settings_route_unavailable' => 'Sistem ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'settings_index_route_unavailable' => '设置路由不可用。' . self::DELEGATION_ZH,
+				'system_settings_route_unavailable' => '系统设置路由不可用。' . self::DELEGATION_ZH
+			]
 		],
 		ViewsConstants::TNG => [
 			'ar' => [
@@ -9505,6 +9873,72 @@ class LangsConstants
 			'zh' => [
 				'taskboard_view_route_unavailable' => '任务路由不可用。' . self::DELEGATION_ZH,
 				'tsk_calendar_route_unavailable' => '任务日历路由不可用。' . self::DELEGATION_ZH,
+			]
+		],
+		ViewsConstants::TSKB => [
+			'ar' => [
+				'taskboard_view_route_unavailable' => 'مسار عرض لوحة المهام غير متاح. ' . self::DELEGATION_AR,
+				'taskboard_view_grid_route_unavailable' => 'مسار عرض شبكة لوحة المهام غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'taskboard_view_route_unavailable' => 'Opgaveboard visningsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'taskboard_view_grid_route_unavailable' => 'Opgaveboard gittervisningsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'taskboard_view_route_unavailable' => 'Aufgabenboard-Anzeigeroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'taskboard_view_grid_route_unavailable' => 'Aufgabenboard-Rasteransichtsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'taskboard_view_route_unavailable' => 'Taskboard view route is unavailable. ' . self::DELEGATION_EN,
+				'taskboard_view_grid_route_unavailable' => 'Taskboard grid view route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'taskboard_view_route_unavailable' => 'La ruta de visualización del tablero de tareas no está disponible. ' . self::DELEGATION_ES,
+				'taskboard_view_grid_route_unavailable' => 'La ruta de vista de cuadrícula del tablero de tareas no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'taskboard_view_route_unavailable' => 'La route d\'affichage du tableau de tâches n\'est pas disponible. ' . self::DELEGATION_FR,
+				'taskboard_view_grid_route_unavailable' => 'La route de la vue en grille du tableau de tâches n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'taskboard_view_route_unavailable' => 'נתיב תצוגת לוח המשימות אינו זמין. ' . self::DELEGATION_HE,
+				'taskboard_view_grid_route_unavailable' => 'נתיב תצוגת הרשת של לוח המשימות אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'taskboard_view_route_unavailable' => 'La rotta di visualizzazione della bacheca attività non è disponibile. ' . self::DELEGATION_IT,
+				'taskboard_view_grid_route_unavailable' => 'La rotta della vista a griglia della bacheca attività non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'taskboard_view_route_unavailable' => 'タスクボード表示ルートは利用できません。' . self::DELEGATION_JA,
+				'taskboard_view_grid_route_unavailable' => 'タスクボードグリッド表示ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'taskboard_view_route_unavailable' => 'Taakbord weergaveroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'taskboard_view_grid_route_unavailable' => 'Taakbord rasterweergaveroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'taskboard_view_route_unavailable' => 'Trasa widoku tablicy zadań jest niedostępna. ' . self::DELEGATION_PL,
+				'taskboard_view_grid_route_unavailable' => 'Trasa widoku siatki tablicy zadań jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'taskboard_view_route_unavailable' => 'A rota de visualização do quadro de tarefas não está disponível. ' . self::DELEGATION_PT,
+				'taskboard_view_grid_route_unavailable' => 'A rota de visualização em grade do quadro de tarefas não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'taskboard_view_route_unavailable' => 'A rota de visualização do quadro de tarefas não está disponível. ' . self::DELEGATION_PTBR,
+				'taskboard_view_grid_route_unavailable' => 'A rota de visualização em grade do quadro de tarefas não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'taskboard_view_route_unavailable' => 'Маршрут просмотра доски задач недоступен. ' . self::DELEGATION_RU,
+				'taskboard_view_grid_route_unavailable' => 'Маршрут просмотра сетки доски задач недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'taskboard_view_route_unavailable' => 'Görev panosu görüntüleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'taskboard_view_grid_route_unavailable' => 'Görev panosu ızgara görünümü rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'taskboard_view_route_unavailable' => '任务板查看路由不可用。' . self::DELEGATION_ZH,
+				'taskboard_view_grid_route_unavailable' => '任务板网格视图路由不可用。' . self::DELEGATION_ZH
 			]
 		],
 		ViewsConstants::TX => [

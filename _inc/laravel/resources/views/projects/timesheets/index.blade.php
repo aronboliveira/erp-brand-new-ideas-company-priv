@@ -2,9 +2,19 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        YieldingConstants
+        ViewsConstants,
+        ViewClassNamesConstants as VC,
+        YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+    $lang = Utility::fetchUserLang();
+    $projectIndexBaseName = ViewsConstants::PRJ . '.index';
+    $projectIndexKebabName = Str::kebab($projectIndexBaseName);
+    $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+    $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -19,7 +29,56 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('projects.index')}}">{{__('Project')}}</a></li>
+    <li class="breadcrumb-item">
+        <a
+            id="project-index-link"
+            href="{{ $projectIndexUrl }}"
+            data-url="{{ $projectIndexUrl }}"
+            data-guard-msg="{{ $projectIndexGuardMsg }}"
+        >
+            {{ __('Project') }}
+        </a>
+    </li>
+    @push(StacksConstants::ADM_SCR_PG)
+        <script defer>
+            (() => {
+                const link = document.getElementById('project-index-link');
+                if (!link || link.getAttribute('data-listener-active') === 'true') return;
+                link.setAttribute('data-listener-active', 'true');
+                link.addEventListener('click', e => {
+                    try {
+                        const url = link.getAttribute('data-url') || '#';
+                        if (url !== '#') return;
+                        e.preventDefault();
+                        const msg = link.getAttribute('data-guard-msg') || '# ERROR';
+                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement('div');
+                            toast.className = 'toast';
+                            toast.setAttribute('role','alert');
+                            toast.setAttribute('aria-live','assertive');
+                            toast.setAttribute('aria-atomic','true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        } else {
+                            alert(msg);
+                        }
+                        link.setAttribute('data-failed-route', 'true');
+                    } catch (err) {}
+                });
+            })();
+        </script>
+    @endpush
     <li class="breadcrumb-item"><a href="{{ route('projects.show',$project->id) }}">{{ucwords($project->project_name)}}</a></li>
     <li class="breadcrumb-item">{{__('Timesheet')}}</li>
 @endsection

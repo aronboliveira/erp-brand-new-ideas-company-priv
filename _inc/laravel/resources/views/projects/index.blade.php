@@ -78,100 +78,142 @@
     <div class="row min-750" id="project_view"></div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        $(document).ready(function () {
-            var sort = 'created_at-desc';
-            var status = '';
+    <script async>
+    window.translations={
+        ar:{project_filter_unavailable:'تعذّر تطبيق عوامل التصفية',project_sort_unavailable:'تعذّر تغيير الفرز',project_search_unavailable:'تعذّر تنفيذ البحث',project_invite_unavailable:'تعذّر دعوة المستخدم'},
+        da:{project_filter_unavailable:'Kunne ikke anvende filtre',project_sort_unavailable:'Kunne ikke ændre sortering',project_search_unavailable:'Kunne ikke udføre søgning',project_invite_unavailable:'Kunne ikke invitere bruger'},
+        de:{project_filter_unavailable:'Filter konnten nicht angewendet werden',project_sort_unavailable:'Sortierung konnte nicht geändert werden',project_search_unavailable:'Suche konnte nicht ausgeführt werden',project_invite_unavailable:'Benutzer konnte nicht eingeladen werden'},
+        en:{project_filter_unavailable:'Cannot apply filters',project_sort_unavailable:'Cannot change sorting',project_search_unavailable:'Cannot perform search',project_invite_unavailable:'Cannot invite user'},
+        es:{project_filter_unavailable:'No se pueden aplicar filtros',project_sort_unavailable:'No se puede cambiar el orden',project_search_unavailable:'No se puede realizar la búsqueda',project_invite_unavailable:'No se puede invitar al usuario'},
+        fr:{project_filter_unavailable:'Impossible d’appliquer les filtres',project_sort_unavailable:'Impossible de modifier le tri',project_search_unavailable:'Impossible d’effectuer la recherche',project_invite_unavailable:'Impossible d’inviter l’utilisateur'},
+        he:{project_filter_unavailable:'לא ניתן להחיל מסננים',project_sort_unavailable:'לא ניתן לשנות מיון',project_search_unavailable:'לא ניתן לבצע חיפוש',project_invite_unavailable:'לא ניתן להזמין משתמש'},
+        it:{project_filter_unavailable:'Impossibile applicare i filtri',project_sort_unavailable:'Impossibile cambiare l’ordinamento',project_search_unavailable:'Impossibile eseguire la ricerca',project_invite_unavailable:'Impossibile invitare l’utente'},
+        ja:{project_filter_unavailable:'フィルターを適用できません',project_sort_unavailable:'並び替えを変更できません',project_search_unavailable:'検索を実行できません',project_invite_unavailable:'ユーザーを招待できません'},
+        nl:{project_filter_unavailable:'Kan filters niet toepassen',project_sort_unavailable:'Kan sortering niet wijzigen',project_search_unavailable:'Kan zoeken niet uitvoeren',project_invite_unavailable:'Kan gebruiker niet uitnodigen'},
+        pl:{project_filter_unavailable:'Nie można zastosować filtrów',project_sort_unavailable:'Nie można zmienić sortowania',project_search_unavailable:'Nie można wykonać wyszukiwania',project_invite_unavailable:'Nie można zaprosić użytkownika'},
+        pt:{project_filter_unavailable:'Não foi possível aplicar filtros',project_sort_unavailable:'Não foi possível alterar a ordenação',project_search_unavailable:'Não foi possível realizar a pesquisa',project_invite_unavailable:'Não foi possível convidar o usuário'},
+        'pt-br':{project_filter_unavailable:'Não foi possível aplicar filtros',project_sort_unavailable:'Não foi possível alterar a ordenação',project_search_unavailable:'Não foi possível realizar a pesquisa',project_invite_unavailable:'Não foi possível convidar o usuário'},
+        ru:{project_filter_unavailable:'Не удалось применить фильтры',project_sort_unavailable:'Не удалось изменить сортировку',project_search_unavailable:'Не удалось выполнить поиск',project_invite_unavailable:'Не удалось пригласить пользователя'},
+        tr:{project_filter_unavailable:'Filtreler uygulanamadı',project_sort_unavailable:'Sıralama değiştirilemedi',project_search_unavailable:'Arama gerçekleştirilemedi',project_invite_unavailable:'Kullanıcı davet edilemedi'},
+        zh:{project_filter_unavailable:'无法应用筛选',project_sort_unavailable:'无法更改排序',project_search_unavailable:'无法执行搜索',project_invite_unavailable:'无法邀请用户'}
+    };
+    </script>
+    <script defer>
+    (()=>{
+        const ERR_FB='# ERROR';
+        const DATA_CLIENT_LOCALIZED='data-client-localized';
+        const DATA_GUARD_MSG='data-guard-msg';
+        const DATA_LISTENER_ADDED='data-listener-added';
+        let currentRequest=null;
+
+        const getMsg=(el,key)=>{
+        let msg=ERR_FB;
+        if(el?.getAttribute('data-sv-localized')==='true'||el?.getAttribute(DATA_CLIENT_LOCALIZED)==='true'){
+            msg=el.getAttribute(DATA_GUARD_MSG)||ERR_FB;
+        }else{
+            let lang=(sessionStorage.getItem('erp-np-lang')||document.documentElement.lang||'en').toLowerCase().replace(/_/g,'-');
+            lang=lang==='pt-br'?lang:lang.slice(0,2);
+            msg=window.translations?.[lang]?.[key]||el?.getAttribute(DATA_GUARD_MSG)||window.translations?.en?.[key]||ERR_FB;
+            if(msg!==ERR_FB){ el?.setAttribute(DATA_GUARD_MSG,msg); el?.setAttribute(DATA_CLIENT_LOCALIZED,'true'); }
+        }
+        return msg;
+        };
+
+        const showError=(text)=>{
+        const hasBs=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast;
+        if(hasBs){
+            if(!document.querySelector('#error-toast')){
+            const t=document.createElement('div');
+            t.id='error-toast';
+            t.className='toast align-items-center text-bg-danger border-0';
+            t.setAttribute('role','alert'); t.setAttribute('aria-live','assertive'); t.setAttribute('aria-atomic','true');
+            t.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+            document.body.appendChild(t);
+            }
+            new bootstrap.Toast(document.querySelector('#error-toast')).show();
+        }else{ alert(text); }
+        };
+
+        const guardOnce=(el,key,ev='pointerup')=>{
+        if(!el||el.getAttribute(DATA_LISTENER_ADDED)==='true') return;
+        const handler=()=>showError(getMsg(el,key));
+        el.addEventListener(ev,handler,{once:true});
+        el.setAttribute(DATA_LISTENER_ADDED,'true');
+        const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener(ev,handler); o.disconnect(); }});
+        mo.observe(document.body,{childList:true,subtree:true});
+        };
+
+        const ajaxFilterProjectView=(project_sort,keyword='',status=[])=>{
+        const mainEle=$('#project_view');
+        const view='{{$view}}';
+        const data={ view, sort:project_sort, keyword, status };
+        try{
+            const endpoint='{{ route('filter.project.view') }}';
+            currentRequest=$.ajax({
+            url:endpoint,
+            data,
+            beforeSend:()=>{ if(currentRequest!==null){ try{ currentRequest.abort(); }catch{} } },
+            success:(res)=>{ try{ mainEle.html(res?.html??res); $('[id^=fire-modal]').remove(); if(typeof loadConfirm==='function') loadConfirm(); }catch{ guardOnce(mainEle.get(0),'project_filter_unavailable'); } },
+            error:()=>guardOnce(mainEle.get(0),'project_filter_unavailable')
+            });
+        }catch{ guardOnce(mainEle.get(0),'project_filter_unavailable'); }
+        };
+
+        try{
+        if(typeof $==='undefined'){ console.error('jQuery is required'); return; }
+
+        $(()=>{
+            let sort='created_at-desc';
+            let status=[];
+
             ajaxFilterProjectView('created_at-desc');
-            $(".project-filter-actions").on('click', '.filter-action', function (e) {
-                if ($(this).hasClass('filter-show-all')) {
-                    $('.filter-action').removeClass('active');
-                    $(this).addClass('active');
-                } else {
-                    $('.filter-show-all').removeClass('active');
-                    if ($(this).hasClass('active')) {
-                        $(this).removeClass('active');
-                        $(this).blur();
-                    } else {
-                        $(this).addClass('active');
-                    }
-                }
 
-                var filterArray = [];
-                var url = $(this).parents('.project-filter-actions').attr('data-url');
-                $('div.project-filter-actions').find('.active').each(function () {
-                    filterArray.push($(this).attr('data-val'));
-                });
-
-                status = filterArray;
-
-                ajaxFilterProjectView(sort, $('#project_keyword').val(), status);
+            $('.project-filter-actions').on('click','.filter-action',function(){
+            try{
+                if($(this).hasClass('filter-show-all')){ $('.filter-action').removeClass('active'); $(this).addClass('active'); }
+                else{ $('.filter-show-all').removeClass('active'); $(this).toggleClass('active').blur(); }
+                const filterArray=[]; $('div.project-filter-actions').find('.active').each(function(){ filterArray.push($(this).attr('data-val')); });
+                status=filterArray;
+                ajaxFilterProjectView(sort,$('#project_keyword').val()??'',status);
+            }catch{ guardOnce(this,'project_filter_unavailable','click'); }
             });
 
-            // when change sorting order
-            $('#project_sort').on('click', 'a', function () {
-                sort = $(this).attr('data-val');
-                ajaxFilterProjectView(sort, $('#project_keyword').val(), status);
-                $('#project_sort a').removeClass('active');
-                $(this).addClass('active');
+            $('#project_sort').on('click','a',function(){
+            try{
+                sort=$(this).attr('data-val')||sort;
+                ajaxFilterProjectView(sort,$('#project_keyword').val()??'',status);
+                $('#project_sort a').removeClass('active'); $(this).addClass('active');
+            }catch{ guardOnce(this,'project_sort_unavailable','click'); }
             });
 
-            // when searching by project name
-            $(document).on('keyup', '#project_keyword', function () {
-                ajaxFilterProjectView(sort, $(this).val(), status);
+            $(document).on('keyup','#project_keyword',function(){
+            try{ ajaxFilterProjectView(sort,$(this).val()??'',status); }catch{ /* guard on pointerup to avoid noisy alerts while typing */ }
             });
+            const searchEl=document.getElementById('project_keyword');
+            if(searchEl) guardOnce(searchEl,'project_search_unavailable','pointerup');
 
-            $(document).on('click', '.invite_usr', function () {
-                var project_id = $('#project_id').val();
-                var user_id = $(this).attr('data-id');
-
+            $(document).on('click','.invite_usr',function(){
+            const el=this;
+            try{
+                const project_id=$('#project_id').val();
+                const user_id=$(el).attr('data-id');
+                const url='{{ route('invite.project.user.member') }}';
                 $.ajax({
-                    url: '{{ route('invite.project.user.member') }}',
-                    method: 'POST',
-                    dataType: 'json',
-                    data: {
-                        'project_id': project_id,
-                        'user_id': user_id,
-                        "_token": "{{ csrf_token() }}"
-                    },
-                    success: function (data) {
-                        if (data.code == '200') {
-                            show_toastr(data.status, data.success, 'success')
-                            setInterval('location.reload()', 5000);
-                        } else if (data.code == '404') {
-                            show_toastr(data.status, data.errors, 'error')
-                        }
-                    }
+                url,
+                method:'POST',
+                dataType:'json',
+                data:{ project_id, user_id, _token:'{{ csrf_token() }}' },
+                success:(data)=>{
+                    if(String(data?.code)==='200'){ show_toastr(data.status,data.success,'success'); setTimeout(()=>location.reload(),5000); }
+                    else if(String(data?.code)==='404'){ show_toastr(data.status,data.errors,'error'); }
+                },
+                error:()=>guardOnce(el,'project_invite_unavailable','click')
                 });
+            }catch{ guardOnce(el,'project_invite_unavailable','click'); }
             });
         });
 
-        var currentRequest = null;
-
-        function ajaxFilterProjectView(project_sort, keyword = '', status = '') {
-            var mainEle = $('#project_view');
-            var view = '{{$view}}';
-            var data = {
-                view: view,
-                sort: project_sort,
-                keyword: keyword,
-                status: status,
-            }
-
-            currentRequest = $.ajax({
-                url: '{{ route('filter.project.view') }}',
-                data: data,
-                beforeSend: function () {
-                    if (currentRequest != null) {
-                        currentRequest.abort();
-                    }
-                },
-                success: function (data) {
-                    mainEle.html(data.html);
-                    $('[id^=fire-modal]').remove();
-                    loadConfirm();
-                }
-            });
-        }
+        }catch(e){ console.error('Initialization failed',e); }
+    })();
     </script>
 @endpush

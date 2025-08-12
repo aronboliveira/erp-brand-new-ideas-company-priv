@@ -2,9 +2,20 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+    $lang = Utility::fetchUserLang();
+    $projectIndexBaseName = ViewsConstants::PRJ . '.index';
+    $projectIndexKebabName = Str::kebab($projectIndexBaseName);
+    $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+    $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+@endphp
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -17,128 +28,365 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('projects.index')}}">{{__('Project')}}</a></li>
+    <li class="breadcrumb-item">
+        <a
+            id="project-index-link"
+            href="{{ $projectIndexUrl }}"
+            data-url="{{ $projectIndexUrl }}"
+            data-guard-msg="{{ $projectIndexGuardMsg }}"
+        >
+            {{ __('Project') }}
+        </a>
+    </li>
+    @push(StacksConstants::ADM_SCR_PG)
+        <script defer>
+            (() => {
+                const link = document.getElementById('project-index-link');
+                if (!link || link.getAttribute('data-listener-active') === 'true') return;
+                link.setAttribute('data-listener-active', 'true');
+                link.addEventListener('click', e => {
+                    try {
+                        const url = link.getAttribute('data-url') || '#';
+                        if (url !== '#') return;
+                        e.preventDefault();
+                        const msg = link.getAttribute('data-guard-msg') || '# ERROR';
+                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement('div');
+                            toast.className = 'toast';
+                            toast.setAttribute('role','alert');
+                            toast.setAttribute('aria-live','assertive');
+                            toast.setAttribute('aria-atomic','true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        } else {
+                            alert(msg);
+                        }
+                        link.setAttribute('data-failed-route', 'true');
+                    } catch (err) {}
+                });
+            })();
+        </script>
+    @endpush
     <li class="breadcrumb-item">{{__('Task')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-<div class="float-end">
-    <a href="#" class="btn btn-primary btn-sm" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <span class="btn-inner--icon"><i class="ti ti-filter"></i></span>
-    </a>
-    <div class="dropdown-menu dropdown-menu-right dropdown-steady" id="task_sort">
-            <a class="dropdown-item active" href="#" data-val="created_at-desc">
-                <i class="ti ti-sort-amount-down"></i>{{__('Newest')}}
+    <div class="{{ VC::FEND }}">
+        <div class="dropdown me-2">
+            <a href="#"
+            class="{{ VC::BT_SM_PM }} dropdown-toggle"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+                <span class="btn-inner--icon"><i class="ti ti-filter"></i></span>
             </a>
-            <a class="dropdown-item" href="#" data-val="created_at-asc">
-                <i class="ti ti-sort-amount-up"></i>{{__('Oldest')}}
-            </a>
-            <a class="dropdown-item" href="#" data-val="name-asc">
-                <i class="ti ti-sort-alpha-down"></i>{{__('From A-Z')}}
-            </a>
-            <a class="dropdown-item" href="#" data-val="name-desc">
-                <i class="ti ti-sort-alpha-up"></i>{{__('From Z-A')}}
-            </a>
+            <div class="{{ VC::DRP_MN_END }} dropdown-steady" id="task_sort">
+                <a class="dropdown-item active" href="#" data-val="created_at-desc">
+                    <i class="ti ti-sort-amount-down"></i>{{ __('Newest') }}
+                </a>
+                <a class="dropdown-item" href="#" data-val="created_at-asc">
+                    <i class="ti ti-sort-amount-up"></i>{{ __('Oldest') }}
+                </a>
+                <a class="dropdown-item" href="#" data-val="name-asc">
+                    <i class="ti ti-sort-alpha-down"></i>{{ __('From A-Z') }}
+                </a>
+                <a class="dropdown-item" href="#" data-val="name-desc">
+                    <i class="ti ti-sort-alpha-up"></i>{{ __('From Z-A') }}
+                </a>
+            </div>
         </div>
+        <div class="dropdown me-2">
+            <a href="#"
+            class="{{ VC::BT_SM_PM }} dropdown-toggle"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+                <span class="btn-inner--icon">{{ __('Status') }}</span>
+            </a>
 
-    <a href="#" class="btn btn-primary btn-sm" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="btn-inner--icon">{{__('Status')}}</span>
-        </a>
-    <div class="dropdown-menu dropdown-menu-right task-filter-actions dropdown-steady" id="task_status">
-            <a class="dropdown-item filter-action filter-show-all pl-4" href="#">{{__('Show All')}}</a>
-            <hr class="my-0">
-            <a class="dropdown-item filter-action pl-4 active" href="#" data-val="see_my_tasks">{{ __('See My Tasks') }}</a>
-            <hr class="my-0">
-            @foreach(\App\Models\ProjectTask::$priority as $key => $val)
-                <a class="dropdown-item filter-action pl-4" href="#" data-val="{{ $key }}">{{__($val)}}</a>
-            @endforeach
-            <hr class="my-0">
-            <a class="dropdown-item filter-action filter-other pl-4" href="#" data-val="due_today">{{ __('Due Today') }}</a>
-            <a class="dropdown-item filter-action filter-other pl-4" href="#" data-val="over_due">{{ __('Over Due') }}</a>
-            <a class="dropdown-item filter-action filter-other pl-4" href="#" data-val="starred">{{ __('Starred') }}</a>
+            <div class="{{ VC::DRP_MN_END }} task-filter-actions dropdown-steady" id="task_status">
+                <a class="dropdown-item filter-action filter-show-all ps-4" href="#">{{ __('Show All') }}</a>
+                <hr class="my-0">
+                <a class="dropdown-item filter-action ps-4 active" href="#" data-val="see_my_tasks">{{ __('See My Tasks') }}</a>
+                <hr class="my-0">
+                @foreach(\App\Models\ProjectTask::$priority as $key => $val)
+                    <a class="dropdown-item filter-action ps-4" href="#" data-val="{{ $key }}">{{ __($val) }}</a>
+                @endforeach
+                <hr class="my-0">
+                <a class="dropdown-item filter-action filter-other ps-4" href="#" data-val="due_today">{{ __('Due Today') }}</a>
+                <a class="dropdown-item filter-action filter-other ps-4" href="#" data-val="over_due">{{ __('Over Due') }}</a>
+                <a class="dropdown-item filter-action filter-other ps-4" href="#" data-val="starred">{{ __('Starred') }}</a>
+            </div>
         </div>
-
-    @if($view == 'grid')
-        <a href="{{ route('taskBoard.view', 'list') }}" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="{{__('List View')}}">
-            <span class="btn-inner--text"><i class="ti ti-list"></i>{{__('List View')}}</span>
-        </a>
-    @else
-        <a href="{{ route('taskBoard.view', 'grid') }}" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="{{__('Grid View')}}">
-            <span class="btn-inner--text"><i class="ti ti-table"></i></span>
-        </a>
-    @endif
-</div>
+        @if($view == 'grid')
+            @php
+                $taskboardViewBaseName = ViewsConstants::TSKB . '.view';
+                $taskboardViewKebabName = Str::kebab($taskboardViewBaseName);
+                $taskboardViewResolvedName = Route::has($taskboardViewBaseName) ? $taskboardViewBaseName : (Route::has($taskboardViewKebabName) ? $taskboardViewKebabName : null);
+                $taskboardViewUrl = $taskboardViewResolvedName ? route($taskboardViewResolvedName, 'list') : '#';
+                $taskboardViewGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TSKB, 'taskboard_view_route_unavailable') ?? 'Taskboard view route is unavailable. Please contact technical support or your domain administrator.';
+                $taskboardViewBtnId = 'taskboard-view-list-btn';
+            @endphp
+            <a
+                id="{{ $taskboardViewBtnId }}"
+                href="{{ $taskboardViewUrl }}"
+                data-url="{{ $taskboardViewUrl }}"
+                data-guard-msg="{{ $taskboardViewGuardMsg }}"
+                class="{{ VC::BT_SM_PM }}"
+                data-bs-toggle="tooltip"
+                title="{{ __('List View') }}"
+            >
+                <span class="btn-inner--text"><i class="ti ti-list"></i>{{ __('List View') }}</span>
+            </a>
+            @push(StacksConstants::ADM_SCR_PG)
+                <script defer>
+                    (() => {
+                        const btn = document.getElementById('{{ $taskboardViewBtnId }}');
+                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                        btn.setAttribute('data-listener-active', 'true');
+                        btn.addEventListener('click', e => {
+                            try {
+                                const url = btn.getAttribute('data-url') || '#';
+                                if (url !== '#') return;
+                                e.preventDefault();
+                                const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                let container = document.getElementById('toast-container');
+                                if (!container) {
+                                    container = document.createElement('div');
+                                    container.id = 'toast-container';
+                                    document.body.appendChild(container);
+                                }
+                                if (hasBootstrap) {
+                                    const toast = document.createElement('div');
+                                    toast.className = 'toast';
+                                    toast.setAttribute('role','alert');
+                                    toast.setAttribute('aria-live','assertive');
+                                    toast.setAttribute('aria-atomic','true');
+                                    const body = document.createElement('div');
+                                    body.className = 'toast-body';
+                                    body.textContent = msg;
+                                    toast.appendChild(body);
+                                    container.appendChild(toast);
+                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                } else {
+                                    alert(msg);
+                                }
+                                btn.setAttribute('data-failed-route', 'true');
+                            } catch (err) {}
+                        });
+                    })();
+                </script>
+            @endpush
+        @else
+            @php
+                $taskboardViewRouteName        = ViewsConstants::TSKB . '.view';
+                $taskboardViewKebabName        = Str::kebab($taskboardViewRouteName);
+                $taskboardViewResolvedName     = Route::has($taskboardViewRouteName)
+                    ? $taskboardViewRouteName
+                    : (Route::has($taskboardViewKebabName) ? $taskboardViewKebabName : null);
+                $taskboardGridViewUrl          = $taskboardViewResolvedName
+                    ? route($taskboardViewResolvedName, 'grid')
+                    : '#';
+                $taskboardGridViewGuardMsg     = Utility::fetchLinkMessage(
+                    $lang,
+                    ViewsConstants::TSKB,
+                    'taskboard_view_grid_route_unavailable'
+                ) ?? 'Taskboard grid view route is unavailable. Please contact technical support or your domain administrator.';
+                $taskboardGridViewBtnId        = 'taskboard-grid-view-btn';
+            @endphp
+            <a
+                id="{{ $taskboardGridViewBtnId }}"
+                href="{{ $taskboardGridViewUrl }}"
+                data-url="{{ $taskboardGridViewUrl }}"
+                data-guard-msg="{{ $taskboardGridViewGuardMsg }}"
+                class="{{ VC::BT_SM_PM }}"
+                data-bs-toggle="tooltip"
+                title="{{ __('Grid View') }}"
+            >
+                <span class="btn-inner--text"><i class="ti ti-table"></i></span>
+            </a>
+            @push(StacksConstants::ADM_SCR_PG)
+                <script defer>
+                    (() => {
+                        const btn = document.getElementById('{{ $taskboardGridViewBtnId }}');
+                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                        btn.setAttribute('data-listener-active', 'true');
+                        btn.addEventListener('click', e => {
+                            try {
+                                const url = btn.getAttribute('data-url') || '#';
+                                if (url !== '#') return;
+                                e.preventDefault();
+                                const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                let container = document.getElementById('toast-container');
+                                if (!container) {
+                                    container = document.createElement('div');
+                                    container.id = 'toast-container';
+                                    document.body.appendChild(container);
+                                }
+                                if (hasBootstrap) {
+                                    const toast = document.createElement('div');
+                                    toast.className = 'toast';
+                                    toast.setAttribute('role','alert');
+                                    toast.setAttribute('aria-live','assertive');
+                                    toast.setAttribute('aria-atomic','true');
+                                    const body = document.createElement('div');
+                                    body.className = 'toast-body';
+                                    body.textContent = msg;
+                                    toast.appendChild(body);
+                                    container.appendChild(toast);
+                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                } else {
+                                    alert(msg);
+                                }
+                                btn.setAttribute('data-failed-route', 'true');
+                            } catch (err) {}
+                        });
+                    })();
+                </script>
+            @endpush
+        @endif
+    </div>
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="row min-750" id="taskboard_view"></div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        // ready
-        $(function () {
-            var sort = 'created_at-desc';
-            var status = '';
-            ajaxFilterTaskView('created_at-desc', '', ['see_my_tasks']);
+    <script async>
+    window.translations = {
+        ar:{taskboard_unavailable:'تعذّر تحميل لوحة المهام',task_filter_unavailable:'تعذّر تطبيق عوامل التصفية',task_sort_unavailable:'تعذّر تغيير الفرز',task_search_unavailable:'تعذّر تنفيذ البحث'},
+        da:{taskboard_unavailable:'Kunne ikke indlæse opgavetavle',task_filter_unavailable:'Kunne ikke anvende filtre',task_sort_unavailable:'Kunne ikke ændre sortering',task_search_unavailable:'Kunne ikke udføre søgning'},
+        de:{taskboard_unavailable:'Aufgabentafel konnte nicht geladen werden',task_filter_unavailable:'Filter konnten nicht angewendet werden',task_sort_unavailable:'Sortierung konnte nicht geändert werden',task_search_unavailable:'Suche konnte nicht ausgeführt werden'},
+        en:{taskboard_unavailable:'Cannot load task board',task_filter_unavailable:'Cannot apply filters',task_sort_unavailable:'Cannot change sorting',task_search_unavailable:'Cannot perform search'},
+        es:{taskboard_unavailable:'No se puede cargar el tablero de tareas',task_filter_unavailable:'No se pueden aplicar filtros',task_sort_unavailable:'No se puede cambiar el orden',task_search_unavailable:'No se puede realizar la búsqueda'},
+        fr:{taskboard_unavailable:'Impossible de charger le tableau des tâches',task_filter_unavailable:'Impossible d’appliquer les filtres',task_sort_unavailable:'Impossible de modifier le tri',task_search_unavailable:'Impossible d’effectuer la recherche'},
+        he:{taskboard_unavailable:'לא ניתן לטעון לוח משימות',task_filter_unavailable:'לא ניתן להחיל מסננים',task_sort_unavailable:'לא ניתן לשנות מיון',task_search_unavailable:'לא ניתן לבצע חיפוש'},
+        it:{taskboard_unavailable:'Impossibile caricare la bacheca attività',task_filter_unavailable:'Impossibile applicare i filtri',task_sort_unavailable:'Impossibile cambiare l’ordinamento',task_search_unavailable:'Impossibile eseguire la ricerca'},
+        ja:{taskboard_unavailable:'タスクボードを読み込めません',task_filter_unavailable:'フィルターを適用できません',task_sort_unavailable:'並び替えを変更できません',task_search_unavailable:'検索を実行できません'},
+        nl:{taskboard_unavailable:'Kan taakbord niet laden',task_filter_unavailable:'Kan filters niet toepassen',task_sort_unavailable:'Kan sortering niet wijzigen',task_search_unavailable:'Kan zoeken niet uitvoeren'},
+        pl:{taskboard_unavailable:'Nie można załadować tablicy zadań',task_filter_unavailable:'Nie można zastosować filtrów',task_sort_unavailable:'Nie można zmienić sortowania',task_search_unavailable:'Nie można wykonać wyszukiwania'},
+        pt:{taskboard_unavailable:'Não foi possível carregar o quadro de tarefas',task_filter_unavailable:'Não foi possível aplicar filtros',task_sort_unavailable:'Não foi possível alterar a ordenação',task_search_unavailable:'Não foi possível realizar a pesquisa'},
+        'pt-br':{taskboard_unavailable:'Não foi possível carregar o quadro de tarefas',task_filter_unavailable:'Não foi possível aplicar filtros',task_sort_unavailable:'Não foi possível alterar a ordenação',task_search_unavailable:'Não foi possível realizar a pesquisa'},
+        ru:{taskboard_unavailable:'Не удалось загрузить доску задач',task_filter_unavailable:'Не удалось применить фильтры',task_sort_unavailable:'Не удалось изменить сортировку',task_search_unavailable:'Не удалось выполнить поиск'},
+        tr:{taskboard_unavailable:'Görev panosu yüklenemiyor',task_filter_unavailable:'Filtreler uygulanamadı',task_sort_unavailable:'Sıralama değiştirilemedi',task_search_unavailable:'Arama gerçekleştirilemedi'},
+        zh:{taskboard_unavailable:'无法加载任务看板',task_filter_unavailable:'无法应用筛选',task_sort_unavailable:'无法更改排序',task_search_unavailable:'无法执行搜索'}
+    };
+    </script>
+    <script defer>
+        (()=>{
+            const errFb='# ERROR';
+            const dataClientLocalized='data-client-localized';
+            const dataGuardMsg='data-guard-msg';
+            const DATA_LISTENER_ADDED='data-listener-added';
 
-            // when change status
-            $(".task-filter-actions").on('click', '.filter-action', function (e) {
-                if ($(this).hasClass('filter-show-all')) {
-                    $('.filter-action').removeClass('active');
-                    $(this).addClass('active');
-                } else {
-
-                    $('.filter-show-all').removeClass('active');
-                    if ($(this).hasClass('filter-other')) {
-                        $('.filter-other').removeClass('active');
-                    }
-                    if ($(this).hasClass('active')) {
-                        $(this).removeClass('active');
-                        $(this).blur();
-                    } else {
-                        $(this).addClass('active');
-                    }
-                }
-
-                var filterArray = [];
-                var url = $(this).parents('.task-filter-actions').attr('data-url');
-                $('div.task-filter-actions').find('.active').each(function () {
-                    filterArray.push($(this).attr('data-val'));
-                });
-                status = filterArray;
-                ajaxFilterTaskView(sort, $('#task_keyword').val(), status);
-            });
-
-            // when change sorting order
-            $('#task_sort').on('click', 'a', function () {
-                sort = $(this).attr('data-val');
-                ajaxFilterTaskView(sort, $('#task_keyword').val(), status);
-                $('#task_sort a').removeClass('active');
-                $(this).addClass('active');
-            });
-
-            // when searching by task name
-            $(document).on('keyup', '#task_keyword', function () {
-                ajaxFilterTaskView(sort, $(this).val(), status);
-            });
-        });
-
-        // For Filter
-        function ajaxFilterTaskView(task_sort, keyword = '', status = '') {
-            var mainEle = $('#taskboard_view');
-            var view = '{{$view}}';
-            var data = {
-                view: view,
-                sort: task_sort,
-                keyword: keyword,
-                status: status,
+            const getLocalizedMessage=(el,msgKey)=>{
+            let msg=errFb;
+            if(el?.getAttribute('data-sv-localized')==='true'||el?.getAttribute(dataClientLocalized)==='true'){
+                msg=el.getAttribute(dataGuardMsg)||errFb;
+            }else{
+                let lang=(window.sessionStorage.getItem('erp-np-lang')||document.documentElement.lang||'en').toLowerCase().replace(/_/g,'-');
+                lang=lang==='pt-br'?lang:lang.slice(0,2);
+                msg=window.translations?.[lang]?.[msgKey]||el?.getAttribute(dataGuardMsg)||window.translations?.en?.[msgKey]||errFb;
+                if(msg!==errFb){ el?.setAttribute(dataGuardMsg,msg); el?.setAttribute(dataClientLocalized,'true'); }
             }
+            return msg;
+            };
 
-            $.ajax({
-                url: '{{ route('project.taskboard.view') }}',
-                data: data,
-                success: function (data) {
-                    mainEle.html(data.html);
+            const showError=(message)=>{
+            const hasBootstrap=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast;
+            if(hasBootstrap){
+                if(!document.querySelector('#error-toast')){
+                const toast=document.createElement('div');
+                toast.id='error-toast';
+                toast.className='toast align-items-center text-bg-danger border-0';
+                toast.setAttribute('role','alert'); toast.setAttribute('aria-live','assertive'); toast.setAttribute('aria-atomic','true');
+                toast.innerHTML=`<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                document.body.appendChild(toast);
                 }
+                new bootstrap.Toast(document.querySelector('#error-toast')).show();
+            }else{ alert(message); }
+            };
+
+            const attachGuardOnce=(el,key,ev='click')=>{
+            if(!el||el.getAttribute(DATA_LISTENER_ADDED)==='true') return;
+            const handler=()=>showError(getLocalizedMessage(el,key));
+            el.addEventListener(ev,handler,{once:true});
+            el.setAttribute(DATA_LISTENER_ADDED,'true');
+            const obs=new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener(ev,handler); o.disconnect(); }});
+            obs.observe(document.body,{childList:true,subtree:true});
+            };
+
+            const ajaxFilterTaskView=(task_sort,keyword='',status=[])=>{
+            const mainEle=$('#taskboard_view');
+            if(!mainEle.length) return;
+            const container=document.querySelector('.task-filter-actions');
+            const urlAttr=container?.getAttribute('data-url')||'';
+            const href=container?.getAttribute('action')||'';
+            const endpoint = (urlAttr && urlAttr!=='#') ? urlAttr : '{{ route(ViewsConstants::PRJ.'.taskboard.view') }}';
+            if((!urlAttr||urlAttr==='#') && (!href||href==='#')){ attachGuardOnce(container||document.body,'taskboard_unavailable'); return; }
+            const view='{{$view}}';
+            const data={ view, sort: task_sort, keyword, status };
+            try{
+                $.ajax({
+                url:endpoint,
+                data,
+                success:(res)=>{ try{ mainEle.html(res?.html ?? res); }catch{ attachGuardOnce(mainEle.get(0),'taskboard_unavailable'); } },
+                error:()=>attachGuardOnce(container||mainEle.get(0),'taskboard_unavailable')
+                });
+            }catch{ attachGuardOnce(container||mainEle.get(0),'taskboard_unavailable'); }
+            };
+
+            try{
+            if(typeof $==='undefined'){ console.error('jQuery is required'); return; }
+
+            $(function(){
+                let sort='created_at-desc';
+                let status=[];
+                ajaxFilterTaskView(sort,'',['see_my_tasks']);
+
+                $('.task-filter-actions').on('click','.filter-action',function(e){
+                try{
+                    if($(this).hasClass('filter-show-all')){
+                    $('.filter-action').removeClass('active'); $(this).addClass('active');
+                    }else{
+                    $('.filter-show-all').removeClass('active');
+                    if($(this).hasClass('filter-other')) $('.filter-other').removeClass('active');
+                    $(this).toggleClass('active').blur();
+                    }
+                    const filterArray=[];
+                    $('div.task-filter-actions').find('.active').each(function(){ filterArray.push($(this).attr('data-val')); });
+                    status=filterArray;
+                    ajaxFilterTaskView(sort,$('#task_keyword').val()??'',status);
+                }catch{ attachGuardOnce(this,'task_filter_unavailable','click'); }
+                });
+
+                $('#task_sort').on('click','a',function(){
+                try{
+                    sort=$(this).attr('data-val')||sort;
+                    ajaxFilterTaskView(sort,$('#task_keyword').val()??'',status);
+                    $('#task_sort a').removeClass('active'); $(this).addClass('active');
+                }catch{ attachGuardOnce(this,'task_sort_unavailable','click'); }
+                });
+
+                $(document).on('keyup','#task_keyword',function(){
+                try{ ajaxFilterTaskView(sort,$(this).val()??'',status); }catch{ /* defer visible error to pointerup */ }
+                });
+                const searchEl=document.getElementById('task_keyword');
+                if(searchEl) attachGuardOnce(searchEl,'task_search_unavailable','pointerup');
             });
-        }
+
+            }catch(e){ console.error('Initialization failed',e); }
+        })();
     </script>
 @endpush

@@ -31,7 +31,7 @@
     <li class="breadcrumb-item">{{__('Project Bug Status')}}</li>
 @endsection
 @push('script-page')
-    <script defer src="{{asset('js/jquery-ui.min.js')}}"></script>
+    <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     @if($user?->type=='company')
 			<script>
 				window.translations = {

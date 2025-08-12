@@ -2,11 +2,20 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewClassNamesConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use Illuminate\Support\Facades\{Auth, Route};
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth, Route, Storage};
+    use Illuminate\Support\Str;
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
+    $projectIndexBaseName = ViewsConstants::PRJ . '.index';
+    $projectIndexKebabName = Str::kebab($projectIndexBaseName);
+    $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+    $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,7 +28,56 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('projects.index')}}">{{__('Project')}}</a></li>
+    <li class="breadcrumb-item">
+        <a
+            id="project-index-link"
+            href="{{ $projectIndexUrl }}"
+            data-url="{{ $projectIndexUrl }}"
+            data-guard-msg="{{ $projectIndexGuardMsg }}"
+        >
+            {{ __('Project') }}
+        </a>
+    </li>
+    @push(StacksConstants::ADM_SCR_PG)
+        <script defer>
+            (() => {
+                const link = document.getElementById('project-index-link');
+                if (!link || link.getAttribute('data-listener-active') === 'true') return;
+                link.setAttribute('data-listener-active', 'true');
+                link.addEventListener('click', e => {
+                    try {
+                        const url = link.getAttribute('data-url') || '#';
+                        if (url !== '#') return;
+                        e.preventDefault();
+                        const msg = link.getAttribute('data-guard-msg') || '# ERROR';
+                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement('div');
+                            toast.className = 'toast';
+                            toast.setAttribute('role','alert');
+                            toast.setAttribute('aria-live','assertive');
+                            toast.setAttribute('aria-atomic','true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        } else {
+                            alert(msg);
+                        }
+                        link.setAttribute('data-failed-route', 'true');
+                    } catch (err) {}
+                });
+            })();
+        </script>
+    @endpush
     <li class="breadcrumb-item"><a href="{{route('projects.show',$project->id)}}">    {{ucwords($project->project_name)}}</a></li>
     <li class="breadcrumb-item">{{ucwords($project->project_name).__("'s Expenses")}}</li>
 @endsection
@@ -80,14 +138,14 @@
                                                     @can('edit expense')
                                                         <div class="action-btn bg-primary ms-2">
                                                         <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route('projects.expenses.edit',[$project->id,$expense->id]) }}" data-ajax-popup="true" data-size="lg" data-title="{{__('Edit ').$expense->name}}" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="Edit">
-                                                            <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></span>
+                                                            <span class="btn-inner--icon"><i class="{{ VC::TI_PC_WT }}"></i></span>
                                                         </a>
                                                         </div>
                                                     @endcan
                                                     @can('delete expense')
                                                             <div class="action-btn bg-danger ms-2">
                                                                 {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['projects.expenses.destroy',$expense->id],'id'=>'delete-expense-'.$expense->id]) !!}
-                                                                <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?')}}|{{__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-expense-{{$expense->id}}').submit();">
+                                                                <a href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?')}}|{{__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-expense-{{$expense->id}}').submit();">
                                                                     <i class="ti ti-trash text-white"></i>
                                                                 </a>
                                                             </div>

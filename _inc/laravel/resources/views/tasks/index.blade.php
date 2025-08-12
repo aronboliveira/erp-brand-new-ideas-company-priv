@@ -15,10 +15,9 @@
 @endpush
 
 @section(YieldingConstants::ADM_ACT_BTN)
-<a href="{{ route('projects.index') }}" class="btn btn-xs btn-white btn-icon-only width-auto">
-    <span class="btn-inner--icon"><i class="ti ti-arrow-left"></i>{{__('Back')}}</span>
-</a>
-
+    <a href="{{ route('projects.index') }}" class="btn btn-xs btn-white btn-icon-only width-auto">
+        <span class="btn-inner--icon"><i class="ti ti-arrow-left"></i>{{__('Back')}}</span>
+    </a>
 @endsection
 
 @php

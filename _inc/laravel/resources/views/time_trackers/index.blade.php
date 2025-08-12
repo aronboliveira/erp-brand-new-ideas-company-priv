@@ -91,7 +91,7 @@
                                         <img alt="Image placeholder" src="{{ asset('assets/images/gallery.png')}}" class="avatar view-images rounded-circle avatar-sm"
                                              data-bs-toggle="tooltip" title="{{__('View Screenshot images')}}" data-original-title="{{__('View Screenshot images')}}" style="height: 25px;width:24px;margin-right:10px;cursor: pointer;" data-id="{{$trecker->id}}" id="track-images-{{$trecker->id}}">
                                         <div class="action-btn bg-danger ms-2">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['tracker.destroy', $trecker->id],'id'=>'delete-form-'.$trecker->id]) !!}
+                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['time_trackers.destroy', $trecker->id],'id'=>'delete-form-'.$trecker->id]) !!}
 
                                             <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').' | '.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$trecker->id}}').submit();">
                                                 <i class="ti ti-trash text-white"></i>
@@ -157,7 +157,7 @@
 
     $(document).on('click', '.view-images', function () {
 
-            var p_url = "{{route('tracker.image.view')}}";
+            var p_url = "{{route('time_trackers.image.view')}}";
             var data = {
                 'id': $(this).attr('data-id')
             };
@@ -185,7 +185,7 @@
             });
 
     function removeImage(id){
-        var p_url = "{{route('tracker.image.remove')}}";
+        var p_url = "{{route('time_trackers.image.remove')}}";
         var data = {id: id};
         deleteAjax(p_url, data, function (res) {
             if(res.flag){

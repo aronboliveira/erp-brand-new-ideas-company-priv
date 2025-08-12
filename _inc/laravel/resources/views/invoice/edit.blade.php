@@ -94,7 +94,7 @@
     <li class="breadcrumb-item">{{__('Invoice Edit')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer src="{{asset('js/jquery-ui.min.js')}}"></script>
+    <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
     <script async>
         window.translations = {

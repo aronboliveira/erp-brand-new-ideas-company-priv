@@ -1,24 +1,25 @@
 @php
     use App\Config\Constants\ViewsConstants;
+    use App\Config\Constants\ViewClassNamesConstants as VC;
+    use Collective\Html\FormFacade as Form;
 @endphp
 
-{{ Collective\Html\FormFacade::model($unit, array('route' => array(ViewsConstants::PRD_SV_UNT.'.update', $unit->id), 'method' => 'PUT')) }}
+{{ Form::model($unit, ['route' => [ViewsConstants::PRD_SV_UNT.'.update', $unit->id], 'method' => 'PUT']) }}
 <div class="modal-body">
     <div class="row">
-        <div class="form-group col-md-12">
-            {{ Collective\Html\FormFacade::label('name', __('Unit Name'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::text('name', null, array('class' => 'form-control','required'=>'required')) }}
+        <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+            {{ Form::label('name', __('Unit Name'), ['class' => VC::FM_LB]) }}
+            {{ Form::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             @error('name')
-            <small class="invalid-name" role="alert">
-                <strong class="text-danger">{{ $message }}</strong>
-            </small>
+                <small class="invalid-name" role="alert">
+                    <strong class="text-danger">{{ $message }}</strong>
+                </small>
             @enderror
         </div>
-
     </div>
 </div>
 <div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
+    <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+    <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
 </div>
-{{ Collective\Html\FormFacade::close() }}
+{{ Form::close() }}
