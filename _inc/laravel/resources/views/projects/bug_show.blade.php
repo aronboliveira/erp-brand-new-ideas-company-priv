@@ -49,7 +49,7 @@
             <div class="tab-content pt-4" id="myTabContent">
                 <div class="tab-pane fade active show" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                     <div class="form-group m-0">
-                        <form method="post" id="form-comment" data-action="{{route('bug.comment.store',[$bug->project_id,$bug->id])}}">
+                        <form method="post" id="form-comment" data-action="{{route(ViewsConstants::PRJ_BUG_CM . '.store',[$bug->project_id,$bug->id])}}">
                             @csrf
                             <textarea class="form-control" name="comment" placeholder="{{ __('Write message')}}" id="example-textarea" rows="3" required></textarea>
                             <div class="text-end mt-1">
@@ -67,7 +67,7 @@
                                                 <h5 class="mt-0">{{(!empty($comment->user)?$comment->user->name:'')}}</h5>
                                                 <p class="mb-0 text-xs">{{$comment->comment}}</p>
                                             </div>
-                                            <a href="#" class="btn btn-sm red btn-danger delete-comment" data-url="{{route('bug.comment.destroy',$comment->id)}}">
+                                            <a href="#" class="btn btn-sm red btn-danger delete-comment" data-url="{{route(ViewsConstants::PRJ_BUG_CM . '.destroy',$comment->id)}}">
                                                 <i class="ti ti-trash"></i>
                                             </a>
 
@@ -80,7 +80,7 @@
                 </div>
                 <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
                     <div class="form-group m-0">
-                        <form method="post" id="form-file" enctype="multipart/form-data" data-url="{{ route('bug.comment.file.store',$bug->id) }}">
+                        <form method="post" id="form-file" enctype="multipart/form-data" data-url="{{ route(ViewsConstants::PRJ_BUG_CM . '.file.store',$bug->id) }}">
                             @csrf
                             <div class="row">
                                 <div class="col-6">
@@ -111,7 +111,7 @@
                                         <a download href="{{asset(Storage::url('bugs/'.$file->file))}}" class="btn btn-sm btn-primary">
                                             <i class="ti ti-download"></i>
                                         </a>
-                                        <a href="#" class="btn btn-sm red btn-danger delete-comment-file m-0 px-2" data-id="{{$file->id}}" data-url="{{route('bug.comment.file.destroy',[$file->id])}}">
+                                        <a href="#" class="btn btn-sm red btn-danger delete-comment-file m-0 px-2" data-id="{{$file->id}}" data-url="{{route(ViewsConstants::PRJ_BUG_CM . '.file.destroy',[$file->id])}}">
                                             <i class="ti ti-trash"></i>
                                         </a>
                                     </div>

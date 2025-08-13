@@ -73,7 +73,7 @@
                     @if($plan->chatgpt == 1)
                         <ul class="list-unstyled mb-0 mt-3">
                             <div class="">
-                                <a href="#" data-size="md" class="btn  btn-primary btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['notification template']) }}"
+                                <a href="#" data-size="md" class="btn btn-primary btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['notification template']) }}"
                                    data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
                                     <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
                                 </a>

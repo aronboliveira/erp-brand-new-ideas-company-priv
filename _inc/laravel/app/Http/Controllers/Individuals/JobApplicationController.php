@@ -187,7 +187,7 @@ class JobApplicationController extends Controller
 				$jobApplication->profile ? 'uploads/job/profile/' . $jobApplication->profile : '',
 				$jobApplication->resume ? 'uploads/job/resume/' . $jobApplication->resume : ''
 			])->filter()
-				->each(fn ($path) => Utility::changeStorageLimit(
+				->each(fn($path) => Utility::changeStorageLimit(
 					$user?->creatorId(),
 					$path
 				));
@@ -204,12 +204,13 @@ class JobApplicationController extends Controller
 			$request
 		) {
 			collect($request->input('order', []))
-				->each(fn ($item, $key) => JobApplication::whereKey($item)
+				->each(fn($item, $key) => JobApplication::whereKey($item)
 					->update(['order' => $key, 'stage' => $request->stage_id]));
 			return back()->with('success', __('Order updated.'));
 		});
 	}
 
+	public const ADD_SK = 'addSkill';
 	public function addSkill(Request $request, string|int $id): RedirectResponse
 	{
 		return self::withAuth($request, 'add job application skill', function () use (
@@ -222,6 +223,7 @@ class JobApplicationController extends Controller
 		});
 	}
 
+	public const ADD_NT = 'addNote';
 	public function addNote(Request $request, string|int $id): RedirectResponse
 	{
 		if (
@@ -245,6 +247,7 @@ class JobApplicationController extends Controller
 		});
 	}
 
+	public const DST_NT = 'destroyNote';
 	public function destroyNote(string|int $id): RedirectResponse
 	{
 		return self::withAuth(request(), 'delete job application note', function () use (
@@ -298,7 +301,8 @@ class JobApplicationController extends Controller
 		});
 	}
 
-	public function jobBoardCreate(string|int $id): View
+	public const JBB_CRT = 'jobBoardCreate';
+	public function jobBoardCreate(string|int $id): RedirectResponse|View
 	{
 		if (
 			($userOrRedirect = self::_checkLogin())
@@ -334,6 +338,7 @@ class JobApplicationController extends Controller
 		);
 	}
 
+	public const JB_OB = 'jobOnBoard';
 	public function jobOnBoard(): RedirectResponse|View
 	{
 		if (
@@ -349,6 +354,7 @@ class JobApplicationController extends Controller
 		});
 	}
 
+	public const JBB_ST = 'jobBoardStore';
 	public function jobBoardStore(Request $request, string|int $id): RedirectResponse
 	{
 		if (
@@ -386,6 +392,7 @@ class JobApplicationController extends Controller
 		});
 	}
 
+	public const JBB_UPD = 'jobBoardUpdate';
 	public function jobBoardUpdate(Request $request, string|int $id): RedirectResponse
 	{
 		return self::withAuth($request, 'manage job onBoard', function () use (
@@ -415,7 +422,8 @@ class JobApplicationController extends Controller
 		});
 	}
 
-	public function jobBoardEdit(string|int $id): View
+	public const JBB_ED = 'jobBoardEdit';
+	public function jobBoardEdit(string|int $id): RedirectResponse|View
 	{
 		if (
 			($userOrRedirect = self::_checkLogin())
@@ -435,13 +443,15 @@ class JobApplicationController extends Controller
 		);
 	}
 
+	public const JBB_DEL = 'jobBoardDelete';
 	public function jobBoardDelete(string|int $id): RedirectResponse
 	{
 		JobOnBoard::whereKey($id)->delete();
 		return back()->with('success', __('On‑board deleted.'));
 	}
 
-	public function jobBoardConvert(string|int $id): View
+	public const JBB_CV = 'jobBoardConvert';
+	public function jobBoardConvert(string|int $id): RedirectResponse|View
 	{
 		if (
 			($userOrRedirect = self::_checkLogin())
@@ -467,6 +477,7 @@ class JobApplicationController extends Controller
 		);
 	}
 
+	public const JBB_CV_DT = 'jobBoardConvertData';
 	public function jobBoardConvertData(
 		Request   $request,
 		string|int $id
@@ -515,7 +526,7 @@ class JobApplicationController extends Controller
 							DatabaseConstants::TABLE_CREATOR => $creator
 						]
 					);
-					$user = tap(User::create($userData), fn ($u) => $u->assignRole('Employee'));
+					$user = tap(User::create($userData), fn($u) => $u->assignRole('Employee'));
 
 					/* ------------------------- create employee ------------------------ */
 					$employeeData = collect($request->only([
@@ -592,6 +603,7 @@ class JobApplicationController extends Controller
 		);
 	}
 
+	public const GET_BY_JB = 'getByJob';
 	public function getByJob(Request $request): JsonResponse
 	{
 		$job = Job::findOrFail($request->id)->makeHidden([]);
@@ -603,6 +615,7 @@ class JobApplicationController extends Controller
 		return response()->json($job);
 	}
 
+	public const STG_CG = 'stageChange';
 	public function stageChange(Request $request): JsonResponse
 	{
 		JobApplication::whereKey($request->schedule_id)
@@ -613,7 +626,8 @@ class JobApplicationController extends Controller
 		);
 	}
 
-	public function offerletterPdf(string|int $id): View
+	public const OFL_PDF = 'offerLetterPdf';
+	public function offerLetterPdf(string|int $id): RedirectResponse|View
 	{
 		if (
 			($userOrRedirect = self::_checkLogin())
@@ -635,7 +649,8 @@ class JobApplicationController extends Controller
 		);
 	}
 
-	public function offerletterDoc(string|int $id): View
+	public const OFL_DC = 'offerLetterDoc';
+	public function offerLetterDoc(string|int $id): RedirectResponse|View
 	{
 		if (
 			($userOrRedirect = self::_checkLogin())
@@ -712,7 +727,7 @@ class JobApplicationController extends Controller
 		return $upload['flag'] === 1 ? $upload['url'] : '';
 	}
 
-	private function employeeNumber(): int
+	private function employeeNumber(): RedirectResponse|int
 	{
 		if (
 			($userOrRedirect = self::_checkLogin())

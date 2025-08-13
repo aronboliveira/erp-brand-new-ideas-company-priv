@@ -7,7 +7,8 @@ use App\Config\Constants\{
     DatabaseConstants,
     PermissionsConstants,
     ProjectsConstants,
-    UsersConstants
+    UsersConstants,
+    ViewsConstants
 };
 use App\Models\{
     ActivityLog,
@@ -35,7 +36,7 @@ class ProjectTaskController extends Controller
 
     private const ENTITY = 'project';
     private const SINGULAR = self::ENTITY . '_task';
-    private const REDIRECT_INDEX = 'projects.index';
+    private const REDIRECT_INDEX = ViewsConstants::PRJ . '.index';
 
     public function index(Request $request, string|int $projectId)
     {
@@ -170,10 +171,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Display the taskboard.
-     */
-    public function taskBoard(Request $request, string $view): \Illuminate\View\View|\Illuminate\Http\RedirectResponse|null
+    public const TSK_BD = 'taskBoard';
+    public function taskBoard(Request $request, string $view): View|RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -202,10 +201,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * AJAX-load sorted/filtered tasks.
-     */
-    public function taskBoardView(Request $request): \Illuminate\Http\JsonResponse|null
+    public const TSK_BD_VW = 'taskBoardView';
+    public function taskBoardView(Request $request): JsonResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return null;
@@ -248,10 +245,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * List all bugs, in list or grid.
-     */
-    public function allBugList(Request $request, string $view): \Illuminate\View\View|\Illuminate\Http\RedirectResponse|null
+    public const ALL_BUG = 'allBugList';
+    public function allBugList(Request $request, string $view): View|RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -263,7 +258,8 @@ class ProjectTaskController extends Controller
             if ($user->type == PermissionsConstants::CPN) {
                 $bugs = Bug::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->with([
                     self::ENTITY,
-                    DatabaseConstants::TABLE_CREATOR, 'project_bug'
+                    DatabaseConstants::TABLE_CREATOR,
+                    'project_bug'
                 ])->get();
             } elseif ($user->type == PermissionsConstants::CL) {
                 $ids = Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray();
@@ -289,7 +285,7 @@ class ProjectTaskController extends Controller
     /**
      * Show a single task.
      */
-    public function show(Request $request, string|int $projectId, string|int $taskId): \Illuminate\View\View|\Illuminate\Http\RedirectResponse|null
+    public function show(Request $request, string|int $projectId, string|int $taskId): View|RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -309,7 +305,7 @@ class ProjectTaskController extends Controller
     /**
      * Edit a task.
      */
-    public function edit(Request $request, string|int $projectId, string|int $taskId): \Illuminate\View\View|\Illuminate\Http\RedirectResponse|null
+    public function edit(Request $request, string|int $projectId, string|int $taskId): View|RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -330,13 +326,14 @@ class ProjectTaskController extends Controller
     /**
      * Update a task.
      */
-    public function update(Request $request, string|int $projectId, string|int $taskId): \Illuminate\Http\RedirectResponse|null
+    public function update(Request $request, string|int $projectId, string|int $taskId): RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
         if ($resp = self::guard($request, 'edit project task', self::REDIRECT_INDEX)) return $resp;
         Log::info("$action start", [
-            ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId,
+            ProjectsConstants::COL_PJ_ID => $projectId,
+            ActivitiesConstants::COL_TSK_ID => $taskId,
             'input' => $request->all()
         ]);
         $data = $request->validate([
@@ -377,7 +374,7 @@ class ProjectTaskController extends Controller
     /**
      * Delete a task.
      */
-    public function destroy(Request $request, string|int $projectId, string|int $taskId): \Illuminate\Http\RedirectResponse|null
+    public function destroy(Request $request, string|int $projectId, string|int $taskId): RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -415,10 +412,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Count tasks in stage.
-     */
-    public function getStageTasks(Request $request, string|int $stageId): \Illuminate\Http\JsonResponse|null
+    public const GET_STG_TSK = 'getStageTasks';
+    public function getStageTasks(Request $request, string|int $stageId): JsonResponse|null
     {
         $action = __METHOD__;
         if ((self::_checkLogin()) instanceof RedirectResponse) return null;
@@ -433,6 +428,7 @@ class ProjectTaskController extends Controller
         }
     }
 
+    public const CG_COM = 'changeCom';
     public function changeCom(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -472,9 +468,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Toggle favourite.
-     */
+    public const CG_FAV = 'changeFav';
     public function changeFav(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -501,16 +495,15 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Update progress percentage.
-     */
+    public const CG_PRG = 'changeProg';
     public function changeProg(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
         if ($resp = self::guard($request, 'view project task', self::REDIRECT_INDEX)) return $resp;
         Log::info("$action start", [
-            ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId,
+            ProjectsConstants::COL_PJ_ID => $projectId,
+            ActivitiesConstants::COL_TSK_ID => $taskId,
             ProjectsConstants::COL_PGR => $request->progress
         ]);
         try {
@@ -533,10 +526,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Add a checklist item.
-     */
-    public function checklistStore(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
+    public const CHKL_STR = 'checkListStore';
+    public function checkListStore(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -568,9 +559,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Toggle a checklist item.
-     */
+    public const CHKL_UPD = 'checkListUpdate';
     public function checklistUpdate(Request $request, string|int $projectId, string|int $checklistId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -596,10 +585,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Remove a checklist item.
-     */
-    public function checklistDestroy(Request $request, string|int $projectId, string|int $checklistId): JsonResponse|RedirectResponse|null
+    public const CHKL_DST = 'checkListDestroy';
+    public function checkListDestroy(Request $request, string|int $projectId, string|int $checklistId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -621,9 +608,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Store an uploaded comment file.
-     */
+    public const CM_STR_F = 'commentStoreFile';
     public function commentStoreFile(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -659,9 +644,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Delete a comment file.
-     */
+    public const CM_DST_F = 'commentDestroyFile';
     public function commentDestroyFile(Request $request, string|int $projectId, string|int $taskId, string|int $fileId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -684,9 +667,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Delete a comment.
-     */
+    public const CM_DST = 'commentDestroy';
     public function commentDestroy(Request $request, string|int $projectId, string|int $taskId, string|int $commentId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -708,9 +689,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Store a new comment.
-     */
+    public const CM_STR = 'commentStore';
     public function commentStore(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -747,9 +726,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Reorder tasks within a project.
-     */
+    public const TSK_OD_UPD = 'taskOrderUpdate';
     public function taskOrderUpdate(Request $request, string|int $projectId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -775,9 +752,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Render a task card fragment (for AJAX calls).
-     */
+    public const GET_TSK = 'taskGet';
     public function taskGet(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -800,9 +775,7 @@ class ProjectTaskController extends Controller
     }
 
 
-    /**
-     * Fetch basic task info, scoped to a project.
-     */
+    public const GET_DF_TSK_IF = 'getDefaultTaskInfo';
     public function getDefaultTaskInfo(Request $request, string|int $projectId, string|int $taskId): JsonResponse
     {
         $action = __METHOD__;
@@ -829,10 +802,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Calendar list view.
-     */
-    public function calendarView(Request $request, string $taskBy, string|int $projectId = null): View|RedirectResponse
+    public const CLD_VW = 'calendarView';
+    public function calendarView(Request $request, string $taskBy, mixed $projectId = null): View|RedirectResponse
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -864,9 +835,7 @@ class ProjectTaskController extends Controller
         }
     }
 
-    /**
-     * Calendar detail popup.
-     */
+    public const CLD_SHW = 'calendarShow';
     public function calendarShow(Request $request, string|int $projectId, string|int $taskId)
     {
         if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
@@ -875,9 +844,7 @@ class ProjectTaskController extends Controller
         return view('tasks.calendar_show', compact('task'));
     }
 
-    /**
-     * Drag/update calendar dates.
-     */
+    public const CLD_DRG = 'calendarDrag';
     public function calendarDrag(Request $request, string|int $projectId, string|int $taskId): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
@@ -896,7 +863,8 @@ class ProjectTaskController extends Controller
         }
     }
 
-    public function getTaskData(Request $request, string|int $projectId = null): JsonResponse|RedirectResponse
+    public const GET_TSK_D = 'getTaskData';
+    public function getTaskData(Request $request, mixed $projectId = null): JsonResponse|RedirectResponse
     {
         $action = __METHOD__;
         if (($user = self::_checkLogin()) instanceof RedirectResponse)
@@ -955,6 +923,7 @@ class ProjectTaskController extends Controller
         }
     }
 
+    public const UPD_TSK_PR_CL = 'updateTaskPriorityColor';
     public function updateTaskPriorityColor(Request $request): JsonResponse|RedirectResponse
     {
         $action = __METHOD__;

@@ -95,6 +95,8 @@ class ViewsConstants
 	public const LV_TP = 'leave_types';
 	public const LN = 'loans';
 	public const LN_OPT = 'loan_options';
+	public const MLS = 'milestones';
+	public const ML = ViewsConstants::PRJ . '.' . ViewsConstants::MLS;
 	public const MT = 'meetings';
 	public const MN = 'menu';
 	public const MDT = 'midtras';
@@ -119,7 +121,11 @@ class ViewsConstants
 	public const PRD_SV_UNT = 'product_service_units';
 	public const PRD_STK = 'product_stocks';
 	public const PRJ = 'projects';
+	public const PRJ_EXP = ViewsConstants::PRJ . '.' . ViewsConstants::EXP;
 	public const PRJ_STG = 'project_stages';
+	public const PRJ_BUG = ViewsConstants::PRJ . '.' . ViewsConstants::BUG;
+	public const PRJ_BUG_CM = ViewsConstants::PRJ_BUG . '.comments';
+	public const PRJ_TSK_BUG = ViewsConstants::PRJ . '.' . ViewsConstants::TSK . '.' . ViewsConstants::BUG;
 	public const PRJ_TSK_STG = 'project_task_stages';
 	public const PRJ_RPT = 'project_reports';
 	public const PRJ_TSK = 'project_tasks';
@@ -143,7 +149,7 @@ class ViewsConstants
 	public const SYS = 'systems';
 	public const TD = 'todos';
 	public const TSK = 'tasks';
-	public const PRJ_TSK_CHAIN = self::PRJ . '.' . self::TSK;
+	public const PRJ_TSK_C = self::PRJ . '.' . self::TSK;
 	public const TSK_STG = 'task_stage';
 	public const TX = 'taxes';
 	public const TMP = 'template';
@@ -167,7 +173,7 @@ class ViewsConstants
 	public const WRH = 'warehouse';
 	public const WRH_TRF = 'warehouse_transfers';
 	public const WRN = 'warnings';
-	public const WBH = 'webhook';
+	public const WBH = 'webhooks';
 	public const ZMM = 'zoom_meetings';
 	public const HM = 'home';
 }

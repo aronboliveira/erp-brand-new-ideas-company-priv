@@ -1,6 +1,9 @@
 @php
     use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\ViewsConstants;
+    use App\Config\Constants\{
+        ViewsConstants,
+        ViewClassNamesConstants as VC
+    };
     $basicFields = [
         ['name'=>'name','type'=>'text','label'=>__('Name'),'cols'=>4,'attrs'=>['required'=>'required']],
         ['name'=>'contact','type'=>'number','label'=>__('Contact'),'cols'=>4,'attrs'=>['required'=>'required']],
@@ -31,7 +34,7 @@
     <h6 class="sub-title">{{ __('Basic Info') }}</h6>
     <div class="row">
         @foreach($basicFields as $f)
-            <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="{{ VC::CLMS4 }}">
                 <div class="form-group">
                     {{ Form::label($f['name'],$f['label'],['class'=>'form-label']) }}
                     @php $attrs=array_merge(['class'=>'form-control'],$f['attrs']??[]) @endphp
@@ -44,7 +47,7 @@
             </div>
         @endforeach
         @if(!$customFields->isEmpty())
-            <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="{{ VC::CLMS4 }}">
                 <div class="tab-pane fade show" id="tab-2" role="tabpanel">
                     @include(ViewsConstants::CST_FD . '.formBuilder')
                 </div>
@@ -54,7 +57,7 @@
     <h6 class="sub-title">{{ __('Billing Address') }}</h6>
     <div class="row">
         @foreach($billingFields as $f)
-            <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="{{ VC::CLM6 }}">
                 <div class="form-group">
                     {{ Form::label($f['name'],$f['label'],['class'=>'form-label']) }}
                     @php $attrs=array_merge(['class'=>'form-control'],$f['attrs']??[]) @endphp
@@ -74,7 +77,7 @@
         <h6 class="sub-title">{{ __('Shipping Address') }}</h6>
         <div class="row">
             @foreach($shippingFields as $f)
-                <div class="col-lg-6 col-md-6 col-sm-6">
+                <div class="{{ VC::CLM6 }}">
                     <div class="form-group">
                         {{ Form::label($f['name'],$f['label'],['class'=>'form-label']) }}
                         @php $attrs=array_merge(['class'=>'form-control'],$f['attrs']??[]) @endphp

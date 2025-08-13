@@ -2,48 +2,61 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        YieldingConstants
+        YieldingConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC
     };
     use Illuminate\Support\Facades\Route;
 @endphp
+
 @extends(ExtendingLayoutsConstants::ADM)
 
 @section(YieldingConstants::ADM_PG_TTL)
-    {{__('Timesheet List')}}
+    {{ __('Timesheet List') }}
 @endsection
+
 @section(YieldingConstants::ADM_BDC)
     <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+           {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Timesheet')}}</li>
+    <li class="breadcrumb-item">{{ __('Timesheet') }}</li>
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="row justify-content-end align-items-end text-end">
-        <div class="col-xl-3 col-lg-4 col-md-3 col-sm-6 weekly-dates-div me-2">
-            <a href="#" class="action-item previous"><i class="ti ti-arrow-left"></i></a>
+    <div class="{{ VC::RW }} {{ VC::JCE }} align-items-end text-end">
+        <div class="{{ VC::CXL3 }} col-lg-4 {{ VC::CM3 }} col-sm-6 weekly-dates-div me-2">
+            <a href="#" class="action-item previous">
+                <i class="{{ VC::TI }} {{ VC::TI }}-arrow-left"></i>
+            </a>
             <span class="weekly-dates"></span>
             <input type="hidden" id="weeknumber" value="0">
             <input type="hidden" id="selected_dates">
-            <a href="#" class="action-item next"><i class="ti ti-arrow-right"></i>
+            <a href="#" class="action-item next">
+                <i class="{{ VC::TI }} {{ VC::TI }}-arrow-right"></i>
             </a>
         </div>
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card ">
+    <div class="{{ VC::RW }} {{ VC::MT4 }}">
+        <div class="{{ VC::C12 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-wrapper project-timesheet overflow-auto"></div>
+
                 <div class="text-center notfound-timesheet">
                     <div class="empty-project-text text-center p-3 min-h-300">
                         <h5 class="pt-5">{{ __("We couldn't find any data") }}</h5>
                         <p class="m-0">{{ __("Sorry we can't find any timesheet records on this week.") }}</p>
-                        <p class="m-0">{{ __("To add timesheet record go to ") }}<a href="{{route('projects.index')}}">{{__('projects')}}</a>.</p>
+                        <p class="m-0">
+                            {{ __("To add timesheet record go to ") }}
+                            <a href="{{ route(ViewsConstants::PRJ.'.index') }}">
+                                {{ __('Projects') }}
+                            </a>
+                        </p>
                     </div>
                 </div>
             </div>

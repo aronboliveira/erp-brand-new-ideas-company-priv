@@ -572,7 +572,7 @@
                                    <textarea rows="3" class="form-control grammer_textarea" name="notes" data-toggle="autosize" placeholder="{{__('Add a Notes...')}}" required></textarea>
                                </div>
                                <div class="col-md-12 text-end mb-0">
-                                   {{ Collective\Html\FormFacade::submit(__('Add'), ['class' => 'btn  btn-primary']) }}
+                                   {{ Collective\Html\FormFacade::submit(__('Add'), ['class' => 'btn btn-primary']) }}
                                </div>
                                {{ Collective\Html\FormFacade::close() }}
                            </div>
@@ -585,7 +585,7 @@
                                    <textarea rows="3" class="form-control grammer_textarea" name="notes" data-toggle="autosize" placeholder="{{__('Add a Notes...')}}" required></textarea>
                                </div>
                                <div class="col-md-12 text-end mb-0">
-                                   {{ Collective\Html\FormFacade::submit(__('Add'), ['class' => 'btn  btn-primary']) }}
+                                   {{ Collective\Html\FormFacade::submit(__('Add'), ['class' => 'btn btn-primary']) }}
                                </div>
                                {{ Collective\Html\FormFacade::close() }}
                            </div>

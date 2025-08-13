@@ -115,7 +115,7 @@
                         $("#" + target.id).parent().find('.count').text($("#" + target.id + " > div").length);
 
                         $.ajax({
-                            url: '{{route('bug.kanban.order')}}',
+                            url: '{{route(ViewsConstants::PRJ_BUG . '.kanban.order')}}',
                             type: 'POST',
                             data: {bug_id: id, status_id: stage_id, order: order, "_token": $('meta[name="csrf-token"]').attr('content')},
                             success: function (data) {
@@ -281,12 +281,12 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
         @can('manage bug report')
-            <a href="{{ route('task.bug',$project->id) }}" data-bs-toggle="tooltip" title="{{__('List')}}" class="btn btn-sm btn-primary">
+            <a href="{{ route(ViewsConstants::PRJ_TSK_BUG . '.',$project->id) }}" data-bs-toggle="tooltip" title="{{__('List')}}" class="btn btn-sm btn-primary">
                 <i class="ti ti-list"></i>
             </a>
         @endcan
         @can('create bug report')
-            <a href="#" data-size="lg" data-url="{{ route('task.bug.create',$project->id) }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create New Bug')}}" class="btn btn-sm btn-primary">
+            <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::PRJ_TSK_BUG . '.create',$project->id) }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create New Bug')}}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
         @endcan
@@ -329,7 +329,7 @@
                                         </div>
                                         <div class="card-header border-0 pb-0 position-relative">
                                             <h5>
-                                                <a href="#" data-url="{{ route('task.bug.show',[$project->id,$bug->id]) }}" data-ajax-popup="true" data-size="lg" data-bs-original-title="{{$bug->title}}">{{$bug->title}}</a>
+                                                <a href="#" data-url="{{ route(ViewsConstants::PRJ_TSK_BUG . '.show',[$project->id,$bug->id]) }}" data-ajax-popup="true" data-size="lg" data-bs-original-title="{{$bug->title}}">{{$bug->title}}</a>
                                             </h5>
                                             <div class="card-header-right">
                                                 <div class="btn-group card-option">
@@ -341,13 +341,13 @@
                                                     @if(Gate::check('edit bug report') || Gate::check('delete bug report'))
                                                         <div class="{{ ViewClassNamesConstants::DRP_MN_EM }}">
                                                             @can('edit project task')
-                                                                <a href="#!" data-size="lg" data-url="{{ route('task.bug.edit',[$project->id,$bug->id]) }}" data-ajax-popup="true" class="dropdown-item" data-bs-original-title="{{__('Edit ').$bug->name}}">
+                                                                <a href="#!" data-size="lg" data-url="{{ route(ViewsConstants::PRJ_TSK_BUG . '.edit',[$project->id,$bug->id]) }}" data-ajax-popup="true" class="dropdown-item" data-bs-original-title="{{__('Edit ').$bug->name}}">
                                                                     <i class="ti ti-pencil"></i>
                                                                     <span>{{__('Edit')}}</span>
                                                                 </a>
                                                             @endcan
                                                             @can('delete project task')
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['task.bug.destroy', [$project->id,$bug->id]]]) !!}
+                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::PRJ_TSK_BUG . '.destroy', [$project->id,$bug->id]]]) !!}
                                                                 <a href="#!" class="dropdown-item bs-pass-para">
                                                                     <i class="ti ti-archive"></i>
                                                                     <span> {{__('Delete')}} </span>

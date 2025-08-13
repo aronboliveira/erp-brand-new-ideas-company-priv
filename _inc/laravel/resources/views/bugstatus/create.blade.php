@@ -1,4 +1,4 @@
-{{ Collective\Html\FormFacade::open(array('url' => 'bugstatus')) }}
+{{ Collective\Html\FormFacade::open(array('url' => ViewsConstants::BUG_STT)) }}
 <div class="modal-body">
 
     <div class="row">

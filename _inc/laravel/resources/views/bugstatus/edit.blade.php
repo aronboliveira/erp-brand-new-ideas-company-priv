@@ -1,4 +1,4 @@
-    {{ Collective\Html\FormFacade::model($bug_status, array('route' => array('bugstatus.update', $bug_status->id), 'method' => 'PUT')) }}
+    {{ Collective\Html\FormFacade::model($bug_status, array('route' => array(ViewsConstants::BUG_STT.'.update', $bug_status->id), 'method' => 'PUT')) }}
     <div class="modal-body">
 
     <div class="row">

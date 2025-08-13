@@ -2,6 +2,7 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use Illuminate\Support\Facades\Route;
@@ -364,7 +365,7 @@
             <div class="col-xxl-6">
                 <div class="row">
                     @if(isset($arrCount['deal']))
-                        <div class="col-lg-6 col-md-6">
+                        <div class="{{ VC::CLM6 }}">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="row align-items-center justify-content-between">
@@ -388,7 +389,7 @@
                         </div>
                     @endif
                     @if(isset($arrCount['task']))
-                            <div class="col-lg-6 col-md-6">
+                            <div class="{{ VC::CLM6 }}">
                                             <div class="card">
                                                 <div class="card-body">
                                                     <div class="row align-items-center justify-content-between">

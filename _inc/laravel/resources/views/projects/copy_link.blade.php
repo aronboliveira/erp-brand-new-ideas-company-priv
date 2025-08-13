@@ -4,7 +4,7 @@
         YieldingConstants,
         StacksConstants,
         ViewsConstants,
-        ViewClassNamesConstants
+        ViewClassNamesConstants as VC
     };
     use Illuminate\Support\Str;
     $result = json_decode($project->copylinksetting);
@@ -352,15 +352,15 @@
                 ['key' => 'activity',         'id' => 'activity',        'label' => __('Activity Log')],
             ];
         @endphp
-        <div class="{{ ViewClassNamesConstants::CD_STK }}" style="top:30px">
-            <div class="{{ ViewClassNamesConstants::LG_FLSH }}" id="lead-sidenav">
+        <div class="{{ VC::CD_STK }}" style="top:30px">
+            <div class="{{ VC::LG_FLSH }}" id="lead-sidenav">
                 @foreach($sections as $section)
                     @if(isset($result->{$section['key']}) && $result->{$section['key']} === 'on')
                         <a href="#{{ $section['id'] }}"
-                           class="{{ ViewClassNamesConstants::LGI_ACT_NBD }}">
+                           class="{{ VC::LGI_ACT_NBD }}">
                             {{ $section['label'] }}
                             <div class="float-end">
-                                <i class="{{ ViewClassNamesConstants::TI_CHV_RT }}"></i>
+                                <i class="{{ VC::TI_CHV_RT }}"></i>
                             </div>
                         </a>
                     @endif
@@ -419,7 +419,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-lg-4 col-md-4">
+                        <div class="{{ VC::CLM4 }}">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
@@ -467,7 +467,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-4 col-md-4">
+                            <div class="{{ VC::CLM4 }}">
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start">
@@ -513,7 +513,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-lg-4 col-md-4">
+                            <div class="{{ VC::CLM4 }}">
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-flex align-items-start">
@@ -1044,7 +1044,7 @@
 
         </div>
     </div>
-    <div class="{{ ViewClassNamesConstants::MD_FD }}" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="{{ VC::MD_FD }}" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg ss_modale " role="document">
             <div class="modal-content image_sider_div">
             </div>

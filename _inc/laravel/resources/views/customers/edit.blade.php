@@ -31,7 +31,7 @@
         <h6 class="sub-title">{{ __('Basic Info') }}</h6>
         <div class="{{ VC::RW }}">
             @foreach($basicFields as $f)
-                <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="{{ VC::CLMS4 }}">
                     <div class="{{ VC::FM_G }}">
                         {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
                         @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
@@ -44,7 +44,7 @@
                 </div>
             @endforeach
             @if(!$customFields->isEmpty())
-                <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="{{ VC::CLMS4 }}">
                     <div class="tab-pane fade show" id="tab-2" role="tabpanel">
                         @include(ViewsConstants::CST_FD . '.formBuilder')
                     </div>
@@ -55,7 +55,7 @@
         <h6 class="sub-title">{{ __('Billing Address') }}</h6>
         <div class="{{ VC::RW }}">
             @foreach($billingFields as $f)
-                <div class="col-lg-6 col-md-6 col-sm-6">
+                <div class="{{ VC::CLM6 }}">
                     <div class="{{ VC::FM_G }}">
                         {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
                         @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
@@ -77,7 +77,7 @@
             <h6 class="sub-title">{{ __('Shipping Address') }}</h6>
             <div class="{{ VC::RW }}">
                 @foreach($shippingFields as $f)
-                    <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="{{ VC::CLM6 }}">
                         <div class="{{ VC::FM_G }}">
                             {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
                             @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp

@@ -137,7 +137,7 @@
 										this.querySelectorAll('li').forEach((li, idx) => {
 											order[idx] = li.getAttribute('data-id');
 										});
-										const url = "{{route('bugstatus.order')}}";
+										const url = "{{route(ViewsConstants::BUG_STT.'.order')}}";
 										if (!url) throw new Error('bugstatus_order_failed');
 										$.ajax({
 											url,

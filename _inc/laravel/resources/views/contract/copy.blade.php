@@ -44,7 +44,7 @@
 
 <div class="modal-footer pr-0">
     <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Close') }}</button>
-    {{Collective\Html\FormFacade::submit(__('Copy'),array('class'=>'btn  btn-primary'))}}
+    {{Collective\Html\FormFacade::submit(__('Copy'),array('class'=>'btn btn-primary'))}}
 </div>
 </div>
 {{ Collective\Html\FormFacade::close() }}

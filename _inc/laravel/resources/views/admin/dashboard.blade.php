@@ -332,8 +332,8 @@
                             <tbody class="list">
                                 @foreach($home_data['due_tasks'] as $due_task)
                                     @php
-                                        $chainRoute = Route::has(ViewsConstants::PRJ_TSK_CHAIN.'.index')
-                                            ? route(ViewsConstants::PRJ_TSK_CHAIN.'.index', $due_task->project->id)
+                                        $chainRoute = Route::has(ViewsConstants::PRJ_TSK_C.'.index')
+                                            ? route(ViewsConstants::PRJ_TSK_C.'.index', $due_task->project->id)
                                             : '#';
                                         $linkId = 'due-task-link-'.$due_task->id;
                                         $message = Utility::fetchLinkMessage(

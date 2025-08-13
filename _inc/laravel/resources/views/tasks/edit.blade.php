@@ -6,7 +6,7 @@
         ViewClassNamesConstants,
     };
 @endphp
-{{ Collective\Html\FormFacade::model($task, ['route' => [ViewsConstants::PRJ.'.tasks.update',[$project->id, $task->id]], 'id' => 'edit_task', 'method' => 'POST']) }}
+{{ Collective\Html\FormFacade::model($task, ['route' => [ViewsConstants::PRJ_TSK_C . '.update',[$project->id, $task->id]], 'id' => 'edit_task', 'method' => 'POST']) }}
 <div class="row">
     <div class="col-8">
         <div class="form-group">

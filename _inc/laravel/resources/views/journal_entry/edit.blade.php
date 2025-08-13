@@ -3,7 +3,8 @@
         ExtendingLayoutsConstants,
         YieldingConstants,
         SettingsConstants,
-        StacksConstants
+        StacksConstants,
+        ViewClassNamesConstants as VC
     };
     use Illuminate\Support\Facades\Route;
 @endphp
@@ -258,7 +259,7 @@
     @endphp
     @if($plan->chatgpt == 1)
         <div class="float-end">
-            <a href="#" data-size="md" class="btn  btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['journal entry']) }}"
+            <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['journal entry']) }}"
             data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
                 <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
             </a>
@@ -273,7 +274,7 @@
             <div class="card">
         <div class="card-body">
             <div class="row">
-                <div class="col-lg-4 col-md-4">
+                <div class="{{ VC::CLM4 }}">
                     <div class="form-group">
                         {{ Collective\Html\FormFacade::label('journal_number', __('Journal Number'),['class'=>'form-label']) }}
                         <div class="form-icon-user">
@@ -281,7 +282,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-4">
+                <div class="{{ VC::CLM4 }}">
                     <div class="form-group">
                         {{ Collective\Html\FormFacade::label('date', __('Transaction Date'),['class'=>'form-label']) }}
                         <div class="form-icon-user">
@@ -289,7 +290,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-4">
+                <div class="{{ VC::CLM4 }}">
                     <div class="form-group">
                         {{ Collective\Html\FormFacade::label('reference', __('Reference'),['class'=>'form-label']) }}
                         <div class="form-icon-user">

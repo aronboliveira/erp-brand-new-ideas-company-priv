@@ -1,7 +1,7 @@
 @php
     use App\Config\Constants\{ActivitiesConstants, ProjectsConstants};
 @endphp
-{{ Collective\Html\FormFacade::open(array('route' => array('task.bug.store',$project_id))) }}
+{{ Collective\Html\FormFacade::open(array('route' => array(ViewsConstants::PRJ_TSK_BUG . '.store',$project_id))) }}
 <div class="modal-body">
     {{-- start for ai module--}}
     @php
@@ -10,7 +10,7 @@
     @endphp
     @if($plan->chatgpt == 1)
     <div class="text-end">
-        <a href="#" data-size="md" class="btn  btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['project bug']) }}"
+        <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['project bug']) }}"
            data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
             <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
         </a>

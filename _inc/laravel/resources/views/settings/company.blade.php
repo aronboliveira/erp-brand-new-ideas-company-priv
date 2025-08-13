@@ -10,11 +10,11 @@
     use Collective\Html\FormFacade as Form;
 	use Illuminate\Support\Facades\{Auth,Log,Route,URL};
     use Illuminate\Support\Str;
+	$lang ??= Utility::fetchUserLang();
 	$company_favicon ??= '';
 	$color ??= '';
 	$colorSettings ??= [];
 	$data ??= [];
-	$lang ??= Utility::fetchUserLang();
 	$logo ??= '';
 	$logo_dark ??= '';
 	$logo_light ??= '';
@@ -141,9 +141,9 @@
             });
             };
 
-            bindSummernoteSave('.summernote-simple0',()=> "{{ route('offerlatter.update', $offerlang) }}");
-            bindSummernoteSave('.summernote-simple1',()=> "{{ route('joiningletter.update', $joininglang) }}");
-            bindSummernoteSave('.summernote-simple2',()=> "{{ route('experiencecertificate.update', $explang) }}");
+            bindSummernoteSave('.summernote-simple0',()=> "{{ route('offer_letter.update', $offerlang) }}");
+            bindSummernoteSave('.summernote-simple1',()=> "{{ route('joining_letter.update', $joininglang) }}");
+            bindSummernoteSave('.summernote-simple2',()=> "{{ route('experience_certificate.update', $explang) }}");
             bindSummernoteSave('.summernote-simple3',()=> "{{ route('noc.update', $noclang) }}");
             bindSummernoteSave('.summernote-simple4',()=> "{{ route('systems.settings.footernote') }}"); // footer notes
 
@@ -504,7 +504,7 @@
                                             <div class="changeLanguage">
                                                 <select name="default_language" id="default_language" class="{{ VC::FM_CT_SL }}">
                                                     @foreach (\App\Models\Utility::languages() as $code => $language)
-                                                        <option @if ($lang == $code) selected @endif value="{{ $code }}">{{ ucFirst($language) }}</option>
+                                                        <option @if ($lang == $code) selected @endif value="{{ $code }}">{{ ucfirst($language) }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -839,9 +839,9 @@
                                             <input type="checkbox"
                                                 class="form-check-input {{ VC::MT3 }}"
                                                 name="shipping_display"
-                                                id="email_tempalte_13"
+                                                id="email_template_13"
                                                 {{ $setting['shipping_display'] == 'on' ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="email_tempalte_13"></label>
+                                            <label class="form-check-label" for="email_template_13"></label>
                                         </div>
                                         @error('shipping_display')
                                             <span class="invalid-shipping_display" role="alert">
@@ -4690,401 +4690,1060 @@
                             </div>
                         {{ Form::close() }}
                     </div>
-
-                    <!--Email Notification Settings-->
                     <div id="email-notification-settings" class="card">
                         <div class="col-md-12">
                             <div class="card-header">
                                 <h5>{{ __('Email Notification Settings') }}</h5>
                                 <small class="text-muted">{{ __('Edit email notification settings') }}</small>
                             </div>
-                            {{ Form::model($setting, ['route' => ['emails.status.language'], 'method' => 'post']) }}
-                            @csrf
-                            <div class="card-body">
-                                <div class="row">
-                                    @foreach ($EmailTemplates as $EmailTemplate)
-                                        <div class="col-lg-4 col-md-6 col-sm-6 form-group">
-                                            <div class="list-group">
-                                                <div class="list-group-item form-switch form-switch-right">
-                                                    <label class="form-label"
-                                                        style="margin-left:5%;">{{ $EmailTemplate->name }}</label>
-                                                    {{--                                                    <input class="form-check-input email-template-checkbox" --}}
-                                                    {{--                                                           id="email_tempalte_{{!empty($EmailTemplate->template)?$EmailTemplate->template->id:''}}" type="checkbox" --}}
-                                                    {{--                                                           @if (!empty($EmailTemplate->template) ? $EmailTemplate->template->is_active : 0 == 1) checked="checked" @endif --}}
-                                                    {{--                                                           type="checkbox" --}}
-                                                    {{--                                                           value="{{!empty($EmailTemplate->template)?$EmailTemplate->template->is_active:1}}" --}}
-                                                    {{--                                                           data-url="{{route('emails.status.language',[!empty($EmailTemplate->template)?$EmailTemplate->template->id:''])}}" /> --}}
-                                                    {{--                                                    <label class="form-check-label" for="email_tempalte_{{!empty($EmailTemplate->template)?$EmailTemplate->template->id:''}}"></label> --}}
-
-                                                    <input class="form-check-input" name='{{ $EmailTemplate->id }}'
-                                                        id="email_tempalte_{{ $EmailTemplate->template->id }}"
-                                                        type="checkbox"
-                                                        @if ($EmailTemplate->template->is_active == 1) checked="checked" @endif
-                                                        type="checkbox" value="1"
-                                                        data-url="{{ route('emails.status.language', [$EmailTemplate->template->id]) }}" />
-                                                    <label class="form-check-label"
-                                                        for="email_tempalte_{{ $EmailTemplate->template->id }}"></label>
+                            @php
+                                $emailStatusLanguageBaseRoute    = ViewsConstants::EMLS . '.status.language';
+                                $emailStatusLanguageKebabRoute   = Str::kebab($emailStatusLanguageBaseRoute);
+                                $emailStatusLanguageResolvedName = Route::has($emailStatusLanguageBaseRoute)
+                                    ? $emailStatusLanguageBaseRoute
+                                    : (Route::has($emailStatusLanguageKebabRoute) ? $emailStatusLanguageKebabRoute : null);
+                                $emailStatusLanguageRouteArray   = $emailStatusLanguageResolvedName ? [$emailStatusLanguageResolvedName] : ['#'];
+                                $emailStatusLanguageUrl          = $emailStatusLanguageResolvedName ? route($emailStatusLanguageResolvedName) : '#';
+                                $emailStatusLanguageGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::EMLS, 'email_status_language_route_unavailable') ?? 'Email status language route is unavailable. Please contact technical support or your domain administrator.';
+                                $emailStatusLanguageFormId       = 'email-status-language-form';
+                            @endphp
+                            {!! Form::model($setting, [
+                                'route'          => $emailStatusLanguageRouteArray,
+                                'method'         => 'post',
+                                'id'             => $emailStatusLanguageFormId,
+                                'data-url'       => $emailStatusLanguageUrl,
+                                'data-guard-msg' => $emailStatusLanguageGuardMsg
+                            ]) !!}
+                                @push(StacksConstants::ADM_SCR_PG)
+                                    <script defer>
+                                        (() => {
+                                            const form = document.getElementById('{{ $emailStatusLanguageFormId }}');
+                                            if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                                            form.setAttribute('data-listener-active', 'true');
+                                            form.addEventListener('submit', e => {
+                                                try {
+                                                    const url = form.getAttribute('data-url') || '#';
+                                                    if (url !== '#') return;
+                                                    e.preventDefault();
+                                                    const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                                                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                    let container = document.getElementById('toast-container');
+                                                    if (!container) {
+                                                        container = document.createElement('div');
+                                                        container.id = 'toast-container';
+                                                        document.body.appendChild(container);
+                                                    }
+                                                    if (bs) {
+                                                        const toast = document.createElement('div');
+                                                        toast.className = 'toast';
+                                                        toast.setAttribute('role','alert');
+                                                        toast.setAttribute('aria-live','assertive');
+                                                        toast.setAttribute('aria-atomic','true');
+                                                        const body = document.createElement('div');
+                                                        body.className = 'toast-body';
+                                                        body.textContent = msg;
+                                                        toast.appendChild(body);
+                                                        container.appendChild(toast);
+                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                    } else {
+                                                        alert(msg);
+                                                    }
+                                                    form.setAttribute('data-failed-route', 'true');
+                                                } catch (err) {}
+                                            });
+                                        })();
+                                    </script>
+                                @endpush
+                                @csrf
+                                <div class="card-body">
+                                    <div class="{{ VC::RW }}">
+                                        @foreach ($emailTemplates as $emailTemplate)
+                                            <div class="col-lg-4 col-md-6 col-sm-6 {{ VC::FM_G }}">
+                                                <div class="{{ VC::LGRP }}">
+                                                    <div class="{{ VC::LGI }} form-switch form-switch-right">
+                                                        <label class="{{ VC::FM_LB }}" style="margin-left:5%;">{{ $emailTemplate->name }}</label>
+                                                        @php
+                                                            $emailTemplateId                      = $emailTemplate->template->id;
+                                                            $emailTemplateCheckboxId              = 'email_template_' . $emailTemplateId;
+                                                            $emailTemplateStatusLanguageUrl       = $emailStatusLanguageResolvedName
+                                                                ? route($emailStatusLanguageResolvedName, [$emailTemplateId])
+                                                                : '#';
+                                                            $emailTemplateStatusLanguageGuardMsg  = Utility::fetchLinkMessage(
+                                                                $lang,
+                                                                ViewsConstants::EMLS,
+                                                                'email_template_status_language_route_unavailable'
+                                                            ) ?? 'Email template status language route is unavailable. Please contact technical support or your domain administrator.';
+                                                        @endphp
+                                                        <input
+                                                            class="form-check-input"
+                                                            name="{{ $emailTemplate->id }}"
+                                                            id="{{ $emailTemplateCheckboxId }}"
+                                                            type="checkbox"
+                                                            @if ($emailTemplate->template->is_active == 1) checked="checked" @endif
+                                                            value="1"
+                                                            data-url="{{ $emailTemplateStatusLanguageUrl }}"
+                                                            data-guard-msg="{{ $emailTemplateStatusLanguageGuardMsg }}"
+                                                        />
+                                                        @push(StacksConstants::ADM_SCR_PG)
+                                                            <script defer>
+                                                                (() => {
+                                                                    const el = document.getElementById('{{ $emailTemplateCheckboxId }}');
+                                                                    if (!el || el.getAttribute('data-change-listener-active') === 'true') return;
+                                                                    el.setAttribute('data-change-listener-active', 'true');
+                                                                    el.addEventListener('change', e => {
+                                                                        try {
+                                                                            const url = el.getAttribute('data-url') || '#';
+                                                                            if (url !== '#') return;
+                                                                            e.preventDefault();
+                                                                            el.checked = !el.checked;
+                                                                            const msg = el.getAttribute('data-guard-msg') || '# ERROR';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role','alert');
+                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            el.setAttribute('data-failed-route', 'true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                })();
+                                                            </script>
+                                                        @endpush
+                                                        <label class="form-check-label" for="email_template_{{ $emailTemplate->template->id }}"></label>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endforeach
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="card-footer text-end">
+                                    <div class="{{ VC::FM_G }}">
+                                        <input class="{{ VC::BT_PR_PRM10 }}" type="submit" value="{{ __('Save Changes') }}">
+                                    </div>
                                 </div>
 
-                            </div>
-                            <div class="card-footer text-end">
-                                <div class="form-group">
-                                    <input class="{{ VC::BT_PR_PRM10 }}" type="submit"
-                                        value="{{ __('Save Changes') }}">
-                                </div>
-                            </div>
+                                                                                {{--                                                    <input class="form-check-input email-template-checkbox" --}}
+                                                    {{--                                                           id="email_template_{{!empty($emailTemplate->template)?$emailTemplate->template->id:''}}" type="checkbox" --}}
+                                                    {{--                                                           @if (!empty($emailTemplate->template) ? $emailTemplate->template->is_active : 0 == 1) checked="checked" @endif --}}
+                                                    {{--                                                           type="checkbox" --}}
+                                                    {{--                                                           value="{{!empty($emailTemplate->template)?$emailTemplate->template->is_active:1}}" --}}
+                                                    {{--                                                           data-url="{{route('emails.status.language',[!empty($emailTemplate->template)?$emailTemplate->template->id:''])}}" /> --}}
+                                                    {{--                                                    <label class="form-check-label" for="email_template_{{!empty($emailTemplate->template)?$emailTemplate->template->id:''}}"></label> --}}
                             {{ Form::close() }}
                         </div>
                     </div>
-
-                    <!--Start HRM letter Settings-->
-
-                    <div id="offer-letter-settings" class="card">
+                    <div id="offer-letter-settings" class="{{ VC::CD }}">
                         <div class="col-md-12">
-                            <div class="card-header d-flex justify-content-between">
+                            <div class="card-header {{ VC::DFL_JCB }}">
                                 <h5>{{ __('Offer Letter Settings') }}</h5>
-                                <div class="d-flex justify-content-end drp-languages">
-                                    <ul class="list-unstyled mb-0 m-2">
+                                <div class="{{ VC::DFL . ' ' . VC::JCE }} drp-languages">
+                                    <ul class="list-unstyled {{ VC::MB0 }} m-2">
                                         <li class="{{ VC::LNG_DD_IT }}" style="margin-top: -7px;">
                                             <a class="{{ VC::DRP_NO_ARROW }}"
-                                                data-bs-toggle="dropdown" href="#" role="button"
-                                                aria-haspopup="false" aria-expanded="false" id="dropdownLanguage">
+                                            data-bs-toggle="dropdown" href="#" role="button"
+                                            aria-haspopup="false" aria-expanded="false" id="dropdownLanguage">
                                                 <span class="drp-text hide-mob text-primary me-2">
                                                     {{ ucfirst($offerlangName->full_name) }}
                                                 </span>
                                                 <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                                             </a>
-                                            <div class="{{ VC::DRP_MN_DSH_END }}"
-                                                aria-labelledby="dropdownLanguage">
+                                            <div class="{{ VC::DRP_MN_DSH_END }}" aria-labelledby="dropdownLanguage">
+                                                @php
+                                                    $offerLetterLangRouteBase   = ViewsConstants::SET . '.offer_letter.language';
+                                                    $offerLetterLangRouteKebab  = Str::kebab($offerLetterLangRouteBase);
+                                                    $offerLetterLangRouteName   = Route::has($offerLetterLangRouteBase)
+                                                        ? $offerLetterLangRouteBase
+                                                        : (Route::has($offerLetterLangRouteKebab) ? $offerLetterLangRouteKebab : null);
+
+                                                    $offerLetterLangGuardMsg    = Utility::fetchLinkMessage(
+                                                        $lang,
+                                                        ViewsConstants::SET,
+                                                        'offer_letter_language_route_unavailable'
+                                                    ) ?? 'Offer letter language route is unavailable. Please contact technical support or your domain administrator.';
+                                                @endphp
                                                 @foreach ($currentLang as $code => $offerlangs)
-                                                    <a href="{{ route('get.offerlatter.language', ['noclangs' => $noclang, 'explangs' => $explang, 'offerlangs' => $code, 'joininglangs' => $joininglang]) }}"
-                                                        class="dropdown-item ms-1 {{ $offerlangs == $code ? 'text-primary' : '' }}">{{ ucFirst($offerlangs) }}
+                                                    @php
+                                                        $offerLetterLangParams = [
+                                                            'noclangs'     => $noclang,
+                                                            'explangs'     => $explang,
+                                                            'offerlangs'   => $code,
+                                                            'joininglangs' => $joininglang,
+                                                        ];
+                                                        $offerLetterLangUrl = $offerLetterLangRouteName
+                                                            ? route($offerLetterLangRouteName, $offerLetterLangParams)
+                                                            : '#';
+                                                        $offerLetterLangLinkId = 'offer-letter-language-link-' . $code;
+                                                    @endphp
+                                                    <a
+                                                        id="{{ $offerLetterLangLinkId }}"
+                                                        href="{{ $offerLetterLangUrl }}"
+                                                        data-url="{{ $offerLetterLangUrl }}"
+                                                        data-guard-msg="{{ $offerLetterLangGuardMsg }}"
+                                                        class="dropdown-item ms-1 offer-letter-language-link {{ $offerlangs == $code ? 'text-primary' : '' }}"
+                                                    >
+                                                        {{ ucfirst($offerlangs) }}
                                                     </a>
                                                 @endforeach
+                                                @push(StacksConstants::ADM_SCR_PG)
+                                                    <script defer>
+                                                        (() => {
+                                                            try {
+                                                                const links = document.querySelectorAll('.offer-letter-language-link');
+                                                                if (!links || links.length === 0) return;
+                                                                links.forEach(l => {
+                                                                    const active = l.getAttribute('data-listener-active');
+                                                                    if (active === 'true') return;
+                                                                    l.setAttribute('data-listener-active', 'true');
+                                                                    l.addEventListener('click', e => {
+                                                                        try {
+                                                                            const url = l.getAttribute('data-url') || '#';
+                                                                            if (url !== '#') return;
+                                                                            e.preventDefault();
+                                                                            const msg = l.getAttribute('data-guard-msg') || '# ERROR';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role','alert');
+                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            l.setAttribute('data-failed-route', 'true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                });
+                                                            } catch (err) {}
+                                                        })();
+                                                    </script>
+                                                @endpush
                                             </div>
                                         </li>
                                     </ul>
-
                                 </div>
                             </div>
                             <div class="card-body">
                                 <h5 class="font-weight-bold pb-3">{{ __('Placeholders') }}</h5>
                                 <div class="col-lg-12 col-md-12 col-sm-12">
-                                    <div class="card">
+                                    <div class="{{ VC::CD }}">
                                         <div class="card-header card-body">
-                                            <div class="row text-xs">
-                                                <div class="row">
-                                                    <p class="col-4">{{ __('Applicant Name') }} : <span
-                                                            class="pull-end text-primary">{applicant_name}</span></p>
-                                                    <p class="col-4">{{ __('Company Name') }} : <span
-                                                            class="pull-right text-primary">{app_name}</span></p>
-                                                    <p class="col-4">{{ __('Job title') }} : <span
-                                                            class="pull-right text-primary">{job_title}</span></p>
-                                                    <p class="col-4">{{ __('Job type') }} : <span
-                                                            class="pull-right text-primary">{job_type}</span></p>
-                                                    <p class="col-4">{{ __('Proposed Start Date') }} : <span
-                                                            class="pull-right text-primary">{start_date}</span></p>
-                                                    <p class="col-4">{{ __('Working Location') }} : <span
-                                                            class="pull-right text-primary">{workplace_location}</span>
-                                                    </p>
-                                                    <p class="col-4">{{ __('Days Of Week') }} : <span
-                                                            class="pull-right text-primary">{days_of_week}</span></p>
-                                                    <p class="col-4">{{ __('Salary') }} : <span
-                                                            class="pull-right text-primary">{salary}</span></p>
-                                                    <p class="col-4">{{ __('Salary Type') }} : <span
-                                                            class="pull-right text-primary">{salary_type}</span></p>
-                                                    <p class="col-4">{{ __('Salary Duration') }} : <span
-                                                            class="pull-end text-primary">{salary_duration}</span></p>
-                                                    <p class="col-4">{{ __('Offer Expiration Date') }} : <span
-                                                            class="pull-right text-primary">{offer_expiration_date}</span>
-                                                    </p>
+                                            <div class="{{ VC::RW }} {{ VC::TXS }}">
+                                                <div class="{{ VC::RW }}">
+                                                    <p class="col-4">{{ __('Applicant Name') }} :
+                                                        <span class="pull-end text-primary">{applicant_name}</span></p>
+                                                    <p class="col-4">{{ __('Company Name') }} :
+                                                        <span class="pull-right text-primary">{app_name}</span></p>
+                                                    <p class="col-4">{{ __('Job title') }} :
+                                                        <span class="pull-right text-primary">{job_title}</span></p>
+                                                    <p class="col-4">{{ __('Job type') }} :
+                                                        <span class="pull-right text-primary">{job_type}</span></p>
+                                                    <p class="col-4">{{ __('Proposed Start Date') }} :
+                                                        <span class="pull-right text-primary">{start_date}</span></p>
+                                                    <p class="col-4">{{ __('Working Location') }} :
+                                                        <span class="pull-right text-primary">{workplace_location}</span></p>
+                                                    <p class="col-4">{{ __('Days Of Week') }} :
+                                                        <span class="pull-right text-primary">{days_of_week}</span></p>
+                                                    <p class="col-4">{{ __('Salary') }} :
+                                                        <span class="pull-right text-primary">{salary}</span></p>
+                                                    <p class="col-4">{{ __('Salary Type') }} :
+                                                        <span class="pull-right text-primary">{salary_type}</span></p>
+                                                    <p class="col-4">{{ __('Salary Duration') }} :
+                                                        <span class="pull-end text-primary">{salary_duration}</span></p>
+                                                    <p class="col-4">{{ __('Offer Expiration Date') }} :
+                                                        <span class="pull-right text-primary">{offer_expiration_date}</span></p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style ">
-
-                                {{ Form::open(['route' => ['offerlatter.update', $offerlang], 'method' => 'post']) }}
-                                <div class="form-group col-12">
-                                    {{ Form::label('content', __(' Format'), ['class' => 'form-label text-dark']) }}
-                                    <textarea name="content" class="summernote-simple0 summernote-simple">{!! isset($currOfferletterLang->content) ? $currOfferletterLang->content : '' !!}</textarea>
-
-                                </div>
-                                {{--                                <div class="card-footer text-end"> --}}
-                                {{--                                    {{ Form::submit(__('Save Changes'), ['class' => 'btn  btn-primary']) }} --}}
-                                {{--                                </div> --}}
-
+                            <div class="card-body table-border-style">
+                                @php
+                                    $offerLetterUpdateBaseName              = 'offer_letter.update';
+                                    $offerLetterUpdateKebabName             = Str::kebab($offerLetterUpdateBaseName);
+                                    $offerLetterUpdateResolvedName          = Route::has($offerLetterUpdateBaseName)
+                                        ? $offerLetterUpdateBaseName
+                                        : (Route::has($offerLetterUpdateKebabName) ? $offerLetterUpdateKebabName : null);
+                                    $offerLetterUpdateRouteArray            = $offerLetterUpdateResolvedName ? [$offerLetterUpdateResolvedName, $offerlang] : ['#'];
+                                    $offerLetterUpdateUrl                   = $offerLetterUpdateResolvedName ? route($offerLetterUpdateResolvedName, $offerlang) : '#';
+                                    $offerLetterUpdateGuardMsg              = Utility::fetchLinkMessage($lang, ViewsConstants::SET, 'offer_letter_update_route_unavailable') ?? 'Offer letter update route is unavailable. Please contact technical support or your domain administrator.';
+                                    $offerLetterUpdateFormId                = 'offer-letter-update-form-' . $offerlang;
+                                @endphp
+                                {!! Form::open([
+                                    'route'          => $offerLetterUpdateRouteArray,
+                                    'method'         => 'post',
+                                    'id'             => $offerLetterUpdateFormId,
+                                    'data-url'       => $offerLetterUpdateUrl,
+                                    'data-guard-msg' => $offerLetterUpdateGuardMsg
+                                ]) !!}
+                                    @push(StacksConstants::ADM_SCR_PG)
+                                        <script defer>
+                                            (() => {
+                                                const form = document.getElementById('{{ $offerLetterUpdateFormId }}');
+                                                if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                                                form.setAttribute('data-listener-active', 'true');
+                                                form.addEventListener('submit', e => {
+                                                    try {
+                                                        const url = form.getAttribute('data-url') || '#';
+                                                        const action = form.getAttribute('action') || '#';
+                                                        if (url !== '#' || action !== '#') return;
+                                                        e.preventDefault();
+                                                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        let container = document.getElementById('toast-container');
+                                                        if (!container) {
+                                                            container = document.createElement('div');
+                                                            container.id = 'toast-container';
+                                                            document.body.appendChild(container);
+                                                        }
+                                                        if (hasBootstrap) {
+                                                            const toast = document.createElement('div');
+                                                            toast.className = 'toast';
+                                                            toast.setAttribute('role','alert');
+                                                            toast.setAttribute('aria-live','assertive');
+                                                            toast.setAttribute('aria-atomic','true');
+                                                            const body = document.createElement('div');
+                                                            body.className = 'toast-body';
+                                                            body.textContent = msg;
+                                                            toast.appendChild(body);
+                                                            container.appendChild(toast);
+                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                        } else {
+                                                            alert(msg);
+                                                        }
+                                                        form.setAttribute('data-failed-route', 'true');
+                                                    } catch (err) {}
+                                                });
+                                            })();
+                                        </script>
+                                    @endpush
+                                    <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+                                        {{ Form::label('content', __(' Format'), ['class' => VC::FM_LB . ' text-dark']) }}
+                                        <textarea name="content" class="summernote-simple0 summernote-simple">{!! isset($currOfferletterLang->content) ? $currOfferletterLang->content : '' !!}</textarea>
+                                    </div>
                                 {{ Form::close() }}
                             </div>
                         </div>
                     </div>
-
-                    <div id="joining-letter-settings" class="card">
+                    <div id="joining-letter-settings" class="{{ VC::CD }}">
                         <div class="col-md-12">
-                            <div class="card-header d-flex justify-content-between">
+                            <div class="card-header {{ VC::DFL_JCB }}">
                                 <h5>{{ __('Joining Letter Settings') }}</h5>
-                                <div class="d-flex justify-content-end drp-languages">
-                                    <ul class="list-unstyled mb-0 m-2">
+                                <div class="{{ VC::DFL . ' ' . VC::JCE }} drp-languages">
+                                    <ul class="list-unstyled {{ VC::MB0 }} m-2">
                                         <li class="{{ VC::LNG_DD_IT }}" style="margin-top: -7px;">
                                             <a class="{{ VC::DRP_NO_ARROW }}"
-                                                data-bs-toggle="dropdown" href="#" role="button"
-                                                aria-haspopup="false" aria-expanded="false" id="dropdownLanguage1">
+                                            data-bs-toggle="dropdown" href="#" role="button"
+                                            aria-haspopup="false" aria-expanded="false" id="dropdownLanguage1">
                                                 <span class="drp-text hide-mob text-primary me-2">
                                                     {{ ucfirst($joininglangName->full_name) }}
                                                 </span>
                                                 <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                                             </a>
-                                            <div class="{{ VC::DRP_MN_DSH_END }}"
-                                                aria-labelledby="dropdownLanguage1">
+                                            <div class="{{ VC::DRP_MN_DSH_END }}" aria-labelledby="dropdownLanguage1">
+                                                @php
+                                                    $joiningLetterLangBaseName  = ViewsConstants::SET . '.joining_letter.language';
+                                                    $joiningLetterLangKebabName = Str::kebab($joiningLetterLangBaseName);
+                                                    $joiningLetterLangRouteName = Route::has($joiningLetterLangBaseName)
+                                                        ? $joiningLetterLangBaseName
+                                                        : (Route::has($joiningLetterLangKebabName) ? $joiningLetterLangKebabName : null);
+                                                    $joiningLetterLangGuardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::SET, 'joining_letter_language_route_unavailable') ?? 'Joining letter language route is unavailable. Please contact technical support or your domain administrator.';
+                                                @endphp
                                                 @foreach ($currentLang as $code => $joininglangs)
-                                                    <a href="{{ route('get.joiningletter.language', ['noclangs' => $noclang, 'explangs' => $explang, 'offerlangs' => $offerlang, 'joininglangs' => $code]) }}"
-                                                        class="dropdown-item {{ $joininglangs == $code ? 'text-primary' : '' }}">{{ ucFirst($joininglangs) }}</a>
+                                                    @php
+                                                        $joiningLetterParams = [
+                                                            'noclangs'     => $noclang,
+                                                            'explangs'     => $explang,
+                                                            'offerlangs'   => $offerlang,
+                                                            'joininglangs' => $code
+                                                        ];
+                                                        $joiningLetterLangUrl = $joiningLetterLangRouteName ? route($joiningLetterLangRouteName, $joiningLetterParams) : '#';
+                                                        $joiningLetterLinkId  = 'joining-letter-language-link-' . $code;
+                                                    @endphp
+                                                    <a
+                                                        id="{{ $joiningLetterLinkId }}"
+                                                        href="{{ $joiningLetterLangUrl }}"
+                                                        data-url="{{ $joiningLetterLangUrl }}"
+                                                        data-guard-msg="{{ $joiningLetterLangGuardMsg }}"
+                                                        class="dropdown-item joining-letter-language-link {{ $joininglangs == $code ? 'text-primary' : '' }}"
+                                                    >
+                                                        {{ ucfirst($joininglangs) }}
+                                                    </a>
                                                 @endforeach
+                                                @push(StacksConstants::ADM_SCR_PG)
+                                                    <script defer>
+                                                        (() => {
+                                                            try {
+                                                                const links = document.querySelectorAll('.joining-letter-language-link');
+                                                                if (!links || links.length === 0) return;
+                                                                links.forEach(l => {
+                                                                    if (l.getAttribute('data-listener-active') === 'true') return;
+                                                                    l.setAttribute('data-listener-active', 'true');
+                                                                    l.addEventListener('click', e => {
+                                                                        try {
+                                                                            const url = l.getAttribute('data-url') || '#';
+                                                                            if (url !== '#') return;
+                                                                            e.preventDefault();
+                                                                            const msg = l.getAttribute('data-guard-msg') || '# ERROR';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role','alert');
+                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            l.setAttribute('data-failed-route', 'true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                });
+                                                            } catch (err) {}
+                                                        })();
+                                                    </script>
+                                                @endpush
                                             </div>
                                         </li>
-
                                     </ul>
-
                                 </div>
-
                             </div>
-                            <div class="card-body ">
+                            <div class="card-body">
                                 <h5 class="font-weight-bold pb-3">{{ __('Placeholders') }}</h5>
-
                                 <div class="col-lg-12 col-md-12 col-sm-12">
-                                    <div class="card">
+                                    <div class="{{ VC::CD }}">
                                         <div class="card-header card-body">
-                                            <div class="row text-xs">
-                                                <div class="row">
-                                                    <p class="col-4">{{ __('Applicant Name') }} : <span
-                                                            class="pull-end text-primary">{date}</span></p>
-                                                    <p class="col-4">{{ __('Company Name') }} : <span
-                                                            class="pull-right text-primary">{app_name}</span></p>
-                                                    <p class="col-4">{{ __('Employee Name') }} : <span
-                                                            class="pull-right text-primary">{employee_name}</span></p>
-                                                    <p class="col-4">{{ __('Address') }} : <span
-                                                            class="pull-right text-primary">{address}</span></p>
-                                                    <p class="col-4">{{ __('Designation') }} : <span
-                                                            class="pull-right text-primary">{designation}</span></p>
-                                                    <p class="col-4">{{ __('Start Date') }} : <span
-                                                            class="pull-right text-primary">{start_date}</span></p>
-                                                    <p class="col-4">{{ __('Branch') }} : <span
-                                                            class="pull-right text-primary">{branch}</span></p>
-                                                    <p class="col-4">{{ __('Start Time') }} : <span
-                                                            class="pull-end text-primary">{start_time}</span></p>
-                                                    <p class="col-4">{{ __('End Time') }} : <span
-                                                            class="pull-right text-primary">{end_time}</span></p>
-                                                    <p class="col-4">{{ __('Number of Hours') }} : <span
-                                                            class="pull-right text-primary">{total_hours}</span></p>
+                                            <div class="{{ VC::RW }} {{ VC::TXS }}">
+                                                <div class="{{ VC::RW }}">
+                                                    <p class="col-4">{{ __('Applicant Name') }} :
+                                                        <span class="pull-end text-primary">{date}</span></p>
+                                                    <p class="col-4">{{ __('Company Name') }} :
+                                                        <span class="pull-right text-primary">{app_name}</span></p>
+                                                    <p class="col-4">{{ __('Employee Name') }} :
+                                                        <span class="pull-right text-primary">{employee_name}</span></p>
+                                                    <p class="col-4">{{ __('Address') }} :
+                                                        <span class="pull-right text-primary">{address}</span></p>
+                                                    <p class="col-4">{{ __('Designation') }} :
+                                                        <span class="pull-right text-primary">{designation}</span></p>
+                                                    <p class="col-4">{{ __('Start Date') }} :
+                                                        <span class="pull-right text-primary">{start_date}</span></p>
+                                                    <p class="col-4">{{ __('Branch') }} :
+                                                        <span class="pull-right text-primary">{branch}</span></p>
+                                                    <p class="col-4">{{ __('Start Time') }} :
+                                                        <span class="pull-end text-primary">{start_time}</span></p>
+                                                    <p class="col-4">{{ __('End Time') }} :
+                                                        <span class="pull-right text-primary">{end_time}</span></p>
+                                                    <p class="col-4">{{ __('Number of Hours') }} :
+                                                        <span class="pull-right text-primary">{total_hours}</span></p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style ">
-
-                                {{ Form::open(['route' => ['joiningletter.update', $joininglang], 'method' => 'post']) }}
-                                <div class="form-group col-12">
-                                    {{ Form::label('content', __(' Format'), ['class' => 'form-label text-dark']) }}
-                                    <textarea name="content" class="summernote-simple1 summernote-simple">{!! isset($currjoiningletterLang->content) ? $currjoiningletterLang->content : '' !!}</textarea>
-
-                                </div>
+                            <div class="card-body table-border-style">
+                                @php
+                                    $joiningLetterUpdateBaseName              = 'joining_letter.update';
+                                    $joiningLetterUpdateKebabName             = Str::kebab($joiningLetterUpdateBaseName);
+                                    $joiningLetterUpdateResolvedName          = Route::has($joiningLetterUpdateBaseName)
+                                        ? $joiningLetterUpdateBaseName
+                                        : (Route::has($joiningLetterUpdateKebabName) ? $joiningLetterUpdateKebabName : null);
+                                    $joiningLetterUpdateRouteArray            = $joiningLetterUpdateResolvedName ? [$joiningLetterUpdateResolvedName, $joininglang] : ['#'];
+                                    $joiningLetterUpdateUrl                   = $joiningLetterUpdateResolvedName ? route($joiningLetterUpdateResolvedName, $joininglang) : '#';
+                                    $joiningLetterUpdateGuardMsg              = Utility::fetchLinkMessage($lang, ViewsConstants::SET, 'joining_letter_update_route_unavailable') ?? 'Joining letter update route is unavailable. Please contact technical support or your domain administrator.';
+                                    $joiningLetterUpdateFormId                = 'joining-letter-update-form-' . $joininglang;
+                                @endphp
+                                {!! Form::open([
+                                    'route'          => $joiningLetterUpdateRouteArray,
+                                    'method'         => 'post',
+                                    'id'             => $joiningLetterUpdateFormId,
+                                    'data-url'       => $joiningLetterUpdateUrl,
+                                    'data-guard-msg' => $joiningLetterUpdateGuardMsg
+                                ]) !!}
+                                    @push(StacksConstants::ADM_SCR_PG)
+                                        <script defer>
+                                            (() => {
+                                                const form = document.getElementById('{{ $joiningLetterUpdateFormId }}');
+                                                if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                                                form.setAttribute('data-listener-active', 'true');
+                                                form.addEventListener('submit', e => {
+                                                    try {
+                                                        const url = form.getAttribute('data-url') || '#';
+                                                        const action = form.getAttribute('action') || '#';
+                                                        if (url !== '#' || action !== '#') return;
+                                                        e.preventDefault();
+                                                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        let container = document.getElementById('toast-container');
+                                                        if (!container) {
+                                                            container = document.createElement('div');
+                                                            container.id = 'toast-container';
+                                                            document.body.appendChild(container);
+                                                        }
+                                                        if (hasBootstrap) {
+                                                            const toast = document.createElement('div');
+                                                            toast.className = 'toast';
+                                                            toast.setAttribute('role','alert');
+                                                            toast.setAttribute('aria-live','assertive');
+                                                            toast.setAttribute('aria-atomic','true');
+                                                            const body = document.createElement('div');
+                                                            body.className = 'toast-body';
+                                                            body.textContent = msg;
+                                                            toast.appendChild(body);
+                                                            container.appendChild(toast);
+                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                        } else {
+                                                            alert(msg);
+                                                        }
+                                                        form.setAttribute('data-failed-route', 'true');
+                                                    } catch (err) {}
+                                                });
+                                            })();
+                                        </script>
+                                    @endpush
+                                    <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+                                        {{ Form::label('content', __(' Format'), ['class' => VC::FM_LB . ' text-dark']) }}
+                                        <textarea name="content" class="summernote-simple1 summernote-simple">{!! isset($currjoiningletterLang->content) ? $currjoiningletterLang->content : '' !!}</textarea>
+                                    </div>
                                 {{ Form::close() }}
                             </div>
                         </div>
                     </div>
-
-                    <div id="experience-certificate-settings" class="card">
+                    <div id="experience-certificate-settings" class="{{ VC::CD }}">
                         <div class="col-md-12">
-                            <div class="card-header d-flex justify-content-between">
+                            <div class="card-header {{ VC::DFL_JCB }}">
                                 <h5>{{ __('Experience Certificate Settings') }}</h5>
-                                <div class="d-flex justify-content-end drp-languages">
-                                    <ul class="list-unstyled mb-0 m-2">
+                                <div class="{{ VC::DFL . ' ' . VC::JCE }} drp-languages">
+                                    <ul class="list-unstyled {{ VC::MB0 }} m-2">
                                         <li class="{{ VC::LNG_DD_IT }}" style="margin-top: -7px;">
                                             <a class="{{ VC::DRP_NO_ARROW }}"
-                                                data-bs-toggle="dropdown" href="#" role="button"
-                                                aria-haspopup="false" aria-expanded="false" id="dropdownLanguage1">
+                                            data-bs-toggle="dropdown" href="#" role="button"
+                                            aria-haspopup="false" aria-expanded="false" id="dropdownLanguage1">
                                                 <span class="drp-text hide-mob text-primary me-2">
                                                     {{ ucfirst($explangName->full_name) }}
                                                 </span>
                                                 <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                                             </a>
-                                            <div class="{{ VC::DRP_MN_DSH_END }}"
-                                                aria-labelledby="dropdownLanguage1">
+                                            <div class="{{ VC::DRP_MN_DSH_END }}" aria-labelledby="dropdownLanguage1">
+                                                @php
+                                                    $experienceCertificateLangBase   = ViewsConstants::SET . '.experience_certificate.language';
+                                                    $experienceCertificateLangKebab  = Str::kebab($experienceCertificateLangBase);
+                                                    $experienceCertificateLangName   = Route::has($experienceCertificateLangBase)
+                                                        ? $experienceCertificateLangBase
+                                                        : (Route::has($experienceCertificateLangKebab) ? $experienceCertificateLangKebab : null);
+                                                    $experienceCertificateLangGuard  = Utility::fetchLinkMessage($lang, ViewsConstants::SET, 'experience_certificate_language_route_unavailable') ?? 'Experience certificate language route is unavailable. Please contact technical support or your domain administrator.';
+                                                @endphp
                                                 @foreach ($currentLang as $code => $explangs)
-                                                    <a href="{{ route('get.experiencecertificate.language', ['noclangs' => $noclang, 'explangs' => $code, 'offerlangs' => $offerlang, 'joininglangs' => $joininglang]) }}"
-                                                        class="dropdown-item {{ $explangs == $code ? 'text-primary' : '' }}">{{ ucFirst($explangs) }}</a>
+                                                    @php
+                                                        $experienceCertificateParams = [
+                                                            'noclangs'     => $noclang,
+                                                            'explangs'     => $code,
+                                                            'offerlangs'   => $offerlang,
+                                                            'joininglangs' => $joininglang
+                                                        ];
+                                                        $experienceCertificateLangUrl = $experienceCertificateLangName ? route($experienceCertificateLangName, $experienceCertificateParams) : '#';
+                                                        $experienceCertificateLinkId  = 'experience-certificate-language-link-' . $code;
+                                                    @endphp
+                                                    <a
+                                                        id="{{ $experienceCertificateLinkId }}"
+                                                        href="{{ $experienceCertificateLangUrl }}"
+                                                        data-url="{{ $experienceCertificateLangUrl }}"
+                                                        data-guard-msg="{{ $experienceCertificateLangGuard }}"
+                                                        class="dropdown-item experience-certificate-language-link {{ $explangs == $code ? 'text-primary' : '' }}"
+                                                    >
+                                                        {{ ucfirst($explangs) }}
+                                                    </a>
                                                 @endforeach
+                                                @push(StacksConstants::ADM_SCR_PG)
+                                                    <script defer>
+                                                        (() => {
+                                                            try {
+                                                                const links = document.querySelectorAll('.experience-certificate-language-link');
+                                                                if (!links || links.length === 0) return;
+                                                                links.forEach(l => {
+                                                                    if (l.getAttribute('data-listener-active') === 'true') return;
+                                                                    l.setAttribute('data-listener-active', 'true');
+                                                                    l.addEventListener('click', e => {
+                                                                        try {
+                                                                            const url = l.getAttribute('data-url') || '#';
+                                                                            if (url !== '#') return;
+                                                                            e.preventDefault();
+                                                                            const msg = l.getAttribute('data-guard-msg') || '# ERROR';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role','alert');
+                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            l.setAttribute('data-failed-route', 'true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                });
+                                                            } catch (err) {}
+                                                        })();
+                                                    </script>
+                                                @endpush
                                             </div>
                                         </li>
-
                                     </ul>
-
                                 </div>
-
                             </div>
-                            <div class="card-body ">
+                            <div class="card-body">
                                 <h5 class="font-weight-bold pb-3">{{ __('Placeholders') }}</h5>
-
                                 <div class="col-lg-12 col-md-12 col-sm-12">
-                                    <div class="card">
+                                    <div class="{{ VC::CD }}">
                                         <div class="card-header card-body">
-                                            <div class="row text-xs">
-                                                <div class="row">
-                                                    <p class="col-4">{{ __('Company Name') }} : <span
-                                                            class="pull-right text-primary">{app_name}</span></p>
-                                                    <p class="col-4">{{ __('Employee Name') }} : <span
-                                                            class="pull-right text-primary">{employee_name}</span></p>
-                                                    <p class="col-4">{{ __('Date of Issuance') }} : <span
-                                                            class="pull-right text-primary">{date}</span></p>
-                                                    <p class="col-4">{{ __('Designation') }} : <span
-                                                            class="pull-right text-primary">{designation}</span></p>
-                                                    <p class="col-4">{{ __('Start Date') }} : <span
-                                                            class="pull-right text-primary">{start_date}</span></p>
-                                                    <p class="col-4">{{ __('Branch') }} : <span
-                                                            class="pull-right text-primary">{branch}</span></p>
-                                                    <p class="col-4">{{ __('Start Time') }} : <span
-                                                            class="pull-end text-primary">{start_time}</span></p>
-                                                    <p class="col-4">{{ __('End Time') }} : <span
-                                                            class="pull-right text-primary">{end_time}</span></p>
-                                                    <p class="col-4">{{ __('Number of Hours') }} : <span
-                                                            class="pull-right text-primary">{total_hours}</span></p>
+                                            <div class="{{ VC::RW }} {{ VC::TXS }}">
+                                                <div class="{{ VC::RW }}">
+                                                    <p class="col-4">{{ __('Company Name') }} :
+                                                        <span class="pull-right text-primary">{app_name}</span></p>
+                                                    <p class="col-4">{{ __('Employee Name') }} :
+                                                        <span class="pull-right text-primary">{employee_name}</span></p>
+                                                    <p class="col-4">{{ __('Date of Issuance') }} :
+                                                        <span class="pull-right text-primary">{date}</span></p>
+                                                    <p class="col-4">{{ __('Designation') }} :
+                                                        <span class="pull-right text-primary">{designation}</span></p>
+                                                    <p class="col-4">{{ __('Start Date') }} :
+                                                        <span class="pull-right text-primary">{start_date}</span></p>
+                                                    <p class="col-4">{{ __('Branch') }} :
+                                                        <span class="pull-right text-primary">{branch}</span></p>
+                                                    <p class="col-4">{{ __('Start Time') }} :
+                                                        <span class="pull-end text-primary">{start_time}</span></p>
+                                                    <p class="col-4">{{ __('End Time') }} :
+                                                        <span class="pull-right text-primary">{end_time}</span></p>
+                                                    <p class="col-4">{{ __('Number of Hours') }} :
+                                                        <span class="pull-right text-primary">{total_hours}</span></p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style ">
-
-                                {{ Form::open(['route' => ['experiencecertificate.update', $explang], 'method' => 'post']) }}
-                                <div class="form-group col-12">
-                                    {{ Form::label('content', __(' Format'), ['class' => 'form-label text-dark']) }}
-                                    <textarea name="content" class="summernote-simple2 summernote-simple">{!! isset($curr_exp_cetificate_Lang->content) ? $curr_exp_cetificate_Lang->content : '' !!}</textarea>
-
-                                </div>
+                            <div class="card-body table-border-style">
+                                @php
+                                    $expCertUpdateBaseName                        = 'experience_certificate.update';
+                                    $expCertUpdateKebabName                       = Str::kebab($expCertUpdateBaseName);
+                                    $expCertUpdateResolvedName                    = Route::has($expCertUpdateBaseName)
+                                        ? $expCertUpdateBaseName
+                                        : (Route::has($expCertUpdateKebabName) ? $expCertUpdateKebabName : null);
+                                    $expCertUpdateRouteArray                      = $expCertUpdateResolvedName
+                                        ? [$expCertUpdateResolvedName, $explang]
+                                        : ['#'];
+                                    $expCertUpdateUrl                             = $expCertUpdateResolvedName
+                                        ? route($expCertUpdateResolvedName, $explang)
+                                        : '#';
+                                    $expCertUpdateGuardMsg                        = Utility::fetchLinkMessage(
+                                        $lang,
+                                        ViewsConstants::SET,
+                                        'experience_certificate_update_route_unavailable'
+                                    ) ?? 'Experience certificate update route is unavailable. Please contact technical support or your domain administrator.';
+                                    $expCertUpdateFormId                          = 'experience-certificate-update-form-' . $explang;
+                                @endphp
+                                {!! Form::open([
+                                    'route'          => $expCertUpdateRouteArray,
+                                    'method'         => 'post',
+                                    'id'             => $expCertUpdateFormId,
+                                    'data-url'       => $expCertUpdateUrl,
+                                    'data-guard-msg' => $expCertUpdateGuardMsg
+                                ]) !!}
+                                    @push(StacksConstants::ADM_SCR_PG)
+                                        <script defer>
+                                            (() => {
+                                                const form = document.getElementById('{{ $expCertUpdateFormId }}');
+                                                if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                                                form.setAttribute('data-listener-active', 'true');
+                                                form.addEventListener('submit', (e) => {
+                                                    try {
+                                                        const url = form.getAttribute('data-url') || '#';
+                                                        const action = form.getAttribute('action') || '#';
+                                                        if (url !== '#' || action !== '#') return;
+                                                        e.preventDefault();
+                                                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        let container = document.getElementById('toast-container');
+                                                        if (!container) {
+                                                            container = document.createElement('div');
+                                                            container.id = 'toast-container';
+                                                            document.body.appendChild(container);
+                                                        }
+                                                        if (hasBootstrap) {
+                                                            const toast = document.createElement('div');
+                                                            toast.className = 'toast';
+                                                            toast.setAttribute('role', 'alert');
+                                                            toast.setAttribute('aria-live', 'assertive');
+                                                            toast.setAttribute('aria-atomic', 'true');
+                                                            const body = document.createElement('div');
+                                                            body.className = 'toast-body';
+                                                            body.textContent = msg;
+                                                            toast.appendChild(body);
+                                                            container.appendChild(toast);
+                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                        } else {
+                                                            alert(msg);
+                                                        }
+                                                        form.setAttribute('data-failed-route', 'true');
+                                                    } catch (err) {}
+                                                });
+                                            })();
+                                        </script>
+                                    @endpush
+                                    <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+                                        {{ Form::label('content', __(' Format'), ['class' => VC::FM_LB . ' text-dark']) }}
+                                        <textarea name="content" class="summernote-simple2 summernote-simple">{!! isset($curr_exp_cetificate_Lang->content) ? $curr_exp_cetificate_Lang->content : '' !!}</textarea>
+                                    </div>
                                 {{ Form::close() }}
                             </div>
                         </div>
                     </div>
-
-                    <div id="noc-settings" class="card">
+                    <div id="noc-settings" class="{{ VC::CD }}">
                         <div class="col-md-12">
-                            <div class="card-header d-flex justify-content-between">
+                            <div class="card-header {{ VC::DFL_JCB }}">
                                 <h5>{{ __('NOC Settings') }}</h5>
-                                <div class="d-flex justify-content-end drp-languages">
-                                    <ul class="list-unstyled mb-0 m-2">
+                                <div class="{{ VC::DFL . ' ' . VC::JCE }} drp-languages">
+                                    <ul class="list-unstyled {{ VC::MB0 }} m-2">
                                         <li class="{{ VC::LNG_DD_IT }}" style="margin-top: -7px;">
                                             <a class="{{ VC::DRP_NO_ARROW }}"
-                                                data-bs-toggle="dropdown" href="#" role="button"
-                                                aria-haspopup="false" aria-expanded="false" id="dropdownLanguage1">
+                                            data-bs-toggle="dropdown" href="#" role="button"
+                                            aria-haspopup="false" aria-expanded="false" id="dropdownLanguage1">
                                                 <span class="drp-text hide-mob text-primary me-2">
                                                     {{ ucfirst($noclangName->full_name) }}
                                                 </span>
                                                 <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                                             </a>
-                                            <div class="{{ VC::DRP_MN_DSH_END }}"
-                                                aria-labelledby="dropdownLanguage1">
+                                            <div class="{{ VC::DRP_MN_DSH_END }}" aria-labelledby="dropdownLanguage1">
+                                                @php
+                                                    $nocLanguageBaseName   = ViewsConstants::SET . '.noc.language';
+                                                    $nocLanguageKebabName  = Str::kebab($nocLanguageBaseName);
+                                                    $nocLanguageRouteName  = Route::has($nocLanguageBaseName)
+                                                        ? $nocLanguageBaseName
+                                                        : (Route::has($nocLanguageKebabName) ? $nocLanguageKebabName : null);
+                                                    $nocLanguageGuardMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::SET, 'noc_language_route_unavailable') ?? 'NOC language route is unavailable. Please contact technical support or your domain administrator.';
+                                                @endphp
                                                 @foreach ($currentLang as $code => $noclangs)
-                                                    <a href="{{ route('get.noc.language', ['noclangs' => $code, 'explangs' => $explang, 'offerlangs' => $offerlang, 'joininglangs' => $joininglang]) }}"
-                                                        class="dropdown-item {{ $noclangs == $code ? 'text-primary' : '' }}">{{ ucfirst($noclangs) }}</a>
+                                                    @php
+                                                        $nocLanguageParams = [
+                                                            'noclangs'     => $code,
+                                                            'explangs'     => $explang,
+                                                            'offerlangs'   => $offerlang,
+                                                            'joininglangs' => $joininglang
+                                                        ];
+                                                        $nocLanguageUrl = $nocLanguageRouteName ? route($nocLanguageRouteName, $nocLanguageParams) : '#';
+                                                        $nocLanguageLinkId = 'noc-language-link-' . $code;
+                                                    @endphp
+                                                    <a
+                                                        id="{{ $nocLanguageLinkId }}"
+                                                        href="{{ $nocLanguageUrl }}"
+                                                        data-url="{{ $nocLanguageUrl }}"
+                                                        data-guard-msg="{{ $nocLanguageGuardMsg }}"
+                                                        class="dropdown-item noc-language-link {{ $noclangs == $code ? 'text-primary' : '' }}"
+                                                    >
+                                                        {{ ucfirst($noclangs) }}
+                                                    </a>
                                                 @endforeach
+                                                @push(StacksConstants::ADM_SCR_PG)
+                                                    <script defer>
+                                                        (() => {
+                                                            try {
+                                                                const links = document.querySelectorAll('.noc-language-link');
+                                                                if (!links || links.length === 0) return;
+                                                                links.forEach(l => {
+                                                                    if (l.getAttribute('data-listener-active') === 'true') return;
+                                                                    l.setAttribute('data-listener-active', 'true');
+                                                                    l.addEventListener('click', e => {
+                                                                        try {
+                                                                            const url = l.getAttribute('data-url') || '#';
+                                                                            if (url !== '#') return;
+                                                                            e.preventDefault();
+                                                                            const msg = l.getAttribute('data-guard-msg') || '# ERROR';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role','alert');
+                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            l.setAttribute('data-failed-route', 'true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                });
+                                                            } catch (err) {}
+                                                        })();
+                                                    </script>
+                                                @endpush
                                             </div>
                                         </li>
-
                                     </ul>
-
                                 </div>
                             </div>
-                            <div class="card-body ">
+                            <div class="card-body">
                                 <h5 class="font-weight-bold pb-3">{{ __('Placeholders') }}</h5>
                                 <div class="col-lg-12 col-md-12 col-sm-12">
-                                    <div class="card">
+                                    <div class="{{ VC::CD }}">
                                         <div class="card-header card-body">
-                                            <div class="row text-xs">
-                                                <div class="row">
-                                                    <p class="col-4">{{ __('Date') }} : <span
-                                                            class="pull-end text-primary">{date}</span></p>
-                                                    <p class="col-4">{{ __('Company Name') }} : <span
-                                                            class="pull-right text-primary">{app_name}</span></p>
-                                                    <p class="col-4">{{ __('Employee Name') }} : <span
-                                                            class="pull-right text-primary">{employee_name}</span></p>
-                                                    <p class="col-4">{{ __('Designation') }} : <span
-                                                            class="pull-right text-primary">{designation}</span></p>
+                                            <div class="{{ VC::RW }} {{ VC::TXS }}">
+                                                <div class="{{ VC::RW }}">
+                                                    <p class="col-4">{{ __('Date') }} :
+                                                        <span class="pull-end text-primary">{date}</span></p>
+                                                    <p class="col-4">{{ __('Company Name') }} :
+                                                        <span class="pull-right text-primary">{app_name}</span></p>
+                                                    <p class="col-4">{{ __('Employee Name') }} :
+                                                        <span class="pull-right text-primary">{employee_name}</span></p>
+                                                    <p class="col-4">{{ __('Designation') }} :
+                                                        <span class="pull-right text-primary">{designation}</span></p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body table-border-style ">
-                                {{ Form::open(['route' => ['noc.update', $noclang], 'method' => 'post']) }}
-                                <div class="form-group col-12">
-                                    {{ Form::label('content', __(' Format'), ['class' => 'form-label text-dark']) }}
-                                    <textarea name="content" class="summernote-simple3 summernote-simple">{!! isset($currnocLang->content) ? $currnocLang->content : '' !!}</textarea>
-
-                                </div>
-
+                            <div class="card-body table-border-style">
+                                @php
+                                    $nocUpdateBaseName            = 'noc.update';
+                                    $nocUpdateKebabName           = Str::kebab($nocUpdateBaseName);
+                                    $nocUpdateResolvedName        = Route::has($nocUpdateBaseName)
+                                        ? $nocUpdateBaseName
+                                        : (Route::has($nocUpdateKebabName) ? $nocUpdateKebabName : null);
+                                    $nocUpdateRouteArray          = $nocUpdateResolvedName ? [$nocUpdateResolvedName, $noclang] : ['#'];
+                                    $nocUpdateUrl                 = $nocUpdateResolvedName ? route($nocUpdateResolvedName, $noclang) : '#';
+                                    $nocUpdateGuardMsg            = Utility::fetchLinkMessage($lang, ViewsConstants::SET, 'noc_update_route_unavailable') ?? 'NOC update route is unavailable. Please contact technical support or your domain administrator.';
+                                    $nocUpdateFormId              = 'noc-update-form-' . $noclang;
+                                @endphp
+                                {!! Form::open([
+                                    'route'          => $nocUpdateRouteArray,
+                                    'method'         => 'post',
+                                    'id'             => $nocUpdateFormId,
+                                    'data-url'       => $nocUpdateUrl,
+                                    'data-guard-msg' => $nocUpdateGuardMsg
+                                ]) !!}
+                                    @push(StacksConstants::ADM_SCR_PG)
+                                        <script defer>
+                                            (() => {
+                                                const form = document.getElementById('{{ $nocUpdateFormId }}');
+                                                if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                                                form.setAttribute('data-listener-active', 'true');
+                                                form.addEventListener('submit', e => {
+                                                    try {
+                                                        const url = form.getAttribute('data-url') || '#';
+                                                        const action = form.getAttribute('action') || '#';
+                                                        if (url !== '#' || action !== '#') return;
+                                                        e.preventDefault();
+                                                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        let container = document.getElementById('toast-container');
+                                                        if (!container) {
+                                                            container = document.createElement('div');
+                                                            container.id = 'toast-container';
+                                                            document.body.appendChild(container);
+                                                        }
+                                                        if (hasBootstrap) {
+                                                            const toast = document.createElement('div');
+                                                            toast.className = 'toast';
+                                                            toast.setAttribute('role','alert');
+                                                            toast.setAttribute('aria-live','assertive');
+                                                            toast.setAttribute('aria-atomic','true');
+                                                            const body = document.createElement('div');
+                                                            body.className = 'toast-body';
+                                                            body.textContent = msg;
+                                                            toast.appendChild(body);
+                                                            container.appendChild(toast);
+                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                        } else {
+                                                            alert(msg);
+                                                        }
+                                                        form.setAttribute('data-failed-route', 'true');
+                                                    } catch (err) {}
+                                                });
+                                            })();
+                                        </script>
+                                    @endpush
+                                    <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+                                        {{ Form::label('content', __(' Format'), ['class' => VC::FM_LB . ' text-dark']) }}
+                                        <textarea name="content" class="summernote-simple3 summernote-simple">{!! isset($currnocLang->content) ? $currnocLang->content : '' !!}</textarea>
+                                    </div>
                                 {{ Form::close() }}
                             </div>
                         </div>
                     </div>
-
-                    <!--End HRM letter Settings-->
-
                     <div id="google-calendar" class="card">
                         <div class="col-md-12">
-                            {{ Form::open(['url' => route('google.calendar.settings'), 'enctype' => 'multipart/form-data']) }}
-                            <div class="card-header">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <h5 class="mb-2">{{ __('Google Calendar Settings') }}</h5>
-                                    </div>
-                                    <div class="col switch-width text-end">
-                                        <div class="form-group mb-0">
-                                            <div class="custom-control custom-switch">
-                                                <input type="checkbox" name="google_calendar_enable"
-                                                    id="google_calendar_enable" data-toggle="switchbutton"
-                                                    data-onstyle="primary"
-                                                    {{ $setting['google_calendar_enable'] == 'on' ? 'checked' : '' }}>
-                                                <label class="custom-control-label"
-                                                    for="google_calendar_enable"></label>
+                            @php
+                                $settingsGoogleCalendarBaseRouteName           = ViewsConstants::SET . '.google.calendar';
+                                $settingsGoogleCalendarKebabRouteName          = Str::kebab($settingsGoogleCalendarBaseRouteName);
+                                $settingsGoogleCalendarResolvedRouteName       = Route::has($settingsGoogleCalendarBaseRouteName)
+                                    ? $settingsGoogleCalendarBaseRouteName
+                                    : (Route::has($settingsGoogleCalendarKebabRouteName) ? $settingsGoogleCalendarKebabRouteName : null);
+                                $settingsGoogleCalendarUrl                     = $settingsGoogleCalendarResolvedRouteName
+                                    ? route($settingsGoogleCalendarResolvedRouteName)
+                                    : '#';
+                                $settingsGoogleCalendarGuardMsg                = Utility::fetchLinkMessage(
+                                    $lang,
+                                    ViewsConstants::SET,
+                                    'settings_google_calendar_route_unavailable'
+                                ) ?? 'Settings Google Calendar route is unavailable. Please contact technical support or your domain administrator.';
+                                $settingsGoogleCalendarFormId                  = 'settings-google-calendar-form';
+                            @endphp
+                            {!! Form::open([
+                                'url'            => $settingsGoogleCalendarUrl,
+                                'enctype'        => 'multipart/form-data',
+                                'id'             => $settingsGoogleCalendarFormId,
+                                'data-url'       => $settingsGoogleCalendarUrl,
+                                'data-guard-msg' => $settingsGoogleCalendarGuardMsg
+                            ]) !!}
+                                @push(StacksConstants::ADM_SCR_PG)
+                                    <script defer>
+                                        (() => {
+                                            const form = document.getElementById('{{ $settingsGoogleCalendarFormId }}');
+                                            if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                                            form.setAttribute('data-listener-active', 'true');
+                                            form.addEventListener('submit', e => {
+                                                try {
+                                                    const dataUrl = form.getAttribute('data-url') || '#';
+                                                    const action  = form.getAttribute('action') || '#';
+                                                    if (dataUrl !== '#' || action !== '#') return;
+                                                    e.preventDefault();
+                                                    const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                    let container = document.getElementById('toast-container');
+                                                    if (!container) {
+                                                        container = document.createElement('div');
+                                                        container.id = 'toast-container';
+                                                        document.body.appendChild(container);
+                                                    }
+                                                    if (hasBootstrap) {
+                                                        const toast = document.createElement('div');
+                                                        toast.className = 'toast';
+                                                        toast.setAttribute('role','alert');
+                                                        toast.setAttribute('aria-live','assertive');
+                                                        toast.setAttribute('aria-atomic','true');
+                                                        const body = document.createElement('div');
+                                                        body.className = 'toast-body';
+                                                        body.textContent = msg;
+                                                        toast.appendChild(body);
+                                                        container.appendChild(toast);
+                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                    } else {
+                                                        alert(msg);
+                                                    }
+                                                    form.setAttribute('data-failed-route', 'true');
+                                                } catch (err) {}
+                                            });
+                                        })();
+                                    </script>
+                                @endpush
+                                <div class="card-header">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="col-6">
+                                            <h5 class="mb-2">{{ __('Google Calendar Settings') }}</h5>
+                                        </div>
+                                        <div class="col switch-width text-end">
+                                            <div class="{{ VC::FM_G }} {{ VC::MB0 }}">
+                                                <div class="{{ VC::CST_CTL }} custom-switch">
+                                                    <input type="checkbox"
+                                                        name="google_calendar_enable"
+                                                        id="google_calendar_enable"
+                                                        data-toggle="switchbutton"
+                                                        data-onstyle="primary"
+                                                        {{ $setting['google_calendar_enable'] == 'on' ? 'checked' : '' }}>
+                                                    <label class="{{ VC::CST_LB }}" for="google_calendar_enable"></label>
+                                                </div>
                                             </div>
-
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-sm-12 form-group">
-                                        {{ Form::label('Google calendar id', __('Google Calendar Id'), ['class' => 'col-form-label']) }}
-                                        {{ Form::text('google_clender_id', !empty($setting['google_clender_id']) ? $setting['google_clender_id'] : '', ['class' => 'form-control', 'placeholder' => 'Google Calendar Id', 'required' => 'required']) }}
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-sm-12 form-group">
-                                        {{ Form::label('Google calendar json file', __('Google Calendar json File'), ['class' => 'col-form-label']) }}
-                                        <input type="file" class="form-control" name="google_calendar_json_file"
-                                            id="file">
-                                        {{-- {{Form::text('zoom_secret_key', !empty($setting['zoom_secret_key']) ? $setting['zoom_secret_key'] : '' ,array('class'=>'form-control', 'placeholder'=>'Google Calendar json File'))}} --}}
+                                <div class="card-body">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="col-lg-6 {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::FM_G }}">
+                                            {{ Form::label('Google calendar id', __('Google Calendar Id'), ['class' => 'col-form-label']) }}
+                                            {{ Form::text('google_clender_id', !empty($setting['google_clender_id']) ? $setting['google_clender_id'] : '', ['class' => VC::FM_CT, 'placeholder' => 'Google Calendar Id', 'required' => 'required']) }}
+                                        </div>
+
+                                        <div class="col-lg-6 {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::FM_G }}">
+                                            {{ Form::label('Google calendar json file', __('Google Calendar json File'), ['class' => 'col-form-label']) }}
+                                            <input type="file" class="{{ VC::FM_CT }}" name="google_calendar_json_file" id="file">
+                                            {{-- {{ Form::text('zoom_secret_key', !empty($setting['zoom_secret_key']) ? $setting['zoom_secret_key'] : '' , ['class'=>'form-control', 'placeholder'=>'Google Calendar json File']) }} --}}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="card-footer text-end">
-                                <button class="btn-submit btn btn-primary" type="submit">
-                                    {{ __('Save Changes') }}
-                                </button>
-                            </div>
+                                <div class="card-footer text-end">
+                                    <button class="btn-submit {{ VC::BT_PRM }}" type="submit">
+                                        {{ __('Save Changes') }}
+                                    </button>
+                                </div>
                             {{ Form::close() }}
                         </div>
                     </div>
-
                     <div id="webhook-settings" class="card">
                         <div class="col-md-12">
                             <div class="card-header">
@@ -5094,13 +5753,71 @@
                                     </div>
                                     @can('create webhook')
                                         <div class="col-6 text-end">
-                                            <a href="#" data-size="lg" data-url="{{ route('webhook.create') }}"
-                                                data-ajax-popup="true" data-bs-toggle="tooltip"
-                                                title="{{ __('Create') }}" data-title="{{ __('Create New Webhook') }}"
-                                                class="btn btn-sm btn-primary">
-                                                <i class="ti ti-plus"></i>
+                                            @php
+                                                $webhookCreateBaseName              = ViewsConstants::WBH . '.create';
+                                                $webhookCreateKebabName             = Str::kebab($webhookCreateBaseName);
+                                                $webhookCreateResolvedName          = Route::has($webhookCreateBaseName)
+                                                    ? $webhookCreateBaseName
+                                                    : (Route::has($webhookCreateKebabName) ? $webhookCreateKebabName : null);
+                                                $webhookCreateUrl                   = $webhookCreateResolvedName ? route($webhookCreateResolvedName) : '#';
+                                                $webhookCreateGuardMsg              = Utility::fetchLinkMessage($lang, ViewsConstants::WBH, 'webhook_create_route_unavailable')
+                                                    ?? 'Webhook create route is unavailable. Please contact technical support or your domain administrator.';
+                                                $webhookCreateBtnId                 = 'webhook-create-btn';
+                                            @endphp
+                                            <a
+                                                id="{{ $webhookCreateBtnId }}"
+                                                href="{{ $webhookCreateUrl }}"
+                                                data-url="{{ $webhookCreateUrl }}"
+                                                data-guard-msg="{{ $webhookCreateGuardMsg }}"
+                                                data-size="lg"
+                                                data-ajax-popup="true"
+                                                data-bs-toggle="tooltip"
+                                                title="{{ __('Create') }}"
+                                                data-title="{{ __('Create New Webhook') }}"
+                                                class="{{ VC::BT_SM_PM }}"
+                                            >
+                                                <i class="{{ VC::TI_PLS }}"></i>
                                             </a>
-
+                                            @push(StacksConstants::ADM_SCR_PG)
+                                                <script defer>
+                                                    (() => {
+                                                        const btn = document.getElementById('{{ $webhookCreateBtnId }}');
+                                                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                        btn.setAttribute('data-listener-active', 'true');
+                                                        btn.addEventListener('click', e => {
+                                                            try {
+                                                                const url = btn.getAttribute('data-url') || '#';
+                                                                if (url !== '#') return;
+                                                                e.preventDefault();
+                                                                const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                let container = document.getElementById('toast-container');
+                                                                if (!container) {
+                                                                    container = document.createElement('div');
+                                                                    container.id = 'toast-container';
+                                                                    document.body.appendChild(container);
+                                                                }
+                                                                if (hasBootstrap) {
+                                                                    const toast = document.createElement('div');
+                                                                    toast.className = 'toast';
+                                                                    toast.setAttribute('role','alert');
+                                                                    toast.setAttribute('aria-live','assertive');
+                                                                    toast.setAttribute('aria-atomic','true');
+                                                                    const body = document.createElement('div');
+                                                                    body.className = 'toast-body';
+                                                                    body.textContent = msg;
+                                                                    toast.appendChild(body);
+                                                                    container.appendChild(toast);
+                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                } else {
+                                                                    alert(msg);
+                                                                }
+                                                                btn.setAttribute('data-failed-route', 'true');
+                                                            } catch (err) {}
+                                                        });
+                                                    })();
+                                                </script>
+                                            @endpush
                                         </div>
                                     @endcan
                                 </div>
@@ -5126,31 +5843,158 @@
                                                         <span>
                                                             @can(PermissionsConstants::ED_WHK)
                                                                 <div class="action-btn bg-primary ms-2">
-                                                                    <a href="#"
+                                                                    @php
+                                                                        $webhookEditBaseName                = ViewsConstants::WBH . '.edit';
+                                                                        $webhookEditKebabName               = Str::kebab($webhookEditBaseName);
+                                                                        $webhookEditResolvedName            = Route::has($webhookEditBaseName)
+                                                                            ? $webhookEditBaseName
+                                                                            : (Route::has($webhookEditKebabName) ? $webhookEditKebabName : null);
+                                                                        $webhookEditUrl                     = $webhookEditResolvedName
+                                                                            ? route($webhookEditResolvedName, $webhooksetting->id)
+                                                                            : '#';
+                                                                        $webhookEditGuardMsg                = Utility::fetchLinkMessage(
+                                                                            $lang,
+                                                                            ViewsConstants::WBH,
+                                                                            'webhook_edit_route_unavailable'
+                                                                        ) ?? 'Webhook edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $webhookEditBtnId                   = 'webhook-edit-btn-' . $webhooksetting->id;
+                                                                    @endphp
+                                                                    <a
+                                                                        id="{{ $webhookEditBtnId }}"
+                                                                        href="{{ $webhookEditUrl }}"
+                                                                        data-url="{{ $webhookEditUrl }}"
+                                                                        data-guard-msg="{{ $webhookEditGuardMsg }}"
                                                                         class="mx-3 btn btn-sm d-inline-flex align-items-center"
-                                                                        data-url="{{ URL::to('webhook-settings/' . $webhooksetting->id . '/edit') }}"
-                                                                        data-ajax-popup="true" data-bs-toggle="tooltip"
+                                                                        data-ajax-popup="true"
+                                                                        data-bs-toggle="tooltip"
+                                                                        data-size="lg"
                                                                         title="{{ __('Edit') }}"
-                                                                        data-title="{{ __('Webhook Edit') }}">
+                                                                        data-title="{{ __('Webhook Edit') }}"
+                                                                    >
                                                                         <i class="{{ VC::TI_PC_WT }}"></i>
                                                                     </a>
+                                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                                        <script defer>
+                                                                            (() => {
+                                                                                const btn = document.getElementById('{{ $webhookEditBtnId }}');
+                                                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                                btn.setAttribute('data-listener-active', 'true');
+                                                                                btn.addEventListener('click', e => {
+                                                                                    try {
+                                                                                        const url = btn.getAttribute('data-url') || '#';
+                                                                                        if (url !== '#') return;
+                                                                                        e.preventDefault();
+                                                                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+                                                                                        btn.setAttribute('data-failed-route', 'true');
+                                                                                    } catch (err) {}
+                                                                                });
+                                                                            })();
+                                                                        </script>
+                                                                    @endpush
                                                                 </div>
                                                             @endcan
                                                             @can(PermissionsConstants::DEL_WHK)
+                                                                @php
+                                                                    $webhookDestroyBaseName                 = 'webhook.destroy';
+                                                                    $webhookDestroyKebabName                = Str::kebab($webhookDestroyBaseName);
+                                                                    $webhookDestroyResolvedName             = Route::has($webhookDestroyBaseName)
+                                                                        ? $webhookDestroyBaseName
+                                                                        : (Route::has($webhookDestroyKebabName) ? $webhookDestroyKebabName : null);
+                                                                    $webhookDestroyRouteArray               = $webhookDestroyResolvedName
+                                                                        ? [$webhookDestroyResolvedName, $webhooksetting->id]
+                                                                        : ['#'];
+                                                                    $webhookDestroyUrl                      = $webhookDestroyResolvedName
+                                                                        ? route($webhookDestroyResolvedName, $webhooksetting->id)
+                                                                        : '#';
+                                                                    $webhookDestroyGuardMsg                 = Utility::fetchLinkMessage(
+                                                                        $lang,
+                                                                        ViewsConstants::WBH,
+                                                                        'webhook_destroy_route_unavailable'
+                                                                    ) ?? 'Webhook destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $webhookDeleteFormId                    = 'delete-form-' . $webhooksetting->id;
+                                                                    $webhookDeleteBtnId                     = 'webhook-destroy-btn-' . $webhooksetting->id;
+                                                                @endphp
                                                                 <div class="action-btn bg-danger ms-2">
                                                                     {!! Form::open([
                                                                         'method' => 'DELETE',
-                                                                        'route' => ['webhook.destroy', $webhooksetting->id],
-                                                                        'id' => 'delete-form-' . $webhooksetting->id,
+                                                                        'route'  => $webhookDestroyRouteArray,
+                                                                        'id'     => $webhookDeleteFormId
                                                                     ]) !!}
-                                                                    <a href="#"
-                                                                        class="mx-3 btn btn-sm align-items-center bs-pass-para"
-                                                                        data-bs-toggle="tooltip"
-                                                                        title="{{ __('Delete') }}">
-                                                                        <i class="ti ti-trash text-white"></i>
-                                                                    </a>
+                                                                        <a
+                                                                            id="{{ $webhookDeleteBtnId }}"
+                                                                            href="{{ $webhookDestroyUrl }}"
+                                                                            data-url="{{ $webhookDestroyUrl }}"
+                                                                            data-guard-msg="{{ $webhookDestroyGuardMsg }}"
+                                                                            class="mx-3 btn btn-sm align-items-center bs-pass-para"
+                                                                            data-bs-toggle="tooltip"
+                                                                            title="{{ __('Delete') }}"
+                                                                        >
+                                                                            <i class="ti ti-trash text-white"></i>
+                                                                        </a>
                                                                     {!! Form::close() !!}
                                                                 </div>
+                                                                @push(StacksConstants::ADM_SCR_PG)
+                                                                    <script defer>
+                                                                        (() => {
+                                                                            const btn = document.getElementById('{{ $webhookDeleteBtnId }}');
+                                                                            if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                            btn.setAttribute('data-listener-active', 'true');
+                                                                            btn.addEventListener('click', e => {
+                                                                                try {
+                                                                                    const url = btn.getAttribute('data-url') || '#';
+                                                                                    if (url !== '#') return;
+                                                                                    e.preventDefault();
+                                                                                    const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    let container = document.getElementById('toast-container');
+                                                                                    if (!container) {
+                                                                                        container = document.createElement('div');
+                                                                                        container.id = 'toast-container';
+                                                                                        document.body.appendChild(container);
+                                                                                    }
+                                                                                    if (hasBootstrap) {
+                                                                                        const toast = document.createElement('div');
+                                                                                        toast.className = 'toast';
+                                                                                        toast.setAttribute('role','alert');
+                                                                                        toast.setAttribute('aria-live','assertive');
+                                                                                        toast.setAttribute('aria-atomic','true');
+                                                                                        const body = document.createElement('div');
+                                                                                        body.className = 'toast-body';
+                                                                                        body.textContent = msg;
+                                                                                        toast.appendChild(body);
+                                                                                        container.appendChild(toast);
+                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                    } else {
+                                                                                        alert(msg);
+                                                                                    }
+                                                                                    btn.setAttribute('data-failed-route', 'true');
+                                                                                } catch (err) {}
+                                                                            });
+                                                                        })();
+                                                                    </script>
+                                                                @endpush
                                                             @endcan
                                                         </span>
                                                     </td>
@@ -5166,29 +6010,92 @@
                             </div>
                         </div>
                     </div>
-
-                    <div id="ip-restriction-settings" class="card">
+                    <div id="ip-restriction-settings" class="{{ VC::CD }}">
                         <div class="col-md-12">
                             <div class="card-header">
-                                <div class="row">
+                                <div class="{{ VC::RW }}">
                                     <div class="col-6">
                                         <h5 class="mb-2">{{ __('IP Restriction Settings') }}</h5>
                                     </div>
                                     @can('create webhook')
                                         <div class="col-6 text-end">
-                                            <a data-size="md" data-url="{{ route('create.ip') }}" data-ajax-popup="true"
-                                                data-bs-toggle="tooltip" title="{{ __('Create') }}"
-                                                data-title="{{ __('Create New IP') }}" class="btn btn-sm btn-primary">
-                                                <i class="ti ti-plus text-white"></i>
+                                            @php
+                                                $systemIpCreateBaseName             = ViewsConstants::SYS . '.ip.create';
+                                                $systemIpCreateKebabName            = Str::kebab($systemIpCreateBaseName);
+                                                $systemIpCreateResolvedName         = Route::has($systemIpCreateBaseName)
+                                                    ? $systemIpCreateBaseName
+                                                    : (Route::has($systemIpCreateKebabName) ? $systemIpCreateKebabName : null);
+                                                $systemIpCreateUrl                  = $systemIpCreateResolvedName
+                                                    ? route($systemIpCreateResolvedName)
+                                                    : '#';
+                                                $systemIpCreateGuardMsg             = Utility::fetchLinkMessage(
+                                                    $lang,
+                                                    ViewsConstants::SYS,
+                                                    'system_ip_create_route_unavailable'
+                                                ) ?? 'System IP create route is unavailable. Please contact technical support or your domain administrator.';
+                                                $systemIpCreateBtnId                = 'system-ip-create-btn';
+                                            @endphp
+                                            <a
+                                                id="{{ $systemIpCreateBtnId }}"
+                                                href="{{ $systemIpCreateUrl }}"
+                                                data-url="{{ $systemIpCreateUrl }}"
+                                                data-guard-msg="{{ $systemIpCreateGuardMsg }}"
+                                                data-size="md"
+                                                data-ajax-popup="true"
+                                                data-bs-toggle="tooltip"
+                                                title="{{ __('Create') }}"
+                                                data-title="{{ __('Create New IP') }}"
+                                                class="{{ VC::BT_SM_PM }}"
+                                            >
+                                                <i class="{{ VC::TI_PLS }} {{ VC::TXT_WT }}"></i>
                                             </a>
-
+                                            @push(StacksConstants::ADM_SCR_PG)
+                                                <script defer>
+                                                    (() => {
+                                                        const btn = document.getElementById('{{ $systemIpCreateBtnId }}');
+                                                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                        btn.setAttribute('data-listener-active', 'true');
+                                                        btn.addEventListener('click', e => {
+                                                            try {
+                                                                const url = btn.getAttribute('data-url') || '#';
+                                                                if (url !== '#') return;
+                                                                e.preventDefault();
+                                                                const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                let container = document.getElementById('toast-container');
+                                                                if (!container) {
+                                                                    container = document.createElement('div');
+                                                                    container.id = 'toast-container';
+                                                                    document.body.appendChild(container);
+                                                                }
+                                                                if (hasBootstrap) {
+                                                                    const toast = document.createElement('div');
+                                                                    toast.className = 'toast';
+                                                                    toast.setAttribute('role','alert');
+                                                                    toast.setAttribute('aria-live','assertive');
+                                                                    toast.setAttribute('aria-atomic','true');
+                                                                    const body = document.createElement('div');
+                                                                    body.className = 'toast-body';
+                                                                    body.textContent = msg;
+                                                                    toast.appendChild(body);
+                                                                    container.appendChild(toast);
+                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                } else {
+                                                                    alert(msg);
+                                                                }
+                                                                btn.setAttribute('data-failed-route', 'true');
+                                                            } catch (err) {}
+                                                        });
+                                                    })();
+                                                </script>
+                                            @endpush
                                         </div>
                                     @endcan
                                 </div>
                             </div>
                             <div class="card-body table-border-style">
                                 <div class="table-responsive">
-                                    <table class="table">
+                                    <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
                                                 <th class="w-75">{{ __('IP') }}</th>
@@ -5199,29 +6106,152 @@
                                             @forelse ($ips as $ip)
                                                 <tr>
                                                     <td>{{ $ip->ip }}</td>
-
                                                     <td class="Action">
                                                         <span>
                                                             @can(PermissionsConstants::ED_WHK)
-                                                                <div class="action-btn bg-primary ms-2">
-                                                                    <a class="mx-3 btn btn-sm d-inline-flex align-items-center"
-                                                                        data-url="{{ route('edit.ip', $ip->id) }}"
-                                                                        data-ajax-popup="true" data-bs-toggle="tooltip"
+                                                                <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                                    @php
+                                                                        $systemIpEditBaseName         = ViewsConstants::SYS . '.ip.edit';
+                                                                        $systemIpEditKebabName        = Str::kebab($systemIpEditBaseName);
+                                                                        $systemIpEditResolvedName     = Route::has($systemIpEditBaseName)
+                                                                            ? $systemIpEditBaseName
+                                                                            : (Route::has($systemIpEditKebabName) ? $systemIpEditKebabName : null);
+                                                                        $systemIpEditUrl              = $systemIpEditResolvedName ? route($systemIpEditResolvedName, $ip->id) : '#';
+                                                                        $systemIpEditGuardMsg         = Utility::fetchLinkMessage($lang, ViewsConstants::SYS, 'system_ip_edit_route_unavailable')
+                                                                            ?? 'System IP edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $systemIpEditBtnId            = 'system-ip-edit-btn-' . $ip->id;
+                                                                    @endphp
+                                                                    <a
+                                                                        id="{{ $systemIpEditBtnId }}"
+                                                                        href="{{ $systemIpEditUrl }}"
+                                                                        data-url="{{ $systemIpEditUrl }}"
+                                                                        data-guard-msg="{{ $systemIpEditGuardMsg }}"
+                                                                        class="{{ VC::BT_SM_FL_CT }}"
+                                                                        data-ajax-popup="true"
+                                                                        data-bs-toggle="tooltip"
                                                                         title="{{ __('Edit') }}"
-                                                                        data-title="{{ __('IP Edit') }}">
+                                                                        data-title="{{ __('IP Edit') }}"
+                                                                    >
                                                                         <i class="{{ VC::TI_PC_WT }}"></i>
                                                                     </a>
+                                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                                        <script defer>
+                                                                            (() => {
+                                                                                const btn = document.getElementById('{{ $systemIpEditBtnId }}');
+                                                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                                btn.setAttribute('data-listener-active', 'true');
+                                                                                btn.addEventListener('click', e => {
+                                                                                    try {
+                                                                                        const url = btn.getAttribute('data-url') || '#';
+                                                                                        if (url !== '#') return;
+                                                                                        e.preventDefault();
+                                                                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+                                                                                        btn.setAttribute('data-failed-route', 'true');
+                                                                                    } catch (err) {}
+                                                                                });
+                                                                            })();
+                                                                        </script>
+                                                                    @endpush
                                                                 </div>
                                                             @endcan
                                                             @can(PermissionsConstants::DEL_WHK)
-                                                                <div class="action-btn bg-danger ms-2">
-                                                                    {!! Form::open(['method' => 'DELETE', 'route' => ['destroy.ip', $ip->id], 'id' => 'delete-form-' . $ip->id]) !!}
-                                                                    <a class="mx-3 btn btn-sm align-items-center bs-pass-para"
-                                                                        data-bs-toggle="tooltip"
-                                                                        title="{{ __('Delete') }}">
-                                                                        <i class="ti ti-trash text-white"></i>
-                                                                    </a>
+                                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                                    @php
+                                                                        $systemIpDestroyBaseName            = ViewsConstants::SYS . '.ip.destroy';
+                                                                        $systemIpDestroyKebabName           = Str::kebab($systemIpDestroyBaseName);
+                                                                        $systemIpDestroyResolvedName        = Route::has($systemIpDestroyBaseName)
+                                                                            ? $systemIpDestroyBaseName
+                                                                            : (Route::has($systemIpDestroyKebabName) ? $systemIpDestroyKebabName : null);
+                                                                        $systemIpDestroyRouteArray          = $systemIpDestroyResolvedName
+                                                                            ? [$systemIpDestroyResolvedName, $ip->id]
+                                                                            : ['#'];
+                                                                        $systemIpDestroyUrl                 = $systemIpDestroyResolvedName
+                                                                            ? route($systemIpDestroyResolvedName, $ip->id)
+                                                                            : '#';
+                                                                        $systemIpDestroyGuardMsg            = Utility::fetchLinkMessage($lang, ViewsConstants::SYS, 'system_ip_destroy_route_unavailable')
+                                                                            ?? 'System IP destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        $systemIpDeleteFormId               = 'delete-form-' . $ip->id;
+                                                                        $systemIpDeleteBtnId                = 'system-ip-destroy-btn-' . $ip->id;
+                                                                    @endphp
+                                                                    {!! Form::open([
+                                                                        'method' => 'DELETE',
+                                                                        'route'  => $systemIpDestroyRouteArray,
+                                                                        'id'     => $systemIpDeleteFormId
+                                                                    ]) !!}
+                                                                        <a
+                                                                            id="{{ $systemIpDeleteBtnId }}"
+                                                                            href="{{ $systemIpDestroyUrl }}"
+                                                                            data-url="{{ $systemIpDestroyUrl }}"
+                                                                            data-guard-msg="{{ $systemIpDestroyGuardMsg }}"
+                                                                            class="{{ VC::BT_SM_CT_PR }}"
+                                                                            data-bs-toggle="tooltip"
+                                                                            title="{{ __('Delete') }}"
+                                                                        >
+                                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                        </a>
                                                                     {!! Form::close() !!}
+                                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                                        <script defer>
+                                                                            (() => {
+                                                                                const btn = document.getElementById('{{ $systemIpDeleteBtnId }}');
+                                                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                                btn.setAttribute('data-listener-active', 'true');
+                                                                                btn.addEventListener('click', (e) => {
+                                                                                    try {
+                                                                                        const url = btn.getAttribute('data-url') || '#';
+                                                                                        if (url !== '#') return;
+                                                                                        e.preventDefault();
+                                                                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role', 'alert');
+                                                                                            toast.setAttribute('aria-live', 'assertive');
+                                                                                            toast.setAttribute('aria-atomic', 'true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+                                                                                        btn.setAttribute('data-failed-route', 'true');
+                                                                                    } catch (err) {}
+                                                                                });
+                                                                            })();
+                                                                        </script>
+                                                                    @endpush
                                                                 </div>
                                                             @endcan
                                                         </span>
@@ -5238,7 +6268,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

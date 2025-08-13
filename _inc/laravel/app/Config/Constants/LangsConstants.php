@@ -2387,6 +2387,56 @@ class LangsConstants
 				'business_setting_route_unavailable' => '业务设置路由不可用。' . self::DELEGATION_ZH,
 			]
 		],
+		'cache' => [
+			'ar' => [
+				'cache_settings_store_route_unavailable' => 'مسار تخزين إعدادات الذاكرة المؤقتة غير متاح. ' . self::DELEGATION_AR,
+			],
+			'da' => [
+				'cache_settings_store_route_unavailable' => 'Cacheindstillingers lagringssti er ikke tilgængelig. ' . self::DELEGATION_DA,
+			],
+			'de' => [
+				'cache_settings_store_route_unavailable' => 'Die Route zum Speichern der Cache-Einstellungen ist nicht verfügbar. ' . self::DELEGATION_DE,
+			],
+			'en' => [
+				'cache_settings_store_route_unavailable' => 'Cache settings store route is unavailable. ' . self::DELEGATION_EN,
+			],
+			'es' => [
+				'cache_settings_store_route_unavailable' => 'La ruta de almacenamiento de configuración de caché no está disponible. ' . self::DELEGATION_ES,
+			],
+			'fr' => [
+				'cache_settings_store_route_unavailable' => 'La route de stockage des paramètres de cache n\'est pas disponible. ' . self::DELEGATION_FR,
+			],
+			'he' => [
+				'cache_settings_store_route_unavailable' => 'נתיב אחסון הגדרות המטמון אינו זמין. ' . self::DELEGATION_HE,
+			],
+			'it' => [
+				'cache_settings_store_route_unavailable' => 'La rotta di memorizzazione delle impostazioni della cache non è disponibile. ' . self::DELEGATION_IT,
+			],
+			'ja' => [
+				'cache_settings_store_route_unavailable' => 'キャッシュ設定保存ルートは利用できません。' . self::DELEGATION_JA,
+			],
+			'nl' => [
+				'cache_settings_store_route_unavailable' => 'De opslagroute voor cache-instellingen is niet beschikbaar. ' . self::DELEGATION_NL,
+			],
+			'pl' => [
+				'cache_settings_store_route_unavailable' => 'Trasa przechowywania ustawień pamięci podręcznej jest niedostępna. ' . self::DELEGATION_PL,
+			],
+			'pt' => [
+				'cache_settings_store_route_unavailable' => 'A rota de armazenamento das definições de cache não está disponível. ' . self::DELEGATION_PT,
+			],
+			'pt-br' => [
+				'cache_settings_store_route_unavailable' => 'A rota de armazenamento das configurações de cache não está disponível. ' . self::DELEGATION_PTBR,
+			],
+			'ru' => [
+				'cache_settings_store_route_unavailable' => 'Маршрут хранения настроек кеша недоступен. ' . self::DELEGATION_RU,
+			],
+			'tr' => [
+				'cache_settings_store_route_unavailable' => 'Önbellek ayarları depolama rotası kullanılamıyor. ' . self::DELEGATION_TR,
+			],
+			'zh' => [
+				'cache_settings_store_route_unavailable' => '缓存设置存储路由不可用。' . self::DELEGATION_ZH,
+			]
+		],
 		'chats' => [
 			'ar' => ['messenger_index_route_unavailable' => 'مسار المراسلة غير متاح. ' . self::DELEGATION_AR],
 			'da' => ['messenger_index_route_unavailable' => 'Messenger-rute er ikke tilgængelig. ' . self::DELEGATION_DA],
@@ -3039,6 +3089,88 @@ class LangsConstants
 				'coupon_create_route_unavailable' => '优惠券创建路由不可用。' . self::DELEGATION_ZH,
 				'coupon_edit_route_unavailable' => '优惠券编辑路由不可用。' . self::DELEGATION_ZH,
 				'coupon_destroy_route_unavailable' => '优惠券删除路由不可用。' . self::DELEGATION_ZH
+			]
+		],
+		ViewsConstants::CP => [
+			'ar' => [
+				'company_settings_route_unavailable' => 'مسار إعدادات الشركة غير متاح. ' . self::DELEGATION_AR,
+				'company_email_settings_route_unavailable' => 'مسار إعدادات البريد الإلكتروني للشركة غير متاح. ' . self::DELEGATION_AR,
+				'company_payment_settings_route_unavailable' => 'مسار إعدادات الدفع للشركة غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'company_settings_route_unavailable' => 'Virksomhedsindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'company_email_settings_route_unavailable' => 'Virksomheds e-mail-indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'company_payment_settings_route_unavailable' => 'Virksomheds betalingsindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'company_settings_route_unavailable' => 'Unternehmenseinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'company_email_settings_route_unavailable' => 'Unternehmens-E-Mail-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'company_payment_settings_route_unavailable' => 'Unternehmenszahlungseinstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'company_settings_route_unavailable' => 'Company settings route is unavailable. ' . self::DELEGATION_EN,
+				'company_email_settings_route_unavailable' => 'Company email settings route is unavailable. ' . self::DELEGATION_EN,
+				'company_payment_settings_route_unavailable' => 'Company payment settings route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'company_settings_route_unavailable' => 'La ruta de configuración de empresa no está disponible. ' . self::DELEGATION_ES,
+				'company_email_settings_route_unavailable' => 'La ruta de configuración de correo electrónico de empresa no está disponible. ' . self::DELEGATION_ES,
+				'company_payment_settings_route_unavailable' => 'La ruta de configuración de pagos de empresa no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'company_settings_route_unavailable' => 'La route des paramètres de l\'entreprise n\'est pas disponible. ' . self::DELEGATION_FR,
+				'company_email_settings_route_unavailable' => 'La route des paramètres e-mail de l\'entreprise n\'est pas disponible. ' . self::DELEGATION_FR,
+				'company_payment_settings_route_unavailable' => 'La route des paramètres de paiement de l\'entreprise n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'company_settings_route_unavailable' => 'נתיב הגדרות החברה אינו זמין. ' . self::DELEGATION_HE,
+				'company_email_settings_route_unavailable' => 'נתיב הגדרות האימייל של החברה אינו זמין. ' . self::DELEGATION_HE,
+				'company_payment_settings_route_unavailable' => 'נתיב הגדרות התשלום של החברה אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'company_settings_route_unavailable' => 'La rotta delle impostazioni dell\'azienda non è disponibile. ' . self::DELEGATION_IT,
+				'company_email_settings_route_unavailable' => 'La rotta delle impostazioni e-mail dell\'azienda non è disponibile. ' . self::DELEGATION_IT,
+				'company_payment_settings_route_unavailable' => 'La rotta delle impostazioni di pagamento dell\'azienda non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'company_settings_route_unavailable' => '会社設定ルートは利用できません。' . self::DELEGATION_JA,
+				'company_email_settings_route_unavailable' => '会社メール設定ルートは利用できません。' . self::DELEGATION_JA,
+				'company_payment_settings_route_unavailable' => '会社支払い設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'company_settings_route_unavailable' => 'Bedrijfsinstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'company_email_settings_route_unavailable' => 'Bedrijfs-e-mailinstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'company_payment_settings_route_unavailable' => 'Bedrijfsbetalingsinstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'company_settings_route_unavailable' => 'Trasa ustawień firmy jest niedostępna. ' . self::DELEGATION_PL,
+				'company_email_settings_route_unavailable' => 'Trasa ustawień e-mail firmy jest niedostępna. ' . self::DELEGATION_PL,
+				'company_payment_settings_route_unavailable' => 'Trasa ustawień płatności firmy jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'company_settings_route_unavailable' => 'A rota de definições da empresa não está disponível. ' . self::DELEGATION_PT,
+				'company_email_settings_route_unavailable' => 'A rota de definições de e-mail da empresa não está disponível. ' . self::DELEGATION_PT,
+				'company_payment_settings_route_unavailable' => 'A rota de definições de pagamento da empresa não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'company_settings_route_unavailable' => 'A rota de configurações da empresa não está disponível. ' . self::DELEGATION_PTBR,
+				'company_email_settings_route_unavailable' => 'A rota de configurações de e-mail da empresa não está disponível. ' . self::DELEGATION_PTBR,
+				'company_payment_settings_route_unavailable' => 'A rota de configurações de pagamento da empresa não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'company_settings_route_unavailable' => 'Маршрут настроек компании недоступен. ' . self::DELEGATION_RU,
+				'company_email_settings_route_unavailable' => 'Маршрут настроек электронной почты компании недоступен. ' . self::DELEGATION_RU,
+				'company_payment_settings_route_unavailable' => 'Маршрут настроек платежей компании недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'company_settings_route_unavailable' => 'Şirket ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'company_email_settings_route_unavailable' => 'Şirket e-posta ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'company_payment_settings_route_unavailable' => 'Şirket ödeme ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'company_settings_route_unavailable' => '公司设置路由不可用。' . self::DELEGATION_ZH,
+				'company_email_settings_route_unavailable' => '公司电子邮件设置路由不可用。' . self::DELEGATION_ZH,
+				'company_payment_settings_route_unavailable' => '公司支付设置路由不可用。' . self::DELEGATION_ZH
 			]
 		],
 		ViewsConstants::CPN_PL => [
@@ -5380,22 +5512,102 @@ class LangsConstants
 			]
 		],
 		ViewsConstants::EMLS => [
-			'ar' => ['email_template_route_unavailable' => 'مسار قالب البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['email_template_route_unavailable' => 'E-mail-skabelonrute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['email_template_route_unavailable' => 'E-Mail-Vorlagen-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['email_template_route_unavailable' => 'Email Template route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['email_template_route_unavailable' => 'La ruta de plantilla de correo electrónico no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['email_template_route_unavailable' => 'La route du modèle d\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['email_template_route_unavailable' => 'נתיב תבנית דוא"ל אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['email_template_route_unavailable' => 'La rotta del modello e-mail non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['email_template_route_unavailable' => 'メールテンプレートルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['email_template_route_unavailable' => 'E-mailsjabloonroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['email_template_route_unavailable' => 'Trasa szablonu e-mail jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['email_template_route_unavailable' => 'A rota de modelo de e-mail não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['email_template_route_unavailable' => 'A rota de modelo de e-mail não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['email_template_route_unavailable' => 'Маршрут шаблона электронной почты недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['email_template_route_unavailable' => 'E-posta Şablonu rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['email_template_route_unavailable' => '电子邮件模板路由不可用。' . self::DELEGATION_ZH],
+			'ar' => [
+				'email_template_route_unavailable' => 'مسار قالب البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
+				'email_status_language_route_unavailable' => 'مسار لغة حالة البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
+				'email_template_status_language_route_unavailable' => 'مسار لغة حالة قالب البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
+				'email_settings_route_unavailable' => 'مسار إعدادات البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'email_template_route_unavailable' => 'E-mail-skabelonrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'email_status_language_route_unavailable' => 'E-mail status sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'email_template_status_language_route_unavailable' => 'E-mail skabelon status sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'email_settings_route_unavailable' => 'E-mail indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'email_template_route_unavailable' => 'E-Mail-Vorlagen-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'email_status_language_route_unavailable' => 'E-Mail-Status-Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'email_template_status_language_route_unavailable' => 'E-Mail-Vorlagen-Status-Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'email_settings_route_unavailable' => 'E-Mail-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'email_template_route_unavailable' => 'Email Template route is unavailable. ' . self::DELEGATION_EN,
+				'email_status_language_route_unavailable' => 'Email status language route is unavailable. ' . self::DELEGATION_EN,
+				'email_template_status_language_route_unavailable' => 'Email template status language route is unavailable. ' . self::DELEGATION_EN,
+				'email_settings_route_unavailable' => 'Email settings route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'email_template_route_unavailable' => 'La ruta de plantilla de correo electrónico no está disponible. ' . self::DELEGATION_ES,
+				'email_status_language_route_unavailable' => 'La ruta de idioma de estado de correo electrónico no está disponible. ' . self::DELEGATION_ES,
+				'email_template_status_language_route_unavailable' => 'La ruta de idioma de estado de plantilla de correo electrónico no está disponible. ' . self::DELEGATION_ES,
+				'email_settings_route_unavailable' => 'La ruta de configuración de correo electrónico no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'email_template_route_unavailable' => 'La route du modèle d\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
+				'email_status_language_route_unavailable' => 'La route de langue du statut de l\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
+				'email_template_status_language_route_unavailable' => 'La route de langue du statut du modèle d\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
+				'email_settings_route_unavailable' => 'La route des paramètres e-mail n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'email_template_route_unavailable' => 'נתיב תבנית דוא"ל אינו זמין. ' . self::DELEGATION_HE,
+				'email_status_language_route_unavailable' => 'נתיב שפת סטטוס דוא"ל אינו זמין. ' . self::DELEGATION_HE,
+				'email_template_status_language_route_unavailable' => 'נתיב שפת סטטוס תבנית דוא"ל אינו זמין. ' . self::DELEGATION_HE,
+				'email_settings_route_unavailable' => 'נתיב הגדרות דוא"ל אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'email_template_route_unavailable' => 'La rotta del modello e-mail non è disponibile. ' . self::DELEGATION_IT,
+				'email_status_language_route_unavailable' => 'La rotta della lingua dello stato dell\'e-mail non è disponibile. ' . self::DELEGATION_IT,
+				'email_template_status_language_route_unavailable' => 'La rotta della lingua dello stato del modello e-mail non è disponibile. ' . self::DELEGATION_IT,
+				'email_settings_route_unavailable' => 'La rotta delle impostazioni e-mail non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'email_template_route_unavailable' => 'メールテンプレートルートは利用できません。' . self::DELEGATION_JA,
+				'email_status_language_route_unavailable' => 'メールステータス言語ルートは利用できません。' . self::DELEGATION_JA,
+				'email_template_status_language_route_unavailable' => 'メールテンプレートステータス言語ルートは利用できません。' . self::DELEGATION_JA,
+				'email_settings_route_unavailable' => 'メール設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'email_template_route_unavailable' => 'E-mailsjabloonroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'email_status_language_route_unavailable' => 'E-mail status taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'email_template_status_language_route_unavailable' => 'E-mailsjabloon status taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'email_settings_route_unavailable' => 'E-mailinstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'email_template_route_unavailable' => 'Trasa szablonu e-mail jest niedostępna. ' . self::DELEGATION_PL,
+				'email_status_language_route_unavailable' => 'Trasa języka statusu e-mail jest niedostępna. ' . self::DELEGATION_PL,
+				'email_template_status_language_route_unavailable' => 'Trasa języka statusu szablonu e-mail jest niedostępna. ' . self::DELEGATION_PL,
+				'email_settings_route_unavailable' => 'Trasa ustawień e-mail jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'email_template_route_unavailable' => 'A rota de modelo de e-mail não está disponível. ' . self::DELEGATION_PT,
+				'email_status_language_route_unavailable' => 'A rota de idioma do estado do e-mail não está disponível. ' . self::DELEGATION_PT,
+				'email_template_status_language_route_unavailable' => 'A rota de idioma do estado do modelo de e-mail não está disponível. ' . self::DELEGATION_PT,
+				'email_settings_route_unavailable' => 'A rota de definições de e-mail não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'email_template_route_unavailable' => 'A rota de modelo de e-mail não está disponível. ' . self::DELEGATION_PTBR,
+				'email_status_language_route_unavailable' => 'A rota de idioma do status do e-mail não está disponível. ' . self::DELEGATION_PTBR,
+				'email_template_status_language_route_unavailable' => 'A rota de idioma do status do modelo de e-mail não está disponível. ' . self::DELEGATION_PTBR,
+				'email_settings_route_unavailable' => 'A rota de configurações de e-mail não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'email_template_route_unavailable' => 'Маршрут шаблона электронной почты недоступен. ' . self::DELEGATION_RU,
+				'email_status_language_route_unavailable' => 'Маршрут языка состояния электронной почты недоступен. ' . self::DELEGATION_RU,
+				'email_template_status_language_route_unavailable' => 'Маршрут языка состояния шаблона электронной почты недоступен. ' . self::DELEGATION_RU,
+				'email_settings_route_unavailable' => 'Маршрут настроек электронной почты недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'email_template_route_unavailable' => 'E-posta Şablonu rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'email_status_language_route_unavailable' => 'E-posta durum dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'email_template_status_language_route_unavailable' => 'E-posta şablonu durum dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'email_settings_route_unavailable' => 'E-posta ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'email_template_route_unavailable' => '电子邮件模板路由不可用。' . self::DELEGATION_ZH,
+				'email_status_language_route_unavailable' => '邮件状态语言路由不可用。' . self::DELEGATION_ZH,
+				'email_template_status_language_route_unavailable' => '邮件模板状态语言路由不可用。' . self::DELEGATION_ZH,
+				'email_settings_route_unavailable' => '电子邮件设置路由不可用。' . self::DELEGATION_ZH
+			]
 		],
 		ViewsConstants::EMP => [
 			'ar' => [
@@ -8688,22 +8900,86 @@ class LangsConstants
 			'zh' => ['promotion_index_route_unavailable' => '晋升索引路由不可用。' . self::DELEGATION_ZH]
 		],
 		ViewsConstants::RL => [
-			'ar' => ['role_index_route_unavailable' => 'مسار الأدوار غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['role_index_route_unavailable' => 'Rolle-rute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['role_index_route_unavailable' => 'Rollen-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['role_index_route_unavailable' => 'Role route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['role_index_route_unavailable' => 'La ruta de roles no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['role_index_route_unavailable' => 'La route des rôles n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['role_index_route_unavailable' => 'נתיב תפקידים אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['role_index_route_unavailable' => 'La rotta dei ruoli non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['role_index_route_unavailable' => 'ロールルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['role_index_route_unavailable' => 'Rolroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['role_index_route_unavailable' => 'Trasa ról jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['role_index_route_unavailable' => 'A rota de funções não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['role_index_route_unavailable' => 'A rota de funções não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['role_index_route_unavailable' => 'Маршрут ролей недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['role_index_route_unavailable' => 'Rol rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['role_index_route_unavailable' => '角色路由不可用。' . self::DELEGATION_ZH],
+			'ar' => [
+				'role_index_route_unavailable' => 'مسار الأدوار غير متاح. ' . self::DELEGATION_AR,
+				'role_store_route_unavailable' => 'مسار تخزين الأدوار غير متاح. ' . self::DELEGATION_AR,
+				'role_update_route_unavailable' => 'مسار تحديث الأدوار غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'role_index_route_unavailable' => 'Rolle-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'role_store_route_unavailable' => 'Rolle lagringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'role_update_route_unavailable' => 'Rolle opdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'role_index_route_unavailable' => 'Rollen-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'role_store_route_unavailable' => 'Rollen-Speicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'role_update_route_unavailable' => 'Rollen-Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'role_index_route_unavailable' => 'Role index route is unavailable. ' . self::DELEGATION_EN,
+				'role_store_route_unavailable' => 'Role store route is unavailable. ' . self::DELEGATION_EN,
+				'role_update_route_unavailable' => 'Role update route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'role_index_route_unavailable' => 'La ruta de roles no está disponible. ' . self::DELEGATION_ES,
+				'role_store_route_unavailable' => 'La ruta de almacenamiento de roles no está disponible. ' . self::DELEGATION_ES,
+				'role_update_route_unavailable' => 'La ruta de actualización de roles no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'role_index_route_unavailable' => 'La route des rôles n\'est pas disponible. ' . self::DELEGATION_FR,
+				'role_store_route_unavailable' => 'La route de stockage des rôles n\'est pas disponible. ' . self::DELEGATION_FR,
+				'role_update_route_unavailable' => 'La route de mise à jour des rôles n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'role_index_route_unavailable' => 'נתיב תפקידים אינו זמין. ' . self::DELEGATION_HE,
+				'role_store_route_unavailable' => 'נתיב אחסון תפקידים אינו זמין. ' . self::DELEGATION_HE,
+				'role_update_route_unavailable' => 'נתיב עדכון תפקידים אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'role_index_route_unavailable' => 'La rotta dei ruoli non è disponibile. ' . self::DELEGATION_IT,
+				'role_store_route_unavailable' => 'La rotta di memorizzazione dei ruoli non è disponibile. ' . self::DELEGATION_IT,
+				'role_update_route_unavailable' => 'La rotta di aggiornamento dei ruoli non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'role_index_route_unavailable' => 'ロールルートは利用できません。' . self::DELEGATION_JA,
+				'role_store_route_unavailable' => 'ロール保存ルートは利用できません。' . self::DELEGATION_JA,
+				'role_update_route_unavailable' => 'ロール更新ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'role_index_route_unavailable' => 'Rolroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'role_store_route_unavailable' => 'Rol opslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'role_update_route_unavailable' => 'Rol updateroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'role_index_route_unavailable' => 'Trasa ról jest niedostępna. ' . self::DELEGATION_PL,
+				'role_store_route_unavailable' => 'Trasa przechowywania ról jest niedostępna. ' . self::DELEGATION_PL,
+				'role_update_route_unavailable' => 'Trasa aktualizacji ról jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'role_index_route_unavailable' => 'A rota de funções não está disponível. ' . self::DELEGATION_PT,
+				'role_store_route_unavailable' => 'A rota de armazenamento de funções não está disponível. ' . self::DELEGATION_PT,
+				'role_update_route_unavailable' => 'A rota de atualização de funções não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'role_index_route_unavailable' => 'A rota de funções não está disponível. ' . self::DELEGATION_PTBR,
+				'role_store_route_unavailable' => 'A rota de armazenamento de funções não está disponível. ' . self::DELEGATION_PTBR,
+				'role_update_route_unavailable' => 'A rota de atualização de funções não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'role_index_route_unavailable' => 'Маршрут ролей недоступен. ' . self::DELEGATION_RU,
+				'role_store_route_unavailable' => 'Маршрут хранения ролей недоступен. ' . self::DELEGATION_RU,
+				'role_update_route_unavailable' => 'Маршрут обновления ролей недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'role_index_route_unavailable' => 'Rol rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'role_store_route_unavailable' => 'Rol depolama rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'role_update_route_unavailable' => 'Rol güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'role_index_route_unavailable' => '角色路由不可用。' . self::DELEGATION_ZH,
+				'role_store_route_unavailable' => '角色存储路由不可用。' . self::DELEGATION_ZH,
+				'role_update_route_unavailable' => '角色更新路由不可用。' . self::DELEGATION_ZH
+			]
 		],
 		ViewsConstants::RPT => [
 			'ar' => [
@@ -9322,22 +9598,310 @@ class LangsConstants
 			]
 		],
 		ViewsConstants::SET => [
-			'ar' => ['system_settings_route_unavailable' => 'مسار إعدادات النظام غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['system_settings_route_unavailable' => 'Systemindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['system_settings_route_unavailable' => 'Systemeinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['system_settings_route_unavailable' => 'System Settings route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['system_settings_route_unavailable' => 'La ruta de configuración del sistema no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['system_settings_route_unavailable' => 'La route des paramètres système n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['system_settings_route_unavailable' => 'נתיב הגדרות מערכת אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['system_settings_route_unavailable' => 'La rotta delle impostazioni di sistema non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['system_settings_route_unavailable' => 'システム設定ルートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['system_settings_route_unavailable' => 'Systeeminstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['system_settings_route_unavailable' => 'Trasa ustawień systemowych jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['system_settings_route_unavailable' => 'Маршрут системных настроек недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['system_settings_route_unavailable' => 'Sistem Ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['system_settings_route_unavailable' => '系统设置路由不可用。' . self::DELEGATION_ZH],
+			'ar' => [
+				'system_settings_route_unavailable' => 'مسار إعدادات النظام غير متاح. ' . self::DELEGATION_AR,
+				'offer_letter_language_route_unavailable' => 'مسار لغة خطاب العرض غير متاح. ' . self::DELEGATION_AR,
+				'offer_letter_update_route_unavailable' => 'مسار تحديث خطاب العرض غير متاح. ' . self::DELEGATION_AR,
+				'joining_letter_language_route_unavailable' => 'مسار لغة خطاب الانضمام غير متاح. ' . self::DELEGATION_AR,
+				'joining_letter_update_route_unavailable' => 'مسار تحديث خطاب الانضمام غير متاح. ' . self::DELEGATION_AR,
+				'experience_certificate_language_route_unavailable' => 'مسار لغة شهادة الخبرة غير متاح. ' . self::DELEGATION_AR,
+				'experience_certificate_update_route_unavailable' => 'مسار تحديث شهادة الخبرة غير متاح. ' . self::DELEGATION_AR,
+				'noc_language_route_unavailable' => 'مسار لغة شهادة عدم الممانعة (NOC) غير متاح. ' . self::DELEGATION_AR,
+				'noc_update_route_unavailable' => 'مسار تحديث شهادة عدم الممانعة (NOC) غير متاح. ' . self::DELEGATION_AR,
+				'settings_google_calendar_route_unavailable' => 'مسار إعدادات تقويم Google غير متاح. ' . self::DELEGATION_AR,
+				'settings_pusher_route_unavailable' => 'مسار إعدادات Pusher غير متاح. ' . self::DELEGATION_AR,
+				'settings_recaptcha_store_route_unavailable' => 'مسار تخزين إعدادات reCAPTCHA غير متاح. ' . self::DELEGATION_AR,
+				'generate_ai_seo_route_unavailable' => 'مسار إنشاء SEO بالذكاء الاصطناعي غير متاح. ' . self::DELEGATION_AR,
+				'generate_ai_cookie_route_unavailable' => 'مسار إنشاء ملف تعريف الارتباط بالذكاء الاصطناعي غير متاح. ' . self::DELEGATION_AR,
+				'settings_seo_store_route_unavailable' => 'مسار تخزين إعدادات SEO غير متاح. ' . self::DELEGATION_AR,
+				'settings_cookies_store_route_unavailable' => 'مسار تخزين إعدادات ملفات التعريف غير متاح. ' . self::DELEGATION_AR,
+				'settings_chatgpt_settings_route_unavailable' => 'مسار إعدادات ChatGPT غير متاح. ' . self::DELEGATION_AR,
+			],
+			'da' => [
+				'system_settings_route_unavailable' => 'Systemindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'offer_letter_language_route_unavailable' => 'Tilbudsbrev sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'offer_letter_update_route_unavailable' => 'Tilbudsbrev opdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'joining_letter_language_route_unavailable' => 'Tiltrædelsesbrev sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'joining_letter_update_route_unavailable' => 'Tiltrædelsesbrev opdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'experience_certificate_language_route_unavailable' => 'Erfaringscertifikat sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'experience_certificate_update_route_unavailable' => 'Erfaringscertifikat opdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'noc_language_route_unavailable' => 'NOC sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'noc_update_route_unavailable' => 'NOC opdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'settings_google_calendar_route_unavailable' => 'Indstillinger Google Kalender rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'settings_pusher_route_unavailable' => 'Indstillinger pusher rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'settings_recaptcha_store_route_unavailable' => 'Indstillinger reCAPTCHA lagrings rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'generate_ai_seo_route_unavailable' => 'Generer AI SEO rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'generate_ai_cookie_route_unavailable' => 'Generer AI cookie rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'settings_seo_store_route_unavailable' => 'Indstillinger SEO lagrings rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'settings_cookies_store_route_unavailable' => 'Indstillinger cookies lagrings rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'settings_chatgpt_settings_route_unavailable' => 'Indstillinger ChatGPT rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+			],
+			'de' => [
+				'system_settings_route_unavailable' => 'Systemeinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'offer_letter_language_route_unavailable' => 'Angebotsschreiben Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'offer_letter_update_route_unavailable' => 'Angebotsschreiben Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'joining_letter_language_route_unavailable' => 'Eintrittsschreiben Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'joining_letter_update_route_unavailable' => 'Eintrittsschreiben Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'experience_certificate_language_route_unavailable' => 'Erfahrungszeugnis Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'experience_certificate_update_route_unavailable' => 'Erfahrungszeugnis Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'noc_language_route_unavailable' => 'NOC Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'noc_update_route_unavailable' => 'NOC Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'settings_google_calendar_route_unavailable' => 'Einstellungen Google Kalender Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'settings_pusher_route_unavailable' => 'Pusher-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'settings_recaptcha_store_route_unavailable' => 'reCAPTCHA-Speicherroute für Einstellungen ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'generate_ai_seo_route_unavailable' => 'KI-SEO-Generierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'generate_ai_cookie_route_unavailable' => 'KI-Cookie-Generierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'settings_seo_store_route_unavailable' => 'SEO-Einstellungsspeicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'settings_cookies_store_route_unavailable' => 'Cookie-Einstellungsspeicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'settings_chatgpt_settings_route_unavailable' => 'ChatGPT-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+			],
+			'en' => [
+				'system_settings_route_unavailable' => 'System Settings route is unavailable. ' . self::DELEGATION_EN,
+				'offer_letter_language_route_unavailable' => 'Offer letter language route is unavailable. ' . self::DELEGATION_EN,
+				'offer_letter_update_route_unavailable' => 'Offer letter update route is unavailable. ' . self::DELEGATION_EN,
+				'joining_letter_language_route_unavailable' => 'Joining letter language route is unavailable. ' . self::DELEGATION_EN,
+				'joining_letter_update_route_unavailable' => 'Joining letter update route is unavailable. ' . self::DELEGATION_EN,
+				'experience_certificate_language_route_unavailable' => 'Experience certificate language route is unavailable. ' . self::DELEGATION_EN,
+				'experience_certificate_update_route_unavailable' => 'Experience certificate update route is unavailable. ' . self::DELEGATION_EN,
+				'noc_language_route_unavailable' => 'NOC language route is unavailable. ' . self::DELEGATION_EN,
+				'noc_update_route_unavailable' => 'NOC update route is unavailable. ' . self::DELEGATION_EN,
+				'settings_google_calendar_route_unavailable' => 'Settings Google Calendar route is unavailable. ' . self::DELEGATION_EN,
+				'settings_pusher_route_unavailable' => 'Settings pusher route is unavailable. ' . self::DELEGATION_EN,
+				'settings_recaptcha_store_route_unavailable' => 'Settings reCAPTCHA store route is unavailable. ' . self::DELEGATION_EN,
+				'generate_ai_seo_route_unavailable' => 'Generate AI SEO route is unavailable. ' . self::DELEGATION_EN,
+				'generate_ai_cookie_route_unavailable' => 'Generate AI cookie route is unavailable. ' . self::DELEGATION_EN,
+				'settings_seo_store_route_unavailable' => 'Settings SEO store route is unavailable. ' . self::DELEGATION_EN,
+				'settings_cookies_store_route_unavailable' => 'Settings cookies store route is unavailable. ' . self::DELEGATION_EN,
+				'settings_chatgpt_settings_route_unavailable' => 'Settings ChatGPT route is unavailable. ' . self::DELEGATION_EN,
+			],
+			'es' => [
+				'system_settings_route_unavailable' => 'La ruta de configuración del sistema no está disponible. ' . self::DELEGATION_ES,
+				'offer_letter_language_route_unavailable' => 'La ruta de idioma de la carta de oferta no está disponible. ' . self::DELEGATION_ES,
+				'offer_letter_update_route_unavailable' => 'La ruta de actualización de la carta de oferta no está disponible. ' . self::DELEGATION_ES,
+				'joining_letter_language_route_unavailable' => 'La ruta de idioma de la carta de incorporación no está disponible. ' . self::DELEGATION_ES,
+				'joining_letter_update_route_unavailable' => 'La ruta de actualización de la carta de incorporación no está disponible. ' . self::DELEGATION_ES,
+				'experience_certificate_language_route_unavailable' => 'La ruta de idioma del certificado de experiencia no está disponible. ' . self::DELEGATION_ES,
+				'experience_certificate_update_route_unavailable' => 'La ruta de actualización del certificado de experiencia no está disponible. ' . self::DELEGATION_ES,
+				'noc_language_route_unavailable' => 'La ruta de idioma del NOC no está disponible. ' . self::DELEGATION_ES,
+				'noc_update_route_unavailable' => 'La ruta de actualización del NOC no está disponible. ' . self::DELEGATION_ES,
+				'settings_google_calendar_route_unavailable' => 'La ruta de configuración de Google Calendar no está disponible. ' . self::DELEGATION_ES,
+				'settings_pusher_route_unavailable' => 'La ruta de configuración de Pusher no está disponible. ' . self::DELEGATION_ES,
+				'settings_recaptcha_store_route_unavailable' => 'La ruta de almacenamiento de configuración de reCAPTCHA no está disponible. ' . self::DELEGATION_ES,
+				'generate_ai_seo_route_unavailable' => 'La ruta de generación de SEO con IA no está disponible. ' . self::DELEGATION_ES,
+				'generate_ai_cookie_route_unavailable' => 'La ruta de generación de cookies con IA no está disponible. ' . self::DELEGATION_ES,
+				'settings_seo_store_route_unavailable' => 'La ruta de almacenamiento de configuración SEO no está disponible. ' . self::DELEGATION_ES,
+				'settings_cookies_store_route_unavailable' => 'La ruta de almacenamiento de configuración de cookies no está disponible. ' . self::DELEGATION_ES,
+				'settings_chatgpt_settings_route_unavailable' => 'La ruta de configuración de ChatGPT no está disponible. ' . self::DELEGATION_ES,
+			],
+			'fr' => [
+				'system_settings_route_unavailable' => 'La route des paramètres système n\'est pas disponible. ' . self::DELEGATION_FR,
+				'offer_letter_language_route_unavailable' => 'La route de langue de la lettre d\'offre n\'est pas disponible. ' . self::DELEGATION_FR,
+				'offer_letter_update_route_unavailable' => 'La route de mise à jour de la lettre d\'offre n\'est pas disponible. ' . self::DELEGATION_FR,
+				'joining_letter_language_route_unavailable' => 'La route de langue de la lettre d\'adhésion n\'est pas disponible. ' . self::DELEGATION_FR,
+				'joining_letter_update_route_unavailable' => 'La route de mise à jour de la lettre d\'adhésion n\'est pas disponible. ' . self::DELEGATION_FR,
+				'experience_certificate_language_route_unavailable' => 'La route de langue du certificat d\'expérience n\'est pas disponible. ' . self::DELEGATION_FR,
+				'experience_certificate_update_route_unavailable' => 'La route de mise à jour du certificat d\'expérience n\'est pas disponible. ' . self::DELEGATION_FR,
+				'noc_language_route_unavailable' => 'La route de langue du NOC n\'est pas disponible. ' . self::DELEGATION_FR,
+				'noc_update_route_unavailable' => 'La route de mise à jour du NOC n\'est pas disponible. ' . self::DELEGATION_FR,
+				'settings_google_calendar_route_unavailable' => 'La route des paramètres Google Calendar n\'est pas disponible. ' . self::DELEGATION_FR,
+				'settings_pusher_route_unavailable' => 'La route des paramètres Pusher n\'est pas disponible. ' . self::DELEGATION_FR,
+				'settings_recaptcha_store_route_unavailable' => 'La route de stockage des paramètres reCAPTCHA n\'est pas disponible. ' . self::DELEGATION_FR,
+				'generate_ai_seo_route_unavailable' => 'La route de génération SEO par IA n\'est pas disponible. ' . self::DELEGATION_FR,
+				'generate_ai_cookie_route_unavailable' => 'La route de génération de cookie par IA n\'est pas disponible. ' . self::DELEGATION_FR,
+				'settings_seo_store_route_unavailable' => 'La route de stockage des paramètres SEO n\'est pas disponible. ' . self::DELEGATION_FR,
+				'settings_cookies_store_route_unavailable' => 'La route de stockage des paramètres de cookies n\'est pas disponible. ' . self::DELEGATION_FR,
+				'settings_chatgpt_settings_route_unavailable' => 'La route des paramètres ChatGPT n\'est pas disponible. ' . self::DELEGATION_FR,
+			],
+			'he' => [
+				'system_settings_route_unavailable' => 'נתיב הגדרות מערכת אינו זמין. ' . self::DELEGATION_HE,
+				'offer_letter_language_route_unavailable' => 'נתיב שפת מכתב ההצעה אינו זמין. ' . self::DELEGATION_HE,
+				'offer_letter_update_route_unavailable' => 'נתיב עדכון מכתב ההצעה אינו זמין. ' . self::DELEGATION_HE,
+				'joining_letter_language_route_unavailable' => 'נתיב שפת מכתב ההצטרפות אינו זמין. ' . self::DELEGATION_HE,
+				'joining_letter_update_route_unavailable' => 'נתיב עדכון מכתב ההצטרפות אינו זמין. ' . self::DELEGATION_HE,
+				'experience_certificate_language_route_unavailable' => 'נתיב שפת תעודת הניסיון אינו זמין. ' . self::DELEGATION_HE,
+				'experience_certificate_update_route_unavailable' => 'נתיב עדכון תעודת הניסיון אינו זמין. ' . self::DELEGATION_HE,
+				'noc_language_route_unavailable' => 'נתיב שפת NOC אינו זמין. ' . self::DELEGATION_HE,
+				'noc_update_route_unavailable' => 'נתיב עדכון NOC אינו זמין. ' . self::DELEGATION_HE,
+				'settings_google_calendar_route_unavailable' => 'נתיב הגדרות Google Calendar אינו זמין. ' . self::DELEGATION_HE,
+				'settings_pusher_route_unavailable' => 'נתיב הגדרות Pusher אינו זמין. ' . self::DELEGATION_HE,
+				'settings_recaptcha_store_route_unavailable' => 'נתיב אחסון הגדרות reCAPTCHA אינו זמין. ' . self::DELEGATION_HE,
+				'generate_ai_seo_route_unavailable' => 'נתיב יצירת SEO באמצעות בינה מלאכותית אינו זמין. ' . self::DELEGATION_HE,
+				'generate_ai_cookie_route_unavailable' => 'נתיב יצירת קובצי Cookie באמצעות בינה מלאכותית אינו זמין. ' . self::DELEGATION_HE,
+				'settings_seo_store_route_unavailable' => 'נתיב אחסון הגדרות SEO אינו זמין. ' . self::DELEGATION_HE,
+				'settings_cookies_store_route_unavailable' => 'נתיב אחסון הגדרות קובצי Cookie אינו זמין. ' . self::DELEGATION_HE,
+				'settings_chatgpt_settings_route_unavailable' => 'נתיב הגדרות ChatGPT אינו זמין. ' . self::DELEGATION_HE,
+			],
+			'it' => [
+				'system_settings_route_unavailable' => 'La rotta delle impostazioni di sistema non è disponibile. ' . self::DELEGATION_IT,
+				'offer_letter_language_route_unavailable' => 'La rotta della lingua della lettera di offerta non è disponibile. ' . self::DELEGATION_IT,
+				'offer_letter_update_route_unavailable' => 'La rotta di aggiornamento della lettera di offerta non è disponibile. ' . self::DELEGATION_IT,
+				'joining_letter_language_route_unavailable' => 'La rotta della lingua della lettera di adesione non è disponibile. ' . self::DELEGATION_IT,
+				'joining_letter_update_route_unavailable' => 'La rotta di aggiornamento della lettera di adesione non è disponibile. ' . self::DELEGATION_IT,
+				'experience_certificate_language_route_unavailable' => 'La rotta della lingua del certificato di esperienza non è disponibile. ' . self::DELEGATION_IT,
+				'experience_certificate_update_route_unavailable' => 'La rotta di aggiornamento del certificato di esperienza non è disponibile. ' . self::DELEGATION_IT,
+				'noc_language_route_unavailable' => 'La rotta della lingua del NOC non è disponibile. ' . self::DELEGATION_IT,
+				'noc_update_route_unavailable' => 'La rotta di aggiornamento del NOC non è disponibile. ' . self::DELEGATION_IT,
+				'settings_google_calendar_route_unavailable' => 'La rotta delle impostazioni Google Calendar non è disponibile. ' . self::DELEGATION_IT,
+				'settings_pusher_route_unavailable' => 'La rotta delle impostazioni Pusher non è disponibile. ' . self::DELEGATION_IT,
+				'settings_recaptcha_store_route_unavailable' => 'La rotta di memorizzazione delle impostazioni reCAPTCHA non è disponibile. ' . self::DELEGATION_IT,
+				'generate_ai_seo_route_unavailable' => 'La rotta di generazione SEO AI non è disponibile. ' . self::DELEGATION_IT,
+				'generate_ai_cookie_route_unavailable' => 'La rotta di generazione dei cookie AI non è disponibile. ' . self::DELEGATION_IT,
+				'settings_seo_store_route_unavailable' => 'La rotta di memorizzazione delle impostazioni SEO non è disponibile. ' . self::DELEGATION_IT,
+				'settings_cookies_store_route_unavailable' => 'La rotta di memorizzazione delle impostazioni dei cookie non è disponibile. ' . self::DELEGATION_IT,
+				'settings_chatgpt_settings_route_unavailable' => 'La rotta delle impostazioni ChatGPT non è disponibile. ' . self::DELEGATION_IT,
+			],
+			'ja' => [
+				'system_settings_route_unavailable' => 'システム設定ルートは利用できません。' . self::DELEGATION_JA,
+				'offer_letter_language_route_unavailable' => 'オファーレター言語ルートは利用できません。' . self::DELEGATION_JA,
+				'offer_letter_update_route_unavailable' => 'オファーレター更新ルートは利用できません。' . self::DELEGATION_JA,
+				'joining_letter_language_route_unavailable' => 'ジョイニングレター言語ルートは利用できません。' . self::DELEGATION_JA,
+				'joining_letter_update_route_unavailable' => 'ジョイニングレター更新ルートは利用できません。' . self::DELEGATION_JA,
+				'experience_certificate_language_route_unavailable' => '経験証明書言語ルートは利用できません。' . self::DELEGATION_JA,
+				'experience_certificate_update_route_unavailable' => '経験証明書更新ルートは利用できません。' . self::DELEGATION_JA,
+				'noc_language_route_unavailable' => 'NOC言語ルートは利用できません。' . self::DELEGATION_JA,
+				'noc_update_route_unavailable' => 'NOC更新ルートは利用できません。' . self::DELEGATION_JA,
+				'settings_google_calendar_route_unavailable' => '設定Googleカレンダールートは利用できません。' . self::DELEGATION_JA,
+				'settings_pusher_route_unavailable' => 'Pusher設定ルートは利用できません。' . self::DELEGATION_JA,
+				'settings_recaptcha_store_route_unavailable' => 'reCAPTCHA保存設定ルートは利用できません。' . self::DELEGATION_JA,
+				'generate_ai_seo_route_unavailable' => 'AI SEO生成ルートは利用できません。' . self::DELEGATION_JA,
+				'generate_ai_cookie_route_unavailable' => 'AI Cookie生成ルートは利用できません。' . self::DELEGATION_JA,
+				'settings_seo_store_route_unavailable' => 'SEO保存設定ルートは利用できません。' . self::DELEGATION_JA,
+				'settings_cookies_store_route_unavailable' => 'Cookie保存設定ルートは利用できません。' . self::DELEGATION_JA,
+				'settings_chatgpt_settings_route_unavailable' => 'ChatGPT設定ルートは利用できません。' . self::DELEGATION_JA,
+			],
+			'nl' => [
+				'system_settings_route_unavailable' => 'Systeeminstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'offer_letter_language_route_unavailable' => 'Aanbiedingsbrief taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'offer_letter_update_route_unavailable' => 'Aanbiedingsbrief updateroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'joining_letter_language_route_unavailable' => 'Toetredingsbrief taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'joining_letter_update_route_unavailable' => 'Toetredingsbrief updateroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'experience_certificate_language_route_unavailable' => 'Ervaringscertificaat taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'experience_certificate_update_route_unavailable' => 'Ervaringscertificaat updateroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'noc_language_route_unavailable' => 'NOC taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'noc_update_route_unavailable' => 'NOC updateroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'settings_google_calendar_route_unavailable' => 'Instellingen Google Calendar route is niet beschikbaar. ' . self::DELEGATION_NL,
+				'settings_pusher_route_unavailable' => 'Pusher instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'settings_recaptcha_store_route_unavailable' => 'reCAPTCHA opslag instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'generate_ai_seo_route_unavailable' => 'AI SEO-generatieroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'generate_ai_cookie_route_unavailable' => 'AI cookie-generatieroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'settings_seo_store_route_unavailable' => 'SEO opslag instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'settings_cookies_store_route_unavailable' => 'Cookie opslag instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'settings_chatgpt_settings_route_unavailable' => 'ChatGPT instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+			],
+			'pl' => [
+				'system_settings_route_unavailable' => 'Trasa ustawień systemowych jest niedostępna. ' . self::DELEGATION_PL,
+				'offer_letter_language_route_unavailable' => 'Trasa języka listu ofertowego jest niedostępna. ' . self::DELEGATION_PL,
+				'offer_letter_update_route_unavailable' => 'Trasa aktualizacji listu ofertowego jest niedostępna. ' . self::DELEGATION_PL,
+				'joining_letter_language_route_unavailable' => 'Trasa języka listu przystąpienia jest niedostępna. ' . self::DELEGATION_PL,
+				'joining_letter_update_route_unavailable' => 'Trasa aktualizacji listu przystąpienia jest niedostępna. ' . self::DELEGATION_PL,
+				'experience_certificate_language_route_unavailable' => 'Trasa języka zaświadczenia o doświadczeniu jest niedostępna. ' . self::DELEGATION_PL,
+				'experience_certificate_update_route_unavailable' => 'Trasa aktualizacji zaświadczenia o doświadczeniu jest niedostępna. ' . self::DELEGATION_PL,
+				'noc_language_route_unavailable' => 'Trasa języka NOC jest niedostępna. ' . self::DELEGATION_PL,
+				'noc_update_route_unavailable' => 'Trasa aktualizacji NOC jest niedostępna. ' . self::DELEGATION_PL,
+				'settings_google_calendar_route_unavailable' => 'Trasa ustawień Google Kalendarz jest niedostępna. ' . self::DELEGATION_PL,
+				'settings_pusher_route_unavailable' => 'Trasa ustawień Pusher jest niedostępna. ' . self::DELEGATION_PL,
+				'settings_recaptcha_store_route_unavailable' => 'Trasa przechowywania ustawień reCAPTCHA jest niedostępna. ' . self::DELEGATION_PL,
+				'generate_ai_seo_route_unavailable' => 'Trasa generowania SEO AI jest niedostępna. ' . self::DELEGATION_PL,
+				'generate_ai_cookie_route_unavailable' => 'Trasa generowania plików cookie AI jest niedostępna. ' . self::DELEGATION_PL,
+				'settings_seo_store_route_unavailable' => 'Trasa przechowywania ustawień SEO jest niedostępna. ' . self::DELEGATION_PL,
+				'settings_cookies_store_route_unavailable' => 'Trasa przechowywania ustawień plików cookie jest niedostępna. ' . self::DELEGATION_PL,
+				'settings_chatgpt_settings_route_unavailable' => 'Trasa ustawień ChatGPT jest niedostępna. ' . self::DELEGATION_PL,
+			],
+			'pt' => [
+				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PT,
+				'offer_letter_language_route_unavailable' => 'A rota de idioma da carta de proposta não está disponível. ' . self::DELEGATION_PT,
+				'offer_letter_update_route_unavailable' => 'A rota de atualização da carta de proposta não está disponível. ' . self::DELEGATION_PT,
+				'joining_letter_language_route_unavailable' => 'A rota de idioma da carta de adesão não está disponível. ' . self::DELEGATION_PT,
+				'joining_letter_update_route_unavailable' => 'A rota de atualização da carta de adesão não está disponível. ' . self::DELEGATION_PT,
+				'experience_certificate_language_route_unavailable' => 'A rota de idioma do certificado de experiência não está disponível. ' . self::DELEGATION_PT,
+				'experience_certificate_update_route_unavailable' => 'A rota de atualização do certificado de experiência não está disponível. ' . self::DELEGATION_PT,
+				'noc_language_route_unavailable' => 'A rota de idioma do NOC não está disponível. ' . self::DELEGATION_PT,
+				'noc_update_route_unavailable' => 'A rota de atualização do NOC não está disponível. ' . self::DELEGATION_PT,
+				'settings_google_calendar_route_unavailable' => 'A rota de definições do Google Calendar não está disponível. ' . self::DELEGATION_PT,
+				'settings_pusher_route_unavailable' => 'A rota de definições do Pusher não está disponível. ' . self::DELEGATION_PT,
+				'settings_recaptcha_store_route_unavailable' => 'A rota de armazenamento de definições reCAPTCHA não está disponível. ' . self::DELEGATION_PT,
+				'generate_ai_seo_route_unavailable' => 'A rota de geração de SEO por IA não está disponível. ' . self::DELEGATION_PT,
+				'generate_ai_cookie_route_unavailable' => 'A rota de geração de cookies por IA não está disponível. ' . self::DELEGATION_PT,
+				'settings_seo_store_route_unavailable' => 'A rota de armazenamento de definições SEO não está disponível. ' . self::DELEGATION_PT,
+				'settings_cookies_store_route_unavailable' => 'A rota de armazenamento de definições de cookies não está disponível. ' . self::DELEGATION_PT,
+				'settings_chatgpt_settings_route_unavailable' => 'A rota de definições do ChatGPT não está disponível. ' . self::DELEGATION_PT,
+			],
+			'pt-br' => [
+				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PTBR,
+				'offer_letter_language_route_unavailable' => 'A rota de idioma da carta de oferta não está disponível. ' . self::DELEGATION_PTBR,
+				'offer_letter_update_route_unavailable' => 'A rota de atualização da carta de oferta não está disponível. ' . self::DELEGATION_PTBR,
+				'joining_letter_language_route_unavailable' => 'A rota de idioma da carta de admissão não está disponível. ' . self::DELEGATION_PTBR,
+				'joining_letter_update_route_unavailable' => 'A rota de atualização da carta de admissão não está disponível. ' . self::DELEGATION_PTBR,
+				'experience_certificate_language_route_unavailable' => 'A rota de idioma do certificado de experiência não está disponível. ' . self::DELEGATION_PTBR,
+				'experience_certificate_update_route_unavailable' => 'A rota de atualização do certificado de experiência não está disponível. ' . self::DELEGATION_PTBR,
+				'noc_language_route_unavailable' => 'A rota de idioma do NOC não está disponível. ' . self::DELEGATION_PTBR,
+				'noc_update_route_unavailable' => 'A rota de atualização do NOC não está disponível. ' . self::DELEGATION_PTBR,
+				'settings_google_calendar_route_unavailable' => 'A rota de configurações do Google Agenda não está disponível. ' . self::DELEGATION_PTBR,
+				'settings_pusher_route_unavailable' => 'A rota de configurações do Pusher não está disponível. ' . self::DELEGATION_PTBR,
+				'settings_recaptcha_store_route_unavailable' => 'A rota de armazenamento de configurações reCAPTCHA não está disponível. ' . self::DELEGATION_PTBR,
+				'generate_ai_seo_route_unavailable' => 'A rota de geração de SEO por IA não está disponível. ' . self::DELEGATION_PTBR,
+				'generate_ai_cookie_route_unavailable' => 'A rota de geração de cookies por IA não está disponível. ' . self::DELEGATION_PTBR,
+				'settings_seo_store_route_unavailable' => 'A rota de armazenamento de configurações SEO não está disponível. ' . self::DELEGATION_PTBR,
+				'settings_cookies_store_route_unavailable' => 'A rota de armazenamento de configurações de cookies não está disponível. ' . self::DELEGATION_PTBR,
+				'settings_chatgpt_settings_route_unavailable' => 'A rota de configurações do ChatGPT não está disponível. ' . self::DELEGATION_PTBR,
+			],
+			'ru' => [
+				'system_settings_route_unavailable' => 'Маршрут системных настроек недоступен. ' . self::DELEGATION_RU,
+				'offer_letter_language_route_unavailable' => 'Маршрут языка предложения о работе недоступен. ' . self::DELEGATION_RU,
+				'offer_letter_update_route_unavailable' => 'Маршрут обновления предложения о работе недоступен. ' . self::DELEGATION_RU,
+				'joining_letter_language_route_unavailable' => 'Маршрут языка приветственного письма недоступен. ' . self::DELEGATION_RU,
+				'joining_letter_update_route_unavailable' => 'Маршрут обновления приветственного письма недоступен. ' . self::DELEGATION_RU,
+				'experience_certificate_language_route_unavailable' => 'Маршрут языка сертификата об опыте недоступен. ' . self::DELEGATION_RU,
+				'experience_certificate_update_route_unavailable' => 'Маршрут обновления сертификата об опыте недоступен. ' . self::DELEGATION_RU,
+				'noc_language_route_unavailable' => 'Маршрут языка NOC недоступен. ' . self::DELEGATION_RU,
+				'noc_update_route_unavailable' => 'Маршрут обновления NOC недоступен. ' . self::DELEGATION_RU,
+				'settings_google_calendar_route_unavailable' => 'Маршрут настроек Google Календаря недоступен. ' . self::DELEGATION_RU,
+				'settings_pusher_route_unavailable' => 'Маршрут настроек Pusher недоступен. ' . self::DELEGATION_RU,
+				'settings_recaptcha_store_route_unavailable' => 'Маршрут хранения настроек reCAPTCHA недоступен. ' . self::DELEGATION_RU,
+				'generate_ai_seo_route_unavailable' => 'Маршрут генерации SEO с ИИ недоступен. ' . self::DELEGATION_RU,
+				'generate_ai_cookie_route_unavailable' => 'Маршрут генерации cookie с ИИ недоступен. ' . self::DELEGATION_RU,
+				'settings_seo_store_route_unavailable' => 'Маршрут хранения настроек SEO недоступен. ' . self::DELEGATION_RU,
+				'settings_cookies_store_route_unavailable' => 'Маршрут хранения настроек cookie недоступен. ' . self::DELEGATION_RU,
+				'settings_chatgpt_settings_route_unavailable' => 'Маршрут настроек ChatGPT недоступен. ' . self::DELEGATION_RU,
+			],
+			'tr' => [
+				'system_settings_route_unavailable' => 'Sistem Ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'offer_letter_language_route_unavailable' => 'Teklif mektubu dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'offer_letter_update_route_unavailable' => 'Teklif mektubu güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'joining_letter_language_route_unavailable' => 'Katılım mektubu dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'joining_letter_update_route_unavailable' => 'Katılım mektubu güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'experience_certificate_language_route_unavailable' => 'Deneyim sertifikası dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'experience_certificate_update_route_unavailable' => 'Deneyim sertifikası güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'noc_language_route_unavailable' => 'NOC dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'noc_update_route_unavailable' => 'NOC güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'settings_google_calendar_route_unavailable' => 'Ayarlar Google Takvim rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'settings_pusher_route_unavailable' => 'Pusher ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'settings_recaptcha_store_route_unavailable' => 'reCAPTCHA depolama ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'generate_ai_seo_route_unavailable' => 'Yapay zeka SEO oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'generate_ai_cookie_route_unavailable' => 'Yapay zeka çerez oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'settings_seo_store_route_unavailable' => 'SEO depolama ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'settings_cookies_store_route_unavailable' => 'Çerez depolama ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'settings_chatgpt_settings_route_unavailable' => 'ChatGPT ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+			],
+			'zh' => [
+				'system_settings_route_unavailable' => '系统设置路由不可用。' . self::DELEGATION_ZH,
+				'offer_letter_language_route_unavailable' => '录用信语言路由不可用。' . self::DELEGATION_ZH,
+				'offer_letter_update_route_unavailable' => '录用信更新路由不可用。' . self::DELEGATION_ZH,
+				'joining_letter_language_route_unavailable' => '入职信语言路由不可用。' . self::DELEGATION_ZH,
+				'joining_letter_update_route_unavailable' => '入职信更新路由不可用。' . self::DELEGATION_ZH,
+				'experience_certificate_language_route_unavailable' => '经验证明语言路由不可用。' . self::DELEGATION_ZH,
+				'experience_certificate_update_route_unavailable' => '经验证明更新路由不可用。' . self::DELEGATION_ZH,
+				'noc_language_route_unavailable' => 'NOC语言路由不可用。' . self::DELEGATION_ZH,
+				'noc_update_route_unavailable' => 'NOC更新路由不可用。' . self::DELEGATION_ZH,
+				'settings_google_calendar_route_unavailable' => '设置Google日历路由不可用。' . self::DELEGATION_ZH,
+				'settings_pusher_route_unavailable' => 'Pusher设置路由不可用。' . self::DELEGATION_ZH,
+				'settings_recaptcha_store_route_unavailable' => 'reCAPTCHA存储设置路由不可用。' . self::DELEGATION_ZH,
+				'generate_ai_seo_route_unavailable' => '生成AI SEO路由不可用。' . self::DELEGATION_ZH,
+				'generate_ai_cookie_route_unavailable' => '生成AI Cookie路由不可用。' . self::DELEGATION_ZH,
+				'settings_seo_store_route_unavailable' => 'SEO存储设置路由不可用。' . self::DELEGATION_ZH,
+				'settings_cookies_store_route_unavailable' => 'Cookie存储设置路由不可用。' . self::DELEGATION_ZH,
+				'settings_chatgpt_settings_route_unavailable' => 'ChatGPT设置路由不可用。' . self::DELEGATION_ZH,
+			]
 		],
 		ViewsConstants::SPT => [
 			'ar' => [
@@ -9404,6 +9968,170 @@ class LangsConstants
 				'support_system_index_route_unavailable' => '支持系统路由不可用。' . self::DELEGATION_ZH,
 				'spt_index_route_unavailable' => '支持路由不可用。' . self::DELEGATION_ZH,
 			]
+		],
+		'slack' => [
+			'ar' => [
+				'slack_settings_route_unavailable' => 'مسار إعدادات Slack غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'slack_settings_route_unavailable' => 'Slack indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'slack_settings_route_unavailable' => 'Slack-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'slack_settings_route_unavailable' => 'Slack settings route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'slack_settings_route_unavailable' => 'La ruta de configuración de Slack no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'slack_settings_route_unavailable' => 'La route des paramètres Slack n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'slack_settings_route_unavailable' => 'נתיב הגדרות Slack אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'slack_settings_route_unavailable' => 'La rotta delle impostazioni Slack non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'slack_settings_route_unavailable' => 'Slack設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'slack_settings_route_unavailable' => 'Slack-instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'slack_settings_route_unavailable' => 'Trasa ustawień Slack jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'slack_settings_route_unavailable' => 'A rota de definições do Slack não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'slack_settings_route_unavailable' => 'A rota de configurações do Slack não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'slack_settings_route_unavailable' => 'Маршрут настроек Slack недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'slack_settings_route_unavailable' => 'Slack ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'slack_settings_route_unavailable' => 'Slack设置路由不可用。' . self::DELEGATION_ZH
+			]
+		],
+		ViewsConstants::SRC => [
+			'ar' => [
+				'source_create_route_unavailable'  => 'مسار إنشاء المصدر غير متاح. ' . self::DELEGATION_AR,
+				'source_edit_route_unavailable'    => 'مسار تعديل المصدر غير متاح. ' . self::DELEGATION_AR,
+				'source_destroy_route_unavailable' => 'مسار حذف المصدر غير متاح. ' . self::DELEGATION_AR,
+				'source_store_route_unavailable'   => 'مسار تخزين المصدر غير متاح. ' . self::DELEGATION_AR,
+				'source_update_route_unavailable'  => 'مسار تحديث المصدر غير متاح. ' . self::DELEGATION_AR,
+			],
+			'da' => [
+				'source_create_route_unavailable'  => 'Kilde opret rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'source_edit_route_unavailable'    => 'Kilde rediger rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'source_destroy_route_unavailable' => 'Kilde slet rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'source_store_route_unavailable'   => 'Kilde lagrings rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'source_update_route_unavailable'  => 'Kilde opdater rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+			],
+			'de' => [
+				'source_create_route_unavailable'  => 'Die Route zum Erstellen einer Quelle ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'source_edit_route_unavailable'    => 'Die Route zum Bearbeiten einer Quelle ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'source_destroy_route_unavailable' => 'Die Route zum Löschen einer Quelle ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'source_store_route_unavailable'   => 'Die Route zum Speichern einer Quelle ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'source_update_route_unavailable'  => 'Die Route zum Aktualisieren einer Quelle ist nicht verfügbar. ' . self::DELEGATION_DE,
+			],
+			'en' => [
+				'source_create_route_unavailable'  => 'Source create route is unavailable. ' . self::DELEGATION_EN,
+				'source_edit_route_unavailable'    => 'Source edit route is unavailable. ' . self::DELEGATION_EN,
+				'source_destroy_route_unavailable' => 'Source destroy route is unavailable. ' . self::DELEGATION_EN,
+				'source_store_route_unavailable'   => 'Source store route is unavailable. ' . self::DELEGATION_EN,
+				'source_update_route_unavailable'  => 'Source update route is unavailable. ' . self::DELEGATION_EN,
+			],
+			'es' => [
+				'source_create_route_unavailable'  => 'La ruta de creación de fuente no está disponible. ' . self::DELEGATION_ES,
+				'source_edit_route_unavailable'    => 'La ruta de edición de fuente no está disponible. ' . self::DELEGATION_ES,
+				'source_destroy_route_unavailable' => 'La ruta de eliminación de fuente no está disponible. ' . self::DELEGATION_ES,
+				'source_store_route_unavailable'   => 'La ruta de almacenamiento de fuente no está disponible. ' . self::DELEGATION_ES,
+				'source_update_route_unavailable'  => 'La ruta de actualización de fuente no está disponible. ' . self::DELEGATION_ES,
+			],
+			'fr' => [
+				'source_create_route_unavailable'  => 'La route de création de source n\'est pas disponible. ' . self::DELEGATION_FR,
+				'source_edit_route_unavailable'    => 'La route d\'édition de source n\'est pas disponible. ' . self::DELEGATION_FR,
+				'source_destroy_route_unavailable' => 'La route de destruction de source n\'est pas disponible. ' . self::DELEGATION_FR,
+				'source_store_route_unavailable'   => 'La route de stockage de source n\'est pas disponible. ' . self::DELEGATION_FR,
+				'source_update_route_unavailable'  => 'La route de mise à jour de source n\'est pas disponible. ' . self::DELEGATION_FR,
+			],
+			'he' => [
+				'source_create_route_unavailable'  => 'נתיב יצירת המקור אינו זמין. ' . self::DELEGATION_HE,
+				'source_edit_route_unavailable'    => 'נתיב עריכת המקור אינו זמין. ' . self::DELEGATION_HE,
+				'source_destroy_route_unavailable' => 'נתיב מחיקת המקור אינו זמין. ' . self::DELEGATION_HE,
+				'source_store_route_unavailable'   => 'נתיב אחסון המקור אינו זמין. ' . self::DELEGATION_HE,
+				'source_update_route_unavailable'  => 'נתיב עדכון המקור אינו זמין. ' . self::DELEGATION_HE,
+			],
+			'it' => [
+				'source_create_route_unavailable'  => 'La rotta di creazione della sorgente non è disponibile. ' . self::DELEGATION_IT,
+				'source_edit_route_unavailable'    => 'La rotta di modifica della sorgente non è disponibile. ' . self::DELEGATION_IT,
+				'source_destroy_route_unavailable' => 'La rotta di eliminazione della sorgente non è disponibile. ' . self::DELEGATION_IT,
+				'source_store_route_unavailable'   => 'La rotta di memorizzazione della sorgente non è disponibile. ' . self::DELEGATION_IT,
+				'source_update_route_unavailable'  => 'La rotta di aggiornamento della sorgente non è disponibile. ' . self::DELEGATION_IT,
+			],
+			'ja' => [
+				'source_create_route_unavailable'  => 'ソース作成ルートは利用できません。' . self::DELEGATION_JA,
+				'source_edit_route_unavailable'    => 'ソース編集ルートは利用できません。' . self::DELEGATION_JA,
+				'source_destroy_route_unavailable' => 'ソース削除ルートは利用できません。' . self::DELEGATION_JA,
+				'source_store_route_unavailable'   => 'ソース保存ルートは利用できません。' . self::DELEGATION_JA,
+				'source_update_route_unavailable'  => 'ソース更新ルートは利用できません。' . self::DELEGATION_JA,
+			],
+			'nl' => [
+				'source_create_route_unavailable'  => 'Bron aanmaakroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'source_edit_route_unavailable'    => 'Bron bewerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'source_destroy_route_unavailable' => 'Bron verwijderroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'source_store_route_unavailable'   => 'Bron opslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'source_update_route_unavailable'  => 'Bron bijwerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
+			],
+			'pl' => [
+				'source_create_route_unavailable'  => 'Trasa tworzenia źródła jest niedostępna. ' . self::DELEGATION_PL,
+				'source_edit_route_unavailable'    => 'Trasa edycji źródła jest niedostępna. ' . self::DELEGATION_PL,
+				'source_destroy_route_unavailable' => 'Trasa usuwania źródła jest niedostępna. ' . self::DELEGATION_PL,
+				'source_store_route_unavailable'   => 'Trasa przechowywania źródła jest niedostępna. ' . self::DELEGATION_PL,
+				'source_update_route_unavailable'  => 'Trasa aktualizacji źródła jest niedostępna. ' . self::DELEGATION_PL,
+			],
+			'pt' => [
+				'source_create_route_unavailable'  => 'A rota de criação de fonte não está disponível. ' . self::DELEGATION_PT,
+				'source_edit_route_unavailable'    => 'A rota de edição de fonte não está disponível. ' . self::DELEGATION_PT,
+				'source_destroy_route_unavailable' => 'A rota de destruição de fonte não está disponível. ' . self::DELEGATION_PT,
+				'source_store_route_unavailable'   => 'A rota de armazenamento de fonte não está disponível. ' . self::DELEGATION_PT,
+				'source_update_route_unavailable'  => 'A rota de atualização de fonte não está disponível. ' . self::DELEGATION_PT,
+			],
+			'pt-br' => [
+				'source_create_route_unavailable'  => 'A rota de criação de fonte não está disponível. ' . self::DELEGATION_PTBR,
+				'source_edit_route_unavailable'    => 'A rota de edição de fonte não está disponível. ' . self::DELEGATION_PTBR,
+				'source_destroy_route_unavailable' => 'A rota de destruição de fonte não está disponível. ' . self::DELEGATION_PTBR,
+				'source_store_route_unavailable'   => 'A rota de armazenamento de fonte não está disponível. ' . self::DELEGATION_PTBR,
+				'source_update_route_unavailable'  => 'A rota de atualização de fonte não está disponível. ' . self::DELEGATION_PTBR,
+			],
+			'ru' => [
+				'source_create_route_unavailable'  => 'Маршрут создания источника недоступен. ' . self::DELEGATION_RU,
+				'source_edit_route_unavailable'    => 'Маршрут редактирования источника недоступен. ' . self::DELEGATION_RU,
+				'source_destroy_route_unavailable' => 'Маршрут удаления источника недоступен. ' . self::DELEGATION_RU,
+				'source_store_route_unavailable'   => 'Маршрут хранения источника недоступен. ' . self::DELEGATION_RU,
+				'source_update_route_unavailable'  => 'Маршрут обновления источника недоступен. ' . self::DELEGATION_RU,
+			],
+			'tr' => [
+				'source_create_route_unavailable'  => 'Kaynak oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'source_edit_route_unavailable'    => 'Kaynak düzenleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'source_destroy_route_unavailable' => 'Kaynak silme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'source_store_route_unavailable'   => 'Kaynak depolama rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'source_update_route_unavailable'  => 'Kaynak güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+			],
+			'zh' => [
+				'source_create_route_unavailable'  => '来源创建路由不可用。' . self::DELEGATION_ZH,
+				'source_edit_route_unavailable'    => '来源编辑路由不可用。' . self::DELEGATION_ZH,
+				'source_destroy_route_unavailable' => '来源删除路由不可用。' . self::DELEGATION_ZH,
+				'source_store_route_unavailable'   => '来源存储路由不可用。' . self::DELEGATION_ZH,
+				'source_update_route_unavailable'  => '来源更新路由不可用。' . self::DELEGATION_ZH,
+			],
 		],
 		ViewsConstants::STG => [
 			'ar' => [
@@ -9556,67 +10284,232 @@ class LangsConstants
 		ViewsConstants::SYS => [
 			'ar' => [
 				'settings_index_route_unavailable' => 'مسار الإعدادات غير متاح. ' . self::DELEGATION_AR,
-				'system_settings_route_unavailable' => 'مسار إعدادات النظام غير متاح. ' . self::DELEGATION_AR
+				'system_store_route_unavailable' => 'مسار تخزين النظام غير متاح. ' . self::DELEGATION_AR,
+				'system_settings_route_unavailable' => 'مسار إعدادات النظام غير متاح. ' . self::DELEGATION_AR,
+				'system_ip_edit_route_unavailable' => 'مسار تعديل IP النظام غير متاح. ' . self::DELEGATION_AR,
+				'system_ip_create_route_unavailable' => 'مسار إنشاء IP النظام غير متاح. ' . self::DELEGATION_AR,
+				'system_ip_destroy_route_unavailable' => 'مسار حذف IP النظام غير متاح. ' . self::DELEGATION_AR
 			],
 			'da' => [
 				'settings_index_route_unavailable' => 'Indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'system_settings_route_unavailable' => 'Systemindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+				'system_store_route_unavailable' => 'System lagringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'system_settings_route_unavailable' => 'Systemindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'system_ip_edit_route_unavailable' => 'System IP redigeringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'system_ip_create_route_unavailable' => 'System IP oprettelsesrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'system_ip_destroy_route_unavailable' => 'System IP sletningsrute er ikke tilgængelig. ' . self::DELEGATION_DA
 			],
 			'de' => [
 				'settings_index_route_unavailable' => 'Einstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'system_settings_route_unavailable' => 'Systemeinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE
+				'system_store_route_unavailable' => 'System-Speicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'system_settings_route_unavailable' => 'Systemeinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'system_ip_edit_route_unavailable' => 'System IP Bearbeitungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'system_ip_create_route_unavailable' => 'System IP Erstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'system_ip_destroy_route_unavailable' => 'System IP Löschroute ist nicht verfügbar. ' . self::DELEGATION_DE
 			],
 			'en' => [
 				'settings_index_route_unavailable' => 'Settings route is unavailable. ' . self::DELEGATION_EN,
-				'system_settings_route_unavailable' => 'System settings route is unavailable. ' . self::DELEGATION_EN
+				'system_store_route_unavailable' => 'System store route is unavailable. ' . self::DELEGATION_EN,
+				'system_settings_route_unavailable' => 'System settings route is unavailable. ' . self::DELEGATION_EN,
+				'system_ip_edit_route_unavailable' => 'System IP edit route is unavailable. ' . self::DELEGATION_EN,
+				'system_ip_create_route_unavailable' => 'System IP create route is unavailable. ' . self::DELEGATION_EN,
+				'system_ip_destroy_route_unavailable' => 'System IP destroy route is unavailable. ' . self::DELEGATION_EN
 			],
 			'es' => [
 				'settings_index_route_unavailable' => 'La ruta de configuración no está disponible. ' . self::DELEGATION_ES,
-				'system_settings_route_unavailable' => 'La ruta de configuración del sistema no está disponible. ' . self::DELEGATION_ES
+				'system_store_route_unavailable' => 'La ruta de almacenamiento del sistema no está disponible. ' . self::DELEGATION_ES,
+				'system_settings_route_unavailable' => 'La ruta de configuración del sistema no está disponible. ' . self::DELEGATION_ES,
+				'system_ip_edit_route_unavailable' => 'La ruta de edición de IP del sistema no está disponible. ' . self::DELEGATION_ES,
+				'system_ip_create_route_unavailable' => 'La ruta de creación de IP del sistema no está disponible. ' . self::DELEGATION_ES,
+				'system_ip_destroy_route_unavailable' => 'La ruta de eliminación de IP del sistema no está disponible. ' . self::DELEGATION_ES
 			],
 			'fr' => [
 				'settings_index_route_unavailable' => 'La route des paramètres n\'est pas disponible. ' . self::DELEGATION_FR,
-				'system_settings_route_unavailable' => 'La route des paramètres système n\'est pas disponible. ' . self::DELEGATION_FR
+				'system_store_route_unavailable' => 'La route de stockage du système n\'est pas disponible. ' . self::DELEGATION_FR,
+				'system_settings_route_unavailable' => 'La route des paramètres système n\'est pas disponible. ' . self::DELEGATION_FR,
+				'system_ip_edit_route_unavailable' => 'La route d\'édition d\'IP système n\'est pas disponible. ' . self::DELEGATION_FR,
+				'system_ip_create_route_unavailable' => 'La route de création d\'IP système n\'est pas disponible. ' . self::DELEGATION_FR,
+				'system_ip_destroy_route_unavailable' => 'La route de suppression d\'IP système n\'est pas disponible. ' . self::DELEGATION_FR
 			],
 			'he' => [
 				'settings_index_route_unavailable' => 'נתיב הגדרות אינו זמין. ' . self::DELEGATION_HE,
-				'system_settings_route_unavailable' => 'נתיב הגדרות המערכת אינו זמין. ' . self::DELEGATION_HE
+				'system_store_route_unavailable' => 'נתיב אחסון המערכת אינו זמין. ' . self::DELEGATION_HE,
+				'system_settings_route_unavailable' => 'נתיב הגדרות המערכת אינו זמין. ' . self::DELEGATION_HE,
+				'system_ip_edit_route_unavailable' => 'נתיב עריכת IP המערכת אינו זמין. ' . self::DELEGATION_HE,
+				'system_ip_create_route_unavailable' => 'נתיב יצירת IP המערכת אינו זמין. ' . self::DELEGATION_HE,
+				'system_ip_destroy_route_unavailable' => 'נתיב מחיקת IP המערכת אינו זמין. ' . self::DELEGATION_HE
 			],
 			'it' => [
 				'settings_index_route_unavailable' => 'La rotta delle impostazioni non è disponibile. ' . self::DELEGATION_IT,
-				'system_settings_route_unavailable' => 'La rotta delle impostazioni di sistema non è disponibile. ' . self::DELEGATION_IT
+				'system_store_route_unavailable' => 'La rotta di memorizzazione del sistema non è disponibile. ' . self::DELEGATION_IT,
+				'system_settings_route_unavailable' => 'La rotta delle impostazioni di sistema non è disponibile. ' . self::DELEGATION_IT,
+				'system_ip_edit_route_unavailable' => 'La rotta di modifica IP di sistema non è disponibile. ' . self::DELEGATION_IT,
+				'system_ip_create_route_unavailable' => 'La rotta di creazione IP di sistema non è disponibile. ' . self::DELEGATION_IT,
+				'system_ip_destroy_route_unavailable' => 'La rotta di eliminazione IP di sistema non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
 				'settings_index_route_unavailable' => '設定ルートは利用できません。' . self::DELEGATION_JA,
-				'system_settings_route_unavailable' => 'システム設定ルートは利用できません。' . self::DELEGATION_JA
+				'system_store_route_unavailable' => 'システム保存ルートは利用できません。' . self::DELEGATION_JA,
+				'system_settings_route_unavailable' => 'システム設定ルートは利用できません。' . self::DELEGATION_JA,
+				'system_ip_edit_route_unavailable' => 'システムIP編集ルートは利用できません。' . self::DELEGATION_JA,
+				'system_ip_create_route_unavailable' => 'システムIP作成ルートは利用できません。' . self::DELEGATION_JA,
+				'system_ip_destroy_route_unavailable' => 'システムIP削除ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
 				'settings_index_route_unavailable' => 'Instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
-				'system_settings_route_unavailable' => 'Systeeminstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+				'system_store_route_unavailable' => 'Systeemopslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'system_settings_route_unavailable' => 'Systeeminstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'system_ip_edit_route_unavailable' => 'Systeem IP bewerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'system_ip_create_route_unavailable' => 'Systeem IP aanmaakroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'system_ip_destroy_route_unavailable' => 'Systeem IP verwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
 				'settings_index_route_unavailable' => 'Trasa ustawień jest niedostępna. ' . self::DELEGATION_PL,
-				'system_settings_route_unavailable' => 'Trasa ustawień systemowych jest niedostępna. ' . self::DELEGATION_PL
+				'system_store_route_unavailable' => 'Trasa przechowywania systemu jest niedostępna. ' . self::DELEGATION_PL,
+				'system_settings_route_unavailable' => 'Trasa ustawień systemowych jest niedostępna. ' . self::DELEGATION_PL,
+				'system_ip_edit_route_unavailable' => 'Trasa edycji IP systemu jest niedostępna. ' . self::DELEGATION_PL,
+				'system_ip_create_route_unavailable' => 'Trasa tworzenia IP systemu jest niedostępna. ' . self::DELEGATION_PL,
+				'system_ip_destroy_route_unavailable' => 'Trasa usuwania IP systemu jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
 				'settings_index_route_unavailable' => 'A rota de configurações não está disponível. ' . self::DELEGATION_PT,
-				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PT
+				'system_store_route_unavailable' => 'A rota de armazenamento do sistema não está disponível. ' . self::DELEGATION_PT,
+				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PT,
+				'system_ip_edit_route_unavailable' => 'A rota de edição de IP do sistema não está disponível. ' . self::DELEGATION_PT,
+				'system_ip_create_route_unavailable' => 'A rota de criação de IP do sistema não está disponível. ' . self::DELEGATION_PT,
+				'system_ip_destroy_route_unavailable' => 'A rota de eliminação de IP do sistema não está disponível. ' . self::DELEGATION_PT
 			],
 			'pt-br' => [
 				'settings_index_route_unavailable' => 'A rota de configurações não está disponível. ' . self::DELEGATION_PTBR,
-				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PTBR
+				'system_store_route_unavailable' => 'A rota de armazenamento do sistema não está disponível. ' . self::DELEGATION_PTBR,
+				'system_settings_route_unavailable' => 'A rota de configurações do sistema não está disponível. ' . self::DELEGATION_PTBR,
+				'system_ip_edit_route_unavailable' => 'A rota de edição de IP do sistema não está disponível. ' . self::DELEGATION_PTBR,
+				'system_ip_create_route_unavailable' => 'A rota de criação de IP do sistema não está disponível. ' . self::DELEGATION_PTBR,
+				'system_ip_destroy_route_unavailable' => 'A rota de exclusão de IP do sistema não está disponível. ' . self::DELEGATION_PTBR
+
 			],
 			'ru' => [
 				'settings_index_route_unavailable' => 'Маршрут настроек недоступен. ' . self::DELEGATION_RU,
-				'system_settings_route_unavailable' => 'Маршрут системных настроек недоступен. ' . self::DELEGATION_RU
+				'system_store_route_unavailable' => 'Маршрут хранения системы недоступен. ' . self::DELEGATION_RU,
+				'system_settings_route_unavailable' => 'Маршрут системных настроек недоступен. ' . self::DELEGATION_RU,
+				'system_ip_edit_route_unavailable' => 'Маршрут редактирования системного IP недоступен. ' . self::DELEGATION_RU,
+				'system_ip_create_route_unavailable' => 'Маршрут создания системного IP недоступен. ' . self::DELEGATION_RU,
+				'system_ip_destroy_route_unavailable' => 'Маршрут удаления системного IP недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
 				'settings_index_route_unavailable' => 'Ayarlar rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'system_settings_route_unavailable' => 'Sistem ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+				'system_store_route_unavailable' => 'Sistem depolama rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'system_settings_route_unavailable' => 'Sistem ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'system_ip_edit_route_unavailable' => 'Sistem IP düzenleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'system_ip_create_route_unavailable' => 'Sistem IP oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'system_ip_destroy_route_unavailable' => 'Sistem IP silme rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
 				'settings_index_route_unavailable' => '设置路由不可用。' . self::DELEGATION_ZH,
-				'system_settings_route_unavailable' => '系统设置路由不可用。' . self::DELEGATION_ZH
+				'system_store_route_unavailable' => '系统存储路由不可用。' . self::DELEGATION_ZH,
+				'system_settings_route_unavailable' => '系统设置路由不可用。' . self::DELEGATION_ZH,
+				'system_ip_edit_route_unavailable' => '系统IP编辑路由不可用。' . self::DELEGATION_ZH,
+				'system_ip_create_route_unavailable' => '系统IP创建路由不可用。' . self::DELEGATION_ZH,
+				'system_ip_destroy_route_unavailable' => '系统IP删除路由不可用。' . self::DELEGATION_ZH
+			]
+		],
+		'telegram' => [
+			'ar' => [
+				'telegram_settings_route_unavailable' => 'مسار إعدادات Telegram غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'telegram_settings_route_unavailable' => 'Telegram indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'telegram_settings_route_unavailable' => 'Telegram-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'telegram_settings_route_unavailable' => 'Telegram settings route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'telegram_settings_route_unavailable' => 'La ruta de configuración de Telegram no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'telegram_settings_route_unavailable' => 'La route des paramètres Telegram n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'telegram_settings_route_unavailable' => 'נתיב הגדרות Telegram אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'telegram_settings_route_unavailable' => 'La rotta delle impostazioni Telegram non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'telegram_settings_route_unavailable' => 'Telegram設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'telegram_settings_route_unavailable' => 'Telegram-instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'telegram_settings_route_unavailable' => 'Trasa ustawień Telegram jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'telegram_settings_route_unavailable' => 'A rota de definições do Telegram não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'telegram_settings_route_unavailable' => 'A rota de configurações do Telegram não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'telegram_settings_route_unavailable' => 'Маршрут настроек Telegram недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'telegram_settings_route_unavailable' => 'Telegram ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'telegram_settings_route_unavailable' => 'Telegram设置路由不可用。' . self::DELEGATION_ZH
+			]
+		],
+		ViewsConstants::TT => [
+			'ar' => [
+				'send_test_mail_route_unavailable' => 'مسار إرسال البريد الاختباري غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'send_test_mail_route_unavailable' => 'Send testmail rute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'send_test_mail_route_unavailable' => 'Testmail-Sendungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'send_test_mail_route_unavailable' => 'Send test mail route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'send_test_mail_route_unavailable' => 'La ruta de envío de correo de prueba no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'send_test_mail_route_unavailable' => 'La route d\'envoi de mail test n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'send_test_mail_route_unavailable' => 'נתיב שליחת דוא"ל בדיקה אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'send_test_mail_route_unavailable' => 'La rotta di invio mail di test non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'send_test_mail_route_unavailable' => 'テストメール送信ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'send_test_mail_route_unavailable' => 'Testmail verzendroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'send_test_mail_route_unavailable' => 'Trasa wysyłania testowego maila jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'send_test_mail_route_unavailable' => 'A rota de envio de e-mail de teste não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'send_test_mail_route_unavailable' => 'A rota de envio de e-mail de teste não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'send_test_mail_route_unavailable' => 'Маршрут отправки тестового письма недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'send_test_mail_route_unavailable' => 'Test maili gönderme rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'send_test_mail_route_unavailable' => '发送测试邮件路由不可用。' . self::DELEGATION_ZH
 			]
 		],
 		ViewsConstants::TNG => [
@@ -9738,22 +10631,70 @@ class LangsConstants
 			'zh' => ['transfer_index_route_unavailable' => '调职索引路由不可用。' . self::DELEGATION_ZH]
 		],
 		ViewsConstants::TMT => [
-			'ar' => ['time_tracker_route_unavailable' => 'مسار المتعقب الزمني غير متاح. ' . self::DELEGATION_AR],
-			'da' => ['time_tracker_route_unavailable' => 'Tidssporingsrute er ikke tilgængelig. ' . self::DELEGATION_DA],
-			'de' => ['time_tracker_route_unavailable' => 'Zeiterfassungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE],
-			'en' => ['time_tracker_route_unavailable' => 'Tracker route is unavailable. ' . self::DELEGATION_EN],
-			'es' => ['time_tracker_route_unavailable' => 'La ruta del rastreador de tiempo no está disponible. ' . self::DELEGATION_ES],
-			'fr' => ['time_tracker_route_unavailable' => 'La route du traqueur de temps n\'est pas disponible. ' . self::DELEGATION_FR],
-			'he' => ['time_tracker_route_unavailable' => 'נתיב מעקב זמן אינו זמין. ' . self::DELEGATION_HE],
-			'it' => ['time_tracker_route_unavailable' => 'La rotta del time tracker non è disponibile. ' . self::DELEGATION_IT],
-			'ja' => ['time_tracker_route_unavailable' => 'タイムトラッカールートは利用できません。' . self::DELEGATION_JA],
-			'nl' => ['time_tracker_route_unavailable' => 'Tijdtrackerroute is niet beschikbaar. ' . self::DELEGATION_NL],
-			'pl' => ['time_tracker_route_unavailable' => 'Trasa śledzenia czasu jest niedostępna. ' . self::DELEGATION_PL],
-			'pt' => ['time_tracker_route_unavailable' => 'A rota do rastreador de tempo não está disponível. ' . self::DELEGATION_PT],
-			'pt-br' => ['time_tracker_route_unavailable' => 'A rota do rastreador de tempo não está disponível. ' . self::DELEGATION_PTBR],
-			'ru' => ['time_tracker_route_unavailable' => 'Маршрут отслеживания времени недоступен. ' . self::DELEGATION_RU],
-			'tr' => ['time_tracker_route_unavailable' => 'Zaman Takipçisi rotası kullanılamıyor. ' . self::DELEGATION_TR],
-			'zh' => ['time_tracker_route_unavailable' => '时间跟踪器路由不可用。' . self::DELEGATION_ZH],
+			'ar' => [
+				'time_tracker_route_unavailable' => 'مسار المتعقب الزمني غير متاح. ' . self::DELEGATION_AR,
+				'time_trackers_settings_route_unavailable' => 'مسار إعدادات المتعقبات الزمنية غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'time_tracker_route_unavailable' => 'Tidssporingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'time_trackers_settings_route_unavailable' => 'Tidssporingsindstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'time_tracker_route_unavailable' => 'Zeiterfassungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'time_trackers_settings_route_unavailable' => 'Zeiterfassungseinstellungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'time_tracker_route_unavailable' => 'Tracker route is unavailable. ' . self::DELEGATION_EN,
+				'time_trackers_settings_route_unavailable' => 'Time trackers settings route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'time_tracker_route_unavailable' => 'La ruta del rastreador de tiempo no está disponible. ' . self::DELEGATION_ES,
+				'time_trackers_settings_route_unavailable' => 'La ruta de configuración de rastreadores de tiempo no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'time_tracker_route_unavailable' => 'La route du traqueur de temps n\'est pas disponible. ' . self::DELEGATION_FR,
+				'time_trackers_settings_route_unavailable' => 'La route des paramètres des traqueurs de temps n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'time_tracker_route_unavailable' => 'נתיב מעקב זמן אינו זמין. ' . self::DELEGATION_HE,
+				'time_trackers_settings_route_unavailable' => 'נתיב הגדרות מעקבי זמן אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'time_tracker_route_unavailable' => 'La rotta del time tracker non è disponibile. ' . self::DELEGATION_IT,
+				'time_trackers_settings_route_unavailable' => 'La rotta delle impostazioni dei time tracker non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'time_tracker_route_unavailable' => 'タイムトラッカールートは利用できません。' . self::DELEGATION_JA,
+				'time_trackers_settings_route_unavailable' => 'タイムトラッカー設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'time_tracker_route_unavailable' => 'Tijdtrackerroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'time_trackers_settings_route_unavailable' => 'Tijdtracker-instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'time_tracker_route_unavailable' => 'Trasa śledzenia czasu jest niedostępna. ' . self::DELEGATION_PL,
+				'time_trackers_settings_route_unavailable' => 'Trasa ustawień śledzenia czasu jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'time_tracker_route_unavailable' => 'A rota do rastreador de tempo não está disponível. ' . self::DELEGATION_PT,
+				'time_trackers_settings_route_unavailable' => 'A rota de definições dos rastreadores de tempo não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'time_tracker_route_unavailable' => 'A rota do rastreador de tempo não está disponível. ' . self::DELEGATION_PTBR,
+				'time_trackers_settings_route_unavailable' => 'A rota de configurações dos rastreadores de tempo não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'time_tracker_route_unavailable' => 'Маршрут отслеживания времени недоступен. ' . self::DELEGATION_RU,
+				'time_trackers_settings_route_unavailable' => 'Маршрут настроек отслеживания времени недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'time_tracker_route_unavailable' => 'Zaman Takipçisi rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'time_trackers_settings_route_unavailable' => 'Zaman Takipçileri ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'time_tracker_route_unavailable' => '时间跟踪器路由不可用。' . self::DELEGATION_ZH,
+				'time_trackers_settings_route_unavailable' => '时间跟踪器设置路由不可用。' . self::DELEGATION_ZH
+			]
 		],
 		ViewsConstants::TMN => [
 			'ar' => ['termination_index_route_unavailable' => 'مسار فهرس إنهاء الخدمة غير متاح. ' . self::DELEGATION_AR],
@@ -9941,6 +10882,56 @@ class LangsConstants
 				'taskboard_view_grid_route_unavailable' => '任务板网格视图路由不可用。' . self::DELEGATION_ZH
 			]
 		],
+		'twilio' => [
+			'ar' => [
+				'twilio_setting_route_unavailable' => 'مسار إعدادات Twilio غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'twilio_setting_route_unavailable' => 'Twilio indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'twilio_setting_route_unavailable' => 'Twilio-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'twilio_setting_route_unavailable' => 'Twilio setting route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'twilio_setting_route_unavailable' => 'La ruta de configuración de Twilio no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'twilio_setting_route_unavailable' => 'La route des paramètres Twilio n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'twilio_setting_route_unavailable' => 'נתיב הגדרות Twilio אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'twilio_setting_route_unavailable' => 'La rotta delle impostazioni Twilio non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'twilio_setting_route_unavailable' => 'Twilio設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'twilio_setting_route_unavailable' => 'Twilio-instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'twilio_setting_route_unavailable' => 'Trasa ustawień Twilio jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'twilio_setting_route_unavailable' => 'A rota de definições do Twilio não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'twilio_setting_route_unavailable' => 'A rota de configurações do Twilio não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'twilio_setting_route_unavailable' => 'Маршрут настроек Twilio недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'twilio_setting_route_unavailable' => 'Twilio ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'twilio_setting_route_unavailable' => 'Twilio设置路由不可用。' . self::DELEGATION_ZH
+			]
+		],
 		ViewsConstants::TX => [
 			'ar' => [
 				'tx_index_route_unavailable' => 'مسار إعدادات المحاسبة غير متاح. ' . self::DELEGATION_AR,
@@ -10073,6 +11064,88 @@ class LangsConstants
 				'logout_route_unavailable' => '退出路由不可用。' . self::DELEGATION_ZH,
 			]
 		],
+		ViewsConstants::WBH => [
+			'ar' => [
+				'webhook_create_route_unavailable' => 'مسار إنشاء Webhook غير متاح. ' . self::DELEGATION_AR,
+				'webhook_edit_route_unavailable' => 'مسار تعديل Webhook غير متاح. ' . self::DELEGATION_AR,
+				'webhook_destroy_route_unavailable' => 'مسار حذف Webhook غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'webhook_create_route_unavailable' => 'Webhook oprettelsesrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'webhook_edit_route_unavailable' => 'Webhook redigeringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'webhook_destroy_route_unavailable' => 'Webhook sletningsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'webhook_create_route_unavailable' => 'Webhook-Erstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'webhook_edit_route_unavailable' => 'Webhook-Bearbeitungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'webhook_destroy_route_unavailable' => 'Webhook-Löschroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'webhook_create_route_unavailable' => 'Webhook create route is unavailable. ' . self::DELEGATION_EN,
+				'webhook_edit_route_unavailable' => 'Webhook edit route is unavailable. ' . self::DELEGATION_EN,
+				'webhook_destroy_route_unavailable' => 'Webhook destroy route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'webhook_create_route_unavailable' => 'La ruta de creación de webhook no está disponible. ' . self::DELEGATION_ES,
+				'webhook_edit_route_unavailable' => 'La ruta de edición de webhook no está disponible. ' . self::DELEGATION_ES,
+				'webhook_destroy_route_unavailable' => 'La ruta de eliminación de webhook no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'webhook_create_route_unavailable' => 'La route de création de webhook n\'est pas disponible. ' . self::DELEGATION_FR,
+				'webhook_edit_route_unavailable' => 'La route d\'édition de webhook n\'est pas disponible. ' . self::DELEGATION_FR,
+				'webhook_destroy_route_unavailable' => 'La route de suppression de webhook n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'webhook_create_route_unavailable' => 'נתיב יצירת Webhook אינו זמין. ' . self::DELEGATION_HE,
+				'webhook_edit_route_unavailable' => 'נתיב עריכת Webhook אינו זמין. ' . self::DELEGATION_HE,
+				'webhook_destroy_route_unavailable' => 'נתיב מחיקת Webhook אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'webhook_create_route_unavailable' => 'La rotta di creazione webhook non è disponibile. ' . self::DELEGATION_IT,
+				'webhook_edit_route_unavailable' => 'La rotta di modifica webhook non è disponibile. ' . self::DELEGATION_IT,
+				'webhook_destroy_route_unavailable' => 'La rotta di eliminazione webhook non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'webhook_create_route_unavailable' => 'Webhook作成ルートは利用できません。' . self::DELEGATION_JA,
+				'webhook_edit_route_unavailable' => 'Webhook編集ルートは利用できません。' . self::DELEGATION_JA,
+				'webhook_destroy_route_unavailable' => 'Webhook削除ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'webhook_create_route_unavailable' => 'Webhook aanmaakroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'webhook_edit_route_unavailable' => 'Webhook bewerkingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'webhook_destroy_route_unavailable' => 'Webhook verwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'webhook_create_route_unavailable' => 'Trasa tworzenia webhooka jest niedostępna. ' . self::DELEGATION_PL,
+				'webhook_edit_route_unavailable' => 'Trasa edycji webhooka jest niedostępna. ' . self::DELEGATION_PL,
+				'webhook_destroy_route_unavailable' => 'Trasa usuwania webhooka jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'webhook_create_route_unavailable' => 'A rota de criação de webhook não está disponível. ' . self::DELEGATION_PT,
+				'webhook_edit_route_unavailable' => 'A rota de edição de webhook não está disponível. ' . self::DELEGATION_PT,
+				'webhook_destroy_route_unavailable' => 'A rota de eliminação de webhook não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'webhook_create_route_unavailable' => 'A rota de criação de webhook não está disponível. ' . self::DELEGATION_PTBR,
+				'webhook_edit_route_unavailable' => 'A rota de edição de webhook não está disponível. ' . self::DELEGATION_PTBR,
+				'webhook_destroy_route_unavailable' => 'A rota de exclusão de webhook não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'webhook_create_route_unavailable' => 'Маршрут создания вебхука недоступен. ' . self::DELEGATION_RU,
+				'webhook_edit_route_unavailable' => 'Маршрут редактирования вебхука недоступен. ' . self::DELEGATION_RU,
+				'webhook_destroy_route_unavailable' => 'Маршрут удаления вебхука недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'webhook_create_route_unavailable' => 'Webhook oluşturma rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'webhook_edit_route_unavailable' => 'Webhook düzenleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'webhook_destroy_route_unavailable' => 'Webhook silme rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'webhook_create_route_unavailable' => 'Webhook创建路由不可用。' . self::DELEGATION_ZH,
+				'webhook_edit_route_unavailable' => 'Webhook编辑路由不可用。' . self::DELEGATION_ZH,
+				'webhook_destroy_route_unavailable' => 'Webhook删除路由不可用。' . self::DELEGATION_ZH
+			]
+		],
 		ViewsConstants::WRH => [
 			'ar' => ['warehouse_index_route_unavailable' => 'مسار المستودعات غير متاح. ' . self::DELEGATION_AR],
 			'da' => ['warehouse_index_route_unavailable' => 'Lagerrute er ikke tilgængelig. ' . self::DELEGATION_DA],
@@ -10126,6 +11199,56 @@ class LangsConstants
 			'ru' => ['warning_index_route_unavailable' => 'Маршрут индекса предупреждений недоступен. ' . self::DELEGATION_RU],
 			'tr' => ['warning_index_route_unavailable' => 'Uyarı indeks rotası kullanılamıyor. ' . self::DELEGATION_TR],
 			'zh' => ['warning_index_route_unavailable' => '警告索引路由不可用。' . self::DELEGATION_ZH]
+		],
+		'zoom' => [
+			'ar' => [
+				'zoom_settings_route_unavailable' => 'مسار إعدادات Zoom غير متاح. ' . self::DELEGATION_AR
+			],
+			'da' => [
+				'zoom_settings_route_unavailable' => 'Zoom indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+			],
+			'de' => [
+				'zoom_settings_route_unavailable' => 'Zoom-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+			],
+			'en' => [
+				'zoom_settings_route_unavailable' => 'Zoom settings route is unavailable. ' . self::DELEGATION_EN
+			],
+			'es' => [
+				'zoom_settings_route_unavailable' => 'La ruta de configuración de Zoom no está disponible. ' . self::DELEGATION_ES
+			],
+			'fr' => [
+				'zoom_settings_route_unavailable' => 'La route des paramètres Zoom n\'est pas disponible. ' . self::DELEGATION_FR
+			],
+			'he' => [
+				'zoom_settings_route_unavailable' => 'נתיב הגדרות Zoom אינו זמין. ' . self::DELEGATION_HE
+			],
+			'it' => [
+				'zoom_settings_route_unavailable' => 'La rotta delle impostazioni Zoom non è disponibile. ' . self::DELEGATION_IT
+			],
+			'ja' => [
+				'zoom_settings_route_unavailable' => 'Zoom設定ルートは利用できません。' . self::DELEGATION_JA
+			],
+			'nl' => [
+				'zoom_settings_route_unavailable' => 'Zoom-instellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+			],
+			'pl' => [
+				'zoom_settings_route_unavailable' => 'Trasa ustawień Zoom jest niedostępna. ' . self::DELEGATION_PL
+			],
+			'pt' => [
+				'zoom_settings_route_unavailable' => 'A rota de definições do Zoom não está disponível. ' . self::DELEGATION_PT
+			],
+			'pt-br' => [
+				'zoom_settings_route_unavailable' => 'A rota de configurações do Zoom não está disponível. ' . self::DELEGATION_PTBR
+			],
+			'ru' => [
+				'zoom_settings_route_unavailable' => 'Маршрут настроек Zoom недоступен. ' . self::DELEGATION_RU
+			],
+			'tr' => [
+				'zoom_settings_route_unavailable' => 'Zoom ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+			],
+			'zh' => [
+				'zoom_settings_route_unavailable' => 'Zoom设置路由不可用。' . self::DELEGATION_ZH
+			]
 		],
 		ViewsConstants::ZMM => [
 			'ar' => ['zoom_meeting_index_route_unavailable' => 'مسار اجتماعات زووم غير متاح. ' . self::DELEGATION_AR],

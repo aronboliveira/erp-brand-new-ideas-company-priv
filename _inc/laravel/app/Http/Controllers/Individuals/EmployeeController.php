@@ -335,9 +335,9 @@ class EmployeeController extends Controller
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
         if ($c = self::guard($r, 'manage employee profile', self::REDIRECT_INDEX)) return $c;
         $employeesQ = Employee::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
-            ->when($r->branch,      fn ($q) => $q->where(CompaniesConstants::COL_BRC_ID,      $r->branch))
-            ->when($r->department,  fn ($q) => $q->where(CompaniesConstants::COL_DEP_ID,  $r->department))
-            ->when($r->designation, fn ($q) => $q->where('designation_id', $r->designation));
+            ->when($r->branch,      fn($q) => $q->where(CompaniesConstants::COL_BRC_ID,      $r->branch))
+            ->when($r->department,  fn($q) => $q->where(CompaniesConstants::COL_DEP_ID,  $r->department))
+            ->when($r->designation, fn($q) => $q->where('designation_id', $r->designation));
         $employees = $employeesQ->get();
         $branches    = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
             ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend(__('All'), '');
@@ -399,7 +399,7 @@ class EmployeeController extends Controller
         );
     }
 
-    public function getDepartment(Request $r): JsonResponse
+    public function getDepartment(Request $r): JsonResponse|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -407,65 +407,86 @@ class EmployeeController extends Controller
         ) return $userOrRedirect;
         $user = $userOrRedirect;
         $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
-            ->when($r[CompaniesConstants::COL_BRC_ID] != 0, fn ($q) => $q->where(CompaniesConstants::COL_BRC_ID, $r[CompaniesConstants::COL_BRC_ID]))
+            ->when($r[CompaniesConstants::COL_BRC_ID] != 0, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $r[CompaniesConstants::COL_BRC_ID]))
             ->pluck('name', 'id');
 
         return response()->json($departments);
     }
 
-    public function joiningletterPdf(int $id)
+    public const JNL_PDF = 'joiningLetterPdf';
+    public function joiningletterPdf(int $id): View|RedirectResponse
     {
         return self::renderLetter(
-            self::SINGULAR . '.template.joiningletterpdf',
+            self::SINGULAR . '.templates.joining_letter_pdf',
             JoiningLetter::class,
             $id
         );
     }
 
-    public function joiningletterDoc(int $id)
+    public const JNL_DOC = 'joiningLetterDoc';
+    public function joiningletterDoc(int $id): View|RedirectResponse
     {
         return self::renderLetter(
-            self::SINGULAR . '.template.joiningletterdocx',
+            self::SINGULAR . '.templates.joining_letter_doc',
             JoiningLetter::class,
             $id
         );
     }
 
-    public function expCertificatePdf(int $id)
+    public const EC_PDF = 'expCertificatePdf';
+    public function expCertificatePdf(int $id): View|RedirectResponse
     {
         $term = Termination::where(UsersConstants::COL_EMP_ID, $id)->first();
         if (!$term?->termination_date)
             return back()->with('error', __('Termination date is required.'));
-
         $emp = Employee::find($id);
         $duration = $emp
             ? now()->diffInDays($emp->company_doj ?? now())
             : 0;
-
         return self::renderLetter(
-            self::SINGULAR . '.template.ExpCertificatepdf',
+            self::SINGULAR . '.templates.exp_certificate_pdf',
             ExperienceCertificate::class,
             $id,
             ['duration' => "$duration days", 'payroll' => optional($emp->salary_type)->name]
         );
     }
 
-    public function expCertificateDoc(int $id)
+    public const EC_DOC = 'expCertificateDoc';
+    public function expCertificateDoc(int $id): View|RedirectResponse
     {
-        return $this->expCertificatePdf($id);
-    } // same rendering
+        $term = Termination::where(UsersConstants::COL_EMP_ID, $id)->first();
+        if (!$term?->termination_date)
+            return back()->with('error', __('Termination date is required.'));
+        $emp = Employee::find($id);
+        $duration = $emp
+            ? now()->diffInDays($emp->company_doj ?? now())
+            : 0;
+        return self::renderLetter(
+            self::SINGULAR . '.templates.exp_certificate_doc',
+            ExperienceCertificate::class,
+            $id,
+            ['duration' => "$duration days", 'payroll' => optional($emp->salary_type)->name]
+        );
+    }
 
-    public function nocPdf(int $id)
+    public const NOC_PDF = 'nocPdf';
+    public function nocPdf(int $id): View|RedirectResponse
     {
         return self::renderLetter(
-            self::SINGULAR . '.template.Nocpdf',
+            self::SINGULAR . '.templates.noc_pdf',
             Noc::class,
             $id
         );
     }
-    public function nocDoc(int $id)
+
+    public const NOC_DOC = 'nocDoc';
+    public function nocDoc(int $id): View|RedirectResponse
     {
-        return $this->nocPdf($id);
+        return self::renderLetter(
+            self::SINGULAR . '.templates.noc_doc',
+            Noc::class,
+            $id
+        );
     }
 
     public function export(): RedirectResponse|BinaryFileResponse
@@ -480,6 +501,7 @@ class EmployeeController extends Controller
         }
     }
 
+    public const IMP_FL = 'importFile';
     public function importFile(): View
     {
         return view(self::SINGULAR . '.import');
@@ -503,8 +525,23 @@ class EmployeeController extends Controller
                     continue;
                 } // +2 => human row
                 [
-                    $name, $dob, $gender, $phone, $addr, $email, $pwd,, $branch, $dept, $desg, $doj,
-                    $accName, $accNum, $bank, $bic, $brLoc, $tax
+                    $name,
+                    $dob,
+                    $gender,
+                    $phone,
+                    $addr,
+                    $email,
+                    $pwd,,
+                    $branch,
+                    $dept,
+                    $desg,
+                    $doj,
+                    $accName,
+                    $accNum,
+                    $bank,
+                    $bic,
+                    $brLoc,
+                    $tax
                 ] = array_pad($row, 18, null);
 
                 $user = User::firstOrCreate(
@@ -564,7 +601,7 @@ class EmployeeController extends Controller
             : null;
     }
 
-    private static function nextEmployeeNumber(): int
+    private static function nextEmployeeNumber(): int|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -599,7 +636,7 @@ class EmployeeController extends Controller
         }
     }
 
-    private static function buildLetterContext(Employee $e): array
+    private static function buildLetterContext(Employee $e): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())

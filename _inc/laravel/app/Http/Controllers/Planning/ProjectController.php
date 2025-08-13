@@ -8,7 +8,8 @@ use App\Config\Constants\{
     PermissionsConstants,
     ProjectsConstants,
     SupportsConstants,
-    UsersConstants
+    UsersConstants,
+    ViewsConstants
 };
 use App\Models\{
     ProjectStage,
@@ -92,7 +93,7 @@ class ProjectController extends Controller
             ->pluck(UsersConstants::COL_NM, 'id');
         $clients->prepend('Select Client', '');
         $users->prepend('Select User', '');
-        return view(DatabaseConstants::TABLE_PROJECTS . '.' . __FUNCTION__, compact(
+        return view(ViewsConstants::PRJ . '.' . __FUNCTION__, compact(
             DatabaseConstants::TABLE_CLIENTS,
             DatabaseConstants::TABLE_USERS
         ));
@@ -301,7 +302,7 @@ class ProjectController extends Controller
 
             $lastTask = \App\Models\TaskStage::where(DatabaseConstants::TABLE_CREATOR, $usr->creatorId())
                 ->orderBy(ActivitiesConstants::COL_OD, 'DESC')->first();
-            return view(DatabaseConstants::TABLE_PROJECTS . '.view', [
+            return view(ViewsConstants::PRJ . '.view', [
                 self::ENTITY => $project,
                 'project_data' => $pd,
                 'last_task' => $lastTask
@@ -327,7 +328,7 @@ class ProjectController extends Controller
             $clients = User::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
                 ->where(UsersConstants::COL_TP, PermissionsConstants::CL)
                 ->pluck(UsersConstants::COL_NM, 'id');
-            return view(DatabaseConstants::TABLE_PROJECTS . '.' . __FUNCTION__, compact(self::ENTITY, DatabaseConstants::TABLE_CLIENTS));
+            return view(ViewsConstants::PRJ . '.' . __FUNCTION__, compact(self::ENTITY, DatabaseConstants::TABLE_CLIENTS));
         } catch (\Throwable $e) {
             return defaultUndefinedException(
                 $request,
@@ -423,6 +424,7 @@ class ProjectController extends Controller
         }
     }
 
+    public const INV_MB_VW = 'inviteMemberView';
     public function inviteMemberView(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
@@ -434,12 +436,13 @@ class ProjectController extends Controller
                 ->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)
                 ->whereNotIn('id', $existing)
                 ->get();
-            return view(DatabaseConstants::TABLE_PROJECTS . '.invite', compact('projectId', DatabaseConstants::TABLE_USERS));
+            return view(ViewsConstants::PRJ . '.invite', compact('projectId', DatabaseConstants::TABLE_USERS));
         } catch (\Throwable $e) {
             return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
         }
     }
 
+    public const INV_PRJ_USR_MB = 'inviteProjectUserMember';
     public function inviteProjectUserMember(Request $request): JsonResponse
     {
         if (($r = self::_checkLogin()) instanceof RedirectResponse)
@@ -477,6 +480,7 @@ class ProjectController extends Controller
         }
     }
 
+    public const DST_PRJ_USR = 'destroyProjectUser';
     public function destroyProjectUser(Request $request, int|string $projectId, int $userId): RedirectResponse|null
     {
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
@@ -504,6 +508,7 @@ class ProjectController extends Controller
         }
     }
 
+    public const LD_USR = 'loadUser';
     public function loadUser(Request $request): JsonResponse|null
     {
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return null;
@@ -517,7 +522,7 @@ class ProjectController extends Controller
         try {
             $project = Project::findOrFail($request->project_id);
             $html = view(
-                DatabaseConstants::TABLE_PROJECTS . '.' . DatabaseConstants::TABLE_USERS,
+                ViewsConstants::PRJ . '.' . DatabaseConstants::TABLE_USERS,
                 compact(self::ENTITY)
             )->render();
             return response()->json(['success' => true, 'html' => $html]);
@@ -531,9 +536,10 @@ class ProjectController extends Controller
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
         if (($g = self::guard($request, 'create milestone', DatabaseConstants::TABLE_PROJECTS . '.index')) instanceof RedirectResponse) return $g;
         $project = Project::findOrFail($projectId);
-        return view(DatabaseConstants::TABLE_PROJECTS . '.milestone', compact(self::ENTITY));
+        return view(ViewsConstants::ML, compact(self::ENTITY));
     }
 
+    public const ML_STR = 'milestoneStore';
     public function milestoneStore(Request $request, int|string $projectId): RedirectResponse|null
     {
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
@@ -570,14 +576,16 @@ class ProjectController extends Controller
         }
     }
 
+    public const ML_ED = 'milestoneEdit';
     public function milestoneEdit(Request $request, int|string $milestoneId): View|RedirectResponse|null
     {
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
         if (($g = self::guard($request, 'edit milestone', DatabaseConstants::TABLE_PROJECTS . '.index')) instanceof RedirectResponse) return $g;
         $milestone = Milestone::findOrFail($milestoneId);
-        return view(DatabaseConstants::TABLE_PROJECTS . '.milestoneEdit', compact('milestone'));
+        return view(ViewsConstants::ML . '.edit', compact('milestone'));
     }
 
+    public const ML_UPD = 'milestoneUpdate';
     public function milestoneUpdate(Request $request, int|string $milestoneId): RedirectResponse|null
     {
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
@@ -628,7 +636,7 @@ class ProjectController extends Controller
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
         if (($g = self::guard($request, 'view milestone', DatabaseConstants::TABLE_PROJECTS . '.index')) instanceof RedirectResponse) return $g;
         $milestone = Milestone::findOrFail($milestoneId);
-        return view(DatabaseConstants::TABLE_PROJECTS . '.milestoneShow', compact('milestone'));
+        return view(ViewsConstants::ML . '.show', compact('milestone'));
     }
 
     public const FT_PRJ = 'filterProjectView';
@@ -660,7 +668,7 @@ class ProjectController extends Controller
                 ->orderBy(ActivitiesConstants::COL_OD, 'DESC')
                 ->first();
             $html = view(
-                DataBaseConstants::TABLE_PROJECTS . '.{$request->view}',
+                ViewsConstants::PRJ . '.{$request->view}',
                 compact(DatabaseConstants::TABLE_PROJECTS, 'userProjects', 'lastTask')
             )
                 ->render();
@@ -689,7 +697,7 @@ class ProjectController extends Controller
                         . ' - ' . Utility::getDateFormated($t[ProjectsConstants::COL_E_DT]),
                 ],
             ])->toArray();
-            return view(DatabaseConstants::TABLE_PROJECTS . '.gantt', compact(self::ENTITY, DatabaseConstants::TABLE_TASKS, 'duration'));
+            return view(ViewsConstants::PRJ . '.gantt', compact(self::ENTITY, DatabaseConstants::TABLE_TASKS, 'duration'));
         } catch (\Throwable $e) {
             return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
         }
@@ -736,7 +744,7 @@ class ProjectController extends Controller
                     ->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")")
                     ->get()
             };
-            return view(DatabaseConstants::TABLE_PROJECTS . '.bug', compact(self::ENTITY, DatabaseConstants::TABLE_BUGS));
+            return view(ViewsConstants::PRJ . '.bug', compact(self::ENTITY, DatabaseConstants::TABLE_BUGS));
         } catch (\Throwable $e) {
             return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
         }
@@ -755,7 +763,7 @@ class ProjectController extends Controller
             ->pluck(UsersConstants::COL_USER_ID)->toArray();
         $users = User::whereIn('id', $ids)->pluck(UsersConstants::COL_NM, 'id');
         $priority = Bug::$priority;
-        return view(DatabaseConstants::TABLE_PROJECTS . '.bugCreate', compact(ActivitiesConstants::COL_TSK_STT, 'projectId', ProjectsConstants::COL_PRT, DatabaseConstants::TABLE_USERS));
+        return view(ViewsConstants::PRJ . '.bugCreate', compact(ActivitiesConstants::COL_TSK_STT, 'projectId', ProjectsConstants::COL_PRT, DatabaseConstants::TABLE_USERS));
     }
 
     public const BUG_ST = 'bugStore';
@@ -792,7 +800,7 @@ class ProjectController extends Controller
                 'log_type'   => 'Create Bug',
                 'remark'     => json_encode([ActivitiesConstants::COL_TT => $bug->title]),
             ]);
-            return Redirect::route('task.bug', $projectId)
+            return Redirect::route(ViewsConstants::PRJ_TSK_BUG . '.', $projectId)
                 ->with('success', __('Bug successfully created.'));
         } catch (\Throwable $e) {
             return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
@@ -813,7 +821,7 @@ class ProjectController extends Controller
             ->pluck(UsersConstants::COL_USER_ID)->toArray();
         $users = User::whereIn('id', $ids)->pluck(UsersConstants::COL_NM, 'id');
         $priority = Bug::$priority;
-        return view(DatabaseConstants::TABLE_PROJECTS . '.bugEdit', compact(ActivitiesConstants::COL_TSK_STT, 'projectId', ProjectsConstants::COL_PRT, DatabaseConstants::TABLE_USERS, 'bug'));
+        return view(ViewsConstants::PRJ . '.bugEdit', compact(ActivitiesConstants::COL_TSK_STT, 'projectId', ProjectsConstants::COL_PRT, DatabaseConstants::TABLE_USERS, 'bug'));
     }
 
     public const BUG_UPD = 'bugUpdate';
@@ -842,7 +850,7 @@ class ProjectController extends Controller
                 'due_date'    => Carbon::parse($data['due_date'])->toDateString(),
                 ActivitiesConstants::COL_DESC => $data[ActivitiesConstants::COL_DESC] ?? null,
             ])->save();
-            return Redirect::route('task.bug', $projectId)
+            return Redirect::route(ViewsConstants::PRJ_TSK_BUG . '.', $projectId)
                 ->with('success', __('Bug successfully updated.'));
         } catch (\Throwable $e) {
             return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
@@ -858,7 +866,7 @@ class ProjectController extends Controller
         }
         try {
             Bug::findOrFail($bugId)->delete();
-            return Redirect::route('task.bug', $projectId)
+            return Redirect::route(ViewsConstants::PRJ_TSK_BUG . '.', $projectId)
                 ->with('success', __('Bug successfully deleted.'));
         } catch (\Throwable $e) {
             return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
@@ -878,7 +886,7 @@ class ProjectController extends Controller
             $bugStatus = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
                 ->orderBy(ActivitiesConstants::COL_OD, 'ASC')
                 ->get();
-            return view(DatabaseConstants::TABLE_PROJECTS . '.bugKanban', compact(self::ENTITY, 'bug_status'));
+            return view(ViewsConstants::PRJ . '.bugKanban', compact(self::ENTITY, 'bug_status'));
         } catch (\Throwable $e) {
             return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
         }
@@ -916,7 +924,7 @@ class ProjectController extends Controller
         if (!$request->user()->can('view bug report'))
             return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
         $bug = Bug::findOrFail($bugId);
-        return view(DatabaseConstants::TABLE_PROJECTS . '.bugShow', compact('bug'));
+        return view(ViewsConstants::PRJ . '.bugShow', compact('bug'));
     }
 
     public const BUG_CMT_STR = 'bugCommentStore';
@@ -943,7 +951,7 @@ class ProjectController extends Controller
             'user_type'  => Auth::user()->type,
         ]);
 
-        $comment->deleteUrl = route('bug.comment.destroy', $comment->id);
+        $comment->deleteUrl = route(ViewsConstants::PRJ_BUG_CM . '.destroy', $comment->id);
         return response()->json([
             'is_success' => true,
             'message'    => __("Bug comment successfully created."),
@@ -979,7 +987,7 @@ class ProjectController extends Controller
             DatabaseConstants::TABLE_CREATOR => Auth::id(),
             'user_type'  => Auth::user()->type,
         ]);
-        $bf->deleteUrl = route('bug.comment.file.destroy', $bf->id);
+        $bf->deleteUrl = route(ViewsConstants::PRJ_BUG_CM . '.file.destroy', $bf->id);
         return response()->json($bf, 200);
     }
 
@@ -1037,7 +1045,7 @@ class ProjectController extends Controller
         if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
         if (($g = self::guard($request, 'create project', DatabaseConstants::TABLE_PROJECTS . '.index')) instanceof RedirectResponse) return $g;
         $project = Project::findOrFail($projectId);
-        return view(DatabaseConstants::TABLE_PROJECTS . '.copy', compact(self::ENTITY));
+        return view(ViewsConstants::PRJ . '.copy', compact(self::ENTITY));
     }
 
     public const CP_PRJ_ST = 'copyProjectStore';
@@ -1169,7 +1177,7 @@ class ProjectController extends Controller
             ->where(DatabaseConstants::TABLE_PROJECTS . '.id', $projectId)
             ->firstOrFail();
         $settings = json_decode($project->copylinksetting, true) ?? [];
-        return view(DatabaseConstants::TABLE_PROJECTS . '.copylink_setting', compact(self::ENTITY, 'projectId', 'settings'));
+        return view(ViewsConstants::PRJ . '.copylink_setting', compact(self::ENTITY, 'projectId', 'settings'));
     }
 
     public const CP_LNK_ST = 'copyLinkSetting';
@@ -1226,7 +1234,7 @@ class ProjectController extends Controller
             && session("copy_pass_true{$id}") !== "{$project->password}-{$id}"
         )
             return view(
-                DatabaseConstants::TABLE_PROJECTS . '.copylink_password',
+                ViewsConstants::PRJ . '.copylink_password',
                 compact('id')
             );
         session(["copy_pass_true{$id}" => "{$project->password}-{$id}"]);
@@ -1343,7 +1351,7 @@ class ProjectController extends Controller
             ->get();
         $bugs = Bug::where(ActivitiesConstants::COL_PJ, $id)->get();
         $tasks = ProjectTask::where(ActivitiesConstants::COL_PJ, $id)->get();
-        return view(DatabaseConstants::TABLE_PROJECTS . '.copylink', compact(
+        return view(ViewsConstants::PRJ . '.copylink', compact(
             'settings',
             self::ENTITY,
             'project_data',

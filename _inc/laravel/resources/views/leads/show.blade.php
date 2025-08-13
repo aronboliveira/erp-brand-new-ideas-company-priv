@@ -616,7 +616,7 @@
                                                        data-bs-placement="top" data-title="{{ __('Grammar check with AI') }}">
                                                         <i class="ti ti-rotate"></i> <span>{{__('Grammar check with AI')}}</span>
                                                     </a>
-                                                    <a href="#" data-size="md" class="btn  btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['lead']) }}"
+                                                    <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['lead']) }}"
                                                        data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
                                                         <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
                                                     </a>

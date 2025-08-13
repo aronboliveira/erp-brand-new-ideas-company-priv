@@ -1,5 +1,5 @@
 @php
-    use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants, ViewsConstants};
+    use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants as VC, ViewsConstants};
 @endphp
 {{ Collective\Html\FormFacade::open(array('url' => DatabaseConstants::TABLE_PROD_SERVS,'enctype' => "multipart/form-data")) }}
 <div class="modal-body">
@@ -9,7 +9,7 @@
     @endphp
     @if($plan->chatgpt == 1)
     <div class="text-end">
-        <a href="#" data-size="md" class="btn  btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',[DatabaseConstants::TABLE_PROD_SERVS]) }}"
+        <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',[DatabaseConstants::TABLE_PROD_SERVS]) }}"
            data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
             <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
         </a>
@@ -81,13 +81,13 @@
                     <label class="d-block form-label">{{__('Type')}}</label>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="{{ ViewClassNamesConstants::FM_CHK_IL }}">
+                            <div class="{{ VC::FM_CHK_IL }}">
                                 <input type="radio" class="form-check-input type" id="customRadio5" name="type" value="product" checked="checked" >
                                 <label class="custom-control-label form-label" for="customRadio5">{{__('Product')}}</label>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="{{ ViewClassNamesConstants::FM_CHK_IL }}">
+                            <div class="{{ VC::FM_CHK_IL }}">
                                 <input type="radio" class="form-check-input type" id="customRadio6" name="type" value="service" >
                                 <label class="custom-control-label form-label" for="customRadio6">{{__('Service')}}</label>
                             </div>
@@ -105,7 +105,7 @@
             {!! Collective\Html\FormFacade::textarea('description', null, ['class'=>'form-control','rows'=>'2']) !!}
         </div>
         @if(!$customFields->isEmpty())
-            <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="{{ VC::CLM6 }}">
                 <div class="tab-pane fade show" id="tab-2" role="tabpanel">
                     @include(ViewsConstants::CST_FD . '.formBuilder')
                 </div>

@@ -54,7 +54,7 @@ final class ExpenseController extends Controller
         $this->middleware([MiddlewaresConstants::AUTH]);
     }
 
-    public function index(Request $r): Response|RedirectResponse
+    public function index(Request $r): Response|RedirectResponse|View
     {
         if (($auth = self::_authorize($r, PermissionsConstants::MNG_BIL)) !== true)
             return $auth;
@@ -122,7 +122,6 @@ final class ExpenseController extends Controller
                 ->pluck('name', 'id'),
             'id'           => $refId
         ];
-
         return view(ViewsConstants::EXP . '.create', $data);
     }
 
@@ -291,6 +290,7 @@ final class ExpenseController extends Controller
         }
     }
 
+    public const PRD_DST = 'productDestroy';
     public function productDestroy(Request $r): RedirectResponse
     {
         if (($auth = self::_authorize($r, 'delete bill product')) !== true)
@@ -491,7 +491,7 @@ final class ExpenseController extends Controller
             DB::table(DatabaseConstants::TABLE_SETTINGS)
                 ->where(DatabaseConstants::TABLE_CREATOR, $expense[DatabaseConstants::TABLE_CREATOR])
                 ->get()
-                ->each(fn ($row) => $settings[$row->name] = $row->value);
+                ->each(fn($row) => $settings[$row->name] = $row->value);
             // prepare items and totals
             $totals = ['quantity' => 0, 'rate' => 0, 'discount' => 0, 'taxPrice' => 0];
             $taxesData = [];
@@ -638,7 +638,7 @@ final class ExpenseController extends Controller
         }
     }
 
-    private function expenseNumber(): int
+    private function expenseNumber(): int|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -652,7 +652,7 @@ final class ExpenseController extends Controller
         )->bill_id + 1 ?? 1;
     }
 
-    private function billNumber(): int
+    private function billNumber(): int|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())

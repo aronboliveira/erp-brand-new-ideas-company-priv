@@ -1,13 +1,15 @@
 @php
     use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\{ViewsConstants, DatabaseConstants};
-
+    use App\Config\Constants\{
+        DatabaseConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC
+    };
     $basicFields = [
         ['name'=>'name',       'type'=>'text',     'label'=>__('Name'),        'cols'=>6, 'required'=>true],
         ['name'=>'contact',    'type'=>'number',   'label'=>__('Contact'),     'cols'=>6, 'required'=>true],
         ['name'=>'tax_number', 'type'=>'text',     'label'=>__('Tax Number'),  'cols'=>4],
     ];
-
     $billingFields = [
         ['name'=>'billing_name',    'type'=>'text',     'label'=>__('Name'),     'cols'=>6],
         ['name'=>'billing_phone',   'type'=>'text',     'label'=>__('Phone'),    'cols'=>6],
@@ -41,7 +43,7 @@
     <h6 class="sub-title">{{ __('Basic Info') }}</h6>
     <div class="row">
         @foreach($basicFields as $f)
-            <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="{{ VC::CLM6 }}">
                 <div class="form-group">
                     {{ Form::label($f['name'], $f['label'], ['class'=>'form-label']) }}
                     @php $attrs = ['class'=>'form-control'] + ($f['required'] ? ['required'=>'required'] : []); @endphp
@@ -51,7 +53,7 @@
         @endforeach
 
         @if(!$customFields->isEmpty())
-            <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="{{ VC::CLMS4 }}">
                 <div class="tab-pane fade show" id="tab-2" role="tabpanel">
                     @include(ViewsConstants::CST_FD . '.formBuilder')
                 </div>
@@ -62,7 +64,7 @@
     <h6 class="sub-title">{{ __('Billing Address') }}</h6>
     <div class="row">
         @foreach($billingFields as $f)
-            <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="{{ VC::CLM6 }}">
                 <div class="form-group">
                     {{ Form::label($f['name'], $f['label'], ['class'=>'form-label']) }}
                     @php $attrs = ['class'=>'form-control'] + (isset($f['rows']) ? ['rows'=>$f['rows']] : []); @endphp
@@ -85,7 +87,7 @@
         <h6 class="sub-title">{{ __('Shipping Address') }}</h6>
         <div class="row">
             @foreach($shippingFields as $f)
-                <div class="col-lg-6 col-md-6 col-sm-6">
+                <div class="{{ VC::CLM6 }}">
                     <div class="form-group">
                         {{ Form::label($f['name'], $f['label'], ['class'=>'form-label']) }}
                         @php $attrs = ['class'=>'form-control'] + (isset($f['rows']) ? ['rows'=>$f['rows']] : []); @endphp

@@ -231,7 +231,7 @@ Route::post(ViewsConstants::JB . '/apply/data/{code}', [JobController::class, Jo
 #endregion
 //================================= Project Copy Module  ====================================//
 #region
-Route::get(ViewsConstants::PRJ . '/copylink/{id}', [ProjectController::class, 'projectCopyLink'])->name(ViewsConstants::PRJ . '.copylink');
+Route::get(ViewsConstants::PRJ . '/copy-link/{id}', [ProjectController::class, 'projectCopyLink'])->name(ViewsConstants::PRJ . '.copy_link');
 Route::any(ViewsConstants::PRJ . '/link/{id}/{lang?}', [ProjectController::class, 'projectlink'])->name(ViewsConstants::PRJ . '.link')->middleware([MiddlewaresConstants::XSS]);
 Route::get(ViewsConstants::TMS . '/table-view', [TimesheetController::class, TimesheetController::FT_TMS_TBL])->name(ViewsConstants::TMS . '.filters.table.view')
     ->middleware([MiddlewaresConstants::XSS]);
@@ -334,10 +334,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::post('test-mail', [SystemController::class, SystemController::TT_MAIL])->name(ViewsConstants::TT . '.mail');
             Route::post('test-mail/send', [SystemController::class, SystemController::TT_SMAIL])->name(ViewsConstants::TT . '.send.mail');
             Route::post('stripe-settings', [SystemController::class, SystemController::SV_PAY_ST])->name(ViewsConstants::PAY . '.settings');
-            Route::post('pusher-setting', [SystemController::class, SystemController::SV_PSR_ST])->name('pusher.setting');
-            Route::post('recaptcha-settings', [SystemController::class, SystemController::RCP_ST_STR])->name('recaptcha.settings.store')
+            Route::post('pusher-setting', [SystemController::class, SystemController::SV_PSR_ST])->name(ViewsConstants::SET . '.pusher');
+            Route::post('recaptcha-settings', [SystemController::class, SystemController::RCP_ST_STR])->name('settings.recaptcha.store')
                 ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-            Route::post('seo-settings', [SystemController::class, SystemController::SEO_ST])->name('seo.settings.store')
+            Route::post('seo-settings', [SystemController::class, SystemController::SEO_ST])->name(ViewsConstants::SET . '.seo.store')
                 ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
             Route::any('webhook-settings', [SystemController::class, 'webhook'])->name(ViewsConstants::WBH . '.settings')
                 ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -350,7 +350,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
                 ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
             Route::delete('webhook-settings/{wid}', [SystemController::class, SystemController::WHK_DST])->name(ViewsConstants::WBH . '.destroy')
                 ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-            Route::post('cookie-setting', [SystemController::class, SystemController::SV_CK_ST])->name('cookie.setting');
+            Route::post('cookie-setting', [SystemController::class, SystemController::SV_CK_ST])->name(ViewsConstants::SET . '.cookies.store');
             Route::post('cache-settings', [SystemController::class, SystemController::CC_ST_STR])->name('cache.settings.store')
                 ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
         }
@@ -543,9 +543,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         }
     );
 
-    Route::get('/' . ViewsConstants::BIL . 'preview/{template}/{color}', [BillController::class, 'previewBill'])->name(ViewsConstants::BIL . '.preview')
+    Route::get(ViewsConstants::BIL . 'preview/{template}/{color}', [BillController::class, 'previewBill'])->name(ViewsConstants::BIL . '.preview')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::BIL . 'template/setting', [BillController::class, BillController::SV_BIL_TMP])
+    Route::post(ViewsConstants::BIL . 'template/setting', [BillController::class, BillController::SV_BIL_TMP])
         ->name(ViewsConstants::BIL_TMP . 'setting');
 
     Route::resource(ViewsConstants::TX, TaxController::class)
@@ -678,8 +678,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         }
     );
 
-    Route::get('/' . ViewsConstants::PPS . '/preview/{template}/{color}', [ProposalController::class, ProposalController::PV_PPS])->name(ViewsConstants::PPS . '.preview');
-    Route::post('/' . ViewsConstants::PPS . '/templates/settings', [ProposalController::class, ProposalController::SV_PPS_TMP])
+    Route::get(ViewsConstants::PPS . '/preview/{template}/{color}', [ProposalController::class, ProposalController::PV_PPS])->name(ViewsConstants::PPS . '.preview');
+    Route::post(ViewsConstants::PPS . '/templates/settings', [ProposalController::class, ProposalController::SV_PPS_TMP])
         ->name(ViewsConstants::PPS . 'settings');
 
     Route::resource('goal', GoalController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
@@ -732,53 +732,53 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // Deal Module
 
-    Route::post('/' . ViewsConstants::DL . '/user', [DealController::class, 'jsonUser'])->name(ViewsConstants::DL . '.user.json');
-    Route::post('/' . ViewsConstants::DL . '/order', [DealController::class, 'order'])->name(ViewsConstants::DL . '.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/change-pipeline', [DealController::class, 'changePipeline'])->name(ViewsConstants::DL . '.change.pipeline')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/change-deal-status/{id}', [DealController::class, 'changeStatus'])->name(ViewsConstants::DL . '.change.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/labels', [DealController::class, 'labels'])->name(ViewsConstants::DL . '.labels')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/{id}/labels', [DealController::class, 'labelStore'])->name(ViewsConstants::DL . '.labels.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/users', [DealController::class, 'userEdit'])->name(ViewsConstants::DL . '.users.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/users', [DealController::class, 'userUpdate'])->name(ViewsConstants::DL . '.users.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::DL . '/{id}/users/{uid}', [DealController::class, 'userDestroy'])->name(ViewsConstants::DL . '.users.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/clients', [DealController::class, 'clientEdit'])->name(ViewsConstants::DL . '.clients.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/clients', [DealController::class, 'clientUpdate'])->name(ViewsConstants::DL . '.clients.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::DL . '/{id}/clients/{uid}', [DealController::class, 'clientDestroy'])->name(ViewsConstants::DL . '.clients.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/products', [DealController::class, 'productEdit'])->name(ViewsConstants::DL . '.products.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/products', [DealController::class, 'productUpdate'])->name(ViewsConstants::DL . '.products.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::DL . '/{id}/products/{uid}', [DealController::class, 'productDestroy'])->name(ViewsConstants::DL . '.products.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/sources', [DealController::class, 'sourceEdit'])->name(ViewsConstants::DL . '.sources.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/sources', [DealController::class, 'sourceUpdate'])->name(ViewsConstants::DL . '.sources.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::DL . '/{id}/sources/{uid}', [DealController::class, 'sourceDestroy'])->name(ViewsConstants::DL . '.sources.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/{id}/file', [DealController::class, 'fileUpload'])->name(ViewsConstants::DL . '.file.upload')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/file/{fid}', [DealController::class, 'fileDownload'])->name(ViewsConstants::DL . '.file.download')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::DL . '/{id}/file/delete/{fid}', [DealController::class, 'fileDelete'])->name(ViewsConstants::DL . '.file.delete')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/{id}/note', [DealController::class, 'noteStore'])->name(ViewsConstants::DL . '.note.store')->middleware([MiddlewaresConstants::AUTH]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK, [DealController::class, 'taskCreate'])->name(ViewsConstants::DL . '.tasks.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK, [DealController::class, 'taskStore'])->name(ViewsConstants::DL . '.tasks.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}/show', [DealController::class, 'taskShow'])->name(ViewsConstants::DL . '.tasks.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}/edit', [DealController::class, 'taskEdit'])->name(ViewsConstants::DL . '.tasks.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}', [DealController::class, 'taskUpdate'])->name(ViewsConstants::DL . '.tasks.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/task_status/{tid}', [DealController::class, 'taskUpdateStatus'])->name(ViewsConstants::DL . '.tasks.update_status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}', [DealController::class, 'taskDestroy'])->name(ViewsConstants::DL . '.tasks.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/discussions', [DealController::class, 'discussionCreate'])->name(ViewsConstants::DL . '.discussions.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/{id}/discussions', [DealController::class, 'discussionStore'])->name(ViewsConstants::DL . '.discussion.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/permission/{cid}', [DealController::class, 'permission'])->name(ViewsConstants::DL . '.client.permission')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/permission/{cid}', [DealController::class, 'permissionStore'])->name(ViewsConstants::DL . '.client.permissions.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::DL . '/list', [DealController::class, 'deal_list'])->name(ViewsConstants::DL . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/user', [DealController::class, 'jsonUser'])->name(ViewsConstants::DL . '.user.json');
+    Route::post(ViewsConstants::DL . '/order', [DealController::class, 'order'])->name(ViewsConstants::DL . '.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/change-pipeline', [DealController::class, 'changePipeline'])->name(ViewsConstants::DL . '.change.pipeline')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/change-deal-status/{id}', [DealController::class, 'changeStatus'])->name(ViewsConstants::DL . '.change.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/labels', [DealController::class, 'labels'])->name(ViewsConstants::DL . '.labels')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/{id}/labels', [DealController::class, 'labelStore'])->name(ViewsConstants::DL . '.labels.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/users', [DealController::class, 'userEdit'])->name(ViewsConstants::DL . '.users.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::put(ViewsConstants::DL . '/{id}/users', [DealController::class, 'userUpdate'])->name(ViewsConstants::DL . '.users.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::DL . '/{id}/users/{uid}', [DealController::class, 'userDestroy'])->name(ViewsConstants::DL . '.users.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/clients', [DealController::class, 'clientEdit'])->name(ViewsConstants::DL . '.clients.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::put(ViewsConstants::DL . '/{id}/clients', [DealController::class, 'clientUpdate'])->name(ViewsConstants::DL . '.clients.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::DL . '/{id}/clients/{uid}', [DealController::class, 'clientDestroy'])->name(ViewsConstants::DL . '.clients.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/products', [DealController::class, 'productEdit'])->name(ViewsConstants::DL . '.products.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::put(ViewsConstants::DL . '/{id}/products', [DealController::class, 'productUpdate'])->name(ViewsConstants::DL . '.products.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::DL . '/{id}/products/{uid}', [DealController::class, 'productDestroy'])->name(ViewsConstants::DL . '.products.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/sources', [DealController::class, 'sourceEdit'])->name(ViewsConstants::DL . '.sources.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::put(ViewsConstants::DL . '/{id}/sources', [DealController::class, 'sourceUpdate'])->name(ViewsConstants::DL . '.sources.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::DL . '/{id}/sources/{uid}', [DealController::class, 'sourceDestroy'])->name(ViewsConstants::DL . '.sources.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/{id}/file', [DealController::class, 'fileUpload'])->name(ViewsConstants::DL . '.file.upload')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/file/{fid}', [DealController::class, 'fileDownload'])->name(ViewsConstants::DL . '.file.download')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::DL . '/{id}/file/delete/{fid}', [DealController::class, 'fileDelete'])->name(ViewsConstants::DL . '.file.delete')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/{id}/note', [DealController::class, 'noteStore'])->name(ViewsConstants::DL . '.note.store')->middleware([MiddlewaresConstants::AUTH]);
+    Route::get(ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK, [DealController::class, 'taskCreate'])->name(ViewsConstants::DL . '.tasks.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK, [DealController::class, 'taskStore'])->name(ViewsConstants::DL . '.tasks.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}/show', [DealController::class, 'taskShow'])->name(ViewsConstants::DL . '.tasks.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}/edit', [DealController::class, 'taskEdit'])->name(ViewsConstants::DL . '.tasks.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::put(ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}', [DealController::class, 'taskUpdate'])->name(ViewsConstants::DL . '.tasks.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::put(ViewsConstants::DL . '/{id}/task_status/{tid}', [DealController::class, 'taskUpdateStatus'])->name(ViewsConstants::DL . '.tasks.update_status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::DL . '/{id}/' . ViewsConstants::TSK . '/{tid}', [DealController::class, 'taskDestroy'])->name(ViewsConstants::DL . '.tasks.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/discussions', [DealController::class, 'discussionCreate'])->name(ViewsConstants::DL . '.discussions.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/{id}/discussions', [DealController::class, 'discussionStore'])->name(ViewsConstants::DL . '.discussion.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/permission/{cid}', [DealController::class, 'permission'])->name(ViewsConstants::DL . '.client.permission')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::put(ViewsConstants::DL . '/{id}/permission/{cid}', [DealController::class, 'permissionStore'])->name(ViewsConstants::DL . '.client.permissions.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/list', [DealController::class, 'deal_list'])->name(ViewsConstants::DL . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Deal Calls
 
-    Route::get('/' . ViewsConstants::DL . '/{id}/call', [DealController::class, 'callCreate'])->name(ViewsConstants::DL . '.calls.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/{id}/call', [DealController::class, 'callStore'])->name(ViewsConstants::DL . '.calls.store')->middleware([MiddlewaresConstants::AUTH]);
-    Route::get('/' . ViewsConstants::DL . '/{id}/call/{cid}/edit', [DealController::class, 'callEdit'])->name(ViewsConstants::DL . '.calls.edit')->middleware([MiddlewaresConstants::AUTH]);
-    Route::put('/' . ViewsConstants::DL . '/{id}/call/{cid}', [DealController::class, 'callUpdate'])->name(ViewsConstants::DL . '.calls.update')->middleware([MiddlewaresConstants::AUTH]);
-    Route::delete('/' . ViewsConstants::DL . '/{id}/call/{cid}', [DealController::class, 'callDestroy'])->name(ViewsConstants::DL . '.calls.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/call', [DealController::class, 'callCreate'])->name(ViewsConstants::DL . '.calls.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/{id}/call', [DealController::class, 'callStore'])->name(ViewsConstants::DL . '.calls.store')->middleware([MiddlewaresConstants::AUTH]);
+    Route::get(ViewsConstants::DL . '/{id}/call/{cid}/edit', [DealController::class, 'callEdit'])->name(ViewsConstants::DL . '.calls.edit')->middleware([MiddlewaresConstants::AUTH]);
+    Route::put(ViewsConstants::DL . '/{id}/call/{cid}', [DealController::class, 'callUpdate'])->name(ViewsConstants::DL . '.calls.update')->middleware([MiddlewaresConstants::AUTH]);
+    Route::delete(ViewsConstants::DL . '/{id}/call/{cid}', [DealController::class, 'callDestroy'])->name(ViewsConstants::DL . '.calls.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Deal Email
 
-    Route::get('/' . ViewsConstants::DL . '/{id}/email', [DealController::class, 'emailCreate'])->name(ViewsConstants::DL . '.emails.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::DL . '/{id}/email', [DealController::class, 'emailStore'])->name(ViewsConstants::DL . '.emails.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::DL . '/{id}/email', [DealController::class, 'emailCreate'])->name(ViewsConstants::DL . '.emails.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::DL . '/{id}/email', [DealController::class, 'emailStore'])->name(ViewsConstants::DL . '.emails.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::resource(ViewsConstants::DL, DealController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
@@ -846,8 +846,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // Email Templates
     Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 'manageEmailLang'])->name('manage.email.language')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::any('email_template_store', [EmailTemplateController::class, 'updateStatus'])->name('emails.status.language')->middleware([MiddlewaresConstants::AUTH]);
-    Route::any('email_template_store/{pid}', [EmailTemplateController::class, 'storeEmailLang'])->name('store.email.language')->middleware([MiddlewaresConstants::AUTH]);
+    Route::any('email_template_store', [EmailTemplateController::class, 'updateStatus'])->name(ViewsConstants::EMLS . '.status.language')->middleware([MiddlewaresConstants::AUTH]);
+    Route::any('email_template_store/{pid}', [EmailTemplateController::class, 'storeEmailLang'])->name(ViewsConstants::EMLS . '.store.language')->middleware([MiddlewaresConstants::AUTH]);
     Route::resource('email_template', EmailTemplateController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     // End Email Templates
 
@@ -978,13 +978,13 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::delete('job-application/{id}/note/destroy', [JobApplicationController::class, 'destroyNote'])->name(ViewsConstants::JB . '.application.note.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('job-application/getByJob', [JobApplicationController::class, 'getByJob'])->name('get.job.application')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('job-onboard', [JobApplicationController::class, 'jobOnBoard'])->name(ViewsConstants::JB . '.on.board')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('job-onboard/create/{id}', [JobApplicationController::class, 'jobBoardCreate'])->name(ViewsConstants::JB . '.on.board.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('job-onboard/store/{id}', [JobApplicationController::class, 'jobBoardStore'])->name(ViewsConstants::JB . '.on.board.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('job-onboard/edit/{id}', [JobApplicationController::class, 'jobBoardEdit'])->name(ViewsConstants::JB . '.on.board.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('job-onboard/update/{id}', [JobApplicationController::class, 'jobBoardUpdate'])->name(ViewsConstants::JB . '.on.board.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('job-onboard/delete/{id}', [JobApplicationController::class, 'jobBoardDelete'])->name(ViewsConstants::JB . '.on.board.delete')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('job-onboard/convert/{id}', [JobApplicationController::class, 'jobBoardConvert'])->name(ViewsConstants::JB . '.on.board.convert')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('job-onboard/convert/{id}', [JobApplicationController::class, 'jobBoardConvertData'])->name(ViewsConstants::JB . '.on.board.convert')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::JB_OB . '/create/{id}', [JobApplicationController::class, 'jobBoardCreate'])->name(ViewsConstants::JB . '.on.board.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::JB_OB . '/store/{id}', [JobApplicationController::class, 'jobBoardStore'])->name(ViewsConstants::JB . '.on.board.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::JB_OB . '/edit/{id}', [JobApplicationController::class, 'jobBoardEdit'])->name(ViewsConstants::JB . '.on.board.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::JB_OB . '/update/{id}', [JobApplicationController::class, 'jobBoardUpdate'])->name(ViewsConstants::JB . '.on.board.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::JB_OB . '/delete/{id}', [JobApplicationController::class, 'jobBoardDelete'])->name(ViewsConstants::JB . '.on.board.delete')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::JB_OB . '/convert/{id}', [JobApplicationController::class, 'jobBoardConvert'])->name(ViewsConstants::JB . '.on.board.convert')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::JB_OB . '/convert/{id}', [JobApplicationController::class, 'jobBoardConvertData'])->name(ViewsConstants::JB . '.on.board.convert')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('job-application/stage/change', [JobApplicationController::class, 'stageChange'])->name(ViewsConstants::JB . '.application.stage.change')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::resource('custom-question', CustomQuestionController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1050,10 +1050,14 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get('/search', [UserController::class, 'search'])->name('search.json');
     // end
 
-    // Milestone Module
-
-    Route::get(ViewsConstants::PRJ . '/{id}/milestone', [ProjectController::class, 'milestone'])->name(ViewsConstants::PRJ . '.milestone')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
+    //================================= Project Milestones  ====================================//
+    #region
+    Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::MLS, [ProjectController::class, 'milestone'])->name(ViewsConstants::ML)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::MLS, [ProjectController::class, ProjectController::ML_STR])->name(ViewsConstants::ML . '.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/' . ViewsConstants::MLS . '/{id}/edit', [ProjectController::class, ProjectController::ML_ED])->name(ViewsConstants::ML . '.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::PRJ . '/' . ViewsConstants::MLS . '/{id}', [ProjectController::class, ProjectController::ML_UPD])->name(ViewsConstants::ML . '.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::PRJ . '/' . ViewsConstants::MLS . '/{id}', [ProjectController::class, ProjectController::ML_DST])->name(ViewsConstants::ML . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/' . ViewsConstants::MLS . '/{id}/show', [ProjectController::class, ProjectController::ML_SHW])->name(ViewsConstants::ML . '.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     //Route::delete(
     //    '/'.ViewsConstants::PRJ.'/{id}/users/{uid}', [
     //                                    'as' => ViewsConstants::PRJ.'.'.ViewsConstants::USR.'s.destroy',
@@ -1065,13 +1069,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //        MiddlewaresConstants::XSS,
     //    ]
     //);
-    Route::post(ViewsConstants::PRJ . '/{id}/milestone', [ProjectController::class, 'milestoneStore'])->name(ViewsConstants::PRJ . '.milestone.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(ViewsConstants::PRJ . '/milestone/{id}/edit', [ProjectController::class, 'milestoneEdit'])->name(ViewsConstants::PRJ . '.milestone.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(ViewsConstants::PRJ . '/milestone/{id}', [ProjectController::class, 'milestoneUpdate'])->name(ViewsConstants::PRJ . '.milestone.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete(ViewsConstants::PRJ . '/milestone/{id}', [ProjectController::class, 'milestoneDestroy'])->name(ViewsConstants::PRJ . '.milestone.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(ViewsConstants::PRJ . '/milestone/{id}/show', [ProjectController::class, 'milestoneShow'])->name(ViewsConstants::PRJ . '.milestone.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     // End Milestone
+    #endregion
 
     // Project Module
 
@@ -1102,27 +1101,27 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // Project Task Module
 
-    Route::get('/' . ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK, [ProjectTaskController::class, 'index'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::PRJ . '/{pid}/' . ViewsConstants::TSK . '/{sid}', [ProjectTaskController::class, 'create'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::PRJ . '/{pid}/' . ViewsConstants::TSK . '/{sid}', [ProjectTaskController::class, 'store'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/{tid}/show', [ProjectTaskController::class, 'show'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/{tid}/edit', [ProjectTaskController::class, 'edit'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/update/{tid}', [ProjectTaskController::class, 'update'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/{tid}', [ProjectTaskController::class, 'destroy'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::patch('/' . ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/order', [ProjectTaskController::class, 'taskOrderUpdate'])->name('tasks.update.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK, [ProjectTaskController::class, 'index'])->name(ViewsConstants::PRJ_TSK_C . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/{pid}/' . ViewsConstants::TSK . '/{sid}', [ProjectTaskController::class, 'create'])->name(ViewsConstants::PRJ_TSK_C . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::PRJ . '/{pid}/' . ViewsConstants::TSK . '/{sid}', [ProjectTaskController::class, 'store'])->name(ViewsConstants::PRJ_TSK_C . '.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/{tid}/show', [ProjectTaskController::class, 'show'])->name(ViewsConstants::PRJ_TSK_C . '.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/{tid}/edit', [ProjectTaskController::class, 'edit'])->name(ViewsConstants::PRJ_TSK_C . '.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/update/{tid}', [ProjectTaskController::class, 'update'])->name(ViewsConstants::PRJ_TSK_C . '.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/{tid}', [ProjectTaskController::class, 'destroy'])->name(ViewsConstants::PRJ_TSK_C . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::patch(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/order', [ProjectTaskController::class, 'taskOrderUpdate'])->name('tasks.update.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::patch('update-task-priority-color', [ProjectTaskController::class, 'updateTaskPriorityColor'])->name('update.task.priority.color')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/comment/{tid}/file', [ProjectTaskController::class, 'commentStoreFile'])->name('comment.store.file')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::PRJ . '/{id}/comment/{tid}/file/{fid}', [ProjectTaskController::class, 'commentDestroyFile'])->name('comment.destroy.file');
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/comment/{tid}', [ProjectTaskController::class, 'commentStore'])->name('task.comment.store');
-    Route::delete('/' . ViewsConstants::PRJ . '/{id}/comment/{tid}/{cid}', [ProjectTaskController::class, 'commentDestroy'])->name('comment.destroy');
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/checklist/{tid}', [ProjectTaskController::class, 'checklistStore'])->name('checklist.store');
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/checklist/update/{cid}', [ProjectTaskController::class, 'checklistUpdate'])->name('checklist.update');
-    Route::delete('/' . ViewsConstants::PRJ . '/{id}/checklist/{cid}', [ProjectTaskController::class, 'checklistDestroy'])->name('checklist.destroy');
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/change/{tid}/fav', [ProjectTaskController::class, 'changeFav'])->name('change.fav');
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/change/{tid}/complete', [ProjectTaskController::class, 'changeCom'])->name('change.complete');
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/change/{tid}/progress', [ProjectTaskController::class, 'changeProg'])->name('change.progress');
-    Route::get('/' . ViewsConstants::PRJ . '/' . ViewsConstants::TSK . '/{id}/get', [ProjectTaskController::class, 'taskGet'])->name(ViewsConstants::PRJ_TSK_CHAIN . '.get')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::PRJ . '/{id}/comment/{tid}/file', [ProjectTaskController::class, 'commentStoreFile'])->name('comment.store.file')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::PRJ . '/{id}/comment/{tid}/file/{fid}', [ProjectTaskController::class, 'commentDestroyFile'])->name('comment.destroy.file');
+    Route::post(ViewsConstants::PRJ . '/{id}/comment/{tid}', [ProjectTaskController::class, 'commentStore'])->name('task.comment.store');
+    Route::delete(ViewsConstants::PRJ . '/{id}/comment/{tid}/{cid}', [ProjectTaskController::class, 'commentDestroy'])->name('comment.destroy');
+    Route::post(ViewsConstants::PRJ . '/{id}/checklist/{tid}', [ProjectTaskController::class, 'checklistStore'])->name('checklist.store');
+    Route::post(ViewsConstants::PRJ . '/{id}/checklist/update/{cid}', [ProjectTaskController::class, 'checklistUpdate'])->name('checklist.update');
+    Route::delete(ViewsConstants::PRJ . '/{id}/checklist/{cid}', [ProjectTaskController::class, 'checklistDestroy'])->name('checklist.destroy');
+    Route::post(ViewsConstants::PRJ . '/{id}/change/{tid}/fav', [ProjectTaskController::class, 'changeFav'])->name('change.fav');
+    Route::post(ViewsConstants::PRJ . '/{id}/change/{tid}/complete', [ProjectTaskController::class, 'changeCom'])->name('change.complete');
+    Route::post(ViewsConstants::PRJ . '/{id}/change/{tid}/progress', [ProjectTaskController::class, 'changeProg'])->name('change.progress');
+    Route::get(ViewsConstants::PRJ . '/' . ViewsConstants::TSK . '/{id}/get', [ProjectTaskController::class, 'taskGet'])->name(ViewsConstants::PRJ_TSK_C . '.get')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('/calendar/{id}/show', [ProjectTaskController::class, 'calendarShow'])->name('task.calendar.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('/calendar/{id}/drag', [ProjectTaskController::class, 'calendarDrag'])->name('task.calendar.drag');
     Route::get('calendar/{task}/{pid?}', [ProjectTaskController::class, 'calendarView'])->name('task.calendar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1133,14 +1132,17 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post('project-task-new-stage', [TaskStageController::class, 'storingValue'])->name('new-task-stage')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     // End Task Module
 
-    // Project Expense Module
-    Route::get('/' . ViewsConstants::PRJ . '/{id}/expense', [ExpenseController::class, 'index'])->name(ViewsConstants::PRJ . '.expenses.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::PRJ . '/{pid}/expense/create', [ExpenseController::class, 'create'])->name(ViewsConstants::PRJ . '.expenses.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::PRJ . '/{pid}/expense/store', [ExpenseController::class, 'store'])->name(ViewsConstants::PRJ . '.expenses.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/' . ViewsConstants::PRJ . '/{id}/expense/{eid}/edit', [ExpenseController::class, 'edit'])->name(ViewsConstants::PRJ . '.expenses.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::PRJ . '/{id}/expense/{eid}', [ExpenseController::class, 'update'])->name(ViewsConstants::PRJ . '.expenses.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::PRJ . '/{eid}/expense/', [ExpenseController::class, 'destroy'])->name(ViewsConstants::PRJ . '.expenses.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Project Expenses  ====================================//
+    #region
+    Route::get(ViewsConstants::PRJ . '/{id}/expenses', [ExpenseController::class, 'index'])->name(ViewsConstants::PRJ_EXP . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/{pid}/' . ViewsConstants::EXP . '/create', [ExpenseController::class, 'create'])->name(ViewsConstants::PRJ_EXP . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::PRJ . '/{pid}/' . ViewsConstants::EXP . '/store', [ExpenseController::class, 'store'])->name(ViewsConstants::PRJ_EXP . '.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::EXP . '/{eid}/edit', [ExpenseController::class, 'edit'])->name(ViewsConstants::PRJ_EXP . '.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::EXP . '/{eid}', [ExpenseController::class, 'update'])->name(ViewsConstants::PRJ_EXP . '.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::PRJ . '/{eid}/' . ViewsConstants::EXP . '/', [ExpenseController::class, 'destroy'])->name(ViewsConstants::PRJ_EXP . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO missing method
     Route::get('/expense-list', [ExpenseController::class, 'expenseList'])->name(ViewsConstants::EXP . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     // contract type
     Route::group(
@@ -1171,6 +1173,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::delete('/project/timesheet/{timesheet_id}', [TimesheetController::class, 'timesheetDestroy'])->name('timesheet.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::group(
+        //================================= Project Bugs ====================================//
+        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -1179,32 +1183,32 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         ],
         function () {
             Route::resource(ViewsConstants::PRJ_STG, ProjectStagesController::class);
-            Route::post('/' . ViewsConstants::PRJ_STG . '/order', [ProjectStagesController::class, 'order'])->name(ViewsConstants::PRJ_STG . '.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-            Route::post(ViewsConstants::PRJ . '/bug/kanban/order', [ProjectController::class, 'bugKanbanOrder'])->name('bug.kanban.order');
-            Route::get(ViewsConstants::PRJ . '/{id}/bug/kanban', [ProjectController::class, 'bugKanban'])->name('task.bug.kanban');
-            Route::get(ViewsConstants::PRJ . '/{id}/bug', [ProjectController::class, 'bug'])->name('task.bug');
-            Route::get(ViewsConstants::PRJ . '/{id}/bug/create', [ProjectController::class, 'bugCreate'])->name('task.bug.create');
-            Route::post(ViewsConstants::PRJ . '/{id}/bug/store', [ProjectController::class, 'bugStore'])->name('task.bug.store');
-            Route::get(ViewsConstants::PRJ . '/{id}/bug/{bid}/edit', [ProjectController::class, 'bugEdit'])->name('task.bug.edit');
-            Route::post(ViewsConstants::PRJ . '/{id}/bug/{bid}/update', [ProjectController::class, 'bugUpdate'])->name('task.bug.update');
-            Route::delete(ViewsConstants::PRJ . '/{id}/bug/{bid}/destroy', [ProjectController::class, 'bugDestroy'])->name('task.bug.destroy');
-            Route::get(ViewsConstants::PRJ . '/{id}/bug/{bid}/show', [ProjectController::class, 'bugShow'])->name('task.bug.show');
-            Route::post(ViewsConstants::PRJ . '/{id}/bug/{bid}/comment', [ProjectController::class, 'bugCommentStore'])->name('bug.comment.store');
-            Route::post(ViewsConstants::PRJ . '/bug/{bid}/file', [ProjectController::class, 'bugCommentStoreFile'])->name('bug.comment.file.store');
-            Route::delete(ViewsConstants::PRJ . '/bug/comment/{id}', [ProjectController::class, 'bugCommentDestroy'])->name('bug.comment.destroy');
-            Route::delete(ViewsConstants::PRJ . '/bug/file/{id}', [ProjectController::class, 'bugCommentDestroyFile'])->name('bug.comment.file.destroy');
-
-            Route::resource('bugstatus', BugStatusController::class);
-            Route::post('/bugstatus/order', [BugStatusController::class, 'order'])->name('bugstatus.order');
-            Route::get('bugs-report/{view?}', [ProjectTaskController::class, 'allBugList'])->name('bugs.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            Route::post(ViewsConstants::PRJ_STG . '/order', [ProjectStagesController::class, 'order'])->name(ViewsConstants::PRJ_STG . '.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            Route::post(ViewsConstants::PRJ . '/' . ViewsConstants::BUG . '/kanban/order', [ProjectController::class, ProjectController::BUG_KB_OD])->name(ViewsConstants::PRJ_BUG . '.kanban.order');
+            Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/kanban', [ProjectController::class, ProjectController::BUG_KB])->name(ViewsConstants::PRJ_TSK_BUG . '.kanban');
+            Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG, [ProjectController::class, 'bug'])->name(ViewsConstants::PRJ_TSK_BUG . '.');
+            Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/create', [ProjectController::class, ProjectController::BUG_CRT])->name(ViewsConstants::PRJ_TSK_BUG . '.create');
+            Route::post(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/store', [ProjectController::class, ProjectController::BUG_ST])->name(ViewsConstants::PRJ_TSK_BUG . '.store');
+            Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/{bid}/edit', [ProjectController::class, ProjectController::BUG_EDT])->name(ViewsConstants::PRJ_TSK_BUG . '.edit');
+            Route::post(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/{bid}/update', [ProjectController::class, ProjectController::BUG_UPD])->name(ViewsConstants::PRJ_TSK_BUG . '.update');
+            Route::delete(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/{bid}/destroy', [ProjectController::class, ProjectController::BUG_DST])->name(ViewsConstants::PRJ_TSK_BUG . '.destroy');
+            Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/{bid}/show', [ProjectController::class, ProjectController::BUG_SHW])->name(ViewsConstants::PRJ_TSK_BUG . '.show');
+            Route::post(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/{bid}/comment', [ProjectController::class, ProjectController::BUG_CMT_STR])->name(ViewsConstants::PRJ_BUG_CM . '.store');
+            Route::post(ViewsConstants::PRJ . '/' . ViewsConstants::BUG . '/{bid}/file', [ProjectController::class, ProjectController::BUG_CMT_STR_F])->name(ViewsConstants::PRJ_BUG_CM . '.file.store');
+            Route::delete(ViewsConstants::PRJ . '/' . ViewsConstants::BUG . '/comment/{id}', [ProjectController::class, ProjectController::BUG_CMT_DST])->name(ViewsConstants::PRJ_BUG_CM . '.destroy');
+            Route::delete(ViewsConstants::PRJ . '/' . ViewsConstants::BUG . '/file/{id}', [ProjectController::class, ProjectController::BUG_CMT_DST_F])->name(ViewsConstants::PRJ_BUG_CM . '.file.destroy');
+            Route::resource(ViewsConstants::BUG_STT, BugStatusController::class);
+            Route::post(ViewsConstants::BUG_STT . '/order', [BugStatusController::class, 'order'])->name(ViewsConstants::BUG_STT . '.order');
+            Route::get(ViewsConstants::BUG_RPT . '/{view?}', [ProjectTaskController::class, ProjectTaskController::ALL_BUG])->name(ViewsConstants::PRJ_BUG . '.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
         }
+        #endregion
     );
 
-    Route::post('/' . ViewsConstants::TD . '/create', [UserController::class, UserController::TD_STR])->name(ViewsConstants::TD . '.store')
+    Route::post(ViewsConstants::TD . '/create', [UserController::class, UserController::TD_STR])->name(ViewsConstants::TD . '.store')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::TD . '/{id}/update', [UserController::class, UserController::TD_UPD])->name(ViewsConstants::TD . '.update')
+    Route::post(ViewsConstants::TD . '/{id}/update', [UserController::class, UserController::TD_UPD])->name(ViewsConstants::TD . '.update')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/' . ViewsConstants::TD . '/{id}/delete', [UserController::class, UserController::TD_DEL])->name(ViewsConstants::TD . '.destroy')
+    Route::delete(ViewsConstants::TD . '/{id}/delete', [UserController::class, UserController::TD_DEL])->name(ViewsConstants::TD . '.destroy')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::get('/change/mode', [UserController::class, UserController::CHG_MD])->name('change.mode')
@@ -1411,7 +1415,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::delete('tracker/{tid}/destroy', [TimeTrackerController::class, 'Destroy'])->name('time_trackers.destroy');
     Route::post('tracker/image-view', [TimeTrackerController::class, 'getTrackerImages'])->name('time_trackers.image.view');
     Route::delete('tracker/image-remove', [TimeTrackerController::class, 'removeTrackerImages'])->name('time_trackers.image.remove');
-    Route::get(ViewsConstants::PRJ . '/time-tracker/{id}', [ProjectController::class, 'tracker'])->name('projecttime.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::PRJ . '/time-tracker/{id}', [ProjectController::class, 'tracker'])->name(ViewsConstants::PRJ . '.time.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Zoom Meeting
     Route::resource('zoom-meeting', ZoomMeetingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1470,7 +1474,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(ViewsConstants::POS . '/preview/{template}/{color}', [PosController::class, PosController::PV_POS])->name(ViewsConstants::POS . '.preview')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::post('/' . ViewsConstants::PRC . '/templates/settings', [PurchaseController::class, PurchaseController::SV_PCR_TMP_STG])
+    Route::post(ViewsConstants::PRC . '/templates/settings', [PurchaseController::class, PurchaseController::SV_PCR_TMP_STG])
         ->name(ViewsConstants::PRC_TMP . 'settings');
     Route::post('/pos/template/setting', [PosController::class, PosController::SV_POS_TMP])
         ->name(ViewsConstants::PRC_TMP . 'settings');
@@ -1535,7 +1539,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     //pos barcode
     Route::get('barcode/pos', [PosController::class, 'barcode'])->name(ViewsConstants::POS . '.barcode')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('setting/pos', [PosController::class, 'setting'])->name(ViewsConstants::POS . '.setting')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::SET . '/pos', [PosController::class, 'setting'])->name(ViewsConstants::POS . '.setting')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('barcode/settings', [PosController::class, 'BarcodesettingStore'])->name('barcode.setting');
     Route::get('print/pos', [PosController::class, 'printBarcode'])->name(ViewsConstants::POS . '.print')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(ViewsConstants::POS . '/getproduct', [PosController::class, 'getproduct'])->name(ViewsConstants::POS . '.getproduct')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1544,40 +1548,46 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     //Storage Setting
 
-    Route::post('storage-settings', [SystemController::class, 'storageSettingStore'])->name('storage.setting.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('storage-settings', [SystemController::class, 'storageSettingStore'])->name(ViewsConstants::SET . '.storage.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     //appricalStar
 
-    Route::post('/' . ViewsConstants::APR, [AppraisalController::class, 'empByStar'])->name('empByStar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/' . ViewsConstants::APR . '1', [AppraisalController::class, 'empByStar1'])->name('empByStar1')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/getemployee', [AppraisalController::class, 'getemployee'])->name('getemployee');
+    Route::post(ViewsConstants::APR, [AppraisalController::class, 'empByStar'])->name('empByStar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::APR . '1', [AppraisalController::class, 'empByStar1'])->name('empByStar1')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('/getemployee', [AppraisalController::class, 'getEmployee'])->name('getemployee');
 
-    //offer Letter
+    //================================= Offer Letters ====================================//
+    #region
+    Route::post(ViewsConstants::SET . '/offer-letter/{lang?}', [SystemController::class, SystemController::OF_LTR_UPD])->name('offer_letter.update');
+    Route::get(ViewsConstants::SET . '/offer-letter', [SystemController::class, SystemController::CP])->name(ViewsConstants::SET . '.offer_letter.language');
+    Route::get(ViewsConstants::JB_OB . '/pdf/{id}', [JobApplicationController::class, JobApplicationController::OFL_PDF])->name('offer_letter.download.pdf');
+    Route::get(ViewsConstants::JB_OB . '/doc/{id}', [JobApplicationController::class, JobApplicationController::OFL_DC])->name('offer_letter.download.doc');
+    #endregion
 
-    Route::post('setting/offerlatter/{lang?}', [SystemController::class, 'offerletterupdate'])->name('offerlatter.update');
-    Route::get('setting/offerlatter', [SystemController::class, 'companyIndex'])->name('get.offerlatter.language');
-    Route::get('job-onboard/pdf/{id}', [JobApplicationController::class, 'offerletterPdf'])->name('offerlatter.download.pdf');
-    Route::get('job-onboard/doc/{id}', [JobApplicationController::class, 'offerletterDoc'])->name('offerlatter.download.doc');
+    //================================= Joining Letters ====================================//
+    #region
+    Route::post(ViewsConstants::SET . '/joining-letter/{lang?}', [SystemController::class, SystemController::JN_LTR_UPD])->name('joining_letter.update');
+    Route::get(ViewsConstants::SET . '/joining-letter', [SystemController::class, SystemController::CP])->name(ViewsConstants::SET . 'joining_letter.language');
+    Route::get(ViewsConstants::EMP . '/pdf/{id}', [EmployeeController::class, EmployeeController::JNL_PDF])->name('joining_letter.download.pdf');
+    Route::get(ViewsConstants::EMP . '/doc/{id}', [EmployeeController::class, EmployeeController::JNL_DOC])->name('joining_letter.download.doc');
+    #endregion
 
-    //joining Letter
-    Route::post('setting/joiningletter/{lang?}', [SystemController::class, 'joiningletterupdate'])->name('joiningletter.update');
-    Route::get('setting/joiningletter/', [SystemController::class, 'companyIndex'])->name('get.joiningletter.language');
-    Route::get(ViewsConstants::EMP . '/pdf/{id}', [EmployeeController::class, 'joiningletterPdf'])->name('joiningletter.download.pdf');
-    Route::get(ViewsConstants::EMP . '/doc/{id}', [EmployeeController::class, 'joiningletterDoc'])->name('joininglatter.download.doc');
+    //================================= Experience Certificates ====================================//
+    #region
+    Route::post(ViewsConstants::SET . '/exp/{lang?}', [SystemController::class, SystemController::EXP_CT_UPD])->name('experience_certificate.update');
+    Route::get(ViewsConstants::SET . '/exp', [SystemController::class, SystemController::CP])->name(ViewsConstants::SET . '.experience_certificate.language');
+    Route::get(ViewsConstants::EMP . '/exp-pdf/{id}', [EmployeeController::class, EmployeeController::EC_PDF])->name('exp.download.pdf');
+    Route::get(ViewsConstants::EMP . '/exp-doc/{id}', [EmployeeController::class, EmployeeController::EC_DOC])->name('exp.download.doc');
+    #endregion
 
-    //Experience Certificate
+    //================================= Nocs ====================================//
+    #region
+    Route::post(ViewsConstants::SET . '/noc/{lang?}', [SystemController::class, SystemController::NOC_UPD])->name('noc.update');
+    Route::get(ViewsConstants::SET . '/noc', [SystemController::class, SystemController::CP])->name(ViewsConstants::SET . '.noc.language');
+    Route::get(ViewsConstants::EMP . '/noc-pdf/{id}', [EmployeeController::class, EmployeeController::NOC_PDF])->name('noc.download.pdf');
+    Route::get(ViewsConstants::EMP . '/noc-doc/{id}', [EmployeeController::class, EmployeeController::NOC_DOC])->name('noc.download.doc');
+    #endregion
 
-    Route::post('setting/exp/{lang?}', [SystemController::class, 'experienceCertificateupdate'])->name('experiencecertificate.update');
-    Route::get('setting/exp', [SystemController::class, 'companyIndex'])->name('get.experiencecertificate.language');
-    Route::get(ViewsConstants::EMP . '/exppdf/{id}', [EmployeeController::class, 'ExpCertificatePdf'])->name('exp.download.pdf');
-    Route::get(ViewsConstants::EMP . '/expdoc/{id}', [EmployeeController::class, 'ExpCertificateDoc'])->name('exp.download.doc');
-
-    //Noc
-
-    Route::post('setting/noc/{lang?}', [SystemController::class, 'NOCupdate'])->name('noc.update');
-    Route::get('setting/noc', [SystemController::class, 'companyIndex'])->name('get.noc.language');
-    Route::get(ViewsConstants::EMP . '/nocpdf/{id}', [EmployeeController::class, 'NocPdf'])->name('noc.download.pdf');
-    Route::get(ViewsConstants::EMP . '/nocdoc/{id}', [EmployeeController::class, 'NocDoc'])->name('noc.download.doc');
 
     //Project Reports
 
@@ -1598,7 +1608,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::any('event/get_event_data', [EventController::class, 'get_event_data'])->name('event.get_event_data')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::post('setting/google-calendar', [SystemController::class, 'saveGooglecalendarSettings'])->name('google.calendar.settings');
+    Route::post(ViewsConstants::SET . '/google-calendar', [SystemController::class, 'saveGooglecalendarSettings'])->name(ViewsConstants::SET . 'google.calendar');
     Route::any('holiday/get_holiday_data', [HolidayController::class, 'get_holiday_data'])->name('holiday.get_holiday_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::any('interview-schedule/get_interview_data', [InterviewScheduleController::class, 'get_interview_data'])->name('holiday.get_interview_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('calendar/get_task_data', [ProjectTaskController::class, 'get_task_data'])->name('task.calendar.get_task_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1616,9 +1626,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post(ViewsConstants::RPT . '-monthly-attendance/getemployee', [ReportController::class, 'getemployee'])->name(ViewsConstants::RPT . '.attendance.getemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     //shared project & copy link
-    Route::any('/' . ViewsConstants::PRJ . '/copy/link/{id}', [ProjectController::class, 'copylinksetting'])->name(ViewsConstants::PRJ . '.copy.link');
-    Route::any('/projects{id}/settingcreate', [ProjectController::class, 'copylink_setting_create'])->name(ViewsConstants::PRJ . '.copylink.setting.create');
-    Route::get('/share_project/{lang?}', [ProjectController::class, 'shareProject'])->name('share.project');
+    Route::any(ViewsConstants::PRJ . '/copy/link/{id}', [ProjectController::class, ProjectController::CP_LNK_ST])->name(ViewsConstants::PRJ . '.copy.link');
+    Route::any(ViewsConstants::PRJ . '/{id}/setting-create', [ProjectController::class, ProjectController::CP_LNK_ST_CRT])->name(ViewsConstants::PRJ . '.copy_link.setting.create');
+    // TODO missing method
+    Route::get('share-project/{lang?}', [ProjectController::class, 'shareProject'])->name('share.project');
 
     //User Log
     Route::get('/userlogs', [UserController::class, 'userLog'])->name(ViewsConstants::USR . '.' . ViewsConstants::USR . 'log')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1633,19 +1644,21 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post('system-settings/note', [SystemController::class, 'footerNoteStore'])->name(ViewsConstants::SYS . '.settings.footernote')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     //AI module
-    Route::post('chatgpt-settings', [SystemController::class, 'chatgptSetting'])->name('chatgpt.settings');
+    Route::post('chatgpt-settings', [SystemController::class, 'chatgptSetting'])->name(ViewsConstants::SET . '.chatgpt.settings');
     Route::get('generate/{template_name}', [AiTemplateController::class, 'create'])->name('generate');
     Route::post('generate/keywords/{id}', [AiTemplateController::class, 'getKeywords'])->name('generate.keywords');
     Route::post('generate/response', [AiTemplateController::class, 'AiGenerate'])->name('generate.response');
     Route::get('grammar/{template}', [AiTemplateController::class, 'grammar'])->name('grammar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('grammar/response', [AiTemplateController::class, 'grammarProcess'])->name('grammar.response')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    //IP-Restrication settings
-    Route::get('create/ip', [SystemController::class, 'createIp'])->name('create.ip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('create/ip', [SystemController::class, 'storeIp'])->name('store.ip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('edit/ip/{id}', [SystemController::class, 'editIp'])->name('edit.ip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('edit/ip/{id}', [SystemController::class, 'updateIp'])->name('update.ip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('destroy/ip/{id}', [SystemController::class, 'destroyIp'])->name('destroy.ip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= IP Controls ====================================//
+    #region
+    Route::get(ViewsConstants::SYS . '/create/ip', [SystemController::class, SystemController::CR_IP])->name(ViewsConstants::SYS . '.ip.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::SYS . '/create/ip', [SystemController::class, SystemController::STR_IP])->name(ViewsConstants::SYS . '.ip.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(ViewsConstants::SYS . '/edit/ip/{id}', [SystemController::class, SystemController::ED_IP])->name(ViewsConstants::SYS . '.ip.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::SYS . '/edit/ip/{id}', [SystemController::class, SystemController::UPD_IP])->name(ViewsConstants::SYS . '.ip.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::SYS . '/destroy/ip/{id}', [SystemController::class, SystemController::DST_IP])->name(ViewsConstants::SYS . '.ip.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //lang enable / disable
     Route::post('disable-language', [LanguageController::class, LanguageController::DSB_LNG])->name('language.disable')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);

@@ -154,6 +154,8 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::C12 }}"
 	public const CM3 = 'col-md-3';
 	// "{{ ViewClassNamesConstants::CM3 }}"
+	public const CM4 = 'col-md-4';
+	// "{{ ViewClassNamesConstants::CM4 }}"
 	public const CM6 = 'col-md-6';
 	// "{{ ViewClassNamesConstants::CM6 }}"
 	public const CM9 = 'col-md-9';
@@ -162,12 +164,20 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::CM10 }}"
 	public const CL3 = 'col-lg-3';
 	// "{{ ViewClassNamesConstants::CL3 }}"
+	public const CL4 = 'col-lg-4';
+	// "{{ ViewClassNamesConstants::CL4 }}"
+	public const CL6 = 'col-lg-6';
+	// "{{ ViewClassNamesConstants::CL6 }}"
 	public const CL9 = 'col-lg-9';
 	// "{{ ViewClassNamesConstants::CL9 }}"
 	public const CL10 = 'col-lg-10';
 	// "{{ ViewClassNamesConstants::CL10 }}"
 	public const CS3 = 'col-sm-3';
 	// "{{ ViewClassNamesConstants::CS3 }}"
+	public const CS4 = 'col-sm-4';
+	// "{{ ViewClassNamesConstants::CS4 }}"
+	public const CS6 = 'col-sm-6';
+	// "{{ ViewClassNamesConstants::CS6 }}"
 	public const CS9 = 'col-sm-9';
 	// "{{ ViewClassNamesConstants::CS9 }}"
 	public const CS10 = 'col-sm-10';
@@ -239,6 +249,20 @@ class ViewClassNamesConstants
 	public const CLMS3 = self::CL3 . ' ' . self::CM3 . ' ' . self::CS3;
 	// "{{ ViewClassNamesConstants::CLMS3 }}"
 	// col-lg-3 col-md-3 col-sm-3
+	public const CLM4 = self::CL4 . ' ' . self::CM4;
+	// "{{ ViewClassNamesConstants::CLM4 }}"
+	// col-lg-4 col-md-4
+	public const CLMS4 = self::CLM4 . ' ' . self::CS6;
+	// "{{ ViewClassNamesConstants::CLMS4 }}"
+	// "{{ VC::CLMS4 }}"
+	// col-lg-4 col-md-4 col-sm-6
+	public const CLM6 = self::CL6 . ' ' . self::CM6;
+	// "{{ ViewClassNamesConstants::CLM6 }}"
+	// "{{ VC::CLM6 }}"
+	// col-lg-6 col-md-6
+	public const CLMS6 = self::CLM6 . ' ' . self::CS6;
+	// "{{ ViewClassNamesConstants::CLMS6 }}"
+	// col-lg-6 col-md-6 col-sm-6
 	public const CLMS9 = self::CL9 . ' ' . self::CM9 . ' ' . self::CS9;
 	// "{{ ViewClassNamesConstants::CLMS9 }}"
 	// col-lg-9 col-md-9 col-sm-9

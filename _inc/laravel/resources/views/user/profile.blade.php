@@ -38,20 +38,19 @@
     <div class="row">
         <div class="col-xl-3">
             @php
-                use App\Config\Constants\ViewClassNamesConstants;
                 $sections = [
                     ['id' => 'personal_info',    'label' => __('Personal Info')],
                     ['id' => 'change_password',  'label' => __('Change Password')],
                 ];
             @endphp
-            <div class="{{ ViewClassNamesConstants::CD_STK }}" style="top:30px">
-                <div class="{{ ViewClassNamesConstants::LG_FLSH }}" id="useradd-sidenav">
+            <div class="{{ VC::CD_STK }}" style="top:30px">
+                <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
                     @foreach($sections as $section)
                         <a href="#{{ $section['id'] }}"
-                        class="{{ ViewClassNamesConstants::LGI_ACT_NBD }}">
+                        class="{{ VC::LGI_ACT_NBD }}">
                             {{ $section['label'] }}
                             <div class="float-end">
-                                <i class="{{ ViewClassNamesConstants::TI_CHV_RT }}"></i>
+                                <i class="{{ VC::TI_CHV_RT }}"></i>
                             </div>
                         </a>
                     @endforeach
@@ -85,7 +84,7 @@
                                     @enderror --}}
                                 </div>
                             </div>
-                            <div class="col-lg-6 col-md-6">
+                            <div class="{{ VC::CLM6 }}">
                                 <div class="form-group">
                                     <div class="choose-files">
                                         <label for="avatar">
@@ -100,7 +99,7 @@
                                 </div>
                             </div>
                             <div class="col-lg-12 text-end">
-                                <input type="submit" value="{{__('Save Changes')}}" class="{{ ViewClassNamesConstants::BT_PR_PRM10 }}">
+                                <input type="submit" value="{{__('Save Changes')}}" class="{{ VC::BT_PR_PRM10 }}">
                             </div>
                         </div>
                     </form>
@@ -134,7 +133,7 @@
                                 <input class="form-control" name="password_confirmation" type="password" required autocomplete="new-password" id="password_confirmation" placeholder="{{ __('Enter Your Password') }}">
                             </div>
                             <div class="col-lg-12 text-end">
-                                <input type="submit" value="{{__('Change Password')}}" class="{{ ViewClassNamesConstants::BT_PR_PRM10 }}">
+                                <input type="submit" value="{{__('Change Password')}}" class="{{ VC::BT_PR_PRM10 }}">
                             </div>
                         </div>
                     </form>

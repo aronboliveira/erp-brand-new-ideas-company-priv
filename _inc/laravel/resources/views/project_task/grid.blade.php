@@ -121,7 +121,7 @@
                                             </div>
                                         </div>
 
-                                        <a class="h6 task-name-break" href="{{ route(ViewsConstants::PRJ.'.tasks.index',!empty($task->project)?$task->project->id:'') }}">{{ $task->name }}</a>
+                                        <a class="h6 task-name-break" href="{{ route(ViewsConstants::PRJ_TSK_C . '.index',!empty($task->project)?$task->project->id:'') }}">{{ $task->name }}</a>
                                         <div class="row align-items-center">
                                             <div class="col-12">
                                                 <div class="actions d-flex justify-content-between mt-2 mb-2">

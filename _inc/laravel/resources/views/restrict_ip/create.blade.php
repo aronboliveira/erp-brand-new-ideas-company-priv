@@ -1,3 +1,6 @@
+@php
+    use App\Config\Constants\ViewsConstants;
+@endphp
 {{ Collective\Html\FormFacade::open(['route' => ['create.ip'], 'method' => 'post']) }}
 <div class="modal-body">
     <div class="row">

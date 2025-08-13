@@ -1,5 +1,5 @@
 <?php
-// database/migrations/xxxx_xx_xx_create_joining_letters_table.php
+// database/migrations/xxxx_xx_xx_create_joining_letter.s_table.php
 
 use App\Config\Constants\{
 	DatabaseConstants,
