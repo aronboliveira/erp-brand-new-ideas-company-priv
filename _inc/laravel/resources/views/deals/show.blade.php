@@ -1660,7 +1660,7 @@
                                             data-bs-placement="top"
                                             title="{{ __('Generate content with AI') }}"
                                         >
-                                            <i class="fas fa-robot"></i> {{ __('Generate with AI') }}
+                                            <i class="{{ VC::FAS_RB }}"></i> {{ __('Generate with AI') }}
                                         </a>
                                     </div>
                                     @push(StacksConstants::ADM_SCRP_PG)

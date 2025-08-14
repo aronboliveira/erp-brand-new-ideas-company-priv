@@ -7,6 +7,7 @@
         StacksConstants,
         ViewClassNamesConstants as VC
     };
+    use Collective\Html\FormFacade as Form;
     $lang         = Utility::fetchUserLang();
     $routeName    = ViewsConstants::COA . '.update';
     $updateRoute  = Route::has($routeName)
@@ -22,7 +23,7 @@
     ) ?? 'Chart of Account update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
-{{ Collective\Html\FormFacade::model($chartOfAccount, [
+{{ Form::model($chartOfAccount, [
     'route'          => $updateRoute,
     'method'         => 'PUT',
     'id'             => $formId,
@@ -42,7 +43,7 @@
                     data-bs-placement="top"
                     data-title="{{ __('Generate content with AI') }}"
                 >
-                    <i class="fas fa-robot"></i>
+                    <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
@@ -50,17 +51,17 @@
 
         <div class="{{ VC::RW }}">
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('name', __('Name'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
 
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('code', __('Code'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::number('code', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                {{ Form::label('code', __('Code'), ['class' => VC::FM_LB]) }}
+                {{ Form::number('code', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
 
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('is_enabled', __('Is Enabled'), ['class' => VC::FM_LB]) }}
+                {{ Form::label('is_enabled', __('Is Enabled'), ['class' => VC::FM_LB]) }}
                 <div class="form-check form-switch">
                     <input
                         type="checkbox"
@@ -74,8 +75,8 @@
             </div>
 
             <div class="{{ VC::FM_G }} {{ VC::C12 }}">
-                {{ Collective\Html\FormFacade::label('description', __('Description'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::textarea('description', null, ['class' => VC::FM_CT, 'rows' => 2]) }}
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => 2]) }}
             </div>
         </div>
     </div>
@@ -93,7 +94,7 @@
             class="{{ VC::BT_PRM }}"
         >
     </div>
-{{ Collective\Html\FormFacade::close() }}
+{{ Form::close() }}
 
 @push(StacksConstants::ADM_SCR_PG)
     <script defer>

@@ -1,12 +1,13 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
     use App\Models\Utility;
     use App\Config\Constants\{
         ViewsConstants,
         ViewClassNamesConstants as VC,
         StacksConstants
     };
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
 
     $lang                    = Utility::fetchUserLang();
     $routeName               = ViewsConstants::BUG_STT . '.update';
@@ -22,43 +23,38 @@
         'bug_status_update_route_unavailable'
     ) ?? 'Bug Status update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-
-{{ Collective\Html\FormFacade::model($bug_status, [
+{{ Form::model($bug_status, [
     'route'            => [ViewsConstants::BUG_STT . '.update', $bug_status->id],
     'method'           => 'PUT',
     'id'               => $formId,
     'data-url'         => $updateRoute,
     'data-guard-msg'   => $guardMsg,
 ]) }}
-
-<div class="modal-body">
-    <div class="{{ VC::RW }}">
-        <div class="{{ VC::C12 }} {{ VC::FM_G }}">
-            {{ Collective\Html\FormFacade::label('title', __('Bug Status Title'), ['class' => VC::FM_LB]) }}
-            {{ Collective\Html\FormFacade::text('title', null, [
-                'class'    => VC::FM_CT,
-                'required' => 'required',
-            ]) }}
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::C12 }} {{ VC::FM_G }}">
+                {{ Form::label('title', __('Bug Status Title'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('title', null, [
+                    'class'    => VC::FM_CT,
+                    'required' => 'required',
+                ]) }}
+            </div>
         </div>
     </div>
-</div>
-
-<div class="modal-footer">
-    <input
-        type="button"
-        value="{{ __('Cancel') }}"
-        class="{{ VC::BT_LG }}"
-        data-bs-dismiss="modal"
-    >
-    <input
-        type="submit"
-        value="{{ __('Update') }}"
-        class="{{ VC::BT_PRM }}"
-    >
-</div>
-
-{{ Collective\Html\FormFacade::close() }}
-
+    <div class="modal-footer">
+        <input
+            type="button"
+            value="{{ __('Cancel') }}"
+            class="{{ VC::BT_LG }}"
+            data-bs-dismiss="modal"
+        >
+        <input
+            type="submit"
+            value="{{ __('Update') }}"
+            class="{{ VC::BT_PRM }}"
+        >
+    </div>
+{{ Form::close() }}
 @push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {

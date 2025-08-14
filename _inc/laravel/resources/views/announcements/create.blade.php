@@ -1,7 +1,7 @@
 @php
     use App\Config\Constants\{
         PlansConstants,
-        ViewClassNamesConstants,
+        ViewClassNamesConstants as VC,
         ViewsConstants,
         StacksConstants,
     };
@@ -40,8 +40,8 @@
 ]) }}
     <div class="modal-body">
         @php $plan = Utility::getChatGPTSettings(); @endphp
-        @if($plan->chatgpt == 1)
-            <div class="{{ ViewClassNamesConstants::DFL_JCE }}">
+        @if($plan?->{PlansConstants::COL_GPT} == 1)
+            <div class="{{ VC::DFL_JCE }}">
                 <a
                     id="{{ $aiGenerateId }}"
                     href="#"
@@ -49,26 +49,26 @@
                     data-sv-localized="true"
                     data-guard-msg="{{ $aiGenerateMsg }}"
                     data-size="md"
-                    class="{{ ViewClassNamesConstants::BT_SM_PM }} btn-icon btn-sm"
+                    class="{{ VC::BT_SM_PM }} btn-icon btn-sm"
                     data-ajax-popup-over="true"
                     data-bs-placement="top"
                     title="{{ __('Generate content with AI') }}"
                 >
-                    <i class="fas fa-robot"></i> <span>{{ __('Generate with AI') }}</span>
+                    <i class="{{ VC::FAS_RB }}"></i><span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
         @endif
-        <div class="{{ ViewClassNamesConstants::RW }}">
-            <div class="{{ ViewClassNamesConstants::CM6 }}">
-                <div class="{{ ViewClassNamesConstants::FM_G }}">
-                    {{ Form::label('title', __('Announcement Title'), ['class'=>ViewClassNamesConstants::FM_LB]) }}
-                    {{ Form::text('title', null, ['class'=>ViewClassNamesConstants::FM_CT, 'placeholder'=>__('Enter Announcement Title')]) }}
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('title', __('Announcement Title'), ['class'=>VC::FM_LB]) }}
+                    {{ Form::text('title', null, ['class'=>VC::FM_CT, 'placeholder'=>__('Enter Announcement Title')]) }}
                 </div>
             </div>
-            <div class="{{ ViewClassNamesConstants::CM6 }}">
-                <div class="{{ ViewClassNamesConstants::FM_G }}">
-                    {{ Form::label('branch_id', __('Branch'), ['class'=>ViewClassNamesConstants::FM_LB]) }}
-                    <select name="branch_id" id="branch_id" class="{{ ViewClassNamesConstants::FM_CT }} select">
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('branch_id', __('Branch'), ['class'=>VC::FM_LB]) }}
+                    <select name="branch_id" id="branch_id" class="{{ VC::FM_CT }} select">
                         <option value="">{{ __('Select Branch') }}</option>
                         <option value="0">{{ __('All Branch') }}</option>
                         @foreach($branch as $b)
@@ -77,45 +77,45 @@
                     </select>
                 </div>
             </div>
-            <div class="{{ ViewClassNamesConstants::CM6 }}">
-                <div class="{{ ViewClassNamesConstants::FM_G }}">
-                    {{ Form::label('department_id', __('Department'), ['class'=>ViewClassNamesConstants::FM_LB]) }}
-                    <select name="department_id[]" id="department_id" class="{{ ViewClassNamesConstants::FM_CT }} select">
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('department_id', __('Department'), ['class'=>VC::FM_LB]) }}
+                    <select name="department_id[]" id="department_id" class="{{ VC::FM_CT }} select">
                         <option value="">{{ __('Select Department') }}</option>
                     </select>
                 </div>
             </div>
-            <div class="{{ ViewClassNamesConstants::CM6 }}">
-                <div class="{{ ViewClassNamesConstants::FM_G }}">
-                    {{ Form::label('employee_id', __('Employee'), ['class'=>ViewClassNamesConstants::FM_LB]) }}
-                    <select name="employee_id[]" id="employee_id" class="{{ ViewClassNamesConstants::FM_CT }} select">
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('employee_id', __('Employee'), ['class'=>VC::FM_LB]) }}
+                    <select name="employee_id[]" id="employee_id" class="{{ VC::FM_CT }} select">
                         <option value="">{{ __('Select Employee') }}</option>
                     </select>
                 </div>
             </div>
-            <div class="{{ ViewClassNamesConstants::CM6 }}">
-                <div class="{{ ViewClassNamesConstants::FM_G }}">
-                    {{ Form::label('start_date', __('Announcement Start Date'), ['class'=>ViewClassNamesConstants::FM_LB]) }}
-                    {{ Form::date('start_date', null, ['class'=>ViewClassNamesConstants::FM_CT]) }}
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('start_date', __('Announcement Start Date'), ['class'=>VC::FM_LB]) }}
+                    {{ Form::date('start_date', null, ['class'=>VC::FM_CT]) }}
                 </div>
             </div>
-            <div class="{{ ViewClassNamesConstants::CM6 }}">
-                <div class="{{ ViewClassNamesConstants::FM_G }}">
-                    {{ Form::label('end_date', __('Announcement End Date'), ['class'=>ViewClassNamesConstants::FM_LB]) }}
-                    {{ Form::date('end_date', null, ['class'=>ViewClassNamesConstants::FM_CT]) }}
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('end_date', __('Announcement End Date'), ['class'=>VC::FM_LB]) }}
+                    {{ Form::date('end_date', null, ['class'=>VC::FM_CT]) }}
                 </div>
             </div>
-            <div class="{{ ViewClassNamesConstants::C12 }}">
-                <div class="{{ ViewClassNamesConstants::FM_G }}">
-                    {{ Form::label('description', __('Announcement Description'), ['class'=>ViewClassNamesConstants::FM_LB]) }}
-                    {{ Form::textarea('description', null, ['class'=>ViewClassNamesConstants::FM_CT, 'placeholder'=>__('Enter Announcement Description')]) }}
+            <div class="{{ VC::C12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('description', __('Announcement Description'), ['class'=>VC::FM_LB]) }}
+                    {{ Form::textarea('description', null, ['class'=>VC::FM_CT, 'placeholder'=>__('Enter Announcement Description')]) }}
                 </div>
             </div>
         </div>
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{ __('Cancel') }}" class="{{ ViewClassNamesConstants::BT_LG }}" data-bs-dismiss="modal">
-        <input type="submit" value="{{ __('Create') }}" class="{{ ViewClassNamesConstants::BT_PRM }}">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
 {{ Form::close() }}
 

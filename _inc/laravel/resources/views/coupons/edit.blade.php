@@ -34,7 +34,7 @@
                 data-title="{{ __('Generate content with AI') }}"
                 data-bs-toggle="tooltip"
             >
-                <i class="fas fa-robot"></i> <span>{{ __('Generate with AI') }}</span>
+                <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
             </a>
         </div>
     @endif

@@ -108,6 +108,8 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::RW }}"
 	public const TB = 'table';
 	// "{{ ViewClassNamesConstants::TB }}"
+	public const FAS = 'fas';
+	// "{{ ViewClassNamesConstants::FAS }}"
 	public const TI = 'ti';
 	// "{{ ViewClassNamesConstants::TI }}"
 	public const MB0 = 'mb-0';
@@ -162,6 +164,8 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::CM9 }}"
 	public const CM10 = 'col-md-10';
 	// "{{ ViewClassNamesConstants::CM10 }}"
+	public const CM12 = 'col-md-12';
+	// "{{ ViewClassNamesConstants::CM12 }}"
 	public const CL3 = 'col-lg-3';
 	// "{{ ViewClassNamesConstants::CL3 }}"
 	public const CL4 = 'col-lg-4';
@@ -491,6 +495,10 @@ class ViewClassNamesConstants
 	public const TB_AL = self::TB . ' ' . self::ALC;
 	// "{{ ViewClassNamesConstants::TB_AL }}"
 	// table align-items-center
+	public const FAS_RB = self::FAS . ' fa-robot';
+	// "{{ ViewClassNamesConstants::FAS_RB }}"
+	// "{{ VC::FAS_RB }}"
+	// fas fa-robot
 	public const TI_AR = self::TI . ' ' . self::TI . '-arrows-maximize';
 	// "{{ ViewClassNamesConstants::TI_AR }}"
 	// ti ti-arrows-maximize
@@ -595,6 +603,18 @@ class ViewClassNamesConstants
 	public const FM_GB3 = self::FM_G . ' ' . self::MB3;
 	// "{{ ViewClassNamesConstants::FM_GB3 }}"
 	// form-group mb-3
+	public const FM_GCB3 = self::FM_G . ' ' . self::CM3;
+	// "{{ ViewClassNamesConstants::FM_GCB3 }}"
+	// "{{ VC::FM_GCB3 }}"
+	// form-group col-md-3
+	public const FM_GCB6 = self::FM_G . ' ' . self::CM6;
+	// "{{ ViewClassNamesConstants::FM_GCB6 }}"
+	// "{{ VC::FM_GCB6 }}"
+	// form-group col-md-6
+	public const FM_GCB12 = self::FM_G . ' ' . self::CM12;
+	// "{{ ViewClassNamesConstants::FM_GCB12 }}"
+	// "{{ VC::FM_GCB12 }}"
+	// form-group col-md-12
 	public const FM_GT3 = self::FM_G . ' ' . self::MT3;
 	// "{{ ViewClassNamesConstants::FM_GT3 }}"
 	// form-group mt-3

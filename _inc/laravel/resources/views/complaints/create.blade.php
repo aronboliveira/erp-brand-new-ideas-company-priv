@@ -4,6 +4,7 @@
     use Illuminate\Support\Str;
     use App\Models\Utility;
     use App\Config\Constants\{
+        PlansConstants,
         ViewsConstants,
         StacksConstants,
         ViewClassNamesConstants as VC
@@ -32,8 +33,8 @@
     'data-guard-msg' => $guardMsg,
 ]) }}
 <div class="{{ VC::RW }} modal-body">
-    @php $plan = \App\Models\Utility::getChatGPTSettings(); @endphp
-    @if($plan->chatgpt == 1)
+    @php $plan = Utility::getChatGPTSettings(); @endphp
+    @if($plan?->{PlansConstants::COL_GPT} == 1)
         <div class="{{ VC::FEND }}">
             <a href="#"
                data-size="md"
@@ -42,7 +43,7 @@
                data-url="{{ route('generate', ['complaint']) }}"
                data-bs-placement="top"
                data-title="{{ __('Generate content with AI') }}">
-                <i class="fas fa-robot"></i>
+                <i class="{{ VC::FAS_RB }}"></i>
                 <span>{{ __('Generate with AI') }}</span>
             </a>
         </div>

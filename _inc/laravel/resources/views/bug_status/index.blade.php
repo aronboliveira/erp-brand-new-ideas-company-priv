@@ -3,12 +3,13 @@
     use Illuminate\Support\Str;
     use App\Models\Utility;
     use App\Config\Constants\{
+        PermissionsConstants,
+        UsersConstants,
         ViewsConstants,
         ViewClassNamesConstants as VC,
         StacksConstants
     };
-
-		$user = Auth::user();
+	$user = Auth::user();
     $lang                     = Utility::fetchUserLang(user:$user);
     $createRoute              = Route::has(ViewsConstants::BUG_STT . '.create')
         ? route(ViewsConstants::BUG_STT . '.create')
@@ -32,7 +33,7 @@
 @endsection
 @push('script-page')
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
-    @if($user?->type=='company')
+    @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
 			<script>
 				window.translations = {
 					ar: { bugstatus_order_failed: 'فشل تحديث ترتيب الحالة.' },

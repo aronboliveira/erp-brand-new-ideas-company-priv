@@ -1,8 +1,11 @@
 @php
     use Illuminate\Support\Facades\Route;
     use App\Models\Utility;
-    use App\Config\Constants\StacksConstants;
-
+    use App\Config\Constants\{
+        StacksConstants, 
+        ViewsConstants,
+        ViewClassNamesConstant as VC
+    };
     $lang              = Utility::fetchUserLang();
     $generateAiRoute   = Route::has('generate')
         ? route('generate', ['coupon'])
@@ -15,11 +18,11 @@
     ) ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
-{!! Form::open(['url' => 'coupons', 'method' => 'post']) !!}
+{!! Form::open(['url' => ViewsConstants::CPN, 'method' => 'post']) !!}
 <div class="modal-body">
     {{-- start for ai module --}}
     @php
-        $settings = \App\Models\Utility::settings();
+        $settings = Utility::settings();
     @endphp
     @if(!empty($settings['chat_gpt_key']))
         <div class="{{ VC::FEND }}">
@@ -36,7 +39,7 @@
                 data-bs-toggle="tooltip"
                 title="{{ __('Generate content with AI') }}"
             >
-                <i class="fas fa-robot"></i> <span>{{ __('Generate with AI') }}</span>
+                <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
             </a>
         </div>
     @endif

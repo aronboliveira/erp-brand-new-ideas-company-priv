@@ -13,7 +13,7 @@
 
 {{ Form::open(['url' => 'deals']) }}
 <div class="modal-body">
-    @php $plan = \App\Models\Utility::getChatGPTSettings(); @endphp
+    @php $plan = Utility::getChatGPTSettings(); @endphp
     @if($plan?->{PlansConstants::COL_GPT} == 1)
         <div class="text-end">
             @php
@@ -37,7 +37,7 @@
                 data-bs-placement="top"
                 data-title="{{ __('Generate content with AI') }}"
             >
-                <i class="fas fa-robot"></i> <span>{{ __('Generate with AI') }}</span>
+                <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
             </a>
             @push(StacksConstants::ADM_SCRP_PG)
                 <script defer>

@@ -1,11 +1,12 @@
 @php
     use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
     use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
     $lang = Utility::fetchUserLang();
     $plan = Utility::getChatGPTSettings();
 @endphp
 
-{!! Collective\Html\FormFacade::model(
+{!! Form::model(
         $contract,
         [
             'route'  => [ViewsConstants::CTC . '.update', $contract->id],
@@ -37,7 +38,7 @@
                     data-bs-placement="top"
                     data-title="{{ __('Generate content with AI') }}"
                 >
-                    <i class="fas fa-robot"></i>
+                    <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
                 </a>
                 @push(StacksConstants::ADM_SCR_PG)
@@ -85,12 +86,12 @@
         @endif
         <div class="{{ VC::RW }}">
             <div class="{{ VC::FM_G }} {{ VC::C12 }}">
-                {{ Collective\Html\FormFacade::label('subject', __('Subject'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::text('subject', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                {{ Form::label('subject', __('Subject'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('subject', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('client_name', __('Client'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::select(
+                {{ Form::label('client_name', __('Client'), ['class' => VC::FM_LB]) }}
+                {{ Form::select(
                     'client_name',
                     $clients,
                     null,
@@ -101,9 +102,9 @@
                 ) }}
             </div>
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('project', __('Project'), ['class' => VC::FM_LB]) }}
+                {{ Form::label('project', __('Project'), ['class' => VC::FM_LB]) }}
                 <div class="project-div">
-                    {{ Collective\Html\FormFacade::select(
+                    {{ Form::select(
                         'project',
                         $project,
                         null,
@@ -116,8 +117,8 @@
                 </div>
             </div>
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('type', __('Contract Type'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::select(
+                {{ Form::label('type', __('Contract Type'), ['class' => VC::FM_LB]) }}
+                {{ Form::select(
                     'type',
                     $contractTypes,
                     null,
@@ -129,8 +130,8 @@
                 ) }}
             </div>
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('value', __('Contract Value'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::number(
+                {{ Form::label('value', __('Contract Value'), ['class' => VC::FM_LB]) }}
+                {{ Form::number(
                     'value',
                     null,
                     [
@@ -141,8 +142,8 @@
                 ) }}
             </div>
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::date(
+                {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date(
                     'start_date',
                     null,
                     [
@@ -152,8 +153,8 @@
                 ) }}
             </div>
             <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::date(
+                {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date(
                     'end_date',
                     null,
                     [
@@ -165,8 +166,8 @@
         </div>
         <div class="{{ VC::RW }}">
             <div class="{{ VC::FM_G }} {{ VC::C12 }}">
-                {{ Collective\Html\FormFacade::label('description', __('Description'), ['class' => VC::FM_LB]) }}
-                {!! Collective\Html\FormFacade::textarea(
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {!! Form::textarea(
                     'description',
                     null,
                     [
@@ -190,7 +191,7 @@
             class="{{ VC::BT_PRM }}"
         >
     </div>
-{{Collective\Html\FormFacade::close()}}
+{{Form::close()}}
 
 <script>
     window.translations = {

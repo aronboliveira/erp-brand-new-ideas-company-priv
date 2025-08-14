@@ -1,8 +1,9 @@
 @php
     use App\Config\Constants\{
+        PlansConstants,
+        StacksConstants,
         ViewsConstants,
         ViewClassNamesConstants as VC,
-        StacksConstants
     };
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
@@ -78,7 +79,7 @@
     'data-guard-msg' => $storeMsg,
 ]) }}
     <div class="{{ VC::RW }}">
-        @if($plan->chatgpt == 1)
+        @if($plan?->{PlansConstants::COL_GPT} == 1)
             <div class="{{ VC::FEND }} {{ VC::MB3 }}">
                 <a id="{{ $linkId }}"
                    href="{{ $generateRoute }}"
@@ -88,7 +89,7 @@
                    data-url="{{ $generateRoute }}"
                    data-guard-msg="{{ $generateMsg }}"
                    title="{{ __('Generate content with AI') }}">
-                    <i class="fas fa-robot"></i> {{ __('Generate with AI') }}
+                    <i class="{{ VC::FAS_RB }}"></i> {{ __('Generate with AI') }}
                 </a>
             </div>
         @endif

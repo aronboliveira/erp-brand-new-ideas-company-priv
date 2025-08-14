@@ -2,11 +2,13 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewClassNamesConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -23,12 +25,12 @@
     <li class="breadcrumb-item">{{__('Event')}}</li>
 @endsection
 @php
-    $settings = \App\Models\Utility::settings();
+    $settings = Utility::settings();
 @endphp
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
         @can('create event')
-            <a href="#" data-size="lg" data-url="{{ route('event.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Event')}}" class="btn btn-sm btn-primary">
+            <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::EVT.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Event')}}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
         @endcan
@@ -64,7 +66,7 @@
             <div class="card">
                 <div class="card-body">
                     <h6 class="mb-4">{{__('Upcoming Events')}}</h6>
-                    <ul class="{{ ViewClassNamesConstants::LG_FLSH_W }}">
+                    <ul class="{{ VC::LG_FLSH_W }}">
                         <li class="list-group-item card mb-3">
                             <div class="row align-items-center justify-content-between">
                                 <div class="align-items-center">
@@ -75,7 +77,7 @@
                                                     <div class="row align-items-center">
                                                         <div class="col ml-n2">
                                                             <h5 class="text-sm mb-0 fc-event-title-container">
-                                                                <a href="#" data-size="lg" data-url="{{ route('event.edit',$event->id) }}" data-ajax-popup="true" data-title="{{__('Edit Event')}}" class="fc-event-title text-primary">
+                                                                <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::EVT.'.edit',$event->id) }}" data-ajax-popup="true" data-title="{{__('Edit Event')}}" class="fc-event-title text-primary">
                                                                     {{$event->title}}
                                                                 </a>
                                                             </h5><br>
@@ -88,11 +90,11 @@
                                                         </div>
                                                         <div class="col-auto text-right">
                                                             <div class="action-btn bg-primary ms-2">
-                                                                <a href="#" data-url="{{ route('event.edit',$event->id) }}" data-title="{{__('Edit Event')}}" data-ajax-popup="true" class="mx-3 btn btn-sm  align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
+                                                                <a href="#" data-url="{{ route(ViewsConstants::EVT.'.edit',$event->id) }}" data-title="{{__('Edit Event')}}" data-ajax-popup="true" class="mx-3 btn btn-sm  align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="{{ VC::TI_PC_WT }}"></i></a>
                                                             </div>
 
                                                             <div class="action-btn bg-danger ms-2">
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['event.destroy', $event->id],'id'=>'delete-form-'.$event->id]) !!}
+                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::EVT.'.destroy', $event->id],'id'=>'delete-form-'.$event->id]) !!}
                                                                 <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$event->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
                                                                 {!! Collective\Html\FormFacade::close() !!}
                                                             </div>

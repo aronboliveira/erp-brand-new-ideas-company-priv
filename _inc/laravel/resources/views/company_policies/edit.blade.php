@@ -26,7 +26,7 @@
 @endphp
 
 {{ Form::model($companyPolicy, [
-    'route'          => ['company-policies.update', $companyPolicy->id],
+    'route'          => [ViewsConstants::CPN_PL.'.update', $companyPolicy->id],
     'method'         => 'PUT',
     'enctype'        => 'multipart/form-data',
     'id'             => $formId,
@@ -44,7 +44,7 @@
                data-url="{{ route('generate',['company policy']) }}"
                data-bs-placement="top"
                data-title="{{ __('Generate content with AI') }}">
-                <i class="fas fa-robot"></i> <span>{{ __('Generate with AI') }}</span>
+                <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
             </a>
         </div>
     @endif

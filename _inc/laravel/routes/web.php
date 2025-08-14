@@ -1186,7 +1186,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::post(ViewsConstants::PRJ_STG . '/order', [ProjectStagesController::class, 'order'])->name(ViewsConstants::PRJ_STG . '.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
             Route::post(ViewsConstants::PRJ . '/' . ViewsConstants::BUG . '/kanban/order', [ProjectController::class, ProjectController::BUG_KB_OD])->name(ViewsConstants::PRJ_BUG . '.kanban.order');
             Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/kanban', [ProjectController::class, ProjectController::BUG_KB])->name(ViewsConstants::PRJ_TSK_BUG . '.kanban');
-            Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG, [ProjectController::class, 'bug'])->name(ViewsConstants::PRJ_TSK_BUG . '.');
+            Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG, [ProjectController::class, 'bug'])->name(ViewsConstants::PRJ_TSK_BUG);
             Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/create', [ProjectController::class, ProjectController::BUG_CRT])->name(ViewsConstants::PRJ_TSK_BUG . '.create');
             Route::post(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/store', [ProjectController::class, ProjectController::BUG_ST])->name(ViewsConstants::PRJ_TSK_BUG . '.store');
             Route::get(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::BUG . '/{bid}/edit', [ProjectController::class, ProjectController::BUG_EDT])->name(ViewsConstants::PRJ_TSK_BUG . '.edit');

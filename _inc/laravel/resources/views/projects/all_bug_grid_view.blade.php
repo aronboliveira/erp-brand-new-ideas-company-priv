@@ -4,11 +4,13 @@
         PermissionsConstants,
         StacksConstants,
         ViewsConstants,
-        ViewClassNamesConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants
     };
-    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Facades\{Auth, Route, Storage};
+    use Illuminate\Support\{Collection,Str};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -291,34 +293,206 @@
     <li class="breadcrumb-item">{{__('Bug Report')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="{{ ViewClassNamesConstants::FEND }}">
-        @if($view === 'grid')
-            <a href="{{ route(ViewsConstants::BUG . '.view', 'list') }}"
-            class="{{ ViewClassNamesConstants::BT_SM_PM }}"
+    <div class="{{ VC::FEND }}">
+        @if(!empty($view) && $view === 'grid')
+          @php
+              $projectBugListViewBaseName     = ViewsConstants::PRJ_BUG.'.view';
+              $projectBugListViewKebabName    = Str::kebab($projectBugListViewBaseName);
+              $projectBugListViewResolvedName = Route::has($projectBugListViewBaseName)
+                  ? $projectBugListViewBaseName
+                  : (Route::has($projectBugListViewKebabName) ? $projectBugListViewKebabName : null);
+              $projectBugListViewParam        = 'list';
+              $projectBugListViewUrl          = $projectBugListViewResolvedName ? route($projectBugListViewResolvedName, $projectBugListViewParam) : '#';
+              $projectBugListViewGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG, 'bug_list_view_route_unavailable') ?? 'Bug list view route is unavailable. Please contact technical support or your domain administrator.';
+              $projectBugListViewLinkId       = 'project-bug-view-list-link';
+              $projectBugListViewTitle        = __('List View');
+          @endphp
+          <a href="{{ $projectBugListViewUrl }}"
+            id="{{ $projectBugListViewLinkId }}"
+            class="{{ VC::BT_SM_PM }}"
+            data-url="{{ $projectBugListViewUrl }}"
+            data-guard-msg="{{ $projectBugListViewGuardMsg }}"
             data-bs-toggle="tooltip"
-            title="{{ __('List View') }}">
-                <span class="btn-inner--text">
-                    <i class="{{ ViewClassNamesConstants::TI }} ti-list"></i>
-                </span>
-            </a>
+            title="{{ $projectBugListViewTitle }}">
+              <span class="btn-inner--text">
+                  <i class="{{ VC::TI }} ti-list"></i>
+              </span>
+          </a>
+          @push(StacksConstants::ADM_SCR_PG)
+              <script defer>
+                  (() => {
+                      try {
+                          const l = document.getElementById('{{ $projectBugListViewLinkId }}');
+                          if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                          l.setAttribute('data-listener-active', 'true');
+                          l.addEventListener('click', e => {
+                              try {
+                                  const href = l.getAttribute('href') || '#';
+                                  const url = l.getAttribute('data-url') || href || '#';
+                                  if (href !== '#' || url !== '#') return;
+                                  e.preventDefault();
+                                  const msg = l.getAttribute('data-guard-msg') || 'Open bug list view route is unavailable. Please contact technical support or your domain administrator.';
+                                  const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                  let container = document.getElementById('toast-container');
+                                  if (!container) {
+                                      container = document.createElement('div');
+                                      container.id = 'toast-container';
+                                      document.body.appendChild(container);
+                                  }
+                                  if (hasBootstrap) {
+                                      const toast = document.createElement('div');
+                                      toast.className = 'toast';
+                                      toast.setAttribute('role', 'alert');
+                                      toast.setAttribute('aria-live', 'assertive');
+                                      toast.setAttribute('aria-atomic', 'true');
+                                      const body = document.createElement('div');
+                                      body.className = 'toast-body';
+                                      body.textContent = msg;
+                                      toast.appendChild(body);
+                                      container.appendChild(toast);
+                                      bootstrap.Toast.getOrCreateInstance(toast).show();
+                                  } else {
+                                      alert(msg);
+                                  }
+                                  l.setAttribute('data-failed-route', 'true');
+                              } catch (err) {}
+                          });
+                      } catch (error) {}
+                  })();
+              </script>
+          @endpush
         @else
-            <a href="{{ route(ViewsConstants::BUG . '.view', 'grid') }}"
-            class="{{ ViewClassNamesConstants::BT_SM_PM }}">
-                <span class="btn-inner--text">
-                    <i class="{{ ViewClassNamesConstants::TI }} ti-table"></i>
-                    {{ __('Card View') }}
-                </span>
-            </a>
+          @php
+              $projectBugCardViewBaseName     = ViewsConstants::PRJ_BUG.'.view';
+              $projectBugCardViewKebabName    = Str::kebab($projectBugCardViewBaseName);
+              $projectBugCardViewResolvedName = Route::has($projectBugCardViewBaseName)
+                  ? $projectBugCardViewBaseName
+                  : (Route::has($projectBugCardViewKebabName) ? $projectBugCardViewKebabName : null);
+              $projectBugCardViewParam        = 'grid';
+              $projectBugCardViewUrl          = $projectBugCardViewResolvedName ? route($projectBugCardViewResolvedName, $projectBugCardViewParam) : '#';
+              $projectBugCardViewGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_BUG, 'bug_card_view_route_unavailable') ?? 'Bug card view route is unavailable. Please contact technical support or your domain administrator.';
+              $projectBugCardViewLinkId       = 'project-bug-view-card-link';
+          @endphp
+          <a href="{{ $projectBugCardViewUrl }}"
+            id="{{ $projectBugCardViewLinkId }}"
+            class="{{ VC::BT_SM_PM }}"
+            data-url="{{ $projectBugCardViewUrl }}"
+            data-guard-msg="{{ $projectBugCardViewGuardMsg }}">
+              <span class="btn-inner--text">
+                  <i class="{{ VC::TI }} ti-table"></i>
+                  {{ __('Card View') }}
+              </span>
+          </a>
+          @push(StacksConstants::ADM_SCR_PG)
+              <script defer>
+                  (() => {
+                      try {
+                          const l = document.getElementById('{{ $projectBugCardViewLinkId }}');
+                          if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                          l.setAttribute('data-listener-active', 'true');
+                          l.addEventListener('click', e => {
+                              try {
+                                  const href = l.getAttribute('href') || '#';
+                                  const url = l.getAttribute('data-url') || href || '#';
+                                  if (href !== '#' || url !== '#') return;
+                                  e.preventDefault();
+                                  const msg = l.getAttribute('data-guard-msg') || 'Open bug card view route is unavailable. Please contact technical support or your domain administrator.';
+                                  const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                  let container = document.getElementById('toast-container');
+                                  if (!container) {
+                                      container = document.createElement('div');
+                                      container.id = 'toast-container';
+                                      document.body.appendChild(container);
+                                  }
+                                  if (hasBootstrap) {
+                                      const toast = document.createElement('div');
+                                      toast.className = 'toast';
+                                      toast.setAttribute('role', 'alert');
+                                      toast.setAttribute('aria-live', 'assertive');
+                                      toast.setAttribute('aria-atomic', 'true');
+                                      const body = document.createElement('div');
+                                      body.className = 'toast-body';
+                                      body.textContent = msg;
+                                      toast.appendChild(body);
+                                      container.appendChild(toast);
+                                      bootstrap.Toast.getOrCreateInstance(toast).show();
+                                  } else {
+                                      alert(msg);
+                                  }
+                                  l.setAttribute('data-failed-route', 'true');
+                              } catch (err) {}
+                          });
+                      } catch (error) {}
+                  })();
+              </script>
+          @endpush
         @endif
         @can(PermissionsConstants::MNG_PRJ)
-            <a href="{{ route(ViewsConstants::PRJ . '.index') }}"
-            class="{{ ViewClassNamesConstants::BT_SM_PM }}"
+          @php
+              $projectIndexBaseName     = ViewsConstants::PRJ.'.index';
+              $projectIndexKebabName    = Str::kebab($projectIndexBaseName);
+              $projectIndexResolvedName = Route::has($projectIndexBaseName)
+                  ? $projectIndexBaseName
+                  : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
+              $projectIndexUrl          = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
+              $projectIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+              $projectIndexLinkId       = 'project-index-back-link';
+              $projectIndexTitle        = __('Back');
+          @endphp
+          <a href="{{ $projectIndexUrl }}"
+            id="{{ $projectIndexLinkId }}"
+            class="{{ VC::BT_SM_PM }}"
+            data-url="{{ $projectIndexUrl }}"
+            data-guard-msg="{{ $projectIndexGuardMsg }}"
             data-bs-toggle="tooltip"
-            title="{{ __('Back') }}">
-                <span class="btn-inner--icon">
-                    <i class="{{ ViewClassNamesConstants::TI }} ti-arrow-left"></i>
-                </span>
-            </a>
+            title="{{ $projectIndexTitle }}">
+              <span class="btn-inner--icon">
+                  <i class="{{ VC::TI }} ti-arrow-left"></i>
+              </span>
+          </a>
+          @push(StacksConstants::ADM_SCR_PG)
+              <script defer>
+                  (() => {
+                      try {
+                          const l = document.getElementById('{{ $projectIndexLinkId }}');
+                          if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                          l.setAttribute('data-listener-active', 'true');
+                          l.addEventListener('click', e => {
+                              try {
+                                  const href = l.getAttribute('href') || '#';
+                                  const url = l.getAttribute('data-url') || href || '#';
+                                  if (href !== '#' || url !== '#') return;
+                                  e.preventDefault();
+                                  const msg = l.getAttribute('data-guard-msg') || 'Open project index route is unavailable. Please contact technical support or your domain administrator.';
+                                  const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                  let container = document.getElementById('toast-container');
+                                  if (!container) {
+                                      container = document.createElement('div');
+                                      container.id = 'toast-container';
+                                      document.body.appendChild(container);
+                                  }
+                                  if (hasBootstrap) {
+                                      const toast = document.createElement('div');
+                                      toast.className = 'toast';
+                                      toast.setAttribute('role', 'alert');
+                                      toast.setAttribute('aria-live', 'assertive');
+                                      toast.setAttribute('aria-atomic', 'true');
+                                      const body = document.createElement('div');
+                                      body.className = 'toast-body';
+                                      body.textContent = msg;
+                                      toast.appendChild(body);
+                                      container.appendChild(toast);
+                                      bootstrap.Toast.getOrCreateInstance(toast).show();
+                                  } else {
+                                      alert(msg);
+                                  }
+                                  l.setAttribute('data-failed-route', 'true');
+                              } catch (err) {}
+                          });
+                      } catch (error) {}
+                  })();
+              </script>
+          @endpush
         @endcan
     </div>
 @endsection
@@ -328,85 +502,193 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row">
-                        @if(count($bugs) > 0)
+                        @if(isset($bugs) && (is_countable($bugs) && count($bugs) > 0 || $bugs instanceof Collection && $bugs->count() > 0))
                             @foreach($bugs as $bug)
-                                <div class="col-md-4 col-lg-3">
-                                    <div
-                                        id="{{ $bug->id }}"
-                                        class="{{ ViewClassNamesConstants::CD }} {{ ViewClassNamesConstants::BD }} {{ ViewClassNamesConstants::SNN }} card-progress"
-                                        style="{{ !empty($bug->priority_color)
-                                            ? 'border-left: 2px solid '.$bug->priority_color.' !important'
-                                            : '' }}"
-                                    >
-                                        <div class="card-body">
-                                            <div>
-                                                <div class="mb-2 {{ ViewClassNamesConstants::DFL_AIC_JCB }}">
-                                                    <span>
-                                                        <a
-                                                            href="{{ route(ViewsConstants::TSK . '.bug.kanban', $bug->project_id) }}"
-                                                            class="text-body {{ ViewClassNamesConstants::H6 }}"
-                                                        >
-                                                            {{ $bug->title }}
-                                                        </a>
-                                                    </span>
-                                    
-                                                    @if($bug->priority === 'low')
-                                                        <span class="{{ ViewClassNamesConstants::BDG }} bg-success p-2 px-3 rounded">
-                                                            {{ ucfirst($bug->priority) }}
+                                @if(isset($bug) && is_object($bug))
+                                    <div class="col-md-4 col-lg-3">
+                                        <div
+                                            id="{{ data_get($bug, 'id', 'bug-' . uniqid()) }}"
+                                            class="{{ VC::CD }} {{ VC::BD }} {{ VC::SNN }} card-progress"
+                                            style="{{ !empty(data_get($bug, 'priority_color')) 
+                                                ? 'border-left: 2px solid ' . e(data_get($bug, 'priority_color')) . ' !important'
+                                                : '' }}"
+                                        >
+                                            <div class="card-body">
+                                                <div>
+                                                    <div class="mb-2 {{ VC::DFL_AIC_JCB }}">
+                                                        <span>
+                                                            @if(isset($bug->project_id) && !empty($bug->project_id))
+                                                              @php
+                                                                  $bugKanbanBaseName     = ViewsConstants::PRJ_TSK_BUG.'.kanban';
+                                                                  $bugKanbanKebabName    = Str::kebab($bugKanbanBaseName);
+                                                                  $bugKanbanResolvedName = Route::has($bugKanbanBaseName)
+                                                                      ? $bugKanbanBaseName
+                                                                      : (Route::has($bugKanbanKebabName) ? $bugKanbanKebabName : null);
+                                                                  $projectId             = isset($bug) && !empty($bug->project_id) ? $bug->project_id : null;
+                                                                  $bugKanbanUrl          = ($bugKanbanResolvedName && $projectId) ? route($bugKanbanResolvedName, $projectId) : '#';
+                                                                  $bugKanbanGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_BUG, 'access_bug_kanban_route_unavailable') ?? 'Access bug kanban route is unavailable. Please contact technical support or your domain administrator.';
+                                                                  $bugKanbanLinkId       = 'project-bug-kanban-link-'.($projectId ?? 'x');
+                                                                  $bugTitle              = e(data_get($bug, 'title', __('Untitled Bug')));
+                                                              @endphp
+                                                              <a href="{{ $bugKanbanUrl }}"
+                                                                id="{{ $bugKanbanLinkId }}"
+                                                                class="text-body {{ VC::H6 }}"
+                                                                data-url="{{ $bugKanbanUrl }}"
+                                                                data-guard-msg="{{ $bugKanbanGuardMsg }}">
+                                                                  {{ $bugTitle }}
+                                                              </a>
+                                                              @push(StacksConstants::ADM_SCR_PG)
+                                                                  <script defer>
+                                                                      (() => {
+                                                                          try {
+                                                                              const l = document.getElementById('{{ $bugKanbanLinkId }}');
+                                                                              if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                                                                              l.setAttribute('data-listener-active', 'true');
+                                                                              l.addEventListener('click', e => {
+                                                                                  try {
+                                                                                      const href = l.getAttribute('href') || '#';
+                                                                                      const url = l.getAttribute('data-url') || href || '#';
+                                                                                      if (href !== '#' || url !== '#') return;
+                                                                                      e.preventDefault();
+                                                                                      const msg = l.getAttribute('data-guard-msg') || 'Access bug kanban route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                      const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                      let container = document.getElementById('toast-container');
+                                                                                      if (!container) {
+                                                                                          container = document.createElement('div');
+                                                                                          container.id = 'toast-container';
+                                                                                          document.body.appendChild(container);
+                                                                                      }
+                                                                                      if (hasBootstrap) {
+                                                                                          const toast = document.createElement('div');
+                                                                                          toast.className = 'toast';
+                                                                                          toast.setAttribute('role', 'alert');
+                                                                                          toast.setAttribute('aria-live', 'assertive');
+                                                                                          toast.setAttribute('aria-atomic', 'true');
+                                                                                          const body = document.createElement('div');
+                                                                                          body.className = 'toast-body';
+                                                                                          body.textContent = msg;
+                                                                                          toast.appendChild(body);
+                                                                                          container.appendChild(toast);
+                                                                                          bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                      } else {
+                                                                                          alert(msg);
+                                                                                      }
+                                                                                      l.setAttribute('data-failed-route', 'true');
+                                                                                  } catch (err) {}
+                                                                              });
+                                                                          } catch (error) {}
+                                                                      })();
+                                                                  </script>
+                                                              @endpush
+                                                            @else
+                                                                <span class="text-body {{ VC::H6 }}">
+                                                                    {{ e(data_get($bug, 'title', __('Untitled Bug'))) }}
+                                                                </span>
+                                                            @endif
                                                         </span>
-                                                    @elseif($bug->priority === 'medium')
-                                                        <span class="{{ ViewClassNamesConstants::BDG }} bg-warning p-2 px-3 rounded">
-                                                            {{ ucfirst($bug->priority) }}
-                                                        </span>
-                                                    @elseif($bug->priority === 'high')
-                                                        <span class="{{ ViewClassNamesConstants::BDG }} bg-danger p-2 px-3 rounded">
-                                                            {{ ucfirst($bug->priority) }}
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                    
-                                                <div class="mb-3 {{ ViewClassNamesConstants::DFL_AIC_JCB }}">
-                                                    <p class="{{ ViewClassNamesConstants::MB0 }}">
-                                                        <span class="d-inline-block {{ ViewClassNamesConstants::TXSM }}">
-                                                            {{ $bug->description ?: '-' }}
-                                                        </span>
-                                                    </p>
-                                                    <p class="{{ ViewClassNamesConstants::MB0 }}">
-                                                        @php $users = $bug->users(); @endphp
-                                                        <a href="#"
-                                                        class="btn {{ ViewClassNamesConstants::MS2 }} p-0 {{ ViewClassNamesConstants::AV_CC_SM }}"
-                                                        >
-                                                            @foreach($users as $user)
-                                                                <img
-                                                                    src="{{ $user->avatar
-                                                                        ? asset(Storage::url("uploads/avatar/{$user->avatar}"))
-                                                                        : asset(Storage::url("uploads/avatar/avatar.png")) }}"
-                                                                    class="{{ ViewClassNamesConstants::AV_CC_SM }}"
-                                                                    width="25" height="25"
-                                                                >
-                                                            @endforeach
-                                                        </a>
-                                                    </p>
-                                                </div>
-                                    
-                                                <div class="{{ ViewClassNamesConstants::RW }}">
-                                                    <div class="col-6 {{ ViewClassNamesConstants::TXS }}">
-                                                        <i class="far fa-clock"></i>
-                                                        <span>{{ $user?->dateFormat($bug->start_date) }}</span>
+                                                        @php
+                                                            $priority = data_get($bug, 'priority');
+                                                            $priorityClasses = [
+                                                                'low' => 'bg-success',
+                                                                'medium' => 'bg-warning', 
+                                                                'high' => 'bg-danger'
+                                                            ];
+                                                            $priorityClass = data_get($priorityClasses, $priority, 'bg-secondary');
+                                                        @endphp
+                                                        @if(!empty($priority) && in_array($priority, ['low', 'medium', 'high']))
+                                                            <span class="{{ VC::BDG }} {{ $priorityClass }} p-2 px-3 rounded">
+                                                                {{ e(ucfirst($priority)) }}
+                                                            </span>
+                                                        @endif
                                                     </div>
-                                                    <div class="col-6 text-end {{ ViewClassNamesConstants::TXS }} {{ ViewClassNamesConstants::FW600 }}">
-                                                        <i class="far fa-clock"></i>
-                                                        <span>{{ $user?->dateFormat($bug->due_date) }}</span>
+                                                    <div class="mb-3 {{ VC::DFL_AIC_JCB }}">
+                                                        <p class="{{ VC::MB0 }}">
+                                                            <span class="d-inline-block {{ VC::TXSM }}">
+                                                                {{ e(data_get($bug, 'description') ?: '-') }}
+                                                            </span>
+                                                        </p>
+                                                        <p class="{{ VC::MB0 }}">
+                                                            @if(method_exists($bug, 'users'))
+                                                                @php 
+                                                                    try {
+                                                                        $users = $bug->users();
+                                                                        $users = is_array($users) || is_object($users) ? $users : [];
+                                                                    } catch (Exception $e) {
+                                                                        $users = [];
+                                                                    }
+                                                                @endphp
+                                                                @if(!empty($users) && (is_array($users) || (is_object($users) && method_exists($users, 'count') && $users->count() > 0)))
+                                                                    <a href="#" class="btn {{ VC::MS2 }} p-0 {{ VC::AV_CC_SM }}">
+                                                                        @foreach($users as $user)
+                                                                            @if(isset($user) && is_object($user))
+                                                                                @php
+                                                                                    $avatar = data_get($user, 'avatar');
+                                                                                    $avatarPath = !empty($avatar) && Storage::exists("uploads/avatar/{$avatar}")
+                                                                                        ? asset(Storage::url("uploads/avatar/{$avatar}"))
+                                                                                        : asset(Storage::url("uploads/avatar/avatar.png"));
+                                                                                @endphp
+                                                                                <img
+                                                                                    src="{{ $avatarPath }}"
+                                                                                    class="{{ VC::AV_CC_SM }}"
+                                                                                    width="25" 
+                                                                                    height="25"
+                                                                                    alt="{{ e(data_get($user, 'name', __('Anonymous User'))) }}"
+                                                                                    onerror='this.src="{{ asset(Storage::url("uploads/avatar/avatar.png")) }}"'
+                                                                                >
+                                                                            @endif
+                                                                        @endforeach
+                                                                    </a>
+                                                                @endif
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                    <div class="{{ VC::RW }}">
+                                                        <div class="col-6 {{ VC::TXS }}">
+                                                            <i class="far fa-clock"></i>
+                                                            <span>
+                                                                @if(isset($user) && is_object($user) && method_exists($user, 'dateFormat'))
+                                                                    @php
+                                                                        $startDate = data_get($bug, 'start_date');
+                                                                        try {
+                                                                            $formattedStartDate = !empty($startDate) ? $user->dateFormat($startDate) : '-';
+                                                                        } catch (Exception $e) {
+                                                                            $formattedStartDate = !empty($startDate) ? e($startDate) : '-';
+                                                                        }
+                                                                    @endphp
+                                                                    {{ $formattedStartDate }}
+                                                                @else
+                                                                    {{ e(data_get($bug, 'start_date', __('No start date could be found.'))) }}
+                                                                @endif
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-6 text-end {{ VC::TXS }} {{ VC::FW600 }}">
+                                                            <i class="far fa-clock"></i>
+                                                            <span>
+                                                                @if(isset($user) && is_object($user) && method_exists($user, 'dateFormat'))
+                                                                    @php
+                                                                        $dueDate = data_get($bug, 'due_date');
+                                                                        try {
+                                                                            $formattedDueDate = !empty($dueDate) ? $user->dateFormat($dueDate) : '-';
+                                                                        } catch (Exception $e) {
+                                                                            $formattedDueDate = !empty($dueDate) ? e($dueDate) : '-';
+                                                                        }
+                                                                    @endphp
+                                                                    {{ $formattedDueDate }}
+                                                                @else
+                                                                    {{ e(data_get($bug, 'due_date', __('No due date could be found.'))) }}
+                                                                @endif
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                @endif
                             @endforeach
                         @else
                             <div class="col-md-12">
-                                <h6 class="text-center m-3">{{__('No tasks found')}}</h6>
+                                <h6 class="text-center m-3">{{ __('No tasks found') }}</h6>
                             </div>
                         @endif
                     </div>

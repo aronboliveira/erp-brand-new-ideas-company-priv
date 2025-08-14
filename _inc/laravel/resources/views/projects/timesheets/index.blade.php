@@ -18,114 +18,185 @@
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
-@section(YieldingConstants::ADM_PG_TTL)
-    {{$project->project_name.__("'s Timesheet")}}
-@endsection
+@if(!empty($project))
+    @section(YieldingConstants::ADM_PG_TTL)
+        {{!empty($project->project_name) ? $project->project_name.__("'s Timesheet") : __('No project name available.')}}
+    @endsection
 
-@section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
-            {{ __('Dashboard') }}
-        </a>
-    </li>
-    <li class="breadcrumb-item">
-        <a
-            id="project-index-link"
-            href="{{ $projectIndexUrl }}"
-            data-url="{{ $projectIndexUrl }}"
-            data-guard-msg="{{ $projectIndexGuardMsg }}"
-        >
-            {{ __('Project') }}
-        </a>
-    </li>
-    @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                const link = document.getElementById('project-index-link');
-                if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                link.setAttribute('data-listener-active', 'true');
-                link.addEventListener('click', e => {
-                    try {
-                        const url = link.getAttribute('data-url') || '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
-                        link.setAttribute('data-failed-route', 'true');
-                    } catch (err) {}
-                });
-            })();
-        </script>
-    @endpush
-    <li class="breadcrumb-item"><a href="{{ route('projects.show',$project->id) }}">{{ucwords($project->project_name)}}</a></li>
-    <li class="breadcrumb-item">{{__('Timesheet')}}</li>
-@endsection
-
-@section(YieldingConstants::ADM_ACT_BTN)
-    <div class="row gy-3 justify-content-end align-items-center">
-        <div class="col-auto weekly-dates-div text-end me-2">
-            <a href="#" class="action-item previous"><i class="ti ti-arrow-left"></i></a>
-            <span class="weekly-dates"></span>
-            <input type="hidden" id="weeknumber" value="0">
-            <input type="hidden" id="selected_dates">
-            <a href="#" class="action-item next"><i class="ti ti-arrow-right"></i>
+    @section(YieldingConstants::ADM_BDC)
+        <li class="breadcrumb-item">
+            <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
+            {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+                {{ __('Dashboard') }}
             </a>
-        </div>
-        @can('create timesheet')
-            <div class="col-auto project_tasks_select text-end">
-                <div class="dropdown btn btn-sm p-0">
-                    <a class="btn btn-primary add-small" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        <i class="ti ti-plus me-2"></i>{{__('Add Task on Timesheet')}}
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right tasks-box" x-placement="bottom-end">
-                        <div class="scrollbar-inner">
-                            <div class="mh-280">
-                                <div class="tasks-list"></div>
+        </li>
+        <li class="breadcrumb-item">
+            <a
+                id="project-index-link"
+                href="{{ $projectIndexUrl }}"
+                data-url="{{ $projectIndexUrl }}"
+                data-guard-msg="{{ $projectIndexGuardMsg }}"
+            >
+                {{ __('Project') }}
+            </a>
+        </li>
+        @push(StacksConstants::ADM_SCR_PG)
+            <script defer>
+                (() => {
+                    const link = document.getElementById('project-index-link');
+                    if (!link || link.getAttribute('data-listener-active') === 'true') return;
+                    link.setAttribute('data-listener-active', 'true');
+                    link.addEventListener('click', e => {
+                        try {
+                            const url = link.getAttribute('data-url') || '#';
+                            if (url !== '#') return;
+                            e.preventDefault();
+                            const msg = link.getAttribute('data-guard-msg') || '# ERROR';
+                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            let container = document.getElementById('toast-container');
+                            if (!container) {
+                                container = document.createElement('div');
+                                container.id = 'toast-container';
+                                document.body.appendChild(container);
+                            }
+                            if (hasBootstrap) {
+                                const toast = document.createElement('div');
+                                toast.className = 'toast';
+                                toast.setAttribute('role','alert');
+                                toast.setAttribute('aria-live','assertive');
+                                toast.setAttribute('aria-atomic','true');
+                                const body = document.createElement('div');
+                                body.className = 'toast-body';
+                                body.textContent = msg;
+                                toast.appendChild(body);
+                                container.appendChild(toast);
+                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                            } else {
+                                alert(msg);
+                            }
+                            link.setAttribute('data-failed-route', 'true');
+                        } catch (err) {}
+                    });
+                })();
+            </script>
+        @endpush
+        <li class="breadcrumb-item">
+            @php
+                $projectShowBaseName     = ViewsConstants::PRJ.'.show';
+                $projectShowKebabName    = Str::kebab($projectShowBaseName);
+                $projectShowResolvedName = Route::has($projectShowBaseName)
+                    ? $projectShowBaseName
+                    : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
+                $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
+                $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
+                $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'open_project_route_unavailable') ?? 'Open project route is unavailable. Please contact technical support or your domain administrator.';
+                $projectShowLinkId       = 'project-show-link';
+                $projectNameText         = ucwords($project->project_name ?? '');
+            @endphp
+            <a href="{{ $projectShowUrl }}"
+            id="{{ $projectShowLinkId }}"
+            data-url="{{ $projectShowUrl }}"
+            data-guard-msg="{{ $projectShowGuardMsg }}">
+                {{ $projectNameText }}
+            </a>
+            @push(StacksConstants::ADM_SCR_PG)
+                <script defer>
+                    (() => {
+                        try {
+                            const l = document.getElementById('{{ $projectShowLinkId }}');
+                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                            l.setAttribute('data-listener-active', 'true');
+                            l.addEventListener('click', e => {
+                                try {
+                                    const href = l.getAttribute('href') || '#';
+                                    const url = l.getAttribute('data-url') || href || '#';
+                                    if (href !== '#' || url !== '#') return;
+                                    e.preventDefault();
+                                    const msg = l.getAttribute('data-guard-msg') || 'Open project route is unavailable. Please contact technical support or your domain administrator.';
+                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    let container = document.getElementById('toast-container');
+                                    if (!container) {
+                                        container = document.createElement('div');
+                                        container.id = 'toast-container';
+                                        document.body.appendChild(container);
+                                    }
+                                    if (hasBootstrap) {
+                                        const toast = document.createElement('div');
+                                        toast.className = 'toast';
+                                        toast.setAttribute('role', 'alert');
+                                        toast.setAttribute('aria-live', 'assertive');
+                                        toast.setAttribute('aria-atomic', 'true');
+                                        const body = document.createElement('div');
+                                        body.className = 'toast-body';
+                                        body.textContent = msg;
+                                        toast.appendChild(body);
+                                        container.appendChild(toast);
+                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                    } else {
+                                        alert(msg);
+                                    }
+                                    l.setAttribute('data-failed-route', 'true');
+                                } catch (err) {}
+                            });
+                        } catch (error) {}
+                    })();
+                </script>
+            @endpush
+        </li>
+        <li class="breadcrumb-item">{{__('Timesheet')}}</li>
+    @endsection
+
+    @section(YieldingConstants::ADM_ACT_BTN)
+        <div class="{{ VC::RW }} gy-3 {{ VC::JCE }} {{ VC::ALC }}">
+            <div class="{{ VC::C_AT }} weekly-dates-div text-end me-2">
+                <a href="#" class="action-item previous">
+                    <i class="{{ VC::TI }} {{ VC::TI }}-arrow-left"></i>
+                </a>
+                <span class="weekly-dates"></span>
+                <input type="hidden" id="weeknumber" value="0">
+                <input type="hidden" id="selected_dates">
+                <a href="#" class="action-item next">
+                    <i class="{{ VC::TI }} {{ VC::TI }}-arrow-right"></i>
+                </a>
+            </div>
+
+            @can('create timesheet')
+                <div class="{{ VC::C_AT }} project_tasks_select text-end">
+                    <div class="dropdown {{ VC::BT_SM }} p-0">
+                        <a class="{{ VC::BT_PRM }} add-small"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="true">
+                            <i class="{{ VC::TI_PLS }} me-2"></i>{{ __('Add Task on Timesheet') }}
+                        </a>
+                        <div class="{{ VC::DRP_MN_END }} tasks-box">
+                            <div class="scrollbar-inner">
+                                <div class="mh-280">
+                                    <div class="tasks-list"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        @endcan
-    </div>
-@endsection
+            @endcan
+        </div>
+    @endsection
 
-@section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card shadow-none border">
-                        <div class="card-body table-border-style">
-                            <div class="table-responsive project-timesheet overflow-auto">
-                            </div>
-                            <div class="text-center notfound-timesheet">
-                                <div class="empty-project-text text-center p-3 min-h-300">
-                                    <h5 class="pt-5">{{ __("We couldn't find any data") }}</h5>
-                                    <p class="m-0">{{ __("Sorry we can't find any timesheet records on this week.") }}</p>
-                                    <p class="m-0">{{ __("To add timesheet record go to Add Task on Timesheet") }}</p>
+    @section(YieldingConstants::ADM_CTT)
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CS12 }}">
+                <div class="{{ VC::RW }}">
+                    <div class="{{ VC::C12 }}">
+                        <div class="{{ VC::CD_NSD }}">
+                            <div class="card-body table-border-style">
+                                <div class="table-responsive project-timesheet overflow-auto"></div>
+                                <div class="text-center notfound-timesheet">
+                                    <div class="empty-project-text text-center p-3 min-h-300">
+                                        <h5 class="pt-5">{{ __("We couldn't find any data") }}</h5>
+                                        <p class="m-0">{{ __("Sorry we can't find any timesheet records on this week.") }}</p>
+                                        <p class="m-0">{{ __("To add timesheet record go to Add Task on Timesheet") }}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -133,174 +204,317 @@
                 </div>
             </div>
         </div>
-    </div>
-@endsection
+    @endsection
 
-@push(StacksConstants::ADM_SCR_PG)
-    <script>
-        function ajaxFilterTimesheetTableView() {
-            var mainEle = $('.project-timesheet');
-            var notfound = $('.notfound-timesheet');
-            var week = parseInt($('#weeknumber').val());
-            var project_id = '{{ $project->id }}';
-            var isowner = '';
-            var data = {
-                week: week,
-                project_id: project_id,
-            }
+    @push(StacksConstants::ADM_SCR_PG)
+        <script async>
+            window.translations = {
+                ar: { timesheet_unavailable: "تعذّر تحميل الجدول الزمني", timesheet_nav_unavailable: "تعذّر التنقل بين الأسابيع", timesheet_popup_unavailable: "تعذّر فتح نافذة الجدول الزمني", timesheet_task_append_unavailable: "تعذّر إضافة المهمة إلى الجدول الزمني", timesheet_timecalc_unavailable: "تعذّر حساب إجمالي الوقت" },
+                da: { timesheet_unavailable: "Kunne ikke indlæse timeseddel", timesheet_nav_unavailable: "Kunne ikke skifte uge", timesheet_popup_unavailable: "Kunne ikke åbne timeseddel-popup", timesheet_task_append_unavailable: "Kunne ikke tilføje opgave til timeseddel", timesheet_timecalc_unavailable: "Kunne ikke beregne samlet tid" },
+                de: { timesheet_unavailable: "Zeiterfassung konnte nicht geladen werden", timesheet_nav_unavailable: "Woche konnte nicht gewechselt werden", timesheet_popup_unavailable: "Zeiterfassungs-Popup konnte nicht geöffnet werden", timesheet_task_append_unavailable: "Aufgabe konnte nicht zur Zeiterfassung hinzugefügt werden", timesheet_timecalc_unavailable: "Gesamtzeit konnte nicht berechnet werden" },
+                en: { timesheet_unavailable: "Cannot load timesheet", timesheet_nav_unavailable: "Cannot change week", timesheet_popup_unavailable: "Cannot open timesheet dialog", timesheet_task_append_unavailable: "Cannot append task to timesheet", timesheet_timecalc_unavailable: "Cannot calculate total time" },
+                es: { timesheet_unavailable: "No se puede cargar la hoja de tiempo", timesheet_nav_unavailable: "No se puede cambiar de semana", timesheet_popup_unavailable: "No se puede abrir el diálogo de hoja de tiempo", timesheet_task_append_unavailable: "No se puede añadir la tarea a la hoja de tiempo", timesheet_timecalc_unavailable: "No se puede calcular el tiempo total" },
+                fr: { timesheet_unavailable: "Impossible de charger la feuille de temps", timesheet_nav_unavailable: "Impossible de changer de semaine", timesheet_popup_unavailable: "Impossible d’ouvrir la boîte de dialogue de feuille de temps", timesheet_task_append_unavailable: "Impossible d’ajouter la tâche à la feuille de temps", timesheet_timecalc_unavailable: "Impossible de calculer le temps total" },
+                he: { timesheet_unavailable: "לא ניתן לטעון גיליון שעות", timesheet_nav_unavailable: "לא ניתן להחליף שבוע", timesheet_popup_unavailable: "לא ניתן לפתוח חלון גיליון שעות", timesheet_task_append_unavailable: "לא ניתן להוסיף משימה לגיליון שעות", timesheet_timecalc_unavailable: "לא ניתן לחשב זמן כולל" },
+                it: { timesheet_unavailable: "Impossibile caricare il timesheet", timesheet_nav_unavailable: "Impossibile cambiare settimana", timesheet_popup_unavailable: "Impossibile aprire la finestra del timesheet", timesheet_task_append_unavailable: "Impossibile aggiungere l’attività al timesheet", timesheet_timecalc_unavailable: "Impossibile calcolare il tempo totale" },
+                ja: { timesheet_unavailable: "タイムシートを読み込めません", timesheet_nav_unavailable: "週を変更できません", timesheet_popup_unavailable: "タイムシートのダイアログを開けません", timesheet_task_append_unavailable: "タスクをタイムシートに追加できません", timesheet_timecalc_unavailable: "合計時間を計算できません" },
+                nl: { timesheet_unavailable: "Timesheet kan niet worden geladen", timesheet_nav_unavailable: "Kan week niet wijzigen", timesheet_popup_unavailable: "Kan timesheetdialoog niet openen", timesheet_task_append_unavailable: "Kan taak niet aan timesheet toevoegen", timesheet_timecalc_unavailable: "Kan totale tijd niet berekenen" },
+                pl: { timesheet_unavailable: "Nie można wczytać karty czasu", timesheet_nav_unavailable: "Nie można zmienić tygodnia", timesheet_popup_unavailable: "Nie można otworzyć okna karty czasu", timesheet_task_append_unavailable: "Nie można dodać zadania do karty czasu", timesheet_timecalc_unavailable: "Nie można obliczyć łącznego czasu" },
+                pt: { timesheet_unavailable: "Não foi possível carregar a folha de horas", timesheet_nav_unavailable: "Não foi possível mudar a semana", timesheet_popup_unavailable: "Não foi possível abrir a janela da folha de horas", timesheet_task_append_unavailable: "Não foi possível adicionar a tarefa à folha de horas", timesheet_timecalc_unavailable: "Não foi possível calcular o tempo total" },
+                "pt-br": { timesheet_unavailable: "Não foi possível carregar o timesheet", timesheet_nav_unavailable: "Não foi possível mudar a semana", timesheet_popup_unavailable: "Não foi possível abrir o timesheet", timesheet_task_append_unavailable: "Não foi possível adicionar a tarefa ao timesheet", timesheet_timecalc_unavailable: "Não foi possível calcular o tempo total" },
+                ru: { timesheet_unavailable: "Не удалось загрузить табель", timesheet_nav_unavailable: "Не удалось сменить неделю", timesheet_popup_unavailable: "Не удалось открыть окно табеля", timesheet_task_append_unavailable: "Не удалось добавить задачу в табель", timesheet_timecalc_unavailable: "Не удалось вычислить общее время" },
+                tr: { timesheet_unavailable: "Zaman çizelgesi yüklenemiyor", timesheet_nav_unavailable: "Hafta değiştirilemiyor", timesheet_popup_unavailable: "Zaman çizelgesi penceresi açılamıyor", timesheet_task_append_unavailable: "Görev zaman çizelgesine eklenemiyor", timesheet_timecalc_unavailable: "Toplam süre hesaplanamıyor" },
+                zh: { timesheet_unavailable: "无法加载工时表", timesheet_nav_unavailable: "无法切换周", timesheet_popup_unavailable: "无法打开工时表弹窗", timesheet_task_append_unavailable: "无法将任务添加到工时表", timesheet_timecalc_unavailable: "无法计算总时间" }
+            };
+        </script>
+        <script defer>
+            (()=>{
+                const errFb = "# ERROR";
+                const dataClientLocalized = "data-client-localized";
+                const dataGuardMsg = "data-guard-msg";
+                const DATA_LISTENER_ADDED = "data-listener-added";
 
-            $.ajax({
-                url: '{{ route('timesheets.filters.table.view') }}',
-                data: data,
-                success: function (data) {
-                    console.log(data)
+                const getMsg = (el, msgKey) => {
+                let msg = errFb;
+                if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true") {
+                    msg = el.getAttribute(dataGuardMsg) || errFb;
+                } else {
+                    let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en")
+                    .toLowerCase()
+                    .replace(/_/g, "-");
+                    lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                    msg = window.translations?.[lang]?.[msgKey] || el?.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
+                    if (msg !== errFb) {
+                    el?.setAttribute(dataGuardMsg, msg);
+                    el?.setAttribute(dataClientLocalized, "true");
+                    }
+                }
+                return msg;
+                };
 
-                    $('.weekly-dates-div .weekly-dates').text(data.onewWeekDate);
-                    $('.weekly-dates-div #selected_dates').val(data.selectedDate);
-
-                    $('.project_tasks_select .tasks-list .dropdown-item').remove();
-
-                    $.each(data.sectiontasks, function (i, item) {
-
-                        var optionhtml = '';
-
-                        if (item.section_id != 0 && item.section_name != '' && item.tasks.length > 0) {
-                            optionhtml += `<a href="#" class="dropdown-item select-sub-heading" data-tasks-count="` + item.tasks.length + `">` + item.section_name + `</a>`;
+                const showFeedback = (el, key, ev = "click") => {
+                const text = getMsg(el || document.body, key);
+                const hasBs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
+                if (hasBs) {
+                    let toast = document.querySelector("#np-error-toast");
+                    if (!toast) {
+                    toast = document.createElement("div");
+                    toast.id = "np-error-toast";
+                    toast.className = "toast align-items-center text-bg-danger border-0";
+                    toast.setAttribute("role", "alert");
+                    toast.setAttribute("aria-live", "assertive");
+                    toast.setAttribute("aria-atomic", "true");
+                    toast.innerHTML = `
+                        <div class="d-flex">
+                        <div class="toast-body">${text}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>`;
+                    document.body.appendChild(toast);
+                    }
+                    const handler = () => new bootstrap.Toast(toast).show();
+                    if (!toast.getAttribute(DATA_LISTENER_ADDED)) {
+                    toast.setAttribute(DATA_LISTENER_ADDED, "true");
+                    const mo = new MutationObserver((_, o) => {
+                        if (!document.body.contains(toast)) {
+                        document.removeEventListener(ev, handler);
+                        o.disconnect();
                         }
-                        $.each(item.tasks, function (ji, jitem) {
-                            optionhtml += `<a href="#" class="dropdown-item select-task" data-task-id="` + jitem.task_id + `">` + jitem.task_name + `</a>`;
-                        });
-                        $('.project_tasks_select .tasks-list').append(optionhtml);
                     });
-
-                    if (data.totalrecords == 0) {
-                        mainEle.hide();
-                        notfound.css('display', 'block');
-                    } else {
-                        notfound.hide();
-                        mainEle.show();
+                    mo.observe(document.body, { childList: true, subtree: true });
                     }
-                    mainEle.html(data.html);
+                    document.addEventListener(ev, handler, { once: true });
+                } else {
+                    const handler = () => alert(text);
+                    document.addEventListener(ev, handler, { once: true });
                 }
-            });
-        }
+                };
 
-        $(function () {
-            ajaxFilterTimesheetTableView();
-        });
+                const guardOnce = (el, key, ev = "click") => {
+                if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
+                const handler = () => showFeedback(el, key, ev);
+                el.addEventListener(ev, handler, { once: true });
+                el.setAttribute(DATA_LISTENER_ADDED, "true");
+                const mo = new MutationObserver((_, o) => {
+                    if (!document.body.contains(el)) {
+                    el.removeEventListener(ev, handler);
+                    o.disconnect();
+                    }
+                });
+                mo.observe(document.body, { childList: true, subtree: true });
+                };
 
-        $(document).on('click', '.weekly-dates-div .action-item', function () {
-            var weeknumber = parseInt($('#weeknumber').val());
-            if ($(this).hasClass('previous')) {
-                weeknumber--;
-                $('#weeknumber').val(weeknumber);
-            } else if ($(this).hasClass('next')) {
-                weeknumber++;
-                $('#weeknumber').val(weeknumber);
-            }
-            ajaxFilterTimesheetTableView();
-        });
+                const routeGuard = (element, alt) => {
+                const url = element?.getAttribute?.("data-url");
+                const href = element?.action ?? element?.href;
+                return (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#");
+                };
 
-        $(document).on('click', '[data-ajax-timesheet-popup="true"]', function (e) {
-            e.preventDefault();
+                try {
+                if (typeof $ === "undefined") {
+                    console.error("jQuery failed to load");
+                    return;
+                }
 
-            var data = {};
-            var url = $(this).data('url');
-            var type = $(this).data('type');
-            var date = $(this).data('date');
-            var task_id = $(this).data('task-id');
-            var user_id = $(this).data('user-id');
+                const $doc = $(document);
+                const initFlag = "data-timesheet-init";
+                if (document.documentElement.getAttribute(initFlag) === "true") return;
+                document.documentElement.setAttribute(initFlag, "true");
 
-            data.date = date;
-            data.task_id = task_id;
+                const weeklyDatesDiv = document.querySelector(".weekly-dates-div");
+                const timesheetUrl = "{{ route('timesheets.filters.table.view') }}";
+                const appendTaskUrl = "{{route('append.timesheet.task.html')}}";
 
-            if (user_id != undefined) {
-                data.user_id = user_id;
-            }
-            if (type == 'create') {
-                var title = '{{ __("Create Timesheet") }}';
-                data.project_id = '{{ $project->id }}';
-            } else if (type == 'edit') {
-                var title = '{{ __("Edit Timesheet") }}';
-            }
+                const ajaxFilterTimesheetTableView = () => {
+                    try {
+                    const $main = $(".project-timesheet");
+                    const $notfound = $(".notfound-timesheet");
+                    const week = parseInt($("#weeknumber").val() ?? "0", 10) || 0;
+                    const project_id = '{{ $project->id }}' ?? "";
 
-            $("#commonModal .modal-title").html(title + ` <small>(` + moment(date).format("ddd, Do MMM YYYY") + `)</small>`);
-            $.ajax({
-                url: url,
-                data: data,
-                dataType: 'html',
-                success: function (data) {
-                    $('#commonModal .body').html(data);
-                    $('#commonModal').modal('show');
+                    if (routeGuard(null, timesheetUrl)) {
+                        guardOnce(document.body, "timesheet_unavailable", "click");
+                        return;
+                    }
 
-                    if ($('#date').length > 0) {
-                        $('#date').daterangepicker({
-                            singleDatePicker: true,
-                            locale: {
-                                format: 'YYYY-MM-DD'
+                    $.ajax({
+                        url: timesheetUrl,
+                        data: { week, project_id },
+                        success: (res) => {
+                        try {
+                            $(".weekly-dates-div .weekly-dates").text(res?.onewWeekDate ?? "");
+                            $(".weekly-dates-div #selected_dates").val(res?.selectedDate ?? "");
+
+                            const $list = $(".project_tasks_select .tasks-list");
+                            $list.find(".dropdown-item").remove();
+
+                            (res?.sectiontasks ?? []).forEach((sec) => {
+                            let html = "";
+                            if (sec?.section_id !== 0 && sec?.section_name && Array.isArray(sec?.tasks) && sec.tasks.length > 0) {
+                                html += `<a href="#" class="dropdown-item select-sub-heading" data-tasks-count="${sec.tasks.length}">${sec.section_name}</a>`;
                             }
-                        });
+                            (sec?.tasks ?? []).forEach((t) => {
+                                html += `<a href="#" class="dropdown-item select-task" data-task-id="${t.task_id}">${t.task_name}</a>`;
+                            });
+                            $list.append(html);
+                            });
+
+                            if ((res?.totalrecords ?? 0) === 0) {
+                            $main.hide();
+                            $notfound.css("display", "block");
+                            } else {
+                            $notfound.hide();
+                            $main.show();
+                            }
+
+                            $main.html(res?.html ?? "");
+                        } catch {
+                            guardOnce(document.body, "timesheet_unavailable", "click");
+                        }
+                        },
+                        error: () => guardOnce(document.body, "timesheet_unavailable", "click")
+                    });
+                    } catch {
+                    guardOnce(document.body, "timesheet_unavailable", "click");
+                    }
+                };
+
+                // initial load
+                ajaxFilterTimesheetTableView();
+
+                // week navigation
+                $doc.on("click", ".weekly-dates-div .action-item", function () {
+                    try {
+                    const $input = $("#weeknumber");
+                    let val = parseInt($input.val() ?? "0", 10) || 0;
+                    if ($(this).hasClass("previous")) val--;
+                    else if ($(this).hasClass("next")) val++;
+                    $input.val(val);
+                    ajaxFilterTimesheetTableView();
+                    } catch {
+                    guardOnce(weeklyDatesDiv, "timesheet_nav_unavailable", "click");
+                    }
+                });
+
+                // open create/edit modal
+                $doc.on("click", "[data-ajax-timesheet-popup='true']", function (e) {
+                    e.preventDefault();
+                    try {
+                    const el = this;
+                    const url = $(el).data("url");
+                    const type = $(el).data("type");
+                    const date = $(el).data("date");
+                    const task_id = $(el).data("task-id");
+                    const user_id = $(el).data("user-id");
+
+                    const data = { date, task_id };
+                    if (user_id != null) data.user_id = user_id;
+                    if (type === "create") data.project_id = '{{ $project->id }}';
+
+                    const urlAttr = el.getAttribute("data-url");
+                    const href = el.action ?? el.href;
+                    if ((!urlAttr || urlAttr === "#") && (!href || href === "#")) {
+                        guardOnce(el, "timesheet_popup_unavailable", "click");
+                        return;
                     }
 
-                    $('#commonModal').modal({backdrop: 'static', keyboard: false});
+                    $.ajax({
+                        url,
+                        data,
+                        dataType: "html",
+                        success: (html) => {
+                        try {
+                            $("#commonModal .body").html(html);
+                            const title = (type === "create" ? '{{ __("Create Timesheet") }}' : '{{ __("Edit Timesheet") }}');
+                            const dateText = window.moment ? moment(date).format("ddd, Do MMM YYYY") : date;
+                            $("#commonModal .modal-title").html(`${title} <small>(${dateText})</small>`);
+                            $("#commonModal").modal("show");
+
+                            if (window.$ && $("#date").length > 0 && $.fn.daterangepicker) {
+                            $("#date").daterangepicker({ singleDatePicker: true, locale: { format: "YYYY-MM-DD" } });
+                            }
+                            $("#commonModal").modal({ backdrop: "static", keyboard: false });
+                        } catch {
+                            guardOnce(el, "timesheet_popup_unavailable", "click");
+                        }
+                        },
+                        error: () => guardOnce(el, "timesheet_popup_unavailable", "click")
+                    });
+                    } catch {
+                    guardOnce(this, "timesheet_popup_unavailable", "click");
+                    }
+                });
+
+                // append task row
+                $doc.on("click", ".project_tasks_select .tasks-box .select-task", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    try {
+                    const task_id = $(this).attr("data-task-id") ?? "";
+                    const selected_dates = $("#selected_dates").val() ?? "";
+                    const project_id = '{{ $project->id }}' ?? "";
+
+                    if (routeGuard(null, appendTaskUrl)) {
+                        guardOnce(this, "timesheet_task_append_unavailable", "click");
+                        return;
+                    }
+
+                    $.ajax({
+                        url: appendTaskUrl,
+                        data: { project_id, task_id, selected_dates },
+                        success: (res) => {
+                        try {
+                            $(".notfound-timesheet").hide();
+                            $(".project-timesheet").show();
+                            $(".project-timesheet .tbody").append(res?.html ?? "");
+                            $(`.project_tasks_select .tasks-list .select-task[data-task-id="${task_id}"]`).remove();
+                        } catch {
+                            guardOnce(document.body, "timesheet_task_append_unavailable", "click");
+                        }
+                        },
+                        error: () => guardOnce(document.body, "timesheet_task_append_unavailable", "click")
+                    });
+                    } catch {
+                    guardOnce(this, "timesheet_task_append_unavailable", "click");
+                    }
+                });
+
+                // time calculation
+                $doc.on("change", "#time_hour, #time_minute", function () {
+                    try {
+                    let hour = $("#time_hour").children("option:selected").val() ?? "";
+                    let minute = $("#time_minute").children("option:selected").val() ?? "";
+                    const total = ($("#totaltasktime").val() ?? "0:0").split(":");
+
+                    if ((hour === "00" || hour === "") && (minute === "00" || minute === "")) {
+                        $(this).val("");
+                        return;
+                    }
+
+                    hour = parseInt(hour || "0", 10) + parseInt(total[0] || "0", 10);
+                    minute = parseInt(minute || "0", 10) + parseInt(total[1] || "0", 10);
+
+                    if (minute > 50) {
+                        minute -= 60;
+                        hour++;
+                    }
+
+                    const hh = hour < 10 ? `0${hour}` : `${hour}`;
+                    const mm = minute < 10 ? `0${minute}` : `${minute}`;
+
+                    $(".display-total-time small").text(
+                        `{{ __("Total Time worked on this task") }} : ${hh} {{ __("Hours") }} ${mm} {{ __("Minutes") }}`
+                    );
+                    } catch {
+                    guardOnce(document.body, "timesheet_timecalc_unavailable", "click");
+                    }
+                });
+
+                } catch (e) {
+                console.error("Initialization failed", e);
                 }
-            });
-        });
-
-        $('.project_tasks_select .tasks-box').on('click', '.select-task', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            var mainEle = $('.project-timesheet');
-            var notfound = $('.notfound-timesheet');
-
-            var task_id = $(this).attr('data-task-id');
-            var selected_dates = $('#selected_dates').val();
-
-            $.ajax({
-                url: '{{route('append.timesheet.task.html')}}',
-                data: {
-                    project_id: '{{ $project->id }}',
-                    task_id: task_id,
-                    selected_dates: selected_dates,
-                },
-                success: function (data) {
-                    notfound.hide();
-                    mainEle.show();
-                    $('.project-timesheet .tbody').append(data.html);
-                    $('.project_tasks_select .tasks-list .select-task[data-task-id="' + task_id + '"]').remove();
-                }
-            });
-        });
-
-        $(document).on('change', '#time_hour, #time_minute', function () {
-
-            var hour = $('#time_hour').children("option:selected").val();
-            var minute = $('#time_minute').children("option:selected").val();
-            var total = $('#totaltasktime').val().split(':');
-
-            if (hour == '00' && minute == '00') {
-                $(this).val('');
-                return;
-            }
-
-            hour = hour != '' ? hour : 0;
-            hour = parseInt(hour) + parseInt(total[0]);
-
-            minute = minute != '' ? minute : 0;
-            minute = parseInt(minute) + parseInt(total[1]);
-
-            if (minute > 50) {
-                minute = minute - 60;
-                hour++;
-            }
-
-            hour = hour < 10 ? '0' + hour : hour;
-            minute = minute < 10 ? '0' + minute : minute;
-
-            $('.display-total-time small').text('{{ __("Total Time worked on this task") }} : ' + hour + ' {{ __("Hours") }} ' + minute + ' {{ __("Minutes") }}');
-        });
-
-    </script>
-@endpush
-
+            })();
+        </script>
+    @endpush
+@else
+    <div class="alert alert-info">{{ __('No timesheet data available.') }}</div>
+@endif

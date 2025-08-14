@@ -2,25 +2,113 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC,
+        ViewClassNamesConstants,
         YieldingConstants,
     };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Route, Storage};
-    use Illuminate\Support\Str;
+    use Illuminate\Support\Facades\{Auth, Crypt, Route};
     $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
-    $projectIndexBaseName = ViewsConstants::PRJ . '.index';
-    $projectIndexKebabName = Str::kebab($projectIndexBaseName);
-    $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
-    $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
-    {{ucwords($project->project_name).__("'s Expenses")}}
+    {{__('Manage Expenses')}}
 @endsection
+@push(StacksConstants::ADM_SCR_PG)
+    <script async>
+        window.translations = {
+        ar: {
+            url_copy_success: 'تم نسخ الرابط إلى الحافظة.',
+            url_copy_failed:  'فشل نسخ الرابط.'
+        },
+        da: {
+            url_copy_success: 'URL kopieret til udklipsholder.',
+            url_copy_failed:  'Kunne ikke kopiere URL.'
+        },
+        de: {
+            url_copy_success: 'URL in die Zwischenablage kopiert.',
+            url_copy_failed:  'Konnte URL nicht kopieren.'
+        },
+        en: {
+            url_copy_success: 'URL copied to clipboard.',
+            url_copy_failed:  'Failed to copy URL.'
+        },
+        es: {
+            url_copy_success: 'URL copiada al portapapeles.',
+            url_copy_failed:  'Error al copiar la URL.'
+        },
+        fr: {
+            url_copy_success: 'URL copiée dans le presse-papiers.',
+            url_copy_failed:  'Échec de la copie de l’URL.'
+        }
+        };
+    </script>
+    <script defer>
+        (() => {
+            const SUCCESS_KEY = 'url_copy_success';
+            const ERROR_KEY   = 'url_copy_failed';
+            const ATTR_ACTIVE = 'data-listener-active';
+            const SELECTOR    = '.copy_link';
+        
+            const showError = msg => {
+            const hasBs = window.bootstrap?.Toast;
+            if (hasBs) {
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-danger border-0';
+                toast.setAttribute('role','alert');
+                toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${msg}</div>
+                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+                document.body.append(toast);
+                new bootstrap.Toast(toast).show();
+            } else {
+                alert(msg);
+            }
+            };
+        
+            const showSuccess = msg => show_toastr('success', msg, 'success');
+        
+            const getMsg = key => {
+            let lang = (sessionStorage.getItem('erp-np-lang') 
+                    || document.documentElement.lang 
+                    || 'en')
+                        .toLowerCase().replace(/_/g,'-');
+            lang = lang === 'pt-br' ? lang : lang.slice(0,2);
+            return window.translations?.[lang]?.[key]
+                || window.translations?.['en']?.[key]
+                || '# ERROR';
+            };
+        
+            const els = document.querySelectorAll(SELECTOR);
+            if (!els.length) return;
+        
+            els.forEach(el => {
+            if (el.getAttribute(ATTR_ACTIVE) === 'true') return;
+            el.setAttribute(ATTR_ACTIVE, 'true');
+        
+            el.addEventListener('click', async e => {
+                e.preventDefault();
+                try {
+                const href = el.getAttribute('href');
+                if (!href) throw new Error();
+                await navigator.clipboard.writeText(href);
+                showSuccess(getMsg(SUCCESS_KEY));
+                } catch {
+                showError(getMsg(ERROR_KEY));
+                }
+            });
+            });
+        
+            const mo = new MutationObserver((_, obs) => {
+            if (![...els].some(el => document.body.contains(el))) {
+                els.forEach(el => el.removeEventListener('click'));
+                obs.disconnect();
+            }
+            });
+            mo.observe(document.body, { childList: true, subtree: true });
+        })();
+    </script>
+@endpush
 @section(YieldingConstants::ADM_BDC)
     <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
@@ -28,146 +116,128 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">
-        <a
-            id="project-index-link"
-            href="{{ $projectIndexUrl }}"
-            data-url="{{ $projectIndexUrl }}"
-            data-guard-msg="{{ $projectIndexGuardMsg }}"
-        >
-            {{ __('Project') }}
-        </a>
-    </li>
-    @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                const link = document.getElementById('project-index-link');
-                if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                link.setAttribute('data-listener-active', 'true');
-                link.addEventListener('click', e => {
-                    try {
-                        const url = link.getAttribute('data-url') || '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
-                        link.setAttribute('data-failed-route', 'true');
-                    } catch (err) {}
-                });
-            })();
-        </script>
-    @endpush
-    <li class="breadcrumb-item"><a href="{{route('projects.show',$project->id)}}">    {{ucwords($project->project_name)}}</a></li>
-    <li class="breadcrumb-item">{{ucwords($project->project_name).__("'s Expenses")}}</li>
+    <li class="breadcrumb-item">{{__('Expense')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        @can('create expense')
-            <a href="#" class="btn btn-primary btn-sm" data-url="{{ route('projects.expenses.create',$project->id) }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-size="lg" data-title="{{__('Create Expense')}}">
-                <span class="btn-inner--icon"><i class="ti ti-plus"></i></span>
+        @can('create bill')
+            <a href="{{ route(ViewsConstants::EXP.'.create',0) }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('Create')}}">
+                <i class="ti ti-plus"></i>
             </a>
         @endcan
-        <a href="{{ route('projects.show',$project->id) }}" class="btn btn-primary btn-sm" data-bs-toggle="tooltip" title="{{__('Back')}}">
-            <span class="btn-inner--icon"><i class="ti ti-arrow-left"></i></span>
-        </a>
     </div>
 @endsection
 @section(YieldingConstants::ADM_CTT)
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="mt-2" id="multiCollapseExample1">
+                <div class="card">
+                    <div class="card-body">
+                        {{ Collective\Html\FormFacade::open(array('route' => array(ViewsConstants::EXP.'.index'),'method' => 'GET','id'=>'frm_submit')) }}
+                        <div class="row align-items-center justify-content-end">
+                            <div class="col-xl-10">
+                                <div class="row">
+                                    <div class="col-3"></div>
+                                    <div class="col-3"></div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 month">
+                                        <div class="btn-box">
+                                            {{Collective\Html\FormFacade::label('bill_date',__('Payment Date'),['class'=>'form-label'])}}
+                                            {{ Collective\Html\FormFacade::text('bill_date', isset($_GET['bill_date'])?$_GET['bill_date']:null, array('class' => 'form-control month-btn','id'=>'pc-daterangepicker-1','readonly')) }}
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="btn-box">
+                                            {{ Collective\Html\FormFacade::label('category', __('Category'),['class'=>'form-label'])}}
+                                            {{ Collective\Html\FormFacade::select('category',$category,isset($_GET['category'])?$_GET['category']:'', array('class' => 'form-control select')) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto mt-4">
+                                <div class="row">
+                                    <div class="col-auto">
+                                        <a href="#" class="btn btn-sm btn-primary" onclick="document.getElementById('frm_submit').submit(); return false;" data-bs-toggle="tooltip" title="{{__('Apply')}}" data-original-title="{{__('apply')}}">
+                                            <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
+                                        </a>
+                                        <a href="{{route(ViewsConstants::EXP.'.index')}}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"  title="{{ __('Reset') }}" data-original-title="{{__('Reset')}}">
+                                            <span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{ Collective\Html\FormFacade::close() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                    <table class="table datatable">
-                        <thead>
-                        <tr>
-                            <th scope="col">{{__('Attachment')}}</th>
-                            <th scope="col">{{__('Name')}}</th>
-                            <th scope="col">{{__('Date')}}</th>
-                            <th scope="col">{{__('Amount')}}</th>
-                            @if(Gate::check('edit expense') || Gate::check('delete expense'))
-                                <th scope="col"></th>
-                            @endif
-                        </tr>
-                        </thead>
-                        <tbody class="list">
-                            @if(isset($project->expense) && !empty($project->expense) && count($project->expense) > 0)
-                                @foreach($project->expense as $expense)
-                                    <tr>
-                                        <th scope="row">
-                                            @if(!empty($expense->attachment))
-                                                <a href="{{ asset(Storage::url($expense->attachment)) }}" class="btn btn-sm btn-primary btn-icon rounded-pill" data-bs-toggle="tooltip" title="{{__('Download')}}" download>
-                                                    <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
-                                                </a>
-                                            @else
-                                                <a href="#" class="btn btn-sm btn-secondary btn-icon rounded-pill">
-                                                    <span class="btn-inner--icon"><i class="ti ti-times-circle"></i></span>
-                                                </a>
-                                            @endif
-                                        </th>
-                                        <td>
-                                            <span class="h6 text-sm font-weight-bold mb-0">{{ $expense->name }}</span>
-                                            @if(!empty($expense->task))<span class="d-block text-sm text-muted">{{ $expense->task->name }}</span>@endif
-                                        </td>
-                                        <td>{{ (!empty($expense->date)) ? Utility::getDateFormated($expense->date) : '-' }}</td>
-                                        <td>{{ $user?->priceFormat($expense->amount) }}</td>
-                                        @if(Gate::check('edit expense') || Gate::check('delete expense'))
-                                            <td class="text-end w-15">
-                                                <div class="actions">
-                                                    @can('edit expense')
-                                                        <div class="action-btn bg-primary ms-2">
-                                                        <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route('projects.expenses.edit',[$project->id,$expense->id]) }}" data-ajax-popup="true" data-size="lg" data-title="{{__('Edit ').$expense->name}}" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="Edit">
-                                                            <span class="btn-inner--icon"><i class="{{ VC::TI_PC_WT }}"></i></span>
-                                                        </a>
-                                                        </div>
-                                                    @endcan
-                                                    @can('delete expense')
-                                                            <div class="action-btn bg-danger ms-2">
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['projects.expenses.destroy',$expense->id],'id'=>'delete-expense-'.$expense->id]) !!}
-                                                                <a href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?')}}|{{__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-expense-{{$expense->id}}').submit();">
-                                                                    <i class="ti ti-trash text-white"></i>
-                                                                </a>
-                                                            </div>
-                                                    @endcan
-
-                                                </div>
-                                                {!! Collective\Html\FormFacade::close() !!}
-                                            </td>
-                                        @endif
-                                    </tr>
-                                @endforeach
-                            @else
+                        <table class="table datatable">
+                            <thead>
+                            <tr>
+                                <th> {{__('Expense')}}</th>
+                                <th> {{__('Category')}}</th>
+                                <th> {{__('Date')}}</th>
+                                <th>{{__('Status')}}</th>
+                                @if(Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill'))
+                                    <th width="10%"> {{__('Action')}}</th>
+                                @endif
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach ($expenses as $expense)
                                 <tr>
-                                    <th scope="col" colspan="5"><h6 class="text-center">{{__('No Expense Found.')}}</h6></th>
-                                </tr>
-                            @endif
+                                    <td class="Id">
+                                        <a href="{{ route(ViewsConstants::EXP.'.show',Crypt::encrypt($expense->id)) }}" class="btn btn-outline-primary">{{ $user?->expenseNumberFormat($expense->bill_id) }}</a>
+                                    </td>
+                                    <td>{{ !empty($expense->category)?$expense->category->name:'-'}}</td>
+                                    <td>{{ $user?->dateFormat($expense->bill_date) }}</td>
+                                    <td>
+                                        <span class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$expense->status]) }}</span>
+                                    </td>
+                                    @if(Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill'))
+                                        <td class="Action">
+                                            <span>
 
-                        </tbody>
-                    </table>
-                </div>
+                                                @can('show bill')
+                                                    <div class="action-btn bg-info ms-2">
+                                                        <a href="{{ route(ViewsConstants::EXP.'.show',Crypt::encrypt($expense->id)) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Show')}}" data-original-title="{{__('Detail')}}">
+                                                            <i class="ti ti-eye text-white"></i>
+                                                        </a>
+                                                    </div>
+                                                @endcan
+                                                @can('edit bill')
+                                                    <div class="action-btn bg-primary ms-2">
+                                                        <a href="{{ route(ViewsConstants::EXP.'.edit',Crypt::encrypt($expense->id)) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="Edit" data-original-title="{{__('Edit')}}">
+                                                            <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
+                                                        </a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete bill')
+                                                    <div class="action-btn bg-danger ms-2">
+                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::EXP.'.destroy', $expense->id],'class'=>'delete-form-btn','id'=>'delete-form-'.$expense->id]) !!}
+                                                        <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$expense->id}}').submit();">
+                                                            <i class="ti ti-trash text-white"></i>
+                                                        </a>
+                                                        {!! Collective\Html\FormFacade::close() !!}
+                                                    </div>
+                                                @endcan
+                                            </span>
+                                        </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
