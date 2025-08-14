@@ -1,80 +1,87 @@
-{{Collective\Html\FormFacade::open(array('url'=>'training','method'=>'post'))}}
-<div class="modal-body">
+@php
+    use App\Config\Constants\{
+        PlansConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
 
-    {{-- start for ai module--}}
-    @php
-        $plan= \App\Models\Utility::getChatGPTSettings();
-    @endphp
-    @if($plan->chatgpt == 1)
-    <div class="text-end">
-        <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['training']) }}"
-          data-bs-placement="top"  data-title="{{ __('Generate content with AI') }}">
-            <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
-        </a>
+    $lang = Utility::fetchUserLang();
+@endphp
+
+{!! Form::open([
+    'url'  => ViewsConstants::TNG,
+    'method' => 'post',
+    'id'     => 'create_training',
+]) !!}
+    <div class="modal-body">
+        @php($plan = Utility::getChatGPTSettings())
+        @if($plan?->{PlansConstants::COL_GPT} == 1)
+            <div class="text-end">
+                <a href="#"
+                   data-size="md"
+                   class="{{ VC::BT_SM_PM }} btn-icon"
+                   data-ajax-popup-over="true"
+                   data-url="{{ route('generate', ['training']) }}"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}">
+                    <i class="{{ VC::FAS_RB }}"></i>
+                    <span>{{ __('Generate with AI') }}</span>
+                </a>
+            </div>
+        @endif
+
+        <div class="row">
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('branch', __('Branch'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('branch', $branches, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('trainer_option', __('Trainer Option'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('trainer_option', $options, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('training_type', __('Training Type'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('training_type', $trainingTypes, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('trainer', __('Trainer'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('trainer', $trainers, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('training_cost', __('Training Cost'), ['class' => VC::FM_LB]) }}
+                {{ Form::number('training_cost', null, ['class' => VC::FM_CT, 'step' => '0.01', 'required' => true]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('employee', __('Employee'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('employee', $employees, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('start_date', null, ['class' => VC::FM_CT]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('end_date', null, ['class' => VC::FM_CT]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'placeholder' => __('Description')]) }}
+            </div>
+        </div>
     </div>
-    @endif
-    {{-- end for ai module--}}
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('branch',__('Branch'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('branch',$branches,null,array('class'=>'form-control select','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('trainer_option',__('Trainer Option'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('trainer_option',$options,null,array('class'=>'form-control select','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('training_type',__('Training Type'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('training_type',$trainingTypes,null,array('class'=>'form-control select','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('trainer',__('Trainer'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('trainer',$trainers,null,array('class'=>'form-control select','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('training_cost',__('Training Cost'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::number('training_cost',null,array('class'=>'form-control','step'=>'0.01','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('employee',__('Employee'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('employee',$employees,null,array('class'=>'form-control select','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('start_date',__('Start Date'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::date('start_date',null,array('class'=>'form-control'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('end_date',__('End Date'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::date('end_date',null,array('class'=>'form-control'))}}
-            </div>
-        </div>
-        <div class="form-group col-lg-12">
-            {{Collective\Html\FormFacade::label('description',__('Description'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::textarea('description',null,array('class'=>'form-control','placeholder'=>__('Description')))}}
-        </div>
-
-
+    <div class="modal-footer">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
-</div>
-
-{{Collective\Html\FormFacade::close()}}
+{!! Form::close() !!}

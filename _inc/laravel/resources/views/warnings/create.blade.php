@@ -1,48 +1,72 @@
-{{Collective\Html\FormFacade::open(array('url'=>'warning','method'=>'post'))}}
-<div class="modal-body">
-    {{-- start for ai module--}}
-    @php
-        $plan= \App\Models\Utility::getChatGPTSettings();
-    @endphp
-    @if($plan->chatgpt == 1)
-    <div class="text-end">
-        <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['warning']) }}"
-           data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-            <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
-        </a>
-    </div>
-    @endif
-    {{-- end for ai module--}}
-    <div class="row">
-        @if(\Auth::user()->type != 'Employee')
-            <div class="form-group col-md-6 col-lg-6">
-                {{ Collective\Html\FormFacade::label('warning_by', __('Warning By'),['class'=>'form-label'])}}
-                {{ Collective\Html\FormFacade::select('warning_by', $employees,null, array('class' => 'form-control select','required'=>'required')) }}
+@php
+    use App\Config\Constants\{
+        PlansConstants,
+        UsersConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Auth;
+
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
+@endphp
+
+{!! Form::open([
+    'url'  => ViewsConstants::WRN,
+    'method' => 'post',
+    'id'     => 'create_warning',
+]) !!}
+    <div class="modal-body">
+        @php($plan = Utility::getChatGPTSettings())
+        @if($plan?->{PlansConstants::COL_GPT} == 1)
+            <div class="text-end">
+                <a href="#"
+                   data-size="md"
+                   class="{{ VC::BT_SM_PM }} btn-icon"
+                   data-ajax-popup-over="true"
+                   data-url="{{ route('generate', ['warning']) }}"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}">
+                    <i class="{{ VC::FAS_RB }}"></i>
+                    <span>{{ __('Generate with AI') }}</span>
+                </a>
             </div>
         @endif
-        <div class="form-group col-md-6 col-lg-6">
-            {{Collective\Html\FormFacade::label('warning_to',__('Warning To'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::select('warning_to',$employees,null,array('class'=>'form-control select'))}}
-        </div>
-        <div class="form-group col-md-6 col-lg-6">
-            {{Collective\Html\FormFacade::label('subject',__('Subject'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::text('subject',null,array('class'=>'form-control'))}}
-        </div>
-        <div class="form-group col-md-6 col-lg-6">
-            {{Collective\Html\FormFacade::label('warning_date',__('Warning Date'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::date('warning_date',null,array('class'=>'form-control'))}}
-        </div>
-        <div class="form-group col-md-12">
-            {{Collective\Html\FormFacade::label('description',__('Description'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::textarea('description',null,array('class'=>'form-control','placeholder'=>__('Enter Description')))}}
-        </div>
 
+        <div class="row">
+            @if(!empty($user?->type) && strtolower($user->type) !== 'employee')
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('warning_by', __('Warning By'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('warning_by', $employees, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+                </div>
+            @endif
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('warning_to', __('Warning To'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('warning_to', $employees, null, ['class' => VC::FM_CT_SL]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('subject', __('Subject'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('subject', null, ['class' => VC::FM_CT]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('warning_date', __('Warning Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('warning_date', null, ['class' => VC::FM_CT]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Description')]) }}
+            </div>
+        </div>
     </div>
 
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
-</div>
-
-    {{Collective\Html\FormFacade::close()}}
+    <div class="modal-footer">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+    </div>
+{!! Form::close() !!}

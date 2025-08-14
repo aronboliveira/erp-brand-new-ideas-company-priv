@@ -1,42 +1,66 @@
-{{Collective\Html\FormFacade::model($resignation,array('route' => array('resignation.update', $resignation->id), 'method' => 'PUT')) }}
+@php
+    use App\Config\Constants\{
+        PlansConstants,
+        UsersConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Auth;
+
+    $lang = Utility::fetchUserLang();
+    $user = Auth::user();
+@endphp
+
+{!! Form::model($resignation, [
+    'route'  => [ViewsConstants::RSG . '.update', $resignation->id],
+    'method' => 'PUT',
+    'id'     => 'edit_resignation',
+]) !!}
     <div class="modal-body">
-        {{-- start for ai module--}}
-        @php
-            $plan= \App\Models\Utility::getChatGPTSettings();
-        @endphp
-        @if($plan->chatgpt == 1)
-        <div class="text-end">
-            <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['resignation']) }}"
-               data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-                <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
-            </a>
-        </div>
-        @endif
-        {{-- end for ai module--}}
-    <div class="row">
-        @if(\Auth::user()->type!='Employee')
-            <div class="form-group col-lg-12">
-                {{ Collective\Html\FormFacade::label('employee_id', __('Employee'),['class'=>'form-label'])}}
-                {{ Collective\Html\FormFacade::select('employee_id', $employees,null, array('class' => 'form-control select','required'=>'required')) }}
+        @php($plan = Utility::getChatGPTSettings())
+        @if($plan?->{PlansConstants::COL_GPT} == 1)
+            <div class="text-end">
+                <a href="#"
+                   data-size="md"
+                   class="{{ VC::BT_SM_PM }} btn-icon btn-sm"
+                   data-ajax-popup-over="true"
+                   data-url="{{ route('generate', ['resignation']) }}"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}">
+                    <i class="{{ VC::FAS_RB }}"></i>
+                    <span>{{ __('Generate with AI') }}</span>
+                </a>
             </div>
         @endif
-        <div class="form-group col-lg-6 col-md-6">
-            {{Collective\Html\FormFacade::label('notice_date',__('Notice Date'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::date('notice_date',null,array('class'=>'form-control'))}}
-        </div>
-        <div class="form-group col-lg-6 col-md-6">
-            {{Collective\Html\FormFacade::label('resignation_date',__('Resignation Date'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::date('resignation_date',null,array('class'=>'form-control'))}}
-        </div>
-        <div class="form-group col-lg-12">
-            {{Collective\Html\FormFacade::label('description',__('Description'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::textarea('description',null,array('class'=>'form-control','placeholder'=>__('Enter Description')))}}
-        </div>
 
+        <div class="row">
+            @if(!empty($user?->{UsersConstants::COL_TP}) && strtolower($user->{UsersConstants::COL_TP}) !== 'employee')
+                <div class="{{ VC::FM_GCB12 }}">
+                    {{ Form::label('employee_id', __('Employee'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('employee_id', $employees, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+                </div>
+            @endif
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('notice_date', __('Notice Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('notice_date', null, ['class' => VC::FM_CT]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('resignation_date', __('Resignation Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('resignation_date', null, ['class' => VC::FM_CT]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Description')]) }}
+            </div>
+        </div>
     </div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
-</div>
-    {{Collective\Html\FormFacade::close()}}
+    <div class="modal-footer">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
+    </div>
+{!! Form::close() !!}

@@ -1,74 +1,115 @@
 @php
     use App\Config\Constants\{
-        PlansConstants, 
+        PlansConstants,
         ViewsConstants,
         ViewClassNamesConstants as VC
     };
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
+
     $lang = Utility::fetchUserLang();
 @endphp
-{{ Form::model($contract, array('route' => array(ViewsConstants::CTC.'.update', $contract->id), 'method' => 'PUT')) }}
-<div class="modal-body">
-    {{-- start for ai module--}}
-    @php
-        $plan = Utility::getChatGPTSettings();
-    @endphp
-    @if($plan?->{PlansConstants::COL_GPT} == 1)
-    <div class="text-end">
-        <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['contract']) }}"
-           data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-            <i class="{{ VC::FAS_RB }}"></i> <span>{{__('Generate with AI')}}</span>
-        </a>
-    </div>
-    @endif
-    {{-- end for ai module--}}
-    <div class="row">
-        <div class="{{ VC::FM_GCB12 }}">
-            {{ Form::label('subject', __('Subject'),['class'=>'form-label']) }}
-            {{ Form::text('subject', null, array('class' => 'form-control','required'=>'required')) }}
-        </div>
-        <div class="{{ VC::FM_GCB6 }}">
-            {{ Form::label('client_name', __('Client'),['class'=>'form-label']) }}
-            {{ Form::select('client_name', $clients, null, ['class' => 'form-control select client_select', 'id' => 'client_select']) }}
-        </div>
-        <div class="{{ VC::FM_GCB6 }}">
-            {{ Form::label('project', __('Project'), ['class' => 'form-label']) }}
-            <div class="project-div">
-                {{ Form::select('project', $project, null, ['class' => 'form-control  project_select', 'id' => 'project_id', 'name' => 'project_id']) }}
-            </div>
-        </div>
 
-        <div class="{{ VC::FM_GCB6 }}">
-            {{ Form::label('type', __('Contract Type'),['class'=>'form-label']) }}
-            {{ Form::select('type', $contractTypes,null, array('class' => 'form-control','data-toggle'=>'select','required'=>'required')) }}
-        </div>
-        <div class="{{ VC::FM_GCB6 }}">
-            {{ Form::label('value', __('Contract Value'),['class'=>'form-label']) }}
-            {{ Form::number('value', null, array('class' => 'form-control','required'=>'required','stage'=>'0.01')) }}
-        </div>
-        <div class="{{ VC::FM_GCB6 }}">
-            {{ Form::label('start_date', __('Start Date'),['class'=>'form-label']) }}
-            {{ Form::date('start_date', null, array('class' => 'form-control','required'=>'required')) }}
-        </div>
-        <div class="{{ VC::FM_GCB6 }}">
-            {{ Form::label('end_date', __('End Date'),['class'=>'form-label']) }}
-            {{ Form::date('end_date', null, array('class' => 'form-control','required'=>'required')) }}
-        </div>
-    </div>
-    <div class="row">
-        <div class="{{ VC::FM_GCB12 }}">
-            {{ Form::label('description', __('Description'),['class'=>'form-label']) }}
-            {!! Form::textarea('description', null, ['class'=>'form-control','rows'=>'3']) !!}
-        </div>
-    </div>
-</div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
-</div>
-{{Form::close()}}
+{!! Form::model($contract, [
+    'route'  => [ViewsConstants::CTC . '.update', $contract->id],
+    'method' => 'PUT',
+]) !!}
+  <div class="modal-body">
+
+      {{-- AI module --}}
+      @php($plan = Utility::getChatGPTSettings())
+      @if ($plan?->{PlansConstants::COL_GPT} == 1)
+          <div class="text-end">
+              <a  href="#"
+                  class="{{ VC::BT_SM_PM }} btn-icon"
+                  data-ajax-popup-over="true"
+                  data-size="md"
+                  data-url="{{ route('generate', ['contract']) }}"
+                  data-bs-placement="top"
+                  data-title="{{ __('Generate content with AI') }}">
+                  <i class="{{ VC::FAS_RB }}"></i>
+                  <span>{{ __('Generate with AI') }}</span>
+              </a>
+          </div>
+      @endif
+      {{-- /AI module --}}
+
+      <div class="{{ VC::RW }}">
+          <div class="{{ VC::C12 }} {{ VC::FM_G }}">
+              {{ Form::label('subject', __('Subject'), ['class' => VC::FM_LB]) }}
+              {{ Form::text('subject', null, ['class' => VC::FM_CT, 'required' => true]) }}
+          </div>
+
+          <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+              {{ Form::label('client_name', __('Client'), ['class' => VC::FM_LB]) }}
+              {{ Form::select('client_name', $clients, null, [
+                  'class' => VC::FM_CT_SL . ' client_select',
+                  'id'    => 'client_select',
+              ]) }}
+          </div>
+
+          <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+              {{ Form::label('project', __('Project'), ['class' => VC::FM_LB]) }}
+              <div class="project-div">
+                  {{ Form::select('project', $project, null, [
+                      'class' => VC::FM_CT_SL . ' project_select',
+                      'id'    => 'project_id',
+                      'name'  => 'project_id',
+                  ]) }}
+              </div>
+          </div>
+
+          <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+              {{ Form::label('type', __('Contract Type'), ['class' => VC::FM_LB]) }}
+              {{ Form::select('type', $contractTypes, null, [
+                  'class'       => VC::FM_CT_SL,
+                  'data-toggle' => 'select',
+                  'required'    => true,
+              ]) }}
+          </div>
+
+          <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+              {{ Form::label('value', __('Contract Value'), ['class' => VC::FM_LB]) }}
+              {{ Form::number('value', null, [
+                  'class'    => VC::FM_CT,
+                  'required' => true,
+                  'step'     => '0.01'
+              ]) }}
+          </div>
+
+          <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+              {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
+              {{ Form::date('start_date', null, [
+                  'class'    => VC::FM_CT,
+                  'required' => true
+              ]) }}
+          </div>
+
+          <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+              {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
+              {{ Form::date('end_date', null, [
+                  'class'    => VC::FM_CT,
+                  'required' => true
+              ]) }}
+          </div>
+      </div>
+
+      <div class="{{ VC::RW }}">
+          <div class="{{ VC::C12 }} {{ VC::FM_G }}">
+              {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+              {{ Form::textarea('description', null, [
+                  'class' => VC::FM_CT,
+                  'rows'  => 3
+              ]) }}
+          </div>
+      </div>
+  </div>
+  <div class="modal-footer">
+      <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+      <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
+  </div>
+{!! Form::close() !!}
+
 
 <script src="{{asset('assets/js/plugins/choices.min.js')}}"></script>
 <script async>

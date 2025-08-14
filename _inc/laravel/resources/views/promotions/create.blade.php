@@ -11,52 +11,57 @@
 @endphp
 
 {!! Form::open([
-    'url'  => ViewsConstants::PRM,
+    'url'    => ViewsConstants::PRM,
     'method' => 'post',
     'id'     => 'create_promotion',
 ]) !!}
     <div class="modal-body">
         @php($plan = Utility::getChatGPTSettings())
-        @if($plan?->{PlansConstants::COL_GPT} == 1)
+        @if ($plan?->{PlansConstants::COL_GPT} == 1)
             <div class="text-end">
-                <a href="#"
-                   data-size="md"
-                   class="btn btn-primary btn-icon btn-sm"
-                   data-ajax-popup-over="true"
-                   data-url="{{ route('generate', ['promotion']) }}"
-                   data-bs-placement="top"
-                   data-title="{{ __('Generate content with AI') }}">
+                <a  href="#"
+                    class="{{ VC::BT_SM_PM }} btn-icon"
+                    data-ajax-popup-over="true"
+                    data-size="md"
+                    data-url="{{ route('generate', ['promotion']) }}"
+                    data-bs-placement="top"
+                    data-title="{{ __('Generate content with AI') }}">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
         @endif
 
-        <div class="row">
-            <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('employee_id', __('Employee'), ['class' => 'form-label']) }}
-                {{ Form::select('employee_id', $employees, null, ['class' => 'form-control select', 'required' => 'required']) }}
+        <div class="{{ VC::RW }}">
+            <div class="col-lg-6 {{ VC::CM6 }} {{ VC::FM_G }}">
+                {{ Form::label('employee_id', __('Employee'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('employee_id', $employees, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
             </div>
-            <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('designation_id', __('Designation'), ['class' => 'form-label']) }}
-                {{ Form::select('designation_id', $designations, null, ['class' => 'form-control select']) }}
+
+            <div class="col-lg-6 {{ VC::CM6 }} {{ VC::FM_G }}">
+                {{ Form::label('designation_id', __('Designation'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('designation_id', $designations, null, ['class' => VC::FM_CT_SL]) }}
             </div>
-            <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('promotion_title', __('Promotion Title'), ['class' => 'form-label']) }}
-                {{ Form::text('promotion_title', null, ['class' => 'form-control']) }}
+
+            <div class="col-lg-6 {{ VC::CM6 }} {{ VC::FM_G }}">
+                {{ Form::label('promotion_title', __('Promotion Title'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('promotion_title', null, ['class' => VC::FM_CT]) }}
             </div>
-            <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('promotion_date', __('Promotion Date'), ['class' => 'form-label']) }}
-                {{ Form::date('promotion_date', null, ['class' => 'form-control']) }}
+
+            <div class="col-lg-6 {{ VC::CM6 }} {{ VC::FM_G }}">
+                {{ Form::label('promotion_date', __('Promotion Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('promotion_date', null, ['class' => VC::FM_CT]) }}
             </div>
-            <div class="{{ VC::FM_GCB12 }}">
-                {{ Form::label('description', __('Description'), ['class' => 'form-label']) }}
-                {{ Form::textarea('description', null, ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+
+            <div class="{{ VC::C12 }} {{ VC::FM_G }}">
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Description')]) }}
             </div>
         </div>
     </div>
+
     <div class="modal-footer">
-        <input type="button" value="{{ __('Cancel') }}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{ __('Create') }}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
 {!! Form::close() !!}

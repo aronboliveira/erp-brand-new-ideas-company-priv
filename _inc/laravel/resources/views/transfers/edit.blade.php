@@ -1,48 +1,67 @@
-{{Collective\Html\FormFacade::model($transfer,array('route' => array('transfer.update', $transfer->id), 'method' => 'PUT')) }}
-<div class="modal-body">
-    {{-- start for ai module--}}
-    @php
-        $plan= \App\Models\Utility::getChatGPTSettings();
-    @endphp
-    @if($plan->chatgpt == 1)
-    <div class="text-end">
-        <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['transfer']) }}"
-           data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-            <i class="fas fa-robot"></i> <span>{{__('Generate with AI')}}</span>
-        </a>
+@php
+    use App\Config\Constants\{
+        PlansConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+
+    $lang = Utility::fetchUserLang();
+@endphp
+
+{!! Form::model($transfer, [
+    'route'  => [ViewsConstants::TRF . '.update', $transfer->id],
+    'method' => 'PUT',
+    'id'     => 'edit_transfer',
+]) !!}
+    <div class="modal-body">
+        @php($plan = Utility::getChatGPTSettings())
+        @if($plan?->{PlansConstants::COL_GPT} == 1)
+            <div class="text-end">
+                <a href="#"
+                   data-size="md"
+                   class="{{ VC::BT_SM_PM }} btn-icon"
+                   data-ajax-popup-over="true"
+                   data-url="{{ route('generate', ['transfer']) }}"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}">
+                    <i class="{{ VC::FAS_RB }}"></i>
+                    <span>{{ __('Generate with AI') }}</span>
+                </a>
+            </div>
+        @endif
+
+        <div class="row">
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('employee_id', __('Employee'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('employee_id', $employees, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('branch_id', __('Branch'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('branch_id', $branches, null, ['class' => VC::FM_CT_SL]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('department_id', __('Department'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('department_id', $departments, null, ['class' => VC::FM_CT_SL]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('transfer_date', __('Transfer Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('transfer_date', null, ['class' => VC::FM_CT]) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter Description')]) }}
+            </div>
+        </div>
     </div>
-    @endif
-    {{-- end for ai module--}}
-    <div class="row">
-        <div class="form-group col-lg-6 col-md-6 ">
-            {{ Collective\Html\FormFacade::label('employee_id', __('Employee'),['class'=>'form-label'])}}
-            {{ Collective\Html\FormFacade::select('employee_id', $employees,null, array('class' => 'form-control select','required'=>'required')) }}
-        </div>
-        <div class="form-group col-lg-6 col-md-6">
-            {{Collective\Html\FormFacade::label('branch_id',__('Branch'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::select('branch_id',$branches,null,array('class'=>'form-control select'))}}
-        </div>
-        <div class="form-group col-lg-6 col-md-6">
-            {{Collective\Html\FormFacade::label('department_id',__('Department'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::select('department_id',$departments,null,array('class'=>'form-control select'))}}
-        </div>
-        <div class="form-group col-lg-6 col-md-6">
-            {{Collective\Html\FormFacade::label('transfer_date',__('Transfer Date'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::date('transfer_date',null,array('class'=>'form-control'))}}
-        </div>
 
-        <div class="form-group col-lg-12">
-            {{Collective\Html\FormFacade::label('description',__('Description'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::textarea('description',null,array('class'=>'form-control','placeholder'=>__('Enter Description')))}}
-        </div>
-
+    <div class="modal-footer">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
-</div>
-
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
-</div>
-
-
-{{Collective\Html\FormFacade::close()}}
+{!! Form::close() !!}
