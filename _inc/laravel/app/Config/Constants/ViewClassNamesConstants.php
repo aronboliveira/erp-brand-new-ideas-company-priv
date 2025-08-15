@@ -287,6 +287,7 @@ class ViewClassNamesConstants
 	// col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12
 	public const BT_LG = self::BT . ' ' . self::BT . '-light';
 	// "{{ ViewClassNamesConstants::BT_LG }}"
+	// "{{ VC::BT_LG }}"
 	// btn btn-light
 	public const BT_SM = self::BT . ' ' . self::BT . '-sm';
 	// "{{ ViewClassNamesConstants::BT_SM }}"
@@ -296,6 +297,7 @@ class ViewClassNamesConstants
 	// btn btn-xs
 	public const BT_SM_PM = self::BT_SM . ' ' . self::BT_PM;
 	// "{{ ViewClassNamesConstants::BT_SM_PM }}"
+	// "{{ VC::BT_SM_PM }}"
 	// btn btn-sm btn-primary
 	public const BT_SM_DG = self::BT_SM . ' ' . self::BT . '-danger';
 	// "{{ ViewClassNamesConstants::BT_SM_DG }}"
@@ -416,6 +418,7 @@ class ViewClassNamesConstants
 	// dash-item dash-hasmenu
 	public const FM_CT_SL = self::FM_CT . ' select';
 	// "{{ ViewClassNamesConstants::FM_CT_SL }}"
+	// "{{ VC::FM_CT_SL }}"
 	// form-control select
 	public const LG_IT_ACT = self::LG_IT . ' ' . self::LG_IT . '-action';
 	// "{{ ViewClassNamesConstants::LG_IT_ACT }}"
@@ -573,9 +576,11 @@ class ViewClassNamesConstants
 	// ti ti-file-import
 	public const TI_LT = self::TI . ' ' . self::TI . '-list';
 	// "{{ ViewClassNamesConstants::TI_LT }}"
+	// "{{ VC::TI_LT }}"
 	// ti ti-list
 	public const TI_PLS = self::TI . ' ' . self::TI . '-plus';
 	// "{{ ViewClassNamesConstants::TI_PLS }}"
+	// "{{ VC::TI_PLS }}"
 	// ti ti-plus
 	public const TI_PC = self::TI . ' ' . self::TI . '-pencil';
 	// "{{ ViewClassNamesConstants::TI_PC }}"
