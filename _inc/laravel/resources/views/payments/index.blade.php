@@ -5,8 +5,10 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -24,7 +26,7 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
         @can('create payment')
-            <a href="#" data-url="{{ route('payment.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip"  data-size="lg" data-title="{{__('Create New Payment')}}"  title="{{__('Create')}}" class="btn btn-sm btn-primary">
+            <a href="#" data-url="{{ route(ViewsConstans::PAY.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip"  data-size="lg" data-title="{{__('Create New Payment')}}"  title="{{__('Create')}}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
         @endcan
@@ -36,7 +38,7 @@
             <div class="mt-2" id="multiCollapseExample1">
                 <div class="card">
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open(array('route' => array('payment.index'),'method' => 'GET','id'=>'payment_form')) }}
+                        {{ Collective\Html\FormFacade::open(array('route' => array(ViewsConstans::PAY.'.index'),'method' => 'GET','id'=>'payment_form')) }}
                         <div class="row align-items-center justify-content-end">
                             <div class="col-xl-10">
                                 <div class="row">
@@ -137,15 +139,15 @@
                                         <td class="action">
                                             @can('edit payment')
                                                 <div class="action-btn bg-primary ms-2">
-                                                    <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route('payment.edit',$payment->id) }}" data-ajax-popup="true" data-title="{{__('Edit Payment')}}" data-size="lg" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
+                                                    <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route(ViewsConstans::PAY.'.edit',$payment->id) }}" data-ajax-popup="true" data-title="{{__('Edit Payment')}}" data-size="lg" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                                         <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
                                                     </a>
                                                 </div>
                                             @endcan
                                             @can('delete payment')
                                                 <div class="action-btn bg-danger ms-2">
-                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['payment.destroy', $payment->id],'id'=>'delete-form-'.$payment->id]) !!}
-                                                    <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" data-original-title="{{__('Delete')}}" title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$payment->id}}').submit();">
+                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstans::PAY.'.destroy', $payment->id],'id'=>'delete-form-'.$payment->id]) !!}
+                                                    <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" data-original-title="{{__('Delete')}}" title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$payment->id}}').submit();">
                                                         <i class="ti ti-trash text-white"></i>
                                                     </a>
                                                     {!! Collective\Html\FormFacade::close() !!}

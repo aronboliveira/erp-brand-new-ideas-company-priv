@@ -2,11 +2,13 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewsConstants,
         ViewClassNamesConstants,
         YieldingConstants,
     };
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -25,7 +27,7 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
         @can('create resignation')
-            <a href="#" data-size="lg" data-url="{{ route('resignation.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Resignation')}}" class="btn btn-sm btn-primary">
+            <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::RSG.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Resignation')}}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
         @endcan
@@ -73,8 +75,8 @@
 
                                             @can('delete resignation')
                                                 <div class="action-btn bg-danger ms-2">
-                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['resignation.destroy', $resignation->id],'id'=>'delete-form-'.$resignation->id]) !!}
-                                                    <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$resignation->id}}').submit();">
+                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::RSG.'.destroy', $resignation->id],'id'=>'delete-form-'.$resignation->id]) !!}
+                                                    <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$resignation->id}}').submit();">
                                                         <i class="ti ti-trash text-white"></i>
                                                     </a>
                                                     {!! Collective\Html\FormFacade::close() !!}

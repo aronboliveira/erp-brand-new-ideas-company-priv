@@ -1,14 +1,16 @@
 @php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
+        PermissionsConstants,
         StacksConstants,
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
-    use App\Config\Constants\PermissionsConstants;
     $user = Auth::user();
-    $settings = \App\Models\Utility::settings();
+    $lang = Utility::fetchUserLang(user:$user);
+    $settings = Utility::settings();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -33,7 +35,7 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
         @can(PermissionsConstants::CR_ITV_SCHD)
-            <a href="#" data-url="{{ route('interview-schedule.create') }}" data-bs-toggle="tooltip" title="{{__('Create')}}" data-ajax-popup="true" data-title="{{__('Create New Interview Schedule')}}" class="btn btn-sm btn-primary">
+            <a href="#" data-url="{{ route(ViewsConstants::ITV_SCD.'.create') }}" data-bs-toggle="tooltip" title="{{__('Create')}}" data-ajax-popup="true" data-title="{{__('Create New Interview Schedule')}}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
         @endcan
@@ -92,13 +94,13 @@
                                                         <div class="col-auto text-right">
                                                             @can('edit interview schedule')
                                                                 <div class="action-btn bg-primary ms-2">
-                                                                    <a href="#" data-url="{{ route('interview-schedule.edit',$schedule->id) }}" data-title="{{__('Edit Interview Schedule')}}" data-ajax-popup="true" class="mx-3 btn btn-sm  align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
+                                                                    <a href="#" data-url="{{ route(ViewsConstants::ITV_SCD.'.edit',$schedule->id) }}" data-title="{{__('Edit Interview Schedule')}}" data-ajax-popup="true" class="mx-3 btn btn-sm  align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                                                 </div>
                                                             @endcan
                                                             @can('delete interview schedule')
                                                                     <div class="action-btn bg-danger ms-2">
-                                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['interview-schedule.destroy', $schedule->id],'id'=>'delete-form-'.$schedule->id]) !!}
-                                                                            <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$schedule->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
+                                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::ITV_SCD.'.destroy', $schedule->id],'id'=>'delete-form-'.$schedule->id]) !!}
+                                                                            <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$schedule->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
                                                                         {!! Collective\Html\FormFacade::close() !!}
                                                                     </div>
                                                             @endcan

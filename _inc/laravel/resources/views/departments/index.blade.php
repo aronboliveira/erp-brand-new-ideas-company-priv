@@ -2,10 +2,13 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewsConstants,
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -26,7 +29,7 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
     @can('create department')
-            <a href="#" data-url="{{ route('department.create') }}" data-ajax-popup="true" data-title="{{__('Create New Department')}}" data-bs-toggle="tooltip" title="{{__('Create')}}"  class="btn btn-sm btn-primary">
+            <a href="#" data-url="{{ route(ViewsConstants::DPT.'.create') }}" data-ajax-popup="true" data-title="{{__('Create New Department')}}" data-bs-toggle="tooltip" title="{{__('Create')}}"  class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
 
@@ -66,9 +69,9 @@
                                                 @endcan
                                             @can('delete department')
                                                     <div class="action-btn bg-danger ms-2">
-                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['department.destroy', $department->id],'id'=>'delete-form-'.$department->id]) !!}
+                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::DPT.'.destroy', $department->id],'id'=>'delete-form-'.$department->id]) !!}
 
-                                                <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$department->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
+                                                <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}"  data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$department->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
                                                 {!! Collective\Html\FormFacade::close() !!}
                                                     </div>
                                             @endcan

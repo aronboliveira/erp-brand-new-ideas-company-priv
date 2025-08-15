@@ -11,8 +11,6 @@
     };
 
     $lang = Utility::fetchUserLang();
-
-    // create route guard
     $createName     = ViewsConstants::CPL . '.create';
     $createRoute    = Route::has($createName)
         ? route($createName)

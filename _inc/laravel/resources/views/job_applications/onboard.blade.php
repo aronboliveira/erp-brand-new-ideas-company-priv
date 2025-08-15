@@ -6,8 +6,10 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Crypt, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -88,7 +90,7 @@
                                         </div>
                                             @elseif($job->status=='confirm' && $job->convert_to_employee!=0)
                                             <div class="action-btn bg-info ms-2">
-                                                <a href="{{route('employee.show', Crypt::encrypt($job->convert_to_employee))}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('View')}}" data-original-title="{{__('Employee Detail')}}"><i class="ti ti-eye text-white"></i></a>
+                                                <a href="{{route(ViewsConstants::EMP.'.show', Crypt::encrypt($job->convert_to_employee))}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('View')}}" data-original-title="{{__('Employee Detail')}}"><i class="ti ti-eye text-white"></i></a>
                                             </div>
                                             @endif
 
@@ -98,7 +100,7 @@
 
                                             <div class="action-btn bg-danger ms-2">
                                                 {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['job.on.board.delete', $job->id],'id'=>'delete-form-'.$job->id]) !!}
-                                                <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$job->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
+                                                <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$job->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
                                                 {!! Collective\Html\FormFacade::close() !!}
                                             </div>
 

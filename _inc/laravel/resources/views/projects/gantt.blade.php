@@ -3,48 +3,242 @@
         ExtendingLayoutsConstants,
         PermissionsConstants,
         ProjectsConstants,
-        StacksConstants
+        StacksConstants,
+        ViewsConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL) {{__('Gantt Chart')}} @endsection
-
 @section(YieldingConstants::ADM_BDC)
+    @php
+        $dashboardBaseName = 'dashboard';
+        $dashboardKebabName = Str::kebab($dashboardBaseName);
+        $dashboardResolvedName = Route::has($dashboardBaseName) ? $dashboardBaseName : (Route::has($dashboardKebabName) ? $dashboardKebabName : null);
+        $dashboardUrl = $dashboardResolvedName ? route($dashboardResolvedName) : '#';
+        $dashboardLinkId = 'dashboard-breadcrumb-link';
+        $dashboardGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
+        $projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
+        $projectNameVal = isset($project) && !empty(data_get($project, 'project_name')) ? data_get($project, 'project_name') : '';
+        $prjIndexBaseName = VW::PRJ . '.index';
+        $prjIndexKebabName = Str::kebab($prjIndexBaseName);
+        $prjIndexResolvedName = Route::has($prjIndexBaseName) ? $prjIndexBaseName : (Route::has($prjIndexKebabName) ? $prjIndexKebabName : null);
+        $prjIndexUrl = $prjIndexResolvedName ? route($prjIndexResolvedName) : '#';
+        $prjIndexLinkId = 'projects-index-breadcrumb-link';
+        $prjIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Index project route is unavailable. Please contact technical support or your domain administrator.';
+        $prjShowBaseName = VW::PRJ . '.show';
+        $prjShowKebabName = Str::kebab($prjShowBaseName);
+        $prjShowResolvedName = Route::has($prjShowBaseName) ? $prjShowBaseName : (Route::has($prjShowKebabName) ? $prjShowKebabName : null);
+        $prjShowParams = $projectIdVal ? [$projectIdVal] : ['#'];
+        $prjShowUrl = ($prjShowResolvedName && $projectIdVal) ? route($prjShowResolvedName, $prjShowParams) : '#';
+        $prjShowLinkId = 'projects-show-breadcrumb-link-' . ($projectIdVal ?? 'x');
+        $prjShowGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+    @endphp
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
-            {{ __('Dashboard') }}
-        </a>
+        <a href="{{ $dashboardUrl }}" id="{{ $dashboardLinkId }}" data-url="{{ $dashboardUrl }}" data-guard-msg="{{ $dashboardGuardMsg }}" {{ $dashboardUrl === '#' ? 'aria-disabled=true' : '' }}>{{ __('Dashboard') }}</a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('projects.index')}}">{{__('Project')}}</a></li>
-    <li class="breadcrumb-item"><a href="{{route('projects.show',$project->id)}}">    {{ucwords($project->project_name)}}</a></li>
-    <li class="breadcrumb-item">{{__('Gantt Chart')}}</li>
+    <li class="breadcrumb-item">
+        <a href="{{ $prjIndexUrl }}" id="{{ $prjIndexLinkId }}" data-url="{{ $prjIndexUrl }}" data-guard-msg="{{ $prjIndexGuardMsg }}" {{ $prjIndexUrl === '#' ? 'aria-disabled=true' : '' }}>{{ __('Project') }}</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ $prjShowUrl }}" id="{{ $prjShowLinkId }}" data-url="{{ $prjShowUrl }}" data-guard-msg="{{ $prjShowGuardMsg }}" {{ $prjShowUrl === '#' ? 'aria-disabled=true' : '' }}>{{ ucwords($projectNameVal) }}</a>
+    </li>
+    <li class="breadcrumb-item">{{ __('Gantt Chart') }}</li>
+    @push(StacksConstants::ADM_SCRP_PG)
+        <script>
+            (() => {
+                try {
+                    const ids = ['{{ $dashboardLinkId }}','{{ $prjIndexLinkId }}','{{ $prjShowLinkId }}'];
+                    for (let i = 0; i < ids.length; i++) {
+                        try {
+                            const el = document.getElementById(ids[i]);
+                            if (!el) continue;
+                            const flag = 'data-breadcrumb-listener';
+                            if (el.hasAttribute(flag) && el.getAttribute(flag) === 'true') continue;
+                            el.setAttribute(flag, 'true');
+                            el.addEventListener('click', function (e) {
+                                try {
+                                    const href = el.getAttribute('href') || '#';
+                                    const url = el.getAttribute('data-url') || href || '#';
+                                    if (href !== '#' || url !== '#') return;
+                                    e.preventDefault();
+                                    const msg = el.getAttribute('data-guard-msg') || 'Requested route is unavailable. Please contact technical support or your domain administrator.';
+                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                                    let container = document.getElementById('toast-container');
+                                    if (!container) {
+                                        container = document.createElement('div');
+                                        container.id = 'toast-container';
+                                        container.className = 'position-fixed top-0 end-0 p-3';
+                                        document.body.appendChild(container);
+                                    }
+                                    if (hasBootstrap) {
+                                        const toast = document.createElement('div');
+                                        toast.className = 'toast';
+                                        toast.setAttribute('role', 'alert');
+                                        toast.setAttribute('aria-live', 'assertive');
+                                        toast.setAttribute('aria-atomic', 'true');
+                                        const body = document.createElement('div');
+                                        body.className = 'toast-body';
+                                        body.textContent = msg;
+                                        toast.appendChild(body);
+                                        container.appendChild(toast);
+                                        const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
+                                        toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
+                                        inst.show();
+                                    } else {
+                                        alert(msg);
+                                    }
+                                    el.setAttribute('data-failed-route', 'true');
+                                } catch (err) {}
+                            }, { passive: false });
+                        } catch (innerErr) {}
+                    }
+                } catch (error) {}
+            })();
+        </script>
+    @endpush
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
-        $durations=['Quarter Day','Half Day','Day','Week','Month'];
+        $durations = ['Quarter Day','Half Day','Day','Week','Month'];
     @endphp
-    <div class="{{ ViewClassNamesConstants::FEND }}">
-        <div class="btn-group {{ ViewClassNamesConstants::MR2 }}" id="change_view" role="group">
+    <div class="{{ VC::FEND }}">
+        <div class="btn-group {{ VC::MR2 }}" id="change_view" role="group">
+            @php
+                $projectIdVal = isset($project) && !empty(data_get($project, 'id')) ? data_get($project, 'id') : null;
+                $ganttBaseName = VW::PRJ . '.gantt';
+                $ganttKebabName = Str::kebab($ganttBaseName);
+                $ganttResolvedName = Route::has($ganttBaseName) ? $ganttBaseName : (Route::has($ganttKebabName) ? $ganttKebabName : null);
+                $ganttGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'gantt_project_unavailable') ?? 'Gantt project route is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
             @foreach($durations as $d)
-                <a href="{{ route(ViewsConstants::PRJ.'.gantt',[$project->id,$d]) }}"
-                class="{{ ViewClassNamesConstants::BT_SM_PM }} {{ $duration===$d?'active':'' }}"
-                data-value="{{ $d }}">{{ __($d) }}</a>
+                @php
+                    $dSlug = Str::slug($d, '-');
+                    $ganttLinkId = 'projects-gantt-link-' . $dSlug . '-' . ($projectIdVal ?? 'x');
+                    $ganttParams = ($projectIdVal && !empty($d)) ? [$projectIdVal, $d] : ['#'];
+                    $ganttUrl = ($ganttResolvedName && $projectIdVal && !empty($d)) ? route($ganttResolvedName, $ganttParams) : '#';
+                    $isActive = isset($duration) && $duration === $d;
+                @endphp
+                <a href="{{ $ganttUrl }}" id="{{ $ganttLinkId }}" class="{{ VC::BT_SM_PM }} {{ $isActive ? 'active' : '' }}" data-url="{{ $ganttUrl }}" data-value="{{ $d }}" data-guard-msg="{{ $ganttGuardMsg }}">{{ __($d) }}</a>
             @endforeach
         </div>
         @can(PermissionsConstants::MNG_PRJ)
-            <a href="{{ route(ViewsConstants::PRJ.'.show',$project->id) }}"
-            class="{{ ViewClassNamesConstants::BT_SM_PM }}"
-            data-bs-toggle="tooltip"
-            title="{{ __('Back') }}">
-                <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI }} ti-arrow-left"></i></span>
-            </a>
+            @php
+                $backBaseName = VW::PRJ . '.show';
+                $backKebabName = Str::kebab($backBaseName);
+                $backResolvedName = Route::has($backBaseName) ? $backBaseName : (Route::has($backKebabName) ? $backKebabName : null);
+                $backParams = $projectIdVal ? [$projectIdVal] : ['#'];
+                $backUrl = ($backResolvedName && $projectIdVal) ? route($backResolvedName, $backParams) : '#';
+                $backLinkId = 'projects-show-back-link-' . ($projectIdVal ?? 'x');
+                $backGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
+            <a href="{{ $backUrl }}" id="{{ $backLinkId }}" class="{{ VC::BT_SM_PM }}" data-url="{{ $backUrl }}" data-bs-toggle="tooltip" title="{{ __('Back') }}" data-guard-msg="{{ $backGuardMsg }}"><span class="btn-inner--icon"><i class="{{ VC::TI }} ti-arrow-left"></i></span></a>
+            @push(StacksConstants::ADM_SCRP_PG)
+                <script>
+                    (() => {
+                        try {
+                            const ganttEls = document.querySelectorAll('a[id^="projects-gantt-link-"]');
+                            if (ganttEls && ganttEls.length) {
+                                for (let i = 0; i < ganttEls.length; i++) {
+                                    try {
+                                        const el = ganttEls[i];
+                                        const flag = 'data-gantt-listener';
+                                        if (el.hasAttribute(flag) && el.getAttribute(flag) === 'true') continue;
+                                        el.setAttribute(flag, 'true');
+                                        el.addEventListener('click', function (e) {
+                                            try {
+                                                const href = el.getAttribute('href') || '#';
+                                                const url = el.getAttribute('data-url') || href || '#';
+                                                if (href !== '#' || url !== '#') return;
+                                                e.preventDefault();
+                                                const msg = el.getAttribute('data-guard-msg') || 'Gantt project route is unavailable. Please contact technical support or your domain administrator.';
+                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                                                let container = document.getElementById('toast-container');
+                                                if (!container) {
+                                                    container = document.createElement('div');
+                                                    container.id = 'toast-container';
+                                                    container.className = 'position-fixed top-0 end-0 p-3';
+                                                    document.body.appendChild(container);
+                                                }
+                                                if (hasBootstrap) {
+                                                    const toast = document.createElement('div');
+                                                    toast.className = 'toast';
+                                                    toast.setAttribute('role', 'alert');
+                                                    toast.setAttribute('aria-live', 'assertive');
+                                                    toast.setAttribute('aria-atomic', 'true');
+                                                    const body = document.createElement('div');
+                                                    body.className = 'toast-body';
+                                                    body.textContent = msg;
+                                                    toast.appendChild(body);
+                                                    container.appendChild(toast);
+                                                    const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
+                                                    toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
+                                                    inst.show();
+                                                } else {
+                                                    alert(msg);
+                                                }
+                                                el.setAttribute('data-failed-route', 'true');
+                                            } catch (err) {}
+                                        }, { passive: false });
+                                    } catch (loopErr) {}
+                                }
+                            }
+                            const backEl = document.getElementById('{{ $backLinkId }}');
+                            if (backEl) {
+                                const flag = 'data-back-listener';
+                                if (!(backEl.hasAttribute(flag) && backEl.getAttribute(flag) === 'true')) {
+                                    backEl.setAttribute(flag, 'true');
+                                    backEl.addEventListener('click', function (e) {
+                                        try {
+                                            const href = backEl.getAttribute('href') || '#';
+                                            const url = backEl.getAttribute('data-url') || href || '#';
+                                            if (href !== '#' || url !== '#') return;
+                                            e.preventDefault();
+                                            const msg = backEl.getAttribute('data-guard-msg') || 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                                            let container = document.getElementById('toast-container');
+                                            if (!container) {
+                                                container = document.createElement('div');
+                                                container.id = 'toast-container';
+                                                container.className = 'position-fixed top-0 end-0 p-3';
+                                                document.body.appendChild(container);
+                                            }
+                                            if (hasBootstrap) {
+                                                const toast = document.createElement('div');
+                                                toast.className = 'toast';
+                                                toast.setAttribute('role', 'alert');
+                                                toast.setAttribute('aria-live', 'assertive');
+                                                toast.setAttribute('aria-atomic', 'true');
+                                                const body = document.createElement('div');
+                                                body.className = 'toast-body';
+                                                body.textContent = msg;
+                                                toast.appendChild(body);
+                                                container.appendChild(toast);
+                                                const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
+                                                toast.addEventListener('hidden.bs.toast', function () { try { toast.remove(); } catch (err) {} });
+                                                inst.show();
+                                            } else {
+                                                alert(msg);
+                                            }
+                                            backEl.setAttribute('data-failed-route', 'true');
+                                        } catch (err) {}
+                                    }, { passive: false });
+                                }
+                            }
+                        } catch (error) {}
+                    })();
+                </script>
+            @endpush
         @endcan
     </div>
 @endsection
+
 
 @section(YieldingConstants::ADM_CTT)
     <div class="row">

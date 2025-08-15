@@ -5,8 +5,10 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -30,10 +32,10 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     @can('create holiday')
         <div class="float-end">
-            <a href="{{ route('holiday.index') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('List View')}}" data-original-title="{{__('List View')}}">
+            <a href="{{ route(ViewsConstants::HLD.'.index') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('List View')}}" data-original-title="{{__('List View')}}">
                 <i class="ti ti-list"></i>
             </a>
-            <a href="#" data-size="lg" data-url="{{ route('holiday.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Holiday')}}" class="btn btn-sm btn-primary">
+            <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::HLD.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Holiday')}}" class="btn btn-sm btn-primary">
                 <i class="ti ti-plus"></i>
             </a>
         </div>
@@ -45,7 +47,7 @@
             <div class="mt-2" id="multiCollapseExample1">
                 <div class="card">
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open(array('route' => array('holiday.calendar'),'method'=>'get','id'=>'holiday_filter')) }}
+                        {{ Collective\Html\FormFacade::open(array('route' => array(ViewsConstants::HLD.'.calendar'),'method'=>'get','id'=>'holiday_filter')) }}
                             <div class="row align-items-center justify-content-end">
                                 <div class="col-xl-10">
                                     <div class="row">
@@ -74,7 +76,7 @@
                                                 <a href="#" class="btn btn-sm btn-primary" onclick="document.getElementById('holiday_filter').submit(); return false;" data-bs-toggle="tooltip" title="{{__('Apply')}}" data-original-title="{{__('apply')}}">
                                                     <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
                                                 </a>
-                                                <a href="{{route('holiday.calendar')}}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"  title="{{ __('Reset') }}" data-original-title="{{__('Reset')}}">
+                                                <a href="{{route(ViewsConstants::HLD.'.calendar')}}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"  title="{{ __('Reset') }}" data-original-title="{{__('Reset')}}">
                                                     <span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span>
                                                 </a>
                                             </div>
@@ -141,13 +143,13 @@
                                                         <div class="col-auto text-right">
                                                             @can('edit interview schedule')
                                                                 <div class="action-btn bg-primary ms-2">
-                                                                    <a href="#" data-url="{{ route('holiday.edit',$holiday->id) }}" data-title="{{__('Edit Interview Schedule')}}" data-ajax-popup="true" class="mx-3 btn btn-sm  align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
+                                                                    <a href="#" data-url="{{ route(ViewsConstants::HLD.'.edit',$holiday->id) }}" data-title="{{__('Edit Interview Schedule')}}" data-ajax-popup="true" class="mx-3 btn btn-sm  align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                                                 </div>
                                                             @endcan
                                                             @can('delete interview schedule')
                                                                     <div class="action-btn bg-danger ms-2">
-                                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['holiday.destroy', $holiday->id],'id'=>'delete-form-'.$holiday->id]) !!}
-                                                                        <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$holiday->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
+                                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::HLD.'.destroy', $holiday->id],'id'=>'delete-form-'.$holiday->id]) !!}
+                                                                        <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$holiday->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
                                                                         {!! Collective\Html\FormFacade::close() !!}
                                                                     </div>
                                                                 @endcan

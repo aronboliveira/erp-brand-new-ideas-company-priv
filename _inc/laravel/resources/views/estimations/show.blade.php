@@ -5,9 +5,10 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
-    use App\Models\Estimation;
-    use Illuminate\Support\Facades\{Auth, Route};
+    use App\Models\{Estimation, Utility};
+    use Illuminate\Support\Facades\{Auth, Route, URL};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -17,11 +18,12 @@
     <div class="all-button-box row d-flex justify-content-end">
         @can('Edit Estimation')
             <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
-                <a href="#" data-url="{{ URL::to('estimations/'.$estimation->id.'/edit') }}" data-ajax-popup="true" data-title="{{__('Edit Estimation')}}" class="btn btn-xs btn-white btn-icon-only width-auto"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> {{__('Edit')}}</a>
+                <a href="#" data-url="{{ URL::to(ViewsConstants::EST.'/'.$estimation->id.'/edit') }}" data-ajax-popup="true" data-title="{{__('Edit Estimation')}}" class="btn btn-xs btn-white btn-icon-only width-auto"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> {{__('Edit')}}</a>
             </div>
         @endcan
         @can('View Estimation')
             <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
+                {{-- TODO ROUTE DOES NOT EXIST --}}
                 <a href="{{ route('get.estimation',$estimation->id) }}" class="btn btn-xs btn-white btn-icon-only bg-warning width-auto" title="{{__('Print Estimation')}}" target="_blanks"><span><i class="fa fa-print"></i> {{__('Print')}}</span></a>
             </div>
         @endcan
@@ -81,7 +83,7 @@
                     <div class="justify-content-between align-items-center d-flex">
                         <h4 class="h4 font-weight-400 float-left">{{__('Order Summary')}}</h4>
                         @can('Estimation Add Product')
-                            <a href="#" class="btn btn-sm btn-white float-right add-small" data-url="{{ route('estimations.products.add',$estimation->id) }}" data-ajax-popup="true" data-title="{{__('Add Product')}}">
+                            <a href="#" class="btn btn-sm btn-white float-right add-small" data-url="{{ route(ViewsConstants::EST.'.products.add',$estimation->id) }}" data-ajax-popup="true" data-title="{{__('Add Product')}}">
                                 <i class="ti ti-plus"></i> {{__('Add Product')}}
                             </a>
                         @endcan
@@ -108,11 +110,11 @@
                                         <td class="Action">
                                         <span>
                                             @can('Estimation Edit Product')
-                                                <a href="#" class="edit-icon" data-url="{{ route('estimations.products.edit',[$estimation->id,$product->pivot->id]) }}" data-ajax-popup="true" data-title="{{__('Edit Estimation Product')}}" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
+                                                <a href="#" class="edit-icon" data-url="{{ route(ViewsConstants::EST.'.products.edit',[$estimation->id,$product->pivot->id]) }}" data-ajax-popup="true" data-title="{{__('Edit Estimation Product')}}" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                             @endcan
                                             @can('Estimation Delete Product')
-                                                <a href="#" class="delete-icon" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$product->pivot->id}}').submit();"><i class="ti ti-trash"></i></a>
-                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['estimations.products.delete', $estimation->id,$product->pivot->id],'id'=>'delete-form-'.$product->pivot->id]) !!}
+                                                <a href="#" class="delete-icon" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$product->pivot->id}}').submit();"><i class="ti ti-trash"></i></a>
+                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::EST.'.products.delete', $estimation->id,$product->pivot->id],'id'=>'delete-form-'.$product->pivot->id]) !!}
                                                 {!! Collective\Html\FormFacade::close() !!}
                                             @endcan
                                         </span>

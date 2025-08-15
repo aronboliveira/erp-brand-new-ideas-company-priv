@@ -6,7 +6,9 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Gate, Route};
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -135,7 +137,7 @@
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
                                                             data-original-title="{{ __('Delete') }}"
-                                                            data-confirm="{{ __('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?') }}"
+                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
                                                         >
                                                             <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>

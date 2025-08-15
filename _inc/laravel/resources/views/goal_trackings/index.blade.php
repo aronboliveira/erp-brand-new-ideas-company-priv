@@ -5,8 +5,10 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -123,7 +125,7 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
     @can('create goal tracking')
-       <a href="#" data-size="lg" data-url="{{ route('goal_trackings.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Goal Tracking')}}" class="btn btn-sm btn-primary">
+       <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::GL_TRC.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Goal Tracking')}}" class="btn btn-sm btn-primary">
             <i class="ti ti-plus"></i>
         </a>
         @endcan
@@ -179,14 +181,14 @@
                                         <td>
                                             @can('edit goal tracking')
                                             <div class="action-btn bg-primary ms-2">
-                                                <a href="#" data-url="{{ route('goal_trackings.edit',$goalTracking->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Goal Tracking')}}" class="mx-3 btn btn-sm align-items-center " data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
+                                                <a href="#" data-url="{{ route(ViewsConstants::GL_TRC.'.edit',$goalTracking->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Goal Tracking')}}" class="mx-3 btn btn-sm align-items-center " data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                                 <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                             </div>
                                                 @endcan
                                             @can('delete goal tracking')
                                             <div class="action-btn bg-danger ms-2">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['goal_trackings.destroy', $goalTracking->id],'id'=>'delete-form-'.$goalTracking->id]) !!}
-                                                   <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$goalTracking->id}}').submit();">
+                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::GL_TRC.'.destroy', $goalTracking->id],'id'=>'delete-form-'.$goalTracking->id]) !!}
+                                                   <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$goalTracking->id}}').submit();">
                                                    <i class="ti ti-trash text-white"></i>
                                                     </a>
                                                 {!! Collective\Html\FormFacade::close() !!}

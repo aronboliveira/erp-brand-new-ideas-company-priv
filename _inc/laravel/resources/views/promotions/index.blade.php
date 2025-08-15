@@ -5,87 +5,197 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
-    use Illuminate\Support\Facades\Route;
+    use Collective\Html\FormFacade as Form;
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth,Gate,Route,URL};
+    use Illuminate\Support\Str;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
 @section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Promotion')}}
+    {{ __('Manage Promotion') }}
 @endsection
 
 @section(YieldingConstants::ADM_BDC)
+    @php
+        $dashboardBaseName = 'dashboard';
+        $dashboardKebabName = Str::kebab($dashboardBaseName);
+        $dashboardResolvedName = Route::has($dashboardBaseName) ? $dashboardBaseName : (Route::has($dashboardKebabName) ? $dashboardKebabName : null);
+        $dashboardUrl = $dashboardResolvedName ? route($dashboardResolvedName) : '#';
+        $dashboardLinkId = 'dashboard-breadcrumb-link';
+        $dashboardGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
+    @endphp
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ $dashboardUrl }}"
+           id="{{ $dashboardLinkId }}"
+           data-url="{{ $dashboardUrl }}"
+           data-guard-msg="{{ $dashboardGuardMsg }}"
+           {{ $dashboardUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Promotion')}}</li>
+    <li class="breadcrumb-item">{{ __('Promotion') }}</li>
+    @push(StacksConstants::ADM_SCRP_PG)
+        <script src="{{ asset('assets/js/routes/dashboard/index.js') }}" defer></script>
+    @endpush
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-    @can('create promotion')
-            <a href="#" data-url="{{ route('promotion.create') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Create New Promotion')}}" data-bs-toggle="tooltip" title="{{__('Create')}}"  class="btn btn-sm btn-primary">
-                <i class="ti ti-plus"></i>
-            </a>
+    <div class="{{ ViewClassNamesConstants::FEND }}">
+        @can('create promotion')
+            @php
+                $prmCreateBaseName = ViewsConstants::PRM . '.create';
+                $prmCreateKebabName = Str::kebab($prmCreateBaseName);
+                $prmCreateResolvedName = Route::has($prmCreateBaseName) ? $prmCreateBaseName : (Route::has($prmCreateKebabName) ? $prmCreateKebabName : null);
+                $prmCreateUrl = $prmCreateResolvedName ? route($prmCreateResolvedName) : '#';
+                $prmCreateLinkId = 'promotion-create-link';
+                $prmCreateTitle = __('Create New Promotion');
+                $prmCreateTooltip = __('Create');
+                $prmCreateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRM, 'create_promotion_unavailable') ?? 'Create promotion route is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
+            <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
+                <a href="{{ $prmCreateUrl }}"
+                   id="{{ $prmCreateLinkId }}"
+                   class="{{ ViewClassNamesConstants::BT_SM_CT }}"
+                   data-url="{{ $prmCreateUrl }}"
+                   data-ajax-popup="true"
+                   data-size="lg"
+                   data-bs-toggle="tooltip"
+                   title="{{ $prmCreateTooltip }}"
+                   data-title="{{ $prmCreateTitle }}"
+                   data-guard-msg="{{ $prmCreateGuardMsg }}">
+                    <i class="{{ ViewClassNamesConstants::TI_PLS_LG }}"></i>
+                </a>
+            </div>
+            @push(StacksConstants::ADM_SCRP_PG)
+                <script src="{{ asset('assets/js/routes/promotions/create.js') }}" defer></script>
+            @endpush
         @endcan
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-            <div class="card-body table-border-style">
+    <div class="{{ ViewClassNamesConstants::RW }}">
+        <div class="{{ ViewClassNamesConstants::CM12 }}">
+            <div class="{{ ViewClassNamesConstants::CD }}">
+                <div class="card-body table-border-style">
                     <div class="table-responsive">
-                    <table class="table datatable">
+                        <table class="{{ ViewClassNamesConstants::TB }} datatable">
                             <thead>
-                            <tr>
-                                @role('company')
-                                <th>{{__('Employee Name')}}</th>
-                                @endrole
-                                <th>{{__('Designation')}}</th>
-                                <th>{{__('Promotion Title')}}</th>
-                                <th>{{__('Promotion Date')}}</th>
-                                <th>{{__('Description')}}</th>
-                                @if(Gate::check('edit promotion') || Gate::check('delete promotion'))
-                                    <th width="200px">{{__('Action')}}</th>
-                                @endif
-                            </tr>
-                            </thead>
-                            <tbody class="font-style">
-                            @foreach ($promotions as $promotion)
                                 <tr>
                                     @role('company')
-                                    <td>{{ !empty($promotion->employee)?$promotion->employee->name:'' }}</td>
+                                        <th>{{ __('Employee Name') }}</th>
                                     @endrole
-                                    <td>{{ !empty($promotion->designation)?$promotion->designation->name:'' }}</td>
-                                    <td>{{ $promotion->promotion_title }}</td>
-                                    <td>{{  Illuminate\Support\Facades\Auth::user()?->dateFormat($promotion->promotion_date) }}</td>
-                                    <td>{{ $promotion->description }}</td>
+                                    <th>{{ __('Designation') }}</th>
+                                    <th>{{ __('Promotion Title') }}</th>
+                                    <th>{{ __('Promotion Date') }}</th>
+                                    <th>{{ __('Description') }}</th>
                                     @if(Gate::check('edit promotion') || Gate::check('delete promotion'))
-                                        <td>
-                                           @can('edit promotion')
-                                                <div class="action-btn bg-primary ms-2">
-                                                    <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ URL::to('promotion/'.$promotion->id.'/edit') }}" data-ajax-popup="true" data-title="{{__('Edit Promotion')}}" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
-                                                    <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                                </a>
-                                                </div>
-                                           @endcan
-                                           @can('delete promotion')
-                                                <div class="action-btn bg-danger ms-2">
-                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['promotion.destroy', $promotion->id],'id'=>'delete-form-'.$promotion->id]) !!}
-                                                        <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$promotion->id}}').submit();">
-                                                <i class="ti ti-trash text-white"></i>
-                                                </a>
-                                                    {!! Collective\Html\FormFacade::close() !!}
-                                                </div>
-                                           @endcan
-                                        </td>
+                                        <th width="200px">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
-                            @endforeach
+                            </thead>
+                            <tbody class="font-style">
+                                @php
+                                    $promotionEditScriptPushed = $promotionEditScriptPushed ?? false;
+                                    $promotionDeleteScriptPushed = $promotionDeleteScriptPushed ?? false;
+                                @endphp
+                                @foreach ($promotions as $promotion)
+                                    @php
+                                        $promotionId = isset($promotion) && !empty(data_get($promotion, 'id')) ? data_get($promotion, 'id') : null;
+                                        $employeeName = !empty(data_get($promotion, 'employee.name')) ? data_get($promotion, 'employee.name') : __('Failed to get employee name');
+                                        $designationName = !empty(data_get($promotion, 'designation.name')) ? data_get($promotion, 'designation.name') : __('Failed to get designation name');
+                                        $promotionTitle = data_get($promotion, 'promotion_title') ?? __('Failed to get promotion title');
+                                        $promotionDateRaw = data_get($promotion, 'promotion_date');
+                                        $promotionDateSafe = !empty($promotionDateRaw) ? $user?->dateFormat($promotionDateRaw) : __('No promotion date could be retrieved.');
+                                        $promotionDesc = data_get($promotion, 'description') ?? __('Failed to get promotion description');
+                                    @endphp
+                                    <tr>
+                                        @role('company')
+                                            <td>{{ $employeeName }}</td>
+                                        @endrole
+                                        <td>{{ $designationName }}</td>
+                                        <td>{{ $promotionTitle }}</td>
+                                        <td>{{ $promotionDateSafe }}</td>
+                                        <td>{{ $promotionDesc }}</td>
+                                        @if(Gate::check('edit promotion') || Gate::check('delete promotion'))
+                                            <td>
+                                                @can('edit promotion')
+                                                    @php
+                                                        $prmEditBaseName = ViewsConstants::PRM . '.edit';
+                                                        $prmEditKebabName = Str::kebab($prmEditBaseName);
+                                                        $prmEditResolvedName = Route::has($prmEditBaseName) ? $prmEditBaseName : (Route::has($prmEditKebabName) ? $prmEditKebabName : null);
+                                                        $prmEditParams = $promotionId ? [$promotionId] : ['#'];
+                                                        $prmEditUrl = ($prmEditResolvedName && $promotionId) ? route($prmEditResolvedName, $prmEditParams) : '#';
+                                                        $prmEditLinkId = 'promotion-edit-link-' . ($promotionId ?? 'x');
+                                                        $prmEditTitle = __('Edit Promotion');
+                                                        $prmEditTooltip = __('Edit');
+                                                        $prmEditGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRM, 'edit_promotion_unavailable') ?? 'Edit promotion route is unavailable. Please contact technical support or your domain administrator.';
+                                                    @endphp
+                                                    <div class="{{ ViewClassNamesConstants::ACT_BTN_INF }}">
+                                                        <a href="{{ $prmEditUrl }}"
+                                                           id="{{ $prmEditLinkId }}"
+                                                           class="{{ ViewClassNamesConstants::BT_SM_CT }}"
+                                                           data-url="{{ $prmEditUrl }}"
+                                                           data-ajax-popup="true"
+                                                           data-title="{{ $prmEditTitle }}"
+                                                           data-bs-toggle="tooltip"
+                                                           title="{{ $prmEditTooltip }}"
+                                                           data-guard-msg="{{ $prmEditGuardMsg }}">
+                                                            <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
+                                                        </a>
+                                                    </div>
+                                                    @if(!$promotionEditScriptPushed)
+                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                            <script src="{{ asset('assets/js/routes/promotions/edit.js') }}" defer></script>
+                                                        @endpush
+                                                        @php $promotionEditScriptPushed = true; @endphp
+                                                    @endif
+                                                @endcan
+                                                @can('delete promotion')
+                                                    @php
+                                                        $prmDestroyBaseNameA = ViewsConstants::PRM . '.destroy';
+                                                        $prmDestroyKebabA = Str::kebab($prmDestroyBaseNameA);
+                                                        $prmDestroyBaseNameB = ViewsConstants::PRM . '.destroy';
+                                                        $prmDestroyKebabB = Str::kebab($prmDestroyBaseNameB);
+                                                        $prmDestroyResolvedName = Route::has($prmDestroyBaseNameA) ? $prmDestroyBaseNameA : (Route::has($prmDestroyKebabA) ? $prmDestroyKebabA : (Route::has($prmDestroyBaseNameB) ? $prmDestroyBaseNameB : (Route::has($prmDestroyKebabB) ? $prmDestroyKebabB : null)));
+                                                        $prmDestroyParams = $promotionId ? [$promotionId] : ['#'];
+                                                        $prmDestroyUrl = ($prmDestroyResolvedName && $promotionId) ? route($prmDestroyResolvedName, $prmDestroyParams) : '#';
+                                                        $prmDeleteFormId = 'promotion-delete-form-' . ($promotionId ?? 'x');
+                                                        $prmDeleteLinkId = 'promotion-delete-link-' . ($promotionId ?? 'x');
+                                                        $prmDeleteGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRM, 'delete_promotion_unavailable') ?? 'Delete promotion route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $areYouSureMsg = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                        $irreversibleMsg = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                    @endphp
+                                                    <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
+                                                        {!! Form::open(['method' => 'DELETE', 'url' => $prmDestroyUrl, 'id' => $prmDeleteFormId]) !!}
+                                                            <a href="#"
+                                                               id="{{ $prmDeleteLinkId }}"
+                                                               class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
+                                                               data-url="{{ $prmDestroyUrl }}"
+                                                               data-form-id="{{ $prmDeleteFormId }}"
+                                                               data-bs-toggle="tooltip"
+                                                               title="{{ __('Delete') }}"
+                                                               data-guard-msg="{{ $prmDeleteGuardMsg }}"
+                                                               data-confirm="{{ __($areYouSureMsg) }}|{{ __($irreversibleMsg) }}"
+                                                               data-confirm-yes="document.getElementById('{{ $prmDeleteFormId }}').submit();">
+                                                                <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>
+                                                            </a>
+                                                        {!! Form::close() !!}
+                                                    </div>
+                                                    @if(!$promotionDeleteScriptPushed)
+                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                            <script src="{{ asset('assets/js/routes/promotions/delete.js') }}" defer></script>
+                                                        @endpush
+                                                        @php $promotionDeleteScriptPushed = true; @endphp
+                                                    @endif
+                                                @endcan
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

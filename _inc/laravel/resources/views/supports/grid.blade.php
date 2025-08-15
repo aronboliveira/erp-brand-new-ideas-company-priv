@@ -5,8 +5,10 @@
         ViewClassNamesConstants,
         YieldingConstants
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth,Crypt, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
@@ -30,14 +32,12 @@
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        <a href="{{ route('support.index') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('List View')}}">
+        <a href="{{ route(ViewsConstants::SPT.'.index') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('List View')}}">
             <i class="ti ti-list"></i>
         </a>
-
-        <a href="#" data-size="lg" data-url="{{ route('support.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create Support')}}" class="btn btn-sm btn-primary">
+        <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::SPT.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create Support')}}" class="btn btn-sm btn-primary">
             <i class="ti ti-plus"></i>
         </a>
-
     </div>
 @endsection
 @section('filter')
@@ -107,19 +107,19 @@
                             </div>
                             <div class="col-6 d-flex float-end">
                                 <div class="action-btn bg-warning me-2">
-                                    <a href="{{ route('support.reply',Crypt::encrypt($support->id)) }}" data-title="{{__('Support Reply')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Reply')}}" data-original-title="{{__('Reply')}}">
+                                    <a href="{{ route(ViewsConstants::SPT.'.reply',Crypt::encrypt($support->id)) }}" data-title="{{__('Support Reply')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Reply')}}" data-original-title="{{__('Reply')}}">
                                         <i class="ti ti-corner-up-left text-white"></i>
                                     </a>
                                 </div>
                                 @if(\Auth::user()->id==$support->ticket_created)
                                     <div class="action-btn bg-primary me-2">
-                                        <a href="#" data-size="lg" data-url="{{ route('support.edit',$support->id) }}" data-ajax-popup="true" data-title="{{__('Edit Support')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
+                                        <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::SPT.'.edit',$support->id) }}" data-ajax-popup="true" data-title="{{__('Edit Support')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                             <i class="ti ti-edit text-white"></i>
                                         </a>
                                     </div>
                                     <div class="action-btn bg-danger me-2">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['support.destroy', $support->id],'id'=>'delete-form-'.$support->id]) !!}
-                                            <a href="#!" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="Are You Sure?|This action can not be undone. Do you want to continue?" data-confirm-yes="document.getElementById('delete-form-{{$support->id}}').submit();">
+                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::SPT.'.destroy', $support->id],'id'=>'delete-form-'.$support->id]) !!}
+                                            <a href="#!" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$support->id}}').submit();">
                                                 <i class="ti ti-trash text-white"></i>
                                             </a>
                                             {!! Collective\Html\FormFacade::close() !!}

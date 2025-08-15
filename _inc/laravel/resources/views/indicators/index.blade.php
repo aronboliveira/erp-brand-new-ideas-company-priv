@@ -322,7 +322,7 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
     @can('create indicator')
-       <a href="#" data-size="lg" data-url="{{ route('indicators.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Indicator')}}" class="btn btn-sm btn-primary">
+       <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::IND.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Indicator')}}" class="btn btn-sm btn-primary">
             <i class="ti ti-plus"></i>
         </a>
         @endcan
@@ -392,20 +392,20 @@
                                         <td>
                                             @can('show indicator')
                                             <div class="action-btn bg-info ms-2">
-                                                <a href="#" data-url="{{ route('indicators.show',$indicator->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Indicator Detail')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('View')}}" data-original-title="{{__('View Detail')}}">
+                                                <a href="#" data-url="{{ route(ViewsConstants::IND.'.show',$indicator->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Indicator Detail')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('View')}}" data-original-title="{{__('View Detail')}}">
                                                     <i class="ti ti-eye text-white"></i></a>
                                             </div>
                                             @endcan
                                             @can('edit indicator')
                                             <div class="action-btn bg-primary ms-2">
-                                                <a href="#" data-url="{{ route('indicators.edit',$indicator->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Indicator')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
+                                                <a href="#" data-url="{{ route(ViewsConstants::IND.'.edit',$indicator->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Indicator')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                                 <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                             </div>
                                                 @endcan
                                             @can('delete indicator')
                                             <div class="action-btn bg-danger ms-2">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['indicators.destroy', $indicator->id],'id'=>'delete-form-'.$indicator->id]) !!}
-                                                <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$indicator->id}}').submit();">
+                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::IND.'.destroy', $indicator->id],'id'=>'delete-form-'.$indicator->id]) !!}
+                                                <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$indicator->id}}').submit();">
                                                 <i class="ti ti-trash text-white"></i></a>
                                                 {!! Collective\Html\FormFacade::close() !!}
                                                 </div>

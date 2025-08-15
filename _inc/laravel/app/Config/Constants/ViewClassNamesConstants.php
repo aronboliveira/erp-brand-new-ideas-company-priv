@@ -223,6 +223,7 @@ class ViewClassNamesConstants
 	// action-btn bg-primary ms-2
 	public const ACT_BTN_INF = self::ACT_BTN . ' bg-info ms-2';
 	// "{{ ViewClassNamesConstants::ACT_BTN_INF }}"
+	// "{{ VC::ACT_BTN_INF }}"
 	// action-btn bg-info ms-2
 	public const ACT_BTN_WRN = self::ACT_BTN . ' bg-warning ms-2';
 	// "{{ ViewClassNamesConstants::ACT_BTN_WRN }}"
@@ -232,6 +233,7 @@ class ViewClassNamesConstants
 	// action-btn bg-danger
 	public const ACT_BTN_DNG_2 = self::ACT_BTN_DNG . ' ms-2';
 	// "{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}"
+	// "{{ VC::ACT_BTN_DNG_2 }}"
 	// action-btn bg-danger ms-2
 	public const ARW_NONE = "arrow-none " . self::ME0;
 	// "{{ ViewClassNamesConstants::ARW_NONE }}"
@@ -316,6 +318,7 @@ class ViewClassNamesConstants
 	// mx-3 btn btn-sm
 	public const BT_SM_CT = self::BT_SM_MX3 . ' ' . self::AL_IT_CT;
 	// "{{ ViewClassNamesConstants::BT_SM_CT }}"
+	// "{{ VC::BT_SM_CT }}"
 	// mx-3 btn btn-sm align-items-center
 	public const DFL_IL_VC = self::DFL_IL . ' ' . self::AL_IT_CT;
 	// "{{ ViewClassNamesConstants::DFL_IL_VC }}"
@@ -328,6 +331,7 @@ class ViewClassNamesConstants
 	// mx-3 btn btn-sm align-items-center disabled
 	public const BT_SM_CT_PR = self::BT_SM_CT . ' bs-pass-para';
 	// "{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
+	// "{{ VC::BT_SM_CT_PR }}"
 	// mx-3 btn btn-sm align-items-center bs-pass-para
 	public const BT_PRM = self::BT . ' ' . self::BT . '-primary';
 	// "{{ ViewClassNamesConstants::BT_PRM }}"
@@ -537,6 +541,7 @@ class ViewClassNamesConstants
 	// ti ti-trash-off text-white-off
 	public const TI_TRS_WT = self::TI_TRS . ' ' . self::TXT_WT;
 	// "{{ ViewClassNamesConstants::TI_TRS_WT }}"
+	// "{{ VC::TI_TRS_WT }}"
 	// ti ti-trash text-white
 	public const TRS_DNG = self::TI_TRS_WT . 'repeater-' . self::ACT_BTN_DNG_2;
 	// "{{ ViewClassNamesConstants::TRS_DNG }}"

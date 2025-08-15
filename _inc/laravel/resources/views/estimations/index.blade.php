@@ -5,9 +5,10 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
-    use App\Models\Estimation;
+    use App\Models\{Estimation, Utility};
     use Illuminate\Support\Facades\Auth, Crypt;
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -19,7 +20,7 @@
     <div class="all-button-box row d-flex justify-content-end">
         @can('create estimation')
             <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
-                <a href="#" data-url="{{ route('estimations.create') }}" data-size="sm" data-ajax-popup="true" data-title="{{__('Create Estimate')}}" class="btn btn-xs btn-white btn-icon-only width-auto"><i class="ti ti-plus"></i> {{__('Create')}}</a>
+                <a href="#" data-url="{{ route(ViewsConstants::EST.'.create') }}" data-size="sm" data-ajax-popup="true" data-title="{{__('Create Estimate')}}" class="btn btn-xs btn-white btn-icon-only width-auto"><i class="ti ti-plus"></i> {{__('Create')}}</a>
             </div>
         @endcan
     </div>
@@ -74,7 +75,7 @@
                                 <tr>
                                     <td class="Id">
                                         @can('View Estimation')
-                                            <a href="{{route('estimations.show',$estimate->id)}}"> <i class="ti ti-file-estimate"></i> {{ $user?->estimateNumberFormat($estimate->estimation_id) }}</a>
+                                            <a href="{{route(ViewsConstants::EST.'.show',$estimate->id)}}"> <i class="ti ti-file-estimate"></i> {{ $user?->estimateNumberFormat($estimate->estimation_id) }}</a>
                                         @else
                                             {{ $user?->estimateNumberFormat($estimate->estimation_id) }}
                                         @endcan
@@ -99,14 +100,14 @@
                                         <td class="Action">
                                             <span>
                                             @can('view estimation')
-                                                    <a href="{{route('estimations.show',$estimate->id)}}" class="edit-icon bg-warning"> <i class="ti ti-eye"></i></a>
+                                                    <a href="{{route(ViewsConstants::EST.'.show',$estimate->id)}}" class="edit-icon bg-warning"> <i class="ti ti-eye"></i></a>
                                                 @endcan
                                                 @can('edit estimation')
-                                                    <a href="#" data-url="{{ URL::to('estimations/'.$estimate->id.'/edit') }}" data-ajax-popup="true" data-title="{{__('Edit Estimation')}}" class="edit-icon" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
+                                                    <a href="#" data-url="{{ URL::to(ViewsConstants::EST.'/'.$estimate->id.'/edit') }}" data-ajax-popup="true" data-title="{{__('Edit Estimation')}}" class="edit-icon" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                                 @endcan
                                                 @can('delete estimation')
-                                                    <a href="#" class="delete-icon" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$estimate->id}}').submit();"><i class="ti ti-trash"></i></a>
-                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['estimations.destroy', $estimate->id],'id'=>'delete-form-'.$estimate->id]) !!}
+                                                    <a href="#" class="delete-icon" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$estimate->id}}').submit();"><i class="ti ti-trash"></i></a>
+                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::EST.'.destroy', $estimate->id],'id'=>'delete-form-'.$estimate->id]) !!}
                                                     {!! Collective\Html\FormFacade::close() !!}
                                                 @endif
                                             </span>

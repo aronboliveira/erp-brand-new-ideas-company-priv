@@ -29,24 +29,24 @@
     @endsection
     @push(StacksConstants::ADM_SCR_PG)
         <script async>
-        window.translations={
-            ar:{timesheet_chart_unavailable:'تعذّر عرض مخطط الجداول الزمنية',task_chart_unavailable:'تعذّر عرض مخطط المهام',users_load_unavailable:'تعذّر تحميل أعضاء المشروع',invite_unavailable:'تعذّر دعوة المستخدم',copy_unavailable:'تعذّر نسخ الرابط'},
-            da:{timesheet_chart_unavailable:'Kunne ikke vise timesheet-diagram',task_chart_unavailable:'Kunne ikke vise opgavediagram',users_load_unavailable:'Kunne ikke indlæse projektbrugere',invite_unavailable:'Kunne ikke invitere bruger',copy_unavailable:'Kunne ikke kopiere linket'},
-            de:{timesheet_chart_unavailable:'Zeiterfassungsdiagramm konnte nicht angezeigt werden',task_chart_unavailable:'Aufgabendagramm konnte nicht angezeigt werden',users_load_unavailable:'Projektmitglieder konnten nicht geladen werden',invite_unavailable:'Benutzer konnte nicht eingeladen werden',copy_unavailable:'Link konnte nicht kopiert werden'},
-            en:{timesheet_chart_unavailable:'Cannot render timesheet chart',task_chart_unavailable:'Cannot render task chart',users_load_unavailable:'Cannot load project members',invite_unavailable:'Cannot invite user',copy_unavailable:'Cannot copy link'},
-            es:{timesheet_chart_unavailable:'No se puede mostrar el gráfico de partes',task_chart_unavailable:'No se puede mostrar el gráfico de tareas',users_load_unavailable:'No se pueden cargar los miembros del proyecto',invite_unavailable:'No se puede invitar al usuario',copy_unavailable:'No se puede copiar el enlace'},
-            fr:{timesheet_chart_unavailable:'Impossible d’afficher le graphique des feuilles de temps',task_chart_unavailable:'Impossible d’afficher le graphique des tâches',users_load_unavailable:'Impossible de charger les membres du projet',invite_unavailable:'Impossible d’inviter l’utilisateur',copy_unavailable:'Impossible de copier le lien'},
-            he:{timesheet_chart_unavailable:'לא ניתן להציג תרשים גיליונות זמנים',task_chart_unavailable:'לא ניתן להציג תרשים משימות',users_load_unavailable:'לא ניתן לטעון חברי פרויקט',invite_unavailable:'לא ניתן להזמין משתמש',copy_unavailable:'לא ניתן להעתיק את הקישור'},
-            it:{timesheet_chart_unavailable:'Impossibile mostrare il grafico dei timesheet',task_chart_unavailable:'Impossibile mostrare il grafico delle attività',users_load_unavailable:'Impossibile caricare i membri del progetto',invite_unavailable:'Impossibile invitare l’utente',copy_unavailable:'Impossibile copiare il link'},
-            ja:{timesheet_chart_unavailable:'工数チャートを表示できません',task_chart_unavailable:'タスクチャートを表示できません',users_load_unavailable:'プロジェクトメンバーを読み込めません',invite_unavailable:'ユーザーを招待できません',copy_unavailable:'リンクをコピーできません'},
-            nl:{timesheet_chart_unavailable:'Kan timesheetgrafiek niet weergeven',task_chart_unavailable:'Kan taakgrafiek niet weergeven',users_load_unavailable:'Kan projectleden niet laden',invite_unavailable:'Kan gebruiker niet uitnodigen',copy_unavailable:'Kan link niet kopiëren'},
-            pl:{timesheet_chart_unavailable:'Nie można wyświetlić wykresu timesheet',task_chart_unavailable:'Nie można wyświetlić wykresu zadań',users_load_unavailable:'Nie można wczytać członków projektu',invite_unavailable:'Nie można zaprosić użytkownika',copy_unavailable:'Nie można skopiować linku'},
-            pt:{timesheet_chart_unavailable:'Não foi possível exibir o gráfico de horas',task_chart_unavailable:'Não foi possível exibir o gráfico de tarefas',users_load_unavailable:'Não foi possível carregar os membros do projeto',invite_unavailable:'Não foi possível convidar o usuário',copy_unavailable:'Não foi possível copiar o link'},
-            'pt-br':{timesheet_chart_unavailable:'Não foi possível exibir o gráfico de horas',task_chart_unavailable:'Não foi possível exibir o gráfico de tarefas',users_load_unavailable:'Não foi possível carregar os membros do projeto',invite_unavailable:'Não foi possível convidar o usuário',copy_unavailable:'Não foi possível copiar o link'},
-            ru:{timesheet_chart_unavailable:'Не удалось отобразить график табеля',task_chart_unavailable:'Не удалось отобразить график задач',users_load_unavailable:'Не удалось загрузить участников проекта',invite_unavailable:'Не удалось пригласить пользователя',copy_unavailable:'Не удалось скопировать ссылку'},
-            tr:{timesheet_chart_unavailable:'Zaman çizelgesi grafiği oluşturulamadı',task_chart_unavailable:'Görev grafiği oluşturulamadı',users_load_unavailable:'Proje üyeleri yüklenemedi',invite_unavailable:'Kullanıcı davet edilemedi',copy_unavailable:'Bağlantı kopyalanamadı'},
-            zh:{timesheet_chart_unavailable:'无法渲染工时图表',task_chart_unavailable:'无法渲染任务图表',users_load_unavailable:'无法加载项目成员',invite_unavailable:'无法邀请用户',copy_unavailable:'无法复制链接'}
-        };
+            window.translations={
+                ar:{timesheet_chart_unavailable:'تعذّر عرض مخطط الجداول الزمنية',task_chart_unavailable:'تعذّر عرض مخطط المهام',users_load_unavailable:'تعذّر تحميل أعضاء المشروع',invite_unavailable:'تعذّر دعوة المستخدم',copy_unavailable:'تعذّر نسخ الرابط'},
+                da:{timesheet_chart_unavailable:'Kunne ikke vise timesheet-diagram',task_chart_unavailable:'Kunne ikke vise opgavediagram',users_load_unavailable:'Kunne ikke indlæse projektbrugere',invite_unavailable:'Kunne ikke invitere bruger',copy_unavailable:'Kunne ikke kopiere linket'},
+                de:{timesheet_chart_unavailable:'Zeiterfassungsdiagramm konnte nicht angezeigt werden',task_chart_unavailable:'Aufgabendagramm konnte nicht angezeigt werden',users_load_unavailable:'Projektmitglieder konnten nicht geladen werden',invite_unavailable:'Benutzer konnte nicht eingeladen werden',copy_unavailable:'Link konnte nicht kopiert werden'},
+                en:{timesheet_chart_unavailable:'Cannot render timesheet chart',task_chart_unavailable:'Cannot render task chart',users_load_unavailable:'Cannot load project members',invite_unavailable:'Cannot invite user',copy_unavailable:'Cannot copy link'},
+                es:{timesheet_chart_unavailable:'No se puede mostrar el gráfico de partes',task_chart_unavailable:'No se puede mostrar el gráfico de tareas',users_load_unavailable:'No se pueden cargar los miembros del proyecto',invite_unavailable:'No se puede invitar al usuario',copy_unavailable:'No se puede copiar el enlace'},
+                fr:{timesheet_chart_unavailable:'Impossible d’afficher le graphique des feuilles de temps',task_chart_unavailable:'Impossible d’afficher le graphique des tâches',users_load_unavailable:'Impossible de charger les membres du projet',invite_unavailable:'Impossible d’inviter l’utilisateur',copy_unavailable:'Impossible de copier le lien'},
+                he:{timesheet_chart_unavailable:'לא ניתן להציג תרשים גיליונות זמנים',task_chart_unavailable:'לא ניתן להציג תרשים משימות',users_load_unavailable:'לא ניתן לטעון חברי פרויקט',invite_unavailable:'לא ניתן להזמין משתמש',copy_unavailable:'לא ניתן להעתיק את הקישור'},
+                it:{timesheet_chart_unavailable:'Impossibile mostrare il grafico dei timesheet',task_chart_unavailable:'Impossibile mostrare il grafico delle attività',users_load_unavailable:'Impossibile caricare i membri del progetto',invite_unavailable:'Impossibile invitare l’utente',copy_unavailable:'Impossibile copiare il link'},
+                ja:{timesheet_chart_unavailable:'工数チャートを表示できません',task_chart_unavailable:'タスクチャートを表示できません',users_load_unavailable:'プロジェクトメンバーを読み込めません',invite_unavailable:'ユーザーを招待できません',copy_unavailable:'リンクをコピーできません'},
+                nl:{timesheet_chart_unavailable:'Kan timesheetgrafiek niet weergeven',task_chart_unavailable:'Kan taakgrafiek niet weergeven',users_load_unavailable:'Kan projectleden niet laden',invite_unavailable:'Kan gebruiker niet uitnodigen',copy_unavailable:'Kan link niet kopiëren'},
+                pl:{timesheet_chart_unavailable:'Nie można wyświetlić wykresu timesheet',task_chart_unavailable:'Nie można wyświetlić wykresu zadań',users_load_unavailable:'Nie można wczytać członków projektu',invite_unavailable:'Nie można zaprosić użytkownika',copy_unavailable:'Nie można skopiować linku'},
+                pt:{timesheet_chart_unavailable:'Não foi possível exibir o gráfico de horas',task_chart_unavailable:'Não foi possível exibir o gráfico de tarefas',users_load_unavailable:'Não foi possível carregar os membros do projeto',invite_unavailable:'Não foi possível convidar o usuário',copy_unavailable:'Não foi possível copiar o link'},
+                'pt-br':{timesheet_chart_unavailable:'Não foi possível exibir o gráfico de horas',task_chart_unavailable:'Não foi possível exibir o gráfico de tarefas',users_load_unavailable:'Não foi possível carregar os membros do projeto',invite_unavailable:'Não foi possível convidar o usuário',copy_unavailable:'Não foi possível copiar o link'},
+                ru:{timesheet_chart_unavailable:'Не удалось отобразить график табеля',task_chart_unavailable:'Не удалось отобразить график задач',users_load_unavailable:'Не удалось загрузить участников проекта',invite_unavailable:'Не удалось пригласить пользователя',copy_unavailable:'Не удалось скопировать ссылку'},
+                tr:{timesheet_chart_unavailable:'Zaman çizelgesi grafiği oluşturulamadı',task_chart_unavailable:'Görev grafiği oluşturulamadı',users_load_unavailable:'Proje üyeleri yüklenemedi',invite_unavailable:'Kullanıcı davet edilemedi',copy_unavailable:'Bağlantı kopyalanamadı'},
+                zh:{timesheet_chart_unavailable:'无法渲染工时图表',task_chart_unavailable:'无法渲染任务图表',users_load_unavailable:'无法加载项目成员',invite_unavailable:'无法邀请用户',copy_unavailable:'无法复制链接'}
+            };
         </script>
         <script defer>
             (()=>{
@@ -85,7 +85,7 @@
                         if(routeGuard(el)){ guardOnce(el,"invite_unavailable","pointerup"); return; }
                         const project_id=$("#project_id").val() ?? "{{$project->id}}";
                         const user_id=$(el).attr("data-id") ?? "";
-                        const endpoint=$(el).get(0).getAttribute("data-url") && $(el).get(0).getAttribute("data-url")!=="#" ? $(el).get(0).getAttribute("data-url") : '{{ route('invite.project.user.member') }}';
+                        const endpoint=$(el).get(0).getAttribute("data-url") && $(el).get(0).getAttribute("data-url")!=="#" ? $(el).get(0).getAttribute("data-url") : '{{ route(ViewsConstants::PRJ . ".invite.user.member") }}';
                         $.ajax({
                         url:endpoint,
                         method:"POST",
@@ -934,7 +934,7 @@
                                 <div class="{{ VC::FEND }}">
                                     <a href="#"
                                         data-size="lg"
-                                        data-url="{{ route('invite.project.member.view', $project->id) }}"
+                                        data-url="{{ route(ViewsConstants::PRJ . '.invite.member.view', $project->id) }}"
                                         data-ajax-popup="true"
                                         data-bs-toggle="tooltip"
                                         title="{{ __('Add Member') }}"

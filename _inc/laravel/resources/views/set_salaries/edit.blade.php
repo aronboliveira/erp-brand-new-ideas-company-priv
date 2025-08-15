@@ -9,7 +9,7 @@
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth, Route, URL};
     $user = Auth::user();
-    $lang = Utility::fetchUserLang();
+    $lang = Utility::fetchUserLang(user:$user);
         $salaryUpdateRoute  = Route::has(ViewsConstants::EMP . '.salary.update')
         ? route(ViewsConstants::EMP . '.salary.update', $employee->id)
         : (Route::has(Str::kebab(ViewsConstants::EMP . '.salary.update'))

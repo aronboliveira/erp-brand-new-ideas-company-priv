@@ -2,11 +2,14 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewsConstants,
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Crypt, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -24,13 +27,13 @@
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        <a href="#" data-size="md"  data-bs-toggle="tooltip" title="{{__('Import')}}" data-url="{{ route('employee.file.import') }}" data-ajax-popup="true" data-title="{{__('Import employee CSV file')}}" class="btn btn-sm btn-primary">
+        <a href="#" data-size="md"  data-bs-toggle="tooltip" title="{{__('Import')}}" data-url="{{ route(ViewsConstants::EMP.'.file.import') }}" data-ajax-popup="true" data-title="{{__('Import employee CSV file')}}" class="btn btn-sm btn-primary">
             <i class="ti ti-file-import"></i>
         </a>
-        <a href="{{route('employee.export')}}" data-bs-toggle="tooltip" title="{{__('Export')}}" class="btn btn-sm btn-primary">
+        <a href="{{route(ViewsConstants::EMP.'.export')}}" data-bs-toggle="tooltip" title="{{__('Export')}}" class="btn btn-sm btn-primary">
             <i class="ti ti-file-export"></i>
         </a>
-        <a href="{{ route('employees.create') }}"
+        <a href="{{ route(ViewsConstants::EMP.'.create') }}"
             data-title="{{ __('Create New Employee') }}" data-bs-toggle="tooltip" title="" class="btn btn-sm btn-primary"
             data-bs-original-title="{{ __('Create') }}">
             <i class="ti ti-plus"></i>
@@ -64,7 +67,7 @@
                                     <tr>
                                         <td class="Id">
                                             @can('show employee profile')
-                                                <a href="{{route('employee.show',Crypt::encrypt($employee->id))}}" class="btn btn-outline-primary">{{ $user?->employeeIdFormat($employee->employee_id) }}</a>
+                                                <a href="{{route(ViewsConstants::EMP.'.show',Crypt::encrypt($employee->id))}}" class="btn btn-outline-primary">{{ $user?->employeeIdFormat($employee->employee_id) }}</a>
                                             @else
                                                 <a href="#"  class="btn btn-outline-primary">{{ $user?->employeeIdFormat($employee->employee_id) }}</a>
                                             @endcan
@@ -99,14 +102,14 @@
                                                 @if($employee->is_active==1)
                                                     @can('edit employee')
                                                         <div class="action-btn bg-primary ms-2">
-                                                            <a href="{{route('employee.edit',Crypt::encrypt($employee->id))}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}"
+                                                            <a href="{{route(ViewsConstants::EMP.'.edit',Crypt::encrypt($employee->id))}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}"
                                                             data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                                         </div>
                                                     @endcan
                                                     @can('delete employee')
                                                         <div class="action-btn bg-danger ms-2">
-                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['employee.destroy', $employee->id],'id'=>'delete-form-'.$employee->id]) !!}
-                                                            <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$employee->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
+                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::EMP.'.destroy', $employee->id],'id'=>'delete-form-'.$employee->id]) !!}
+                                                            <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}"  data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$employee->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
                                                             {!! Collective\Html\FormFacade::close() !!}
                                                     </div>
                                                     @endcan

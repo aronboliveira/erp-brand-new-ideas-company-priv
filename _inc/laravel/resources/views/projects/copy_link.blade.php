@@ -140,7 +140,7 @@
                 try{
                 const project_id=$('#project_id').val() ?? '{{ $project->id }}';
                 const user_id=$(el).attr('data-id') ?? '';
-                const url='{{ route('invite.project.user.member') }}';
+                const url='{{ route(ViewsConstants::PRJ . ".invite.user.member") }}';
                 $.ajax({
                     url,
                     method:'POST',

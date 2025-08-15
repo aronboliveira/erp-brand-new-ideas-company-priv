@@ -6,7 +6,9 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -149,7 +151,7 @@
                                             </a>
                                         @endcan
                                         @can('delete project stage')
-                                            <a href="#" class="delete-icon" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$projectstage->id}}').submit();"><i class="ti ti-trash"></i></a>
+                                            <a href="#" class="delete-icon" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$projectstage->id}}').submit();"><i class="ti ti-trash"></i></a>
                                             {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::PRJ_STG.'.destroy', $projectstage->id],'id'=>'delete-form-'.$projectstage->id]) !!}
                                             {!! Collective\Html\FormFacade::close() !!}
                                         @endcan

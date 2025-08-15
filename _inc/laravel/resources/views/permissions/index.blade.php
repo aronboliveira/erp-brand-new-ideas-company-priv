@@ -2,10 +2,13 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewsConstants,
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -29,7 +32,7 @@
                 <div class="card-header">
                     <div class="d-flex justify-content-between w-100">
                         <h4>{{__('Manage Permissions')}}</h4>
-                            <a href="#" data-url="{{ route('permissions.create') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Create New Permission')}}" class="btn btn-icon icon-left btn-primary">
+                            <a href="#" data-url="{{ route(ViewsConstants::PMS.'.create') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Create New Permission')}}" class="btn btn-icon icon-left btn-primary">
                                 <i class="fa fa-plus"></i> {{__('Create')}}
                             </a>
                     </div>
@@ -52,11 +55,11 @@
                                                         <tr>
                                                             <td>{{ $permission->name }}</td>
                                                             <td class="action">
-                                                                <a href="#" class="edit-icon" data-url="{{ route('permissions.edit',$permission->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Update permission')}}" class="btn btn-outline btn-xs blue-madison" data-toggle="tooltip" data-original-title="{{__('Edit')}}">
+                                                                <a href="#" class="edit-icon" data-url="{{ route(ViewsConstants::PMS.'.edit',$permission->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Update permission')}}" class="btn btn-outline btn-xs blue-madison" data-toggle="tooltip" data-original-title="{{__('Edit')}}">
                                                                     <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
                                                                 </a>
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['permissions.destroy', $permission->id],'id'=>'delete-form-'.$permission->id]) !!}
-                                                                <a href="#" class="delete-icon bs-pass-para " data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$permission->id}}').submit();">
+                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::PMS.'.destroy', $permission->id],'id'=>'delete-form-'.$permission->id]) !!}
+                                                                <a href="#" class="delete-icon bs-pass-para " data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$permission->id}}').submit();">
                                                                     <i class="ti ti-trash"></i>
                                                                 </a>
                                                                 {!! Collective\Html\FormFacade::close() !!}

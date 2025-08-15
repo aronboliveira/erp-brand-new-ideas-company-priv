@@ -125,7 +125,7 @@
                                                         data-listener-alias="delete-type"
                                                         data-bs-toggle="tooltip"
                                                         title="{{ __('Delete') }}"
-                                                        data-confirm="{{ __('Are You Sure?') . '|' . __('This action can not be undone. Do you want to continue?') }}"
+                                                        data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                         data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
                                                     >
                                                         <i class="ti ti-trash"></i>

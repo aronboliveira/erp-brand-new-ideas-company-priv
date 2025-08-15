@@ -10,6 +10,7 @@
     use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
     $user        = Auth::user();
+    $lang        = Utility::fetchUserLang(user: $user);
     $profilePath = Utility::getFile('uploads/avatar/');
     $row         = ViewClassNamesConstants::RW;
     $card        = ViewClassNamesConstants::CD;

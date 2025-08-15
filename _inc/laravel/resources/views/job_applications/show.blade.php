@@ -6,7 +6,9 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -19,7 +21,7 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('job-application.index')}}">{{__('Job Application')}}</a></li>
+    <li class="breadcrumb-item"><a href="{{route(ViewsConstants::JB_APL.'.index')}}">{{__('Job Application')}}</a></li>
     <li class="breadcrumb-item">{{__('Job Application Details')}}</li>
 @endsection
 @push(StacksConstants::ADM_CSS)
@@ -217,9 +219,7 @@
                                 @can('delete job application')
                                     <li class="list-inline-item float-end">
                                         {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['job.application.archive', $jobApplication->id],'id'=>'archive-form-'.$jobApplication->id]) !!}
-
-
-                                        <a href="#" data-confirm="Are You Sure?|This action can not be undone. Do you want to continue?" class="bs-pass-para" data-bs-toggle="tooltip" data-confirm-yes="document.getElementById('archive-form-{{$jobApplication->id}}').submit();">
+                                        <a href="#" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" class="bs-pass-para" data-bs-toggle="tooltip" data-confirm-yes="document.getElementById('archive-form-{{$jobApplication->id}}').submit();">
                                             @if($jobApplication->is_archive==0)
                                                 <span class="badge bg-info p-2 px-3 rounded">{{__('Archive')}}</span>
                                             @else
@@ -231,9 +231,9 @@
                                     </li>
                                     @if($jobApplication->is_archive==0)
                                         <li class="list-inline-item">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['job-application.destroy', $jobApplication->id],'id'=>'delete-form-'.$jobApplication->id]) !!}
+                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::JB_APL.'.destroy', $jobApplication->id],'id'=>'delete-form-'.$jobApplication->id]) !!}
 
-                                            <a href="#" data-confirm="Are You Sure?|This action can not be undone. Do you want to continue?" class="bs-pass-para" data-bs-toggle="tooltip" data-confirm-yes="document.getElementById('delete-form-{{$jobApplication->id}}').submit();">
+                                            <a href="#" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" class="bs-pass-para" data-bs-toggle="tooltip" data-confirm-yes="document.getElementById('delete-form-{{$jobApplication->id}}').submit();">
                                                 <span class="badge badge-pill badge-soft-danger">{{__('Delete')}}</span></a>
                                             {!! Collective\Html\FormFacade::close() !!}
                                         </li>
@@ -445,7 +445,7 @@
                                 @if($note->note_created==\Auth::user()->id)
                                     <div class="action-btn bg-danger ms-2">
                                         {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['job.application.note.destroy', $note->id],'id'=>'delete-form-'.$note->id]) !!}
-                                        <a class="{{ ViewClassNamesConstants::TRS_PARA }}" href="#" data-confirm="Are You Sure?|This action can not be undone. Do you want to continue?" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$note->id}}').submit();">
+                                        <a class="{{ ViewClassNamesConstants::TRS_PARA }}" href="#" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$note->id}}').submit();">
                                             <i class="ti ti-trash text-white"></i></a>
                                         {!! Collective\Html\FormFacade::close() !!}
                                     </div>

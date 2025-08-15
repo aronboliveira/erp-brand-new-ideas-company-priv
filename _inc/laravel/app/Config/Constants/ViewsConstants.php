@@ -110,7 +110,7 @@ class ViewsConstants
 	public const PY_SLP = 'payslips';
 	public const PY_SLP_TP = 'payslip_types';
 	public const PFM_TP = 'performance_types';
-	public const PMS = 'permission';
+	public const PMS = 'permissions';
 	public const PPL = 'pipelines';
 	public const PLN = 'plans';
 	public const PLN_RQ = 'plan_requests';
@@ -138,7 +138,7 @@ class ViewsConstants
 	public const RPT = 'reports';
 	public const RSG = 'resignations';
 	public const RT_IP = 'restrict_ip';
-	public const RVN = 'revenue';
+	public const RVN = 'revenues';
 	public const RL = 'roles';
 	public const STR_DD = 'saturation_deductions';
 	public const S_SLR = 'set_salaries';

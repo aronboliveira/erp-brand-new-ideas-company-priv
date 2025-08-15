@@ -30,8 +30,8 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     @can('create holiday')
         @php
-            $calendarRoute = Route::has('holiday.calendar')
-                ? route('holiday.calendar')
+            $calendarRoute = Route::has(ViewsConstants::HLD.'.calendar')
+                ? route(ViewsConstants::HLD.'.calendar')
                 : '#';
             $calendarId = 'holiday-calendar-link';
             $calendarMsg = Utility::fetchLinkMessage(
@@ -40,8 +40,8 @@
                 'holiday_calendar_route_unavailable'
             ) ?? 'Calendar view route is unavailable. Please contact technical support or your domain administrator.';
 
-            $createRoute = Route::has('holiday.create')
-                ? route('holiday.create')
+            $createRoute = Route::has(ViewsConstants::HLD.'.create')
+                ? route(ViewsConstants::HLD.'.create')
                 : '#';
             $createId = 'holiday-create-link';
             $createMsg = Utility::fetchLinkMessage(
@@ -142,7 +142,7 @@
                     <div class="{{ ViewClassNamesConstants::CD }}">
                         <div class="card-body">
                             {{ Collective\Html\FormFacade::open([
-                                'route' => ['holiday.calendar'],
+                                'route' => [ViewsConstants::HLD.'.calendar'],
                                 'method' => 'get',
                                 'id'     => 'holiday_filter'
                             ]) }}
@@ -196,7 +196,7 @@
                                                     <i class="{{ ViewClassNamesConstants::TI_SRC }}"></i>
                                                 </span>
                                             </a>
-                                            <a href="{{ route('holiday.calendar') }}"
+                                            <a href="{{ route(ViewsConstants::HLD.'.calendar') }}"
                                                class="{{ ViewClassNamesConstants::BT_SM_DG }}"
                                                data-bs-toggle="tooltip"
                                                title="{{ __('Reset') }}">
@@ -245,7 +245,7 @@
                                                         <div class="{{ ViewClassNamesConstants::ACT_BTN }} {{ ViewClassNamesConstants::BG_P }} {{ ViewClassNamesConstants::MS2 }}">
                                                             <a href="#"
                                                                class="{{ ViewClassNamesConstants::BT_SM_CT }}"
-                                                               data-url="{{ route('holiday.edit', $holiday->id) }}"
+                                                               data-url="{{ route(ViewsConstants::HLD.'.edit', $holiday->id) }}"
                                                                data-ajax-popup="true"
                                                                data-title="{{ __('Edit Holiday') }}"
                                                                data-bs-toggle="tooltip"
@@ -258,14 +258,14 @@
                                                         <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                             {!! Collective\Html\FormFacade::open([
                                                                 'method' => 'DELETE',
-                                                                'route'  => ['holiday.destroy', $holiday->id],
+                                                                'route'  => [ViewsConstants::HLD.'.destroy', $holiday->id],
                                                                 'id'     => 'delete-form-' . $holiday->id
                                                             ]) !!}
                                                                 <a href="#"
                                                                    class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
                                                                    data-bs-toggle="tooltip"
                                                                    title="{{ __('Delete') }}"
-                                                                   data-confirm="{{ __('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?') }}"
+                                                                   data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                    data-confirm-yes="document.getElementById('delete-form-{{$holiday->id}}').submit();">
                                                                     <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>
                                                                 </a>

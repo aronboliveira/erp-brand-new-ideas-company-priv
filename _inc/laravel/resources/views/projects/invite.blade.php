@@ -1,45 +1,83 @@
-
 <div class="modal-body">
-    <div class="col-12">
-        <div class="row">
-            @if(count($users) > 0)
+    <div class="{{ VC::C12 }}">
+        <div class="{{ VC::RW }}">
+            @if(isset($users) && (is_array($users) || is_countable($users)) && count($users) > 0)
                 @foreach($users as $user)
-                    <div class="col-6 mb-4">
-                        <div class="list-group-item px-0">
-                            <div class="row">
-                                <div class="col-auto">
-                                    <img @if($user?->avatar)
-                                         src="{{asset('/storage/uploads/avatar/'.$user?->avatar)}}"
-                                         @else
-                                         src="{{asset('/storage/uploads/avatar/avatar.png')}}"
-                                         @endif
-                                         class="wid-40 rounded-circle ml-3" >
-                                </div>
-                                <div class="col">
-                                    <h6 class="mb-0">{{ $user?->name }}</h6>
-                                    <p class="mb-0"><span class="text-success">{{ $user?->email }}</p>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="action-btn bg-info ms-2 invite_usr" data-id="{{ $user?->id }}">
-                                        <button type="button" class="mx-3 btn btn-sm  align-items-center">
-                                            <span class="btn-inner--visible">
-                                                <i class="ti ti-plus text-white" id="usr_icon_{{$user?->id}}"></i>
-                                            </span>
-                                        </button>
+                    @if(isset($user) && is_object($user))
+                        <div class="col-6 {{ VC::MB4 }}">
+                            <div class="{{ VC::LGI }} px-0">
+                                <div class="{{ VC::RW }}">
+                                    <div class="{{ VC::C_AT }}">
+                                        @php
+                                            $userAvatar = data_get($user, 'avatar');
+                                            $avatarSrc = !empty($userAvatar) && is_string($userAvatar) 
+                                                ? asset('/storage/uploads/avatar/' . $userAvatar)
+                                                : asset('/storage/uploads/avatar/avatar.png');
+                                        @endphp
+                                        <img src="{{ $avatarSrc }}"
+                                             class="wid-40 rounded-circle ml-3"
+                                             alt="avatar"
+                                             onerror="this.src='{{ asset('/storage/uploads/avatar/avatar.png') }}'">
+                                    </div>
+                                    <div class="col">
+                                        <h6 class="{{ VC::MB0 }} {{ VC::H6 }}">
+                                            {{ data_get($user, 'name', __('Unknown User')) }}
+                                        </h6>
+                                        <p class="{{ VC::MB0 }}">
+                                            @if(data_get($user, 'email') && filter_var(data_get($user, 'email'), FILTER_VALIDATE_EMAIL))
+                                                <span class="text-success">{{ data_get($user, 'email') }}</span>
+                                            @else
+                                                <span class="text-muted">{{ __('No email available') }}</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="{{ VC::C_AT }}">
+                                        @if(data_get($user, 'id') && (is_numeric(data_get($user, 'id')) || is_string(data_get($user, 'id'))))
+                                            <div class="{{ VC::ACT_BTN_INF }} invite_usr" 
+                                                 data-id="{{ data_get($user, 'id') }}">
+                                                <button type="button" class="{{ VC::BT_SM_CT }}">
+                                                    <span class="btn-inner--visible">
+                                                        <i class="{{ VC::TI_PLS }} {{ VC::TXT_WT }}" 
+                                                           id="usr_icon_{{ data_get($user, 'id') }}"></i>
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        @else
+                                            <div class="{{ VC::ACT_BTN_INF }}">
+                                                <button type="button" class="{{ VC::BT_SM_CT }}" disabled>
+                                                    <span class="btn-inner--visible">
+                                                        <i class="{{ VC::TI_PLS }} {{ VC::TXT_WT }}"></i>
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
                 @endforeach
             @else
-                <div class="col-12 text-center">
-                    <h5>{{__('No User Exist')}}</h5>
+                <div class="{{ VC::C12 }} text-center">
+                    <div class="py-4">
+                        <i class="ti ti-users text-muted mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted">{{ __('No Users Available') }}</h5>
+                        <p class="text-muted">{{ __('There are no users to invite at this time.') }}</p>
+                    </div>
                 </div>
             @endif
         </div>
     </div>
-
-    {{ Collective\Html\FormFacade::hidden('project_id', $project_id,['id'=>'project_id']) }}
+    @if(isset($project_id) && !empty($project_id))
+        @php
+            $safeProjectId = is_numeric($project_id) || is_string($project_id) ? $project_id : '';
+        @endphp
+        {{ Collective\Html\FormFacade::hidden('project_id', $safeProjectId, ['id' => 'project_id']) }}
+    @else
+        <div class="alert alert-warning mt-3">
+            <i class="ti ti-alert-triangle"></i>
+            {{ __('Warning: Project ID is missing. User invitation may not work properly.') }}
+        </div>
+        <input type="hidden" name="project_id" id="project_id" value="">
+    @endif
 </div>
-

@@ -8,8 +8,10 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Job')}}
@@ -130,7 +132,7 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
         @can(PermissionsConstants::CR_JB)
-            <a href="{{ route('job.create') }}" class="btn btn-sm btn-primary"  data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Job')}}">
+            <a href="{{ route(ViewsConstants::JB.'.create') }}" class="btn btn-sm btn-primary"  data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Job')}}">
                 <i class="ti ti-plus"></i>
             </a>
         @endcan
@@ -244,7 +246,7 @@
                                             <td>
                                             @if($job->status!='in_active')
                                                     {{--                                            <div class="action-btn bg-warning ms-2">--}}
-                                                    {{--                                                <a href="{{ route('job.requirement',[$job->code,!empty($job)?$job->createdBy->lang:DatabaseConstants::DEFAULT_LANG]) }}" class="mx-3 btn btn-sm align-items-center " onclick="copyToClipboard(this)" data-bs-toggle="tooltip" data-original-title="{{__('Click to copy')}}">--}}
+                                                    {{--                                                <a href="{{ route(ViewsConstants::JB.'.requirement',[$job->code,!empty($job)?$job->createdBy->lang:DatabaseConstants::DEFAULT_LANG]) }}" class="mx-3 btn btn-sm align-items-center " onclick="copyToClipboard(this)" data-bs-toggle="tooltip" data-original-title="{{__('Click to copy')}}">--}}
                                                     {{--                                                    <i class="ti ti-link text-white"></i></a>--}}
 
                                                     {{--                                                <a href="#" id="{{ route(ViewsConstants::INV.'.link.copy',[$invoiceID]) }}" class="mx-3 btn btn-sm align-items-center"   onclick="copyToClipboard(this)" data-bs-toggle="tooltip" data-original-title="{{__('Click to copy')}}"><i class="ti ti-link text-white"></i></a>--}}
@@ -252,26 +254,26 @@
                                                     {{--                                            </div>--}}
 
                                                     <div class="action-btn bg-warning ms-2">
-                                                        <a href="#" id="{{ route('job.requirement',[$job->code,!empty($job)?$job->createdBy->lang:DatabaseConstants::DEFAULT_LANG]) }}" class="mx-3 btn btn-sm align-items-center"  onclick="copyToClipboard(this)" data-bs-toggle="tooltip" title="{{__('Copy')}}" data-original-title="{{__('Click to copy')}}"><i class="ti ti-link text-white"></i></a>
+                                                        <a href="#" id="{{ route(ViewsConstants::JB.'.requirement',[$job->code,!empty($job)?$job->createdBy->lang:DatabaseConstants::DEFAULT_LANG]) }}" class="mx-3 btn btn-sm align-items-center"  onclick="copyToClipboard(this)" data-bs-toggle="tooltip" title="{{__('Copy')}}" data-original-title="{{__('Click to copy')}}"><i class="ti ti-link text-white"></i></a>
                                                     </div>
 
                                                 @endif
                                                 @can('show job')
                                                 <div class="action-btn bg-info ms-2">
-                                                    <a href="{{ route('job.show',$job->id) }}" data-title="{{__('Job Detail')}}" title="{{__('View')}}"  class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" data-original-title="{{__('View Detail')}}">
+                                                    <a href="{{ route(ViewsConstants::JB.'.show',$job->id) }}" data-title="{{__('Job Detail')}}" title="{{__('View')}}"  class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" data-original-title="{{__('View Detail')}}">
                                                         <i class="ti ti-eye text-white"></i></a>
                                                 </div>
                                                     @endcan
                                                 @can('edit job')
                                                 <div class="action-btn bg-primary ms-2">
-                                                    <a href="{{ route('job.edit',$job->id) }}" data-title="{{__('Edit Job')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
+                                                    <a href="{{ route(ViewsConstants::JB.'.edit',$job->id) }}" data-title="{{__('Edit Job')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                                         <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
                                                 </div>
                                                     @endcan
                                                 @can('delete job')
                                                 <div class="action-btn bg-danger ms-2">
-                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['job.destroy', $job->id],'id'=>'delete-form-'.$job->id]) !!}
-                                                    <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$job->id}}').submit();">
+                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::JB.'.destroy', $job->id],'id'=>'delete-form-'.$job->id]) !!}
+                                                    <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$job->id}}').submit();">
                                                         <i class="ti ti-trash text-white"></i></a>
                                                     {!! Collective\Html\FormFacade::close() !!}
                                                     </div>

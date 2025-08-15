@@ -3,12 +3,13 @@
         ExtendingLayoutsConstants,
         StacksConstants,
         ViewsConstants,
-        ViewClassNamesConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use App\Config\Constants\ViewClassNamesConstants as VC;
+    use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
     use Collective\Html\FormFacade as Form;
+    $lang = Utility::fetchUserLang();
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)

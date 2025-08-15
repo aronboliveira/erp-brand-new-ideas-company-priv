@@ -2,9 +2,15 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewsConstants,
         ViewClassNamesConstants,
         YieldingConstants,
     };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Route, URL};
+    use Illuminate\Support\Str;
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section('content')
@@ -62,62 +68,62 @@
                                 <div class="tab-content" id="myTabContent2">
                                     <div class="tab-pane fade show active" id="salary" role="tabpanel" aria-labelledby="salary-tab3">
                                         <div class="company-setting-wrap">
-                                            {{ Collective\Html\FormFacade::model($employee, array('route' => array('employee.update', $employee->id), 'method' => 'PUT' , 'enctype' => 'multipart/form-data')) }}
+                                            {{ Form::model($employee, array('route' => array(ViewsConstants::EMP.'.update', $employee->id), 'method' => 'PUT' , 'enctype' => 'multipart/form-data')) }}
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('salary_type', __('Payslip Type*')) }}
-                                                        {{ Collective\Html\FormFacade::select('salary_type',$payslip_type,null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('salary_type', __('Payslip Type*')) }}
+                                                        {{ Form::select('salary_type',$payslip_type,null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('salary', __('Salary')) }}
-                                                        {{ Collective\Html\FormFacade::number('salary',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('salary', __('Salary')) }}
+                                                        {{ Form::number('salary',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-12 text-end mt-1">
-                                                    {{ Collective\Html\FormFacade::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
+                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
                                                 </div>
                                             </div>
-                                            {{Collective\Html\FormFacade::close()}}
+                                            {{Form::close()}}
                                         </div>
                                     </div>
                                     <div class="tab-pane fade" id="allowance" role="tabpanel" aria-labelledby="allowance-tab3">
                                         <div class="company-setting-wrap">
-                                            {{Collective\Html\FormFacade::open(array('url'=>'allowance','method'=>'post'))}}
+                                            {{Form::open(array('url'=>ViewsConstants::ALW,'method'=>'post'))}}
                                             @csrf
-                                            {{ Collective\Html\FormFacade::hidden('employee_id',$employee->id, array()) }}
+                                            {{ Form::hidden('employee_id',$employee->id, array()) }}
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('allowance_option', __('Allowance Options*')) }}
-                                                        {{ Collective\Html\FormFacade::select('allowance_option',$allowance_options,null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('allowance_option', __('Allowance Options*')) }}
+                                                        {{ Form::select('allowance_option',$allowance_options,null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('title', __('Title')) }}
-                                                        {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('title', __('Title')) }}
+                                                        {{ Form::text('title',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('amount', __('Amount')) }}
-                                                        {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('amount', __('Amount')) }}
+                                                        {{ Form::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-12 text-end mt-1">
-                                                    {{ Collective\Html\FormFacade::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
+                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
                                                 </div>
                                             </div>
-                                            {{Collective\Html\FormFacade::close()}}
+                                            {{Form::close()}}
                                             <hr>
                                             <div class="table-responsive">
                                                 <table class="table table-striped mb-0" id="allowance-dataTable">
@@ -139,12 +145,12 @@
                                                             <td>{{ $allowance->amount }}</td>
                                                             <td class="text-end">
                                                                 @can('edit allowance')
-                                                                    <a href="#" data-url="{{ URL::to('allowance/'.$allowance->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
+                                                                    <a href="#" data-url="{{ URL::to(ViewsConstants::ALW.'/'.$allowance->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
                                                                 @endcan
                                                                 @can('delete allowance')
-                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$allowance->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
-                                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['allowance.destroy', $allowance->id],'id'=>'delete-form-'.$allowance->id]) !!}
-                                                                    {!! Collective\Html\FormFacade::close() !!}
+                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$allowance->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
+                                                                    {!! Form::open(['method' => 'DELETE', 'route' => [ViewsConstants::ALW.'.destroy', $allowance->id],'id'=>'delete-form-'.$allowance->id]) !!}
+                                                                    {!! Form::close() !!}
                                                                 @endcan
                                                             </td>
                                                         </tr>
@@ -156,31 +162,31 @@
                                     </div>
                                     <div class="tab-pane fade" id="commission" role="tabpanel" aria-labelledby="commission-tab3">
                                         <div class="email-setting-wrap">
-                                            {{Collective\Html\FormFacade::open(array('url'=>'commission','method'=>'post'))}}
+                                            {{Form::open(array('url'=>ViewsConstants::COM,'method'=>'post'))}}
                                             @csrf
-                                            {{ Collective\Html\FormFacade::hidden('employee_id',$employee->id, array()) }}
+                                            {{ Form::hidden('employee_id',$employee->id, array()) }}
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('title', __('Title')) }}
-                                                        {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('title', __('Title')) }}
+                                                        {{ Form::text('title',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('amount', __('Amount')) }}
-                                                        {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('amount', __('Amount')) }}
+                                                        {{ Form::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div class="row">
                                                 <div class="col-12 text-end mt-1">
-                                                    {{ Collective\Html\FormFacade::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
+                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
                                                 </div>
                                             </div>
 
-                                            {{Collective\Html\FormFacade::close()}}
+                                            {{Form::close()}}
 
                                             <hr>
                                             <div class="table-responsive">
@@ -201,12 +207,12 @@
                                                             <td>{{ $commission->amount }}</td>
                                                             <td class="text-end">
                                                                 @can('edit allowance')
-                                                                    <a href="#" data-url="{{ URL::to('commission/'.$commission->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
+                                                                    <a href="#" data-url="{{ URL::to(ViewsConstants::COM.'/'.$commission->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
                                                                 @endcan
                                                                 @can('delete allowance')
-                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$commission->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
-                                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['commissions.destroy', $commission->id],'id'=>'delete-form-'.$commission->id]) !!}
-                                                                    {!! Collective\Html\FormFacade::close() !!}
+                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$commission->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
+                                                                    {!! Form::open(['method' => 'DELETE', 'route' => [ViewsConstants::COM.'.destroy', $commission->id],'id'=>'delete-form-'.$commission->id]) !!}
+                                                                    {!! Form::close() !!}
                                                                 @endcan
                                                             </td>
                                                         </tr>
@@ -218,26 +224,26 @@
                                     </div>
                                     <div class="tab-pane fade" id="loan" role="tabpanel" aria-labelledby="loan-tab4">
                                         <div class="email-setting-wrap">
-                                            {{Collective\Html\FormFacade::open(array('url'=>'loan','method'=>'post'))}}
+                                            {{Form::open(array('url'=>ViewsConstants::LN,'method'=>'post'))}}
                                             @csrf
-                                            {{ Collective\Html\FormFacade::hidden('employee_id',$employee->id, array()) }}
+                                            {{ Form::hidden('employee_id',$employee->id, array()) }}
                                             <div class="row">
                                                 <div class="col-12 col-md-4">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('loan_option', __('Loan Options*')) }}
-                                                        {{ Collective\Html\FormFacade::select('loan_option',$loan_options,null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('loan_option', __('Loan Options*')) }}
+                                                        {{ Form::select('loan_option',$loan_options,null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-4">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('title', __('Title')) }}
-                                                        {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('title', __('Title')) }}
+                                                        {{ Form::text('title',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-4">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('amount', __('Loan Amount')) }}
-                                                        {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('amount', __('Loan Amount')) }}
+                                                        {{ Form::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -245,14 +251,14 @@
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('start_date', __('Start Date')) }}
-                                                        {{ Collective\Html\FormFacade::text('start_date',null, array('class' => 'form-control datepicker','required'=>'required')) }}
+                                                        {{ Form::label('start_date', __('Start Date')) }}
+                                                        {{ Form::text('start_date',null, array('class' => 'form-control datepicker','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('end_date', __('End Date')) }}
-                                                        {{ Collective\Html\FormFacade::text('end_date',null, array('class' => 'form-control datepicker','required'=>'required')) }}
+                                                        {{ Form::label('end_date', __('End Date')) }}
+                                                        {{ Form::text('end_date',null, array('class' => 'form-control datepicker','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -260,8 +266,8 @@
                                             <div class="row">
                                                 <div class="col-12 col-md-12">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('reason', __('Reason')) }}
-                                                        {{ Collective\Html\FormFacade::textarea('reason',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('reason', __('Reason')) }}
+                                                        {{ Form::textarea('reason',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -269,10 +275,10 @@
 
                                             <div class="row">
                                                 <div class="col-12 text-end mt-1">
-                                                    {{ Collective\Html\FormFacade::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
+                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
                                                 </div>
                                             </div>
-                                            {{Collective\Html\FormFacade::close()}}
+                                            {{Form::close()}}
 
                                             <hr>
                                             <div class="table-responsive">
@@ -299,12 +305,12 @@
                                                             <td>{{ $loan->end_date }}</td>
                                                             <td class="text-end">
                                                                 @can('edit loan')
-                                                                    <a href="#" data-url="{{ URL::to('loan/'.$loan->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
+                                                                    <a href="#" data-url="{{ URL::to(ViewsConstants::LN.'/'.$loan->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
                                                                 @endcan
                                                                 @can('delete loan')
-                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$loan->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
-                                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['loan.destroy', $loan->id],'id'=>'delete-form-'.$loan->id]) !!}
-                                                                    {!! Collective\Html\FormFacade::close() !!}
+                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$loan->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
+                                                                    {!! Form::open(['method' => 'DELETE', 'route' => [ViewsConstants::LN.'.destroy', $loan->id],'id'=>'delete-form-'.$loan->id]) !!}
+                                                                    {!! Form::close() !!}
                                                                 @endcan
                                                             </td>
                                                         </tr>
@@ -316,20 +322,20 @@
                                     </div>
                                     <div class="tab-pane fade" id="saturation-deduction" role="tabpanel" aria-labelledby="saturation-deduction-tab3">
                                         <div class="email-setting-wrap">
-                                            {{Collective\Html\FormFacade::open(array('url'=>'saturationdeduction','method'=>'post'))}}
+                                            {{Form::open(array('url'=>ViewsConstants::STR_DD,'method'=>'post'))}}
                                             @csrf
-                                            {{ Collective\Html\FormFacade::hidden('employee_id',$employee->id, array()) }}
+                                            {{ Form::hidden('employee_id',$employee->id, array()) }}
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('deduction_option', __('Deduction Options*')) }}
-                                                        {{ Collective\Html\FormFacade::select('deduction_option',$deduction_options,null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('deduction_option', __('Deduction Options*')) }}
+                                                        {{ Form::select('deduction_option',$deduction_options,null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('title', __('Title')) }}
-                                                        {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('title', __('Title')) }}
+                                                        {{ Form::text('title',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -337,18 +343,18 @@
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('amount', __('Amount')) }}
-                                                        {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('amount', __('Amount')) }}
+                                                        {{ Form::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div class="row">
                                                 <div class="col-12 text-end mt-1">
-                                                    {{ Collective\Html\FormFacade::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
+                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
                                                 </div>
                                             </div>
-                                            {{Collective\Html\FormFacade::close()}}
+                                            {{Form::close()}}
 
                                             <hr>
                                             <div class="table-responsive">
@@ -373,12 +379,12 @@
                                                             <td class="text-end">
 
                                                                 @can('edit saturation deduction')
-                                                                    <a href="#" data-url="{{ URL::to('saturationdeduction/'.$saturationdeduction->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
+                                                                    <a href="#" data-url="{{ URL::to(ViewsConstants::STR_DD.'/'.$saturationdeduction->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
                                                                 @endcan
                                                                 @can('delete saturation deduction')
-                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$saturationdeduction->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
-                                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['saturationdeduction.destroy', $saturationdeduction->id],'id'=>'delete-form-'.$saturationdeduction->id]) !!}
-                                                                    {!! Collective\Html\FormFacade::close() !!}
+                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$saturationdeduction->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
+                                                                    {!! Form::open(['method' => 'DELETE', 'route' => ['saturationdeduction.destroy', $saturationdeduction->id],'id'=>'delete-form-'.$saturationdeduction->id]) !!}
+                                                                    {!! Form::close() !!}
                                                                 @endcan
                                                             </td>
                                                         </tr>
@@ -390,20 +396,20 @@
                                     </div>
                                     <div class="tab-pane fade" id="other-payment" role="tabpanel" aria-labelledby="other-payment-tab4">
                                         <div class="email-setting-wrap">
-                                            {{Collective\Html\FormFacade::open(array('url'=>'otherpayment','method'=>'post'))}}
+                                            {{Form::open(array('url'=>ViewsConstants::OT_PAY,'method'=>'post'))}}
                                             @csrf
-                                            {{ Collective\Html\FormFacade::hidden('employee_id',$employee->id, array()) }}
+                                            {{ Form::hidden('employee_id',$employee->id, array()) }}
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('title', __('Title')) }}
-                                                        {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('title', __('Title')) }}
+                                                        {{ Form::text('title',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('amount', __('Amount')) }}
-                                                        {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('amount', __('Amount')) }}
+                                                        {{ Form::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -411,10 +417,10 @@
 
                                             <div class="row">
                                                 <div class="col-12 text-end mt-1">
-                                                    {{ Collective\Html\FormFacade::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
+                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
                                                 </div>
                                             </div>
-                                            {{Collective\Html\FormFacade::close()}}
+                                            {{Form::close()}}
 
                                             <hr>
                                             <div class="table-responsive">
@@ -435,12 +441,12 @@
                                                             <td>{{ $otherpayment->amount }}</td>
                                                             <td class="text-end">
                                                                 @can('edit other payment')
-                                                                    <a href="#" data-url="{{ URL::to('otherpayment/'.$otherpayment->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
+                                                                    <a href="#" data-url="{{ URL::to(ViewsConstants::OT_PAY.'/'.$otherpayment->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
                                                                 @endcan
                                                                 @can('delete other payment')
-                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$otherpayment->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
-                                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['otherpayment.destroy', $otherpayment->id],'id'=>'delete-form-'.$otherpayment->id]) !!}
-                                                                    {!! Collective\Html\FormFacade::close() !!}
+                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$otherpayment->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
+                                                                    {!! Form::open(['method' => 'DELETE', 'route' => ['otherpayment.destroy', $otherpayment->id],'id'=>'delete-form-'.$otherpayment->id]) !!}
+                                                                    {!! Form::close() !!}
                                                                 @endcan
                                                             </td>
                                                         </tr>
@@ -452,44 +458,44 @@
                                     </div>
                                     <div class="tab-pane fade" id="overtime" role="tabpanel" aria-labelledby="overtime-tab4">
                                         <div class="email-setting-wrap">
-                                            {{Collective\Html\FormFacade::open(array('url'=>'overtime','method'=>'post'))}}
+                                            {{Form::open(array('url'=>ViewsConstants::OVT,'method'=>'post'))}}
                                             @csrf
-                                            {{ Collective\Html\FormFacade::hidden('employee_id',$employee->id, array()) }}
+                                            {{ Form::hidden('employee_id',$employee->id, array()) }}
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('title', __('Overtime Title*')) }}
-                                                        {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('title', __('Overtime Title*')) }}
+                                                        {{ Form::text('title',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('number_of_days', __('Number of days')) }}
-                                                        {{ Collective\Html\FormFacade::number('number_of_days',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('number_of_days', __('Number of days')) }}
+                                                        {{ Form::number('number_of_days',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="row">
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('hours', __('Hours')) }}
-                                                        {{ Collective\Html\FormFacade::number('hours',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('hours', __('Hours')) }}
+                                                        {{ Form::number('hours',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                                 <div class="col-12 col-md-6">
                                                     <div class="form-group">
-                                                        {{ Collective\Html\FormFacade::label('rate', __('Rate')) }}
-                                                        {{ Collective\Html\FormFacade::number('rate',null, array('class' => 'form-control','required'=>'required')) }}
+                                                        {{ Form::label('rate', __('Rate')) }}
+                                                        {{ Form::number('rate',null, array('class' => 'form-control','required'=>'required')) }}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div class="row">
                                                 <div class="col-12 text-end mt-1">
-                                                    {{ Collective\Html\FormFacade::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
+                                                    {{ Form::button('<i class="ti ti-plus"></i> '.__('Save Change'), ['type' => 'submit','class' => 'btn btn-primary']) }}
                                                 </div>
                                             </div>
-                                            {{Collective\Html\FormFacade::close()}}
+                                            {{Form::close()}}
 
 
                                             <hr>
@@ -517,12 +523,12 @@
 
                                                             <td class="text-end">
                                                                 @can('adit allowance')
-                                                                    <a href="#" data-url="{{ URL::to('overtime/'.$overtime->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
+                                                                    <a href="#" data-url="{{ URL::to(ViewsConstants::OVT.'/'.$overtime->id.'/edit') }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Allowance')}}" class="btn btn-outline-primary btn-sm mr-1" data-toggle="tooltip" data-original-title="{{__('Edit')}}"><i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i> <span>{{__('Edit')}}</span></a>
                                                                 @endcan
                                                                 @can('delete allowance')
-                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').'|'.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$overtime->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
-                                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['overtime.destroy', $overtime->id],'id'=>'delete-form-'.$overtime->id]) !!}
-                                                                    {!! Collective\Html\FormFacade::close() !!}
+                                                                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$overtime->id}}').submit();"><i class="ti ti-trash"></i> <span>{{__('Delete')}}</span></a>
+                                                                    {!! Form::open(['method' => 'DELETE', 'route' => ['overtime.destroy', $overtime->id],'id'=>'delete-form-'.$overtime->id]) !!}
+                                                                    {!! Form::close() !!}
                                                                 @endcan
                                                             </td>
                                                         </tr>
@@ -598,7 +604,7 @@
 
         function getDesignation(did) {
             $.ajax({
-                url: '{{route('employee.json')}}',
+                url: '{{route(ViewsConstants::EMP.'.json')}}',
                 type: 'POST',
                 data: {
                     "department_id": did, "_token": "{{ csrf_token() }}",

@@ -5,7 +5,9 @@
         ViewClassNamesConstants,
         YieldingConstants,
     };
-    use Illuminate\Support\Facades\{Auth, Crypt, Route};
+    use App\Models\{Support, Utility};
+    use Illuminate\Support\Facades\{Auth, Crypt, Route, Storage};
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
@@ -29,10 +31,10 @@
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        <a href="{{ route('support.grid') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('Grid View')}}">
+        <a href="{{ route(ViewsConstants::SPT.'.grid') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('Grid View')}}">
             <i class="ti ti-layout-grid text-white"></i>
         </a>
-       <a href="#" data-size="lg" data-url="{{ route('support.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create Support')}}" class="btn btn-sm btn-primary">
+       <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::SPT.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create Support')}}" class="btn btn-sm btn-primary">
             <i class="ti ti-plus"></i>
         </a>
     </div>
@@ -148,7 +150,7 @@
                             </thead>
                             <tbody class="list">
                                 @php
-                                    $supportpath=\App\Models\Utility::getFile('uploads/supports');
+                                    $supportpath = Utility::getFile('uploads/supports');
                                 @endphp
                                 @foreach($supports as $support)
                                     <tr>
@@ -170,15 +172,15 @@
                                         <td scope="row">
                                             <div class="media align-items-center">
                                                 <div class="media-body">
-                                                    <a href="{{ route('support.reply',Crypt::encrypt($support->id)) }}" class="name h6 mb-0 text-sm">{{$support->subject}}</a><br>
+                                                    <a href="{{ route(ViewsConstants::SPT.'.reply',Crypt::encrypt($support->id)) }}" class="name h6 mb-0 text-sm">{{$support->subject}}</a><br>
                                                     @if($support->priority == 0)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-primary p-2 px-3 rounded">   {{ __(\App\Models\Support::$priority[$support->priority]) }}</span>
+                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-primary p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
                                                     @elseif($support->priority == 1)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-info p-2 px-3 rounded">   {{ __(\App\Models\Support::$priority[$support->priority]) }}</span>
+                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-info p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
                                                     @elseif($support->priority == 2)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-warning p-2 px-3 rounded">   {{ __(\App\Models\Support::$priority[$support->priority]) }}</span>
+                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-warning p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
                                                     @elseif($support->priority == 3)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-danger p-2 px-3 rounded">   {{ __(\App\Models\Support::$priority[$support->priority]) }}</span>
+                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-danger p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -201,30 +203,30 @@
                                         <td>{{!empty($support->assignUser)?$support->assignUser->name:'-'}}</td>
                                         <td>
                                             @if($support->status == 'Open')
-                                                <span class="status_badge text-capitalize badge bg-success p-2 px-3 rounded">{{ __(\App\Models\Support::$status[$support->status]) }}</span>
+                                                <span class="status_badge text-capitalize badge bg-success p-2 px-3 rounded">{{ __( Support::$status[$support->status]) }}</span>
                                             @elseif($support->status == 'Close')
-                                                <span class="status_badge text-capitalize badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Support::$status[$support->status]) }}</span>
+                                                <span class="status_badge text-capitalize badge bg-danger p-2 px-3 rounded">{{ __( Support::$status[$support->status]) }}</span>
                                             @elseif($support->status == 'On Hold')
-                                                <span  class="status_badge text-capitalize badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Support::$status[$support->status]) }}</span>
+                                                <span  class="status_badge text-capitalize badge bg-warning p-2 px-3 rounded">{{ __( Support::$status[$support->status]) }}</span>
                                             @endif
                                         </td>
                                         <td>{{$user?->dateFormat($support->created_at)}}</td>
                                         <td class="Action">
                                         <span>
                                             <div class="action-btn bg-warning ms-2">
-                                                <a href="{{ route('support.reply',Crypt::encrypt($support->id)) }}" data-title="{{__('Support Reply')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Reply')}}" data-original-title="{{__('Reply')}}">
+                                                <a href="{{ route(ViewsConstants::SPT.'.reply',Crypt::encrypt($support->id)) }}" data-title="{{__('Support Reply')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Reply')}}" data-original-title="{{__('Reply')}}">
                                                     <i class="ti ti-corner-up-left text-white"></i>
                                                 </a>
                                             </div>
                                             @if($user?->type=='company' || $user?->id==$support->ticket_created)
                                                 <div class="action-btn bg-primary ms-2">
-                                                    <a href="#" data-size="lg" data-url="{{ route('support.edit',$support->id) }}" data-ajax-popup="true" data-title="{{__('Edit Support')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
+                                                    <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::SPT.'.edit',$support->id) }}" data-ajax-popup="true" data-title="{{__('Edit Support')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
                                                         <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
                                                     </a>
                                                 </div>
                                                 <div class="action-btn bg-danger ms-2">
-                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['support.destroy', $support->id],'id'=>'delete-form-'.$support->id]) !!}
-                                                        <a href="#!" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="Are You Sure?|This action can not be undone. Do you want to continue?" title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$support->id}}').submit();">
+                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::SPT.'.destroy', $support->id],'id'=>'delete-form-'.$support->id]) !!}
+                                                        <a href="#!" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$support->id}}').submit();">
                                                             <i class="ti ti-trash text-white"></i>
                                                         </a>
                                                     {!! Collective\Html\FormFacade::close() !!}

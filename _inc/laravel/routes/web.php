@@ -1074,8 +1074,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // Project Module
 
-    Route::get('invite-project-member/{id}', [ProjectController::class, 'inviteMemberView'])->name('invite.project.member.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('invite-project-user-member', [ProjectController::class, 'inviteProjectUserMember'])->name('invite.project.user.member')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('invite-project-member/{id}', [ProjectController::class, 'inviteMemberView'])->name(ViewsConstants::PRJ . '.invite.member.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('invite-project-user-member', [ProjectController::class, 'inviteProjectUserMember'])->name(ViewsConstants::PRJ . '.invite.user.member')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::delete(ViewsConstants::PRJ . '/{id}/users/{uid}', [ProjectController::class, 'destroyProjectUser'])->name(ViewsConstants::PRJ . '.' . ViewsConstants::USR . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('project/{view?}', [ProjectController::class, 'index'])->name(ViewsConstants::PRJ . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);

@@ -1,7 +1,7 @@
 @php
 	use App\Config\Constants\{DatabaseConstants,SettingsConstants,ViewClassNamesConstants};
 	use App\Models\Utility;
-	use Illuminate\Support\Facades\{Log,Route};
+	use Illuminate\Support\Facades\{Auth,Log,Route};
 	$data ??= [];
 	$logo ??= '';
 	$company_favicon ??= '';
@@ -9,6 +9,8 @@
 	$colorSettings ??= [];
 	$color ??= '';
 	$faviconUrl ??= '';
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
 	try {
 		$data = Utility::prepareCommonViewData() ?: [];
 		$logo = $data[SettingsConstants::LOGO] ?? '';
@@ -190,12 +192,12 @@
                                                                 -
                                                             @endif
                                                         </td>
-                                                        <td class="price text-right">{{ Auth::user()->priceFormat($details['price']) }}</td>
+                                                        <td class="price text-right">{{ $user?->priceFormat($details['price']) }}</td>
                                                         <td class="col-sm-3 mt-2">
-                                                            <span class="subtotal">{{ Auth::user()->priceFormat($details['subtotal']) }}</span>
+                                                            <span class="subtotal">{{ $user?->priceFormat($details['subtotal']) }}</span>
                                                         </td>
                                                         <td class="col-sm-2 mt-2">
-                                                            <a href="#" class="action-btn bg-danger bs-pass-para-pos" data-confirm="{{ __('Are You Sure?') }}" data-text="{{__('This action can not be undone. Do you want to continue?')}}"
+                                                            <a href="#" class="action-btn bg-danger bs-pass-para-pos" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                             data-confirm-yes="delete-form-{{ $id }}" title="{{ __('Delete') }}" data-id="{{ $id }}">
                                                                 <i class="ti ti-trash text-white mx-3 btn btn-sm" title="{{ __('Delete') }}"></i>
                                                             </a>
@@ -218,7 +220,7 @@
                                         <div class="sub-total">
                                             <div class="d-flex text-end justify-content-end">
                                                 <h6 class="mb-0 text-dark">{{__('Sub Total')}} :</h6>
-                                                <h6 class="mb-0 text-dark subtotal_price" id="displaytotal">{{ Auth::user()->priceFormat($total) }}</h6>
+                                                <h6 class="mb-0 text-dark subtotal_price" id="displaytotal">{{ $user?->priceFormat($total) }}</h6>
                                             </div>
                                             <div class="row align-items-center">
                                                 <div class="col-6">
@@ -231,7 +233,7 @@
                                                 <div class="col-6">
                                                     <div class="d-flex align-items-center justify-content-end">
                                                         <h6 class="">{{__('Total')}} :</h6>
-                                                        <h6 class="totalamount" >{{ Auth::user()->priceFormat($total) }}</h6>
+                                                        <h6 class="totalamount" >{{ $user?->priceFormat($total) }}</h6>
                                                     </div>
                                                 </div>
                                             </div>
@@ -243,7 +245,7 @@
                                                 </button>
                                                 <div class="tab-content btn-empty text-end">
                                                     <a href="#" class="btn btn-danger bs-pass-para-pos rounded m-0"  data-toggle="tooltip" data-original-title="{{ __('Empty Cart') }}"
-                                                    data-confirm="{{ __('Are You Sure?') }}" data-text="{{__('This action can not be undone. Do you want to continue?')}}"
+                                                    data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                     data-confirm-yes="delete-form-emptycart">{{ __('Empty Cart') }}
                                                     </a>
                                                     {!! Collective\Html\FormFacade::open(['method' => 'post', 'url' => ['empty-cart'],'id' => 'delete-form-emptycart']) !!}

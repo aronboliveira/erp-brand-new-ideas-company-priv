@@ -12,7 +12,7 @@
     use Illuminate\Support\Str;
     use Illuminate\Support\Facades\{Auth,Route};
     $user = Auth::user();
-    $lang = Utility::fetchUserLang();
+    $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
