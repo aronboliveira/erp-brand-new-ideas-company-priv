@@ -6,7 +6,7 @@
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use App\Models\Utility;
+    use App\Models\{Proposal,Utility};
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth, Crypt, Route};
     use Illuminate\Support\Str;
@@ -585,10 +585,26 @@
                                         </td>
                                         <td>{{ $user?->dateFormat($proposal->issue_date) }}</td>
                                         <td>{{ $user?->priceFormat($proposal->getTotal()) }}</td>
+                                        @php
+                                            $statusBadgeClasses = match(true) {
+                                                $proposal->status === 0 => 'bg-primary',
+                                                $proposal->status === 1 => 'bg-warning',
+                                                $proposal->status === 2 => 'bg-danger',
+                                                $proposal->status === 3 => 'bg-info',
+                                                $proposal->status === 4 => 'bg-primary',
+                                                default => 'bg-secondary'
+                                            };
+                                        @endphp
                                         <td>
-                                            <span class="badge {{ $statusBadgeClasses[$proposal->status] ?? 'bg-secondary' }} p-2 px-3 rounded">
-                                                {{ __(\App\Models\Proposal::$statuses[$proposal->status]) }}
-                                            </span>
+                                            @if(!empty($proposal->status) && is_numeric($proposal->status) && $proposal->status >= 0 && $proposal->status < 4)
+                                                <span class="badge {{ $statusBadgeClasses }} p-2 px-3 rounded">
+                                                    {{ __(Proposal::$statuses[$proposal->status]) }}
+                                                </span>
+                                            @else
+                                                <span class="badge bg-secondary p-2 px-3 rounded">
+                                                    {{ __('Unknown status') }}
+                                                </span>
+                                            @endif
                                         </td>
                                         @if(Gate::check('edit proposal') || Gate::check('delete proposal') || Gate::check('show proposal'))
                                             <td class="action">

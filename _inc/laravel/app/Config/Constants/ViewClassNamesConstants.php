@@ -538,6 +538,7 @@ class ViewClassNamesConstants
 	// ti ti-trash-alt text-danger
 	public const TI_TRS_OFF = self::TI_TRS . ' ti-trash-off text-white-off';
 	// "{{ ViewClassNamesConstants::TI_TRS_OFF }}"
+	// "{{ VC::TI_TRS_OFF }}"
 	// ti ti-trash-off text-white-off
 	public const TI_TRS_WT = self::TI_TRS . ' ' . self::TXT_WT;
 	// "{{ ViewClassNamesConstants::TI_TRS_WT }}"
@@ -572,9 +573,11 @@ class ViewClassNamesConstants
 	// ti ti-dots-vertical
 	public const TI_FL = self::TI . ' ' . self::TI . '-file';
 	// "{{ ViewClassNamesConstants::TI_FL }}"
+	// "{{ VW::TI_FL }}"
 	// ti ti-file
 	public const TI_EXP = self::TI . ' ' . self::TI . '-file-export';
 	// "{{ ViewClassNamesConstants::TI_EXP }}"
+	// "{{ VW::TI_EXP }}"
 	// ti ti-file-export
 	public const TI_IMP = self::TI . ' ' . self::TI . '-file-import';
 	// "{{ ViewClassNamesConstants::TI_IMP }}"

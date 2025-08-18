@@ -2,8 +2,11 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        YieldingConstants
+        YieldingConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
     };
+    use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\Route;
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
@@ -17,7 +20,67 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route(ViewsConstans::POS.'.barcode')}}">{{__('POS Product Barcode')}}</a></li>
+    @php
+        $posProductBarcodeBaseName     = ViewsConstants::POS.'.barcode';
+        $posProductBarcodeKebabName    = Str::kebab($posProductBarcodeBaseName);
+        $posProductBarcodeResolvedName = Route::has($posProductBarcodeBaseName)
+            ? $posProductBarcodeBaseName
+            : (Route::has($posProductBarcodeKebabName) ? $posProductBarcodeKebabName : null);
+        $posProductBarcodeUrl          = $posProductBarcodeResolvedName ? route($posProductBarcodeResolvedName) : '#';
+        $posProductBarcodeGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'pos_product_barcode_route_unavailable') ?? 'Access POS product barcode route is unavailable. Please contact technical support or your domain administrator.';
+        $posProductBarcodeLinkId       = 'pos-product-barcode-link';
+    @endphp
+    <li class="breadcrumb-item">
+        <a href="{{ $posProductBarcodeUrl }}"
+        id="{{ $posProductBarcodeLinkId }}"
+            data-url="{{ $posProductBarcodeUrl }}"
+            data-guard-msg="{{ $posProductBarcodeGuardMsg }}">
+            {{ __('POS Product Barcode') }}
+        </a>
+    </li>
+    @push(StacksConstants::ADM_SCR_PG)
+        <script defer>
+            (() => {
+                try {
+                    const l = document.getElementById('{{ $posProductBarcodeLinkId }}');
+                    if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                    l.setAttribute('data-listener-active', 'true');
+                    l.addEventListener('click', e => {
+                        try {
+                            const href = l.getAttribute('href') || '#';
+                            const url  = l.getAttribute('data-url') || href || '#';
+                            if (href !== '#' || url !== '#') return;
+                            e.preventDefault();
+                            const msg = l.getAttribute('data-guard-msg') || 'Access pos product barcode route is unavailable. Please contact technical support or your domain administrator.';
+                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            let container = document.getElementById('toast-container');
+                            if (!container) {
+                                container = document.createElement('div');
+                                container.id = 'toast-container';
+                                document.body.appendChild(container);
+                            }
+                            if (hasBootstrap) {
+                                const toast = document.createElement('div');
+                                toast.className = 'toast';
+                                toast.setAttribute('role','alert');
+                                toast.setAttribute('aria-live','assertive');
+                                toast.setAttribute('aria-atomic','true');
+                                const body = document.createElement('div');
+                                body.className = 'toast-body';
+                                body.textContent = msg;
+                                toast.appendChild(body);
+                                container.appendChild(toast);
+                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                            } else {
+                                alert(msg);
+                            }
+                            l.setAttribute('data-failed-route', 'true');
+                        } catch (err) {}
+                    });
+                } catch (error) {}
+            })();
+        </script>
+    @endpush
     <li class="breadcrumb-item">{{__('POS Barcode Print')}}</li>
 @endsection
 @push(StacksConstants::ADM_CSS)
@@ -218,44 +281,112 @@
     </script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-        <a href="{{ route(ViewsConstans::POS.'.barcode') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('Back')}}">
+    <div class="{{ VC::FEND }}">
+        <a href="{{ route(VW::POS.'.barcode') }}"
+           class="{{ VC::BT_SM_PM }}"
+           data-bs-toggle="tooltip"
+           title="{{ __('Back') }}">
             <i class="ti ti-arrow-left text-white"></i>
         </a>
     </div>
 @endsection
+
 @section(YieldingConstants::ADM_CTT)
-    <div class="row mt-3">
-        <div class="col-12">
-            <div class="card">
+    <div class="{{ VC::RW }} {{ VC::MT3 }}">
+        <div class="{{ VC::C12 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-body">
-                    {{Collective\Html\FormFacade::open(array('route'=>ViewsConstans::POS.'.receipt','method'=>'post'))}}
-                        <div class="row" id="printableArea">
+                    @php
+                        $posReceiptBaseName     = ViewsConstants::POS.'.receipt';
+                        $posReceiptKebabName    = Str::kebab($posReceiptBaseName);
+                        $posReceiptResolvedName = Route::has($posReceiptBaseName)
+                            ? $posReceiptBaseName
+                            : (Route::has($posReceiptKebabName) ? $posReceiptKebabName : null);
+                        $posReceiptRouteArray   = $posReceiptResolvedName ? [$posReceiptResolvedName] : ['#'];
+                        $posReceiptUrl          = $posReceiptResolvedName ? route($posReceiptResolvedName) : '#';
+                        $posReceiptGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'create_pos_receipt_route_unavailable') ?? 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
+                        $posReceiptFormId       = 'pos-receipt-form';
+                    @endphp
+                    {!! Form::open([
+                        'route'          => $posReceiptRouteArray,
+                        'method'         => 'post',
+                        'accept-charset' => 'UTF-8',
+                        'id'             => $posReceiptFormId,
+                        'data-url'       => $posReceiptUrl,
+                        'data-guard-msg' => $posReceiptGuardMsg
+                    ]) !!}
+                        @csrf
+                        @push(StacksConstants::ADM_SCR_PG)
+                            <script defer>
+                                (() => {
+                                    try {
+                                        const f = document.getElementById('{{ $posReceiptFormId }}');
+                                        if (!f || f.getAttribute('data-listener-active') === 'true') return;
+                                        f.setAttribute('data-listener-active', 'true');
+                                        f.addEventListener('submit', e => {
+                                            try {
+                                                const url = f.getAttribute('data-url') || '#';
+                                                const action = f.getAttribute('action') || '#';
+                                                if (url !== '#' || action !== '#') return;
+                                                e.preventDefault();
+                                                const msg = f.getAttribute('data-guard-msg') || 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
+                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                let container = document.getElementById('toast-container');
+                                                if (!container) {
+                                                    container = document.createElement('div');
+                                                    container.id = 'toast-container';
+                                                    document.body.appendChild(container);
+                                                }
+                                                if (hasBootstrap) {
+                                                    const toast = document.createElement('div');
+                                                    toast.className = 'toast';
+                                                    toast.setAttribute('role', 'alert');
+                                                    toast.setAttribute('aria-live', 'assertive');
+                                                    toast.setAttribute('aria-atomic', 'true');
+                                                    const body = document.createElement('div');
+                                                    body.className = 'toast-body';
+                                                    body.textContent = msg;
+                                                    toast.appendChild(body);
+                                                    container.appendChild(toast);
+                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                } else {
+                                                    alert(msg);
+                                                }
+                                                f.setAttribute('data-failed-route', 'true');
+                                            } catch (err) {}
+                                        });
+                                    } catch (error) {}
+                                })();
+                            </script>
+                        @endpush
+                        <div class="{{ VC::RW }}" id="printableArea">
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    {{Collective\Html\FormFacade::label('warehouse_id',__('Warehouse'),['class'=>'form-label'])}}
-                                    {{ Collective\Html\FormFacade::select('warehouse_id', $warehouses,'', array('class' => 'form-control select','id'=>'warehouse_id','required'=>'required')) }}
+                                <div class="{{ VC::FM_G }}">
+                                    {{ Form::label('warehouse_id', __('Warehouse'), ['class' => VC::FM_LB]) }}
+                                    {{ Form::select('warehouse_id', $warehouses, '', ['class' => VC::FM_CT_SL, 'id' => 'warehouse_id', 'required' => 'required']) }}
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group" id="product_div">
-                                    {{Collective\Html\FormFacade::label('product_id',__('Product'),['class'=>'form-label'])}}
-                                    <select class="form-control select" name="product_id[]" id="product_id" required >
-                                    </select>
+                                <div class="{{ VC::FM_G }}" id="product_div">
+                                    {{ Form::label('product_id', __('Product'), ['class' => VC::FM_LB]) }}
+                                    <select class="{{ VC::FM_CT_SL }}" name="product_id[]" id="product_id" required></select>
                                 </div>
                             </div>
-                            <div class="form-group col-md-4">
-                                {{ Collective\Html\FormFacade::label('quantity', __('Quantity'),['class'=>'form-label']) }}<span class="text-danger">*</span>
-                                {{ Collective\Html\FormFacade::text('quantity',null, array('class' => 'form-control','required'=>'required')) }}
+                            <div class="{{ VC::FM_G }} col-md-4">
+                                {{ Form::label('quantity', __('Quantity'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+                                {{ Form::text('quantity', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                             </div>
                         </div>
-                        <div class="col-md-6 pt-4">
-                            <button class="btn btn-sm btn-primary btn-icon" type="submit">{{__('Print')}}</button>
+                        <div class="{{ VC::CM6 }} pt-4">
+                            <button class="{{ VC::BT_SM_PM }} btn-icon" type="submit">
+                                {{ __('Print') }}
+                            </button>
                         </div>
-                    {{Collective\Html\FormFacade::close()}}
+                    {{ Form::close() }}
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
 

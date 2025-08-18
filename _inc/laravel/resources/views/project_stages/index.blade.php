@@ -7,7 +7,9 @@
         YieldingConstants,
     };
     use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Route, URL};
+    use Illuminate\Support\{Collection, Str};
     $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
@@ -122,43 +124,134 @@
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     @can('create project stage')
+        @php
+            $projectStageCreateBaseName     = ViewsConstants::PRJ_STG.'.create';
+            $projectStageCreateKebabName    = Str::kebab($projectStageCreateBaseName);
+            $projectStageCreateResolvedName = Route::has($projectStageCreateBaseName)
+                ? $projectStageCreateBaseName
+                : (Route::has($projectStageCreateKebabName) ? $projectStageCreateKebabName : null);
+            $projectStageCreateUrl          = $projectStageCreateResolvedName ? route($projectStageCreateResolvedName) : '#';
+            $projectStageCreateGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'create_project_stage_route_unavailable') ?? 'Create project stage route is unavailable. Please contact technical support or your domain administrator.';
+            $projectStageCreateLinkId       = 'project-stage-create-link';
+            $projectStageCreateTitle        = __('Create Project Stage');
+            $projectStageCreateLabel        = __('Create');
+        @endphp
         <div class="float-end">
-            <a href="#" data-url="{{ route(ViewsConstants::PRJ_STG.'.create') }}" data-ajax-popup="true" data-title="{{__('Create Project Stage')}}" class="btn btn-xs btn-white btn-icon-only width-auto"><i class="ti ti-plus"></i> {{__('Create')}} </a>
+            <a href="{{ $projectStageCreateUrl }}"
+            id="{{ $projectStageCreateLinkId }}"
+            class="btn btn-xs btn-white btn-icon-only width-auto"
+            data-ajax-popup="true"
+            data-url="{{ $projectStageCreateUrl }}"
+            data-guard-msg="{{ $projectStageCreateGuardMsg }}"
+            data-title="{{ $projectStageCreateTitle }}">
+                <i class="ti ti-plus"></i> {{ $projectStageCreateLabel }}
+            </a>
         </div>
+        @push(StacksConstants::ADM_SCR_PG)
+            <script defer>
+                (() => {
+                    try {
+                        const l = document.getElementById('{{ $projectStageCreateLinkId }}');
+                        if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                        l.setAttribute('data-listener-active', 'true');
+                        l.addEventListener('click', (e) => {
+                            try {
+                                const href = l.getAttribute('href') || '#';
+                                const url  = l.getAttribute('data-url') || href || '#';
+                                if (href !== '#' || url !== '#') return;
+                                e.preventDefault();
+                                const msg = l.getAttribute('data-guard-msg') || 'Create project stage route is unavailable. Please contact technical support or your domain administrator.';
+                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                let container = document.getElementById('toast-container');
+                                if (!container) {
+                                    container = document.createElement('div');
+                                    container.id = 'toast-container';
+                                    document.body.appendChild(container);
+                                }
+                                if (hasBootstrap) {
+                                    const toast = document.createElement('div');
+                                    toast.className = 'toast';
+                                    toast.setAttribute('role','alert');
+                                    toast.setAttribute('aria-live','assertive');
+                                    toast.setAttribute('aria-atomic','true');
+                                    const body = document.createElement('div');
+                                    body.className = 'toast-body';
+                                    body.textContent = msg;
+                                    toast.appendChild(body);
+                                    container.appendChild(toast);
+                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                } else {
+                                    alert(msg);
+                                }
+                                l.setAttribute('data-failed-route', 'true');
+                            } catch (err) {}
+                        });
+                    } catch (error) {}
+                })();
+            </script>
+        @endpush
     @endcan
 @endsection
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-info note-constant text-xs">
-                <p class="mt-4"><strong>{{__('Note')}} : </strong><b>{{__('System will consider last stage as a completed / done task for get progress on project.')}}</b></p>
-
+    @php
+        $stagesSafe = (isset($projectstages) && (is_array($projectstages) || $projectstages instanceof Collection)) ? $projectstages : [];
+    @endphp
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::C12 }}">
+            <div class="alert alert-info note-constant {{ VC::TXS }}">
+                <p class="{{ VC::MT4 }}">
+                    <strong>{{ __('Note') }} : </strong>
+                    <b>{{ __('The system will consider last stage as a completed | done task for getting the progress for the project.') }}</b>
+                </p>
             </div>
         </div>
         <div class="col-md-12">
-            <div class="card">
+            <div class="{{ VC::CD }}">
                 <div class="card-body">
-                    <ul class="list-group sortable">
-                        @foreach ($projectstages as $projectstage)
-                            <li class="list-group-item" data-id="{{$projectstage->id}}">
-                                <div class="row">
-                                    <div class="col-6 text-xs text-dark">{{$projectstage->name}}</div>
-                                    <div class="col-4 text-xs text-dark">{{$projectstage->created_at}}</div>
+                    <ul class="{{ VC::LGRP }} sortable">
+                        @forelse ($stagesSafe as $projectstage)
+                            @php
+                                $valid = isset($projectstage) && !empty($projectstage) && (is_array($projectstage) || is_object($projectstage));
+                                $pid = $valid ? data_get($projectstage,'id') : null;
+                                $nameText = $valid ? (data_get($projectstage,'name') ?? __('No stage name available')) : __('No stage available');
+                                $createdText = $valid ? (data_get($projectstage,'created_at') ?? __('No created date available')) : __('No created date available');
+                            @endphp
+                            <li class="{{ VC::LGI }}" data-id="{{ $pid ?? '' }}">
+                                <div class="{{ VC::RW }}">
+                                    <div class="col-6 {{ VC::TXS }} text-dark">{{ $nameText }}</div>
+                                    <div class="col-4 {{ VC::TXS }} text-dark">{{ $createdText }}</div>
                                     <div class="col-2">
                                         @can('edit project stage')
-                                            <a href="#" data-url="{{ URL::to(App\Config\Constants\ViewsConstants::PRJ_STG.'/'.$projectstage->id.'/edit') }}" data-ajax-popup="true" data-title="{{__('Edit Project Stages')}}" class="edit-icon">
-                                                <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
+                                            <a href="#"
+                                            data-url="{{ $pid ? URL::to(ViewsConstants::PRJ_STG.'/'.$pid.'/edit') : '#' }}"
+                                            data-ajax-popup="true"
+                                            data-title="{{ __('Edit Project Stages') }}"
+                                            class="edit-icon">
+                                                <i class="{{ VC::TI_PC }}"></i>
                                             </a>
                                         @endcan
                                         @can('delete project stage')
-                                            <a href="#" class="delete-icon" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$projectstage->id}}').submit();"><i class="ti ti-trash"></i></a>
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::PRJ_STG.'.destroy', $projectstage->id],'id'=>'delete-form-'.$projectstage->id]) !!}
-                                            {!! Collective\Html\FormFacade::close() !!}
+                                            @if($pid)
+                                                <a href="#"
+                                                class="delete-icon"
+                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang ?? app()->getLocale(), 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang ?? app()->getLocale(), 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                data-confirm-yes="document.getElementById('delete-form-{{$pid}}').submit();">
+                                                    <i class="{{ VC::TI_TRS }}"></i>
+                                                </a>
+                                                {!! Form::open(['method' => 'DELETE', 'route' => [ViewsConstants::PRJ_STG.'.destroy', $pid],'id'=>'delete-form-'.$pid]) !!}
+                                                {!! Form::close() !!}
+                                            @endif
                                         @endcan
                                     </div>
                                 </div>
                             </li>
-                        @endforeach
+                        @empty
+                            <li class="{{ VC::LGI }}">
+                                <div class="{{ VC::RW }}">
+                                    <div class="{{ VC::C12 }} {{ VC::TXS }} text-dark">{{ __('No project stages available') }}</div>
+                                </div>
+                            </li>
+                        @endforelse
                     </ul>
                 </div>
             </div>
