@@ -222,24 +222,164 @@
                                     <div class="col-4 {{ VC::TXS }} text-dark">{{ $createdText }}</div>
                                     <div class="col-2">
                                         @can('edit project stage')
-                                            <a href="#"
-                                            data-url="{{ $pid ? URL::to(ViewsConstants::PRJ_STG.'/'.$pid.'/edit') : '#' }}"
+                                            @php
+                                                $projectStageEditBaseName     = ViewsConstants::PRJ_STG.'.edit';
+                                                $projectStageEditKebabName    = Str::kebab($projectStageEditBaseName);
+                                                $projectStageEditResolvedName = Route::has($projectStageEditBaseName)
+                                                    ? $projectStageEditBaseName
+                                                    : (Route::has($projectStageEditKebabName) ? $projectStageEditKebabName : null);
+                                                $projectIdValue               = isset($pid) && !empty($pid) ? $pid : null;
+                                                $projectStageEditUrl          = ($projectStageEditResolvedName && $projectIdValue) ? route($projectStageEditResolvedName, $projectIdValue) : '#';
+                                                $projectStageEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'edit_project_stage_route_unavailable') ?? 'Edit project stage route is unavailable. Please contact technical support or your domain administrator.';
+                                                $projectStageEditLinkId       = 'project-stage-edit-link-'.($projectIdValue ?? 'x');
+                                                $projectStageEditTitle        = __('Edit Project Stages');
+                                            @endphp
+                                            <a href="{{ $projectStageEditUrl }}"
+                                            id="{{ $projectStageEditLinkId }}"
+                                            data-url="{{ $projectStageEditUrl }}"
                                             data-ajax-popup="true"
-                                            data-title="{{ __('Edit Project Stages') }}"
+                                            data-guard-msg="{{ $projectStageEditGuardMsg }}"
+                                            data-title="{{ $projectStageEditTitle }}"
                                             class="edit-icon">
                                                 <i class="{{ VC::TI_PC }}"></i>
                                             </a>
+                                            @push(StacksConstants::ADM_SCR_PG)
+                                                <script defer>
+                                                    (() => {
+                                                        try {
+                                                            const l = document.getElementById('{{ $projectStageEditLinkId }}');
+                                                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                                                            l.setAttribute('data-listener-active', 'true');
+                                                            l.addEventListener('click', e => {
+                                                                try {
+                                                                    const href = l.getAttribute('href') || '#';
+                                                                    const url  = l.getAttribute('data-url') || href || '#';
+                                                                    if (href !== '#' || url !== '#') return;
+                                                                    e.preventDefault();
+                                                                    const msg = l.getAttribute('data-guard-msg') || 'Edit project stage route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                    let container = document.getElementById('toast-container');
+                                                                    if (!container) {
+                                                                        container = document.createElement('div');
+                                                                        container.id = 'toast-container';
+                                                                        document.body.appendChild(container);
+                                                                    }
+                                                                    if (hasBootstrap) {
+                                                                        const toast = document.createElement('div');
+                                                                        toast.className = 'toast';
+                                                                        toast.setAttribute('role','alert');
+                                                                        toast.setAttribute('aria-live','assertive');
+                                                                        toast.setAttribute('aria-atomic','true');
+                                                                        const body = document.createElement('div');
+                                                                        body.className = 'toast-body';
+                                                                        body.textContent = msg;
+                                                                        toast.appendChild(body);
+                                                                        container.appendChild(toast);
+                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                    } else {
+                                                                        alert(msg);
+                                                                    }
+                                                                    l.setAttribute('data-failed-route', 'true');
+                                                                } catch (err) {}
+                                                            });
+                                                        } catch (error) {}
+                                                    })();
+                                                </script>
+                                            @endpush
                                         @endcan
                                         @can('delete project stage')
                                             @if($pid)
+                                                @php
+                                                    $projectStageDestroyBaseName     = ViewsConstants::PRJ_STG.'.destroy';
+                                                    $projectStageDestroyKebabName    = Str::kebab($projectStageDestroyBaseName);
+                                                    $projectStageDestroyResolvedName = Route::has($projectStageDestroyBaseName)
+                                                        ? $projectStageDestroyBaseName
+                                                        : (Route::has($projectStageDestroyKebabName) ? $projectStageDestroyKebabName : null);
+                                                    $projectIdValue                  = isset($pid) && !empty($pid) ? $pid : null;
+                                                    $projectStageDestroyRouteArray   = ($projectStageDestroyResolvedName && $projectIdValue) ? [$projectStageDestroyResolvedName, $projectIdValue] : ['#'];
+                                                    $projectStageDestroyUrl          = ($projectStageDestroyResolvedName && $projectIdValue) ? route($projectStageDestroyResolvedName, $projectIdValue) : '#';
+                                                    $projectStageDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_STG, 'delete_project_stage_route_unavailable') ?? 'Delete project stage route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $projectStageDeleteFormId        = 'delete-form-'.($projectIdValue ?? 'x');
+                                                    $projectStageDeleteLinkId        = 'project-stage-delete-link-'.($projectIdValue ?? 'x');
+                                                    $confirmTitle                    = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                    $confirmBody                     = __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                    $confirmCombined                 = $confirmTitle.'|'.$confirmBody;
+                                                @endphp
                                                 <a href="#"
+                                                id="{{ $projectStageDeleteLinkId }}"
                                                 class="delete-icon"
-                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang ?? app()->getLocale(), 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang ?? app()->getLocale(), 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                data-confirm-yes="document.getElementById('delete-form-{{$pid}}').submit();">
+                                                data-confirm="{{ $confirmCombined }}"
+                                                data-confirm-yes="document.getElementById('{{ $projectStageDeleteFormId }}').submit();"
+                                                data-form-id="{{ $projectStageDeleteFormId }}"
+                                                data-guard-msg="{{ $projectStageDestroyGuardMsg }}">
                                                     <i class="{{ VC::TI_TRS }}"></i>
                                                 </a>
-                                                {!! Form::open(['method' => 'DELETE', 'route' => [ViewsConstants::PRJ_STG.'.destroy', $pid],'id'=>'delete-form-'.$pid]) !!}
+                                                {!! Form::open([
+                                                    'method'         => 'DELETE',
+                                                    'route'          => $projectStageDestroyRouteArray,
+                                                    'id'             => $projectStageDeleteFormId,
+                                                    'data-url'       => $projectStageDestroyUrl,
+                                                    'data-guard-msg' => $projectStageDestroyGuardMsg
+                                                ]) !!}
                                                 {!! Form::close() !!}
+                                                @push(StacksConstants::ADM_SCR_PG)
+                                                    <script defer>
+                                                        (() => {
+                                                            try {
+                                                                const a = document.getElementById('{{ $projectStageDeleteLinkId }}');
+                                                                const f = document.getElementById('{{ $projectStageDeleteFormId }}');
+                                                                if (!a || !f || a.getAttribute('data-listener-active') === 'true') return;
+                                                                a.setAttribute('data-listener-active', 'true');
+                                                                a.addEventListener('click', e => {
+                                                                    try {
+                                                                        e.preventDefault();
+                                                                        const url = f.getAttribute('data-url') || '#';
+                                                                        const action = f.getAttribute('action') || '#';
+                                                                        if (url === '#' && action === '#') {
+                                                                            const msg = a.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete project stage route is unavailable. Please contact technical support or your domain administrator.';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role','alert');
+                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            a.setAttribute('data-failed-route', 'true');
+                                                                            f.setAttribute('data-failed-route', 'true');
+                                                                            return;
+                                                                        }
+                                                                        const combined = a.getAttribute('data-confirm') || '';
+                                                                        const parts = combined.split('|');
+                                                                        const finalMsg = parts.length > 1 ? parts[0] + '\n\n' + parts.slice(1).join(' ') : combined;
+                                                                        if (window.confirm(finalMsg)) {
+                                                                            const yes = a.getAttribute('data-confirm-yes') || '';
+                                                                            if (yes) {
+                                                                                try { eval(yes); } catch (_) { f.submit(); }
+                                                                            } else {
+                                                                                f.submit();
+                                                                            }
+                                                                        }
+                                                                    } catch (err) {}
+                                                                });
+                                                            } catch (error) {}
+                                                        })();
+                                                    </script>
+                                                @endpush
                                             @endif
                                         @endcan
                                     </div>

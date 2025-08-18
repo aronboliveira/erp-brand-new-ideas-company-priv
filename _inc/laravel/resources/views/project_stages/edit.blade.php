@@ -1,19 +1,86 @@
-<div class="card bg-none card-box">
-    {{ Collective\Html\FormFacade::model($leadstages, array('route' => array(App\Config\Constants\ViewsConstants::PRJ_STG.'.update', $leadstages->id), 'method' => 'PUT')) }}
-    <div class="row">
-        <div class="form-group col-12">
-            {{ Collective\Html\FormFacade::label('name', __('Project Stage Name'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::text('name', null, array('class' => 'form-control','required'=>'required')) }}
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\{Facades\Route, Str};
+    $lang = Utility::fetchUserLang();
+    $leadstageId   = isset($leadstages) && !empty(data_get($leadstages, 'id')) ? data_get($leadstages, 'id') : null;
+    $updateBase    = VW::PRJ_STG . '.update';
+    $updateKebab   = Str::kebab($updateBase);
+    $updateResolved= Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+    $updateParams  = $leadstageId ? [$leadstageId] : ['#'];
+    $updateUrl     = ($updateResolved && $leadstageId) ? route($updateResolved, $updateParams) : '#';
+    $formId        = 'update-project-stage-form';
+    $formGuardMsg  = Utility::fetchLinkMessage($lang, VW::PRJ_STG, 'update_project_stage_unavailable') ?? 'Update project stage route is unavailable. Please contact technical support or your domain administrator.';
+@endphp
+<div class="{{ VC::CD }} bg-none card-box">
+    {!! Form::model($leadstages, [
+        'url'            => $updateUrl,
+        'method'         => 'PUT',
+        'id'             => $formId,
+        'data-guard-msg' => $formGuardMsg,
+    ]) !!}
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+                {{ Form::label('name', __('Project Stage Name'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+            </div>
+            <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+                {{ Form::label('color', __('Color'), ['class' => VC::FM_LB]) }}
+                <input class="jscolor {{ VC::FM_CT }}" value="{{ data_get($leadstages, 'color', 'FFFFFF') }}" name="color" id="color" required>
+                <small class="small">{{ __('For chart representation') }}</small>
+            </div>
+            <div class="{{ VC::C12 }} text-end">
+                <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
+                <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+            </div>
         </div>
-        <div class="form-group col-12">
-            {{ Collective\Html\FormFacade::label('color', __('Color'),['class'=>'form-label']) }}
-            <input class="jscolor form-control " value="{{ $leadstages->color }}" name="color" id="color" required>
-            <small class="small">{{ __('For chart representation') }}</small>
-        </div>
-        <div class="col-12 text-end">
-            <input type="submit" value="{{__('Update')}}" class="btn-create badge-blue">
-            <input type="button" value="{{__('Cancel')}}" class="btn-create bg-gray" data-dismiss="modal">
-        </div>
-    </div>
-    {{ Collective\Html\FormFacade::close() }}
+    {!! Form::close() !!}
 </div>
+@push(StacksConstants::ADM_SCRP_PG)
+    <script>
+        (() => {
+            try {
+                const f = document.getElementById('{{ $formId }}');
+                if (!f) return;
+                const flag = 'data-submit-listener';
+                if (f.hasAttribute(flag) && f.getAttribute(flag) === 'true') return;
+                f.setAttribute(flag, 'true');
+                f.addEventListener('submit', function(e) {
+                    try {
+                        const action = f.getAttribute('action') || '#';
+                        if (action !== '#') return;
+                        e.preventDefault();
+                        const msg = f.getAttribute('data-guard-msg') || 'Update project stage route is unavailable. Please contact technical support or your domain administrator.';
+                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            container.className = 'position-fixed top-0 end-0 p-3';
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement('div');
+                            toast.className = 'toast';
+                            toast.setAttribute('role', 'alert');
+                            toast.setAttribute('aria-live', 'assertive');
+                            toast.setAttribute('aria-atomic', 'true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
+                            toast.addEventListener('hidden.bs.toast', function() { try { toast.remove(); } catch (_) {} });
+                            inst.show();
+                        } else {
+                            alert(msg);
+                        }
+                        f.setAttribute('data-failed-route', 'true');
+                    } catch (_) {}
+                }, { passive: false });
+            } catch (_) {}
+        })();
+    </script>
+@endpush
