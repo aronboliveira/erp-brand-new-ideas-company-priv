@@ -38,6 +38,7 @@ class PlanRequestController extends Controller
         }
     }
 
+    public const RQ_VW = 'requestView';
     public function requestView(Request $request, string $planId): View|RedirectResponse
     {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
@@ -77,6 +78,7 @@ class PlanRequestController extends Controller
         }
     }
 
+    public const USR_RQ = 'userRequest';
     public function userRequest(Request $request, string $planId): RedirectResponse|null
     {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
@@ -124,6 +126,7 @@ class PlanRequestController extends Controller
         }
     }
 
+    public const AC_RQ = 'acceptRequest';
     public function acceptRequest(
         Request $request,
         int $id,
@@ -204,6 +207,7 @@ class PlanRequestController extends Controller
         }
     }
 
+    public const CC_RQ = 'cancelRequest';
     public function cancelRequest(Request $request, int $id): RedirectResponse|null
     {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)

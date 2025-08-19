@@ -1745,7 +1745,7 @@
                                 </div>
                               </div>
                               <div class="{{ VC::CD }}-body">
-                                <textarea class="summernote-simple grammer_textarea" name="note">{!! $deal->notes !!}</textarea>
+                                <textarea class="summernote-simple grammar_textarea" name="note">{!! $deal->notes !!}</textarea>
                               </div>
                             </div>
                           </div>

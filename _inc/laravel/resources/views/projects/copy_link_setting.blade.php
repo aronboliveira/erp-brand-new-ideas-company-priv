@@ -179,7 +179,7 @@
                                             const url = l.getAttribute('data-url') || href || '#';
                                             if (href === '#' && url === '#') {
                                                 const msg = l.getAttribute('data-guard-msg') || 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -226,7 +226,7 @@
                                                     copied = true;
                                                 } catch (_) {}
                                             }
-                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                             if (copied) {
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
@@ -407,7 +407,7 @@
                         if (url !== '#' || action !== '#') return;
                         e.preventDefault();
                         const msg = f.getAttribute('data-guard-msg') || 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');

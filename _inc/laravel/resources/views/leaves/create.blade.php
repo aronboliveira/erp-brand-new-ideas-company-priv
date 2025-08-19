@@ -1,46 +1,70 @@
 @php
-    use App\Config\Constants\{
-        PermissionsConstants,
-        PlansConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
+    use App\Config\Constants\{PermissionsConstants, PlansConstants, UsersConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
     use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth,Route};
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\{Facades\Auth, Facades\Route, Str};
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
+    $storeBase       = VW::LV . '.store';
+    $storeKebab      = Str::kebab($storeBase);
+    $storeResolved   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+    $storeUrl        = $storeResolved ? route($storeResolved) : '#';
+    $formId          = 'store_leave';
+    $formGuardMsg    = Utility::fetchLinkMessage($lang, VW::LV, 'store_leave_unavailable') ?? 'Store leave route is unavailable. Please contact technical support or your domain administrator.';
+    $grammarBase     = 'grammar';
+    $grammarKebab    = Str::kebab($grammarBase);
+    $grammarResolved = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
+    $grammarParams   = ['grammar'];
+    $grammarUrl      = $grammarResolved ? route($grammarResolved, $grammarParams) : '#';
+    $grammarLinkId   = 'grammar-check-link';
+    $grammarGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable') ?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-{{ Form::open(array('url'=>ViewsConstants::LV,'method'=>'post'))}}
+{!! Form::open(['url' => $storeUrl, 'method' => 'post', 'id' => $formId, 'data-guard-msg' => $formGuardMsg]) !!}
     <div class="modal-body">
-        {{-- start for ai module--}}
         @php
             $plan = Utility::getChatGPTSettings();
         @endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
+            @php
+                $aiBase       = 'generate';
+                $aiKebab      = Str::kebab($aiBase);
+                $aiResolved   = Route::has($aiBase) ? $aiBase : (Route::has($aiKebab) ? $aiKebab : null);
+                $aiParams     = ['leave'];
+                $aiUrl        = $aiResolved ? route($aiResolved, $aiParams) : '#';
+                $aiLinkId     = 'leave-ai-generate-link';
+                $aiGuardMsg   = Utility::fetchLinkMessage($lang, VW::LV, 'generate_leave_unavailable') ?? 'Generate leave content route is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
             <div class="text-end">
-                <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['leave']) }}"
-                  data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-                    <i class="{{ VC::FAS_RB }}"></i> <span>{{__('Generate with AI')}}</span>
+                <a href="{{ $aiUrl }}"
+                   id="{{ $aiLinkId }}"
+                   class="{{ VC::BT_SM_PM }} btn-icon"
+                   data-ajax-popup-over="true"
+                   data-size="md"
+                   data-url="{{ $aiUrl }}"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}"
+                   data-guard-msg="{{ $aiGuardMsg }}">
+                    <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
         @endif
-        {{-- end for ai module--}}
-        @if( $user?->{UsersConstants::COL_TP} === UsersConstants::CPN ||  strtolower($user?->{UsersConstants::COL_TP}) == PermissionsConstants::HR )
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        {{ Form::label('employee_id',__('Employee') ,['class'=>'form-label'])}}
-                        {{ Form::select('employee_id',$employees,null,array('class'=>'form-control select','id'=>'employee_id','placeholder'=>__('Select Employee')))}}
+
+        @if($user?->{UsersConstants::COL_TP} === UsersConstants::CPN || strtolower($user?->{UsersConstants::COL_TP}) == PermissionsConstants::HR)
+            <div class="{{ VC::RW }}">
+                <div class="{{ VC::CM12 }}">
+                    <div class="{{ VC::FM_G }}">
+                        {{ Form::label('employee_id', __('Employee'), ['class' => VC::FM_LB]) }}
+                        {{ Form::select('employee_id', $employees, null, ['class' => VC::FM_CT_SL, 'id' => 'employee_id', 'placeholder' => __('Select Employee')]) }}
                     </div>
                 </div>
             </div>
         @endif
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{ Form::label('leave_type_id',__('Leave Type') ,['class'=>'form-label'])}}
-                    <select name="leave_type_id" id="leave_type_id" class="form-control select">
+
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('leave_type_id', __('Leave Type'), ['class' => VC::FM_LB]) }}
+                    <select name="leave_type_id" id="leave_type_id" class="{{ VC::FM_CT_SL }}">
                         <option value="">{{ __('Select Leave Type') }}</option>
                         @foreach($leavetypes as $leave)
                             <option value="{{ $leave->id }}">{{ $leave->title }} (<p class="float-right pr-5">{{ $leave->days }}</p>)</option>
@@ -49,45 +73,60 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Form::label('start_date', __('Start Date'),['class'=>'form-label']) }}
-                    {{ Form::date('start_date',null,array('class'=>'form-control'))}}
+
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
+                    {{ Form::date('start_date', null, ['class' => VC::FM_CT]) }}
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Form::label('end_date', __('End Date'),['class'=>'form-label']) }}
-                    {{ Form::date('end_date',null,array('class'=>'form-control'))}}
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{ Form::label('leave_reason',__('Leave Reason') ,['class'=>'form-label'])}}
-                    {{ Form::textarea('leave_reason',null,array('class'=>'form-control','placeholder'=>__('Leave Reason')))}}
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
+                    {{ Form::date('end_date', null, ['class' => VC::FM_CT]) }}
                 </div>
             </div>
         </div>
-        <div class="row">
+
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('leave_reason', __('Leave Reason'), ['class' => VC::FM_LB]) }}
+                    {{ Form::textarea('leave_reason', null, ['class' => VC::FM_CT, 'placeholder' => __('Leave Reason')]) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="{{ VC::RW }}">
+            @php
+                $grammarTitle = __('Grammar check with AI');
+            @endphp
             <div class="col-md-12 text-end">
-                <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm text-right" data-ajax-popup-over="true" id="grammarCheck" data-url="{{ route('grammar',['grammar']) }}"
-                   data-bs-placement="top" data-title="{{ __('Grammar check with AI') }}">
-                    <i class="ti ti-rotate"></i> <span>{{__('Grammar check with AI')}}</span>
+                <a href="{{ $grammarUrl }}"
+                   data-size="md"
+                   class="{{ VC::BT_SM_PM }} btn-icon text-right"
+                   data-ajax-popup-over="true"
+                   id="{{ $grammarLinkId }}"
+                   data-url="{{ $grammarUrl }}"
+                   data-bs-placement="top"
+                   data-title="{{ $grammarTitle }}"
+                   data-guard-msg="{{ $grammarGuardMsg }}">
+                    <i class="ti ti-rotate"></i> <span>{{ $grammarTitle }}</span>
                 </a>
             </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{ Form::label('remark',__('Remark'),['class'=>'form-label'])}}
-                    {{ Form::textarea('remark',null,array('class'=>'form-control grammer_textarea','placeholder'=>__('Leave Remark')))}}
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('remark', __('Remark'), ['class' => VC::FM_LB]) }}
+                    {{ Form::textarea('remark', null, ['class' => VC::FM_CT.' grammar_textarea', 'placeholder' => __('Leave Remark')]) }}
                 </div>
             </div>
         </div>
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
-{{ Form::close()}}
+    <script defer src="{{ asset('assets/js/routes/leaves/store.js') }}">
+    </script>
+{!! Form::close() !!}

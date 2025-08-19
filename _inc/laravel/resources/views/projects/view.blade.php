@@ -133,7 +133,7 @@
                             if (url !== '#') return;
                             e.preventDefault();
                             const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -205,7 +205,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'Create shared project setting route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -279,7 +279,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'View project gantt route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -341,7 +341,7 @@
                                     if (href !== '#' || url !== '#') return;
                                     e.preventDefault();
                                     const msg = l.getAttribute('data-guard-msg') || 'View project time tracker route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                     let container = document.getElementById('toast-container');
                                     if (!container) {
                                         container = document.createElement('div');
@@ -403,7 +403,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'View project expense route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -467,7 +467,7 @@
                                             if (href !== '#' || url !== '#') return;
                                             e.preventDefault();
                                             const msg = l.getAttribute('data-guard-msg') || 'Open timesheet route is unavailable. Please contact technical support or your domain administrator.';
-                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                             let container = document.getElementById('toast-container');
                                             if (!container) {
                                                 container = document.createElement('div');
@@ -531,7 +531,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'Open bug report route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -594,7 +594,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'Open task route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -663,7 +663,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'Edit project route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -995,7 +995,7 @@
                                                             if (href !== '#' || url !== '#') return;
                                                             e.preventDefault();
                                                             const msg = l.getAttribute('data-guard-msg') || 'Create milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                             let container = document.getElementById('toast-container');
                                                             if (!container) {
                                                                 container = document.createElement('div');
@@ -1095,7 +1095,7 @@
                                                                                 if (href !== '#' || url !== '#') return;
                                                                                 e.preventDefault();
                                                                                 const msg = l.getAttribute('data-guard-msg') || 'Open milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                 let container = document.getElementById('toast-container');
                                                                                 if (!container) {
                                                                                     container = document.createElement('div');
@@ -1167,7 +1167,7 @@
                                                                                 if (href !== '#' || url !== '#') return;
                                                                                 e.preventDefault();
                                                                                 const msg = l.getAttribute('data-guard-msg') || 'Edit milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                 let container = document.getElementById('toast-container');
                                                                                 if (!container) {
                                                                                     container = document.createElement('div');
@@ -1250,7 +1250,7 @@
                                                                                 const action = f.getAttribute('action') || '#';
                                                                                 if (url === '#' && action === '#') {
                                                                                     const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete milestone route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                     let container = document.getElementById('toast-container');
                                                                                     if (!container) {
                                                                                         container = document.createElement('div');

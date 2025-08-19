@@ -52,7 +52,7 @@
                             if (url !== '#') return;
                             e.preventDefault();
                             const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -113,7 +113,7 @@
                                     if (href !== '#' || url !== '#') return;
                                     e.preventDefault();
                                     const msg = l.getAttribute('data-guard-msg') || 'Open project route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                     let container = document.getElementById('toast-container');
                                     if (!container) {
                                         container = document.createElement('div');

@@ -341,7 +341,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -635,7 +635,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -909,7 +909,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -1122,7 +1122,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -1284,7 +1284,7 @@
                                                             if (url !== '#') return;
                                                             e.preventDefault();
                                                             const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                             let container = document.getElementById('toast-container');
                                                             if (!container) {
                                                                 container = document.createElement('div');
@@ -1356,7 +1356,7 @@
                                             if (url !== '#' || action !== '#') return;
                                             e.preventDefault();
                                             const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                             let container = document.getElementById('toast-container');
                                             if (!container) {
                                                 container = document.createElement('div');
@@ -1451,7 +1451,7 @@
                                             if (url !== '#' || action !== '#') return;
                                             e.preventDefault();
                                             const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                             let container = document.getElementById('toast-container');
                                             if (!container) {
                                                 container = document.createElement('div');
@@ -3628,7 +3628,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -3739,7 +3739,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -4139,7 +4139,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -4492,7 +4492,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -4797,7 +4797,7 @@
                                                                             e.preventDefault();
                                                                             el.checked = !el.checked;
                                                                             const msg = el.getAttribute('data-guard-msg') || '# ERROR';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                             let container = document.getElementById('toast-container');
                                                                             if (!container) {
                                                                                 container = document.createElement('div');
@@ -4916,7 +4916,7 @@
                                                                             if (url !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = l.getAttribute('data-guard-msg') || '# ERROR';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                             let container = document.getElementById('toast-container');
                                                                             if (!container) {
                                                                                 container = document.createElement('div');
@@ -5018,7 +5018,7 @@
                                                         if (url !== '#' || action !== '#') return;
                                                         e.preventDefault();
                                                         const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                         let container = document.getElementById('toast-container');
                                                         if (!container) {
                                                             container = document.createElement('div');
@@ -5114,7 +5114,7 @@
                                                                             if (url !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = l.getAttribute('data-guard-msg') || '# ERROR';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                             let container = document.getElementById('toast-container');
                                                                             if (!container) {
                                                                                 container = document.createElement('div');
@@ -5214,7 +5214,7 @@
                                                         if (url !== '#' || action !== '#') return;
                                                         e.preventDefault();
                                                         const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                         let container = document.getElementById('toast-container');
                                                         if (!container) {
                                                             container = document.createElement('div');
@@ -5310,7 +5310,7 @@
                                                                             if (url !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = l.getAttribute('data-guard-msg') || '# ERROR';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                             let container = document.getElementById('toast-container');
                                                                             if (!container) {
                                                                                 container = document.createElement('div');
@@ -5416,7 +5416,7 @@
                                                         if (url !== '#' || action !== '#') return;
                                                         e.preventDefault();
                                                         const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                         let container = document.getElementById('toast-container');
                                                         if (!container) {
                                                             container = document.createElement('div');
@@ -5512,7 +5512,7 @@
                                                                             if (url !== '#') return;
                                                                             e.preventDefault();
                                                                             const msg = l.getAttribute('data-guard-msg') || '# ERROR';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                             let container = document.getElementById('toast-container');
                                                                             if (!container) {
                                                                                 container = document.createElement('div');
@@ -5600,7 +5600,7 @@
                                                         if (url !== '#' || action !== '#') return;
                                                         e.preventDefault();
                                                         const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                         let container = document.getElementById('toast-container');
                                                         if (!container) {
                                                             container = document.createElement('div');
@@ -5674,7 +5674,7 @@
                                                     if (dataUrl !== '#' || action !== '#') return;
                                                     e.preventDefault();
                                                     const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                     let container = document.getElementById('toast-container');
                                                     if (!container) {
                                                         container = document.createElement('div');
@@ -5790,7 +5790,7 @@
                                                                 if (url !== '#') return;
                                                                 e.preventDefault();
                                                                 const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                 let container = document.getElementById('toast-container');
                                                                 if (!container) {
                                                                     container = document.createElement('div');
@@ -5885,7 +5885,7 @@
                                                                                         if (url !== '#') return;
                                                                                         e.preventDefault();
                                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                         let container = document.getElementById('toast-container');
                                                                                         if (!container) {
                                                                                             container = document.createElement('div');
@@ -5967,7 +5967,7 @@
                                                                                     if (url !== '#') return;
                                                                                     e.preventDefault();
                                                                                     const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                     let container = document.getElementById('toast-container');
                                                                                     if (!container) {
                                                                                         container = document.createElement('div');
@@ -6061,7 +6061,7 @@
                                                                 if (url !== '#') return;
                                                                 e.preventDefault();
                                                                 const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                 let container = document.getElementById('toast-container');
                                                                 if (!container) {
                                                                     container = document.createElement('div');
@@ -6146,7 +6146,7 @@
                                                                                         if (url !== '#') return;
                                                                                         e.preventDefault();
                                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                         let container = document.getElementById('toast-container');
                                                                                         if (!container) {
                                                                                             container = document.createElement('div');
@@ -6224,7 +6224,7 @@
                                                                                         if (url !== '#') return;
                                                                                         e.preventDefault();
                                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                         let container = document.getElementById('toast-container');
                                                                                         if (!container) {
                                                                                             container = document.createElement('div');

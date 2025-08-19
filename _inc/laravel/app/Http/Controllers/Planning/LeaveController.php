@@ -31,14 +31,14 @@ class LeaveController extends Controller
                 ->with(['leaveType', 'employees'])
                 ->when(
                     strtolower($user[UsersConstants::COL_TP]) === 'employee',
-                    fn ($q) => $q->where(
+                    fn($q) => $q->where(
                         UsersConstants::COL_EMP_ID,
                         Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value('id')
                     )
                 )
                 ->when(
                     $user->type != 'Employee',
-                    fn ($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $cid)
+                    fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $cid)
                 )
                 ->get();
             return view(ViewsConstants::LV . '.' . __FUNCTION__, compact('leaves'));
@@ -60,11 +60,11 @@ class LeaveController extends Controller
             $employees = Employee::query()
                 ->when(
                     strtolower($user[UsersConstants::COL_TP]) === 'employee',
-                    fn ($q) => $q->where(UsersConstants::COL_USER_ID, $user?->id)
+                    fn($q) => $q->where(UsersConstants::COL_USER_ID, $user?->id)
                 )
                 ->when(
                     $user->type != 'Employee',
-                    fn ($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $cid)
+                    fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $cid)
                 )
                 ->get()
                 ->pluck(UsersConstants::COL_NM, 'id');
@@ -105,16 +105,21 @@ class LeaveController extends Controller
                 ->with('error', 'Leave type ' . $lt->name
                     . ' allows max ' . $lt->days . ' days');
             $data = $request->only([
-                'leave_type_id', 'start_date', 'end_date',
-                'leave_reason', 'remark'
+                'leave_type_id',
+                'start_date',
+                'end_date',
+                'leave_reason',
+                'remark'
             ]);
-            foreach ([
-                UsersConstants::COL_EMP_ID => $empId,
-                'applied_on' => date('Y-m-d'),
-                'total_leave_days' => $days,
-                'status' => 'Pending',
-                DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
-            ] as $f => $val) $data[$f] = $val;
+            foreach (
+                [
+                    UsersConstants::COL_EMP_ID => $empId,
+                    'applied_on' => date('Y-m-d'),
+                    'total_leave_days' => $days,
+                    'status' => 'Pending',
+                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                ] as $f => $val
+            ) $data[$f] = $val;
             Leave::create($data);
             return redirect()->route(ViewsConstants::LV . '.index')
                 ->with('success', 'Leave successfully created.');
@@ -188,9 +193,12 @@ class LeaveController extends Controller
                 ->with('error', 'Leave type ' . $lt->name
                     . ' allows max ' . $lt->days . ' days');
             $upd = $request->only([
-                UsersConstants::COL_EMP_ID, 'leave_type_id',
-                'start_date', 'end_date',
-                'leave_reason', 'remark'
+                UsersConstants::COL_EMP_ID,
+                'leave_type_id',
+                'start_date',
+                'end_date',
+                'leave_reason',
+                'remark'
             ]);
             $upd['total_leave_days'] = $days;
             $leave->update($upd);
@@ -250,7 +258,7 @@ class LeaveController extends Controller
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
         $user = $u;
         try {
-            if ($r = self::guard($request, PermissionsConstants::MNG_LV, ViewsConstants::LV . '.changeaction')) return $r;
+            if ($r = self::guard($request, PermissionsConstants::MNG_LV, ViewsConstants::LV . '.change_action')) return $r;
             $leave = Leave::find($request->input('leave_id'));
             $st = $request->input('status');
             $upd = ['status' => $st];

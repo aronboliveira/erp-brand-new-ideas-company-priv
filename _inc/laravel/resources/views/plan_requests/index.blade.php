@@ -81,10 +81,10 @@
                                         <td>{{ Utility::getDateFormated($prequest->created_at,true) }}</td>
                                         <td>
                                             <div>
-                                                <a href="{{route('response.request',[$prequest->id,1])}}" class="btn btn-success btn-sm">
+                                                <a href="{{route(ViewsConstants::PLN_RQ.'.request.response',[$prequest->id,1])}}" class="btn btn-success btn-sm">
                                                     <i class="ti ti-check"></i>
                                                 </a>
-                                                <a href="{{route('response.request',[$prequest->id,0])}}" class="btn btn-danger btn-sm">
+                                                <a href="{{route(ViewsConstants::PLN_RQ.'.request.response',[$prequest->id,0])}}" class="btn btn-danger btn-sm">
                                                 <i class="ti ti-x"></i>
                                                 </a>
                                             </div>

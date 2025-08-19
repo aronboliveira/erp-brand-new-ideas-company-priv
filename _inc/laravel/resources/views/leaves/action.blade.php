@@ -1,46 +1,67 @@
-{{Collective\Html\FormFacade::open(array('url'=>'leave/changeaction','method'=>'post'))}}
-<div class="modal-body">
-    <div class="row">
-        <div class="col-12">
-                <table class="table modal-table">
-                    <tr role="row">
-                        <th>{{__('Employee')}}</th>
-                        <td>{{ !empty($employee->name)?$employee->name:'' }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{__('Leave Type ')}}</th>
-                        <td>{{ !empty($leavetype->title)?$leavetype->title:'' }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{__('Appplied On')}}</th>
-                        <td>{{\Auth::user()->dateFormat( $leave->applied_on) }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{__('Start Date')}}</th>
-                        <td>{{ \Auth::user()->dateFormat($leave->start_date) }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{__('End Date')}}</th>
-                        <td>{{ \Auth::user()->dateFormat($leave->end_date) }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{__('Leave Reason')}}</th>
-                        <td>{{ !empty($leave->leave_reason)?$leave->leave_reason:'' }}</td>
-                    </tr>
-                    <tr>
-                        <th>{{__('Status')}}</th>
-                        <td>{{ !empty($leave->status)?$leave->status:'' }}</td>
-                    </tr>
-                    <input type="hidden" value="{{ $leave->id }}" name="leave_id">
+@php
+    use App\Config\Constants\{PermissionsConstants, UsersConstants,
+        ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Str;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
+    $changeBase       = VW::LV . '.change_action';
+    $changeKebab      = Str::kebab($changeBase);
+    $changeResolved   = Route::has($changeBase) ? $changeBase : (Route::has($changeKebab) ? $changeKebab : null);
+    $changeActionUrl  = $changeResolved ? route($changeResolved) : '#';
+    $formId           = 'leave-changeaction-form';
+    $guardMsg         = Utility::fetchLinkMessage($lang, VW::LV, 'change_action_leave_unavailable') ?? 'Change leave action route is unavailable. Please contact technical support or your domain administrator.';
+    $formatDate = function($val, $fallback) use ($user) {
+            return ($val && is_object($user) && method_exists($user,'dateFormat')) ? ($user->dateFormat($val) ?? $fallback) : $fallback;
+        };
+@endphp
+{!! Collective\Html\FormFacade::open(['url' => $changeActionUrl, 'method' => 'post', 'id' => $formId, 'data-guard-msg' => $guardMsg]) !!}
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::C12 }}">
+                <table class="{{ VC::TB }} modal-table">
+                    <tbody>
+                        <tr role="row">
+                            <th>{{ __('Employee') }}</th>
+                            <td>{{ data_get($employee ?? null, 'name') ?? __('No employee name available') }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ __('Leave Type') }}</th>
+                            <td>{{ data_get($leavetype ?? null, 'title') ?? __('No leave type available') }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ __('Applied On') }}</th>
+                            <td>{{ $formatDate(data_get($leave ?? null,'applied_on'), __('No applied date available')) }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ __('Start Date') }}</th>
+                            <td>{{ $formatDate(data_get($leave ?? null,'start_date'), __('No start date available')) }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ __('End Date') }}</th>
+                            <td>{{ $formatDate(data_get($leave ?? null,'end_date'), __('No end date available')) }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ __('Leave Reason') }}</th>
+                            <td>{{ data_get($leave ?? null, 'leave_reason') ?? __('No leave reason available') }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ __('Status') }}</th>
+                            <td>{{ data_get($leave ?? null, 'status') ?? __('No status available') }}</td>
+                        </tr>
+                        <input type="hidden" value="{{ data_get($leave ?? null,'id','') }}" name="leave_id">
+                    </tbody>
                 </table>
+            </div>
         </div>
-
     </div>
-</div>
-@if(\Auth::user()->type == 'company')
-<div class="modal-footer">
-    <input type="submit" value="{{__('Approval')}}" class="btn btn-success" data-bs-dismiss="modal" name="status">
-    <input type="submit" value="{{__('Reject')}}" class="btn btn-danger" name="status">
-</div>
-@endif
-{{Collective\Html\FormFacade::close()}}
+    @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
+        <div class="modal-footer">
+            <input type="submit" value="{{ __('Approval') }}" class="{{ VC::BT }} btn-success" data-bs-dismiss="modal" name="status">
+            <input type="submit" value="{{ __('Reject') }}" class="{{ VC::BT }} btn-danger" name="status">
+        </div>
+    @endif
+    <script defer src="{{ asset('assets/js/routes/leaves/changeAction.js') }}"></script>
+{!! Collective\Html\FormFacade::close() !!}
+

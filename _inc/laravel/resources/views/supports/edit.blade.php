@@ -90,8 +90,6 @@
         <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
 {!! Form::close() !!}
-
-
 <script async>
   window.translations = {
     ar: { attachment_preview_unavailable: "تعذّر معاينة المرفق" },

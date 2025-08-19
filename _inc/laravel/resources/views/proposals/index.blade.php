@@ -64,7 +64,7 @@
                                 if (href !== '#' || url !== '#') return;
                                 e.preventDefault();
                                 const msg = l.getAttribute('data-guard-msg') || 'Export proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                 let container = document.getElementById('toast-container');
                                 if (!container) {
                                     container = document.createElement('div');
@@ -128,7 +128,7 @@
                                     if (href !== '#' || url !== '#') return;
                                     e.preventDefault();
                                     const msg = l.getAttribute('data-guard-msg') || 'Create proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                     let container = document.getElementById('toast-container');
                                     if (!container) {
                                         container = document.createElement('div');
@@ -203,7 +203,7 @@
                                                     if (url !== '#' || action !== '#') return;
                                                     e.preventDefault();
                                                     const msg = f.getAttribute('data-guard-msg') || 'Index proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                     let container = document.getElementById('toast-container');
                                                     if (!container) {
                                                         container = document.createElement('div');
@@ -295,7 +295,7 @@
                                                             if (href !== '#' || url !== '#') return;
                                                             e.preventDefault();
                                                             const msg = l.getAttribute('data-guard-msg') || 'Index product service route is unavailable. Please contact technical support or your domain administrator.';
-                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                             let container = document.getElementById('toast-container');
                                                             if (!container) {
                                                                 container = document.createElement('div');
@@ -401,7 +401,7 @@
                                                                     if (href !== '#' || url !== '#') return;
                                                                     e.preventDefault();
                                                                     const msg = l.getAttribute('data-guard-msg') || 'Show proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                     let container = document.getElementById('toast-container');
                                                                     if (!container) {
                                                                         container = document.createElement('div');
@@ -493,7 +493,7 @@
                                                                                     const action = f.getAttribute('action') || '#';
                                                                                     if (url === '#' && action === '#') {
                                                                                         const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Convert proposal to invoice route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                         let container = document.getElementById('toast-container');
                                                                                         if (!container) {
                                                                                             container = document.createElement('div');
@@ -570,7 +570,7 @@
                                                                                     if (href !== '#' || url !== '#') return;
                                                                                     e.preventDefault();
                                                                                     const msg = l.getAttribute('data-guard-msg') || 'Show invoice route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                     let container = document.getElementById('toast-container');
                                                                                     if (!container) {
                                                                                         container = document.createElement('div');
@@ -657,7 +657,7 @@
                                                                                     const action = f.getAttribute('action') || '#';
                                                                                     if (url === '#' && action === '#') {
                                                                                         const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Duplicate proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                         let container = document.getElementById('toast-container');
                                                                                         if (!container) {
                                                                                             container = document.createElement('div');
@@ -735,7 +735,7 @@
                                                                                     if (href !== '#' || url !== '#') return;
                                                                                     e.preventDefault();
                                                                                     const msg = l.getAttribute('data-guard-msg') || 'Show proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                     let container = document.getElementById('toast-container');
                                                                                     if (!container) {
                                                                                         container = document.createElement('div');
@@ -806,7 +806,7 @@
                                                                                     if (href !== '#' || url !== '#') return;
                                                                                     e.preventDefault();
                                                                                     const msg = l.getAttribute('data-guard-msg') || 'Edit proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                     let container = document.getElementById('toast-container');
                                                                                     if (!container) {
                                                                                         container = document.createElement('div');
@@ -896,7 +896,7 @@
                                                                                     const action = f.getAttribute('action') || '#';
                                                                                     if (url === '#' && action === '#') {
                                                                                         const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                         let container = document.getElementById('toast-container');
                                                                                         if (!container) {
                                                                                             container = document.createElement('div');

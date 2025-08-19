@@ -6,9 +6,9 @@
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use App\Models\Utility;
+    use App\Models\{ProjectTask,Utility};
     use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    use Illuminate\Support\{Collection,Str};
     $lang = Utility::fetchUserLang();
     $projectIndexBaseName = ViewsConstants::PRJ . '.index';
     $projectIndexKebabName = Str::kebab($projectIndexBaseName);
@@ -359,7 +359,7 @@
             window.load_task=(id)=>{
                 const target=document.getElementById(id);
                 safeAjax({
-                url:"{{ route('projects.tasks.get','_task_id') }}".replace('_task_id', id||''),
+                url:"{{ route(ViewsConstants::PRJ_TSK_C.'.get','_task_id') }}".replace('_task_id', id||''),
                 dataType:'html',
                 data:{ _token:'{{ csrf_token() }}' },
                 success:(html)=>{ if(target){ $('#'+id).html(html); } }
@@ -399,7 +399,7 @@
                         if (url !== '#') return;
                         e.preventDefault();
                         const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');
@@ -427,100 +427,456 @@
             })();
         </script>
     @endpush
-    <li class="breadcrumb-item"><a href="{{route('projects.show',$project->id)}}">{{ucwords($project->project_name)}}</a></li>
+    <li class="breadcrumb-item">
+        @php
+            $projectShowBaseName     = ViewsConstants::PRJ.'.show';
+            $projectShowKebabName    = Str::kebab($projectShowBaseName);
+            $projectShowResolvedName = Route::has($projectShowBaseName)
+                ? $projectShowBaseName
+                : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
+            $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
+            $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
+            $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+            $projectShowLinkId       = 'project-show-link';
+            $projectNameText         = ($project->project_name ?? null) ? ucwords($project->project_name) : __('No name found for project');
+        @endphp
+        <a href="{{ $projectShowUrl }}"
+        id="{{ $projectShowLinkId }}"
+        data-url="{{ $projectShowUrl }}"
+        data-guard-msg="{{ $projectShowGuardMsg }}">
+            {{ $projectNameText }}
+        </a>
+        @push(StacksConstants::ADM_SCR_PG)
+            <script defer>
+                (() => {
+                    try {
+                        const l = document.getElementById('{{ $projectShowLinkId }}');
+                        if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                        l.setAttribute('data-listener-active', 'true');
+                        l.addEventListener('click', e => {
+                            try {
+                                const href = l.getAttribute('href') || '#';
+                                const url = l.getAttribute('data-url') || href || '#';
+                                if (href !== '#' || url !== '#') return;
+                                e.preventDefault();
+                                const msg = l.getAttribute('data-guard-msg') || 'Show project route is unavailable. Please contact technical support or your domain administrator.';
+                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                let container = document.getElementById('toast-container');
+                                if (!container) {
+                                    container = document.createElement('div');
+                                    container.id = 'toast-container';
+                                    document.body.appendChild(container);
+                                }
+                                if (hasBootstrap) {
+                                    const toast = document.createElement('div');
+                                    toast.className = 'toast';
+                                    toast.setAttribute('role', 'alert');
+                                    toast.setAttribute('aria-live', 'assertive');
+                                    toast.setAttribute('aria-atomic', 'true');
+                                    const body = document.createElement('div');
+                                    body.className = 'toast-body';
+                                    body.textContent = msg;
+                                    toast.appendChild(body);
+                                    container.appendChild(toast);
+                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                } else {
+                                    alert(msg);
+                                }
+                                l.setAttribute('data-failed-route', 'true');
+                            } catch (err) {}
+                        });
+                    } catch (error) {}
+                })();
+            </script>
+        @endpush
+    </li>
     <li class="breadcrumb-item">{{__('Task')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
 @endsection
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="row kanban-wrapper horizontal-scroll-cards" data-containers='{{json_encode($stageClass)}}' data-plugin="dragula">
-                @foreach($stages as $stage)
-                    @php($tasks = $stage->tasks)
+    @php
+        $containersJson = json_encode(is_array($stageClass ?? null) ? $stageClass : []);
+        $stagesSafe = (isset($stages) && (is_array($stages) || $stages instanceof Collection)) ? $stages : [];
+        $projectIdSafe = data_get($project ?? null, 'id');
+    @endphp
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CS12 }}">
+            <div class="{{ VC::RW }} kanban-wrapper horizontal-scroll-cards" data-containers='{{ $containersJson }}' data-plugin="dragula">
+                @foreach($stagesSafe as $stage)
+                    @php
+                        $stageId = data_get($stage,'id');
+                        $stageName = data_get($stage,'name') ?? __('No stage name available');
+                        $stageTasks = is_iterable(data_get($stage,'tasks')) ? data_get($stage,'tasks') : [];
+                        $createUrl = ($projectIdSafe && $stageId) ? route(ViewsConstants::PRJ_TSK_C.'.create',[$projectIdSafe,$stageId]) : '#';
+                    @endphp
                     <div class="col">
-                        <div class="card">
+                        <div class="{{ VC::CD }}">
                             <div class="card-header">
                                 @can('create project task')
-                                    <div class="float-end">
-                                        <a href="#" data-size="lg" data-url="{{ route('projects.tasks.create',[$project->id,$stage->id]) }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Add Task in ').$stage->name}}" class="btn btn-sm btn-primary">
-                                            <i class="ti ti-plus"></i>
+                                    <div class="{{ VC::FEND }}">
+                                        <a href="#" data-size="lg" data-url="{{ $createUrl }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{ __('Add Task in ') . $stageName }}" class="{{ VC::BT_SM_PM }}">
+                                            <i class="{{ VC::TI_PLS }}"></i>
                                         </a>
                                     </div>
                                 @endcan
-                                <h4 class="mb-0">{{$stage->name}}</h4>
+                                <h4 class="{{ VC::MB0 }}">{{ $stageName }}</h4>
                             </div>
-                            <div class="card-body kanban-box" id="task-list-{{$stage->id}}" data-status="{{$stage->id}}">
-                                @foreach($tasks as $taskDetail)
-                                    <div class="card draggable-item" id="{{$taskDetail->id}}">
+                            <div class="card-body kanban-box" id="task-list-{{ $stageId ?? 'x' }}" data-status="{{ $stageId ?? '' }}">
+                                @foreach($stageTasks as $taskDetail)
+                                    @php
+                                        $taskId = data_get($taskDetail,'id');
+                                        $priorityIdx = (int)(data_get($taskDetail,'priority') ?? -1);
+                                        $prioColors = is_array(ProjectTask::$priority_color ?? null) ? ProjectTask::$priority_color : [];
+                                        $prioLabels = is_array(ProjectTask::$priority ?? null) ? ProjectTask::$priority : [];
+                                        $prioBg = $prioColors[$priorityIdx] ?? 'secondary';
+                                        $prioLabel = __($prioLabels[$priorityIdx] ?? __('Unknown'));
+                                        $taskName = data_get($taskDetail,'name') ?? __('No task name available');
+                                        $destroyRouteParams = ($projectIdSafe && $taskId) ? [ViewsConstants::PRJ_TSK_C.'.destroy', [$projectIdSafe,$taskId]] : null;
+                                        $progressArr = (method_exists($taskDetail,'taskProgress')) ? (array)$taskDetail->taskProgress($taskDetail) : [];
+                                        $pctStr = (string)($progressArr['percentage'] ?? '0%');
+                                        $pctNum = (float)str_replace('%','',$pctStr);
+                                        $pctColor = (string)($progressArr['color'] ?? 'secondary');
+                                        $endDate = data_get($taskDetail,'end_date');
+                                        $endDateText = (!empty($endDate) && $endDate !== '0000-00-00') ? (Utility::getDateFormated($endDate) ?? '') : '';
+                                        $isOverdue = $endDateText && (strtotime((string)$endDate) < time());
+                                        $filesRel = data_get($taskDetail,'taskFiles');
+                                        $filesCount = is_countable($filesRel) ? count($filesRel) : ((is_object($filesRel) && method_exists($filesRel,'count')) ? $filesRel->count() : 0);
+                                        $commentsRel = data_get($taskDetail,'comments');
+                                        $commentsCount = is_countable($commentsRel) ? count($commentsRel) : ((is_object($commentsRel) && method_exists($commentsRel,'count')) ? $commentsRel->count() : 0);
+                                        $checklistTotal = method_exists($taskDetail,'countTaskChecklist') ? (int)$taskDetail->countTaskChecklist() : 0;
+                                        $usersRel = method_exists($taskDetail,'users') ? $taskDetail->users() : collect();
+                                        $usersIter = (is_array($usersRel) || $usersRel instanceof Collection) ? $usersRel : [];
+                                    @endphp
+                                    <div class="{{ VC::CD }} draggable-item" id="{{ $taskId ?? 'x' }}">
                                         <div class="pt-3 ps-3">
-                                            <div class="badge-xs badge bg-{{\App\Models\ProjectTask::$priority_color[$taskDetail->priority]}} p-2 px-3 rounded">{{ __(\App\Models\ProjectTask::$priority[$taskDetail->priority]) }}</div>
+                                            <div class="{{ VC::BDG_XS }} p-2 {{ VC::PX3 }} rounded bg-{{ $prioBg }}">{{ $prioLabel }}</div>
                                         </div>
                                         <div class="card-header border-0 pb-0 position-relative">
                                             <h5>
-                                                <a href="#" data-url="{{ route('projects.tasks.show',[$project->id,$taskDetail->id]) }}" data-ajax-popup="true" data-size="lg" data-bs-original-title="{{$taskDetail->name}}">{{$taskDetail->name}}</a>
+                                                @php
+                                                    $taskShowBaseName     = ViewsConstants::PRJ_TSK_C.'.show';
+                                                    $taskShowKebabName    = Str::kebab($taskShowBaseName);
+                                                    $taskShowResolvedName = Route::has($taskShowBaseName)
+                                                        ? $taskShowBaseName
+                                                        : (Route::has($taskShowKebabName) ? $taskShowKebabName : null);
+                                                    $projectIdValue       = isset($projectIdSafe) && !empty($projectIdSafe) ? $projectIdSafe : null;
+                                                    $taskIdValue          = isset($taskId) && !empty($taskId) ? $taskId : null;
+                                                    $taskNameText         = e($taskName ?? __('Untitled Task'));
+                                                    $taskShowUrl          = ($taskShowResolvedName && $projectIdValue && $taskIdValue) ? route($taskShowResolvedName, [$projectIdValue, $taskIdValue]) : '#';
+                                                    $taskShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_C, 'show_task_route_unavailable') ?? 'Show task route is unavailable. Please contact technical support or your domain administrator.';
+                                                    $taskShowLinkId       = 'task-show-link-'.($taskIdValue ?? 'x');
+                                                @endphp
+                                                <a href="{{ $taskShowUrl }}"
+                                                id="{{ $taskShowLinkId }}"
+                                                data-url="{{ $taskShowUrl }}"
+                                                data-ajax-popup="true"
+                                                data-size="lg"
+                                                data-guard-msg="{{ $taskShowGuardMsg }}"
+                                                data-bs-original-title="{{ $taskNameText }}">
+                                                    {{ $taskNameText }}
+                                                </a>
+                                                @push(StacksConstants::ADM_SCR_PG)
+                                                    <script defer>
+                                                        (() => {
+                                                            try {
+                                                                const l = document.getElementById('{{ $taskShowLinkId }}');
+                                                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                                                                l.setAttribute('data-listener-active', 'true');
+                                                                l.addEventListener('click', e => {
+                                                                    try {
+                                                                        const href = l.getAttribute('href') || '#';
+                                                                        const url  = l.getAttribute('data-url') || href || '#';
+                                                                        if (href !== '#' || url !== '#') return;
+                                                                        e.preventDefault();
+                                                                        const msg = l.getAttribute('data-guard-msg') || 'Show task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                        let container = document.getElementById('toast-container');
+                                                                        if (!container) {
+                                                                            container = document.createElement('div');
+                                                                            container.id = 'toast-container';
+                                                                            document.body.appendChild(container);
+                                                                        }
+                                                                        if (hasBootstrap) {
+                                                                            const toast = document.createElement('div');
+                                                                            toast.className = 'toast';
+                                                                            toast.setAttribute('role','alert');
+                                                                            toast.setAttribute('aria-live','assertive');
+                                                                            toast.setAttribute('aria-atomic','true');
+                                                                            const body = document.createElement('div');
+                                                                            body.className = 'toast-body';
+                                                                            body.textContent = msg;
+                                                                            toast.appendChild(body);
+                                                                            container.appendChild(toast);
+                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                        } else {
+                                                                            alert(msg);
+                                                                        }
+                                                                        l.setAttribute('data-failed-route', 'true');
+                                                                    } catch (err) {}
+                                                                });
+                                                            } catch (error) {}
+                                                        })();
+                                                    </script>
+                                                @endpush
                                             </h5>
                                             <div class="card-header-right">
                                                 <div class="btn-group card-option">
-                                                    <button type="button" class="btn dropdown-toggle"
-                                                            data-bs-toggle="dropdown" aria-haspopup="true"
-                                                            aria-expanded="false">
-                                                        <i class="ti ti-dots-vertical"></i>
+                                                    <button type="button" class="{{ VC::BT }} dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        <i class="{{ VC::TD_DOTV }}"></i>
                                                     </button>
                                                     <div class="{{ VC::DRP_MN_EM }}">
                                                         @can('view project task')
-                                                            <a href="#!" data-size="md" data-url="{{ route('projects.tasks.show',[$project->id,$taskDetail->id]) }}" data-ajax-popup="true" class="dropdown-item" data-bs-original-title="{{__('View')}}">
-                                                                <i class="ti ti-bookmark"></i>
-                                                                <span>{{__('View')}}</span>
+                                                            @php
+                                                                $taskShowDropdownLinkId = isset($taskShowLinkId) ? ($taskShowLinkId.'-dd') : ('task-show-dd-link-'.($taskIdValue ?? 'x'));
+                                                                $taskShowDropdownTitle  = __('View');
+                                                            @endphp
+                                                            <a href="{{ $taskShowUrl }}"
+                                                            id="{{ $taskShowDropdownLinkId }}"
+                                                            data-size="md"
+                                                            data-url="{{ $taskShowUrl }}"
+                                                            data-ajax-popup="true"
+                                                            class="dropdown-item"
+                                                            data-guard-msg="{{ $taskShowGuardMsg }}"
+                                                            data-bs-original-title="{{ $taskShowDropdownTitle }}">
+                                                                <i class="ti ti-bookmark"></i><span>{{ $taskShowDropdownTitle }}</span>
                                                             </a>
+                                                            @push(StacksConstants::ADM_SCR_PG)
+                                                                <script defer>
+                                                                    (() => {
+                                                                        try {
+                                                                            const l = document.getElementById('{{ $taskShowDropdownLinkId }}');
+                                                                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                                                                            l.setAttribute('data-listener-active', 'true');
+                                                                            l.addEventListener('click', e => {
+                                                                                try {
+                                                                                    const href = l.getAttribute('href') || '#';
+                                                                                    const url  = l.getAttribute('data-url') || href || '#';
+                                                                                    if (href !== '#' || url !== '#') return;
+                                                                                    e.preventDefault();
+                                                                                    const msg = l.getAttribute('data-guard-msg') || 'Show task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                                    let container = document.getElementById('toast-container');
+                                                                                    if (!container) {
+                                                                                        container = document.createElement('div');
+                                                                                        container.id = 'toast-container';
+                                                                                        document.body.appendChild(container);
+                                                                                    }
+                                                                                    if (hasBootstrap) {
+                                                                                        const toast = document.createElement('div');
+                                                                                        toast.className = 'toast';
+                                                                                        toast.setAttribute('role', 'alert');
+                                                                                        toast.setAttribute('aria-live', 'assertive');
+                                                                                        toast.setAttribute('aria-atomic', 'true');
+                                                                                        const body = document.createElement('div');
+                                                                                        body.className = 'toast-body';
+                                                                                        body.textContent = msg;
+                                                                                        toast.appendChild(body);
+                                                                                        container.appendChild(toast);
+                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                    } else {
+                                                                                        alert(msg);
+                                                                                    }
+                                                                                    l.setAttribute('data-failed-route', 'true');
+                                                                                } catch (err) {}
+                                                                            });
+                                                                        } catch (error) {}
+                                                                    })();
+                                                                </script>
+                                                            @endpush
                                                         @endcan
                                                         @can('edit project task')
-                                                            <a href="#!" data-size="lg" data-url="{{ route('projects.tasks.edit',[$project->id,$taskDetail->id]) }}" data-ajax-popup="true" class="dropdown-item" data-bs-original-title="{{__('Edit ').$taskDetail->name}}">
-                                                                <i class="ti ti-pencil"></i>
-                                                                <span>{{__('Edit')}}</span>
+                                                            @php
+                                                                $taskEditBaseName     = ViewsConstants::PRJ_TSK_C.'.edit';
+                                                                $taskEditKebabName    = Str::kebab($taskEditBaseName);
+                                                                $taskEditResolvedName = Route::has($taskEditBaseName)
+                                                                    ? $taskEditBaseName
+                                                                    : (Route::has($taskEditKebabName) ? $taskEditKebabName : null);
+                                                                $projectIdVal         = isset($projectIdValue) ? $projectIdValue : (isset($projectIdSafe) && !empty($projectIdSafe) ? $projectIdSafe : null);
+                                                                $taskIdVal            = isset($taskIdValue) ? $taskIdValue : (isset($taskId) && !empty($taskId) ? $taskId : null);
+                                                                $taskNameTxt          = isset($taskNameText) ? $taskNameText : e($taskName ?? __('Untitled Task'));
+                                                                $taskEditUrl          = ($taskEditResolvedName && $projectIdVal && $taskIdVal) ? route($taskEditResolvedName, [$projectIdVal, $taskIdVal]) : '#';
+                                                                $taskEditGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_C, 'edit_task_route_unavailable') ?? 'Edit task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $taskEditLinkId       = 'task-edit-link-'.($taskIdVal ?? 'x');
+                                                            @endphp
+                                                            <a href="{{ $taskEditUrl }}"
+                                                            id="{{ $taskEditLinkId }}"
+                                                            data-size="lg"
+                                                            data-url="{{ $taskEditUrl }}"
+                                                            data-ajax-popup="true"
+                                                            class="dropdown-item"
+                                                            data-guard-msg="{{ $taskEditGuardMsg }}"
+                                                            data-bs-original-title="{{ __('Edit ').$taskNameTxt }}">
+                                                                <i class="{{ VC::TI_PC }}"></i><span>{{ __('Edit') }}</span>
                                                             </a>
+                                                            @push(StacksConstants::ADM_SCR_PG)
+                                                                <script defer>
+                                                                    (() => {
+                                                                        try {
+                                                                            const l = document.getElementById('{{ $taskEditLinkId }}');
+                                                                            if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                                                                            l.setAttribute('data-listener-active', 'true');
+                                                                            l.addEventListener('click', e => {
+                                                                                try {
+                                                                                    const href = l.getAttribute('href') || '#';
+                                                                                    const url  = l.getAttribute('data-url') || href || '#';
+                                                                                    if (href !== '#' || url !== '#') return;
+                                                                                    e.preventDefault();
+                                                                                    const msg = l.getAttribute('data-guard-msg') || 'Edit task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                                    let container = document.getElementById('toast-container');
+                                                                                    if (!container) {
+                                                                                        container = document.createElement('div');
+                                                                                        container.id = 'toast-container';
+                                                                                        document.body.appendChild(container);
+                                                                                    }
+                                                                                    if (hasBootstrap) {
+                                                                                        const toast = document.createElement('div');
+                                                                                        toast.className = 'toast';
+                                                                                        toast.setAttribute('role', 'alert');
+                                                                                        toast.setAttribute('aria-live', 'assertive');
+                                                                                        toast.setAttribute('aria-atomic', 'true');
+                                                                                        const body = document.createElement('div');
+                                                                                        body.className = 'toast-body';
+                                                                                        body.textContent = msg;
+                                                                                        toast.appendChild(body);
+                                                                                        container.appendChild(toast);
+                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                    } else {
+                                                                                        alert(msg);
+                                                                                    }
+                                                                                    l.setAttribute('data-failed-route', 'true');
+                                                                                } catch (err) {}
+                                                                            });
+                                                                        } catch (error) {}
+                                                                    })();
+                                                                </script>
+                                                            @endpush
                                                         @endcan
                                                         @can('delete project task')
-                                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['projects.tasks.destroy', [$project->id,$taskDetail->id]]]) !!}
-                                                            <a href="#!" class="dropdown-item bs-pass-para">
-                                                                <i class="ti ti-archive"></i>
-                                                                <span> {{__('Delete')}} </span>
-                                                            </a>
-                                                            {!! Collective\Html\FormFacade::close() !!}
+                                                            @if($destroyRouteParams)
+                                                                @php
+                                                                    $taskDestroyBaseName     = ViewsConstants::PRJ_TSK_C.'.destroy';
+                                                                    $taskDestroyKebabName    = Str::kebab($taskDestroyBaseName);
+                                                                    $taskDestroyResolvedName = Route::has($taskDestroyBaseName)
+                                                                        ? $taskDestroyBaseName
+                                                                        : (Route::has($taskDestroyKebabName) ? $taskDestroyKebabName : null);
+                                                                    $projectIdVal            = isset($projectIdValue) ? $projectIdValue : (isset($projectIdSafe) && !empty($projectIdSafe) ? $projectIdSafe : null);
+                                                                    $taskIdVal               = isset($taskIdValue) ? $taskIdValue : (isset($taskId) && !empty($taskId) ? $taskId : null);
+                                                                    $taskDestroyRouteArray   = ($taskDestroyResolvedName && $projectIdVal && $taskIdVal) ? [$taskDestroyResolvedName, [$projectIdVal, $taskIdVal]] : ['#'];
+                                                                    $taskDestroyUrl          = ($taskDestroyResolvedName && $projectIdVal && $taskIdVal) ? route($taskDestroyResolvedName, [$projectIdVal, $taskIdVal]) : '#';
+                                                                    $taskDestroyGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ_TSK_C, 'delete_task_route_unavailable') ?? 'Delete task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $taskDestroyFormId       = 'task-destroy-form-'.($taskIdVal ?? 'x');
+                                                                    $taskDestroyLinkId       = 'task-destroy-link-'.($taskIdVal ?? 'x');
+                                                                @endphp
+                                                                {!! Collective\Html\FormFacade::open([
+                                                                    'method'         => 'DELETE',
+                                                                    'route'          => $taskDestroyRouteArray,
+                                                                    'id'             => $taskDestroyFormId,
+                                                                    'data-url'       => $taskDestroyUrl,
+                                                                    'data-guard-msg' => $taskDestroyGuardMsg
+                                                                ]) !!}
+                                                                    @csrf
+                                                                    <a href="#!"
+                                                                    id="{{ $taskDestroyLinkId }}"
+                                                                    class="dropdown-item bs-pass-para"
+                                                                    data-form-id="{{ $taskDestroyFormId }}"
+                                                                    data-url="{{ $taskDestroyUrl }}"
+                                                                    data-guard-msg="{{ $taskDestroyGuardMsg }}">
+                                                                        <i class="{{ VC::TI_ARC }}"></i><span>{{ __('Delete') }}</span>
+                                                                    </a>
+                                                                {!! Collective\Html\FormFacade::close() !!}
+                                                                @push(StacksConstants::ADM_SCR_PG)
+                                                                    <script defer>
+                                                                        (() => {
+                                                                            try {
+                                                                                const l = document.getElementById('{{ $taskDestroyLinkId }}');
+                                                                                if (!l || l.getAttribute('data-listener-active') === 'true') return;
+                                                                                l.setAttribute('data-listener-active', 'true');
+                                                                                l.addEventListener('click', e => {
+                                                                                    try {
+                                                                                        e.preventDefault();
+                                                                                        const formId = l.getAttribute('data-form-id') || '';
+                                                                                        const f = formId ? document.getElementById(formId) : null;
+                                                                                        if (!f) return;
+                                                                                        const url = f.getAttribute('data-url') || l.getAttribute('data-url') || '#';
+                                                                                        const action = f.getAttribute('action') || '#';
+                                                                                        if (url === '#' && action === '#') {
+                                                                                            const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                                            let container = document.getElementById('toast-container');
+                                                                                            if (!container) {
+                                                                                                container = document.createElement('div');
+                                                                                                container.id = 'toast-container';
+                                                                                                document.body.appendChild(container);
+                                                                                            }
+                                                                                            if (hasBootstrap) {
+                                                                                                const toast = document.createElement('div');
+                                                                                                toast.className = 'toast';
+                                                                                                toast.setAttribute('role','alert');
+                                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                                const body = document.createElement('div');
+                                                                                                body.className = 'toast-body';
+                                                                                                body.textContent = msg;
+                                                                                                toast.appendChild(body);
+                                                                                                container.appendChild(toast);
+                                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                            } else {
+                                                                                                alert(msg);
+                                                                                            }
+                                                                                            l.setAttribute('data-failed-route', 'true');
+                                                                                            f.setAttribute('data-failed-route', 'true');
+                                                                                            return;
+                                                                                        }
+                                                                                        f.submit();
+                                                                                    } catch (err) {}
+                                                                                });
+                                                                            } catch (error) {}
+                                                                        })();
+                                                                    </script>
+                                                                @endpush
+                                                            @endif
                                                         @endcan
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
                                         <div class="card-body">
-                                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <ul class="list-inline mb-0">
-                                                    <li class="list-inline-item d-inline-flex align-items-center" data-bs-toggle="tooltip" title="{{__('Files')}}">
-                                                        <i class="f-16 text-primary ti ti-file"></i> {{ count($taskDetail->taskFiles) }}
+                                            <div class="{{ VC::DFL_AIC_JCB }} mb-2">
+                                                <ul class="list-inline {{ VC::MB0 }}">
+                                                    <li class="list-inline-item {{ VC::DFL_IL_VC }}" data-bs-toggle="tooltip" title="{{ __('Files') }}">
+                                                        <i class="f-16 text-primary {{ VC::TI_FL }}"></i> {{ $filesCount }}
                                                     </li>
-                                                    <li class="list-inline-item d-inline-flex align-items-center" data-bs-toggle="tooltip" title="{{__('Task Progress')}}">
-                                                        @if(str_replace('%','',$taskDetail->taskProgress($taskDetail)['percentage']) > 0)<span class="text-md">{{ $taskDetail->taskProgress($taskDetail)['percentage'] }}</span>@endif
+                                                    <li class="list-inline-item {{ VC::DFL_IL_VC }}" data-bs-toggle="tooltip" title="{{ __('Task Progress') }}">
+                                                        @if($pctNum > 0)
+                                                            <span class="text-md">{{ $pctStr }}</span>
+                                                        @endif
                                                     </li>
                                                 </ul>
                                                 <div class="user-group">
-                                                    @if(!empty($taskDetail->end_date) && $taskDetail->end_date != '0000-00-00')<span data-bs-toggle="tooltip" title="{{__('End Date')}}" @if(strtotime($taskDetail->end_date) < time())class="text-danger"@endif>{{ Utility::getDateFormated($taskDetail->end_date) }}</span>@endif
+                                                    @if($endDateText)
+                                                        <span data-bs-toggle="tooltip" title="{{ __('End Date') }}" @if($isOverdue) class="text-danger" @endif>{{ $endDateText }}</span>
+                                                    @endif
                                                 </div>
                                             </div>
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <ul class="list-inline mb-0">
-
-                                                    <li class="list-inline-item d-inline-flex align-items-center" data-bs-toggle="tooltip" title="{{__('Comments')}}">
-                                                        <i class="f-16 text-primary ti ti-message"></i> {{ count($taskDetail->comments) }}
+                                            <div class="{{ VC::DFL_AIC_JCB }}">
+                                                <ul class="list-inline {{ VC::MB0 }}">
+                                                    <li class="list-inline-item {{ VC::DFL_IL_VC }}" data-bs-toggle="tooltip" title="{{ __('Comments') }}">
+                                                        <i class="f-16 text-primary ti ti-message"></i> {{ $commentsCount }}
                                                     </li>
-
-                                                    <li class="list-inline-item d-inline-flex align-items-center" data-bs-toggle="tooltip" title="{{__('Task Checklist')}}">
-                                                        <i class="f-16 text-primary ti ti-list"></i>{{ $taskDetail->countTaskChecklist() }}
+                                                    <li class="list-inline-item {{ VC::DFL_IL_VC }}" data-bs-toggle="tooltip" title="{{ __('Task Checklist') }}">
+                                                        <i class="f-16 text-primary {{ VC::TI_LT }}"></i>{{ $checklistTotal }}
                                                     </li>
                                                 </ul>
                                                 <div class="user-group">
-                                                    @foreach($taskDetail->users() as $user)
-                                                        <img @if($user->avatar) src="{{asset('/storage/uploads/avatar/'.$user->avatar)}}" @else src="{{asset('/storage/uploads/avatar/avatar.png')}}" @endif alt="image" data-bs-toggle = "tooltip" title"{{(!empty($user)?$user?->name:'')}}">
+                                                    @foreach($usersIter as $u)
+                                                        @php
+                                                            $uAvatar = data_get($u,'avatar');
+                                                            $uSrc = !empty($uAvatar) ? asset('/storage/uploads/avatar/'.$uAvatar) : asset('/storage/uploads/avatar/avatar.png');
+                                                            $uName = data_get($u,'name') ?? '';
+                                                        @endphp
+                                                        <img src="{{ $uSrc }}" alt="image" data-bs-toggle="tooltip" title="{{ $uName }}">
                                                     @endforeach
                                                 </div>
                                             </div>
@@ -529,10 +885,10 @@
                                 @endforeach
                             </div>
                         </div>
-
                     </div>
                 @endforeach
             </div>
         </div>
     </div>
 @endsection
+

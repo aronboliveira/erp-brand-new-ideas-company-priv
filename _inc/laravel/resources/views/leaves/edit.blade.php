@@ -1,104 +1,132 @@
 @php
-    use App\Config\Constants\{
-        PermissionsConstants,
-        PlansConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
+    use App\Config\Constants\{PermissionsConstants, PlansConstants, UsersConstants, ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
     use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth,Route};
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Str;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
+    $leaveId        = isset($leave) && !empty(data_get($leave, 'id')) ? data_get($leave, 'id') : null;
+    $updateBase     = VW::LV . '.update';
+    $updateKebab    = Str::kebab($updateBase);
+    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+    $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::LV, 'update_leave_unavailable') ?? 'Update leave route is unavailable. Please contact technical support or your domain administrator.';
+    $formId         = 'edit_leave';
+    $formOpen = [
+        'method'         => 'PUT',
+        'id'             => $formId,
+        'data-guard-msg' => $updateGuardMsg,
+    ];
+    if ($updateResolved && $leaveId)
+        $formOpen['route'] = [$updateResolved, $leaveId];
+    else
+        $formOpen['url'] = '#';
+    $plan = Utility::getChatGPTSettings();
+    if ($plan?->{PlansConstants::COL_GPT} == 1) {
+        $aiBase       = 'generate';
+        $aiKebab      = Str::kebab($aiBase);
+        $aiResolved   = Route::has($aiBase) ? $aiBase : (Route::has($aiKebab) ? $aiKebab : null);
+        $aiParams     = ['leave'];
+        $aiUrl        = $aiResolved ? route($aiResolved, $aiParams) : '#';
+        $aiLinkId     = 'leave-ai-generate-link';
+        $aiGuardMsg   = Utility::fetchLinkMessage($lang, VW::LV, 'generate_leave_unavailable') ?? 'Generate leave content route is unavailable. Please contact technical support or your domain administrator.';
+    }
+    $grammarBase     = 'grammar';
+    $grammarKebab    = Str::kebab($grammarBase);
+    $grammarResolved = Route::has($grammarBase) ? $grammarBase : (Route::has($grammarKebab) ? $grammarKebab : null);
+    $grammarParams   = ['grammar'];
+    $grammarUrl      = $grammarResolved ? route($grammarResolved, $grammarParams) : '#';
+    $grammarLinkId   = 'leave-grammar-link';
+    $grammarGuardMsg = Utility::fetchLinkMessage($lang, 'generics', 'grammar_check_route_unavailable') ?? 'Grammar check route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-{{Form::model($leave,array('route' => array(ViewsConstants::LV.'.update', $leave->id), 'method' => 'PUT')) }}
+{!! Form::model($leave, $formOpen) !!}
     <div class="modal-body">
-        {{-- start for ai module--}}
-        @php
-            $plan= Utility::getChatGPTSettings();
-        @endphp
         @if($plan?->{PlansConstants::COL_GPT} == 1)
             <div class="text-end">
-                <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['leave']) }}"
-                data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-                    <i class="{{ VC::FAS_RB }}"></i> <span>{{__('Generate with AI')}}</span>
+                <a href="{{ $aiUrl }}"
+                   id="{{ $aiLinkId }}"
+                   class="{{ VC::BT_SM_PM }} btn-icon"
+                   data-ajax-popup-over="true"
+                   data-size="md"
+                   data-url="{{ $aiUrl }}"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}"
+                   data-guard-msg="{{ $aiGuardMsg }}">
+                    <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
         @endif
-        {{-- end for ai module--}}
-        @if($user?->{UsersConstants::COL_TP} === UsersConstants::CPN ||  strtolower($user?->{UsersConstants::COL_TP}) == PermissionsConstants::HR )
+        @if($user?->{UsersConstants::COL_TP} === UsersConstants::CPN || strtolower($user?->{UsersConstants::COL_TP}) == PermissionsConstants::HR)
             <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        {{Form::label('employee_id',__('Employee') ,['class'=>'form-label'])}}
-                        {{Form::select('employee_id',$employees,null,array('class'=>'form-control select','placeholder'=>__('Select Employee')))}}
-                    </div>
+                <div class="{{ VC::FM_GCB12 }}">
+                    {{ Form::label('employee_id', __('Employee'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('employee_id', $employees, null, ['class' => VC::FM_CT_SL, 'placeholder' => __('Select Employee')]) }}
                 </div>
             </div>
         @endif
         <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('leave_type_id',__('Leave Type'),['class'=>'form-label'])}}
-                    {{Form::select('leave_type_id',$leavetypes,null,array('class'=>'form-control select','placeholder'=>__('Select Leave Type')))}}
-                </div>
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('leave_type_id', __('Leave Type'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('leave_type_id', $leavetypes, null, ['class' => VC::FM_CT_SL, 'placeholder' => __('Select Leave Type')]) }}
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('start_date',__('Start Date'),['class'=>'form-label'])}}
-                    {{Form::date('start_date',null,array('class'=>'form-control'))}}
-                </div>
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('start_date', null, ['class' => VC::FM_CT]) }}
             </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('end_date',__('End Date'),['class'=>'form-label'])}}
-                    {{Form::date('end_date',null,array('class'=>'form-control'))}}
-                </div>
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('end_date', null, ['class' => VC::FM_CT]) }}
             </div>
         </div>
         <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('leave_reason',__('Leave Reason'),['class'=>'form-label'])}}
-                    {{Form::textarea('leave_reason',null,array('class'=>'form-control','placeholder'=>__('Leave Reason')))}}
-                </div>
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('leave_reason', __('Leave Reason'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('leave_reason', null, ['class' => VC::FM_CT, 'placeholder' => __('Leave Reason')]) }}
             </div>
         </div>
+        @php $grammarTitle = __('Grammar check with AI'); @endphp
         <div class="row">
             <div class="col-md-12 text-end">
-                <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm text-right" data-ajax-popup-over="true" id="grammarCheck" data-url="{{ route('grammar',['grammar']) }}"
-                data-bs-placement="top" data-title="{{ __('Grammar check with AI') }}">
-                    <i class="ti ti-rotate"></i> <span>{{__('Grammar check with AI')}}</span>
+                <a href="{{ $grammarUrl }}"
+                   id="{{ $grammarLinkId }}"
+                   class="{{ VC::BT_SM_PM }} btn-icon text-right"
+                   data-ajax-popup-over="true"
+                   data-size="md"
+                   data-url="{{ $grammarUrl }}"
+                   data-bs-placement="top"
+                   data-title="{{ $grammarTitle }}"
+                   data-guard-msg="{{ $grammarGuardMsg }}">
+                    <i class="ti ti-rotate"></i> <span>{{ $grammarTitle }}</span>
                 </a>
             </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('remark',__('Remark'),['class'=>'form-label'])}}
-                    {{Form::textarea('remark',null,array('class'=>'form-control grammer_textarea','placeholder'=>__('Leave Remark')))}}
-                </div>
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('remark', __('Remark'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('remark', null, ['class' => VC::FM_CT.' grammar_textarea', 'placeholder' => __('Leave Remark')]) }}
             </div>
         </div>
         @role(PermissionsConstants::CPN)
             <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        {{Form::label('status',__('Status'))}}
-                        <select name="status" id="" class="form-control select2">
-                            <option value="">{{__('Select Status')}}</option>
-                            <option value="pending" @if($leave->status=='Pending') selected="" @endif>{{__('Pending')}}</option>
-                            <option value="approval" @if($leave->status=='Approval') selected="" @endif>{{__('Approval')}}</option>
-                            <option value="reject" @if($leave->status=='Reject') selected="" @endif>{{__('Reject')}}</option>
-                        </select>
-                    </div>
+                <div class="{{ VC::FM_GCB12 }}">
+                    {{ Form::label('status', __('Status'), ['class' => VC::FM_LB]) }}
+                    <select name="status" class="{{ VC::FM_CT }} select2">
+                        <option value="">{{ __('Select Status') }}</option>
+                        <option value="pending"  @if($leave->status=='Pending')  selected @endif>{{ __('Pending') }}</option>
+                        <option value="approval" @if($leave->status=='Approval') selected @endif>{{ __('Approval') }}</option>
+                        <option value="reject"   @if($leave->status=='Reject')   selected @endif>{{ __('Reject') }}</option>
+                    </select>
                 </div>
             </div>
         @endrole
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
-{{Form::close()}}
-
+    <script defer src="{{ asset('assets/js/routes/leaves/update.js') }}"></script>
+    @if($plan?->{PlansConstants::COL_GPT} == 1)
+        <script defer src="{{ asset('assets/js/routes/leaves/generate.js') }}"></script>
+    @endif
+    <script defer src="{{ asset('assets/js/routes/generics/grammar.js') }}"></script>
+{!! Form::close() !!}

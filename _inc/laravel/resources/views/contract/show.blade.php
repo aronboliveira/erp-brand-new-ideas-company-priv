@@ -569,7 +569,7 @@
                            <div class="form-group mb-0 form-send w-100">
                                {{ Collective\Html\FormFacade::open(['route' => ['note_store.store', $contract->id]]) }}
                                <div class="form-group">
-                                   <textarea rows="3" class="form-control grammer_textarea" name="notes" data-toggle="autosize" placeholder="{{__('Add a Notes...')}}" required></textarea>
+                                   <textarea rows="3" class="form-control grammar_textarea" name="notes" data-toggle="autosize" placeholder="{{__('Add a note...')}}" required></textarea>
                                </div>
                                <div class="col-md-12 text-end mb-0">
                                    {{ Collective\Html\FormFacade::submit(__('Add'), ['class' => 'btn btn-primary']) }}
@@ -582,7 +582,7 @@
                            <div class="form-group mb-0 form-send w-100">
                                {{ Collective\Html\FormFacade::open(['route' => ['note_store.store', $contract->id]]) }}
                                <div class="form-group">
-                                   <textarea rows="3" class="form-control grammer_textarea" name="notes" data-toggle="autosize" placeholder="{{__('Add a Notes...')}}" required></textarea>
+                                   <textarea rows="3" class="form-control grammar_textarea" name="notes" data-toggle="autosize" placeholder="{{__('Add a note...')}}" required></textarea>
                                </div>
                                <div class="col-md-12 text-end mb-0">
                                    {{ Collective\Html\FormFacade::submit(__('Add'), ['class' => 'btn btn-primary']) }}

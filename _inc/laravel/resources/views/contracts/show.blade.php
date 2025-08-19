@@ -1323,9 +1323,9 @@
                                     ]) !!}
                                         <textarea
                                             rows="3"
-                                            class="{{ VC::FM_CT }} grammer_textarea"
+                                            class="{{ VC::FM_CT }} grammar_textarea"
                                             name="notes"
-                                            placeholder="{{ __('Add a Notes...') }}"
+                                            placeholder="{{ __('Add a note...') }}"
                                             required
                                         ></textarea>
                                         <div class="{{ VC::C12 }} text-end mb-0">
