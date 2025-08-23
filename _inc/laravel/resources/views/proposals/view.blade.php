@@ -25,8 +25,12 @@
     {{__('Proposal Detail')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations={
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{status_unavailable:"تعذّر تحديث الحالة",copy_unavailable:"تعذّر نسخ الرابط",copy_success:"تم نسخ الرابط إلى الحافظة"},
             da:{status_unavailable:"Kunne ikke opdatere status",copy_unavailable:"Kunne ikke kopiere linket",copy_success:"Link kopieret til udklipsholder"},
             de:{status_unavailable:"Status konnte nicht aktualisiert werden",copy_unavailable:"Link konnte nicht kopiert werden",copy_success:"Link in die Zwischenablage kopiert"},
@@ -44,6 +48,15 @@
             tr:{status_unavailable:"Durum güncellenemedi",copy_unavailable:"Bağlantı kopyalanamadı",copy_success:"Bağlantı panoya kopyalandı"},
             zh:{status_unavailable:"无法更新状态",copy_unavailable:"无法复制链接",copy_success:"链接已复制到剪贴板"}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (()=>{
@@ -292,7 +305,7 @@
                                                 if (href !== '#' || url !== '#') return;
                                                 e.preventDefault();
                                                 const msg = l.getAttribute('data-guard-msg') || 'Resend proposal route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -362,7 +375,7 @@
                             if (href !== '#' || url !== '#') return;
                             e.preventDefault();
                             const msg = l.getAttribute('data-guard-msg') || 'Download proposal pdf route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -515,7 +528,7 @@
                                                                     if (url !== '#') return;
                                                                     e.preventDefault();
                                                                     const msg = c.getAttribute('data-guard-msg') || 'Copy proposal link route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                     let container = document.getElementById('toast-container');
                                                                     if (!container) {
                                                                         container = document.createElement('div');

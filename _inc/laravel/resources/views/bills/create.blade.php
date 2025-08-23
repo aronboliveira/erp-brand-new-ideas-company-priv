@@ -92,8 +92,12 @@
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
     <script defer src="{{ asset('js/jquery-searchbox.js') }}"></script>
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar: {
             repeater_delete_confirm: 'هل أنت متأكد أنك تريد حذف هذا العنصر؟',
             vendor_detail_fetch_failed: 'فشل جلب تفاصيل المورد.',
@@ -191,6 +195,15 @@
             calculation_error: '发生了计算错误。'
           }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

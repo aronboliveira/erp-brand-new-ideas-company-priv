@@ -14,8 +14,12 @@
     {{__('Manage Bulk Attendance')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             present_all_toggle_failed: 'فشل تبديل جميع خانات الاختيار.',
             present_toggle_failed: 'فشل تبديل خانة الحضور.'
@@ -81,6 +85,15 @@
             present_toggle_failed: '无法切换出席复选框。'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

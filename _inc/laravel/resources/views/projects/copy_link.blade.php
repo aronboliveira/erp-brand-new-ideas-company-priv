@@ -14,8 +14,12 @@
     {{ __('Projects Details') }}
 @endsection
 @push(StacksConstants::SHR_PRJ_SCR_PG)
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{users_load_unavailable:'تعذّر تحميل أعضاء المشروع',chart_timesheet_unavailable:'تعذّر عرض مخطط الجداول الزمنية',chart_task_unavailable:'تعذّر عرض مخطط المهام',invite_unavailable:'تعذّر دعوة المستخدم',scrollspy_unavailable:'تعذّر تهيئة ScrollSpy',timesheet_table_unavailable:'تعذّر تحميل جدول الجداول الزمنية',timesheet_popup_unavailable:'تعذّر فتح نافذة الجدول الزمني',task_addrow_unavailable:'تعذّر إضافة صف المهمة',time_calc_unavailable:'تعذّر حساب الوقت',images_view_unavailable:'تعذّر عرض الصور',image_remove_unavailable:'تعذّر إزالة الصورة'},
             da:{users_load_unavailable:'Kunne ikke indlæse projektbrugere',chart_timesheet_unavailable:'Kunne ikke vise timesheet-diagram',chart_task_unavailable:'Kunne ikke vise opgavediagram',invite_unavailable:'Kunne ikke invitere bruger',scrollspy_unavailable:'Kunne ikke initialisere ScrollSpy',timesheet_table_unavailable:'Kunne ikke indlæse timesheet-tabel',timesheet_popup_unavailable:'Kunne ikke åbne timesheet-popup',task_addrow_unavailable:'Kunne ikke tilføje opgaverække',time_calc_unavailable:'Kunne ikke beregne tid',images_view_unavailable:'Kan ikke vise billeder',image_remove_unavailable:'Kan ikke fjerne billede'},
             de:{users_load_unavailable:'Projektmitglieder konnten nicht geladen werden',chart_timesheet_unavailable:'Zeiterfassungsdiagramm konnte nicht angezeigt werden',chart_task_unavailable:'Aufgabendagramm konnte nicht angezeigt werden',invite_unavailable:'Benutzer konnte nicht eingeladen werden',scrollspy_unavailable:'ScrollSpy konnte nicht initialisiert werden',timesheet_table_unavailable:'Zeiterfassungstabelle konnte nicht geladen werden',timesheet_popup_unavailable:'Zeiterfassungs-Popup konnte nicht geöffnet werden',task_addrow_unavailable:'Aufgabenzeile konnte nicht hinzugefügt werden',time_calc_unavailable:'Zeit konnte nicht berechnet werden',images_view_unavailable:'Bilder konnten nicht angezeigt werden',image_remove_unavailable:'Bild konnte nicht entfernt werden'},
@@ -33,6 +37,15 @@
             tr:{users_load_unavailable:'Proje üyeleri yüklenemedi',chart_timesheet_unavailable:'Zaman çizelgesi grafiği oluşturulamadı',chart_task_unavailable:'Görev grafiği oluşturulamadı',invite_unavailable:'Kullanıcı davet edilemedi',scrollspy_unavailable:'ScrollSpy başlatılamadı',timesheet_table_unavailable:'Zaman çizelgesi tablosu yüklenemedi',timesheet_popup_unavailable:'Zaman çizelgesi açılır penceresi açılamadı',task_addrow_unavailable:'Görev satırı eklenemedi',time_calc_unavailable:'Süre hesaplanamadı',images_view_unavailable:'Görseller görüntülenemiyor',image_remove_unavailable:'Görsel kaldırılamıyor'},
             zh:{users_load_unavailable:'无法加载项目成员',chart_timesheet_unavailable:'无法渲染工时图表',chart_task_unavailable:'无法渲染任务图表',invite_unavailable:'无法邀请用户',scrollspy_unavailable:'无法初始化 ScrollSpy',timesheet_table_unavailable:'无法加载工时表',timesheet_popup_unavailable:'无法打开工时弹窗',task_addrow_unavailable:'无法添加任务行',time_calc_unavailable:'无法计算时间',images_view_unavailable:'无法查看图片',image_remove_unavailable:'无法删除图片'}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (()=>{

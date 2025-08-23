@@ -275,6 +275,10 @@ class ViewClassNamesConstants
 	public const CLMS10 = self::CL10 . ' ' . self::CM10 . ' ' . self::CS10;
 	// "{{ ViewClassNamesConstants::CLMS10 }}"
 	// col-lg-10 col-md-10 col-sm-10
+	public const CLMS4_12  = self::CL4 . ' ' . self::CM6 . ' ' . self::CS6 . ' ' . self::C12;
+	// "{{ ViewClassNamesConstants::CLMS4_12 }}"
+	// "{{ VC::CLMS4_12 }}"
+	// col-lg-4 col-md-6 col-sm-6 col-12
 	public const CL_POS1 = self::CXL2 . ' ' . self::CL2 . ' ' . self::CM6 . ' ' . self::CS12 . ' ' . self::C12;
 	// "{{ ViewClassNamesConstants::CL_POS1 }}"
 	// col-xl-2 col-lg-2 col-md-6 col-sm-12 col-12
@@ -293,6 +297,7 @@ class ViewClassNamesConstants
 	// btn btn-light
 	public const BT_SM = self::BT . ' ' . self::BT . '-sm';
 	// "{{ ViewClassNamesConstants::BT_SM }}"
+	// "{{ VC::BT_SM }}"
 	// btn btn-sm
 	public const BT_XS = self::BT . ' ' . self::BT . '-xs';
 	// "{{ ViewClassNamesConstants::BT_XS }}"
@@ -523,6 +528,7 @@ class ViewClassNamesConstants
 	// ti ti-eye text-white
 	public const TI_DWN = self::TI . ' ' . self::TI . '-download';
 	// "{{ ViewClassNamesConstants::TI_DWN }}"
+	// "{{ VC::TI_DWN }}"
 	// ti ti-download
 	public const TI_HM = self::TI . ' ' . self::TI . '-home';
 	// "{{ ViewClassNamesConstants::TI_HM }}"

@@ -1,7 +1,11 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script type="text/javascript" src="{{ asset('assets/js/html2pdf.bundle.min.js') }}"></script>
-<script>
-    window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar:    { estimate_pdf_unavailable: 'فشل إنشاء ملف PDF للتقدير.' },
       da:    { estimate_pdf_unavailable: 'Kunne ikke generere PDF for estimat.' },
       de:    { estimate_pdf_unavailable: 'PDF-Erstellung für Kostenvoranschlag fehlgeschlagen.' },
@@ -18,7 +22,16 @@
       tr:    { estimate_pdf_unavailable: 'Keşif PDF\'i oluşturulamadı.' },
       zh:    { estimate_pdf_unavailable: '生成估算 PDF 失败。' }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
       const errFb       = '# ERROR';

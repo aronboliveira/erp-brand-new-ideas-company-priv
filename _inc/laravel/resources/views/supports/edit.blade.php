@@ -92,8 +92,12 @@
 {!! Form::close() !!}
 
 
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: { attachment_preview_unavailable: "تعذّر معاينة المرفق" },
     da: { attachment_preview_unavailable: "Kunne ikke forhåndsvise vedhæftning" },
     de: { attachment_preview_unavailable: "Anhang kann nicht in der Vorschau angezeigt werden" },
@@ -111,7 +115,16 @@
     tr: { attachment_preview_unavailable: "Ek önizlenemiyor" },
     zh: { attachment_preview_unavailable: "无法预览附件" }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (()=>{
     const errFb = "# ERROR";

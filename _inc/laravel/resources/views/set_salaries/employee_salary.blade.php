@@ -2049,8 +2049,12 @@
 
 @push(StacksConstants::ADM_SCR_PG)
     @if(!empty($employee))
-        <script>
-            window.translations = {
+            <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
                 ar: {
                     amount: 'المبلغ',
                     percentage: 'النسبة المئوية',
@@ -2132,7 +2136,16 @@
                     select_any_designation: '选择任意职称'
                 }
             };
-        </script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+         
+          })();
+    </script>
         <script defer>
             (() => {
             const errFb = '# ERROR';

@@ -84,8 +84,12 @@
     </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar:    { employee_fetch_unavailable: 'فشل جلب المسميات الوظيفية.' },
         da:    { employee_fetch_unavailable: 'Kunne ikke hente betegnelse.' },
         de:    { employee_fetch_unavailable: 'Abrufen der Bezeichnungen fehlgeschlagen.' },
@@ -102,6 +106,15 @@
         tr:    { employee_fetch_unavailable: 'Unvanlar alınamadı.' },
         zh:    { employee_fetch_unavailable: '获取职位失败。' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

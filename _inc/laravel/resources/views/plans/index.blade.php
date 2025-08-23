@@ -150,11 +150,11 @@
                                     @endif
                                     @if($plan->id !== DatabaseConstants::DEFAULT_PLAN && $plan->id != $user[UsersConstants::COL_PL])
                                         @if($user->requested_plan !$plan->id)
-                                            <a href="{{ route('send.request',[\Illuminate\Support\Facades\Crypt::encrypt($plan->id)])}}" class="btn btn-primary btn-icon m-1" data-title="{{__('Send Request')}}" data-bs-toggle="tooltip" title="{{__('Send Request')}}">
+                                            <a href="{{ route(ViewsConstants::PLN.'.request.send',[\Illuminate\Support\Facades\Crypt::encrypt($plan->id)])}}" class="btn btn-primary btn-icon m-1" data-title="{{__('Send Request')}}" data-bs-toggle="tooltip" title="{{__('Send Request')}}">
                                                 <span class="btn-inner--icon"><i class="ti ti-corner-up-right"></i></span>
                                             </a>
                                         @else
-                                            <a href="{{ route('request.cancel',$user->id) }}" class="btn btn-danger btn-icon m-1" data-title="{{__('`Cancle Request')}}" data-bs-toggle="tooltip" title"{{__('Cancle Request')}}">
+                                            <a href="{{ route(ViewsConstants::PLN_RQ.'.request.cancel',$user->id) }}" class="btn btn-danger btn-icon m-1" data-title="{{__('`Cancle Request')}}" data-bs-toggle="tooltip" title"{{__('Cancle Request')}}">
                                                 <span class="btn-inner--icon"><i class="ti ti-x"></i></span>
                                             </a>
                                         @endif

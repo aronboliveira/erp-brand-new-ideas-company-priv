@@ -112,8 +112,12 @@
 
 
 <script src="{{asset('assets/js/plugins/choices.min.js')}}"></script>
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: { choices_unavailable: "تعذّر تهيئة عناصر الاختيار", project_list_unavailable: "تعذّر تحميل قائمة المشاريع" },
     da: { choices_unavailable: "Kunne ikke initialisere multi-select", project_list_unavailable: "Kunne ikke indlæse projektliste" },
     de: { choices_unavailable: "Mehrfachauswahl konnte nicht initialisiert werden", project_list_unavailable: "Projektliste konnte nicht geladen werden" },
@@ -131,7 +135,16 @@
     tr: { choices_unavailable: "Çoklu seçim başlatılamıyor", project_list_unavailable: "Proje listesi yüklenemiyor" },
     zh: { choices_unavailable: "无法初始化多选控件", project_list_unavailable: "无法加载项目列表" }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (()=>{
     const errFb = "# ERROR";

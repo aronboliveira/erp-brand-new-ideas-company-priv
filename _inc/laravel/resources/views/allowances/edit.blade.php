@@ -52,8 +52,12 @@
         <input type="submit" value="{{ __('Update') }}" class="{{ ViewClassNamesConstants::BT_PRM }}">
     </div>
 {{ Form::close() }}
-<script>
-    window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: {
         form_submit_unavailable: 'إرسال النموذج غير متاح.'
     },
@@ -103,7 +107,16 @@
         form_submit_unavailable: '表单提交不可用。'
     }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
         const form = document.getElementById('{{ $formId }}');

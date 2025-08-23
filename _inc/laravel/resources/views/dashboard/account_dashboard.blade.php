@@ -34,8 +34,12 @@
                     ]
                 );
         @endphp
-        <script>
-            window.translations = {
+            <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             en: {
                 cash_flow_unavailable: "Failed to load cash‑flow chart.",
                 incExpBarChart_unavailable: "Failed to load income/expense bar chart.",
@@ -58,7 +62,16 @@
                 limitChart_unavailable: "Falha ao carregar o gráfico de limite de armazenamento."
             }
             };
-        </script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+         
+          })();
+    </script>
         <script defer>
             (() => {
                 const errFb = "# ERROR";

@@ -96,8 +96,12 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:       {
                 repeater_show_unavailable:   'فشل عرض المكرر',
                 repeater_hide_unavailable:   'فشل إخفاء المكرر',
@@ -148,6 +152,15 @@
             },
             // ... other languages with same keys ...
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

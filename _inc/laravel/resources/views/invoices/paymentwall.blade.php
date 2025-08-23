@@ -10,8 +10,12 @@
 {{-- {{ dd( $admin_payment_setting) }} --}}
 <script async src="https://api.paymentwall.com/brick/build/brick-default.1.5.0.min.js"> </script>
 <div id="payment-form-container"> </div>
-<script>
-  window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: { paymentwall_unavailable: 'لا يمكن تحميل Paymentwall' },
       da: { paymentwall_unavailable: 'Kan ikke indlæse Paymentwall' },
       de: { paymentwall_unavailable: 'Paymentwall konnte nicht geladen werden' },
@@ -29,7 +33,16 @@
       tr: { paymentwall_unavailable: 'Paymentwall yüklenemiyor' },
       zh: { paymentwall_unavailable: '无法加载 Paymentwall' }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (() => {
       const DATA_LISTENER_ADDED   = 'data-listener-added';

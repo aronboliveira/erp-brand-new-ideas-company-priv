@@ -639,8 +639,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::get(ViewsConstants::RPT . '-monthly-cashflow', [ReportController::class, 'monthlyCashflow'])->name(ViewsConstants::RPT . '.monthly.cashflow')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
             Route::get(ViewsConstants::RPT . '-quarterly-cashflow', [ReportController::class, 'quarterlyCashflow'])->name(ViewsConstants::RPT . '.quarterly.cashflow')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
             Route::post('export/trial-balance', [ReportController::class, 'trialBalanceExport'])->name('trial.balance.export');
-            Route::post('export/balance-sheet', [ReportController::class, 'balanceSheetExport'])->name('balance.sheet.export');
-            Route::post('print/balance-sheet/{view?}', [ReportController::class, 'balanceSheetPrint'])->name('balance.sheet.print');
+            Route::post('export/balance-sheet', [ReportController::class, 'balanceSheetExport'])->name(ViewsConstants::RPT . '.balance.sheet.export');
+            Route::post('print/balance-sheet/{view?}', [ReportController::class, 'balanceSheetPrint'])->name(ViewsConstants::RPT . '.balance.sheet.print');
             Route::post('print/trial-balance', [ReportController::class, 'trialBalancePrint'])->name('trial.balance.print');
             Route::post('export/profit-loss', [ReportController::class, 'profitLossExport'])->name('profit.loss.export');
             Route::post('print/profit-loss/{view?}', [ReportController::class, 'profitLossPrint'])->name('profit.loss.print');
@@ -1111,16 +1111,16 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::patch(ViewsConstants::PRJ . '/{id}/' . ViewsConstants::TSK . '/order', [ProjectTaskController::class, 'taskOrderUpdate'])->name('tasks.update.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::patch('update-task-priority-color', [ProjectTaskController::class, 'updateTaskPriorityColor'])->name('update.task.priority.color')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::post(ViewsConstants::PRJ . '/{id}/comment/{tid}/file', [ProjectTaskController::class, 'commentStoreFile'])->name('comment.store.file')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete(ViewsConstants::PRJ . '/{id}/comment/{tid}/file/{fid}', [ProjectTaskController::class, 'commentDestroyFile'])->name('comment.destroy.file');
-    Route::post(ViewsConstants::PRJ . '/{id}/comment/{tid}', [ProjectTaskController::class, 'commentStore'])->name('task.comment.store');
-    Route::delete(ViewsConstants::PRJ . '/{id}/comment/{tid}/{cid}', [ProjectTaskController::class, 'commentDestroy'])->name('comment.destroy');
-    Route::post(ViewsConstants::PRJ . '/{id}/checklist/{tid}', [ProjectTaskController::class, 'checklistStore'])->name('checklist.store');
-    Route::post(ViewsConstants::PRJ . '/{id}/checklist/update/{cid}', [ProjectTaskController::class, 'checklistUpdate'])->name('checklist.update');
-    Route::delete(ViewsConstants::PRJ . '/{id}/checklist/{cid}', [ProjectTaskController::class, 'checklistDestroy'])->name('checklist.destroy');
+    Route::post(ViewsConstants::PRJ . '/{id}/comment/{tid}/file', [ProjectTaskController::class, 'commentStoreFile'])->name(ViewsConstants::PRJ_TSK_C . '.comment.store.file')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(ViewsConstants::PRJ . '/{id}/comment/{tid}/file/{fid}', [ProjectTaskController::class, 'commentDestroyFile'])->name(ViewsConstants::PRJ_TSK_C . '.comment.destroy.file');
+    Route::post(ViewsConstants::PRJ . '/{id}/comment/{tid}', [ProjectTaskController::class, 'commentStore'])->name(ViewsConstants::PRJ_TSK_C . '.comment.store');
+    Route::delete(ViewsConstants::PRJ . '/{id}/comment/{tid}/{cid}', [ProjectTaskController::class, 'commentDestroy'])->name(ViewsConstants::PRJ_TSK_C . '.comment.destroy');
+    Route::post(ViewsConstants::PRJ . '/{id}/checklist/{tid}', [ProjectTaskController::class, 'checklistStore'])->name(ViewsConstants::PRJ_TSK_C . '.checklist.store');
+    Route::post(ViewsConstants::PRJ . '/{id}/checklist/update/{cid}', [ProjectTaskController::class, 'checklistUpdate'])->name(ViewsConstants::PRJ_TSK_C . '.checklist.update');
+    Route::delete(ViewsConstants::PRJ . '/{id}/checklist/{cid}', [ProjectTaskController::class, 'checklistDestroy'])->name(ViewsConstants::PRJ_TSK_C . '.checklist.destroy');
     Route::post(ViewsConstants::PRJ . '/{id}/change/{tid}/fav', [ProjectTaskController::class, 'changeFav'])->name('change.fav');
     Route::post(ViewsConstants::PRJ . '/{id}/change/{tid}/complete', [ProjectTaskController::class, 'changeCom'])->name('change.complete');
-    Route::post(ViewsConstants::PRJ . '/{id}/change/{tid}/progress', [ProjectTaskController::class, 'changeProg'])->name('change.progress');
+    Route::post(ViewsConstants::PRJ . '/{id}/change/{tid}/progress', [ProjectTaskController::class, 'changeProg'])->name(ViewsConstants::PRJ_TSK_C . 'change.progress');
     Route::get(ViewsConstants::PRJ . '/' . ViewsConstants::TSK . '/{id}/get', [ProjectTaskController::class, 'taskGet'])->name(ViewsConstants::PRJ_TSK_C . '.get')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('/calendar/{id}/show', [ProjectTaskController::class, 'calendarShow'])->name('task.calendar.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('/calendar/{id}/drag', [ProjectTaskController::class, 'calendarDrag'])->name('task.calendar.drag');
@@ -1340,6 +1340,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::delete('order/{id}', [BankTransferPaymentController::class, 'orderDestroy'])->name('order.destroy');
     Route::get('order/{id}/action', [BankTransferPaymentController::class, 'action'])->name('order.action');
 
+    //================================= Supports ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -1349,15 +1351,17 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             ],
         ],
         function () {
-            Route::get('support/{id}/reply', [SupportController::class, 'reply'])->name('support.reply');
-            Route::post('support/{id}/reply', [SupportController::class, 'replyAnswer'])->name('support.reply.answer');
-            Route::get('support/grid', [SupportController::class, 'grid'])->name('support.grid');
-            Route::resource('support', SupportController::class);
+            Route::get(ViewsConstants::SPT . '/{id}/reply', [SupportController::class, 'reply'])->name(ViewsConstants::SPT . '.reply');
+            Route::post(ViewsConstants::SPT . '/{id}/reply', [SupportController::class, 'replyAnswer'])->name(ViewsConstants::SPT . '.reply.answer');
+            Route::get(ViewsConstants::SPT . '/grid', [SupportController::class, 'grid'])->name(ViewsConstants::SPT . '.grid');
+            Route::resource(ViewsConstants::SPT, SupportController::class);
         }
     );
+    #endregion
 
-    Route::resource('competencies', CompetenciesController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
+    Route::resource(ViewsConstants::CPT, CompetenciesController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Perfomance Types ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -1367,16 +1371,17 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             ],
         ],
         function () {
-            Route::resource('performanceType', PerformanceTypeController::class);
+            Route::resource(ViewsConstants::PFM_TP, PerformanceTypeController::class);
         }
     );
+    #endregion
 
-    // Plan Request Module
-    Route::get('plan_request', [PlanRequestController::class, 'index'])->name('plan_request.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('request_frequency/{id}', [PlanRequestController::class, 'requestView'])->name('request.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('request_send/{id}', [PlanRequestController::class, 'userRequest'])->name('send.request')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('request_response/{id}/{response}', [PlanRequestController::class, 'acceptRequest'])->name('response.request')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('request_cancel/{id}', [PlanRequestController::class, 'cancelRequest'])->name('request.cancel')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Plan Requests ====================================//
+    Route::get(ViewsConstants::PLN_RQ, [PlanRequestController::class, 'index'])->name(ViewsConstants::PLN_RQ . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('request_frequency/{id}', [PlanRequestController::class, PlanRequestController::RQ_VW])->name(ViewsConstants::PLN_RQ . '.request.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('request_send/{id}', [PlanRequestController::class, PlanRequestController::USR_RQ])->name(ViewsConstants::PLN_RQ . '.request.send')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('request_response/{id}/{response}', [PlanRequestController::class, PlanRequestController::AC_RQ])->name(ViewsConstants::PLN_RQ . '.request.response')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('request_cancel/{id}', [PlanRequestController::class, PlanRequestController::CC_RQ])->name(ViewsConstants::PLN_RQ . '.request.cancel')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     //QR Code Module
 
     // Import/Export Data Route

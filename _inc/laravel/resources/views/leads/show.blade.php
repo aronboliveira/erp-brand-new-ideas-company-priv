@@ -29,8 +29,12 @@
     @push(StacksConstants::ADM_SCR_PG)
         <script src="{{asset('css/summernote/summernote-bs4.js')}}"></script>
         <script src="{{asset('assets/js/plugins/dropzone-amd-module.min.js')}}"></script>
-        <script async>
-        window.translations = {
+            <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar: { lead_upload_unavailable: "تعذّر رفع الملف الآن", lead_delete_unavailable: "تعذّر حذف الملف الآن", lead_notes_unavailable: "تعذّر حفظ الملاحظات الآن", dropzone_unavailable: "عنصر الرفع غير متاح" },
             da: { lead_upload_unavailable: "Kan ikke uploade fil lige nu", lead_delete_unavailable: "Kan ikke slette fil lige nu", lead_notes_unavailable: "Kan ikke gemme noter lige nu", dropzone_unavailable: "Upload-widget ikke tilgængelig" },
             de: { lead_upload_unavailable: "Datei kann derzeit nicht hochgeladen werden", lead_delete_unavailable: "Datei kann derzeit nicht gelöscht werden", lead_notes_unavailable: "Notizen können derzeit nicht gespeichert werden", dropzone_unavailable: "Upload-Widget nicht verfügbar" },
@@ -48,7 +52,16 @@
             tr: { lead_upload_unavailable: "Şu anda dosya yüklenemiyor", lead_delete_unavailable: "Şu anda dosya silinemiyor", lead_notes_unavailable: "Şu anda notlar kaydedilemiyor", dropzone_unavailable: "Yükleme bileşeni kullanılamıyor" },
             zh: { lead_upload_unavailable: "当前无法上传文件", lead_delete_unavailable: "当前无法删除文件", lead_notes_unavailable: "当前无法保存备注", dropzone_unavailable: "上传组件不可用" }
         };
-        </script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+         
+          })();
+    </script>
         <script defer>
         (()=>{
             const errFb = "# ERROR";

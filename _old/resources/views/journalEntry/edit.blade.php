@@ -9,7 +9,7 @@
 @endsection
 @push('script-page')
     <script src="{{ asset('js/jquery.min.js') }}"></script>
-    <script src="{{asset('js/jquery.repeater.min.js')}}"></script>
+    <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
     <script src="{{ asset('js/jquery-searchbox.js') }}"></script>
     <script>
         var selector = "body";

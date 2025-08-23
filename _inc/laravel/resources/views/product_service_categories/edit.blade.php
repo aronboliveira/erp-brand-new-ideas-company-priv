@@ -50,8 +50,12 @@
         <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
 {{ Form::close() }}
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar:{account_toggle_unavailable:'تعذر تبديل عرض الحساب',get_account_unavailable:'تعذر جلب قائمة الحسابات'},
     da:{account_toggle_unavailable:'Kunne ikke skifte konto-visibility',get_account_unavailable:'Kan ikke hente kontoliste'},
     de:{account_toggle_unavailable:'Kontosichtbarkeit konnte nicht umgeschaltet werden',get_account_unavailable:'Kontenliste konnte nicht geladen werden'},
@@ -69,7 +73,16 @@
     tr:{account_toggle_unavailable:'Hesap görünürlüğü değiştirilemiyor',get_account_unavailable:'Hesap listesi alınamıyor'},
     zh:{account_toggle_unavailable:'无法切换账户可见性',get_account_unavailable:'无法获取账户列表'}
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (() => {
     const dataListenerAdded = 'data-listener-added';

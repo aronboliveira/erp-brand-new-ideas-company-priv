@@ -16,11 +16,12 @@
 	$color??='';
 	$faviconUrl??='';
 	try {
-		$route=Request::route()->getName()?:'';
+        $route=Request::route()->getName()?:'';
 		$segment=Request::segment(3)?:'';
 		$id=Crypt::decrypt($segment)?:'';
 		$project=Project::find($id);
 		$user=User::find($project[DatabaseConstants::TABLE_CREATOR]??null);
+        $lang = Utility::fetchUserLang(user:$user);
 		$data=Utility::prepareCommonViewData($user?->creatorId(),'uploads/logo')?:[];
 		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
 		$siteRtl=$data[SettingsConstants::RTL]??false;
@@ -71,7 +72,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl === 'on'?'rtl':''}}">
+<html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl === 'on'?'rtl':''}}">
     <head>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>

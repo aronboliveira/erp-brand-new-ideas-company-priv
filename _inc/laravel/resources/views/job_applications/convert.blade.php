@@ -178,8 +178,12 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { designation_fetch_unavailable: 'لا يمكن جلب المسميات الوظيفية' },
             da:  { designation_fetch_unavailable: 'Kan ikke hente titler' },
             de:  { designation_fetch_unavailable: 'Kann Bezeichnungen nicht abrufen' },
@@ -197,6 +201,15 @@
             tr:  { designation_fetch_unavailable: 'Unvanlar alınamadı' },
             zh:  { designation_fetch_unavailable: '无法获取职务' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

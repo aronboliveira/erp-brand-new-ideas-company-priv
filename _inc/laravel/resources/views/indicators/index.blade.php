@@ -21,8 +21,12 @@
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('js/bootstrap-toggle.js') }}"></script>
-    <script async>
-      window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
           toggle_init_failed:               'فشل تهيئة التبديل.',
           star_toggle_failed:               'فشل تبديل النجمة.',
@@ -136,6 +140,15 @@
           invoice_fetch_unavailable:        '发票数据不可用。'
         }
       };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

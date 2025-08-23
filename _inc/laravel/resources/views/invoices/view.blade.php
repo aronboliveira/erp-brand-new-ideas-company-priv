@@ -61,8 +61,12 @@
     <script async src="https://js.paystack.co/v1/inline.js"></script>
     <script async src="https://api.ravepay.co/flwv3-pug/getpaidx/api/flwpbf-inline.js"></script>
     <script async src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { stripe_unavailable: 'لا يمكن تحميل Stripe', paystack_unavailable: 'لا يمكن تحميل Paystack', flutterwave_unavailable: 'لا يمكن تحميل Flutterwave', razorpay_unavailable: 'لا يمكن تحميل Razorpay', link_copy_unavailable: 'فشل نسخ الرابط', shipping_toggle_unavailable: 'فشل تبديل الشحن' },
             da:  { stripe_unavailable: 'Kan ikke indlæse Stripe', paystack_unavailable: 'Kan ikke indlæse Paystack', flutterwave_unavailable: 'Kan ikke indlæse Flutterwave', razorpay_unavailable: 'Kan ikke indlæse Razorpay', link_copy_unavailable: 'Kan ikke kopiere link', shipping_toggle_unavailable: 'Skift af forsendelse mislykkedes' },
             de:  { stripe_unavailable: 'Stripe konnte nicht geladen werden', paystack_unavailable: 'Paystack konnte nicht geladen werden', flutterwave_unavailable: 'Flutterwave konnte nicht geladen werden', razorpay_unavailable: 'Razorpay konnte nicht geladen werden', link_copy_unavailable: 'Link konnte nicht kopiert werden', shipping_toggle_unavailable: 'Versandumschaltung fehlgeschlagen' },
@@ -80,6 +84,15 @@
             tr:  { stripe_unavailable: 'Stripe yüklenemiyor', paystack_unavailable: 'Paystack yüklenemiyor', flutterwave_unavailable: 'Flutterwave yüklenemiyor', razorpay_unavailable: 'Razorpay yüklenemiyor', link_copy_unavailable: 'Bağlantı kopyalanamadı', shipping_toggle_unavailable: 'Gönderim geçişi başarısız' },
             zh:  { stripe_unavailable: '无法加载 Stripe', paystack_unavailable: '无法加载 Paystack', flutterwave_unavailable: '无法加载 Flutterwave', razorpay_unavailable: '无法加载 Razorpay', link_copy_unavailable: '无法复制链接', shipping_toggle_unavailable: '运送切换失败' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

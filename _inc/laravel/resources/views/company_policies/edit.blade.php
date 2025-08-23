@@ -85,8 +85,12 @@
     <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
 </div>
 {{ Form::close() }}
-<script async>
-    window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: {
         image_preview_failed: 'فشل عرض المعاينة.'
       },
@@ -106,7 +110,16 @@
         image_preview_failed: 'Échec de l’affichage de l’aperçu.'
       }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
     const ERR_KEY = 'image_preview_failed';

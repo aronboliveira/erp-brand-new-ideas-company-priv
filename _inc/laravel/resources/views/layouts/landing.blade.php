@@ -18,6 +18,7 @@
 	$meta_logo??='';
 	$get_cookie??='';
 	$faviconUrl??='';
+    $lang = Utility::fetchUserLang();
 	try {
 		$data=Utility::prepareCommonViewData(null,'uploads/logo')?:[];
 		$setting=$data[SettingsConstants::ENTITY]??[];
@@ -68,7 +69,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-    <html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on'?'rtl':''}}">
+    <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on'?'rtl':''}}">
         <head>
             <title>{{__('ERP Nova Prestech')}}</title>
             @include('fragments.std', [

@@ -112,7 +112,7 @@
                         const flag = 'data-tooltip-init';
                         if (el.hasAttribute(flag) && el.getAttribute(flag) === 'true') continue;
                         el.setAttribute(flag, 'true');
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Tooltip);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Tooltip);
                         if (!hasBootstrap) continue;
                         window.bootstrap.Tooltip.getOrCreateInstance(el);
                     } catch (innerErr) {}

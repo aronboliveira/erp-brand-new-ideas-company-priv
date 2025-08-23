@@ -52,7 +52,7 @@
                             if (href !== '#' || url !== '#') return;
                             e.preventDefault();
                             const msg = l.getAttribute('data-guard-msg') || 'Access pos product barcode route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -88,8 +88,12 @@
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{pos_fetch_unavailable:"تعذّر جلب المنتجات من المستودع",copy_unavailable:"تعذّر نسخ الرابط",copy_success:"تم نسخ الرابط إلى الحافظة",pdf_unavailable:"تعذّر إنشاء ملف PDF"},
             da:{pos_fetch_unavailable:"Kunne ikke hente produkter fra lageret",copy_unavailable:"Kunne ikke kopiere linket",copy_success:"Link kopieret til udklipsholder",pdf_unavailable:"Kunne ikke generere PDF"},
             de:{pos_fetch_unavailable:"Produkte konnten nicht aus dem Lager abgerufen werden",copy_unavailable:"Link konnte nicht kopiert werden",copy_success:"Link in die Zwischenablage kopiert",pdf_unavailable:"PDF konnte nicht erstellt werden"},
@@ -107,6 +111,15 @@
             tr:{pos_fetch_unavailable:"Depodan ürünler alınamadı",copy_unavailable:"Bağlantı kopyalanamadı",copy_success:"Bağlantı panoya kopyalandı",pdf_unavailable:"PDF oluşturulamadı"},
             zh:{pos_fetch_unavailable:"无法从仓库获取产品",copy_unavailable:"无法复制链接",copy_success:"链接已复制到剪贴板",pdf_unavailable:"无法生成 PDF"}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (()=>{
@@ -330,7 +343,7 @@
                                                 if (url !== '#' || action !== '#') return;
                                                 e.preventDefault();
                                                 const msg = f.getAttribute('data-guard-msg') || 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');

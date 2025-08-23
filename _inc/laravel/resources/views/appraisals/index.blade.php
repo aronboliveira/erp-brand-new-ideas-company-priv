@@ -29,8 +29,12 @@
     </style>
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-      window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
           emp_by_star_route_unavailable: 'مسار empByStar غير متوفر.',
           emp_by_star_unavailable: 'فشل جلب بيانات النجوم للموظف.',
@@ -128,6 +132,15 @@
           employee_fetch_unavailable: '无法获取员工列表。'
         }
       };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer src="{{ asset('js/bootstrap-toggle.js') }}"></script>
     <script defer>

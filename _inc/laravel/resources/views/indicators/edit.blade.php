@@ -59,8 +59,12 @@
     <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
 </div>
 {{Collective\Html\FormFacade::close()}}
-<script async>
-    window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: {
         designation_fetch_unavailable: 'تعذر جلب بيانات التعيين.',
         designation_fetch_failed:      'فشل تحميل بيانات التعيين.',
@@ -142,7 +146,16 @@
         designation_default:           '请选择任何职称'
       }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
       const ERR_FB = '# ERROR';

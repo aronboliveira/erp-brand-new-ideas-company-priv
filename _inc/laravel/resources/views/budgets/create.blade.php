@@ -86,8 +86,12 @@
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar: {
             income_calculation_failed: 'فشل حساب إجمالي الدخل.',
             expense_calculation_failed: 'فشل حساب إجمالي المصروفات.',
@@ -169,6 +173,15 @@
             period_toggle_failed: '切换期间失败。'
           }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

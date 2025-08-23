@@ -26,8 +26,12 @@
     <li class="breadcrumb-item">{{__('Job')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { copy_success: 'تم نسخ الرابط إلى الحافظة', copy_unavailable: 'لا يمكن النسخ إلى الحافظة' },
             da:  { copy_success: 'Link kopieret til udklipsholder', copy_unavailable: 'Kan ikke kopiere til udklipsholder' },
             de:  { copy_success: 'Link in die Zwischenablage kopiert', copy_unavailable: 'Kann nicht in die Zwischenablage kopieren' },
@@ -45,6 +49,15 @@
             tr:  { copy_success: 'URL panoya kopyalandı', copy_unavailable: 'Panoya kopyalanamıyor' },
             zh:  { copy_success: 'URL 已复制到剪贴板', copy_unavailable: '无法复制到剪贴板' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

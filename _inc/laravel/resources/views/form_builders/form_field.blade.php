@@ -90,8 +90,12 @@
 {{Collective\Html\FormFacade::close()}}
 
 
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: {
       lead_toggle_failed: 'فشل تبديل حالة العميل المحتمل.'
     },
@@ -111,7 +115,16 @@
       lead_toggle_failed: 'Échec du basculement de l’état du lead.'
     }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script>
     (() => {
     const ERROR_KEY = 'lead_toggle_failed';

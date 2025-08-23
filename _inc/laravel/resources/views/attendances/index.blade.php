@@ -229,8 +229,12 @@
     </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar: {
                 date_picker_unavailable: "منتقي التاريخ غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول المجال."
             },
@@ -280,6 +284,15 @@
                 date_picker_unavailable: "日期选择器不可用。请联系技术支持或您的域管理员。"
             }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer src="{{ asset('assets/js/routes/attendances/page.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/employeeAttendance/index.js') }}"></script>

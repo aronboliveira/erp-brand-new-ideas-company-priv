@@ -34,8 +34,12 @@
 @push('script-page')
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
-			<script>
-				window.translations = {
+			    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
 					ar: { bugstatus_order_failed: 'فشل تحديث ترتيب الحالة.' },
 					da: { bugstatus_order_failed: 'Opdatering af statusrækkefølge mislykkedes.' },
 					de: { bugstatus_order_failed: 'Aktualisierung der Statusreihenfolge fehlgeschlagen.' },
@@ -53,7 +57,16 @@
 					tr: { bugstatus_order_failed: 'Durum sırası güncellenemedi.' },
 					zh: { bugstatus_order_failed: '更新状态顺序失败。' }
 				};
-			</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+			 
+          })();
+    </script>
 			<script defer>
 				(() => {
 					const errFb = '# ERROR';

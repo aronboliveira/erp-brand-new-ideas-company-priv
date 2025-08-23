@@ -179,7 +179,7 @@
                                             const url = l.getAttribute('data-url') || href || '#';
                                             if (href === '#' && url === '#') {
                                                 const msg = l.getAttribute('data-guard-msg') || 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -226,7 +226,7 @@
                                                     copied = true;
                                                 } catch (_) {}
                                             }
-                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                             if (copied) {
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
@@ -264,8 +264,12 @@
             @endif
         </div>
     </div>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar: { password_controls_unavailable: "تعذّر تفعيل عناصر كلمة المرور" },
             da: { password_controls_unavailable: "Kunne ikke aktivere adgangskodekontroller" },
             de: { password_controls_unavailable: "Passwortsteuerungen konnten nicht aktiviert werden" },
@@ -283,6 +287,15 @@
             tr: { password_controls_unavailable: "Parola denetimleri başlatılamadı" },
             zh: { password_controls_unavailable: "无法初始化密码控件" }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (()=>{
@@ -407,7 +420,7 @@
                         if (url !== '#' || action !== '#') return;
                         e.preventDefault();
                         const msg = f.getAttribute('data-guard-msg') || 'Copy project link route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');

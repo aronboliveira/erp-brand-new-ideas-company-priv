@@ -308,8 +308,12 @@ final class Handler extends ExceptionHandler
                     </div>
 
                     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-                    <script>
-                        window.translations = {
+                        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
                             en: {
                                 title: "Server Error",
                                 statusText: "Server Error (500)",
@@ -407,6 +411,13 @@ final class Handler extends ExceptionHandler
                                 redirectMessage: "我们正在自动为您重定向..."
                             }
                         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
 
                         const currentLang = "' . $userLang . '";
                         const translations = window.translations[currentLang] || window.translations.en;
@@ -420,7 +431,9 @@ final class Handler extends ExceptionHandler
 
                         feather.replace();
                         updateContent();
-                    </script>
+                     
+          })();
+    </script>
                 </body>
             </html>';
     }
@@ -727,8 +740,12 @@ final class Handler extends ExceptionHandler
                         </div>
 
                         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-                        <script>
-                            window.translations = {
+                            <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
                                 en: {
                                     title: "Server Error",
                                     subtitle: "Something went wrong on our end",
@@ -890,6 +907,13 @@ final class Handler extends ExceptionHandler
                                     cancelHint: "按<kbd>ESC</kbd>取消自动重定向"
                                 }
                             };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
 
                             const currentLang = "' . $userLang . '";
                             const translations = window.translations[currentLang] || window.translations.en;
@@ -934,7 +958,9 @@ final class Handler extends ExceptionHandler
                                     progressEl.style.width = "0%";
                                 }
                             });
-                        </script>
+                         
+          })();
+    </script>
                     </body>
                 </html>';
     }
@@ -1171,8 +1197,12 @@ final class Handler extends ExceptionHandler
                         </div>
     
                         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-                        <script>
-                            window.translations = {
+                            <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
                                 en: {
                                     title: "Access Denied",
                                     subtitle: "Authentication required",
@@ -1334,6 +1364,13 @@ final class Handler extends ExceptionHandler
                                     cancelHint: "按<kbd>ESC</kbd>取消自动重定向"
                                 }
                             };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
     
                             const currentLang = "' . $userLang . '";
                             const translations = window.translations[currentLang] || window.translations.en;
@@ -1378,7 +1415,9 @@ final class Handler extends ExceptionHandler
                                     progressEl.style.width = "0%";
                                 }
                             });
-                        </script>
+                         
+          })();
+    </script>
                     </body>
                 </html>';
     }

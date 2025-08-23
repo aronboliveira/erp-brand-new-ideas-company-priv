@@ -161,8 +161,12 @@
     </div>
 @endsection
 @push
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar: {
                 edit_journal_entry_unavailable: 'مسار التعديل غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول المجال.',
                 delete_journal_entry_unavailable: 'مسار الحذف غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول المجال.'
@@ -228,6 +232,15 @@
                 delete_journal_entry_unavailable: '删除路由不可用。请联系技术支持或您的域管理员。'
             }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     @can(PermissionsConstants::SHW_JNL)
         <script defer>

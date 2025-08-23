@@ -45,8 +45,12 @@
 {{ Form::close() }}
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             form_submit_unavailable: 'إرسال النموذج غير متاح.'
         },
@@ -96,6 +100,15 @@
             form_submit_unavailable: '表单提交不可用。'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

@@ -138,8 +138,12 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             'ar': {
                 'create_job_stage_unavailable': 'مسار إنشاء مرحلة الوظيفة غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول النطاق.'
             },
@@ -189,6 +193,15 @@
                 'create_job_stage_unavailable': '创建工作阶段路由不可用。请联系技术支持或您的域管理员。'
             }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)

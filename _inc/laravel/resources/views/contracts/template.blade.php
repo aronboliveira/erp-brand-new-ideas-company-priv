@@ -84,8 +84,12 @@
 @push(StacksConstants::CTC_SCR_PG)
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar: {
             pdf_generation_failed: 'فشل إنشاء PDF.',
             window_close_failed: 'فشل إغلاق النافذة.'
@@ -151,6 +155,15 @@
             window_close_failed: '关闭窗口失败。'
           }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script>
         (() => {

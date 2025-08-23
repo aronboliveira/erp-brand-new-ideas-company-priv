@@ -52,7 +52,7 @@
                         if (action !== '#') return;
                         e.preventDefault();
                         const msg = f.getAttribute('data-guard-msg') || 'Update project stage route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');

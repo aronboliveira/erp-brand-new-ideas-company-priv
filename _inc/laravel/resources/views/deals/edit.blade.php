@@ -146,8 +146,12 @@
     <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Update') }}</button>
   </div>
 {{ Form::close() }}
-<script async>
-    window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: {
         stages_fetch_unavailable: 'فشل جلب مراحل الخط الأنابيب.'
       },
@@ -197,7 +201,16 @@
         stages_fetch_unavailable: '获取管道阶段失败。'
       }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
     const ERR_FB = '# ERROR';

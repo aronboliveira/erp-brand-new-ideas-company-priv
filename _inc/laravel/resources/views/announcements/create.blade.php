@@ -205,8 +205,12 @@
     </script>
 @endpush
 
-<script>
-  window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: {
       announcement_department_fetch_failed: 'فشل جلب أقسام الإعلان.',
       announcement_employee_fetch_failed: 'فشل جلب قائمة الموظفين للإعلان.'
@@ -272,7 +276,16 @@
       announcement_employee_fetch_failed: '获取公告员工列表失败。'
     }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
       const errFb = '# ERROR';

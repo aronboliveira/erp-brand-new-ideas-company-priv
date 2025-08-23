@@ -34,8 +34,12 @@
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
     <script defer src="{{ asset('js/jquery-searchbox.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { repeater_show_unavailable: 'فشل عرض المكرر', repeater_hide_unavailable: 'فشل إخفاء المكرر', calc_unavailable: 'فشل الحساب' },
             da:  { repeater_show_unavailable: 'Visning af gentager mislykkedes', repeater_hide_unavailable: 'Skjul af gentager mislykkedes', calc_unavailable: 'Beregning mislykkedes' },
             de:  { repeater_show_unavailable: 'Wiederholer-Anzeige fehlgeschlagen', repeater_hide_unavailable: 'Wiederholer-Ausblenden fehlgeschlagen', calc_unavailable: 'Berechnung fehlgeschlagen' },
@@ -53,6 +57,15 @@
             tr:  { repeater_show_unavailable: 'Tekrar gösterilemedi', repeater_hide_unavailable: 'Tekrar gizlenemedi', calc_unavailable: 'Hesaplama başarısız' },
             zh:  { repeater_show_unavailable: '无法显示重复项', repeater_hide_unavailable: '无法隐藏重复项', calc_unavailable: '计算失败' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

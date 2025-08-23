@@ -27,8 +27,12 @@
 @endpush
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             calendar_init_failed: 'فشل تهيئة التقويم.',
             event_modal_unavailable: 'فشل تحميل تفاصيل الحدث.',
@@ -126,6 +130,15 @@
             chart_projects_unavailable: '呈现项目状态图表失败。'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script async>
         (() => {

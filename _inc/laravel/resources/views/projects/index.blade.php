@@ -42,7 +42,7 @@
                             if (href !== '#' || url !== '#') return;
                             e.preventDefault();
                             const msg = el.getAttribute('data-guard-msg') || 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -161,7 +161,7 @@
                                     if (href !== '#' || url !== '#') return;
                                     e.preventDefault();
                                     const msg = el.getAttribute('data-guard-msg') || 'Requested route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
                                     let container = document.getElementById('toast-container');
                                     if (!container) {
                                         container = document.createElement('div');
@@ -203,8 +203,12 @@
     <div class="row min-750" id="project_view"></div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations={
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{project_filter_unavailable:'تعذّر تطبيق عوامل التصفية',project_sort_unavailable:'تعذّر تغيير الفرز',project_search_unavailable:'تعذّر تنفيذ البحث',project_invite_unavailable:'تعذّر دعوة المستخدم'},
             da:{project_filter_unavailable:'Kunne ikke anvende filtre',project_sort_unavailable:'Kunne ikke ændre sortering',project_search_unavailable:'Kunne ikke udføre søgning',project_invite_unavailable:'Kunne ikke invitere bruger'},
             de:{project_filter_unavailable:'Filter konnten nicht angewendet werden',project_sort_unavailable:'Sortierung konnte nicht geändert werden',project_search_unavailable:'Suche konnte nicht ausgeführt werden',project_invite_unavailable:'Benutzer konnte nicht eingeladen werden'},
@@ -222,6 +226,15 @@
             tr:{project_filter_unavailable:'Filtreler uygulanamadı',project_sort_unavailable:'Sıralama değiştirilemedi',project_search_unavailable:'Arama gerçekleştirilemedi',project_invite_unavailable:'Kullanıcı davet edilemedi'},
             zh:{project_filter_unavailable:'无法应用筛选',project_sort_unavailable:'无法更改排序',project_search_unavailable:'无法执行搜索',project_invite_unavailable:'无法邀请用户'}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (()=>{

@@ -11,8 +11,12 @@
     {{__('Dashboard')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             traffic_chart_unavailable: 'فشل عرض مخطط المرور.'
         },
@@ -62,6 +66,15 @@
             traffic_chart_unavailable: '呈现流量图失败。'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script async>
         (() => {

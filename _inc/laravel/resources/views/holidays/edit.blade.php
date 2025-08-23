@@ -46,8 +46,12 @@
       <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
   </div>
 {{Form::close()}}
-<script async>
-    window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: {
         datepicker_plugin_unavailable: 'مكون التاريخ غير متاح.',
         datepicker_init_failed:        'فشل تهيئة محدد التاريخ.'
@@ -113,7 +117,16 @@
         datepicker_init_failed:        '初始化日期选择器失败。'
       }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
       const ERR_FB      = '# ERROR';

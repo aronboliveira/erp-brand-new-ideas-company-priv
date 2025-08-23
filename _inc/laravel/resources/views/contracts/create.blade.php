@@ -140,8 +140,12 @@
         <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
 {{ Collective\Html\FormFacade::close() }}
-<script>
-    window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: {
         choices_init_failed: 'فشل تهيئة قائمة التحديد المتعدد.',
         project_fetch_failed: 'فشل جلب المشاريع.'
@@ -207,7 +211,16 @@
         project_fetch_failed: '获取项目失败。'
       }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer src="{{asset('assets/js/plugins/choices.min.js')}}"></script>
 <script defer>
     (() => {

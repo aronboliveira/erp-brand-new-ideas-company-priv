@@ -63,8 +63,12 @@
     <li class="breadcrumb-item">{{__('Print-Settings')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations={
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{scrollspy_unavailable:"تعذّر تفعيل ScrollSpy",purchase_preview_unavailable:"تعذّر عرض معاينة أمر الشراء",purchase_logo_unavailable:"تعذّر معاينة شعار أمر الشراء",pos_preview_unavailable:"تعذّر عرض معاينة نقطة البيع",pos_logo_unavailable:"تعذّر معاينة شعار نقطة البيع"},
             da:{scrollspy_unavailable:"Kunne ikke aktivere ScrollSpy",purchase_preview_unavailable:"Kunne ikke vise indkøbsforhåndsvisning",purchase_logo_unavailable:"Kunne ikke forhåndsvise indkøbslogo",pos_preview_unavailable:"Kunne ikke vise POS-forhåndsvisning",pos_logo_unavailable:"Kunne ikke forhåndsvise POS-logo"},
             de:{scrollspy_unavailable:"ScrollSpy konnte nicht aktiviert werden",purchase_preview_unavailable:"Bestellvorschau konnte nicht geladen werden",purchase_logo_unavailable:"Bestelllogo konnte nicht angezeigt werden",pos_preview_unavailable:"POS-Vorschau konnte nicht geladen werden",pos_logo_unavailable:"POS-Logo konnte nicht angezeigt werden"},
@@ -82,6 +86,15 @@
             tr:{scrollspy_unavailable:"ScrollSpy etkinleştirilemedi",purchase_preview_unavailable:"Satın alma önizlemesi yüklenemiyor",purchase_logo_unavailable:"Satın alma logosu önizlenemiyor",pos_preview_unavailable:"POS önizlemesi yüklenemiyor",pos_logo_unavailable:"POS logosu önizlenemiyor"},
             zh:{scrollspy_unavailable:"无法启用 ScrollSpy",purchase_preview_unavailable:"无法加载采购预览",purchase_logo_unavailable:"无法预览采购徽标",pos_preview_unavailable:"无法加载收银预览",pos_logo_unavailable:"无法预览收银徽标"}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

@@ -1,399 +1,552 @@
-<?php /* @formatter:off */ ?>
-@php
-use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants};
-$settings_data = \App\Models\Utility::settingsById($purchase[DatabaseConstants::TABLE_CREATOR]);
-$themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
-function getThemeCSS($color) {
-return ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
-}
-@endphp
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$settings_data[SettingsConstants::RTL] == 'on'?'rtl':''}}">
+<?php
+/* @formatter:off */
+// Template 1
 
-<head>
-    @include('fragments.std', [
-    'meta_title' => $meta_title,
-    'meta_desc' => $meta_desc,
-    'meta_vp' => ''
-    ])
-    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-    @verbatim
-    <style>
-        <?php echo $themeCSS; ?>
-    </style>
-    <style type="text/css">
-        body {
-            font-family: 'Lato', sans-serif;
+use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewClassNamesConstants};
+use App\Models\{Utility};
+use Illuminate\Support\Facades\{Auth, Crypt, Log, Route};
+use Illuminate\Support\Str;
+use Milon\Barcode\DNS2D;
+
+$user = Auth::user();
+$lang = Utility::fetchUserLang(user: $user);
+
+if (isset($purchase) && !empty($purchase)) {
+
+    if (!function_exists('e')) {
+        function e($v) { return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8'); }
+    }
+
+    // Defaults
+    $vendor ??= null;
+    $settings ??= [];
+    $settings_data ??= [];
+    $customFields ??= [];
+    $meta_title ??= '';
+    $meta_desc ??= '';
+    $themeCSS ??= '';
+    $color ??= '#ffffff';
+    $font_color ??= '#000000';
+    $img ??= '';
+    $preview ??= null;
+    $docLang ??= null;
+    $dir ??= '';
+    $purchaseNumber ??= '';
+    $purchaseDate ??= '';
+    $qrValue ??= '#';
+    $qrHtml ??= '';
+    $purchaseTotalQuantity ??= '0';
+    $purchaseTotalRate ??= '0';
+    $purchaseTotalDiscount ??= '0';
+    $purchaseTotalTaxPrice ??= '0';
+    $purchaseSubTotal ??= '0';
+    $purchaseGrandTotal ??= '0';
+    $purchasePaid ??= '0';
+    $purchaseDue ??= '0';
+
+    // Doc lang
+    try {
+        $docLang ??= $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG);
+    } catch (\Throwable $e) {
+        Log::error('DocLang Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $docLang ??= DatabaseConstants::DEFAULT_LANG;
+    }
+
+    // Settings
+    try {
+        $creatorId = is_array($purchase)
+            ? ($purchase[DatabaseConstants::TABLE_CREATOR] ?? null)
+            : (data_get($purchase, DatabaseConstants::TABLE_CREATOR) ?? data_get($purchase, 'created_by'));
+        $settings_data ??= Utility::settingsById($creatorId);
+    } catch (\Throwable $e) {
+        Log::error('SettingsById Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $settings_data ??= [];
+    }
+
+    // Direction
+    try {
+        $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
+    } catch (\Throwable $e) {
+        Log::error('RTL Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $dir = '';
+    }
+
+    // Purchase no & date
+    try {
+        $purchaseNumber = Utility::purchaseNumberFormat($settings, data_get($purchase, 'purchase_id')) ?: __('Could not find purchase number');
+    } catch (\Throwable $e) {
+        Log::error('PurchaseNumber Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseNumber = __('Could not find purchase number');
+    }
+    try {
+        $purchaseDate = Utility::dateFormat($settings, data_get($purchase, 'purchase_date')) ?: __('Failed to get purchase date');
+    } catch (\Throwable $e) {
+        Log::error('PurchaseDate Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseDate = __('Failed to get purchase date');
+    }
+
+    // QR value
+    try {
+        $base = 'purchase.link.copy';
+        $kebab = Str::kebab($base);
+        $resolved = Route::has($base) ? $base : (Route::has($kebab) ? $kebab : null);
+        $pid = data_get($purchase, 'purchase_id');
+        $enc = $pid ? Crypt::encrypt($pid) : null;
+        $qrValue = ($resolved && $enc) ? route($resolved, $enc) : '#';
+        if ($qrValue === '#') {
+            Log::error('QR route unavailable or param missing | route='.($resolved ?? 'null').' | file='.__FILE__.' | line='.__LINE__);
         }
+    } catch (\Throwable $e) {
+        Log::error('QR Route Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $qrValue = '#';
+    }
 
-        p,
-        li,
-        ul,
-        ol {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            line-height: 1.5;
-        }
+    // Totals
+    try {
+        $purchaseTotalQuantity = (string)(data_get($purchase, 'totalQuantity') ?? '0');
+        $purchaseTotalRate = Utility::priceFormat($settings, data_get($purchase, 'totalRate')) ?: '0';
+        $purchaseTotalDiscount = Utility::priceFormat($settings, data_get($purchase, 'totalDiscount')) ?: '0';
+        $purchaseTotalTaxPrice = Utility::priceFormat($settings, data_get($purchase, 'totalTaxPrice')) ?: '0';
+        $purchaseSubTotal = Utility::priceFormat($settings, data_get($purchase, 'getSubTotal') ? $purchase->getSubTotal() : 0) ?: '0';
+        $purchaseGrandTotal = Utility::priceFormat(
+            $settings,
+            (data_get($purchase, 'getSubTotal') ? $purchase->getSubTotal() : 0)
+            - (data_get($purchase, 'getTotalDiscount') ? $purchase->getTotalDiscount() : 0)
+            + (data_get($purchase, 'getTotalTax') ? $purchase->getTotalTax() : 0)
+        ) ?: '0';
+        $purchasePaid = Utility::priceFormat($settings, (method_exists($purchase, 'getTotal') ? $purchase->getTotal() : 0) - (method_exists($purchase, 'getDue') ? $purchase->getDue() : 0)) ?: '0';
+        $purchaseDue  = Utility::priceFormat($settings, method_exists($purchase, 'getDue') ? $purchase->getDue() : 0) ?: '0';
+    } catch (\Throwable $e) {
+        Log::error('Totals Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+        $purchaseTotalQuantity = '0';
+        $purchaseTotalRate = '0';
+        $purchaseTotalDiscount = '0';
+        $purchaseTotalTaxPrice = '0';
+        $purchaseSubTotal = '0';
+        $purchaseGrandTotal = '0';
+        $purchasePaid = '0';
+        $purchaseDue = '0';
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    // Theme CSS helper (preserve original intent)
+    if (!isset($themeCSS) || $themeCSS === '') {
+        $themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
+    }
+?>
+    <!DOCTYPE html>
+    <html lang="<?= e($docLang) ?>" dir="<?= e($dir) ?>">
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    <head>
+        <?php
+    try {
+        echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();
+    } catch (\Throwable $e) {
+        Log::error('Meta view Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+    }
+    ?>
+        <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,700;1,900&display=swap" rel="stylesheet">
+        <style>
+            <?= $themeCSS ?>
+        </style>
+        <style type="text/css">
+            body {
+                font-family: 'Lato', sans-serif;
+            }
 
-        table tr th {
-            padding: 0.75rem;
-            text-align: left;
-        }
+            p,
+            li,
+            ul,
+            ol {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+                line-height: 1.5;
+            }
 
-        table tr td {
-            padding: 0.75rem;
-            text-align: left;
-        }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-        table th small {
-            display: block;
-            font-size: 12px;
-        }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
 
-        .purchase-preview-main {
-            max-width: 700px;
-            width: 100%;
-            margin: 0 auto;
-            background: #ffff;
-            box-shadow: 0 0 10px #ddd;
-        }
+            table tr th {
+                padding: .75rem;
+                text-align: left;
+            }
 
-        .purchase-logo {
-            max-width: 200px;
-            width: 100%;
-        }
+            table tr td {
+                padding: .75rem;
+                text-align: left;
+            }
 
-        .purchase-header table td {
-            padding: 15px 30px;
-        }
+            table th small {
+                display: block;
+                font-size: 12px;
+            }
 
-        .text-right {
-            text-align: right;
-        }
+            .purchase-preview-main {
+                max-width: 700px;
+                width: 100%;
+                margin: 0 auto;
+                background: #ffff;
+                box-shadow: 0 0 10px #ddd;
+            }
 
-        .no-space tr td {
-            padding: 0;
-            white-space: nowrap;
-        }
+            .purchase-logo {
+                max-width: 200px;
+                width: 100%;
+            }
 
-        .vertical-align-top td {
-            vertical-align: top;
-        }
+            .purchase-header table td {
+                padding: 15px 30px;
+            }
 
+            .text-right {
+                text-align: right;
+            }
 
-        .view-qrcode {
-            max-width: 139px;
-            height: 139px;
-            width: 100%;
-            margin-left: auto;
-            margin-top: 15px;
-            background: var(--white);
-            padding: 13px;
-            border-radius: 10px;
-        }
+            .no-space tr td {
+                padding: 0;
+                white-space: nowrap;
+            }
 
-        .view-qrcode img {
-            width: 100%;
-            height: 100%;
-        }
+            .vertical-align-top td {
+                vertical-align: top;
+            }
 
-        .purchase-body {
-            padding: 30px 25px 0;
-        }
+            .view-qrcode {
+                max-width: 139px;
+                height: 139px;
+                width: 100%;
+                margin-left: auto;
+                margin-top: 15px;
+                background: var(--white);
+                padding: 13px;
+                border-radius: 10px;
+            }
 
+            .view-qrcode img {
+                width: 100%;
+                height: 100%;
+            }
 
+            .purchase-body {
+                padding: 30px 25px 0;
+            }
 
-        table.add-border tr {
-            border-top: 1px solid var(--theme-color);
-        }
+            table.add-border tr {
+                border-top: 1px solid var(--theme-color);
+            }
 
-        tfoot tr:first-of-type {
-            border-bottom: 1px solid var(--theme-color);
-        }
+            tfoot tr:first-of-type {
+                border-bottom: 1px solid var(--theme-color);
+            }
 
-        .total-table tr:first-of-type td {
-            padding-top: 0;
-        }
+            .total-table tr:first-of-type td {
+                padding-top: 0;
+            }
 
-        .total-table tr:first-of-type {
-            border-top: 0;
-        }
+            .total-table tr:first-of-type {
+                border-top: 0;
+            }
 
-        .sub-total {
-            padding-right: 0;
-            padding-left: 0;
-        }
+            .sub-total {
+                padding-right: 0;
+                padding-left: 0;
+            }
 
-        .border-0 {
-            border: none !important;
-        }
+            .border-0 {
+                border: none !important;
+            }
 
-        .purchase-summary td,
-        .purchase-summary th {
-            font-size: 13px;
-            font-weight: 600;
-        }
+            .purchase-summary td,
+            .purchase-summary th {
+                font-size: 13px;
+                font-weight: 600;
+            }
 
-        .total-table td:last-of-type {
-            width: 146px;
-        }
+            .total-table td:last-of-type {
+                width: 146px;
+            }
 
-        .purchase-footer {
-            padding: 15px 20px;
-        }
+            .purchase-footer {
+                padding: 15px 20px;
+            }
 
-        .itm-description td {
-            padding-top: 0;
-        }
+            .itm-description td {
+                padding-top: 0;
+            }
 
-        html[dir="rtl"] table tr td,
-        html[dir="rtl"] table tr th {
-            text-align: right;
-        }
+            html[dir="rtl"] table tr td,
+            html[dir="rtl"] table tr th {
+                text-align: right;
+            }
 
-        html[dir="rtl"] .text-right {
-            text-align: left;
-        }
+            html[dir="rtl"] .text-right {
+                text-align: left;
+            }
 
-        html[dir="rtl"] .view-qrcode {
-            margin-left: 0;
-            margin-right: auto;
-        }
-    </style>
-    @endverbatim
-    @if($settings_data[SettingsConstants::RTL]=='on')
-    <link rel="stylesheet" href="{{ asset('css/bootstrap-rtl.css') }}">
-    @endif
-</head>
+            html[dir="rtl"] .view-qrcode {
+                margin-left: 0;
+                margin-right: auto;
+            }
+        </style>
+        <?php if (data_get($settings_data, SettingsConstants::RTL) === 'on'): ?>
+            <link rel="stylesheet" href="<?= e(asset('css/bootstrap-rtl.css')) ?>">
+        <?php endif; ?>
+    </head>
 
-<body class="">
-    <div class="purchase-preview-main" id="boxes">
-        <div class="purchase-header" style="background: <?= $color ?>; color: <?= $font_color ?>;">
-            <table>
-                <tbody>
-                    <tr>
-                        <td>
-                            <img class="purchase-logo" src="{{$img}}" alt="">
-                        </td>
-                        <td class="text-right">
-                            <h3 style="text-transform: uppercase; font-size: 40px; font-weight: bold;">{{__('PURCHASE')}}</h3>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <table class="vertical-align-top">
-                <tbody>
-                    <tr>
-                        <td>
-                            <p>
-                                @if($settings['company_name']){{$settings['company_name']}}@endif<br>
-                                @if($settings['mail_from_address']){{$settings['mail_from_address']}}@endif<br><br>
-                                @if($settings['company_address']){{$settings['company_address']}}@endif
-                                @if($settings['company_city']) <br> {{$settings['company_city']}}, @endif
-                                @if($settings['company_state']){{$settings['company_state']}}@endif
-                                @if($settings['company_zipcode']) - {{$settings['company_zipcode']}}@endif
-                                @if($settings['company_country']) <br>{{$settings['company_country']}}@endif
-                                @if($settings['company_telephone']){{$settings['company_telephone']}}@endif<br>
-                                @if(!empty($settings['registration_number'])){{__('Registration Number')}} : {{$settings['registration_number']}} @endif<br>
-                                @if($settings['vat_gst_number_switch'] == 'on')
-                                @if(!empty($settings['tax_type']) && !empty($settings['vat_number'])){{$settings['tax_type'].' '. __('Number')}} : {{$settings['vat_number']}} <br>@endif
-                                @endif
-                            </p>
-                        </td>
-                        <td>
-                            <table class="no-space" style="width: 45%;margin-left: auto;">
-                                <tbody>
+    <body class="">
+        <div class="purchase-preview-main" id="boxes">
+            <div class="purchase-header" style="background: <?= e($color) ?>; color: <?= e($font_color) ?>;">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><img class="purchase-logo" src="<?= e($img) ?>" alt=""></td>
+                            <td class="text-right">
+                                <h3 style="text-transform:uppercase;font-size:40px;font-weight:bold;"><?= e(__('PURCHASE')) ?></h3>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="vertical-align-top">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <p>
+                                    <?= e(data_get($settings,'company_name', __('No company name available.'))) ?><br>
+                                    <?= e(data_get($settings,'mail_from_address', __('No email available.'))) ?><br><br>
+                                    <?= e(data_get($settings,'company_address', __('No address available.'))) ?>
+                                    <?php $city=(string)data_get($settings,'company_city',''); echo $city!==''? '<br>'.e($city).', ' : '<br>'.e(__('No city available.')).' '; ?>
+                                    <?php $state=(string)data_get($settings,'company_state',''); echo $state!==''? e($state) : e(__('No state available.')); ?>
+                                    <?php $zip=(string)data_get($settings,'company_zipcode',''); echo $zip!==''? ' - '.e($zip) : ' - '.e(__('No zipcode available.')); ?>
+                                    <?php $country=(string)data_get($settings,'company_country',''); echo $country!==''? '<br>'.e($country) : '<br>'.e(__('No country available.')); ?>
+                                    <?= e(data_get($settings,'company_telephone', __('No phone available.'))) ?><br>
+                                    <?php $reg=(string)data_get($settings,'registration_number',''); if($reg!==''){ echo e(__('Registration Number')).' : '.e($reg).' <br>'; } ?>
+                                    <?php if (data_get($settings,'vat_gst_number_switch')==='on') {
+                            if (!empty($settings['tax_type']) && !empty($settings['vat_number'])) {
+                                echo e($settings['tax_type'].' '.__('Number')).' : '.e($settings['vat_number']).' <br>';
+                            }
+                        } ?>
+                                </p>
+                            </td>
+                            <td>
+                                <table class="no-space" style="width:45%;margin-left:auto;">
+                                    <tbody>
+                                        <tr>
+                                            <td><?= e(__('Number')) ?>:</td>
+                                            <td class="text-right"><?= e($purchaseNumber) ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td><?= e(__('Purchase Date')) ?>:</td>
+                                            <td class="text-right"><?= e($purchaseDate) ?></td>
+                                        </tr>
+                                        <?php if (!empty($customFields) && count(data_get($purchase,'customField',[]))>0): ?>
+                                            <?php foreach ($customFields as $field): ?>
+                                                <tr>
+                                                    <td><?= e(data_get($field,'name') ?? __('No name available')) ?> :</td>
+                                                    <td><?= e(data_get($purchase->customField, $field->id) ?? '-') ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                        <tr>
+                                            <td colspan="2">
+                                                <div class="view-qrcode">
+                                                    <?php
+                                    try {
+                                        $qrHtml = DNS2D::getBarcodeHTML($qrValue, 'QRCODE', 2, 2);
+                                        echo $qrHtml;
+                                    } catch (\Throwable $e) {
+                                        Log::error('QR HTML Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                                        echo '<div></div>';
+                                    }
+                                    ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="purchase-body">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong style="margin-bottom:10px;display:block;"><?= e(__('Bill To')) ?>:</strong>
+                                <?php if (!empty(data_get($vendor,'billing_name'))): ?>
+                                    <p>
+                                        <?= e(data_get($vendor,'billing_name', __('No name for billing available.'))) ?><br>
+                                        <?= e(data_get($vendor,'billing_address', __('No address for billing available.'))) ?><br>
+                                        <?php $bcity=(string)data_get($vendor,'billing_city',''); echo $bcity!==''? e($bcity) : e(__('No city for billing available.')); ?><?= $bcity!==''?', ':'' ?><br>
+                                        <?php $bstate=(string)data_get($vendor,'billing_state',''); echo $bstate!==''? e($bstate) : e(__('No state for billing available.')); ?><?= $bstate!==''?', ':'' ?>,
+                                        <?= e(data_get($vendor,'billing_zip', __('No zip for billing available.'))) ?><br>
+                                        <?= e(data_get($vendor,'billing_country', __('No country for billing available.'))) ?><br>
+                                        <?= e(data_get($vendor,'billing_phone', __('No phone for billing available.'))) ?><br>
+                                    </p>
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
+                            <?php if (data_get($settings,'shipping_display')==='on'): ?>
+                                <td class="text-right">
+                                    <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
+                                    <?php if (!empty(data_get($vendor,'shipping_name'))): ?>
+                                        <p>
+                                            <?= e(data_get($vendor,'shipping_name', __('No name for shipping available.'))) ?><br>
+                                            <?= e(data_get($vendor,'shipping_address', __('No address for shipping available.'))) ?><br>
+                                            <?php $scity=(string)data_get($vendor,'shipping_city',''); echo $scity!==''? e($scity) : e(__('No city for shipping available.')); ?><?= $scity!==''?', ':'' ?><br>
+                                            <?php $sstate=(string)data_get($vendor,'shipping_state',''); echo $sstate!==''? e($sstate) : e(__('No state for shipping available.')); ?><?= $sstate!==''?', ':'' ?>,
+                                            <?= e(data_get($vendor,'shipping_zip', __('No zip for shipping available.'))) ?><br>
+                                            <?= e(data_get($vendor,'shipping_country', __('No country for shipping available.'))) ?><br>
+                                            <?= e(data_get($vendor,'shipping_phone', __('No phone for shipping available.'))) ?><br>
+                                        </p>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
+                            <?php endif; ?>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="add-border purchase-summary" style="margin-top:30px;">
+                    <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>;">
+                        <tr>
+                            <th><?= e(__('Item')) ?></th>
+                            <th><?= e(__('Quantity')) ?></th>
+                            <th><?= e(__('Rate')) ?></th>
+                            <th><?= e(__('Discount')) ?></th>
+                            <th><?= e(__('Tax')) ?> (%)</th>
+                            <th><?= e(__('Price')) ?> <small><?= e(__('after tax & discount')) ?></small></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (is_iterable(data_get($purchase,'itemData')) && count($purchase->itemData)>0): ?>
+                            <?php foreach ($purchase->itemData as $key => $item): ?>
+                                <tr>
+                                    <td><?= e(data_get($item,'name') ?? __('No item name available')) ?></td>
+                                    <td><?= e((string)(data_get($item,'quantity') ?? 0)) ?></td>
+                                    <td><?php try { echo e(Utility::priceFormat($settings, data_get($item,'price',0))); } catch (\Throwable $e) { Log::error('Item price format Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0'; } ?></td>
+                                    <td><?php try { $disc=(float)(data_get($item,'discount',0)); echo $disc!=0.0? e(Utility::priceFormat($settings,$disc)) : '-'; } catch (\Throwable $e) { Log::error('Item discount format Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '-'; } ?></td>
+                                    <?php $itemtax = 0.0; ?>
+                                    <td>
+                                        <?php if (!empty(data_get($item,'itemTax'))): ?>
+                                            <?php foreach ((array)$item->itemTax as $taxes): ?>
+                                                <?php $itemtax += (float)data_get($taxes,'tax_price',0); ?>
+                                                <p><?= e((data_get($taxes,'name') ?? 'Tax').' ('.(data_get($taxes,'rate') ?? '0').') '.(data_get($taxes,'price') ?? '0')) ?></p>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <span>-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php
+                            try {
+                                $line = (float)(data_get($item,'price',0)) * (float)(data_get($item,'quantity',0)) - (float)(data_get($item,'discount',0)) + (float)$itemtax;
+                                echo e(Utility::priceFormat($settings, $line));
+                            } catch (\Throwable $e) {
+                                Log::error('Line total Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+                                echo '0';
+                            }
+                            ?>
+                                    </td>
+                                </tr>
+                                <?php if (!empty(data_get($item,'description'))): ?>
+                                    <tr class="border-0 itm-description">
+                                        <td colspan="6"><?= e((string)$item->description) ?></td>
+                                    </tr>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td><?= e(__('Total')) ?></td>
+                            <td><?= e($purchaseTotalQuantity) ?></td>
+                            <td><?= e($purchaseTotalRate) ?></td>
+                            <td><?= e($purchaseTotalDiscount) ?></td>
+                            <td><?= e($purchaseTotalTaxPrice) ?></td>
+                            <td><?= e($purchaseSubTotal) ?></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4"></td>
+                            <td colspan="2" class="sub-total">
+                                <table class="total-table">
                                     <tr>
-                                        <td>{{__('Number')}}:</td>
-                                        <td class="text-right">{{Utility::purchaseNumberFormat($settings,$purchase->purchase_id)}}</td>
+                                        <td><?= e(__('Subtotal')) ?>:</td>
+                                        <td><?= e($purchaseSubTotal) ?></td>
+                                    </tr>
+                                    <?php if (method_exists($purchase,'getTotalDiscount') && $purchase->getTotalDiscount()): ?>
+                                        <tr>
+                                            <td><?= e(__('Discount')) ?>:</td>
+                                            <td><?php try { echo e(Utility::priceFormat($settings, $purchase->getTotalDiscount())); } catch (\Throwable $e) { Log::error('Subtotal discount Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0'; } ?></td>
+                                        </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($purchase->taxesData)): ?>
+                                        <?php foreach ($purchase->taxesData as $taxName => $taxPrice): ?>
+                                            <tr>
+                                                <td><?= e($taxName) ?> :</td>
+                                                <td><?php try { echo e(Utility::priceFormat($settings, $taxPrice)); } catch (\Throwable $e) { Log::error('Tax row Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); echo '0'; } ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                    <tr>
+                                        <td><?= e(__('Total')) ?>:</td>
+                                        <td><?= e($purchaseGrandTotal) ?></td>
                                     </tr>
                                     <tr>
-                                        <td>{{__('Purchase Date')}}:</td>
-                                        <td class="text-right">{{Utility::dateFormat($settings,$purchase->purchase_date)}}</td>
+                                        <td><?= e(__('Paid')) ?>:</td>
+                                        <td><?= e($purchasePaid) ?></td>
                                     </tr>
-
-                                    @if(!empty($customFields) && count($purchase->customField)>0)
-                                    @foreach($customFields as $field)
                                     <tr>
-                                        <td>{{$field->name}} :</td>
-                                        <td> {{!empty($purchase->customField)?$purchase->customField[$field->id]:'-'}}</td>
+                                        <td><?= e(__('Due Amount')) ?>:</td>
+                                        <td><?= e($purchaseDue) ?></td>
                                     </tr>
-                                    @endforeach
-                                    @endif
-                                    <tr>
-                                        <td colspan="2">
-                                            <div class="view-qrcode">
-                                                {!! DNS2D::getBarcodeHTML(route('purchase.link.copy',\Crypt::encrypt($purchase->purchase_id)), "QRCODE",2,2) !!}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="purchase-body">
-            <table>
-                <tbody>
-                    <tr>
-                        <td>
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Bill To')}}:</strong>
-                            @if(!empty($vendor->billing_name))
-                            <p>
-                                {{!empty($vendor->billing_name)?$vendor->billing_name:''}}<br>
-                                {{!empty($vendor->billing_address)?$vendor->billing_address:''}}<br>
-                                {{!empty($vendor->billing_city)?$vendor->billing_city:'' .', '}}<br>
-                                {{!empty($vendor->billing_state)?$vendor->billing_state:'',', '}},
-                                {{!empty($vendor->billing_zip)?$vendor->billing_zip:''}}<br>
-                                {{!empty($vendor->billing_country)?$vendor->billing_country:''}}<br>
-                                {{!empty($vendor->billing_phone)?$vendor->billing_phone:''}}<br>
-                            </p>
-                            @else
-                            -
-                            @endif
-                        </td>
-                        @if($settings['shipping_display']=='on')
-                        <td class="text-right">
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Ship To')}}:</strong>
-                            @if(!empty($vendor->shipping_name))
-                            <p>
-                                {{!empty($vendor->shipping_name)?$vendor->shipping_name:''}}<br>
-                                {{!empty($vendor->shipping_address)?$vendor->shipping_address:''}}<br>
-                                {{!empty($vendor->shipping_city)?$vendor->shipping_city:'' . ', '}}<br>
-                                {{!empty($vendor->shipping_state)?$vendor->shipping_state:'' .', '}},
-                                {{!empty($vendor->shipping_zip)?$vendor->shipping_zip:''}}<br>
-                                {{!empty($vendor->shipping_country)?$vendor->shipping_country:''}}<br>
-                                {{!empty($vendor->shipping_phone)?$vendor->shipping_phone:''}}<br>
-                            </p>
-                            @else
-                            -
-                            @endif
-                        </td>
-                        @endif
-                    </tr>
-                </tbody>
-            </table>
-            <table class="add-border purchase-summary" style="margin-top: 30px;">
-                <thead style="background: <?= $color ?>; color: <?= $font_color ?>;">
-                    <tr>
-                        <th>{{__('Item')}}</th>
-                        <th>{{__('Quantity')}}</th>
-                        <th>{{__('Rate')}}</th>
-                        <th>{{__('Discount')}}</th>
-                        <th>{{__('Tax')}} (%)</th>
-                        <th>{{__('Price')}} <small>{{__('after tax & discount')}}</small></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if(isset($purchase->itemData) && count($purchase->itemData) > 0)
-                    @foreach($purchase->itemData as $key => $item)
-                    <tr>
-                        <td>{{$item->name}}</td>
-                        <td>{{$item->quantity}}</td>
-                        <td>{{Utility::priceFormat($settings,$item->price)}}</td>
-                        <td>{{($item->discount!=0)?Utility::priceFormat($settings,$item->discount):'-'}}</td>
-                        @php
-                        $itemtax = 0;
-                        @endphp
-                        <td>
-                            @if(!empty($item->itemTax))
+                                </table>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
 
-                            @foreach($item->itemTax as $taxes)
-                            @php
-                            $itemtax += $taxes['tax_price'];
-                            @endphp
-                            <p>{{$taxes['name']}} ({{$taxes['rate']}}) {{$taxes['price']}}</p>
-                            @endforeach
-                            @else
-                            <span>-</span>
-                            @endif
-                        </td>
-                        <td>{{Utility::priceFormat($settings,$item->price * $item->quantity -  $item->discount + $itemtax)}}</td>
-                        @if(!empty($item->description))
-                    <tr class="border-0 itm-description ">
-                        <td colspan="6">{{$item->description}}</td>
-                    </tr>
-                    @endif
-                    </tr>
-                    @endforeach
-                    @else
-                    @endif
-
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td>{{__('Total')}}</td>
-                        <td>{{$purchase->totalQuantity}}</td>
-                        <td>{{Utility::priceFormat($settings,$purchase->totalRate)}}</td>
-                        <td>{{Utility::priceFormat($settings,$purchase->totalDiscount)}}</td>
-                        <td>{{Utility::priceFormat($settings,$purchase->totalTaxPrice) }}</td>
-                        <td>{{Utility::priceFormat($settings,$purchase->getSubTotal())}}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="4"></td>
-                        <td colspan="2" class="sub-total">
-                            <table class="total-table">
-                                <tr>
-                                    <td>{{__('Subtotal')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$purchase->getSubTotal())}}</td>
-                                </tr>
-                                @if($purchase->getTotalDiscount())
-                                <tr>
-                                    <td>{{__('Discount')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$purchase->getTotalDiscount())}}</td>
-                                </tr>
-                                @endif
-                                @if(!empty($purchase->taxesData))
-                                @foreach($purchase->taxesData as $taxName => $taxPrice)
-                                <tr>
-                                    <td>{{$taxName}} :</td>
-                                    <td>{{ Utility::priceFormat($settings,$taxPrice)  }}</td>
-                                </tr>
-                                @endforeach
-                                @endif
-                                <tr>
-                                    <td>{{__('Total')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$purchase->getSubTotal()-$purchase->getTotalDiscount()+$purchase->getTotalTax())}}</td>
-                                </tr>
-                                <tr>
-                                    <td>{{__('Paid')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,($purchase->getTotal()-$purchase->getDue()))}}</td>
-                                </tr>
-
-                                <tr>
-                                    <td>{{__('Due Amount')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$purchase->getDue())}}</td>
-                                </tr>
-
-                            </table>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-            <div class="purchase-footer">
-                <b>{{$settings['footer_title']}}</b> <br>
-                {!! $settings['footer_notes'] !!}
+                <div class="purchase-footer">
+                    <b><?= e(data_get($settings,'footer_title', __('No footer title available'))) ?></b> <br>
+                    <?php try { echo (string)data_get($settings,'footer_notes',''); } catch (\Throwable $e) { Log::error('Footer notes Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__); } ?>
+                </div>
             </div>
         </div>
 
-    </div>
-    @if(!isset($preview))
-    @include('purchase.script');
-    @endif
-</body>
+        <?php if (!isset($preview)): ?>
+            <?php
+    try {
+        echo view('purchase.script')->render();
+    } catch (\Throwable $e) {
+        Log::error('Script include Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);
+    }
+    ?>
+        <?php endif; ?>
+    </body>
 
-</html>
+    </html>
+<?php
+} else {
+    echo '<!DOCTYPE html>
+<html lang="'.htmlspecialchars((string)DatabaseConstants::DEFAULT_LANG, ENT_QUOTES, 'UTF-8').'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="alert alert-warning">No purchase data available.</div>
+</body>
+</html>';
+}

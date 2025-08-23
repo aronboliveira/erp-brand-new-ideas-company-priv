@@ -160,8 +160,12 @@
         </div>
     </div>
 @endsection
-<script>
-    window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: {
         guard_unavailable: 'هذا الإجراء غير متاح.'
     },
@@ -211,7 +215,16 @@
         guard_unavailable: '此操作不可用。'
     }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
         const selector = '[data-sv-localized="true"]';

@@ -1,7 +1,11 @@
 <script src="{{ asset('js/jquery.min.js') }} "></script>
 <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-<script>
-    window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: {
         pdf_generation_failed: 'فشل إنشاء ملف PDF.',
         window_close_failed: 'فشل إغلاق النافذة.'
@@ -67,7 +71,16 @@
         window_close_failed: '关闭窗口失败。'
       }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
       const errFb = '# ERROR';

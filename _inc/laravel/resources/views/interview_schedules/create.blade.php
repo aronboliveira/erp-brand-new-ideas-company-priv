@@ -42,8 +42,12 @@
 </div>
     {{Collective\Html\FormFacade::close()}}
 @if($candidate!=0)
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { candidate_unavailable: 'المرشح غير متوفر' },
             da:  { candidate_unavailable: 'Kandidaten ikke tilgængelig' },
             de:  { candidate_unavailable: 'Kandidat nicht verfügbar' },
@@ -61,6 +65,15 @@
             tr:  { candidate_unavailable: 'Aday mevcut değil' },
             zh:  { candidate_unavailable: '候选人不可用' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

@@ -27,8 +27,12 @@
     {{__('Bill Detail')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: { shipping_update_failed: 'فشل تحديث عرض الشحن.' },
         da: { shipping_update_failed: 'Opdatering af forsendelsesvisning mislykkedes.' },
         de: { shipping_update_failed: 'Aktualisierung der Versandanzeige fehlgeschlagen.' },
@@ -46,6 +50,15 @@
         tr: { shipping_update_failed: 'Kargo gösterimi güncellenemedi.' },
         zh: { shipping_update_failed: '更新送货显示失败。' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

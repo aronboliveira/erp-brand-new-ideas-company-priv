@@ -10,7 +10,7 @@
 @endsection
 @push('script-page')
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
-    <script src="{{asset('js/jquery.repeater.min.js')}}"></script>
+    <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
     <script>
         var selector = "body";
         if ($(selector + " .repeater").length) {

@@ -21,8 +21,12 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('css/summernote/summernote-bs4.js') }}"></script>
     <script defer src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar: {
             deals_order_failed: 'فشل ترتيب الصفقات.',
             pipeline_change_failed: 'فشل تغيير مسار العملية.'
@@ -88,6 +92,15 @@
             pipeline_change_failed: '更改管道失败。'
           }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

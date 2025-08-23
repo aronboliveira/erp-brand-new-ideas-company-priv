@@ -242,7 +242,7 @@
                                                                         if (url !== '#') return;
                                                                         e.preventDefault();
                                                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                         let container = document.getElementById('toast-container');
                                                                         if (!container) {
                                                                             container = document.createElement('div');

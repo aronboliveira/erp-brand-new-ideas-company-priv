@@ -88,8 +88,12 @@
     <li class="breadcrumb-item">{{$customer['name']}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar: {
                 url_copy_success: 'تم نسخ الرابط إلى الحافظة.',
                 url_copy_failed: 'فشل نسخ الرابط.'
@@ -155,6 +159,15 @@
                 url_copy_failed: '无法复制 URL。'
             }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

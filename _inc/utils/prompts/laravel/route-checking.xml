@@ -30,6 +30,7 @@
 	- Remember to indent the script tag in the @push block;
 	- Remember to indent the IIFE in the script tag as well;
 	- Consider defering or asyncing the scripts if they are not essential for the initial page load;
+	- For routes that define the guard message through Utility::fetchLinkMessage, mark them with data-sv-localized="true";
 </instructions>
 <block>
 	

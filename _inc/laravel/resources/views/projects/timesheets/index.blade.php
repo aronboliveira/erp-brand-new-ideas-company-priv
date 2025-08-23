@@ -52,7 +52,7 @@
                             if (url !== '#') return;
                             e.preventDefault();
                             const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -113,7 +113,7 @@
                                     if (href !== '#' || url !== '#') return;
                                     e.preventDefault();
                                     const msg = l.getAttribute('data-guard-msg') || 'Open project route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                     let container = document.getElementById('toast-container');
                                     if (!container) {
                                         container = document.createElement('div');
@@ -207,8 +207,12 @@
     @endsection
 
     @push(StacksConstants::ADM_SCR_PG)
-        <script async>
-            window.translations = {
+            <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
                 ar: { timesheet_unavailable: "تعذّر تحميل الجدول الزمني", timesheet_nav_unavailable: "تعذّر التنقل بين الأسابيع", timesheet_popup_unavailable: "تعذّر فتح نافذة الجدول الزمني", timesheet_task_append_unavailable: "تعذّر إضافة المهمة إلى الجدول الزمني", timesheet_timecalc_unavailable: "تعذّر حساب إجمالي الوقت" },
                 da: { timesheet_unavailable: "Kunne ikke indlæse timeseddel", timesheet_nav_unavailable: "Kunne ikke skifte uge", timesheet_popup_unavailable: "Kunne ikke åbne timeseddel-popup", timesheet_task_append_unavailable: "Kunne ikke tilføje opgave til timeseddel", timesheet_timecalc_unavailable: "Kunne ikke beregne samlet tid" },
                 de: { timesheet_unavailable: "Zeiterfassung konnte nicht geladen werden", timesheet_nav_unavailable: "Woche konnte nicht gewechselt werden", timesheet_popup_unavailable: "Zeiterfassungs-Popup konnte nicht geöffnet werden", timesheet_task_append_unavailable: "Aufgabe konnte nicht zur Zeiterfassung hinzugefügt werden", timesheet_timecalc_unavailable: "Gesamtzeit konnte nicht berechnet werden" },
@@ -226,7 +230,16 @@
                 tr: { timesheet_unavailable: "Zaman çizelgesi yüklenemiyor", timesheet_nav_unavailable: "Hafta değiştirilemiyor", timesheet_popup_unavailable: "Zaman çizelgesi penceresi açılamıyor", timesheet_task_append_unavailable: "Görev zaman çizelgesine eklenemiyor", timesheet_timecalc_unavailable: "Toplam süre hesaplanamıyor" },
                 zh: { timesheet_unavailable: "无法加载工时表", timesheet_nav_unavailable: "无法切换周", timesheet_popup_unavailable: "无法打开工时表弹窗", timesheet_task_append_unavailable: "无法将任务添加到工时表", timesheet_timecalc_unavailable: "无法计算总时间" }
             };
-        </script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+         
+          })();
+    </script>
         <script defer>
             (()=>{
                 const errFb = "# ERROR";

@@ -127,8 +127,12 @@
         <button type="submit" class="btn btn-primary">{{ __('Update') }}</button>
     </div>
 {{ Form::close() }}
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: { image_preview_unavailable: "تعذّر معاينة الصورة", toggle_quantity_unavailable: "تعذّر تبديل حقل الكمية" },
     da: { image_preview_unavailable: "Kunne ikke forhåndsvise billede", toggle_quantity_unavailable: "Kunne ikke skifte mængdefelt" },
     de: { image_preview_unavailable: "Bildvorschau kann nicht angezeigt werden", toggle_quantity_unavailable: "Mengenfeld kann nicht umgeschaltet werden" },
@@ -146,7 +150,16 @@
     tr: { image_preview_unavailable: "Görüntü önizlenemiyor", toggle_quantity_unavailable: "Miktar alanı değiştirilemiyor" },
     zh: { image_preview_unavailable: "无法预览图片", toggle_quantity_unavailable: "无法切换数量字段" }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (()=>{
     const errFb = "# ERROR";

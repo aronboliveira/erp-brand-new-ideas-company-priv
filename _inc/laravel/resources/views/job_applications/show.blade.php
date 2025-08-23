@@ -31,8 +31,12 @@
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{ asset('js/bootstrap-toggle.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { tags_unavailable: 'لا يمكن تهيئة الوسوم', rating_unavailable: 'فشل إرسال التقييم', stage_change_unavailable: 'فشل تغيير مرحلة المرشح' },
             da:  { tags_unavailable: 'Kan ikke initialisere tags', rating_unavailable: 'Kunne ikke sende vurdering', stage_change_unavailable: 'Ændring af fase mislykkedes' },
             de:  { tags_unavailable: 'Tags konnten nicht initialisiert werden', rating_unavailable: 'Bewertung konnte nicht gesendet werden', stage_change_unavailable: 'Phasenänderung fehlgeschlagen' },
@@ -50,6 +54,15 @@
             tr:  { tags_unavailable: 'Etiketler başlatılamıyor', rating_unavailable: 'Değerlendirme gönderilemedi', stage_change_unavailable: 'Aday aşaması değiştirilemedi' },
             zh:  { tags_unavailable: '无法初始化标签', rating_unavailable: '无法提交评分', stage_change_unavailable: '无法更改候选人阶段' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

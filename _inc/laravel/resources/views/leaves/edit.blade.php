@@ -76,7 +76,7 @@
             <div class="col-md-12">
                 <div class="form-group">
                     {{Form::label('remark',__('Remark'),['class'=>'form-label'])}}
-                    {{Form::textarea('remark',null,array('class'=>'form-control grammer_textarea','placeholder'=>__('Leave Remark')))}}
+                    {{Form::textarea('remark',null,array('class'=>'form-control grammar_textarea','placeholder'=>__('Leave Remark')))}}
                 </div>
             </div>
         </div>

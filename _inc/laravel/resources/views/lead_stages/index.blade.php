@@ -13,8 +13,12 @@
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script async src="{{ asset('js/jquery-ui.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { lead_order_unavailable: 'فشل تحديث ترتيب المراحل' },
             da:  { lead_order_unavailable: 'Opdatering af rækkefølge mislykkedes' },
             de:  { lead_order_unavailable: 'Reihenfolgeaktualisierung fehlgeschlagen' },
@@ -32,6 +36,15 @@
             tr:  { lead_order_unavailable: 'Aşamalar sırası güncellenemedi' },
             zh:  { lead_order_unavailable: '无法更新阶段顺序' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

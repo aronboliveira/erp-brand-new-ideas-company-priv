@@ -98,8 +98,12 @@
     </div>
 {{Form::close()}}
 @push('script-page')
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         en: { date_picker_init_failed: 'Failed to initialize date picker.' },
         ar: { date_picker_init_failed: 'فشل تهيئة منتقي التاريخ.' },
         da: { date_picker_init_failed: 'Kunne ikke starte datovælgeren.' },
@@ -116,6 +120,15 @@
         tr: { date_picker_init_failed: 'Tarih seçici başlatılamadı.' },
         zh: { date_picker_init_failed: '初始化日期选择器失败。' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

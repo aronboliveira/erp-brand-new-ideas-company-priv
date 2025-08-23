@@ -80,7 +80,7 @@
                         if (url !== '#' || action !== '#') return;
                         e.preventDefault();
                         const msg = f.getAttribute('data-guard-msg') || 'Link project route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');

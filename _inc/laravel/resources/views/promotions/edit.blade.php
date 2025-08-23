@@ -87,7 +87,7 @@
             try {
                 const guardToast = (msg) => {
                     try {
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');

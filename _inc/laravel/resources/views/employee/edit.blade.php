@@ -326,8 +326,12 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar:    { file_name_append_failed:'تعذر عرض اسم الملف.',        designation_fetch_failed:'فشل جلب المناصب الوظيفية.' },
         da:    { file_name_append_failed:'Kunne ikke vise filnavnet.',  designation_fetch_failed:'Kunne ikke hente betegnelse.' },
         de:    { file_name_append_failed:'Dateiname konnte nicht angezeigt werden.', designation_fetch_failed:'Abrufen der Bezeichnungen fehlgeschlagen.' },
@@ -344,6 +348,15 @@
         tr:    { file_name_append_failed:'Dosya adı gösterilemedi.',                  designation_fetch_failed:'Unvanlar alınamadı.' },
         zh:    { file_name_append_failed:'无法显示文件名。',                             designation_fetch_failed:'获取职位失败。' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
 
     <script defer>

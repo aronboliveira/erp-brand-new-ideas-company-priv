@@ -68,8 +68,12 @@
     <li class="breadcrumb-item">{{__('Print-Settings')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations={
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{scrollspy_unavailable:"تعذّر تفعيل ScrollSpy",invoice_preview_unavailable:"تعذّر عرض معاينة الفاتورة",proposal_preview_unavailable:"تعذّر عرض معاينة المقترح",bill_preview_unavailable:"تعذّر عرض معاينة الفاتورة",invoice_logo_unavailable:"تعذّر معاينة شعار الفاتورة",proposal_logo_unavailable:"تعذّر معاينة شعار المقترح",bill_logo_unavailable:"تعذّر معاينة شعار الفاتورة"},
             da:{scrollspy_unavailable:"Kunne ikke aktivere ScrollSpy",invoice_preview_unavailable:"Kunne ikke indlæse fakturaforhåndsvisning",proposal_preview_unavailable:"Kunne ikke indlæse tilbudsforhåndsvisning",bill_preview_unavailable:"Kunne ikke indlæse regningsforhåndsvisning",invoice_logo_unavailable:"Kunne ikke forhåndsvise fakturalogo",proposal_logo_unavailable:"Kunne ikke forhåndsvise tilbudslogo",bill_logo_unavailable:"Kunne ikke forhåndsvise regningslogo"},
             de:{scrollspy_unavailable:"ScrollSpy konnte nicht aktiviert werden",invoice_preview_unavailable:"Rechnungsvorschau konnte nicht geladen werden",proposal_preview_unavailable:"Angebotsvorschau konnte nicht geladen werden",bill_preview_unavailable:"Rechnungsvorschau konnte nicht geladen werden",invoice_logo_unavailable:"Rechnungslogo konnte nicht angezeigt werden",proposal_logo_unavailable:"Angebotslogo konnte nicht angezeigt werden",bill_logo_unavailable:"Rechnungslogo konnte nicht angezeigt werden"},
@@ -87,6 +91,15 @@
             tr:{scrollspy_unavailable:"ScrollSpy etkinleştirilemedi",invoice_preview_unavailable:"Fatura önizlemesi yüklenemiyor",proposal_preview_unavailable:"Teklif önizlemesi yüklenemiyor",bill_preview_unavailable:"Fiş önizlemesi yüklenemiyor",invoice_logo_unavailable:"Fatura logosu önizlenemiyor",proposal_logo_unavailable:"Teklif logosu önizlenemiyor",bill_logo_unavailable:"Fiş logosu önizlenemiyor"},
             zh:{scrollspy_unavailable:"无法启用 ScrollSpy",invoice_preview_unavailable:"无法加载发票预览",proposal_preview_unavailable:"无法加载提案预览",bill_preview_unavailable:"无法加载账单预览",invoice_logo_unavailable:"无法预览发票徽标",proposal_logo_unavailable:"无法预览提案徽标",bill_logo_unavailable:"无法预览账单徽标"}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

@@ -10,6 +10,7 @@
 	$colorSettings??=[];
 	$color??='';
 	$faviconUrl??='';
+    $lang = Utility::fetchUserLang();
 	try {
 		$data=Utility::prepareCommonViewData(null,'uploads/logo/')?:[];
 		$logo=$data[SettingsConstants::LOGO]??'';
@@ -53,7 +54,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on'?'rtl':''}}">
+<html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on'?'rtl':''}}">
     <head>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>

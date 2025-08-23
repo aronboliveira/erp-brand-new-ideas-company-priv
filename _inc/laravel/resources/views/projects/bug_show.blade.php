@@ -164,7 +164,7 @@
                                                                 if (href !== '#' || url !== '#') return;
                                                                 e.preventDefault();
                                                                 const msg = l.getAttribute('data-guard-msg') || 'Delete bug comment route is unavailable. Please contact technical support or your domain administrator.';
-                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                 let container = document.getElementById('toast-container');
                                                                 if (!container) {
                                                                     container = document.createElement('div');
@@ -297,7 +297,7 @@
                                                                 if (href !== '#' || url !== '#') return;
                                                                 e.preventDefault();
                                                                 const msg = l.getAttribute('data-guard-msg') || 'Delete bug comment file route is unavailable. Please contact technical support or your domain administrator.';
-                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                 let container = document.getElementById('toast-container');
                                                                 if (!container) {
                                                                     container = document.createElement('div');
@@ -352,7 +352,7 @@
                             if (url !== '#' || action !== '#') return;
                             e.preventDefault();
                             const msg = f.getAttribute('data-guard-msg') || 'Store bug comment route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -408,7 +408,7 @@
                         if (url !== '#' || action !== '#') return;
                         e.preventDefault();
                         const msg = f.getAttribute('data-guard-msg') || 'Store bug comment file route is unavailable. Please contact technical support or your domain administrator.';
-                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');

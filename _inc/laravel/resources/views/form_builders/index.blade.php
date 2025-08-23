@@ -13,8 +13,12 @@
     {{__('Manage Form Builder')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             link_copy_success:    'تم نسخ الرابط إلى الحافظة.',
             link_copy_failed:     'فشل نسخ الرابط.'
@@ -40,6 +44,15 @@
             link_copy_failed:     'Échec de la copie du lien.'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script>
         (() => {

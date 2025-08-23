@@ -3886,8 +3886,12 @@
         <script async src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js"
             integrity="sha384-qlmct0AOBiA2VPZkMY3+2WqkHtIQ9lSdAsAn5RUJD/3vA5MKDgSGcdmIv4ycVxyn" crossorigin="anonymous">
         </script>
-        <script async>
-            window.translations = {
+            <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
                 ar:       { stripe_unavailable: 'لا يمكن تحميل Stripe', paystack_unavailable: 'لا يمكن تحميل Paystack', flutterwave_unavailable: 'لا يمكن تحميل Flutterwave', razorpay_unavailable: 'لا يمكن تحميل Razorpay', payfast_unavailable: 'لا يمكن تحميل PayFast', shipping_toggle_unavailable: 'فشل تبديل الشحن' },
                 da:       { stripe_unavailable: 'Kan ikke indlæse Stripe', paystack_unavailable: 'Kan ikke indlæse Paystack', flutterwave_unavailable: 'Kan ikke indlæse Flutterwave', razorpay_unavailable: 'Kan ikke indlæse Razorpay', payfast_unavailable: 'Kan ikke indlæse PayFast', shipping_toggle_unavailable: 'Skift af forsendelse mislykkedes' },
                 de:       { stripe_unavailable: 'Stripe konnte nicht geladen werden', paystack_unavailable: 'Paystack konnte nicht geladen werden', flutterwave_unavailable: 'Flutterwave konnte nicht geladen werden', razorpay_unavailable: 'Razorpay konnte nicht geladen werden', payfast_unavailable: 'PayFast konnte nicht geladen werden', shipping_toggle_unavailable: 'Versandumschaltung fehlgeschlagen' },
@@ -3905,7 +3909,16 @@
                 tr:       { stripe_unavailable: 'Stripe yüklenemiyor', paystack_unavailable: 'Paystack yüklenemiyor', flutterwave_unavailable: 'Flutterwave yüklenemiyor', razorpay_unavailable: 'Razorpay yüklenemiyor', payfast_unavailable: 'PayFast yüklenemiyor', shipping_toggle_unavailable: 'Gönderim geçişi başarısız' },
                 zh:       { stripe_unavailable: '无法加载 Stripe', paystack_unavailable: '无法加载 Paystack', flutterwave_unavailable: '无法加载 Flutterwave', razorpay_unavailable: '无法加载 Razorpay', payfast_unavailable: '无法加载 PayFast', shipping_toggle_unavailable: '运送切换失败' }
             };
-        </script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+         
+          })();
+    </script>
         <script defer>
             (() => {
                 const dataListenerAdded   = 'data-listener-added';

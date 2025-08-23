@@ -3,12 +3,14 @@
         ExtendingLayoutsConstants,
         StacksConstants,
         ViewsConstants,
-        ViewClassNamesConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use App\Models\{Purchase,Utility};
     use Illuminate\Support\Facades\{Auth, Crypt, Route};
-    $lang = Utility::fetchUserLang();
+    use Illuminate\Support\Str;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -25,24 +27,36 @@
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script async>
-        window.translations = {
-            ar:{ copy_unavailable:"تعذّر نسخ الرابط إلى الحافظة", copy_success:"تم نسخ الرابط إلى الحافظة" },
-            da:{ copy_unavailable:"Kunne ikke kopiere linket til udklipsholderen", copy_success:"Link kopieret til udklipsholder" },
-            de:{ copy_unavailable:"Link konnte nicht in die Zwischenablage kopiert werden", copy_success:"Link in die Zwischenablage kopiert" },
-            en:{ copy_unavailable:"Could not copy the link to clipboard", copy_success:"Link copied to clipboard" },
-            es:{ copy_unavailable:"No se pudo copiar el enlace al portapapeles", copy_success:"Enlace copiado al portapapeles" },
-            fr:{ copy_unavailable:"Impossible de copier le lien dans le presse-papiers", copy_success:"Lien copié dans le presse-papiers" },
-            he:{ copy_unavailable:"לא ניתן להעתיק את הקישור ללוח", copy_success:"הקישור הועתק ללוח" },
-            it:{ copy_unavailable:"Impossibile copiare il link negli appunti", copy_success:"Link copiato negli appunti" },
-            ja:{ copy_unavailable:"リンクをクリップボードにコピーできませんでした", copy_success:"リンクをクリップボードにコピーしました" },
-            nl:{ copy_unavailable:"Link kon niet naar het klembord worden gekopieerd", copy_success:"Link gekopieerd naar klembord" },
-            pl:{ copy_unavailable:"Nie można skopiować linku do schowka", copy_success:"Link skopiowano do schowka" },
-            pt:{ copy_unavailable:"Não foi possível copiar o link para a área de transferência", copy_success:"Link copiado para a área de transferência" },
-            "pt-br":{ copy_unavailable:"Não foi possível copiar o link para a área de transferência", copy_success:"Link copiado para a área de transferência" },
-            ru:{ copy_unavailable:"Не удалось скопировать ссылку в буфер обмена", copy_success:"Ссылка скопирована в буфер обмена" },
-            tr:{ copy_unavailable:"Bağlantı panoya kopyalanamadı", copy_success:"Bağlantı panoya kopyalandı" },
-            zh:{ copy_unavailable:"无法将链接复制到剪贴板", copy_success:"链接已复制到剪贴板" }
-        };
+          (() => { 
+            if (!window.translations) {
+            window.translations = {};
+            }
+            const t = {
+                        ar:{ copy_unavailable:"تعذّر نسخ الرابط إلى الحافظة", copy_success:"تم نسخ الرابط إلى الحافظة" },
+                        da:{ copy_unavailable:"Kunne ikke kopiere linket til udklipsholderen", copy_success:"Link kopieret til udklipsholder" },
+                        de:{ copy_unavailable:"Link konnte nicht in die Zwischenablage kopiert werden", copy_success:"Link in die Zwischenablage kopiert" },
+                        en:{ copy_unavailable:"Could not copy the link to clipboard", copy_success:"Link copied to clipboard" },
+                        es:{ copy_unavailable:"No se pudo copiar el enlace al portapapeles", copy_success:"Enlace copiado al portapapeles" },
+                        fr:{ copy_unavailable:"Impossible de copier le lien dans le presse-papiers", copy_success:"Lien copié dans le presse-papiers" },
+                        he:{ copy_unavailable:"לא ניתן להעתיק את הקישור ללוח", copy_success:"הקישור הועתק ללוח" },
+                        it:{ copy_unavailable:"Impossibile copiare il link negli appunti", copy_success:"Link copiato negli appunti" },
+                        ja:{ copy_unavailable:"リンクをクリップボードにコピーできませんでした", copy_success:"リンクをクリップボードにコピーしました" },
+                        nl:{ copy_unavailable:"Link kon niet naar het klembord worden gekopieerd", copy_success:"Link gekopieerd naar klembord" },
+                        pl:{ copy_unavailable:"Nie można skopiować linku do schowka", copy_success:"Link skopiowano do schowka" },
+                        pt:{ copy_unavailable:"Não foi possível copiar o link para a área de transferência", copy_success:"Link copiado para a área de transferência" },
+                        "pt-br":{ copy_unavailable:"Não foi possível copiar o link para a área de transferência", copy_success:"Link copiado para a área de transferência" },
+                        ru:{ copy_unavailable:"Не удалось скопировать ссылку в буфер обмена", copy_success:"Ссылка скопирована в буфер обмена" },
+                        tr:{ copy_unavailable:"Bağlantı panoya kopyalanamadı", copy_success:"Bağlantı panoya kopyalandı" },
+                        zh:{ copy_unavailable:"无法将链接复制到剪贴板", copy_success:"链接已复制到剪贴板" }
+                    };
+            Object.keys(t).forEach(
+            k =>
+                (window.translations[k] = {
+                ...(window.translations[k] || {}),
+                ...t[k],
+                })
+            );
+          })();
     </script>
     <script defer>
         (()=>{
@@ -143,87 +157,167 @@
         {{--            <i class="ti ti-file-export"></i>--}}
         {{--        </a>--}}
         @can('create purchase')
-            <a href="{{ route(ViewsConstants::PRC.'.create',0) }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('Create')}}">
+            @php
+                $purchaseCreateBase   = ViewsConstants::PRC.'.create';
+                $purchaseCreateKebab  = Str::kebab($purchaseCreateBase);
+                $purchaseCreateRes    = Route::has($purchaseCreateBase) ? $purchaseCreateBase : (Route::has($purchaseCreateKebab) ? $purchaseCreateKebab : null);
+                $purchaseCreateParams = [0];
+                $purchaseCreateUrl    = $purchaseCreateRes ? route($purchaseCreateRes, $purchaseCreateParams) : '#';
+                $purchaseCreateMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::PRC, 'create_purchase_route_unavailable') ?? 'Create purchase route is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
+            <a href="{{ $purchaseCreateUrl }}"
+            class="{{ VC::BT_PRM }} create-purchase"
+            data-bs-toggle="tooltip"
+            title="{{ __('Create') }}"
+            data-url="{{ $purchaseCreateUrl }}"
+            data-guard-msg="{{ $purchaseCreateMsg }}"
+            data-sv-localized="true">
                 <i class="ti ti-plus"></i>
             </a>
+            @push(StacksConstants::ADM_SCRP_PG)
+                <script src="{{ asset('assets/js/routes/purchases/create.js') }}" defer></script>
+            @endpush
         @endcan
     </div>
 @endsection
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
+    @php
+        $purchasesSafe = (isset($purchases) && (is_array($purchases) || $purchases instanceof \Illuminate\Support\Collection)) ? $purchases : [];
+        $fmtDate = function($v,$fb) use($user){ return ($v && $user && method_exists($user,'dateFormat')) ? ($user->dateFormat($v) ?? $fb) : $fb; };
+        $statusClass = fn($s) => match((int)$s){0=>'bg-secondary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-primary',default=>'bg-secondary'};
+    @endphp
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CM12 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="{{ VC::TB }} datatable">
                             <thead>
-                            <tr>
-                                <th> {{__('Purchase')}}</th>
-                                <th> {{__('Vendor')}}</th>
-                                <th> {{__('Category')}}</th>
-                                <th> {{__('Purchase Date')}}</th>
-                                <th>{{__('Status')}}</th>
-                                @if(Gate::check('edit purchase') || Gate::check('delete purchase') || Gate::check('show purchase'))
-                                    <th > {{__('Action')}}</th>
-                                @endif
-                            </tr>
-                            </thead>
-                            <tbody>
-
-                            @foreach ($purchases as $purchase)
-
                                 <tr>
-                                    <td class="Id">
-                                        <a href="{{ route(ViewsConstants::PRC.'.show',Crypt::encrypt($purchase->id)) }}" class="btn btn-outline-primary">{{ Auth::user()->purchaseNumberFormat($purchase->purchase_id) }}</a>
-                                    </td>
-                                    <td> {{ (!empty( $purchase->vendor)?$purchase->vendor->name:'') }} </td>
-                                    <td>{{ !empty($purchase->category)?$purchase->category->name:''}}</td>
-                                    <td>{{ Auth::user()->dateFormat($purchase->purchase_date) }}</td>
-                                    <td>
-                                        @if($purchase->status == 0)
-                                            <span class="purchase_status badge bg-secondary p-2 px-3 rounded">{{ __(Purchase::$statuses[$purchase->status]) }}</span>
-                                        @elseif($purchase->status == 1)
-                                            <span class="purchase_status badge bg-warning p-2 px-3 rounded">{{ __(Purchase::$statuses[$purchase->status]) }}</span>
-                                        @elseif($purchase->status == 2)
-                                            <span class="purchase_status badge bg-danger p-2 px-3 rounded">{{ __(Purchase::$statuses[$purchase->status]) }}</span>
-                                        @elseif($purchase->status == 3)
-                                            <span class="purchase_status badge bg-info p-2 px-3 rounded">{{ __(Purchase::$statuses[$purchase->status]) }}</span>
-                                        @elseif($purchase->status == 4)
-                                            <span class="purchase_status badge bg-primary p-2 px-3 rounded">{{ __(Purchase::$statuses[$purchase->status]) }}</span>
-                                        @endif
-                                    </td>
-
+                                    <th class="text-dark">{{ __('Purchase') }}</th>
+                                    <th class="text-dark">{{ __('Vendor') }}</th>
+                                    <th class="text-dark">{{ __('Category') }}</th>
+                                    <th class="text-dark">{{ __('Purchase Date') }}</th>
+                                    <th class="text-dark">{{ __('Status') }}</th>
                                     @if(Gate::check('edit purchase') || Gate::check('delete purchase') || Gate::check('show purchase'))
-                                        <td class="Action">
-                                            <span>
-                                                @can('show purchase')
-                                                    <div class="action-btn bg-info ms-2">
-                                                            <a href="{{ route(ViewsConstants::PRC.'.show', Crypt::encrypt($purchase->id)) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Show')}}" data-original-title="{{__('Detail')}}">
-                                                                <i class="ti ti-eye text-white"></i>
-                                                            </a>
-                                                        </div>
-                                                @endcan
-                                                @can('edit purchase')
-                                                    <div class="action-btn bg-primary ms-2">
-                                                        <a href="{{ route(ViewsConstants::PRC.'.edit', Crypt::encrypt($purchase->id)) }}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="Edit" data-original-title="{{__('Edit')}}">
-                                                            <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                                        </a>
-                                                    </div>
-                                                @endcan
-                                                @can('delete purchase')
-                                                    <div class="action-btn bg-danger ms-2">
-                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::PRC.'.destroy', $purchase->id],'class'=>'delete-form-btn','id'=>'delete-form-'.$purchase->id]) !!}
-                                                        <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$purchase->id}}').submit();">
-                                                            <i class="ti ti-trash text-white"></i>
-                                                        </a>
-                                                        {!! Collective\Html\FormFacade::close() !!}
-                                                    </div>
-                                                @endcan
-                                            </span>
-                                        </td>
+                                        <th class="text-dark">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
-                            @endforeach
+                            </thead>
+                            <tbody>
+                                @push(StacksConstants::ADM_SCRP_PG)
+                                    <script src="{{ asset('assets/js/routes/purchases/show.js') }}" defer></script>
+                                    @can('edit purchase')
+                                        <script src="{{ asset('assets/js/routes/purchases/edit.js') }}" defer></script>
+                                    @endcan
+                                    @can('delete purchase')
+                                        <script src="{{ asset('assets/js/routes/purchases/delete.js') }}" defer></script>
+                                    @endcan
+                                @endpush
+                                @forelse ($purchasesSafe as $purchase)
+                                    @php
+                                        $pid = data_get($purchase,'id');
+                                        $pnum = $user?->purchaseNumberFormat(data_get($purchase,'purchase_id')) ?? __('Could not find purchase number');
+                                        $vname = data_get($purchase,'vendor.name') ?? __('No vendor name available');
+                                        $cname = data_get($purchase,'category.name') ?? __('No category name available');
+                                        $pdate = $fmtDate(data_get($purchase,'purchase_date'), __('No purchase date available'));
+                                        $stIdx = data_get($purchase,'status');
+                                        $stText = __(\App\Models\Purchase::$statuses[$stIdx] ?? __('Unknown status'));
+                                    @endphp
+                                    <tr>
+                                        @php
+                                            $pidVal                  = isset($pid) ? $pid : null;
+                                            $encId                   = $pidVal ? Crypt::encrypt($pidVal) : null;
+                                            $purchaseShowBase        = VW::PRC.'.show';
+                                            $purchaseShowKebab       = Str::kebab($purchaseShowBase);
+                                            $purchaseShowResolved    = Route::has($purchaseShowBase) ? $purchaseShowBase : (Route::has($purchaseShowKebab) ? $purchaseShowKebab : null);
+                                            $purchaseShowParams      = $encId ? [$encId] : ['#'];
+                                            $purchaseShowUrl         = ($purchaseShowResolved && $encId) ? route($purchaseShowResolved, $purchaseShowParams) : '#';
+                                            $purchaseShowGuardMsg    = Utility::fetchLinkMessage($lang, VW::PRC, 'show_purchase_route_unavailable') ?? 'Show purchase route is unavailable. Please contact technical support or your domain administrator.';
+                                        @endphp
+                                        <td class="Id">
+                                            <a href="{{ $purchaseShowUrl }}" class="{{ VC::BT_OUTPM }} purchase-show" data-url="{{ $purchaseShowUrl }}" data-guard-msg="{{ $purchaseShowGuardMsg }}" data-sv-localized="true">{{ $pnum }}</a>
+                                        </td>
+                                        <td>{{ $vname }}</td>
+                                        <td>{{ $cname }}</td>
+                                        <td>{{ $pdate }}</td>
+                                        <td><span class="purchase_status {{ VC::BDG }} {{ $statusClass($stIdx) }} p-2 {{ VC::PX3 }} rounded">{{ $stText }}</span></td>
+                                        @if(Gate::check('edit purchase') || Gate::check('delete purchase') || Gate::check('show purchase'))
+                                            <td class="Action">
+                                                <span>
+                                                    @can('show purchase')
+                                                        <div class="{{ VC::ACT_BTN_INF }}">
+                                                            <a href="{{ $purchaseShowUrl }}" class="{{ VC::BT_SM_CT }} purchase-show" data-bs-toggle="tooltip" title="{{ __('Show') }}" data-original-title="{{ __('Detail') }}" data-url="{{ $purchaseShowUrl }}" data-guard-msg="{{ $purchaseShowGuardMsg }}" data-sv-localized="true"><i class="{{ VC::TI_EYE_WT }}"></i></a>
+                                                        </div>
+                                                    @endcan
+                                                    @can('edit purchase')
+                                                        <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                            @php
+                                                                $pidVal                = isset($pid) ? $pid : null;
+                                                                $encId                 = $pidVal ? Crypt::encrypt($pidVal) : null;
+                                                                $purchaseEditBase      = VW::PRC.'.edit';
+                                                                $purchaseEditKebab     = Str::kebab($purchaseEditBase);
+                                                                $purchaseEditResolved  = Route::has($purchaseEditBase) ? $purchaseEditBase : (Route::has($purchaseEditKebab) ? $purchaseEditKebab : null);
+                                                                $purchaseEditParams    = $encId ? [$encId] : ['#'];
+                                                                $purchaseEditUrl       = ($purchaseEditResolved && $encId) ? route($purchaseEditResolved, $purchaseEditParams) : '#';
+                                                                $purchaseEditGuardMsg  = Utility::fetchLinkMessage($lang, VW::PRC, 'edit_purchase_route_unavailable') ?? 'Edit purchase route is unavailable. Please contact technical support or your domain administrator.';
+                                                            @endphp
+                                                            <a href="{{ $purchaseEditUrl }}"
+                                                            class="{{ VC::BT_SM_CT }} edit-purchase"
+                                                            data-bs-toggle="tooltip"
+                                                            title="{{ __('Edit') }}"
+                                                            data-original-title="{{ __('Edit') }}"
+                                                            data-url="{{ $purchaseEditUrl }}"
+                                                            data-guard-msg="{{ $purchaseEditGuardMsg }}"
+                                                            data-sv-localized="true">
+                                                                <i class="{{ VC::TI_PC_WT }}"></i>
+                                                            </a>
+                                                        </div>
+                                                    @endcan
+                                                    @can('delete purchase')
+                                                        <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                            @php
+                                                                $pidVal                 = isset($pid) ? $pid : null;
+                                                                $deleteFormId           = 'delete-form-'.($pidVal ?? 'x');
+                                                                $destroyBase            = VW::PRC.'.destroy';
+                                                                $destroyKebab           = Str::kebab($destroyBase);
+                                                                $destroyResolved        = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
+                                                                $destroyParams          = $pidVal ? [$pidVal] : ['#'];
+                                                                $purchaseDestroyUrl     = ($destroyResolved && $pidVal) ? route($destroyResolved, $destroyParams) : '#';
+                                                                $purchaseDestroyGuardMsg= Utility::fetchLinkMessage($lang, VW::PRC, 'destroy_purchase_unavailable') ?? 'Destroy purchase route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $confirmTitle           = Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?';
+                                                                $confirmBody            = Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?';
+                                                            @endphp
+                                                            {!! Collective\Html\FormFacade::open([
+                                                                'method'              => 'DELETE',
+                                                                'url'                 => $purchaseDestroyUrl,
+                                                                'class'               => 'delete-form-btn',
+                                                                'id'                  => $deleteFormId,
+                                                                'data-url'            => $purchaseDestroyUrl,
+                                                                'data-guard-msg'      => $purchaseDestroyGuardMsg,
+                                                                'data-sv-localized'   => 'true',
+                                                            ]) !!}
+                                                                <a href="{{ $purchaseDestroyUrl }}"
+                                                                class="{{ VC::BT_SM_CT_PR }} delete-purchase"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ __('Delete') }}"
+                                                                data-original-title="{{ __('Delete') }}"
+                                                                data-url="{{ $purchaseDestroyUrl }}"
+                                                                data-guard-msg="{{ $purchaseDestroyGuardMsg }}"
+                                                                data-sv-localized="true"
+                                                                data-confirm="{{ __($confirmTitle) }}|{{ __($confirmBody) }}"
+                                                                data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();">
+                                                                    <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                </a>
+                                                            {!! Collective\Html\FormFacade::close() !!}
+                                                        </div>
+                                                    @endcan
+                                                </span>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @empty
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

@@ -119,8 +119,12 @@
         <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Copy') }}</button>
     </div>
 {{ Form::close() }}
-<script async>
-    window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar:{bulk_check_unavailable:'تعذّر تحديد/إلغاء تحديد الكل',cascade_task_unavailable:'تعذّر تفعيل تبعية مهام',cascade_bug_unavailable:'تعذّر تفعيل تبعية أخطاء'},
     da:{bulk_check_unavailable:'Kunne ikke markere/afmarkere alle',cascade_task_unavailable:'Kunne ikke aktivere afhængige opgaver',cascade_bug_unavailable:'Kunne ikke aktivere afhængige fejl'},
     de:{bulk_check_unavailable:'Alle markieren/aufheben fehlgeschlagen',cascade_task_unavailable:'Abhängige Aufgaben konnten nicht aktiviert werden',cascade_bug_unavailable:'Abhängige Bugs konnten nicht aktiviert werden'},
@@ -138,7 +142,16 @@
     tr:{bulk_check_unavailable:'Tümünü seç/açıklayı kapat yapılamadı',cascade_task_unavailable:'Görev bağımlılıkları uygulanamadı',cascade_bug_unavailable:'Hata bağımlılıkları uygulanamadı'},
     zh:{bulk_check_unavailable:'无法切换全选',cascade_task_unavailable:'无法应用任务依赖',cascade_bug_unavailable:'无法应用缺陷依赖'}
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (()=>{
     const DATA_LISTENER_ADDED='data-listener-added';
@@ -224,7 +237,7 @@
                 if (url !== '#' || action !== '#') return;
                 e.preventDefault();
                 const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                 let container = document.getElementById('toast-container');
                 if (!container) {
                     container = document.createElement('div');

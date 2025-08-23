@@ -58,8 +58,12 @@
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{report_pdf_unavailable:'تعذّر إنشاء ملف PDF',datatable_unavailable:'تعذّر تهيئة الجدول'},
             da:{report_pdf_unavailable:'Kunne ikke generere PDF',datatable_unavailable:'Kunne ikke initialisere tabel'},
             de:{report_pdf_unavailable:'PDF konnte nicht erstellt werden',datatable_unavailable:'Tabelle konnte nicht initialisiert werden'},
@@ -77,6 +81,15 @@
             tr:{report_pdf_unavailable:'PDF oluşturulamadı',datatable_unavailable:'Tablo başlatılamıyor'},
             zh:{report_pdf_unavailable:'无法生成 PDF',datatable_unavailable:'无法初始化表格'}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {
@@ -486,7 +499,7 @@
                                                 if (url !== '#') return;
                                                 e.preventDefault();
                                                 const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                 let container = document.getElementById('toast-container');
                                                 if (!container) {
                                                     container = document.createElement('div');
@@ -614,7 +627,7 @@
                                                                         if (url !== '#') return;
                                                                         e.preventDefault();
                                                                         const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                         let container = document.getElementById('toast-container');
                                                                         if (!container) {
                                                                             container = document.createElement('div');
@@ -692,8 +705,12 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/datatables.min.js') }}"></script>
     <script async src="{{ asset('assets/js/plugins/apexcharts.min.js')}}"></script>
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{pdf_unavailable:'تعذّر إنشاء ملف PDF',chart_milestone_unavailable:'تعذّر عرض مخطط الإنجاز',chart_priority_unavailable:'تعذّر عرض مخطط الأولوية',chart_pie_unavailable:'تعذّر عرض المخطط الدائري',chart_hours_unavailable:'تعذّر عرض مخطط الساعات'},
             da:{pdf_unavailable:'Kunne ikke generere PDF',chart_milestone_unavailable:'Kunne ikke vise milepælsdiagram',chart_priority_unavailable:'Kunne ikke vise prioritetsdiagram',chart_pie_unavailable:'Kunne ikke vise cirkeldiagram',chart_hours_unavailable:'Kunne ikke vise time-diagram'},
             de:{pdf_unavailable:'PDF konnte nicht erstellt werden',chart_milestone_unavailable:'Meilenstein-Diagramm konnte nicht angezeigt werden',chart_priority_unavailable:'Prioritätsdiagramm konnte nicht angezeigt werden',chart_pie_unavailable:'Kreisdiagramm konnte nicht angezeigt werden',chart_hours_unavailable:'Stundendiagramm konnte nicht angezeigt werden'},
@@ -711,6 +728,15 @@
             tr:{pdf_unavailable:'PDF oluşturulamadı',chart_milestone_unavailable:'Kilometre taşı grafiği oluşturulamadı',chart_priority_unavailable:'Öncelik grafiği oluşturulamadı',chart_pie_unavailable:'Pasta grafiği oluşturulamadı',chart_hours_unavailable:'Saat grafiği oluşturulamadı'},
             zh:{pdf_unavailable:'无法生成 PDF',chart_milestone_unavailable:'无法渲染里程碑图',chart_priority_unavailable:'无法渲染优先级图',chart_pie_unavailable:'无法渲染饼图',chart_hours_unavailable:'无法渲染工时图'}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script async>
         (()=>{
@@ -841,7 +867,7 @@
                     if (url !== '#') return;
                     e.preventDefault();
                     const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                     let container = document.getElementById('toast-container');
                     if (!container) {
                         container = document.createElement('div');

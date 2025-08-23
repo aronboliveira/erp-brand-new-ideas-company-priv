@@ -65,8 +65,12 @@
         <input type="submit" value="{{ __('Update') }}" class="{{ ViewClassNamesConstants::BT_PRM }}">
     </div>
 {{ Form::close() }}
-<script>
-  window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: {
       emp_by_star_unavailable: 'فشل جلب بيانات النجوم للموظف.',
       emp_by_star1_unavailable: 'فشل جلب بيانات النجوم للتقييم.',
@@ -148,7 +152,16 @@
       employee_fetch_unavailable: '无法获取员工列表。'
     }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
       const errFb = '# ERROR';

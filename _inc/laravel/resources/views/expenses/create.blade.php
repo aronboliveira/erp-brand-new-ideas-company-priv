@@ -28,8 +28,12 @@
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
     <script defer src="{{ asset('js/jquery-searchbox.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar: {
             selection_failed:             'فشل تغيير النوع.',
             employee_fetch_failed:        'فشل جلب بيانات الموظف.',
@@ -121,6 +125,15 @@
             repeater_delete_failed:       '无法删除重复器项目。'
           }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

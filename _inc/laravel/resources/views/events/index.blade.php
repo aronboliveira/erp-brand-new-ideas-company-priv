@@ -127,8 +127,12 @@
 
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/plugins/main.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar:    { calendar_data_unavailable:'فشل تحميل بيانات التقويم.', department_fetch_unavailable:'فشل جلب الأقسام.', employee_fetch_unavailable:'فشل جلب الموظفين.' },
           da:    { calendar_data_unavailable:'Kunne ikke hente kalenderdata.', department_fetch_unavailable:'Kunne ikke hente afdelinger.', employee_fetch_unavailable:'Kunne ikke hente medarbejdere.' },
           de:    { calendar_data_unavailable:'Abrufen der Kalenderdaten fehlgeschlagen.', department_fetch_unavailable:'Abrufen der Abteilungen fehlgeschlagen.', employee_fetch_unavailable:'Abrufen der Mitarbeiter fehlgeschlagen.' },
@@ -145,6 +149,15 @@
           tr:    { calendar_data_unavailable:'Takvim verileri yüklenemedi.',             department_fetch_unavailable:'Birimler alınamadı.',                  employee_fetch_unavailable:'Çalışanlar alınamadı.' },
           zh:    { calendar_data_unavailable:'无法加载日历数据。',                         department_fetch_unavailable:'获取部门失败。',                         employee_fetch_unavailable:'获取员工失败。' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

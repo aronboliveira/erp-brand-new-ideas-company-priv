@@ -158,8 +158,12 @@
     </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             dept_init_fail: "فشل تهيئة قائمة الأقسام",
             dept_load_fail: "فشل تحميل الأقسام",
@@ -374,6 +378,15 @@
             delete_meeting_route_unavailable: "删除会议路由不可用。请联系技术支持或您的域管理员。",
         },
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     @can('create meeting')
         <script defer src="{{ asset('assets/js/routes/meetings/calendar.js') }}"></script>

@@ -96,8 +96,12 @@
         >
     </div>
 {{ Form::close() }}
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: {
       selection_failed:                 'فشل تغيير النوع.',
       employee_fetch_failed:            'فشل جلب بيانات الموظف.',
@@ -275,7 +279,16 @@
       preview_failed:                   '预览附件失败。'
     }
   };
-</script>  
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>  
 <script defer>
     (() => {
         const form = document.getElementById('{{ $formId }}');

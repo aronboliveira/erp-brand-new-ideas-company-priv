@@ -42,8 +42,12 @@
         @csrf
         <input type="hidden" name="json" id="json_callback">
     </form>
-    <script>
-      window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
           snap_sdk_unavailable: 'خدمة الدفع غير محملة.',
           payment_init_failed: 'فشل بدء نافذة الدفع.',
@@ -141,6 +145,15 @@
           response_submit_failed: '提交支付响应失败。'
         }
       };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
       (() => {

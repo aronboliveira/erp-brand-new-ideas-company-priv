@@ -76,8 +76,12 @@
         <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
     </div>
 {{Form::close()}}
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: { pipeline_stages_unavailable: "تعذّر تحميل المراحل" },
     da: { pipeline_stages_unavailable: "Kunne ikke indlæse faser" },
     de: { pipeline_stages_unavailable: "Phasen konnten nicht geladen werden" },
@@ -95,7 +99,16 @@
     tr: { pipeline_stages_unavailable: "Aşamalar yüklenemiyor" },
     zh: { pipeline_stages_unavailable: "无法加载阶段" }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (()=>{
     const errFb = "# ERROR";

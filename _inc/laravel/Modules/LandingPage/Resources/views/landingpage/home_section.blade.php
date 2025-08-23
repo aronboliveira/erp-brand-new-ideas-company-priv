@@ -367,8 +367,12 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             are_you_sure: "هل أنت متأكد أنك تريد حذف هذا العنصر؟",
             image_preview_unavailable: "معاينة الصورة غير متاحة. يرجى الاتصال بالدعم الفني أو مسؤول المجال.",
@@ -498,6 +502,15 @@
             store_image_upload_unavailable: "图片上传路由不可用。请联系技术支持或您的域管理员。"
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script async src="{{ asset('assets/js/jquery.repeater.min.js') }}"></script>
     <script async>

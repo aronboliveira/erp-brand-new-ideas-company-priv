@@ -107,8 +107,12 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:       { repeater_show_unavailable: 'فشل عرض المكرر', repeater_hide_unavailable: 'فشل إخفاء المكرر', customer_change_unavailable: 'فشل جلب تفاصيل العميل', customer_remove_unavailable: 'فشل إزالة العميل', item_change_unavailable: 'فشل جلب تفاصيل الصنف', calculation_unavailable: 'فشل الحساب', customer_initial_unavailable: 'فشل تحديد العميل' },
             da:       { repeater_show_unavailable: 'Visning af gentager mislykkedes', repeater_hide_unavailable: 'Skjul af gentager mislykkedes', customer_change_unavailable: 'Hentning af kundedetaljer mislykkedes', customer_remove_unavailable: 'Fjernelse af kunde mislykkedes', item_change_unavailable: 'Hentning af vareoplysninger mislykkedes', calculation_unavailable: 'Beregning mislykkedes', customer_initial_unavailable: 'Indstilling af kunde mislykkedes' },
             de:       { repeater_show_unavailable: 'Wiederholer-Anzeige fehlgeschlagen', repeater_hide_unavailable: 'Wiederholer-Ausblenden fehlgeschlagen', customer_change_unavailable: 'Kundendetailsabruf fehlgeschlagen', customer_remove_unavailable: 'Kunde entfernen fehlgeschlagen', item_change_unavailable: 'Artikeldetailsabruf fehlgeschlagen', calculation_unavailable: 'Berechnung fehlgeschlagen', customer_initial_unavailable: 'Kundeinstellung fehlgeschlagen' },
@@ -126,6 +130,15 @@
             tr:       { repeater_show_unavailable: 'Tekrar gösterilemedi', repeater_hide_unavailable: 'Tekrar gizlenemedi', customer_change_unavailable: 'Müşteri bilgileri alınamadı', customer_remove_unavailable: 'Müşteri kaldırılamadı', item_change_unavailable: 'Ürün bilgileri alınamadı', calculation_unavailable: 'Hesaplama başarısız', customer_initial_unavailable: 'Müşteri seçilemedi' },
             zh:       { repeater_show_unavailable: '无法显示重复项', repeater_hide_unavailable: '无法隐藏重复项', customer_change_unavailable: '无法获取客户详情', customer_remove_unavailable: '无法移除客户', item_change_unavailable: '无法获取商品详情', calculation_unavailable: '计算失败', customer_initial_unavailable: '无法选择客户' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

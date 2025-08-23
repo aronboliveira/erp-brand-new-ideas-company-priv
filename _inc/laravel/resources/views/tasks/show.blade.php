@@ -57,7 +57,7 @@
                         </div>
                         <div class="col-12">
                             <div id="progress-result" class="tab-pane tab-example-result fade show active" role="tabpanel" aria-labelledby="progress-result-tab">
-                                <input type="range" class="task_progress custom-range" value="{{ $task->progress }}" id="task_progress" name="progress" data-url="{{ route('change.progress',[$task->project_id,$task->id]) }}">
+                                <input type="range" class="task_progress custom-range" value="{{ $task->progress }}" id="task_progress" name="progress" data-url="{{ route(ViewsConstants::PRJ_TSK_C.'.change.progress',[$task->project_id,$task->id]) }}">
                             </div>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
                     </div>
                 </div>
                 <div class="checklist" id="checklist">
-                    <form method="post" id="form-checklist" class="collapse pb-2" data-action="{{route('checklist.store',[$task->project_id,$task->id])}}">
+                    <form method="post" id="form-checklist" class="collapse pb-2" data-action="{{route(ViewsConstants::PRJ_TSK_C.'.checklist.store',[$task->project_id,$task->id])}}">
                         <div class="card border shadow-none">
                             <div class="px-3 py-2 row align-items-center">
                                 <div class="col-10">
@@ -96,12 +96,12 @@
                             <div class="px-3 py-2 row align-items-center">
                                 <div class="col-10">
                                     <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="check-item-{{ $checklist->id }}" @if($checklist->status) checked @endif data-url="{{route('checklist.update',[$task->project_id,$checklist->id])}}">
+                                        <input type="checkbox" class="custom-control-input" id="check-item-{{ $checklist->id }}" @if($checklist->status) checked @endif data-url="{{route(ViewsConstants::PRJ_TSK_C.'.checklist.update',[$task->project_id,$checklist->id])}}">
                                         <label class="custom-control-label h6 text-sm" for="check-item-{{ $checklist->id }}">{{ $checklist->name }}</label>
                                     </div>
                                 </div>
                                 <div class="col-auto card-meta d-inline-flex align-items-center ml-sm-auto">
-                                    <a href="#" class="action-item delete-checklist" data-url="{{route('checklist.destroy',[$task->project_id,$checklist->id])}}">
+                                    <a href="#" class="action-item delete-checklist" data-url="{{route(ViewsConstants::PRJ_TSK_C.'.checklist.destroy',[$task->project_id,$checklist->id])}}">
                                         <i class="ti ti-trash-alt text-danger"></i>
                                     </a>
                                 </div>
@@ -159,7 +159,7 @@
                                             <i class="ti ti-download"></i>
                                         </a>
                                         @auth('web')
-                                            <a href="#" class="action-item delete-comment-file" role="button" data-url="{{route('comment.destroy.file',[$task->project_id,$task->id,$file->id])}}">
+                                            <a href="#" class="action-item delete-comment-file" role="button" data-url="{{route(ViewsConstants::PRJ_TSK_C.'.comment.destroy.file',[$task->project_id,$task->id,$file->id])}}">
                                                 <i class="ti ti-trash"></i>
                                             </a>
                                         @endauth
@@ -205,7 +205,7 @@
                                     <small class="d-block">{{$comment->created_at->diffForHumans()}}</small>
                                 </div>
                                 <div class="col-auto">
-                                    <a href="#" class="delete-comment" data-url="{{route('comment.destroy',[$task->project_id,$task->id,$comment->id])}}"><i class="ti ti-trash-alt text-danger"></i></a>
+                                    <a href="#" class="delete-comment" data-url="{{route(ViewsConstants::PRJ_TSK_C.'.comment.destroy',[$task->project_id,$task->id,$comment->id])}}"><i class="ti ti-trash-alt text-danger"></i></a>
                                 </div>
                             </div>
                         </div>

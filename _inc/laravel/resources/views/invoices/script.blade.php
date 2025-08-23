@@ -1,7 +1,11 @@
 <script src="{{ asset('js/jquery.min.js') }} "></script>
 <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-<script async>
-    window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar:  { invoice_pdf_unavailable: 'لا يمكن إنشاء ملف PDF' },
         da:  { invoice_pdf_unavailable: 'Kan ikke generere PDF' },
         de:  { invoice_pdf_unavailable: 'PDF konnte nicht erstellt werden' },
@@ -19,7 +23,16 @@
         tr:  { invoice_pdf_unavailable: 'PDF oluşturulamıyor' },
         zh:  { invoice_pdf_unavailable: '无法生成 PDF' }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
         const DATA_LISTENER_ADDED   = 'data-listener-added';

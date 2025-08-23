@@ -28,7 +28,7 @@
 	$logo??='';
 	$color??='';
 	$siteRtl??='';
-	$lang??=DatabaseConstants::DEFAULT_LANG;
+	$lang = Utility::fetchUserLang();
 	$meta_title??='';
 	$meta_desc??='';
 	$meta_image??='';
@@ -110,7 +110,7 @@
 		$color=$data[SettingsConstants::THM_CLR]??
 			SettingsConstants::THM_CLR_DEF;
 		$siteRtl=$data[SettingsConstants::RTL]??'off';
-		$lang=$data[SettingsConstants::LCL]??
+		$lang=$data[SettingsConstants::LCL]?? Utility::fetchUserLang() ??
 			str_replace('_','-',app()->getLocale())??
 			DatabaseConstants::DEFAULT_LANG;
 		$meta_title=$data[SettingsConstants::MT_TTL_K]??
@@ -159,7 +159,7 @@
 	}
     $data = Utility::fallbackSettings($data);
 @endphp
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
+<html lang="{{ $lang }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
         <title>
             {{ Utility::getValByName('title_text') ? Utility::getValByName('title_text') : config('app.name', 'ERPNovaPrestech') }}

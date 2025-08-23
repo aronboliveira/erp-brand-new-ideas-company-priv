@@ -22,8 +22,12 @@
     {{-- <script src="{{ asset('libs/dragula/dist/dragula.min.js') }}"></script>
     <script src="{{ asset('libs/autosize/dist/autosize.min.js') }}"></script> --}}
     <script defer src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { application_unavailable: 'لا يمكن جلب طلبات الوظيفة', application_order_unavailable: 'فشل تحديث ترتيب الطلب', dragula_unavailable: 'لا يمكن تهيئة قائمة السحب والإفلات' },
             da:  { application_unavailable: 'Kan ikke hente jobansøgning', application_order_unavailable: 'Opdatering af rækkefølge mislykkedes', dragula_unavailable: 'Kan ikke initialisere dragula' },
             de:  { application_unavailable: 'Kann Bewerbungen nicht abrufen', application_order_unavailable: 'Reihenfolgeaktualisierung fehlgeschlagen', dragula_unavailable: 'Kann Dragula nicht initialisieren' },
@@ -41,6 +45,15 @@
             tr:  { application_unavailable: 'İş başvurusu alınamadı', application_order_unavailable: 'Başvuru sırası güncellenemedi', dragula_unavailable: 'dragula başlatılamıyor' },
             zh:  { application_unavailable: '无法获取求职申请', application_order_unavailable: '更新申请顺序失败', dragula_unavailable: '无法初始化 dragula' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

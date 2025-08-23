@@ -54,7 +54,7 @@
                             if (url !== '#') return;
                             e.preventDefault();
                             const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -115,7 +115,7 @@
                                     if (href !== '#' || url !== '#') return;
                                     e.preventDefault();
                                     const msg = l.getAttribute('data-guard-msg') || 'Show project route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                     let container = document.getElementById('toast-container');
                                     if (!container) {
                                         container = document.createElement('div');
@@ -152,239 +152,252 @@
     @endpush
     @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
-        <script async>
-        window.translations = {
-            ar:{dragula_unavailable:"تعذّر تفعيل السحب والإفلات",kanban_move_unavailable:"تعذّر نقل العنصر",comment_add_unavailable:"تعذّر إضافة التعليق",comment_delete_unavailable:"تعذّر حذف التعليق",file_add_unavailable:"تعذّر إضافة الملف",file_delete_unavailable:"تعذّر حذف الملف"},
-            da:{dragula_unavailable:"Kunne ikke aktivere træk-og-slip",kanban_move_unavailable:"Kunne ikke flytte elementet",comment_add_unavailable:"Kunne ikke tilføje kommentar",comment_delete_unavailable:"Kunne ikke slette kommentar",file_add_unavailable:"Kunne ikke tilføje fil",file_delete_unavailable:"Kunne ikke slette fil"},
-            de:{dragula_unavailable:"Drag-and-Drop konnte nicht aktiviert werden",kanban_move_unavailable:"Element konnte nicht verschoben werden",comment_add_unavailable:"Kommentar konnte nicht hinzugefügt werden",comment_delete_unavailable:"Kommentar konnte nicht gelöscht werden",file_add_unavailable:"Datei konnte nicht hinzugefügt werden",file_delete_unavailable:"Datei konnte nicht gelöscht werden"},
-            en:{dragula_unavailable:"Drag & drop could not be initialized",kanban_move_unavailable:"Could not move the item",comment_add_unavailable:"Could not add the comment",comment_delete_unavailable:"Could not delete the comment",file_add_unavailable:"Could not add the file",file_delete_unavailable:"Could not delete the file"},
-            es:{dragula_unavailable:"No se pudo iniciar arrastrar y soltar",kanban_move_unavailable:"No se pudo mover el elemento",comment_add_unavailable:"No se pudo agregar el comentario",comment_delete_unavailable:"No se pudo eliminar el comentario",file_add_unavailable:"No se pudo agregar el archivo",file_delete_unavailable:"No se pudo eliminar el archivo"},
-            fr:{dragula_unavailable:"Impossible d’activer le glisser-déposer",kanban_move_unavailable:"Impossible de déplacer l’élément",comment_add_unavailable:"Impossible d’ajouter le commentaire",comment_delete_unavailable:"Impossible de supprimer le commentaire",file_add_unavailable:"Impossible d’ajouter le fichier",file_delete_unavailable:"Impossible de supprimer le fichier"},
-            he:{dragula_unavailable:"לא ניתן להפעיל גרירה ושחרור",kanban_move_unavailable:"לא ניתן להעביר את הפריט",comment_add_unavailable:"לא ניתן להוסיף את התגובה",comment_delete_unavailable:"לא ניתן למחוק את התגובה",file_add_unavailable:"לא ניתן להוסיף את הקובץ",file_delete_unavailable:"לא ניתן למחוק את הקובץ"},
-            it:{dragula_unavailable:"Impossibile inizializzare il drag & drop",kanban_move_unavailable:"Impossibile spostare l’elemento",comment_add_unavailable:"Impossibile aggiungere il commento",comment_delete_unavailable:"Impossibile eliminare il commento",file_add_unavailable:"Impossibile aggiungere il file",file_delete_unavailable:"Impossibile eliminare il file"},
-            ja:{dragula_unavailable:"ドラッグ＆ドロップを初期化できませんでした",kanban_move_unavailable:"項目を移動できませんでした",comment_add_unavailable:"コメントを追加できませんでした",comment_delete_unavailable:"コメントを削除できませんでした",file_add_unavailable:"ファイルを追加できませんでした",file_delete_unavailable:"ファイルを削除できませんでした"},
-            nl:{dragula_unavailable:"Slepen-en-neerzetten kon niet worden gestart",kanban_move_unavailable:"Item kon niet worden verplaatst",comment_add_unavailable:"Opmerking kon niet worden toegevoegd",comment_delete_unavailable:"Opmerking kon niet worden verwijderd",file_add_unavailable:"Bestand kon niet worden toegevoegd",file_delete_unavailable:"Bestand kon niet worden verwijderd"},
-            pl:{dragula_unavailable:"Nie można uruchomić przeciągania",kanban_move_unavailable:"Nie można przenieść elementu",comment_add_unavailable:"Nie można dodać komentarza",comment_delete_unavailable:"Nie można usunąć komentarza",file_add_unavailable:"Nie można dodać pliku",file_delete_unavailable:"Nie można usunąć pliku"},
-            pt:{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
-            "pt-br":{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
-            ru:{dragula_unavailable:"Не удалось инициализировать перетаскивание",kanban_move_unavailable:"Не удалось переместить элемент",comment_add_unavailable:"Не удалось добавить комментарий",comment_delete_unavailable:"Не удалось удалить комментарий",file_add_unavailable:"Не удалось добавить файл",file_delete_unavailable:"Не удалось удалить файл"},
-            tr:{dragula_unavailable:"Sürükle-bırak başlatılamadı",kanban_move_unavailable:"Öğe taşınamadı",comment_add_unavailable:"Yorum eklenemedi",comment_delete_unavailable:"Yorum silinemedi",file_add_unavailable:"Dosya eklenemedi",file_delete_unavailable:"Dosya silinemedi"},
-            zh:{dragula_unavailable:"无法初始化拖放",kanban_move_unavailable:"无法移动条目",comment_add_unavailable:"无法添加评论",comment_delete_unavailable:"无法删除评论",file_add_unavailable:"无法添加文件",file_delete_unavailable:"无法删除文件"}
-        };
-        </script>
+            <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
+                ar:{dragula_unavailable:"تعذّر تفعيل السحب والإفلات",kanban_move_unavailable:"تعذّر نقل العنصر",comment_add_unavailable:"تعذّر إضافة التعليق",comment_delete_unavailable:"تعذّر حذف التعليق",file_add_unavailable:"تعذّر إضافة الملف",file_delete_unavailable:"تعذّر حذف الملف"},
+                da:{dragula_unavailable:"Kunne ikke aktivere træk-og-slip",kanban_move_unavailable:"Kunne ikke flytte elementet",comment_add_unavailable:"Kunne ikke tilføje kommentar",comment_delete_unavailable:"Kunne ikke slette kommentar",file_add_unavailable:"Kunne ikke tilføje fil",file_delete_unavailable:"Kunne ikke slette fil"},
+                de:{dragula_unavailable:"Drag-and-Drop konnte nicht aktiviert werden",kanban_move_unavailable:"Element konnte nicht verschoben werden",comment_add_unavailable:"Kommentar konnte nicht hinzugefügt werden",comment_delete_unavailable:"Kommentar konnte nicht gelöscht werden",file_add_unavailable:"Datei konnte nicht hinzugefügt werden",file_delete_unavailable:"Datei konnte nicht gelöscht werden"},
+                en:{dragula_unavailable:"Drag & drop could not be initialized",kanban_move_unavailable:"Could not move the item",comment_add_unavailable:"Could not add the comment",comment_delete_unavailable:"Could not delete the comment",file_add_unavailable:"Could not add the file",file_delete_unavailable:"Could not delete the file"},
+                es:{dragula_unavailable:"No se pudo iniciar arrastrar y soltar",kanban_move_unavailable:"No se pudo mover el elemento",comment_add_unavailable:"No se pudo agregar el comentario",comment_delete_unavailable:"No se pudo eliminar el comentario",file_add_unavailable:"No se pudo agregar el archivo",file_delete_unavailable:"No se pudo eliminar el archivo"},
+                fr:{dragula_unavailable:"Impossible d’activer le glisser-déposer",kanban_move_unavailable:"Impossible de déplacer l’élément",comment_add_unavailable:"Impossible d’ajouter le commentaire",comment_delete_unavailable:"Impossible de supprimer le commentaire",file_add_unavailable:"Impossible d’ajouter le fichier",file_delete_unavailable:"Impossible de supprimer le fichier"},
+                he:{dragula_unavailable:"לא ניתן להפעיל גרירה ושחרור",kanban_move_unavailable:"לא ניתן להעביר את הפריט",comment_add_unavailable:"לא ניתן להוסיף את התגובה",comment_delete_unavailable:"לא ניתן למחוק את התגובה",file_add_unavailable:"לא ניתן להוסיף את הקובץ",file_delete_unavailable:"לא ניתן למחוק את הקובץ"},
+                it:{dragula_unavailable:"Impossibile inizializzare il drag & drop",kanban_move_unavailable:"Impossibile spostare l’elemento",comment_add_unavailable:"Impossibile aggiungere il commento",comment_delete_unavailable:"Impossibile eliminare il commento",file_add_unavailable:"Impossibile aggiungere il file",file_delete_unavailable:"Impossibile eliminare il file"},
+                ja:{dragula_unavailable:"ドラッグ＆ドロップを初期化できませんでした",kanban_move_unavailable:"項目を移動できませんでした",comment_add_unavailable:"コメントを追加できませんでした",comment_delete_unavailable:"コメントを削除できませんでした",file_add_unavailable:"ファイルを追加できませんでした",file_delete_unavailable:"ファイルを削除できませんでした"},
+                nl:{dragula_unavailable:"Slepen-en-neerzetten kon niet worden gestart",kanban_move_unavailable:"Item kon niet worden verplaatst",comment_add_unavailable:"Opmerking kon niet worden toegevoegd",comment_delete_unavailable:"Opmerking kon niet worden verwijderd",file_add_unavailable:"Bestand kon niet worden toegevoegd",file_delete_unavailable:"Bestand kon niet worden verwijderd"},
+                pl:{dragula_unavailable:"Nie można uruchomić przeciągania",kanban_move_unavailable:"Nie można przenieść elementu",comment_add_unavailable:"Nie można dodać komentarza",comment_delete_unavailable:"Nie można usunąć komentarza",file_add_unavailable:"Nie można dodać pliku",file_delete_unavailable:"Nie można usunąć pliku"},
+                pt:{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
+                "pt-br":{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
+                ru:{dragula_unavailable:"Не удалось инициализировать перетаскивание",kanban_move_unavailable:"Не удалось переместить элемент",comment_add_unavailable:"Не удалось добавить комментарий",comment_delete_unavailable:"Не удалось удалить комментарий",file_add_unavailable:"Не удалось добавить файл",file_delete_unavailable:"Не удалось удалить файл"},
+                tr:{dragula_unavailable:"Sürükle-bırak başlatılamadı",kanban_move_unavailable:"Öğe taşınamadı",comment_add_unavailable:"Yorum eklenemedi",comment_delete_unavailable:"Yorum silinemedi",file_add_unavailable:"Dosya eklenemedi",file_delete_unavailable:"Dosya silinemedi"},
+                zh:{dragula_unavailable:"无法初始化拖放",kanban_move_unavailable:"无法移动条目",comment_add_unavailable:"无法添加评论",comment_delete_unavailable:"无法删除评论",file_add_unavailable:"无法添加文件",file_delete_unavailable:"无法删除文件"}
+            };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+         
+          })();
+    </script>
         <script defer>
-        (()=>{
-            const errFb="# ERROR";
-            const dataClientLocalized="data-client-localized";
-            const dataGuardMsg="data-guard-msg";
-            const DATA_LISTENER="data-listener-added";
+            (()=>{
+                const errFb="# ERROR";
+                const dataClientLocalized="data-client-localized";
+                const dataGuardMsg="data-guard-msg";
+                const DATA_LISTENER="data-listener-added";
 
-            const getMsg=(el,key)=>{
-            let msg=errFb;
-            if(el?.getAttribute("data-sv-localized")==="true"||el?.getAttribute(dataClientLocalized)==="true"){
-                msg=el.getAttribute(dataGuardMsg)||errFb;
-            }else{
-                let lang=(window.sessionStorage.getItem("erp-np-lang")||document.documentElement.lang||"en").toLowerCase().replace(/_/g,"-");
-                lang=lang==="pt-br"?lang:lang.slice(0,2);
-                msg=window.translations?.[lang]?.[key]||el?.getAttribute(dataGuardMsg)||window.translations?.en?.[key]||errFb;
-                if(msg!==errFb){ el?.setAttribute(dataGuardMsg,msg); el?.setAttribute(dataClientLocalized,"true"); }
-            }
-            return msg;
-            };
-
-            const showFeedback=(key,ev="click")=>{
-            const text=getMsg(document.body,key);
-            const hasBs=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast;
-            if(hasBs){
-                let toast=document.querySelector("#np-error-toast");
-                if(!toast){
-                toast=document.createElement("div");
-                toast.id="np-error-toast";
-                toast.className="toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
-                toast.setAttribute("role","alert");
-                toast.setAttribute("aria-live","assertive");
-                toast.setAttribute("aria-atomic","true");
-                toast.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
-                document.body.appendChild(toast);
+                const getMsg=(el,key)=>{
+                let msg=errFb;
+                if(el?.getAttribute("data-sv-localized")==="true"||el?.getAttribute(dataClientLocalized)==="true"){
+                    msg=el.getAttribute(dataGuardMsg)||errFb;
+                }else{
+                    let lang=(window.sessionStorage.getItem("erp-np-lang")||document.documentElement.lang||"en").toLowerCase().replace(/_/g,"-");
+                    lang=lang==="pt-br"?lang:lang.slice(0,2);
+                    msg=window.translations?.[lang]?.[key]||el?.getAttribute(dataGuardMsg)||window.translations?.en?.[key]||errFb;
+                    if(msg!==errFb){ el?.setAttribute(dataGuardMsg,msg); el?.setAttribute(dataClientLocalized,"true"); }
                 }
-                const once=()=>new bootstrap.Toast(toast).show();
-                document.addEventListener(ev,once,{once:true});
-                const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(toast)){ document.removeEventListener(ev,once); o.disconnect(); } });
-                mo.observe(document.body,{childList:true,subtree:true});
-            }else{
-                const once=()=>alert(text);
-                document.addEventListener(ev,once,{once:true});
-            }
-            };
+                return msg;
+                };
 
-            const guardRoute=(url)=>!url||url==="#"||url==="";
+                const showFeedback=(key,ev="click")=>{
+                const text=getMsg(document.body,key);
+                const hasBs=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap?.Toast;
+                if(hasBs){
+                    let toast=document.querySelector("#np-error-toast");
+                    if(!toast){
+                    toast=document.createElement("div");
+                    toast.id="np-error-toast";
+                    toast.className="toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3";
+                    toast.setAttribute("role","alert");
+                    toast.setAttribute("aria-live","assertive");
+                    toast.setAttribute("aria-atomic","true");
+                    toast.innerHTML=`<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                    document.body.appendChild(toast);
+                    }
+                    const once=()=>new bootstrap.Toast(toast).show();
+                    document.addEventListener(ev,once,{once:true});
+                    const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(toast)){ document.removeEventListener(ev,once); o.disconnect(); } });
+                    mo.observe(document.body,{childList:true,subtree:true});
+                }else{
+                    const once=()=>alert(text);
+                    document.addEventListener(ev,once,{once:true});
+                }
+                };
 
-            try{
-            if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
+                const guardRoute=(url)=>!url||url==="#"||url==="";
 
-            const token=$('meta[name="csrf-token"]').attr('content') ?? "";
+                try{
+                if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
 
-            const initDragula=()=>{
-                if(typeof dragula!=="function"){ console.error("Dragula failed to load"); showFeedback("dragula_unavailable"); return; }
-                $('[data-plugin="dragula"]').each(function(){
-                const $root=$(this);
-                const ids=$root.data("containers");
-                const containers=ids?ids.map(id=>$("#"+id)[0]).filter(Boolean):[$root[0]];
-                const handleClass=$root.data("handleclass");
-                const onDrop=(el,target,source)=>{
-                    try{
-                    const order=[];
-                    $("#"+target.id+" > [data-id]").each(function(i,node){ order[i]=$(node).attr("data-id"); });
-                    const id=$(el).attr("id") ?? "";
-                    const stage_id=$(target).attr("data-id") ?? "";
-                    $("#"+source.id).parent().find(".count").text($("#"+source.id+" > div").length);
-                    $("#"+target.id).parent().find(".count").text($("#"+target.id+" > div").length);
-                    const url='{{route(ViewsConstants::PRJ_BUG . '.kanban.order')}}';
-                    if(guardRoute(url)){ showFeedback("kanban_move_unavailable"); return; }
+                const token=$('meta[name="csrf-token"]').attr('content') ?? "";
+
+                const initDragula=()=>{
+                    if(typeof dragula!=="function"){ console.error("Dragula failed to load"); showFeedback("dragula_unavailable"); return; }
+                    $('[data-plugin="dragula"]').each(function(){
+                    const $root=$(this);
+                    const ids=$root.data("containers");
+                    const containers=ids?ids.map(id=>$("#"+id)[0]).filter(Boolean):[$root[0]];
+                    const handleClass=$root.data("handleclass");
+                    const onDrop=(el,target,source)=>{
+                        try{
+                        const order=[];
+                        $("#"+target.id+" > [data-id]").each(function(i,node){ order[i]=$(node).attr("data-id"); });
+                        const id=$(el).attr("id") ?? "";
+                        const stage_id=$(target).attr("data-id") ?? "";
+                        $("#"+source.id).parent().find(".count").text($("#"+source.id+" > div").length);
+                        $("#"+target.id).parent().find(".count").text($("#"+target.id+" > div").length);
+                        const url='{{route(ViewsConstants::PRJ_BUG . '.kanban.order')}}';
+                        if(guardRoute(url)){ showFeedback("kanban_move_unavailable"); return; }
+                        $.ajax({
+                            url,
+                            type:"POST",
+                            data:{ bug_id:id, status_id:stage_id, order, "_token":token },
+                            success:()=>{ try{ show_toastr?.('success',"Bug Moved Successfully.",'success'); }catch{} },
+                            error:()=>{ showFeedback("kanban_move_unavailable"); }
+                        });
+                        }catch{ showFeedback("kanban_move_unavailable"); }
+                    };
+                    const drg=handleClass?dragula(containers,{ moves:(_el,_src,handle)=>handle.classList.contains(handleClass) }):dragula(containers);
+                    drg.on("drop",onDrop);
+                    });
+                };
+
+                const bindComments=()=>{
+                    $(document).on("click","#form-comment button",function(){
+                    const $form=$("#form-comment");
+                    const url=$form.data("action");
+                    const comment=$.trim($form.find("textarea[name='comment']").val()||"");
+                    if(!comment){ try{ show_toastr?.('{{__("error")}}','{{ __("Please write comment!")}}','error'); }catch{} return; }
+                    if(guardRoute(url)){ showFeedback("comment_add_unavailable"); return; }
                     $.ajax({
                         url,
                         type:"POST",
-                        data:{ bug_id:id, status_id:stage_id, order, "_token":token },
-                        success:()=>{ try{ show_toastr?.('success',"Bug Moved Successfully.",'success'); }catch{} },
-                        error:()=>{ showFeedback("kanban_move_unavailable"); }
-                    });
-                    }catch{ showFeedback("kanban_move_unavailable"); }
-                };
-                const drg=handleClass?dragula(containers,{ moves:(_el,_src,handle)=>handle.classList.contains(handleClass) }):dragula(containers);
-                drg.on("drop",onDrop);
-                });
-            };
-
-            const bindComments=()=>{
-                $(document).on("click","#form-comment button",function(){
-                const $form=$("#form-comment");
-                const url=$form.data("action");
-                const comment=$.trim($form.find("textarea[name='comment']").val()||"");
-                if(!comment){ try{ show_toastr?.('{{__("error")}}','{{ __("Please write comment!")}}','error'); }catch{} return; }
-                if(guardRoute(url)){ showFeedback("comment_add_unavailable"); return; }
-                $.ajax({
-                    url,
-                    type:"POST",
-                    data:{ comment, "_token":token },
-                    success:(data)=>{
-                    const name='{{ \Auth::user()->name }}';
-                    const cmt=data?.data?.comment ?? "";
-                    const del=data?.data?.deleteUrl ?? "#";
-                    const html=
-                        `<li class="media mb-20">
-                        <div class="media-body">
-                            <div class="d-flex justify-content-between align-items-end">
-                            <div>
-                                <h5 class="mt-0">${name}</h5>
-                                <p class="mb-0 text-xs">${cmt}</p>
+                        data:{ comment, "_token":token },
+                        success:(data)=>{
+                        const name='{{ \Auth::user()->name }}';
+                        const cmt=data?.data?.comment ?? "";
+                        const del=data?.data?.deleteUrl ?? "#";
+                        const html=
+                            `<li class="media mb-20">
+                            <div class="media-body">
+                                <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <h5 class="mt-0">${name}</h5>
+                                    <p class="mb-0 text-xs">${cmt}</p>
+                                </div>
+                                <div class="comment-trash" style="float:right">
+                                    <a href="#" class="btn btn-sm red btn-danger delete-comment" data-url="${del}">
+                                    <i class="ti ti-trash"></i>
+                                    </a>
+                                </div>
+                                </div>
                             </div>
+                            </li>`;
+                        $("#comments").prepend(html);
+                        $form.find("textarea[name='comment']").val("");
+                        try{ show_toastr?.('{{__("success")}}','{{ __("Comment Added Successfully!")}}','success'); }catch{}
+                        },
+                        error:()=>{ showFeedback("comment_add_unavailable"); }
+                    });
+                    });
+
+                    $(document).on("click",".delete-comment",function(){
+                    if(!confirm('Are You Sure ?')) return;
+                    const $btn=$(this);
+                    const url=$btn.attr("data-url");
+                    if(guardRoute(url)){ showFeedback("comment_delete_unavailable"); return; }
+                    $.ajax({
+                        url,
+                        type:"DELETE",
+                        data:{ _token:token },
+                        dataType:"JSON",
+                        success:()=>{ try{ show_toastr?.('{{__("Success")}}','{{ __("Comment Deleted Successfully!")}}','success'); }catch{} $btn.closest(".media").remove(); },
+                        error:(xhr)=>{
+                        const msg=xhr?.responseJSON?.message;
+                        if(msg){ try{ show_toastr?.('{{__("Error")}}',msg,'error'); }catch{} } else { showFeedback("comment_delete_unavailable"); }
+                        }
+                    });
+                    });
+                };
+
+                const bindFiles=()=>{
+                    $(document).on("submit","#form-file",function(e){
+                    e.preventDefault();
+                    const $form=$(this);
+                    const url=$form.data("url");
+                    if(guardRoute(url)){ showFeedback("file_add_unavailable"); return; }
+                    $.ajax({
+                        url,
+                        type:"POST",
+                        data:new FormData(this),
+                        dataType:"JSON",
+                        contentType:false,
+                        cache:false,
+                        processData:false,
+                        success:(data)=>{
+                        try{ show_toastr?.('{{__("success")}}','{{ __("File Added Successfully!")}}','success'); }catch{}
+                        $(".file_update").html("");
+                        $("#file-error").html("");
+                        const id=data?.id ?? "";
+                        const name=data?.name ?? "";
+                        const size=data?.file_size ?? "";
+                        const file=data?.file ?? "";
+                        const delUrl=data?.deleteUrl ?? "";
+                        const dlHref=`{{asset(Storage::url('bugs'))}}/${file}`;
+                        const html=
+                            `<div class="col-8 mb-2 file-${id}">
+                            <h5 class="mt-0 mb-1 font-weight-bold text-sm">${name}</h5>
+                            <p class="m-0 text-xs">${size}</p>
+                            </div>
+                            <div class="col-4 mb-2 file-${id}">
                             <div class="comment-trash" style="float:right">
-                                <a href="#" class="btn btn-sm red btn-danger delete-comment" data-url="${del}">
+                                <a download href="${dlHref}" class="btn btn-sm btn-primary"><i class="ti ti-download"></i></a>
+                                <a href="#" class="btn btn-sm red btn-danger delete-comment-file m-0 px-2" data-id="${id}" data-url="${delUrl}">
                                 <i class="ti ti-trash"></i>
                                 </a>
                             </div>
-                            </div>
-                        </div>
-                        </li>`;
-                    $("#comments").prepend(html);
-                    $form.find("textarea[name='comment']").val("");
-                    try{ show_toastr?.('{{__("success")}}','{{ __("Comment Added Successfully!")}}','success'); }catch{}
-                    },
-                    error:()=>{ showFeedback("comment_add_unavailable"); }
-                });
-                });
+                            </div>`;
+                        $("#comments-file").prepend(html);
+                        },
+                        error:(xhr)=>{
+                        const msg=xhr?.responseJSON?.errors?.file?.[0] || xhr?.responseJSON?.message;
+                        if(msg){ $("#file-error").text(msg).show(); } else { showFeedback("file_add_unavailable"); }
+                        }
+                    });
+                    });
 
-                $(document).on("click",".delete-comment",function(){
-                if(!confirm('Are You Sure ?')) return;
-                const $btn=$(this);
-                const url=$btn.attr("data-url");
-                if(guardRoute(url)){ showFeedback("comment_delete_unavailable"); return; }
-                $.ajax({
-                    url,
-                    type:"DELETE",
-                    data:{ _token:token },
-                    dataType:"JSON",
-                    success:()=>{ try{ show_toastr?.('{{__("Success")}}','{{ __("Comment Deleted Successfully!")}}','success'); }catch{} $btn.closest(".media").remove(); },
-                    error:(xhr)=>{
-                    const msg=xhr?.responseJSON?.message;
-                    if(msg){ try{ show_toastr?.('{{__("Error")}}',msg,'error'); }catch{} } else { showFeedback("comment_delete_unavailable"); }
-                    }
-                });
-                });
-            };
+                    $(document).on("click",".delete-comment-file",function(){
+                    if(!confirm('Are You Sure ?')) return;
+                    const $btn=$(this);
+                    const url=$btn.attr("data-url");
+                    if(guardRoute(url)){ showFeedback("file_delete_unavailable"); return; }
+                    $.ajax({
+                        url,
+                        type:"DELETE",
+                        data:{ _token:token },
+                        dataType:"JSON",
+                        success:()=>{ try{ show_toastr?.('{{__("Success")}}','{{ __("File Deleted Successfully!")}}','success'); }catch{} $(`.file-${$btn.attr("data-id")}`).remove(); },
+                        error:(xhr)=>{
+                        const msg=xhr?.responseJSON?.message;
+                        if(msg){ try{ show_toastr?.('{{__("Error")}}',msg,'error'); }catch{} } else { showFeedback("file_delete_unavailable"); }
+                        }
+                    });
+                    });
+                };
 
-            const bindFiles=()=>{
-                $(document).on("submit","#form-file",function(e){
-                e.preventDefault();
-                const $form=$(this);
-                const url=$form.data("url");
-                if(guardRoute(url)){ showFeedback("file_add_unavailable"); return; }
-                $.ajax({
-                    url,
-                    type:"POST",
-                    data:new FormData(this),
-                    dataType:"JSON",
-                    contentType:false,
-                    cache:false,
-                    processData:false,
-                    success:(data)=>{
-                    try{ show_toastr?.('{{__("success")}}','{{ __("File Added Successfully!")}}','success'); }catch{}
-                    $(".file_update").html("");
-                    $("#file-error").html("");
-                    const id=data?.id ?? "";
-                    const name=data?.name ?? "";
-                    const size=data?.file_size ?? "";
-                    const file=data?.file ?? "";
-                    const delUrl=data?.deleteUrl ?? "";
-                    const dlHref=`{{asset(Storage::url('bugs'))}}/${file}`;
-                    const html=
-                        `<div class="col-8 mb-2 file-${id}">
-                        <h5 class="mt-0 mb-1 font-weight-bold text-sm">${name}</h5>
-                        <p class="m-0 text-xs">${size}</p>
-                        </div>
-                        <div class="col-4 mb-2 file-${id}">
-                        <div class="comment-trash" style="float:right">
-                            <a download href="${dlHref}" class="btn btn-sm btn-primary"><i class="ti ti-download"></i></a>
-                            <a href="#" class="btn btn-sm red btn-danger delete-comment-file m-0 px-2" data-id="${id}" data-url="${delUrl}">
-                            <i class="ti ti-trash"></i>
-                            </a>
-                        </div>
-                        </div>`;
-                    $("#comments-file").prepend(html);
-                    },
-                    error:(xhr)=>{
-                    const msg=xhr?.responseJSON?.errors?.file?.[0] || xhr?.responseJSON?.message;
-                    if(msg){ $("#file-error").text(msg).show(); } else { showFeedback("file_add_unavailable"); }
-                    }
-                });
-                });
-
-                $(document).on("click",".delete-comment-file",function(){
-                if(!confirm('Are You Sure ?')) return;
-                const $btn=$(this);
-                const url=$btn.attr("data-url");
-                if(guardRoute(url)){ showFeedback("file_delete_unavailable"); return; }
-                $.ajax({
-                    url,
-                    type:"DELETE",
-                    data:{ _token:token },
-                    dataType:"JSON",
-                    success:()=>{ try{ show_toastr?.('{{__("Success")}}','{{ __("File Deleted Successfully!")}}','success'); }catch{} $(`.file-${$btn.attr("data-id")}`).remove(); },
-                    error:(xhr)=>{
-                    const msg=xhr?.responseJSON?.message;
-                    if(msg){ try{ show_toastr?.('{{__("Error")}}',msg,'error'); }catch{} } else { showFeedback("file_delete_unavailable"); }
-                    }
-                });
-                });
-            };
-
-            initDragula();
-            bindComments();
-            bindFiles();
-            }catch(e){
-            console.error("Initialization failed",e);
-            }
-        })();
+                initDragula();
+                bindComments();
+                bindFiles();
+                }catch(e){
+                console.error("Initialization failed",e);
+                }
+            })();
         </script>
     @endpush
     @section(YieldingConstants::ADM_ACT_BTN)
@@ -425,7 +438,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'List bug route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -494,7 +507,7 @@
                                         if (href !== '#' || url !== '#') return;
                                         e.preventDefault();
                                         const msg = l.getAttribute('data-guard-msg') || 'Create bug route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -635,7 +648,7 @@
                                                                                                 if (href !== '#' || url !== '#') return;
                                                                                                 e.preventDefault();
                                                                                                 const msg = l.getAttribute('data-guard-msg') || 'Show bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                                 let container = document.getElementById('toast-container');
                                                                                                 if (!container) {
                                                                                                     container = document.createElement('div');
@@ -717,7 +730,7 @@
                                                                                                             if (href !== '#' || url !== '#') return;
                                                                                                             e.preventDefault();
                                                                                                             const msg = l.getAttribute('data-guard-msg') || 'Edit bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                                             let container = document.getElementById('toast-container');
                                                                                                             if (!container) {
                                                                                                                 container = document.createElement('div');
@@ -798,7 +811,7 @@
                                                                                                                 const action = f.getAttribute('action') || '#';
                                                                                                                 if (url === '#' && action === '#') {
                                                                                                                     const msg = l.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete bug route is unavailable. Please contact technical support or your domain administrator.';
-                                                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                                                                     let container = document.getElementById('toast-container');
                                                                                                                     if (!container) {
                                                                                                                         container = document.createElement('div');

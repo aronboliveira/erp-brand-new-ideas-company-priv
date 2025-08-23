@@ -11,7 +11,7 @@
 	$company_favicon??='';
 	$color??='';
 	$siteRtl??=false;
-	$lang??=DatabaseConstants::DEFAULT_LANG;
+	$lang = Utility::fetchUserLang();
 	$meta_title??='';
 	$meta_desc??='';
 	$meta_image??='';
@@ -26,7 +26,6 @@
 		$company_favicon=$data[SettingsConstants::FAV_ICN]??'';
 		$color=$data[SettingsConstants::THM_CLR]??'';
 		$siteRtl=$data[SettingsConstants::RTL]??false;
-		$lang=$data[SettingsConstants::LCL]??'';
 		$meta_title=$data[SettingsConstants::MT_TTL_K]??'';
 		$meta_desc=$data[SettingsConstants::MT_DESC_LONG]??'';
 		$meta_image=$data[SettingsConstants::MT_IMG_K]??'';
@@ -73,7 +72,7 @@
     Log::debug('Loading admin blade layout template...');
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on' ? 'rtl' : '' }}">
+<html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on' ? 'rtl' : '' }}">
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <head>
         <title>{{($setting['title_text']) ? $setting['title_text'] : config('app.name', 'ERPNovaPrestech')}} 

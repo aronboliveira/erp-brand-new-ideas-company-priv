@@ -25,8 +25,12 @@
     <li class="breadcrumb-item">{{ __('Chart of Account') }}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             char_of_account_subtype_unavailable: 'فشل جلب الأنواع الفرعية للحساب.',
             date_callback_failed: 'فشل نسخ قيم التاريخ.'
@@ -92,6 +96,15 @@
             date_callback_failed: '复制日期值失败。'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

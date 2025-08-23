@@ -28,8 +28,12 @@
     {{__('Manage Credit Notes')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             invoice_fetch_unavailable: 'فشل جلب بيانات الفاتورة.'
         },
@@ -79,6 +83,15 @@
             invoice_fetch_unavailable: '获取发票数据失败。'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

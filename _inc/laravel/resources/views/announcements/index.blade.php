@@ -211,8 +211,12 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             announcement_department_unavailable: 'قائمة أقسام الإعلان غير متوفرة.',
             announcement_employee_unavailable: 'قائمة موظفي الإعلان غير متوفرة.'
@@ -278,6 +282,15 @@
             announcement_employee_unavailable: '公告员工列表不可用。'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

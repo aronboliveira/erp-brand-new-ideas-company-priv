@@ -24,8 +24,12 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('css/summernote/summernote-bs4.js')}}"></script>
     <script src="{{asset('assets/js/plugins/dropzone-amd-module.min.js')}}"></script>
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar: {
             file_upload_failed: 'فشل تحميل الملف.',
             file_delete_failed: 'فشل حذف الملف.',
@@ -123,6 +127,15 @@
             task_toggle_failed: '更新任务状态失败。'
           }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {
@@ -1745,7 +1758,7 @@
                                 </div>
                               </div>
                               <div class="{{ VC::CD }}-body">
-                                <textarea class="summernote-simple grammer_textarea" name="note">{!! $deal->notes !!}</textarea>
+                                <textarea class="summernote-simple grammar_textarea" name="note">{!! $deal->notes !!}</textarea>
                               </div>
                             </div>
                           </div>

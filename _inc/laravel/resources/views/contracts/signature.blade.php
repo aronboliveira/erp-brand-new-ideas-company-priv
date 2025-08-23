@@ -28,8 +28,12 @@
 
 
 <script src="{{asset('assets/js/plugins/signature_pad/signature_pad.min.js')}}"></script>
-<script>
-    window.translations = {
+    <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
       ar: {
         signature_init_failed: 'فشل تهيئة لوحة التوقيع.',
         signature_save_failed: 'فشل حفظ التوقيع.'
@@ -95,7 +99,16 @@
         signature_save_failed: '保存签名失败。'
       }
     };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
     (() => {
     const ERR_FB = '# ERROR';

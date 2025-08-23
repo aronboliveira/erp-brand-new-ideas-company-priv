@@ -126,8 +126,12 @@
 
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/plugins/main.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:       { calendar_data_unavailable: 'لا يمكن تحميل بيانات التقويم' },
             da:       { calendar_data_unavailable: 'Kan ikke indlæse kalenderdata' },
             de:       { calendar_data_unavailable: 'Kalenderdaten konnten nicht geladen werden' },
@@ -145,6 +149,15 @@
             tr:       { calendar_data_unavailable: 'Takvim verileri yüklenemiyor' },
             zh:       { calendar_data_unavailable: '无法加载日历数据' }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

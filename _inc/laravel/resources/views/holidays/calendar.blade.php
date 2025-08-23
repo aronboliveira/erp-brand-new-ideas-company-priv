@@ -174,8 +174,12 @@
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/plugins/main.min.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
           ar: {
             calendar_type_element_unavailable:   'عنصر نوع التقويم غير متوفر.',
             calendar_element_unavailable:        'عنصر التقويم غير متوفر.',
@@ -273,6 +277,15 @@
             calendar_initialization_failed:      '初始化日历失败。'
           }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

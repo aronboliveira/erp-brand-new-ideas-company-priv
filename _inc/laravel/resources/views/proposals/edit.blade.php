@@ -25,8 +25,12 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{repeater_unavailable:'تعذّر تهيئة المكرر',sortable_unavailable:'تعذّر تهيئة الفرز بالسحب',multifile_unavailable:'تعذّر تهيئة رافع الملفات',select2_unavailable:'تعذّر تهيئة Select2',customer_unavailable:'تعذّر تحميل تفاصيل العميل',item_unavailable:'تعذّر تحميل بيانات المنتج',delete_unavailable:'تعذّر حذف العنصر'},
             da:{repeater_unavailable:'Kunne ikke initialisere repeater',sortable_unavailable:'Kunne ikke initialisere træk-sortering',multifile_unavailable:'Kunne ikke initialisere filupload',select2_unavailable:'Kunne ikke initialisere Select2',customer_unavailable:'Kunne ikke hente kundedetaljer',item_unavailable:'Kunne ikke hente produktdata',delete_unavailable:'Kunne ikke slette element'},
             de:{repeater_unavailable:'Wiederholer konnte nicht initialisiert werden',sortable_unavailable:'Sortieren per Drag-and-drop fehlgeschlagen',multifile_unavailable:'Dateiupload konnte nicht initialisiert werden',select2_unavailable:'Select2 konnte nicht initialisiert werden',customer_unavailable:'Kundendetails konnten nicht geladen werden',item_unavailable:'Produktdaten konnten nicht geladen werden',delete_unavailable:'Element konnte nicht gelöscht werden'},
@@ -44,6 +48,15 @@
             tr:{repeater_unavailable:'Tekrarlayıcı başlatılamadı',sortable_unavailable:'Sürükle‑bırak sıralama başlatılamadı',multifile_unavailable:'Dosya yükleyici başlatılamadı',select2_unavailable:'Select2 başlatılamadı',customer_unavailable:'Müşteri ayrıntıları yüklenemedi',item_unavailable:'Ürün verileri yüklenemedi',delete_unavailable:'Öğe silinemedi'},
             zh:{repeater_unavailable:'无法初始化重复器',sortable_unavailable:'无法初始化拖拽排序',multifile_unavailable:'无法初始化文件上传',select2_unavailable:'无法初始化 Select2',customer_unavailable:'无法加载客户详情',item_unavailable:'无法加载商品数据',delete_unavailable:'无法删除项目'}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (()=>{
@@ -681,7 +694,7 @@
                                     const url = btn.getAttribute('data-url') || '#';
                                     if (url === '#') {
                                         const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                         let container = document.getElementById('toast-container');
                                         if (!container) {
                                             container = document.createElement('div');
@@ -729,7 +742,7 @@
                     if (url !== '#') return;
                     e.preventDefault();
                     const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                     let container = document.getElementById('toast-container');
                     if (!container) {
                         container = document.createElement('div');

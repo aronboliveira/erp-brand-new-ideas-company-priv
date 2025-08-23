@@ -239,8 +239,12 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-      window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar: { no_area: "المنطقة القابلة للطباعة غير موجودة", pdf_fail: "فشل حفظ الملف كـ PDF",  chart_fail: "فشل عرض مخطط المشتريات الشهري" },
             da: { no_area: "Printbart område ikke fundet", pdf_fail: "Kunne ikke gemme som PDF", chart_fail: "Kunne ikke vise månedligt indkøbsdiagram" },
             de: { no_area: "Druckbereich nicht gefunden", pdf_fail: "Konnte nicht als PDF gespeichert werden", chart_fail: "Monatliches Einkaufsdiagramm konnte nicht angezeigt werden" },
@@ -258,6 +262,15 @@
             tr: { no_area: "Yazdırılabilir alan bulunamadı", pdf_fail: "PDF olarak kaydedilemedi", chart_fail:"Aylık satın alma grafiği oluşturulamadı" },
             zh: { no_area: "未找到可打印区域", pdf_fail: "无法保存为PDF", chart_fail: "无法渲染月度采购图表" }
       };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>

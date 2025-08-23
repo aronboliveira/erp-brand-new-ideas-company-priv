@@ -73,8 +73,12 @@
 {{Form::close()}}
 
 <script src="{{asset('assets/js/plugins/choices.min.js')}}"></script>
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: { choices_unavailable: "تعذّر تهيئة عناصر الاختيار", project_list_unavailable: "تعذّر تحميل المشاريع" },
     da: { choices_unavailable: "Kunne ikke initialisere valgfelter", project_list_unavailable: "Kunne ikke indlæse projekter" },
     de: { choices_unavailable: "Auswahlfelder konnten nicht initialisiert werden", project_list_unavailable: "Projekte konnten nicht geladen werden" },
@@ -92,7 +96,16 @@
     tr: { choices_unavailable: "Çoklu seçim başlatılamadı", project_list_unavailable: "Projeler yüklenemedi" },
     zh: { choices_unavailable: "无法初始化多选控件", project_list_unavailable: "无法加载项目" }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (()=>{
     const errFb = "# ERROR";

@@ -26,8 +26,12 @@
     {{__('Manage Bills')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:  { copy_link_unavailable: "نسخ الرابط غير متاح" },
             da:  { copy_link_unavailable: "Kopiering af link ikke tilgængelig" },
             de:  { copy_link_unavailable: "Link kopieren nicht verfügbar" },
@@ -45,6 +49,15 @@
             tr:  { copy_link_unavailable: "Bağlantı kopyalama kullanılamıyor" },
             zh:  { copy_link_unavailable: "无法复制链接" }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

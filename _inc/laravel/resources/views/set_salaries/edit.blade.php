@@ -957,8 +957,12 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        window.translations = {
+        <script>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
         ar: {
             select_any_designation: 'اختر أي مسمى وظيفي'
         },
@@ -1008,6 +1012,15 @@
             select_any_designation: '选择任意职称'
         }
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {

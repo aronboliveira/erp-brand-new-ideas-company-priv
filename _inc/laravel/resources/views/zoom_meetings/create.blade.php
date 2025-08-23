@@ -93,8 +93,12 @@
 {!! Form::close() !!}
 
 
-<script async>
-  window.translations = {
+    <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
     ar: { zoom_users_unavailable: "تعذّر تحميل مستخدمي المشروع" },
     da: { zoom_users_unavailable: "Kunne ikke hente projektbrugere" },
     de: { zoom_users_unavailable: "Projektbenutzer konnten nicht geladen werden" },
@@ -112,7 +116,16 @@
     tr: { zoom_users_unavailable: "Proje kullanıcıları yüklenemedi" },
     zh: { zoom_users_unavailable: "无法加载项目用户" }
   };
-</script>
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+ 
+          })();
+    </script>
 <script defer>
   (()=>{
     const errFb="# ERROR";

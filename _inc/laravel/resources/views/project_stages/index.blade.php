@@ -28,8 +28,12 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/jscolor.js') }}"></script>
     <script async src="{{ asset('assets/libs/jquery-ui/jquery-ui.js') }}"></script>
-    <script async>
-        window.translations = {
+        <script async>
+          (() => { 
+              if (!window.translations) {
+  window.translations = {};
+}
+const t = {
             ar:{project_stage_order_unavailable:'فشل تحديث ترتيب مراحل المشروع'},
             da:{project_stage_order_unavailable:'Opdatering af projektfaserækkefølge mislykkedes'},
             de:{project_stage_order_unavailable:'Aktualisieren der Projektphasenreihenfolge fehlgeschlagen'},
@@ -47,6 +51,15 @@
             tr:{project_stage_order_unavailable:'Proje aşamaları sırası güncellenemedi'},
             zh:{project_stage_order_unavailable:'无法更新项目阶段顺序'}
         };
+Object.keys(t).forEach(
+  k =>
+    (window.translations[k] = {
+      ...(window.translations[k] || {}),
+      ...t[k],
+    })
+);
+     
+          })();
     </script>
     <script defer>
         (() => {
@@ -161,7 +174,7 @@
                                 if (href !== '#' || url !== '#') return;
                                 e.preventDefault();
                                 const msg = l.getAttribute('data-guard-msg') || 'Create project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                 let container = document.getElementById('toast-container');
                                 if (!container) {
                                     container = document.createElement('div');
@@ -257,7 +270,7 @@
                                                                     if (href !== '#' || url !== '#') return;
                                                                     e.preventDefault();
                                                                     const msg = l.getAttribute('data-guard-msg') || 'Edit project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                     let container = document.getElementById('toast-container');
                                                                     if (!container) {
                                                                         container = document.createElement('div');
@@ -337,7 +350,7 @@
                                                                         const action = f.getAttribute('action') || '#';
                                                                         if (url === '#' && action === '#') {
                                                                             const msg = a.getAttribute('data-guard-msg') || f.getAttribute('data-guard-msg') || 'Delete project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                                                                             let container = document.getElementById('toast-container');
                                                                             if (!container) {
                                                                                 container = document.createElement('div');
