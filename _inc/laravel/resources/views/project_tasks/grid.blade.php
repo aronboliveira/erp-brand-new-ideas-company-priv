@@ -7,7 +7,9 @@
         YieldingConstants
     };
     use App\Models\{ProjectTask,Utility};
+    use App\Models\{ProjectTask,Utility};
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\{Collection,Str};
     use Illuminate\Support\{Collection,Str};
     $lang = Utility::fetchUserLang();
     $projectIndexBaseName = ViewsConstants::PRJ . '.index';
@@ -273,122 +275,15 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar: { taskboard_unavailable: "لوحة المهام غير متاحة حاليًا.", request_failed: "فشل الطلب. حاول مرة أخرى." },
-            da: { taskboard_unavailable: "Tavlevisning er ikke tilgængelig lige nu.", request_failed: "Anmodning mislykkedes. Prøv igen." },
-            de: { taskboard_unavailable: "Taskboard ist derzeit nicht verfügbar.", request_failed: "Anfrage fehlgeschlagen. Bitte erneut versuchen." },
-            en: { taskboard_unavailable: "Taskboard is currently unavailable.", request_failed: "Request failed. Please try again." },
-            es: { taskboard_unavailable: "El panel de tareas no está disponible.", request_failed: "La solicitud falló. Inténtalo de nuevo." },
-            fr: { taskboard_unavailable: "Le tableau des tâches est indisponible.", request_failed: "Échec de la requête. Réessayez." },
-            he: { taskboard_unavailable: "לוח המשימות אינו זמין כעת.", request_failed: "הבקשה נכשלה. נסה שוב." },
-            it: { taskboard_unavailable: "La bacheca non è disponibile.", request_failed: "Richiesta non riuscita. Riprova." },
-            ja: { taskboard_unavailable: "タスクボードは現在利用できません。", request_failed: "リクエストに失敗しました。もう一度お試しください。" },
-            nl: { taskboard_unavailable: "Taakbord is momenteel niet beschikbaar.", request_failed: "Aanvraag mislukt. Probeer opnieuw." },
-            pl: { taskboard_unavailable: "Tablica zadań jest obecnie niedostępna.", request_failed: "Żądanie nie powiodło się. Spróbuj ponownie." },
-            pt: { taskboard_unavailable: "Quadro de tarefas indisponível.", request_failed: "Falha na solicitação. Tente novamente." },
-            "pt-br": { taskboard_unavailable: "Quadro de tarefas indisponível no momento.", request_failed: "Falha na requisição. Tente novamente." },
-            ru: { taskboard_unavailable: "Доска задач недоступна.", request_failed: "Запрос не выполнен. Повторите попытку." },
-            tr: { taskboard_unavailable: "Görev panosu şu anda kullanılamıyor.", request_failed: "İstek başarısız oldu. Lütfen tekrar deneyin." },
-            zh: { taskboard_unavailable: "任务面板当前不可用。", request_failed: "请求失败。请重试。" }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (function () {
-            if (!window.jQuery || typeof $ !== 'function') { try { console.error('jQuery failed to load'); } catch (_) {} return; }
+    <script>
+        // ready
+        $(function () {
+            var sort = 'created_at-desc';
+            var status = '';
+            ajaxFilterTaskView('created_at-desc', '', ['see_my_tasks']);
 
-            const errFb = "# ERROR";
-            const dataClientLocalized = "data-client-localized";
-            const dataGuardMsg = "data-guard-msg";
-            const dataGuardAttached = "data-guard-attached";
-            const toastContainerId = "sv-toast-container";
-            const bsLinkSel = 'link[rel~="stylesheet"][href*="bootstrap"]';
-            const $taskView = $('#taskboard_view');
-            const $filters = $('.task-filter-actions');
-            const $sort = $('#task_sort');
-            const $search = $('#task_keyword');
-
-            const localize = (el, msgKey) => {
-            let msg = errFb;
-            if (el.getAttribute('data-sv-localized') === 'true' || el.getAttribute(dataClientLocalized) === 'true') {
-                msg = el.getAttribute(dataGuardMsg) || errFb;
-            } else {
-                let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en").toLowerCase().replace(/_/g, "-");
-                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-                msg = window.translations?.[lang]?.[msgKey] || el.getAttribute(dataGuardMsg) || window.translations?.["en"]?.[msgKey] || errFb;
-                if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, "true");
-                }
-            }
-            return msg;
-            };
-
-            const ensureToastContainer = () => {
-            if (!document.getElementById(toastContainerId)) {
-                const wrap = document.createElement('div');
-                wrap.id = toastContainerId;
-                wrap.className = 'position-fixed top-0 end-0 p-3';
-                document.body.appendChild(wrap);
-            }
-            };
-
-            const showErrorUI = (hostEl, msgKey) => {
-            const msg = localize(hostEl, msgKey);
-            const hasBootstrapCss = !!document.querySelector(bsLinkSel);
-            if (!hasBootstrapCss) { alert(msg); return; }
-            ensureToastContainer();
-            const id = 'toast-' + Date.now();
-            const toastHtml =
-                '<div id="'+id+'" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">' +
-                '<div class="d-flex">' +
-                    '<div class="toast-body">'+ msg +'</div>' +
-                    '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
-                '</div>' +
-                '</div>';
-            const container = document.getElementById(toastContainerId);
-            if (!container.querySelector('#'+id)) {
-                container.insertAdjacentHTML('beforeend', toastHtml);
-                try {
-                const t = new bootstrap.Toast(document.getElementById(id), { delay: 5000 });
-                t.show();
-                } catch (_) { alert(msg); }
-            }
-            };
-
-            let sort = 'created_at-desc';
-            let status = [];
-
-            const ajaxFilterTaskView = (task_sort, keyword = '', sts = []) => {
-            const routeUrl = '{{ route('project.taskboard.view') }}' ?? '';
-            if ((!routeUrl || routeUrl === '#')) { showErrorUI($taskView.get(0) ?? document.body, 'taskboard_unavailable'); return; }
-            try {
-                $.ajax({
-                url: routeUrl,
-                data: { view: '{{$view}}', sort: task_sort, keyword: keyword, status: sts },
-                success: data => { $taskView.html(data?.html ?? ''); },
-                error: () => { showErrorUI($taskView.get(0) ?? document.body, 'request_failed'); }
-                });
-            } catch (_) { showErrorUI($taskView.get(0) ?? document.body, 'request_failed'); }
-            };
-
-            const attachFilterHandlers = () => {
-            const el = $filters.get(0);
-            if (!el || el.getAttribute(dataGuardAttached) === 'true') return;
-            $filters.on('click.taskfilters', '.filter-action', function () {
+            // when change status
+            $(".task-filter-actions").on('click', '.filter-action', function (e) {
                 if ($(this).hasClass('filter-show-all')) {
                 $('.filter-action').removeClass('active'); $(this).addClass('active');
                 } else {

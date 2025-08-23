@@ -1004,7 +1004,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(ViewsConstants::RPT . '/leave', [ReportController::class, 'leave'])->name(ViewsConstants::RPT . '.leave')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(ViewsConstants::EMP . '/{id}/leave/{status}/{type}/{month}/{year}', [ReportController::class, 'employeeLeave'])->name(ViewsConstants::RPT . '.employee.leave')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(ViewsConstants::LV . '/{id}/action', [LeaveController::class, 'action'])->name(ViewsConstants::LV . '.action')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(ViewsConstants::LV . '/changeaction', [LeaveController::class, 'changeaction'])->name(ViewsConstants::LV . '.changeaction')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(ViewsConstants::LV . '/changeaction', [LeaveController::class, 'changeaction'])->name(ViewsConstants::LV . '.change_action')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(ViewsConstants::LV . '/jsoncount', [LeaveController::class, 'jsoncount'])->name(ViewsConstants::LV . '.jsoncount')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::resource('leave', LeaveController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);

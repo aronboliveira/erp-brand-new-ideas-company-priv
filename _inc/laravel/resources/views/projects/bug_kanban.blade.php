@@ -55,6 +55,7 @@
                             e.preventDefault();
                             const msg = link.getAttribute('data-guard-msg') || '# ERROR';
                             const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
                             let container = document.getElementById('toast-container');
                             if (!container) {
                                 container = document.createElement('div');
@@ -152,39 +153,26 @@
     @endpush
     @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
-            <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-                ar:{dragula_unavailable:"تعذّر تفعيل السحب والإفلات",kanban_move_unavailable:"تعذّر نقل العنصر",comment_add_unavailable:"تعذّر إضافة التعليق",comment_delete_unavailable:"تعذّر حذف التعليق",file_add_unavailable:"تعذّر إضافة الملف",file_delete_unavailable:"تعذّر حذف الملف"},
-                da:{dragula_unavailable:"Kunne ikke aktivere træk-og-slip",kanban_move_unavailable:"Kunne ikke flytte elementet",comment_add_unavailable:"Kunne ikke tilføje kommentar",comment_delete_unavailable:"Kunne ikke slette kommentar",file_add_unavailable:"Kunne ikke tilføje fil",file_delete_unavailable:"Kunne ikke slette fil"},
-                de:{dragula_unavailable:"Drag-and-Drop konnte nicht aktiviert werden",kanban_move_unavailable:"Element konnte nicht verschoben werden",comment_add_unavailable:"Kommentar konnte nicht hinzugefügt werden",comment_delete_unavailable:"Kommentar konnte nicht gelöscht werden",file_add_unavailable:"Datei konnte nicht hinzugefügt werden",file_delete_unavailable:"Datei konnte nicht gelöscht werden"},
-                en:{dragula_unavailable:"Drag & drop could not be initialized",kanban_move_unavailable:"Could not move the item",comment_add_unavailable:"Could not add the comment",comment_delete_unavailable:"Could not delete the comment",file_add_unavailable:"Could not add the file",file_delete_unavailable:"Could not delete the file"},
-                es:{dragula_unavailable:"No se pudo iniciar arrastrar y soltar",kanban_move_unavailable:"No se pudo mover el elemento",comment_add_unavailable:"No se pudo agregar el comentario",comment_delete_unavailable:"No se pudo eliminar el comentario",file_add_unavailable:"No se pudo agregar el archivo",file_delete_unavailable:"No se pudo eliminar el archivo"},
-                fr:{dragula_unavailable:"Impossible d’activer le glisser-déposer",kanban_move_unavailable:"Impossible de déplacer l’élément",comment_add_unavailable:"Impossible d’ajouter le commentaire",comment_delete_unavailable:"Impossible de supprimer le commentaire",file_add_unavailable:"Impossible d’ajouter le fichier",file_delete_unavailable:"Impossible de supprimer le fichier"},
-                he:{dragula_unavailable:"לא ניתן להפעיל גרירה ושחרור",kanban_move_unavailable:"לא ניתן להעביר את הפריט",comment_add_unavailable:"לא ניתן להוסיף את התגובה",comment_delete_unavailable:"לא ניתן למחוק את התגובה",file_add_unavailable:"לא ניתן להוסיף את הקובץ",file_delete_unavailable:"לא ניתן למחוק את הקובץ"},
-                it:{dragula_unavailable:"Impossibile inizializzare il drag & drop",kanban_move_unavailable:"Impossibile spostare l’elemento",comment_add_unavailable:"Impossibile aggiungere il commento",comment_delete_unavailable:"Impossibile eliminare il commento",file_add_unavailable:"Impossibile aggiungere il file",file_delete_unavailable:"Impossibile eliminare il file"},
-                ja:{dragula_unavailable:"ドラッグ＆ドロップを初期化できませんでした",kanban_move_unavailable:"項目を移動できませんでした",comment_add_unavailable:"コメントを追加できませんでした",comment_delete_unavailable:"コメントを削除できませんでした",file_add_unavailable:"ファイルを追加できませんでした",file_delete_unavailable:"ファイルを削除できませんでした"},
-                nl:{dragula_unavailable:"Slepen-en-neerzetten kon niet worden gestart",kanban_move_unavailable:"Item kon niet worden verplaatst",comment_add_unavailable:"Opmerking kon niet worden toegevoegd",comment_delete_unavailable:"Opmerking kon niet worden verwijderd",file_add_unavailable:"Bestand kon niet worden toegevoegd",file_delete_unavailable:"Bestand kon niet worden verwijderd"},
-                pl:{dragula_unavailable:"Nie można uruchomić przeciągania",kanban_move_unavailable:"Nie można przenieść elementu",comment_add_unavailable:"Nie można dodać komentarza",comment_delete_unavailable:"Nie można usunąć komentarza",file_add_unavailable:"Nie można dodać pliku",file_delete_unavailable:"Nie można usunąć pliku"},
-                pt:{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
-                "pt-br":{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
-                ru:{dragula_unavailable:"Не удалось инициализировать перетаскивание",kanban_move_unavailable:"Не удалось переместить элемент",comment_add_unavailable:"Не удалось добавить комментарий",comment_delete_unavailable:"Не удалось удалить комментарий",file_add_unavailable:"Не удалось добавить файл",file_delete_unavailable:"Не удалось удалить файл"},
-                tr:{dragula_unavailable:"Sürükle-bırak başlatılamadı",kanban_move_unavailable:"Öğe taşınamadı",comment_add_unavailable:"Yorum eklenemedi",comment_delete_unavailable:"Yorum silinemedi",file_add_unavailable:"Dosya eklenemedi",file_delete_unavailable:"Dosya silinemedi"},
-                zh:{dragula_unavailable:"无法初始化拖放",kanban_move_unavailable:"无法移动条目",comment_add_unavailable:"无法添加评论",comment_delete_unavailable:"无法删除评论",file_add_unavailable:"无法添加文件",file_delete_unavailable:"无法删除文件"}
-            };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-         
-          })();
-    </script>
+        <script async>
+        window.translations = {
+            ar:{dragula_unavailable:"تعذّر تفعيل السحب والإفلات",kanban_move_unavailable:"تعذّر نقل العنصر",comment_add_unavailable:"تعذّر إضافة التعليق",comment_delete_unavailable:"تعذّر حذف التعليق",file_add_unavailable:"تعذّر إضافة الملف",file_delete_unavailable:"تعذّر حذف الملف"},
+            da:{dragula_unavailable:"Kunne ikke aktivere træk-og-slip",kanban_move_unavailable:"Kunne ikke flytte elementet",comment_add_unavailable:"Kunne ikke tilføje kommentar",comment_delete_unavailable:"Kunne ikke slette kommentar",file_add_unavailable:"Kunne ikke tilføje fil",file_delete_unavailable:"Kunne ikke slette fil"},
+            de:{dragula_unavailable:"Drag-and-Drop konnte nicht aktiviert werden",kanban_move_unavailable:"Element konnte nicht verschoben werden",comment_add_unavailable:"Kommentar konnte nicht hinzugefügt werden",comment_delete_unavailable:"Kommentar konnte nicht gelöscht werden",file_add_unavailable:"Datei konnte nicht hinzugefügt werden",file_delete_unavailable:"Datei konnte nicht gelöscht werden"},
+            en:{dragula_unavailable:"Drag & drop could not be initialized",kanban_move_unavailable:"Could not move the item",comment_add_unavailable:"Could not add the comment",comment_delete_unavailable:"Could not delete the comment",file_add_unavailable:"Could not add the file",file_delete_unavailable:"Could not delete the file"},
+            es:{dragula_unavailable:"No se pudo iniciar arrastrar y soltar",kanban_move_unavailable:"No se pudo mover el elemento",comment_add_unavailable:"No se pudo agregar el comentario",comment_delete_unavailable:"No se pudo eliminar el comentario",file_add_unavailable:"No se pudo agregar el archivo",file_delete_unavailable:"No se pudo eliminar el archivo"},
+            fr:{dragula_unavailable:"Impossible d’activer le glisser-déposer",kanban_move_unavailable:"Impossible de déplacer l’élément",comment_add_unavailable:"Impossible d’ajouter le commentaire",comment_delete_unavailable:"Impossible de supprimer le commentaire",file_add_unavailable:"Impossible d’ajouter le fichier",file_delete_unavailable:"Impossible de supprimer le fichier"},
+            he:{dragula_unavailable:"לא ניתן להפעיל גרירה ושחרור",kanban_move_unavailable:"לא ניתן להעביר את הפריט",comment_add_unavailable:"לא ניתן להוסיף את התגובה",comment_delete_unavailable:"לא ניתן למחוק את התגובה",file_add_unavailable:"לא ניתן להוסיף את הקובץ",file_delete_unavailable:"לא ניתן למחוק את הקובץ"},
+            it:{dragula_unavailable:"Impossibile inizializzare il drag & drop",kanban_move_unavailable:"Impossibile spostare l’elemento",comment_add_unavailable:"Impossibile aggiungere il commento",comment_delete_unavailable:"Impossibile eliminare il commento",file_add_unavailable:"Impossibile aggiungere il file",file_delete_unavailable:"Impossibile eliminare il file"},
+            ja:{dragula_unavailable:"ドラッグ＆ドロップを初期化できませんでした",kanban_move_unavailable:"項目を移動できませんでした",comment_add_unavailable:"コメントを追加できませんでした",comment_delete_unavailable:"コメントを削除できませんでした",file_add_unavailable:"ファイルを追加できませんでした",file_delete_unavailable:"ファイルを削除できませんでした"},
+            nl:{dragula_unavailable:"Slepen-en-neerzetten kon niet worden gestart",kanban_move_unavailable:"Item kon niet worden verplaatst",comment_add_unavailable:"Opmerking kon niet worden toegevoegd",comment_delete_unavailable:"Opmerking kon niet worden verwijderd",file_add_unavailable:"Bestand kon niet worden toegevoegd",file_delete_unavailable:"Bestand kon niet worden verwijderd"},
+            pl:{dragula_unavailable:"Nie można uruchomić przeciągania",kanban_move_unavailable:"Nie można przenieść elementu",comment_add_unavailable:"Nie można dodać komentarza",comment_delete_unavailable:"Nie można usunąć komentarza",file_add_unavailable:"Nie można dodać pliku",file_delete_unavailable:"Nie można usunąć pliku"},
+            pt:{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
+            "pt-br":{dragula_unavailable:"Não foi possível iniciar o arrastar e soltar",kanban_move_unavailable:"Não foi possível mover o item",comment_add_unavailable:"Não foi possível adicionar o comentário",comment_delete_unavailable:"Não foi possível excluir o comentário",file_add_unavailable:"Não foi possível adicionar o arquivo",file_delete_unavailable:"Não foi possível excluir o arquivo"},
+            ru:{dragula_unavailable:"Не удалось инициализировать перетаскивание",kanban_move_unavailable:"Не удалось переместить элемент",comment_add_unavailable:"Не удалось добавить комментарий",comment_delete_unavailable:"Не удалось удалить комментарий",file_add_unavailable:"Не удалось добавить файл",file_delete_unavailable:"Не удалось удалить файл"},
+            tr:{dragula_unavailable:"Sürükle-bırak başlatılamadı",kanban_move_unavailable:"Öğe taşınamadı",comment_add_unavailable:"Yorum eklenemedi",comment_delete_unavailable:"Yorum silinemedi",file_add_unavailable:"Dosya eklenemedi",file_delete_unavailable:"Dosya silinemedi"},
+            zh:{dragula_unavailable:"无法初始化拖放",kanban_move_unavailable:"无法移动条目",comment_add_unavailable:"无法添加评论",comment_delete_unavailable:"无法删除评论",file_add_unavailable:"无法添加文件",file_delete_unavailable:"无法删除文件"}
+        };
+        </script>
         <script defer>
             (()=>{
                 const errFb="# ERROR";
