@@ -2,13 +2,13 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\Route;
-
     $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
@@ -31,24 +31,24 @@
         @can('download report')
             @php
                 $funcName  = 'saveAsPDF';
-                $guardMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'download_montly_pos_unavailable') ?? 'Download function for monthly POS is unavailable. Please contact technical support or your domain administrator.';
+                $guardMsg  = Utility::fetchLinkMessage($lang, VW::RPT, 'download_montly_pos_unavailable') ?? 'Download function for monthly POS is unavailable. Please contact technical support or your domain administrator.';
             @endphp
-            <a href="#" id="download-report-link" class="{{ ViewClassNamesConstants::BT_SM_PM }} download-report-link" data-func-name="{{ $funcName }}" data-sv-localized="true" data-guard-msg="{{ $guardMsg }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
-                <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_DWN }}"></i></span>
+            <a href="#" id="download-report-link" class="{{ VC::BT_SM_PM }} download-report-link" data-func-name="{{ $funcName }}" data-sv-localized="true" data-guard-msg="{{ $guardMsg }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
+                <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
             </a>
         @endcan
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <ul class="{{ ViewClassNamesConstants::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
+    <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
         <li class="nav-item">
             <a
                 class="nav-link"
                 id="pills-home-tab"
                 data-bs-toggle="pill"
-                href="{{ Route::has(ViewsConstants::RPT . '.daily.pos') ? route(ViewsConstants::RPT . '.daily.pos') : '#' }}"
-                data-url="{{ Route::has(ViewsConstants::RPT . '.daily.pos') ? route(ViewsConstants::RPT . '.daily.pos') : '#' }}"
+                href="{{ Route::has(VW::RPT . '.daily.pos') ? route(VW::RPT . '.daily.pos') : '#' }}"
+                data-url="{{ Route::has(VW::RPT . '.daily.pos') ? route(VW::RPT . '.daily.pos') : '#' }}"
                 role="tab"
                 aria-controls="pills-home"
                 aria-selected="true"
@@ -74,7 +74,7 @@
         $flagAttr = 'data-dailyPos-listener-added';
         $guardAttr = 'data-url';
         $urlAttr = 'data-url';
-        $message = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'daily_pos_unavailable')
+        $message = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_pos_unavailable')
             ?? 'Daily pos route is unavailable. Please contact technical support or your domain administrator.';
     @endphp
     <div class="row">
@@ -82,61 +82,61 @@
             <div class="mt-2" >
                 <div class="card">
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open([
-                            'url' => Route::has(ViewsConstants::RPT . '.monthly.pos') ? route(ViewsConstants::RPT . '.monthly.pos') : '#',
+                        {{ Form::open([
+                            'url' => Route::has(VW::RPT . '.monthly.pos') ? route(VW::RPT . '.monthly.pos') : '#',
                             'method' => 'GET',
                             'id' => 'monthly_pos_report_submit',
-                            'data-url' => Route::has(ViewsConstants::RPT . '.monthly.pos') ? route(ViewsConstants::RPT . '.monthly.pos') : '#'
+                            'data-url' => Route::has(VW::RPT . '.monthly.pos') ? route(VW::RPT . '.monthly.pos') : '#'
                         ]) }}
-                        <div class="{{ ViewClassNamesConstants::R_FLX_ALC_JCE }}">
-                            <div class="{{ ViewClassNamesConstants::CL_XLG4 }}">
+                        <div class="{{ VC::R_FLX_ALC_JCE }}">
+                            <div class="{{ VC::CL_XLG4 }}">
                                 <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label('year', __('Year'), ['class' => 'form-label']) }}
-                                    {{ Collective\Html\FormFacade::select('year', $yearList, isset($_GET['year']) ? $_GET['year'] : '', ['class' => 'form-control select']) }}
+                                    {{ Form::label('year', __('Year'), ['class' => 'form-label']) }}
+                                    {{ Form::select('year', $yearList, isset($_GET['year']) ? $_GET['year'] : '', ['class' => 'form-control select']) }}
                                 </div>
                             </div>
-                            <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
+                            <div class="{{ VC::CL_POS3 }}">
                                 <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label('warehouse', __('Warehouse'), ['class' => 'form-label']) }}
-                                    {{ Collective\Html\FormFacade::select('warehouse', $warehouse, isset($_GET['warehouse']) ? $_GET['warehouse'] : '', ['class' => 'form-control select']) }}
+                                    {{ Form::label('warehouse', __('Warehouse'), ['class' => 'form-label']) }}
+                                    {{ Form::select('warehouse', $warehouse, isset($_GET['warehouse']) ? $_GET['warehouse'] : '', ['class' => 'form-control select']) }}
                                 </div>
                             </div>
-                            <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
+                            <div class="{{ VC::CL_POS3 }}">
                                 <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label('customer', __('Customer'), ['class' => 'form-label']) }}
-                                    {{ Collective\Html\FormFacade::select('customer', $customer, isset($_GET['customer']) ? $_GET['customer'] : '', ['class' => 'form-control select']) }}
+                                    {{ Form::label('customer', __('Customer'), ['class' => 'form-label']) }}
+                                    {{ Form::select('customer', $customer, isset($_GET['customer']) ? $_GET['customer'] : '', ['class' => 'form-control select']) }}
                                 </div>
                             </div>
-                            <div class="{{ ViewClassNamesConstants::C_AT_FEND }}">
+                            <div class="{{ VC::C_AT_FEND }}">
                                 <a
                                     id="monthly-pos-apply"
                                     href="#"
-                                    class="{{ ViewClassNamesConstants::BT_SM_PM }}"
+                                    class="{{ VC::BT_SM_PM }}"
                                     data-toggle="tooltip"
                                     data-original-title="{{ __('apply') }}"
                                 >
-                                    <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_SRC }}"></i></span>
+                                    <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                 </a>
                                 <a
                                     id="monthly-pos-reset"
-                                    href="{{ Route::has(ViewsConstants::RPT . '.monthly.pos') ? route(ViewsConstants::RPT . '.monthly.pos') : '#' }}"
-                                    data-url="{{ Route::has(ViewsConstants::RPT . '.monthly.pos') ? route(ViewsConstants::RPT . '.monthly.pos') : '#' }}"
-                                    class="{{ ViewClassNamesConstants::BT_SM_DG }}"
+                                    href="{{ Route::has(VW::RPT . '.monthly.pos') ? route(VW::RPT . '.monthly.pos') : '#' }}"
+                                    data-url="{{ Route::has(VW::RPT . '.monthly.pos') ? route(VW::RPT . '.monthly.pos') : '#' }}"
+                                    class="{{ VC::BT_SM_DG }}"
                                     data-toggle="tooltip"
                                     data-original-title="{{ __('Reset') }}"
                                 >
-                                    <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_TRS_OFF }}"></i></span>
+                                    <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
                                 </a>
                             </div>
                         </div>
-                        {{ Collective\Html\FormFacade::close() }}
+                        {{ Form::close() }}
                     </div>
                     @php
                         $flagApply = 'data-monthlyPosApply-listener-added';
                         $flagReset = 'data-monthlyPosReset-listener-added';
                         $guardAttr = 'data-url';
                         $urlAttr = 'data-url';
-                        $message = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'monthly_pos_unavailable') 
+                        $message = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_pos_unavailable') 
                             ?? 'Monthly pos route is unavailable. Please contact technical support or your domain administrator.';
                     @endphp              
                 </div>
@@ -147,31 +147,31 @@
         <div class="row mt-0">
             <div class="col">
                 <input type="hidden" value="{{$filter['warehouse'].' '.__('Monthly Pos').' '.'Report of'.' '.$filter['startMonth'].' to '.$filter['endMonth']}}" id="filename">
-                <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                    <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Report')}} :</h7>
-                    <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{__('Monthly Pos Report')}}</h6>
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{__('Report')}} :</h7>
+                    <h6 class="{{ VC::RPT_TX_DEF }}">{{__('Monthly Pos Report')}}</h6>
                 </div>
             </div>
             @if(!empty($filter['warehouse']))
                 <div class="col">
-                    <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                        <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
-                        <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{$filter['warehouse']}}</h6>
+                    <div class="{{ VC::CD_POS }}">
+                        <h7 class="{{ VC::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
+                        <h6 class="{{ VC::RPT_TX_DEF }}">{{$filter['warehouse']}}</h6>
                     </div>
                 </div>
             @endif
             @if(!empty($filter['customer']))
                 <div class="col">
-                    <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                        <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Customer')}} :</h7>
-                        <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{$filter['customer']}}</h6>
+                    <div class="{{ VC::CD_POS }}">
+                        <h7 class="{{ VC::RPT_TX_GR }}">{{__('Customer')}} :</h7>
+                        <h6 class="{{ VC::RPT_TX_DEF }}">{{$filter['customer']}}</h6>
                     </div>
                 </div>
             @endif
             <div class="col">
-                <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                    <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Duration')}} :</h7>
-                    <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{$filter['startMonth'].' to '.$filter['endMonth']}}</h6>
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{__('Duration')}} :</h7>
+                    <h6 class="{{ VC::RPT_TX_DEF }}">{{$filter['startMonth'].' to '.$filter['endMonth']}}</h6>
                 </div>
             </div>
         </div>

@@ -1,23 +1,84 @@
-@php
-use App\Config\Constants\DatabaseConstants;
-$settings_data = \App\Models\Utility::settingsById($pos->created_by);
+<?php
+# Template 4
+use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
+use App\Models\{ProductServiceUnit, Utility};
+use Illuminate\Support\Facades\Log;
 
-@endphp
+if (!function_exists('e')) {
+    function e($v)
+    {
+        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$pos           ??= null;
+$customer      ??= null;
+$settings      ??= [];
+$settings_data ??= [];
+$customFields  ??= [];
+$meta_title    ??= '';
+$meta_desc     ??= '';
+$themeCSS      ??= '';
+$color         ??= '#4b4b4b';
+$font_color    ??= '#000000';
+$img           ??= '';
+$preview       ??= null;
+$posPayment    ??= (object)['amount' => 0, 'discount' => 0];
+
+if (trim((string)$themeCSS) === '') {
+    $themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
+}
+
+try {
+    $docLang = $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG);
+} catch (\Throwable $e) {
+    Log::error('DocLang: ' . get_class($e) . ' "' . $e->getMessage() . '"');
+    $docLang = DatabaseConstants::DEFAULT_LANG;
+}
+
+if (empty($pos)) {
+    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>POS</title></head><body><div class="alert alert-warning">No POS data available.</div></body></html>';
+    return;
+}
+
+try {
+    $settings_data = Utility::settingsById(data_get($pos, 'created_by'));
+} catch (\Throwable $e) {
+    Log::error('settingsById: ' . $e->getMessage());
+    $settings_data = [];
+}
+try {
+    $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
+} catch (\Throwable $e) {
+    Log::error('RTL: ' . $e->getMessage());
+    $dir = '';
+}
+
+try {
+    $posNumber = Utility::posNumberFormat($settings, data_get($pos, 'pos_id')) ?: __('Could not find POS number');
+} catch (\Throwable $e) {
+    Log::error('POS Number: ' . $e->getMessage());
+    $posNumber = __('Could not find POS number');
+}
+try {
+    $issueDate = Utility::dateFormat($settings, data_get($pos, 'issue_date')) ?: __('Failed to get issue date');
+} catch (\Throwable $e) {
+    Log::error('Issue Date: ' . $e->getMessage());
+    $issueDate = __('Failed to get issue date');
+}
+?>
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$settings_data[SettingsConstants::RTL] == 'on'?'rtl':''}}">
+<html lang="<?= e($docLang) ?>" dir="<?= e($dir) ?>">
 
 <head>
-    @include('fragments.std', [
-    'meta_title' => $meta_title,
-    'meta_desc' => $meta_desc,
-    'meta_vp' => ''
-    ])
-
+    <?php try {
+        echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_vp' => ''])->render();
+    } catch (\Throwable $e) {
+        Log::error('Meta view: ' . $e->getMessage());
+    } ?>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
-
     <style>
-        <?php echo $themeCSS; ?>
+        <?= $themeCSS ?>
     </style>
     <style type="text/css">
         body {
@@ -47,12 +108,12 @@ $settings_data = \App\Models\Utility::settingsById($pos->created_by);
         }
 
         table tr th {
-            padding: 0.75rem;
+            padding: .75rem;
             text-align: left;
         }
 
         table tr td {
-            padding: 0.75rem;
+            padding: .75rem;
             text-align: left;
         }
 
@@ -181,10 +242,9 @@ $settings_data = \App\Models\Utility::settingsById($pos->created_by);
             margin-bottom: 0;
         }
     </style>
-
-    @if($settings_data[SettingsConstants::RTL]=='on')
-    <link rel="stylesheet" href="{{ asset('css/bootstrap-rtl.css') }}">
-    @endif
+    <?php if (data_get($settings_data, SettingsConstants::RTL) === 'on'): ?>
+        <link rel="stylesheet" href="<?= e(asset('css/bootstrap-rtl.css')) ?>">
+    <?php endif; ?>
 </head>
 
 <body>
@@ -194,187 +254,238 @@ $settings_data = \App\Models\Utility::settingsById($pos->created_by);
                 <tbody>
                     <tr>
                         <td>
-                            <h3 style="text-transform: uppercase; font-size: 30px; font-weight: bold; margin-bottom: 10px; color: <?= $color ?>"> {{ __('POS') }}</h3>
+                            <h3 style="text-transform:uppercase;font-size:30px;font-weight:bold;margin-bottom:10px;color:<?= e($color) ?>"><?= e(__('POS')) ?></h3>
                             <p>
-                                @if($settings['company_name']){{$settings['company_name']}}@endif<br>
-                                @if($settings['mail_from_address']){{$settings['mail_from_address']}}@endif<br><br>
-                                @if($settings['company_address']){{$settings['company_address']}}@endif
-                                @if($settings['company_city']) <br> {{$settings['company_city']}}, @endif
-                                @if($settings['company_state']){{$settings['company_state']}}@endif
-                                @if($settings['company_zipcode']) - {{$settings['company_zipcode']}}@endif
-                                @if($settings['company_country']) <br>{{$settings['company_country']}}@endif
-                                @if($settings['company_telephone']){{$settings['company_telephone']}}@endif<br>
-                                @if(!empty($settings['registration_number'])){{__('Registration Number')}} : {{$settings['registration_number']}} @endif<br>
-                                @if($settings['vat_gst_number_switch'] == 'on')
-                                @if(!empty($settings['tax_type']) && !empty($settings['vat_number'])){{$settings['tax_type'].' '. __('Number')}} : {{$settings['vat_number']}} <br>@endif
-                                @endif
+                                <?= !empty($settings['company_name']) ? e($settings['company_name']) : e(__('No company name available')) ?><br>
+                                <?= !empty($settings['mail_from_address']) ? e($settings['mail_from_address']) : e(__('No email available')) ?><br><br><br>
+                                <?= !empty($settings['company_address']) ? e($settings['company_address']) : e(__('No address available')) ?>
+                                <?= !empty($settings['company_city']) ? '<br>' . e($settings['company_city']) . ', ' : __('No company city available') ?>
+                                <?= !empty($settings['company_state']) ? e($settings['company_state']) : __('No company state available') ?>
+                                <?= !empty($settings['company_zipcode']) ? ' - ' . e($settings['company_zipcode']) : __('No company zipcode available') ?>
+                                <?= !empty($settings['company_country']) ? '<br>' . e($settings['company_country']) : __('No company country available') ?>
+                                <?= !empty($settings['company_telephone']) ? e($settings['company_telephone']) : __('No company telephone available') ?><br>
+                                <?php
+                                if (!empty($settings['registration_number'])) {
+                                    echo e(__('Registration Number')) . ' : ' . e($settings['registration_number']) . ' ';
+                                }
+                                echo '<br>';
+                                if (data_get($settings, 'vat_gst_number_switch') === 'on' && !empty($settings['tax_type']) && !empty($settings['vat_number'])) {
+                                    echo e($settings['tax_type'] . ' ' . __('Number')) . ' : ' . e($settings['vat_number']) . ' <br>';
+                                }
+                                ?>
                             </p>
                         </td>
-
                         <td>
-                            <img class=" pos-logo" src="{{$img}}" alt="" style="margin-bottom: 15px;">
-
+                            <img class="pos-logo" src="<?= e($img) ?>" alt="" style="margin-bottom:15px;">
                             <table class="no-space">
                                 <tbody>
                                     <tr>
-                                        <td>{{__('Number')}}:</td>
-                                        <td class="text-right">{{Utility::posNumberFormat($settings,$pos->pos_id)}}</td>
+                                        <td><?= e(__('Number')) ?>:</td>
+                                        <td class="text-right"><?= e($posNumber) ?></td>
                                     </tr>
-
                                     <tr>
-                                        <td>{{__('Issue Date')}}:</td>
-                                        <td class="text-right">{{Utility::dateFormat($settings,$pos->issue_date)}}</td>
+                                        <td><?= e(__('Issue Date')) ?>:</td>
+                                        <td class="text-right"><?= e($issueDate) ?></td>
                                     </tr>
-
-                                    @if(!empty($customFields) && count($pos->customField)>0)
-                                    @foreach($customFields as $field)
-                                    <tr>
-                                        <td>{{$field->name}} :</td>
-                                        <td> {{!empty($pos->customField)?$pos->customField[$field->id]:'-'}}</td>
-                                    </tr>
-                                    @endforeach
-                                    @endif
-
+                                    <?php if (!empty($customFields) && count(data_get($pos, 'customField', [])) > 0): ?>
+                                        <?php foreach ($customFields as $field): ?>
+                                            <tr>
+                                                <td><?= e(data_get($field, 'name', '')) ?> :</td>
+                                                <td><?= e(data_get($pos->customField, $field->id) ?? '-') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </td>
                     </tr>
                 </tbody>
             </table>
-
         </div>
+
         <div class="pos-body">
             <table>
                 <tbody>
                     <tr>
                         <td>
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Bill To')}}:</strong>
-                            @if(!empty($customer->billing_name))
-                            <p>
-                                {{!empty($customer->billing_name)?$customer->billing_name:''}}<br>
-                                {{!empty($customer->billing_address)?$customer->billing_address:''}}<br>
-                                {{!empty($customer->billing_city)?$customer->billing_city:'' .', '}}<br>
-                                {{!empty($customer->billing_state)?$customer->billing_state:'',', '}},
-                                {{!empty($customer->billing_zip)?$customer->billing_zip:''}}<br>
-                                {{!empty($customer->billing_country)?$customer->billing_country:''}}<br>
-                                {{!empty($customer->billing_phone)?$customer->billing_phone:''}}<br>
-                            </p>
-                            @else
-                            -
-                            @endif
+                            <strong style="margin-bottom:10px;display:block;"><?= e(__('Bill To')) ?>:</strong>
+                            <?php if (!empty(data_get($customer, 'billing_name'))): ?>
+                                <p>
+                                    <?= e(data_get($customer, 'billing_name', __('No name for billing available.'))) ?><br>
+                                    <?= e(data_get($customer, 'billing_address', __('No address for billing available.'))) ?><br>
+                                    <?= e(data_get($customer, 'billing_city', __('No city for billing available.'))) ?><?= !empty(data_get($customer, 'billing_city')) ? ', ' : '' ?><br>
+                                    <?= e(data_get($customer, 'billing_state', __('No state for billing available.'))) ?><?= !empty(data_get($customer, 'billing_state')) ? ', ' : '' ?>,
+                                    <?= e(data_get($customer, 'billing_zip', __('No zip for billing available.'))) ?><br>
+                                    <?= e(data_get($customer, 'billing_country', __('No country for billing available.'))) ?><br>
+                                    <?= e(data_get($customer, 'billing_phone', __('No phone for billing available'))) ?><br>
+                                </p>
+                                <?php else: ?>-<?php endif; ?>
                         </td>
-                        @if($settings['shipping_display']=='on')
-                        <td class="text-right">
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Ship To')}}:</strong>
-                            @if(!empty($customer->shipping_name))
-                            <p>
-                                {{!empty($customer->shipping_name)?$customer->shipping_name:''}}<br>
-                                {{!empty($customer->shipping_address)?$customer->shipping_address:''}}<br>
-                                {{!empty($customer->shipping_city)?$customer->shipping_city:'' . ', '}}<br>
-                                {{!empty($customer->shipping_state)?$customer->shipping_state:'' .', '}},
-                                {{!empty($customer->shipping_zip)?$customer->shipping_zip:''}}<br>
-                                {{!empty($customer->shipping_country)?$customer->shipping_country:''}}<br>
-                                {{!empty($customer->shipping_phone)?$customer->shipping_phone:''}}<br>
-                            </p>
-                            @else
-                            -
-                            @endif
-                        </td>
-                        @endif
+                        <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
+                            <td class="text-right">
+                                <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
+                                <?php if (!empty(data_get($customer, 'shipping_name'))): ?>
+                                    <p>
+                                        <?= e(data_get($customer, 'shipping_name', __('No name for shipping available.'))) ?><br>
+                                        <?= e(data_get($customer, 'shipping_address', __('No address for shipping available.'))) ?><br>
+                                        <?= e(data_get($customer, 'shipping_city', __('No city for shipping available.'))) ?><?= !empty(data_get($customer, 'shipping_city')) ? ', ' : '' ?><br>
+                                        <?= e(data_get($customer, 'shipping_state', __('No state for shipping available.'))) ?><?= !empty(data_get($customer, 'shipping_state')) ? ', ' : '' ?>,
+                                        <?= e(data_get($customer, 'shipping_zip', __('No zip for shipping available.'))) ?><br>
+                                        <?= e(data_get($customer, 'shipping_country', __('No country for shipping available.'))) ?><br>
+                                        <?= e(data_get($customer, 'shipping_phone', __('No phone for shipping available.'))) ?><br>
+                                    </p>
+                                    <?php else: ?>-<?php endif; ?>
+                            </td>
+                        <?php endif; ?>
                     </tr>
                 </tbody>
             </table>
-            <table class=" pos-summary" style="margin-top: 30px;">
-                <thead style="background: <?= $color ?>;color:{{$font_color}}">
+
+            <table class="pos-summary" style="margin-top:30px;">
+                <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>">
                     <tr>
-                        <th>{{__('Item')}}</th>
-                        <th>{{__('Quantity')}}</th>
-                        <th>{{__('Price')}}</th>
-                        <th>{{__('Tax')}}</th>
-                        <th>{{__('Tax Amount')}}</th>
-                        <th>{{__('Total')}}</th>
+                        <th><?= e(__('Item')) ?></th>
+                        <th><?= e(__('Quantity')) ?></th>
+                        <th><?= e(__('Price')) ?></th>
+                        <th><?= e(__('Tax')) ?></th>
+                        <th><?= e(__('Tax Amount')) ?></th>
+                        <th><?= e(__('Total')) ?></th>
                     </tr>
                 </thead>
-                <tbody style="border-bottom:1px solid <?= $color ?>"> @if(isset($pos->itemData) && count($pos->itemData) > 0)
-                    @foreach($pos->itemData as $key => $item)
-                    <tr>
-                        <td>{{$item->name}}</td>
-                        <td>{{$item->quantity}}</td>
-                        <td>{{Utility::priceFormat($settings,$item->price)}}</td>
-                        <td>
-                            @php
-                            $totalTaxRate = 0;
-                            $totalTaxPrice=0;
-                            @endphp
-                            @if(!empty($item->itemTax))
-                            @foreach($item->itemTax as $taxes)
-                            @php
-                            $res = str_ireplace( array( '%' ), ' ', $taxes['rate']);
-                            $taxPrice=App\Models\Utility::taxRate($res,$item->price,$item->quantity);
-                            $totalTaxPrice+=$taxPrice;
-                            @endphp
-                            <span>{{$taxes['name']}}</span> <span>({{$taxes['rate']}})</span><br>
-                            @endforeach
-                            @else
-                            -
-                            @endif
-                        </td>
-
-                        <td>{{Utility::priceFormat($settings,$totalTaxPrice)}}</td>
-                        <td>{{Utility::priceFormat($settings,($item->price*$item->quantity) +$totalTaxPrice)}}</td>
-
-                    </tr>
-                    @endforeach
-                    @else
-                    @endif
-
+                <tbody style="border-bottom:1px solid <?= e($color) ?>">
+                    <?php if (isset($pos->itemData) && is_iterable($pos->itemData) && count($pos->itemData) > 0): ?>
+                        <?php foreach ($pos->itemData as $item): ?>
+                            <?php
+                            $price = (float) data_get($item, 'price', 0);
+                            $qty   = (float) data_get($item, 'quantity', 0);
+                            $totalTaxPrice = 0.0;
+                            $unitSuffix = '';
+                            try {
+                                $unit = ProductServiceUnit::find(data_get($item, 'unit'));
+                                $unitName = data_get($unit, 'name', '');
+                                $unitSuffix = $unitName ? ' (' . e($unitName) . ')' : '';
+                            } catch (\Throwable $e) {
+                                $unitSuffix = '';
+                                Log::error('Unit: ' . $e->getMessage());
+                            }
+                            ?>
+                            <tr>
+                                <td><?= e(data_get($item, 'name', '')) ?></td>
+                                <td><?= e((string)$qty) . $unitSuffix ?></td>
+                                <td><?php try {
+                                        echo e(Utility::priceFormat($settings, $price));
+                                    } catch (\Throwable $e) {
+                                        Log::error('Item price fmt: ' . $e->getMessage());
+                                        echo '0';
+                                    } ?></td>
+                                <td>
+                                    <?php if (!empty(data_get($item, 'itemTax'))): ?>
+                                        <?php foreach ((array) data_get($item, 'itemTax', []) as $taxes): ?>
+                                            <?php
+                                            try {
+                                                $rateStr = (string) data_get($taxes, 'rate', '0');
+                                                $res     = str_ireplace(['%'], ' ', $rateStr);
+                                                $taxP    = Utility::taxRate($res, $price, $qty);
+                                                $totalTaxPrice += (float) $taxP;
+                                            } catch (\Throwable $e) {
+                                                Log::error('Tax calc: ' . $e->getMessage());
+                                            }
+                                            ?>
+                                            <span><?= e(data_get($taxes, 'name', 'Tax')) ?></span> <span>(<?= e(data_get($taxes, 'rate', '0')) ?>)</span><br>
+                                        <?php endforeach; ?>
+                                        <?php else: ?>-<?php endif; ?>
+                                </td>
+                                <td><?php try {
+                                        echo e(Utility::priceFormat($settings, $totalTaxPrice));
+                                    } catch (\Throwable $e) {
+                                        Log::error('Tax amt fmt: ' . $e->getMessage());
+                                        echo '0';
+                                    } ?></td>
+                                <td><?php try {
+                                        echo e(Utility::priceFormat($settings, ($price * $qty) + $totalTaxPrice));
+                                    } catch (\Throwable $e) {
+                                        Log::error('Line total fmt: ' . $e->getMessage());
+                                        echo '0';
+                                    } ?></td>
+                            </tr>
+                            <?php if (!empty(data_get($item, 'description'))): ?>
+                                <tr class="border-0 itm-description">
+                                    <td colspan="6"><?= e(data_get($item, 'description')) ?></td>
+                                </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan=" 4">
-                        </td>
+                        <td colspan="4"></td>
                         <td colspan="2" class="sub-total">
                             <table class="total-table">
                                 <tr>
-                                    <td>{{__('Subtotal')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$posPayment->amount)}}</td>
+                                    <td><?= e(__('Subtotal')) ?>:</td>
+                                    <td><?php try {
+                                            echo e(Utility::priceFormat($settings, (float) data_get($posPayment, 'amount', 0)));
+                                        } catch (\Throwable $e) {
+                                            Log::error('Subtotal fmt: ' . $e->getMessage());
+                                            echo '0';
+                                        } ?></td>
                                 </tr>
-
                                 <tr>
-                                    <td>{{__('Discount')}}:</td>
-                                    @if(!empty($posPayment->discount))
-                                    <td>{{Utility::priceFormat($settings,$posPayment->discount)}}</td>
-                                    @else
-                                    <td>-</td>
-                                    @endif
+                                    <td><?= e(__('Discount')) ?>:</td>
+                                    <td>
+                                        <?php
+                                        try {
+                                            $disc = data_get($posPayment, 'discount', null);
+                                            echo !empty($disc) ? e(Utility::priceFormat($settings, (float)$disc)) : '-';
+                                        } catch (\Throwable $e) {
+                                            Log::error('Discount fmt: ' . $e->getMessage());
+                                            echo '-';
+                                        }
+                                        ?>
+                                    </td>
                                 </tr>
-
-
                                 <tr>
-                                    <td>{{__('Total')}}:</td>
-                                    @if(!empty($posPayment->discount))
-                                    <td>{{Utility::priceFormat($settings,$posPayment->amount - $posPayment->discount)}}</td>
-                                    @else
-                                    <td>{{Utility::priceFormat($settings,$posPayment->amount )}}</td>
-
-                                    @endif
+                                    <td><?= e(__('Total')) ?>:</td>
+                                    <td>
+                                        <?php
+                                        try {
+                                            $amt = (float) data_get($posPayment, 'amount', 0);
+                                            $disc = (float) (data_get($posPayment, 'discount', 0) ?? 0);
+                                            echo e(Utility::priceFormat($settings, $amt - $disc));
+                                        } catch (\Throwable $e) {
+                                            Log::error('Total fmt: ' . $e->getMessage());
+                                            echo '0';
+                                        }
+                                        ?>
+                                    </td>
                                 </tr>
-
-
                             </table>
                         </td>
                     </tr>
                 </tfoot>
             </table>
+
             <div class="pos-footer">
-                <b>{{$settings['footer_title']}}</b> <br>
-                {!! $settings['footer_notes'] !!}
+                <b><?= e(data_get($settings, 'footer_title', '')) ?></b> <br>
+                <?php try {
+                    echo (string) data_get($settings, 'footer_notes', '');
+                } catch (\Throwable $e) {
+                    Log::error('Footer notes: ' . $e->getMessage());
+                } ?>
             </div>
         </div>
     </div>
-    @if(!isset($preview))
-    @include('pos.script');
-    @endif
+
+    <?php if (!isset($preview)): ?>
+        <?php
+        try {
+            $view = method_exists(ViewsConstants::class, 'POS') ? ViewsConstants::POS . '.script' : 'pos.script';
+            echo view($view)->render();
+        } catch (\Throwable $e) {
+            Log::error('pos.script include: ' . $e->getMessage());
+        }
+        ?>
+    <?php endif; ?>
 </body>
 
 </html>

@@ -2,10 +2,16 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Str;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(auth: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -24,273 +30,248 @@
 
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script>
-        var filename = $('#filename').val();
-
-        function saveAsPDF() {
-            var element = document.getElementById('printableArea');
-            var opt = {
-                margin: 0.3,
-                filename: filename,
-                image: {type: 'jpeg', quality: 1},
-                html2canvas: {scale: 4, dpi: 72, letterRendering: true},
-                jsPDF: {unit: 'in', format: 'A2'}
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-    </script>
-    <script>
-
-        $(document).ready(function () {
-            var b_id = $('#branch_id').val();
-            // getDepartment(b_id);
-        });
-        $(document).on('change', 'select[name=branch_id]', function () {
-
-            var branch_id = $(this).val();
-            getDepartment(branch_id);
-        });
-
-        function getDepartment(bid) {
-
-            $.ajax({
-                url: '{{route(ViewsConstants::RPT . '.attendance.getdepartment')}}',
-                type: 'POST',
-                data: {
-                    "branch_id": bid,
-                    "_token": "{{ csrf_token() }}",
-                },
-
-                success: function (data) {
-                    //console.log(data);
-                    $('#department_id').empty();
-                    $("#department_div").html('');
-                    $('#department_div').append('<label for="department" class="form-label">{{__('Department')}}</label><select class="form-control" id="department_id" name="department_id[]"  ></select>');
-                    $('#department_id').append('<option value="">{{__('Select Department')}}</option>');
-                    $('#department_id').append('<option value="0"> {{__('All Department')}} </option>');
-                    $.each(data, function (key, value) {
-                        //console.log(key, value);
-                        $('#department_id').append('<option value="' + key + '">' + value + '</option>');
-                    });
-                    // var multipleCancelButton = new Choices('#department_id', {
-                    //     removeItemButton: true,
-                    // });
-
-                }
-
-            });
-        }
-
-        $(document).on('change', '#department_id', function () {
-            var department_id = $(this).val();
-            getEmployee(department_id);
-        });
-
-        function getEmployee(did) {
-            $.ajax({
-                url: '{{route(ViewsConstants::RPT . '.attendance.getemployee')}}',
-                type: 'POST',
-                data: {
-                    "department_id": did, "_token": "{{ csrf_token() }}",
-                },
-                success: function (data) {
-                    console.log(data);
-                    $('#employee_id').empty();
-                    $("#employee_div").html('');
-                    // $('#employee_div').append('<select class="form-control" id="employee_id" name="employee_id[]"  multiple></select>');
-                    $('#employee_div').append('<label for="employee" class="form-label">{{__('Employee')}}</label><select class="form-control" id="employee_id" name="employee_id[]"  multiple></select>');
-                    $('#employee_id').append('<option value="">{{__('Select Employee')}}</option>');
-                    $('#employee_id').append('<option value="0"> {{__('All Employee')}} </option>');
-
-                    $.each(data, function (key, value) {
-                        $('#employee_id').append('<option value="' + key + '">' + value + '</option>');
-                    });
-
-                    var multipleCancelButton = new Choices('#employee_id', {
-                        removeItemButton: true,
-                    });
-                }
-            });
-        }
-    </script>
+    <script async src="{{ asset('assets/js/routes/reports/attendances/monthly/lang/pdf.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/reports/attendances/monthly/pdf.js') }}"></script>
 @endpush
-
-@section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-        <a href="#" class="btn btn-sm btn-primary" onclick="saveAsPDF()" data-bs-toggle="tooltip" title="{{ __('Download') }}"
-           data-original-title="{{ __('Download') }}">
-            <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
-        </a>
-
-{{--        <a href="{{route(ViewsConstants::RPT . '.attendance',[isset($_GET['month'])?$_GET['month']:date('Y-m'),isset($_GET['branch'])?$_GET['branch']:0,isset($_GET['department'])?$_GET['department']:0])}}" class="btn btn-sm btn-primary" onclick="saveAsPDF()"data-bs-toggle="tooltip" title="{{__('Download')}}" data-original-title="{{__('Download')}}">--}}
+{{--        <a href="{{route(VW::RPT . '.attendance',[isset($_GET['month'])?$_GET['month']:date('Y-m'),isset($_GET['branch'])?$_GET['branch']:0,isset($_GET['department'])?$_GET['department']:0])}}" class="btn btn-sm btn-primary" onclick="saveAsPDF()"data-bs-toggle="tooltip" title="{{__('Download')}}" data-original-title="{{__('Download')}}">--}}
 {{--            <span class="btn-inner--icon"><i class="ti ti-download"></i></span>--}}
 {{--        </a>--}}
-
+@section(YieldingConstants::ADM_ACT_BTN)
+    <div class="float-end">
+        @php
+            $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_monthly_attendance_unavailable') ?? 'Download function for monthly attendance reports is unavailable. Please contact technical support or your domain administrator.';
+        @endphp
+        <a href="#"
+        id="download-monthly-attendance-link"
+        class="{{ VC::BT_SM_PM }} download-monthly-attendance"
+        data-func-name="saveAsPDF"
+        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-sv-localized="true"
+        data-bs-toggle="tooltip"
+        title="{{ __('Download') }}"
+        data-original-title="{{ __('Download') }}">
+            <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
+        </a>
+        @push(StacksConstants::ADM_SCRP_PG)
+            <script src="{{ asset('assets/js/routes/reports/attendances/monthly/download.js') }}" defer></script>
+        @endpush
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
+    <div class="{{ VC::RW }}">
         <div class="col-sm-12">
             <div class="mt-2" id="multiCollapseExample1">
-                <div class="card">
+                <div class="{{ VC::CD }}">
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open(array('route' => array(ViewsConstants::RPT . '.monthly.attendance'),'method'=>'get','id'=>'report_monthly_attendance')) }}
-                        <div class="row align-items-center justify-content-end">
-                            <div class="col-xl-10">
-                                <div class="row">
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{Collective\Html\FormFacade::label('month',__('Month'),['class'=>'form-label'])}}
-                                            {{Collective\Html\FormFacade::month('month',isset($_GET['month'])?$_GET['month']:date('Y-m'),array('class'=>'month-btn form-control'))}}
+                        @php
+                            $monthlyAttBase             = VW::RPT.'.monthly.attendance';
+                            $monthlyAttKebab            = Str::kebab($monthlyAttBase);
+                            $monthlyAttResolved         = Route::has($monthlyAttBase) ? $monthlyAttBase : (Route::has($monthlyAttKebab) ? $monthlyAttKebab : null);
+                            $monthlyAttUrl              = $monthlyAttResolved ? route($monthlyAttResolved) : '#';
+                            $monthlyAttFormId           = 'report_monthly_attendance';
+                            $monthlyApplyGuardMsg       = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_apply_attendance_route_unavailable') ?? 'Monthly attendance apply route is unavailable. Please contact technical support or your domain administrator.';
+                            $monthlyResetGuardMsg       = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_reset_attendance_route_unavailable') ?? 'Monthly attendance reset route is unavailable. Please contact technical support or your domain administrator.';
+                        @endphp
+                        {{ Form::open([
+                            'method'            => 'GET',
+                            'url'               => $monthlyAttUrl,
+                            'id'                => $monthlyAttFormId,
+                            'data-url'          => $monthlyAttUrl,
+                            'data-guard-msg'    => $monthlyApplyGuardMsg,
+                            'data-sv-localized' => 'true',
+                        ]) }}
+                            <div class="{{ VC::R_ALC_JCE }}">
+                                <div class="col-xl-10">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::CL_XL3 }}">
+                                            <div class="btn-box">
+                                                {{ Form::label('month', __('Month'), ['class'=> VC::FM_LB]) }}
+                                                {{ Form::month('month', isset($_GET['month']) ? $_GET['month'] : date('Y-m'), ['class'=>'month-btn ' . VC::FM_CT]) }}
+                                            </div>
+                                        </div>
+                                        <div class="{{ VC::CL_XL3 }}">
+                                            <div class="btn-box">
+                                                {{ Form::label('branch', __('Branch'), ['class'=> VC::FM_LB]) }}
+                                                <select class="{{ VC::FM_CT_SL }}" name="branch_id" id="branch_id" placeholder="{{ __('Select Branch') }}" required>
+                                                    <option value="">{{ __('Select Branch') }}</option>
+                                                    <option value="0">{{ __('All Branch') }}</option>
+                                                    @foreach($branch as $br)
+                                                        <option value="{{ data_get($br,'id') }}">{{ data_get($br,'name',__('No branch name available')) }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="{{ VC::CL_XL3 }}">
+                                            <div class="btn-box" id="department_div">
+                                                {{ Form::label('department', __('Department'), ['class'=> VC::FM_LB]) }}
+                                                <select class="{{ VC::FM_CT_SL }}" name="department_id[]" id="department_id" required="required" placeholder="{{ __('Select Department') }}">
+                                                    <option value="">{{ __('Please select a branch first') }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="{{ VC::CL_XL3 }}">
+                                            <div class="btn-box" id="employee_div">
+                                                {{ Form::label('employee', __('Employee'), ['class'=> VC::FM_LB]) }}
+                                                <select class="{{ VC::FM_CT_SL }}" name="employee_id[]" id="employee_id" placeholder="{{ __('Select Employee') }}">
+                                                    <option value="">{{ __('Please select a department first') }}</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('branch', __('Branch'),['class'=>'form-label']) }}
-{{--                                            {{ Collective\Html\FormFacade::select('branch', $branch,isset($_GET['branch'])?$_GET['branch']:'', array('class' => 'form-control select')) }}--}}
-
-                                            <select class="form-control select" name="branch_id" id="branch_id"  placeholder="Select Branch" required>
-                                                <option value="">{{__('Select Branch')}}</option>
-                                                <option value="0">{{__('All Branch')}}</option>
-                                                @foreach($branch as $branch)
-                                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box" id="department_div">
-                                            {{ Collective\Html\FormFacade::label('department', __('Department'),['class'=>'form-label']) }}
-{{--                                            {{ Collective\Html\FormFacade::select('department', $department,isset($_GET['department'])?$_GET['department']:'', array('class' => 'form-control select')) }}--}}
-                                            <select class="form-control select" name="department_id[]" id="department_id" required="required" placeholder="Select Department" >
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box" id="employee_div">
-                                            {{ Collective\Html\FormFacade::label('employee', __('Employee'),['class'=>'form-label']) }}
-                                            <select class="form-control select" name="employee_id[]" id="employee_id" placeholder="Select Employee" >
-                                            </select>
+                                </div>
+                                <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::C_AT }}">
+                                            <a href="#"
+                                            class="{{ VC::BT_SM_PM }} apply-monthly-attendance"
+                                            data-form-id="{{ $monthlyAttFormId }}"
+                                            data-guard-msg="{{ $monthlyApplyGuardMsg }}"
+                                            data-sv-localized="true"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ __('Apply') }}"
+                                            data-original-title="{{ __('apply') }}">
+                                                <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
+                                            </a>
+                                            <a href="{{ $monthlyAttUrl }}"
+                                            class="{{ VC::BT_SM_DG }} reset-monthly-attendance"
+                                            data-url="{{ $monthlyAttUrl }}"
+                                            data-guard-msg="{{ $monthlyResetGuardMsg }}"
+                                            data-sv-localized="true"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ __('Reset') }}"
+                                            data-original-title="{{ __('Reset') }}">
+                                                <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-auto">
-                                <div class="row">
-                                    <div class="col-auto mt-4">
-                                        <a href="#" class="btn btn-sm btn-primary" onclick="document.getElementById('report_monthly_attendance').submit(); return false;" data-bs-toggle="tooltip" title="{{__('Apply')}}" data-original-title="{{__('apply')}}">
-                                            <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
-                                        </a>
-                                        <a href="{{route(ViewsConstants::RPT . '.monthly.attendance')}}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"  title="{{ __('Reset') }}" data-original-title="{{__('Reset')}}">
-                                            <span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {{ Form::close() }}
+                        @push(StacksConstants::ADM_SCRP_PG)
+                            <script src="{{ asset('assets/js/routes/reports/attendances/monthly/apply.js') }}" defer></script>
+                            <script src="{{ asset('assets/js/routes/reports/attendances/monthly/reset.js') }}" defer></script>
+                        @endpush
                     </div>
-                    {{ Collective\Html\FormFacade::close() }}
                 </div>
             </div>
         </div>
     </div>
     <div id="printableArea">
-        <div class="row">
+        @php
+            $branchLabel     = data_get($data,'branch',__('No branch selected'));
+            $deptLabel       = data_get($data,'department',__('No department selected'));
+            $monthLabel      = data_get($data,'curMonth',__('No month selected'));
+            $totalPresent    = data_get($data,'totalPresent',__('No total present available'));
+            $totalLeave      = data_get($data,'totalLeave',__('No total leave available'));
+            $totalOvertime   = data_get($data,'totalOvertime',0);
+            $totalEarlyLeave = data_get($data,'totalEarlyLeave',0);
+            $totalLate       = data_get($data,'totalLate',0);
+        @endphp
+        <div class="{{ VC::RW }}">
             <div class="col">
-                <input type="hidden" value="{{  $data['branch'] .' '.__('Branch') .' '.$data['curMonth'].' '.__('Attendance Report of').' '. $data['department'].' '.'Department'}}" id="filename">
-                <div class="card p-4 mb-4">
-                    <h6 class="mb-0">{{__('Report')}} :</h6>
-                    <h7 class="text-sm mb-0">{{__('Attendance Summary')}}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <input type="hidden" value="{{ $branchLabel .' '. __('Branch') .' '. $monthLabel .' '. __('Attendance Report of') .' '. $deptLabel .' '. __('Department') }}" id="filename">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Report') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Attendance Summary') }}</h7>
                 </div>
             </div>
-            @if($data['branch']!='All')
+            @if($branchLabel!='All')
                 <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class=" mb-0">{{__('Branch')}} :</h6>
-                        <h7 class="text-sm mb-0">{{$data['branch']}}</h7>
+                    <div class="{{ VC::CD_POS }}">
+                        <h6 class="{{ VC::MB0 }}">{{ __('Branch') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $branchLabel }}</h7>
                     </div>
                 </div>
             @endif
-            @if($data['department']!='All')
+            @if($deptLabel!='All')
                 <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class=" mb-0">{{__('Department')}} :</h6>
-                        <h7 class="text-sm mb-0">{{$data['department']}}</h7>
+                    <div class="{{ VC::CD_POS }}">
+                        <h6 class="{{ VC::MB0 }}">{{ __('Department') }} :</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $deptLabel }}</h7>
                     </div>
                 </div>
             @endif
             <div class="col">
-                <div class="card p-4 mb-4">
-                    <h6 class=" mb-0">{{__('Duration')}} :</h6>
-                    <h7 class="text-sm mb-0">{{$data['curMonth']}}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Duration') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $monthLabel }}</h7>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="{{ VC::RW }}">
             <div class="col-xl-3 col-md-6 col-lg-3">
-                <div class="card p-4 mb-4 ">
+                <div class="{{ VC::CD_POS }}">
                     <div class="float-left">
-                        <h6 class=" mb-0">{{__('Attendance')}}</h6>
-                        <h7 class="text-sm mb-0 float-start">{{__('Total present')}}: {{$data['totalPresent']}}</h7>
-                        <h7 class="text-sm mb-0 float-end">{{__('Total leave')}} : {{$data['totalLeave']}}</h7>
+                        <h6 class="{{ VC::MB0 }}">{{ __('Attendance') }}</h6>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }} float-start">{{ __('Total present') }}: {{ $totalPresent }}</h7>
+                        <h7 class="{{ VC::TXSM }} {{ VC::MB0 }} float-end">{{ __('Total leave') }} : {{ $totalLeave }}</h7>
                     </div>
-
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 col-lg-3">
-                <div class="card p-4 mb-4">
-                    <h6 class=" mb-0">{{__('Overtime')}}</h6>
-                    <h7 class="text-sm mb-0">{{__('Total overtime in hours')}} : {{number_format($data['totalOvertime'],2)}}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Overtime') }}</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Total overtime in hours') }} : {{ number_format($totalOvertime,2) }}</h7>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 col-lg-3">
-                <div class="card p-4 mb-4">
-                    <h6 class=" mb-0">{{__('Early leave')}}</h6>
-                    <h7 class="text-sm mb-0">{{__('Total early leave in hours')}} : {{number_format($data['totalEarlyLeave'],2)}}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Early leave') }}</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Total early leave in hours') }} : {{ number_format($totalEarlyLeave,2) }}</h7>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 col-lg-3">
-                <div class="card p-4 mb-4">
-                    <h6 class=" mb-0">{{__('Employee late')}}</h6>
-                    <h7 class="text-sm mb-0">{{__('Total late in hours')}} : {{number_format($data['totalLate'],2)}}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Employee late') }}</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Total late in hours') }} : {{ number_format($totalLate,2) }}</h7>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+        <div class="{{ VC::RW }}">
             <div class="col">
-                <div class="card">
+                <div class="{{ VC::CD }}">
                     <div class="card-body table-border-style">
                         <div class="table-responsive py-4 attendance-table-responsive">
-                            <table class="table">
+                            <table class="{{ VC::TB }}">
                                 <thead>
                                 <tr>
-                                    <th class="active">{{__('Name')}}</th>
-                                    @foreach($dates as $date)
-                                        <th>{{$date}}</th>
-                                    @endforeach
+                                    <th class="active">{{ __('Name') }}</th>
+                                    @forelse($dates as $date)
+                                        <th>{{ $date }}</th>
+                                    @empty
+                                        <th>{{ __('No dates available') }}</th>
+                                    @endforelse
                                 </tr>
                                 </thead>
                                 <tbody>
-
-                                @foreach($employeesAttendance as $attendance)
-
+                                @forelse($employeesAttendance as $attendance)
                                     <tr>
-                                        <td>{{$attendance['name']}}</td>
-                                        @foreach($attendance['status'] as $status)
-                                            <td>
-                                                @if($status=='P')
-{{--                                                    <i class="custom-badge badge-success ap">{{__('P')}}</i>--}}
-                                                    <i class="badge bg-success p-2 rounded">{{__('P')}}</i>
-                                                @elseif($status=='A')
-                                                    <i class="badge bg-danger p-2 rounded">{{__('A')}}</i>
-                                                @endif
-                                            </td>
-                                        @endforeach
+                                        <td>{{ data_get($attendance,'name',__('No employee name available')) }}</td>
+                                        @php $statuses = data_get($attendance,'status',[]); @endphp
+                                        @if(empty($statuses))
+                                            <td colspan="{{ max(count($dates),1) }}">{{ __('No attendance status available') }}</td>
+                                        @else
+                                            @foreach($statuses as $status)
+                                                <td>
+                                                    @if($status=='P')
+                                                        <i class="badge bg-success p-2 rounded">{{ __('P') }}</i>
+                                                    @elseif($status=='A')
+                                                        <i class="badge bg-danger p-2 rounded">{{ __('A') }}</i>
+                                                    @else
+                                                        <i class="badge bg-secondary p-2 rounded">{{ __('No status available') }}</i>
+                                                    @endif
+                                                </td>
+                                            @endforeach
+                                        @endif
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="{{ max(count($dates),1) + 1 }}" class="text-center text-muted">{{ __('No attendance records available for the selected filters') }}</td>
+                                    </tr>
+                                @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -300,3 +281,4 @@
         </div>
     </div>
 @endsection
+

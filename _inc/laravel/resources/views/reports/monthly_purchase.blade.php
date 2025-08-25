@@ -3,9 +3,10 @@
         ExtendingLayoutsConstants,
         StacksConstants,
         ViewsConstants,
-        ViewClassNamesConstants,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
+    use Collective\Html\FormFacade as Form;
     use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
 
@@ -31,10 +32,10 @@
         @can('download report')
             @php
                 $funcName = 'saveAsPDF';
-                $guardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'download_monthly_purchase_unavailable') ?? 'Download function for monthly purchases is unavailable. Please contact technical support or your domain administrator.';
+                $guardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_monthly_purchase_unavailable') ?? 'Download function for monthly purchases is unavailable. Please contact technical support or your domain administrator.';
             @endphp
-            <a href="#" id="download-monthly-pos-link" class="{{ ViewClassNamesConstants::BT_SM_PM }} download-monthly-pos-link" data-sv-localized="true" data-func-name="{{ $funcName }}" data-guard-msg="{{ $guardMsg }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
-                <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_DWN }}"></i></span>
+            <a href="#" id="download-monthly-pos-link" class="{{ VC::BT_SM_PM }} download-monthly-pos-link" data-sv-localized="true" data-func-name="{{ $funcName }}" data-guard-msg="{{ $guardMsg }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
+                <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
             </a>
         @endcan
     </div>
@@ -42,15 +43,15 @@
 
 @section(YieldingConstants::ADM_CTT)
     @php
-        $dailyPurchaseUrl = Route::has(ViewsConstants::RPT.'.daily.purchase')
-            ? route(ViewsConstants::RPT.'.daily.purchase')
+        $dailyPurchaseUrl = Route::has(VW::RPT.'.daily.purchase')
+            ? route(VW::RPT.'.daily.purchase')
             : '#';
         $dailyPurchaseNavMsg = Utility::fetchLinkMessage(
             $lang,
-            [ViewsConstants::RPT, 'daily_purchase_nav_unavailable']
+            VW::RPT, 'daily_purchase_nav_unavailable'
         ) ?? 'Daily purchase navigation is unavailable. Please contact technical support or your domain administrator.';
     @endphp
-    <ul class="{{ ViewClassNamesConstants::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
+    <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
         <li class="nav-item">
             <a
                 class="nav-link"
@@ -85,29 +86,29 @@
             <div class="mt-2" >
                 <div class="card">
                     @php
-                        $monthlyPurchaseUrl = Route::has(ViewsConstants::RPT.'.monthly.purchase')
-                            ? route(ViewsConstants::RPT.'.monthly.purchase')
+                        $monthlyPurchaseUrl = Route::has(VW::RPT.'.monthly.purchase')
+                            ? route(VW::RPT.'.monthly.purchase')
                             : '#';
                         $filterUnavailableMsg = Utility::fetchLinkMessage(
                             $lang,
-                            [ViewsConstants::RPT, 'filter_report_unavailable']
+                            VW::RPT, 'filter_report_unavailable'
                         ) ?? 'Filter report route is unavailable. Please contact technical support or your domain administrator.';
                     @endphp
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open([
-                            'route' => [ViewsConstants::RPT . '.monthly.purchase'],
+                        {{ Form::open([
+                            'route' => [VW::RPT . '.monthly.purchase'],
                             'method' => 'GET',
                             'id'     => 'monthly_purchase_report_submit',
                         ]) }}
-                        <div class="{{ ViewClassNamesConstants::R_FLX_ALC_JCE }}">
-                            <div class="{{ ViewClassNamesConstants::CL_XLG4 }}">
+                        <div class="{{ VC::R_FLX_ALC_JCE }}">
+                            <div class="{{ VC::CL_XLG4 }}">
                                 <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label(
+                                    {{ Form::label(
                                         'year',
                                         __('Year'),
                                         ['class' => 'form-label']
                                     ) }}
-                                    {{ Collective\Html\FormFacade::select(
+                                    {{ Form::select(
                                         'year',
                                         $yearList,
                                         isset($_GET['year']) ? $_GET['year'] : '',
@@ -115,14 +116,14 @@
                                     ) }}
                                 </div>
                             </div>
-                            <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
+                            <div class="{{ VC::CL_POS3 }}">
                                 <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label(
+                                    {{ Form::label(
                                         'warehouse',
                                         __('Warehouse'),
                                         ['class' => 'form-label']
                                     ) }}
-                                    {{ Collective\Html\FormFacade::select(
+                                    {{ Form::select(
                                         'warehouse',
                                         $warehouse,
                                         isset($_GET['warehouse']) ? $_GET['warehouse'] : '',
@@ -130,14 +131,14 @@
                                     ) }}
                                 </div>
                             </div>
-                            <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
+                            <div class="{{ VC::CL_POS3 }}">
                                 <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label(
+                                    {{ Form::label(
                                         'vendor',
                                         __('Vendor'),
                                         ['class' => 'form-label']
                                     ) }}
-                                    {{ Collective\Html\FormFacade::select(
+                                    {{ Form::select(
                                         'vendor',
                                         $vendor,
                                         isset($_GET['vendor']) ? $_GET['vendor'] : '',
@@ -145,12 +146,12 @@
                                     ) }}
                                 </div>
                             </div>
-                            <div class="{{ ViewClassNamesConstants::C_AT_FEND }}">
+                            <div class="{{ VC::C_AT_FEND }}">
                                 <a
                                     href="{{ $monthlyPurchaseUrl }}"
                                     data-url="{{ $monthlyPurchaseUrl }}"
                                     data-apply-listener-added="false"
-                                    class="{{ ViewClassNamesConstants::BT_SM_PM }}"
+                                    class="{{ VC::BT_SM_PM }}"
                                     data-toggle="tooltip"
                                     data-original-title="{{ __('apply') }}"
                                 >
@@ -162,17 +163,17 @@
                                     href="{{ $monthlyPurchaseUrl }}"
                                     data-url="{{ $monthlyPurchaseUrl }}"
                                     data-reset-listener-added="false"
-                                    class="{{ ViewClassNamesConstants::BT_SM_DG }}"
+                                    class="{{ VC::BT_SM_DG }}"
                                     data-toggle="tooltip"
                                     data-original-title="{{ __('Reset') }}"
                                 >
                                     <span class="btn-inner--icon">
-                                        <i class="{{ ViewClassNamesConstants::TI_TRS_OFF }}"></i>
+                                        <i class="{{ VC::TI_TRS_OFF }}"></i>
                                     </span>
                                 </a>
                             </div>
                         </div>
-                        {{ Collective\Html\FormFacade::close() }}
+                        {{ Form::close() }}
                     </div>              
                 </div>
             </div>
@@ -182,31 +183,31 @@
         <div class="row mt-0">
             <div class="col">
                 <input type="hidden" value="{{$filter['warehouse'].' '.__('Monthly Purchase').' '.'Report of'.' '.$filter['startMonth'].' to '.$filter['endMonth']}}" id="filename">
-                <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                    <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Report')}} :</h7>
-                    <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{__('Monthly Purchase Report')}}</h6>
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{__('Report')}} :</h7>
+                    <h6 class="{{ VC::RPT_TX_DEF }}">{{__('Monthly Purchase Report')}}</h6>
                 </div>
             </div>
             @if(!empty($filter['warehouse']))
                 <div class="col">
-                    <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                        <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
-                        <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{$filter['warehouse']}}</h6>
+                    <div class="{{ VC::CD_POS }}">
+                        <h7 class="{{ VC::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
+                        <h6 class="{{ VC::RPT_TX_DEF }}">{{$filter['warehouse']}}</h6>
                     </div>
                 </div>
             @endif
             @if(!empty($filter['vendor']))
                 <div class="col">
-                    <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                        <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Vendor')}} :</h7>
-                        <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{$filter['vendor']}}</h6>
+                    <div class="{{ VC::CD_POS }}">
+                        <h7 class="{{ VC::RPT_TX_GR }}">{{__('Vendor')}} :</h7>
+                        <h6 class="{{ VC::RPT_TX_DEF }}">{{$filter['vendor']}}</h6>
                     </div>
                 </div>
             @endif
             <div class="col">
-                <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                    <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Duration')}} :</h7>
-                    <h6 class="{{ ViewClassNamesConstants::RPT_TX_DEF }}">{{$filter['startMonth'].' to '.$filter['endMonth']}}</h6>
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{__('Duration')}} :</h7>
+                    <h6 class="{{ VC::RPT_TX_DEF }}">{{$filter['startMonth'].' to '.$filter['endMonth']}}</h6>
                 </div>
             </div>
         </div>
@@ -231,7 +232,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -239,41 +239,9 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar: { no_area: "المنطقة القابلة للطباعة غير موجودة", pdf_fail: "فشل حفظ الملف كـ PDF",  chart_fail: "فشل عرض مخطط المشتريات الشهري" },
-            da: { no_area: "Printbart område ikke fundet", pdf_fail: "Kunne ikke gemme som PDF", chart_fail: "Kunne ikke vise månedligt indkøbsdiagram" },
-            de: { no_area: "Druckbereich nicht gefunden", pdf_fail: "Konnte nicht als PDF gespeichert werden", chart_fail: "Monatliches Einkaufsdiagramm konnte nicht angezeigt werden" },
-            en: { no_area: "Printable area not found", pdf_fail: "Failed to save as PDF", chart_fail: "Failed to render monthly purchase chart" },
-            es: { no_area: "Área imprimible no encontrada", pdf_fail: "Error al guardar PDF", chart_fail: "Error al mostrar gráfico de compras mensual" },
-            fr: { no_area: "Zone imprimable introuvable", pdf_fail: "Échec de l'enregistrement PDF", chart_fail: "Échec de l'affichage du diagramme d'achat mensuel" },
-            he: { no_area: "אזור ההדפסה לא נמצא", pdf_fail: "שמירה כ-PDF נכשלה", chart_fail: "נכשל בהצגת תרשים רכישות חודשי" },
-            it: { no_area: "Area stampabile non trovata", pdf_fail: "Salvataggio come PDF non riuscito", chart_fail: "Impossibile visualizzare il grafico degli acquisti mensile" },
-            ja: { no_area: "印刷可能な領域が見つかりません", pdf_fail: "PDFとして保存できませんでした", chart_fail: "月次購入チャートの表示に失敗しました"  },
-            nl: { no_area: "Afdrukbaar gebied niet gevonden", pdf_fail: "Opslaan als PDF mislukt", chart_fail: "Maandelijkse inkoopgrafiek weergeven mislukt" },
-            pl: { no_area: "Nie znaleziono obszaru do druku", pdf_fail: "Nie udało się zapisać jako PDF", chart_fail: "Nie udało się wyświetlić miesięcznego wykresu zakupów" },
-            pt: { no_area: "Área imprimível não encontrada", pdf_fail: "Falha ao salvar como PDF", chart_fail: "Falha ao exibir gráfico de compras mensal" },
-            "pt-br": { no_area: "Área imprimível não encontrada", pdf_fail: "Falha ao salvar como PDF", chart_fail: "Falha ao exibir gráfico de compras mensal" },
-            ru: { no_area: "Область для печати не найдена", pdf_fail: "Не удалось сохранить как PDF", chart_fail: "Не удалось отобразить ежемесячную диаграмму покупок" },
-            tr: { no_area: "Yazdırılabilir alan bulunamadı", pdf_fail: "PDF olarak kaydedilemedi", chart_fail:"Aylık satın alma grafiği oluşturulamadı" },
-            zh: { no_area: "未找到可打印区域", pdf_fail: "无法保存为PDF", chart_fail: "无法渲染月度采购图表" }
-      };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
     <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/reports/purchases/monthly/lang/pdf.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/reports/monthly/printable.js') }}""></script>
     <script defer src="{{ asset('assets/js/routes/reports/monthly/save.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/reports/monthly/dailyNav.js') }}"></script>
@@ -368,7 +336,6 @@ Object.keys(t).forEach(
         
           window.saveAsPDF = saveAsPDF;
         })();
-        
         (() => {
           const BS_LINK = 'link[href*="bootstrap"]';
           const CHART_ID = '#monthly-purchase';
@@ -501,10 +468,9 @@ Object.keys(t).forEach(
             document.addEventListener('DOMContentLoaded', renderChart);
           }
         })();
-        
         (() => {
-          const APPLY_CLASS = '{{ ViewClassNamesConstants::BT_SM_PM }}';
-          const RESET_CLASS = '{{ ViewClassNamesConstants::BT_SM_DG }}';
+          const APPLY_CLASS = '{{ VC::BT_SM_PM }}';
+          const RESET_CLASS = '{{ VC::BT_SM_DG }}';
           const APPLY_ATTR = 'data-apply-listener';
           const RESET_ATTR = 'data-reset-listener';
           const FORM_ID = 'monthly_purchase_report_submit';
@@ -586,6 +552,6 @@ Object.keys(t).forEach(
             }
           } catch (error) {
           }
-      })();
+        })();
     </script>
 @endpush

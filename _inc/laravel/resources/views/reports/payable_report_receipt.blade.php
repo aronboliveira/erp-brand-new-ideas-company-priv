@@ -1,18 +1,21 @@
-{{-- @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        YieldingConstants
-    };
-@endphp
-@extends(ExtendingLayoutsConstants::ADM) --}}
+{{-- @extends(ExtendingLayoutsConstants::ADM) --}}
 @php
-    use App\Config\Constants\{DatabaseConstants, SettingsConstants};
-    use App\Models\Utility;
+    use App\Config\Constants\{
+        DatabaseConstants, 
+        SettingsConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\{Invoice, User, Utility};
+    use Illuminate\Support\Facades\{Auth, Route};
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
+    $authUser = $user?->creatorId();
+    $creatorUser = $authUser ? User::find($authUser) : null;
     $settings = Utility::settings();
-    $color = !empty($setting[SettingsConstants::THML_CLR]) ? $setting[SettingsConstants::THML_CLR] : 'theme-3';
+    $color = !empty($settings[SettingsConstants::THML_CLR]) ? $settings[SettingsConstants::THML_CLR] : 'theme-3';
 @endphp
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
+<html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
     <head>
         <title>{{ env('APP_NAME') }} - Payable Report</title>
         @include('fragments.std', [
@@ -24,344 +27,279 @@
         @if (isset($settings[SettingsConstants::RTL]) && $settings[SettingsConstants::RTL] == 'on')
             <link rel="stylesheet" href="{{ asset('assets/css/style-rtl.css') }}" id="main-style-link">
         @endif
+        <script src="{{ asset('js/jquery.min.js') }}"></script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script async src="{{ asset('assets/js/routes/reports/payables/receipts/lang/pdf.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/reports/payables/receipts/pdf.js') }}"></script>
     </head>
-    <script src="{{ asset('js/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script>
-        var filename = $('#filename').val();
-
-        function saveAsPDF() {
-            var element = document.getElementById('printableArea');
-            var opt = {
-                margin: 0.3,
-                filename: filename,
-                image: {
-                    type: 'jpeg',
-                    quality: 1
-                },
-                html2canvas: {
-                    scale: 4,
-                    dpi: 72,
-                    letterRendering: true
-                },
-                jsPDF: {
-                    unit: 'in',
-                    format: 'A2'
-                }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-    </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $("#filter").click(function() {
-                $("#show_filter").toggle();
-            });
-        });
-    </script>
-    <script>
-        window.print();
-        window.onafterprint = back;
-
-        function back() {
-            window.close();
-            window.history.back();
-        }
-    </script>
     <body class="{{ $color }}">
-        <div class="mt-4">
-            @php
-                $authUser = \Auth::user()->creatorId();
-                $user = App\Models\User::find($authUser);
-            @endphp
-
-        <div class="row">
-            <div class="col-12" id="invoice-container">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="tab-content" id="myTabContent2">
-                                    @if($reportName  == '#vendor_balance')
-                                        <table class="table table-flush" id="report-dataTable">
-                                            <thead>
-                                                <tr>
-                                                    <th width="33%"> {{ __('Vendor Name') }}</th>
-                                                    <th width="33%"> {{ __('Billed Amount') }}</th>
-                                                    <th width="33%"> {{ __('Available Debit') }}</th>
-                                                    <th class="text-end"> {{ __('Closing Balance') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @php
-                                                    $mergedArray = [];
-                                                    foreach ($payableVendors as $item) {
-                                                        $name = $item['name'];
-                                                    
-                                                        if (!isset($mergedArray[$name])) {
-                                                            $mergedArray[$name] = [
-                                                                'name' => $name,
-                                                                'price' => 0.0,
-                                                                'pay_price' => 0.0,
-                                                                'total_tax' => 0.0,
-                                                                'debit_price' => 0.0,
-                                                            ];
-                                                        }
-                                                    
-                                                        $mergedArray[$name]['price'] += floatval($item['price']);
-                                                        if ($item['pay_price'] !== null) {
-                                                            $mergedArray[$name]['pay_price'] += floatval($item['pay_price']);
-                                                        }
-                                                        $mergedArray[$name]['total_tax'] += floatval($item['total_tax']);
-                                                        $mergedArray[$name]['debit_price'] += floatval($item['debit_price']);
-                                                    }
-                                                    $resultArray = array_values($mergedArray);
-                                                    $total = 0;
-                                                @endphp
-                                                @foreach ($resultArray as $receivableCustomer)
+        <div class="{{ VC::MT4 }}">
+            <div class="{{ VC::RW }}">
+                <div class="{{ VC::C12 }}" id="invoice-container">
+                    <div class="{{ VC::CD }}">
+                        <div class="card-body">
+                            <div class="{{ VC::RW }}">
+                                <div class="{{ VC::CS12 }}">
+                                    <div class="tab-content" id="myTabContent2">
+                                        @if($reportName  == '#vendor_balance')
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
+                                                <thead>
                                                     <tr>
+                                                        <th width="33%">{{ __('Vendor Name') }}</th>
+                                                        <th width="33%">{{ __('Billed Amount') }}</th>
+                                                        <th width="33%">{{ __('Available Debit') }}</th>
+                                                        <th class="text-end">{{ __('Closing Balance') }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @php
+                                                        $mergedArray = [];
+                                                        foreach (($payableVendors ?? []) as $item) {
+                                                            $name = $item['name'] ?? __('No vendor name available');
+                                                            if (!isset($mergedArray[$name])) {
+                                                                $mergedArray[$name] = [
+                                                                    'name'        => $name,
+                                                                    'price'       => 0.0,
+                                                                    'pay_price'   => 0.0,
+                                                                    'total_tax'   => 0.0,
+                                                                    'debit_price' => 0.0,
+                                                                ];
+                                                            }
+                                                            $mergedArray[$name]['price']       += floatval($item['price'] ?? 0);
+                                                            if (!is_null($item['pay_price'] ?? null)) {
+                                                                $mergedArray[$name]['pay_price'] += floatval($item['pay_price']);
+                                                            }
+                                                            $mergedArray[$name]['total_tax']   += floatval($item['total_tax'] ?? 0);
+                                                            $mergedArray[$name]['debit_price'] += floatval($item['debit_price'] ?? 0);
+                                                        }
+                                                        $resultArray = array_values($mergedArray);
+                                                        $total = 0.0;
+                                                    @endphp
+
+                                                    @forelse ($resultArray as $receivableCustomer)
                                                         @php
-                                                            $customerBalance = $receivableCustomer['price'] + $receivableCustomer['total_tax'] - $receivableCustomer['pay_price'];
-                                                            $balance = $customerBalance - $receivableCustomer['debit_price'];
+                                                            $customerBalance = ($receivableCustomer['price'] ?? 0) + ($receivableCustomer['total_tax'] ?? 0) - ($receivableCustomer['pay_price'] ?? 0);
+                                                            $balance = $customerBalance - ($receivableCustomer['debit_price'] ?? 0);
                                                             $total += $balance;
                                                         @endphp
-                                                        <td> {{ $receivableCustomer['name'] }}</td>
-                                                        <td> {{ \Auth::user()->priceFormat($customerBalance) }} </td>
-                                                        <td> {{ !empty($receivableCustomer['debit_price']) ? \Auth::user()->priceFormat($receivableCustomer['debit_price']) : \Auth::user()->priceFormat(0) }}
-                                                        </td>
-                                                        <td class="text-end"> {{ \Auth::user()->priceFormat($balance) }} </td>
-                                                    </tr>
-                                                @endforeach
-                                                @if ($payableVendors != [])
-                                                    <tr>
-                                                        <th>{{ __('Total') }}</th>
-                                                        <td></td>
-                                                        <td></td>
-                                                        <th class="text-end">{{ \Auth::user()->priceFormat($total) }}</th>
-                                                    </tr>
-                                                @endif
-                                            </tbody>
-                                        </table>
+                                                        <tr>
+                                                            <td>{{ $receivableCustomer['name'] ?? __('No vendor name available') }}</td>
+                                                            <td>{{ $user?->priceFormat($customerBalance) ?? number_format((float)$customerBalance,2) }}</td>
+                                                            <td>{{ $user?->priceFormat($receivableCustomer['debit_price'] ?? 0) ?? number_format((float)($receivableCustomer['debit_price'] ?? 0),2) }}</td>
+                                                            <td class="text-end">{{ $user?->priceFormat($balance) ?? number_format((float)$balance,2) }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="4">{{ __('No vendor balances available') }}</td>
+                                                        </tr>
+                                                    @endforelse
+                                                    @if (!empty($resultArray))
+                                                        <tr>
+                                                            <th>{{ __('Total') }}</th>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <th class="text-end">{{ $user?->priceFormat($total) ?? number_format((float)$total,2) }}</th>
+                                                        </tr>
+                                                    @endif
+                                                </tbody>
+                                            </table>
+
                                         @elseif($reportName == '#payable_summary')
-                                    <table class="table table-flush" id="report-dataTable">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ __('Vendor Name') }}</th>
-                                                <th>{{ __('Date') }}</th>
-                                                <th>{{ __('Transaction') }}</th>
-                                                <th>{{ __('Status') }}</th>
-                                                <th>{{ __('Transaction Type') }}</th>
-                                                <th>{{ __('Total') }}</th>
-                                                <th>{{ __('Balance') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $total = 0;
-                                                $totalAmount = 0;
-                                                
-                                                function compare($a, $b)
-                                                {
-                                                    return strtotime($b['bill_date']) - strtotime($a['bill_date']);
-                                                }
-                                                usort($payableSummaries, 'compare');
-                                            @endphp
-                                            @foreach ($payableSummaries as $payableSummary)
-                                                <tr>
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ __('Vendor Name') }}</th>
+                                                        <th>{{ __('Date') }}</th>
+                                                        <th>{{ __('Transaction') }}</th>
+                                                        <th>{{ __('Status') }}</th>
+                                                        <th>{{ __('Transaction Type') }}</th>
+                                                        <th>{{ __('Total') }}</th>
+                                                        <th>{{ __('Balance') }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                                     @php
-                                                        if ($payableSummary['bill']) {
-                                                            $payableBalance = $payableSummary['price'] + $payableSummary['total_tax'];
-                                                        } else {
-                                                            $payableBalance = -$payableSummary['price'];
-                                                        }
-                                                        $pay_price = ($payableSummary['pay_price'] != null) ? $payableSummary['pay_price'] : 0;
-                                                        $balance = $payableBalance - $pay_price;
-                                                        $total += $balance;
-                                                        $totalAmount += $payableBalance;
+                                                        $total = 0.0;
+                                                        $totalAmount = 0.0;
+                                                        $list = $payableSummaries ?? [];
+                                                        usort($list, function($a,$b){
+                                                            return strtotime(($b['bill_date'] ?? '1970-01-01')) <=> strtotime(($a['bill_date'] ?? '1970-01-01'));
+                                                        });
                                                     @endphp
-                                                    <td> {{ $payableSummary['name'] }}</td>
-                                                    <td> {{ $payableSummary['bill_date'] }}</td>
-                                                    @if ($payableSummary['bill'])
-                                                        @if ($payableSummary['type'] == 'Bill')
-                                                            <td> {{ \Auth::user()->billNumberFormat($payableSummary['bill']) }}
-                                                            </td>
-                                                        @elseif($payableSummary['type'] == 'Expense')
-                                                            <td> {{ \Auth::user()->expenseNumberFormat($payableSummary['bill']) }}
-                                                            </td>
-                                                        @endif
-                                                        @else
-                                                        <td>{{ __('Debit Note') }}</td>
-                                                    @endif
-                                                    </td>
-                                                    <td>
-                                                        @if ($payableSummary['status'] == 0)
-                                                            <span
-                                                                class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableSummary['status']]) }}</span>
-                                                        @elseif($payableSummary['status'] == 1)
-                                                            <span
-                                                                class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableSummary['status']]) }}</span>
-                                                        @elseif($payableSummary['status'] == 2)
-                                                            <span
-                                                                class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableSummary['status']]) }}</span>
-                                                        @elseif($payableSummary['status'] == 3)
-                                                            <span
-                                                                class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableSummary['status']]) }}</span>
-                                                        @elseif($payableSummary['status'] == 4)
-                                                            <span
-                                                                class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableSummary['status']]) }}</span>
-                                                        @else
-                                                            <span class="p-2 px-3">-</span>
-                                                        @endif
-                                                    </td>
-                                                    @if ($payableSummary['bill'])
-                                                        <td> {{ $payableSummary['type'] }}
-                                                        @else
-                                                        <td>{{ __('Debit Note') }}</td>
-                                                    @endif
-                                                    <td> {{ \Auth::user()->priceFormat($payableBalance) }} </td>
+                                                    @forelse ($list as $payableSummary)
+                                                        @php
+                                                            $isBill = (bool)($payableSummary['bill'] ?? false);
+                                                            $payableBalance = $isBill
+                                                                ? (float)($payableSummary['price'] ?? 0) + (float)($payableSummary['total_tax'] ?? 0)
+                                                                : -(float)($payableSummary['price'] ?? 0);
+                                                            $pay_price = (float)($payableSummary['pay_price'] ?? 0);
+                                                            $balance = $payableBalance - $pay_price;
+                                                            $total += $balance;
+                                                            $totalAmount += $payableBalance;
 
-                                                    <td> {{ \Auth::user()->priceFormat($balance) }} </td>
+                                                            $status = $payableSummary['status'] ?? null;
+                                                            $statusClasses = [
+                                                                0 => 'bg-secondary',
+                                                                1 => 'bg-warning',
+                                                                2 => 'bg-danger',
+                                                                3 => 'bg-info',
+                                                                4 => VC::BG_P,
+                                                            ];
+                                                            $bgClass = $status !== null ? ($statusClasses[$status] ?? null) : null;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $payableSummary['name'] ?? __('No vendor name available') }}</td>
+                                                            <td>{{ $payableSummary['bill_date'] ?? __('No date available') }}</td>
+                                                            <td>
+                                                                @if ($isBill)
+                                                                    @if (($payableSummary['type'] ?? '') === 'Bill')
+                                                                        {{ $user?->billNumberFormat($payableSummary['bill']) ?? __('Could not format bill number') }}
+                                                                    @elseif(($payableSummary['type'] ?? '') === 'Expense')
+                                                                        {{ $user?->expenseNumberFormat($payableSummary['bill']) ?? __('Could not format expense number') }}
+                                                                    @else
+                                                                        {{ __('Unknown transaction') }}
+                                                                    @endif
+                                                                @else
+                                                                    {{ __('Debit Note') }}
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if($bgClass)
+                                                                    <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 px-3 rounded">
+                                                                        {{ __(Invoice::$statuses[$status] ?? __('No status available')) }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="p-2 px-3">{{ __('No status available') }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $isBill ? ($payableSummary['type'] ?? __('No type available')) : __('Debit Note') }}</td>
+                                                            <td>{{ $user?->priceFormat($payableBalance) ?? number_format((float)$payableBalance,2) }}</td>
+                                                            <td>{{ $user?->priceFormat($balance) ?? number_format((float)$balance,2) }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="7">{{ __('No payable summaries available') }}</td>
+                                                        </tr>
+                                                    @endforelse
+                                                    @if (!empty($list))
+                                                        <tr>
+                                                            <th>{{ __('Total') }}</th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th>{{ $user?->priceFormat($totalAmount) ?? number_format((float)$totalAmount,2) }}</th>
+                                                            <th>{{ $user?->priceFormat($total) ?? number_format((float)$total,2) }}</th>
+                                                        </tr>
+                                                    @endif
+                                                </tbody>
+                                            </table>
 
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                            @if ($payableSummaries != [])
-                                                <tr>
-                                                    <th>{{ __('Total') }}</th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>{{ \Auth::user()->priceFormat($totalAmount) }}</th>
-                                                    <th>{{ \Auth::user()->priceFormat($total) }}</th>
-                                                </tr>
-                                            @endif
-                                        </tbody>
-                                    </table>
-                                    @else
-                                    <table class="table table-flush" id="report-dataTable">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ __('Customer Name') }}</th>
-                                                <th>{{ __('Date') }}</th>
-                                                <th>{{ __('Transaction') }}</th>
-                                                <th>{{ __('Status') }}</th>
-                                                <th>{{ __('Transaction Type') }}</th>
-                                                <th>{{ __('Item Name') }}</th>
-                                                <th>{{ __('Quantity Ordered') }}</th>
-                                                <th>{{ __('Item Price') }}</th>
-                                                <th>{{ __('Total') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @php
-                                                $total = 0;
-                                                $totalQuantity = 0;
-                                                
-                                                function compares($a, $b)
-                                                {
-                                                    return strtotime($b['bill_date']) - strtotime($a['bill_date']);
-                                                }
-                                                usort($payableDetails, 'compares');
-                                            @endphp
-                                            @foreach ($payableDetails as $payableDetail)
-                                                <tr>
+                                        @else
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ __('Customer Name') }}</th>
+                                                        <th>{{ __('Date') }}</th>
+                                                        <th>{{ __('Transaction') }}</th>
+                                                        <th>{{ __('Status') }}</th>
+                                                        <th>{{ __('Transaction Type') }}</th>
+                                                        <th>{{ __('Item Name') }}</th>
+                                                        <th>{{ __('Quantity Ordered') }}</th>
+                                                        <th>{{ __('Item Price') }}</th>
+                                                        <th>{{ __('Total') }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                                                     @php
-                                                        if ($payableDetail['bill']) {
-                                                            $receivableBalance = $payableDetail['price'];
-                                                        } else {
-                                                            $receivableBalance = -$payableDetail['price'];
-                                                        }
-                                                        if ($payableDetail['bill']) {
-                                                            $quantity = $payableDetail['quantity'];
-                                                        }
-                                                        else {
-                                                            $quantity = 0;
-                                                        }
-
-                                                        if ($payableDetail['bill']) {
-                                                            $itemTotal = $receivableBalance * $payableDetail['quantity'];
-                                                        } else {
-                                                            $itemTotal = -$payableDetail['price'];
-                                                        }
-                                                        
-                                                        $total += $itemTotal;
-                                                        $totalQuantity += $quantity;
+                                                        $total = 0.0;
+                                                        $totalQuantity = 0.0;
+                                                        $rows = $payableDetails ?? [];
+                                                        usort($rows, function($a,$b){
+                                                            return strtotime(($b['bill_date'] ?? '1970-01-01')) <=> strtotime(($a['bill_date'] ?? '1970-01-01'));
+                                                        });
                                                     @endphp
-                                                    <td> {{ $payableDetail['name'] }}</td>
-                                                    <td> {{ $payableDetail['bill_date'] }}</td>
-                                                    @if ($payableDetail['bill'])
-                                                        @if ($payableDetail['type'] == 'Bill')
-                                                            <td> {{ \Auth::user()->billNumberFormat($payableDetail['bill']) }}
-                                                            </td>
-                                                        @elseif($payableDetail['type'] == 'Expense')
-                                                            <td> {{ \Auth::user()->expenseNumberFormat($payableDetail['bill']) }}
-                                                            </td>
-                                                        @endif
-                                                        @else
-                                                        <td>{{ __('Debit Note') }}</td>
-                                                    @endif
-                                                    </td>
-                                                    <td>
-                                                        @if ($payableDetail['status'] == 0)
-                                                            <span
-                                                                class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableDetail['status']]) }}</span>
-                                                        @elseif($payableDetail['status'] == 1)
-                                                            <span
-                                                                class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableDetail['status']]) }}</span>
-                                                        @elseif($payableDetail['status'] == 2)
-                                                            <span
-                                                                class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableDetail['status']]) }}</span>
-                                                        @elseif($payableDetail['status'] == 3)
-                                                            <span
-                                                                class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableDetail['status']]) }}</span>
-                                                        @elseif($payableDetail['status'] == 4)
-                                                            <span
-                                                                class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$payableDetail['status']]) }}</span>
-                                                        @else
-                                                            <span
-                                                                class="p-2 px-3">-</span>
-                                                        @endif
-                                                    </td>
-                                                    @if ($payableDetail['bill'])
-                                                        <td> {{ $payableDetail['type'] }}
-                                                        @else
-                                                        <td>{{ __('Debit Note') }}</td>
-                                                    @endif
-                                                    <td>{{ $payableDetail['product_name'] }}</td>
-                                                    <td> {{ $quantity }}</td>
-                                                    <td>{{ \Auth::user()->priceFormat($receivableBalance) }}</td>
-                                                    <td>{{ \Auth::user()->priceFormat($itemTotal) }}</td>
 
-                                                </tr>
-                                            @endforeach
-                                            @if ($payableDetails != [])
-                                                <tr>
-                                                    <th>{{ __('Total') }}</th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>{{ $totalQuantity }}</th>
-                                                    <th></th>
-                                                    <th>{{ \Auth::user()->priceFormat($total) }}</th>
-                                                </tr>
-                                            @endif
-                                        </tbody>
-                                    </table>
-                                    @endif
+                                                    @forelse ($rows as $payableDetail)
+                                                        @php
+                                                            $isBill = (bool)($payableDetail['bill'] ?? false);
+                                                            $unitPrice = $isBill ? (float)($payableDetail['price'] ?? 0) : -(float)($payableDetail['price'] ?? 0);
+                                                            $quantity = $isBill ? (int)($payableDetail['quantity'] ?? 0) : 0;
+                                                            $itemTotal = $isBill ? $unitPrice * $quantity : -(float)($payableDetail['price'] ?? 0);
+                                                            $total += $itemTotal;
+                                                            $totalQuantity += $quantity;
 
+                                                            $status = $payableDetail['status'] ?? null;
+                                                            $statusClasses = [
+                                                                0 => 'bg-secondary',
+                                                                1 => 'bg-warning',
+                                                                2 => 'bg-danger',
+                                                                3 => 'bg-info',
+                                                                4 => VC::BG_P,
+                                                            ];
+                                                            $bgClass = $status !== null ? ($statusClasses[$status] ?? null) : null;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $payableDetail['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ $payableDetail['bill_date'] ?? __('No date available') }}</td>
+                                                            <td>
+                                                                @if ($isBill)
+                                                                    @if (($payableDetail['type'] ?? '') === 'Bill')
+                                                                        {{ $user?->billNumberFormat($payableDetail['bill']) ?? __('Could not format bill number') }}
+                                                                    @elseif(($payableDetail['type'] ?? '') === 'Expense')
+                                                                        {{ $user?->expenseNumberFormat($payableDetail['bill']) ?? __('Could not format expense number') }}
+                                                                    @else
+                                                                        {{ __('Unknown transaction') }}
+                                                                    @endif
+                                                                @else
+                                                                    {{ __('Debit Note') }}
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if($bgClass)
+                                                                    <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 px-3 rounded">
+                                                                        {{ __(Invoice::$statuses[$status] ?? __('No status available')) }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="p-2 px-3">{{ __('No status available') }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $isBill ? ($payableDetail['type'] ?? __('No type available')) : __('Debit Note') }}</td>
+                                                            <td>{{ $payableDetail['product_name'] ?? __('No item name available') }}</td>
+                                                            <td>{{ $quantity }}</td>
+                                                            <td>{{ $user?->priceFormat($unitPrice) ?? number_format((float)$unitPrice,2) }}</td>
+                                                            <td>{{ $user?->priceFormat($itemTotal) ?? number_format((float)$itemTotal,2) }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="9">{{ __('No payable details available') }}</td>
+                                                        </tr>
+                                                    @endforelse
+                                                    @if (!empty($rows))
+                                                        <tr>
+                                                            <th>{{ __('Total') }}</th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th>{{ $totalQuantity }}</th>
+                                                            <th></th>
+                                                            <th>{{ $user?->priceFormat($total) ?? number_format((float)$total,2) }}</th>
+                                                        </tr>
+                                                    @endif
+                                                </tbody>
+                                            </table>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        </div>
         </div>
     </body>
 </html>

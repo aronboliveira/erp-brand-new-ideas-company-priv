@@ -2,10 +2,14 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth, Route};
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -84,28 +88,28 @@
 
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        {{ Collective\Html\FormFacade::open(['route' => ['payables.print']]) }}
+        {{ Form::open(['route' => ['payables.print']]) }}
         <input type="hidden" name="start_date" class="start_date">
         <input type="hidden" name="end_date" class="end_date">
         <input type="hidden" name="report" class="report">
         <button type="submit" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{ __('Print') }}"
             data-original-title="{{ __('Print') }}"><i class="ti ti-printer"></i></button>
-        {{ Collective\Html\FormFacade::close() }}
+        {{ Form::close() }}
     </div>
     {{-- <div class="float-end me-2">
-        {{ Collective\Html\FormFacade::open(['route' => ['receivables.export']]) }}
+        {{ Form::open(['route' => ['receivables.export']]) }}
         <input type="hidden" name="start_date" class="start_date">
         <input type="hidden" name="end_date" class="end_date">
         <input type="hidden" name="report" class="report">
         <button type="submit" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{ __('Export') }}"
             data-original-title="{{ __('Export') }}"><i class="ti ti-file-export"></i></button>
-        {{ Collective\Html\FormFacade::close() }}
+        {{ Form::close() }}
     </div> --}}
     <div class="float-end me-2" id="filter">
         <button id="filter" class="btn btn-sm btn-primary"><i class="ti ti-filter"></i></button>
     </div>
     {{-- <div class="float-end me-2">
-        <a href="{{ route(ViewsConstants::RPT . '.balance.sheet', 'vertical') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
+        <a href="{{ route(VW::RPT . '.balance.sheet', 'vertical') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
             title="{{ __('Vertical View') }}" data-original-title="{{ __('Vertical View') }}"><i
                 class="ti ti-separator-horizontal"></i></a>
     </div> --}}
@@ -118,7 +122,7 @@
                 <div class="mt-2" id="multiCollapseExample1">
                     <div class="card" id="show_filter" style="display:none;">
                         <div class="card-body">
-                            {{ Collective\Html\FormFacade::open(['route' => [ViewsConstants::RPT . '.payables'], 'method' => 'GET', 'id' => 'report_payable_summary']) }}
+                            {{ Form::open(['route' => [VW::RPT . '.payables'], 'method' => 'GET', 'id' => 'report_payable_summary']) }}
                             <div class="row align-items-center justify-content-end">
                                 <div class="col-xl-10">
                                     <div class="row">
@@ -132,15 +136,15 @@
                                         </div>
                                         <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                             <div class="btn-box">
-                                                {{ Collective\Html\FormFacade::label('start_date', __('Start Date'), ['class' => 'form-label']) }}
-                                                {{ Collective\Html\FormFacade::date('start_date', $filter['startDateRange'], ['class' => 'startDate form-control']) }}
+                                                {{ Form::label('start_date', __('Start Date'), ['class' => 'form-label']) }}
+                                                {{ Form::date('start_date', $filter['startDateRange'], ['class' => 'startDate form-control']) }}
                                             </div>
                                         </div>
 
                                         <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                             <div class="btn-box">
-                                                {{ Collective\Html\FormFacade::label('end_date', __('End Date'), ['class' => 'form-label']) }}
-                                                {{ Collective\Html\FormFacade::date('end_date', $filter['endDateRange'], ['class' => 'endDate form-control']) }}
+                                                {{ Form::label('end_date', __('End Date'), ['class' => 'form-label']) }}
+                                                {{ Form::date('end_date', $filter['endDateRange'], ['class' => 'endDate form-control']) }}
                                             </div>
                                         </div>
                                         <input type="hidden" name="report" class="report">
@@ -156,7 +160,7 @@
                                                 <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
                                             </a>
 
-                                            <a href="{{ route(ViewsConstants::RPT . '.payables') }}" class="btn btn-sm btn-danger"
+                                            <a href="{{ route(VW::RPT . '.payables') }}" class="btn btn-sm btn-danger"
                                                 data-bs-toggle="tooltip" title="{{ __('Reset') }}"
                                                 data-original-title="{{ __('Reset') }}">
                                                 <span class="btn-inner--icon"><i
@@ -168,7 +172,7 @@
                                 </div>
                             </div>
                         </div>
-                        {{ Collective\Html\FormFacade::close() }}
+                        {{ Form::close() }}
                     </div>
                 </div>
             </div>
@@ -248,10 +252,10 @@
                                                         $total += $balance;
                                                     @endphp
                                                     <td> {{ $receivableCustomer['name'] }}</td>
-                                                    <td> {{ \Auth::user()->priceFormat($customerBalance) }} </td>
-                                                    <td> {{ !empty($receivableCustomer['debit_price']) ? \Auth::user()->priceFormat($receivableCustomer['debit_price']) : \Auth::user()->priceFormat(0) }}
+                                                    <td> {{ $user?->priceFormat($customerBalance) }} </td>
+                                                    <td> {{ !empty($receivableCustomer['debit_price']) ? $user?->priceFormat($receivableCustomer['debit_price']) : $user?->priceFormat(0) }}
                                                     </td>
-                                                    <td class="text-end"> {{ \Auth::user()->priceFormat($balance) }} </td>
+                                                    <td class="text-end"> {{ $user?->priceFormat($balance) }} </td>
                                                 </tr>
                                             @endforeach
                                             @if ($payableVendors != [])
@@ -259,7 +263,7 @@
                                                     <th>{{ __('Total') }}</th>
                                                     <td></td>
                                                     <td></td>
-                                                    <th class="text-end">{{ \Auth::user()->priceFormat($total) }}</th>
+                                                    <th class="text-end">{{ $user?->priceFormat($total) }}</th>
                                                 </tr>
                                             @endif
                                         </tbody>
@@ -307,10 +311,10 @@
                                                     <td> {{ $payableSummary['bill_date'] }}</td>
                                                     @if ($payableSummary['bill'])
                                                         @if ($payableSummary['type'] == 'Bill')
-                                                            <td> {{ \Auth::user()->billNumberFormat($payableSummary['bill']) }}
+                                                            <td> {{ $user?->billNumberFormat($payableSummary['bill']) }}
                                                             </td>
                                                         @elseif($payableSummary['type'] == 'Expense')
-                                                            <td> {{ \Auth::user()->expenseNumberFormat($payableSummary['bill']) }}
+                                                            <td> {{ $user?->expenseNumberFormat($payableSummary['bill']) }}
                                                             </td>
                                                         @endif
                                                         @else
@@ -342,9 +346,9 @@
                                                         @else
                                                         <td>{{ __('Debit Note') }}</td>
                                                     @endif
-                                                    <td> {{ \Auth::user()->priceFormat($payableBalance) }} </td>
+                                                    <td> {{ $user?->priceFormat($payableBalance) }} </td>
 
-                                                    <td> {{ \Auth::user()->priceFormat($balance) }} </td>
+                                                    <td> {{ $user?->priceFormat($balance) }} </td>
 
                                                     </td>
                                                 </tr>
@@ -356,8 +360,8 @@
                                                     <th></th>
                                                     <th></th>
                                                     <th></th>
-                                                    <th>{{ \Auth::user()->priceFormat($totalAmount) }}</th>
-                                                    <th>{{ \Auth::user()->priceFormat($total) }}</th>
+                                                    <th>{{ $user?->priceFormat($totalAmount) }}</th>
+                                                    <th>{{ $user?->priceFormat($total) }}</th>
                                                 </tr>
                                             @endif
                                         </tbody>
@@ -418,10 +422,10 @@
                                                     <td> {{ $payableDetail['bill_date'] }}</td>
                                                     @if ($payableDetail['bill'])
                                                         @if ($payableDetail['type'] == 'Bill')
-                                                            <td> {{ \Auth::user()->billNumberFormat($payableDetail['bill']) }}
+                                                            <td> {{ $user?->billNumberFormat($payableDetail['bill']) }}
                                                             </td>
                                                         @elseif($payableDetail['type'] == 'Expense')
-                                                            <td> {{ \Auth::user()->expenseNumberFormat($payableDetail['bill']) }}
+                                                            <td> {{ $user?->expenseNumberFormat($payableDetail['bill']) }}
                                                             </td>
                                                         @endif
                                                         @else
@@ -456,8 +460,8 @@
                                                     @endif
                                                     <td>{{ $payableDetail['product_name'] }}</td>
                                                     <td> {{ $quantity }}</td>
-                                                    <td>{{ \Auth::user()->priceFormat($receivableBalance) }}</td>
-                                                    <td>{{ \Auth::user()->priceFormat($itemTotal) }}</td>
+                                                    <td>{{ $user?->priceFormat($receivableBalance) }}</td>
+                                                    <td>{{ $user?->priceFormat($itemTotal) }}</td>
 
                                                 </tr>
                                             @endforeach
@@ -471,7 +475,7 @@
                                                     <th></th>
                                                     <th>{{ $totalQuantity }}</th>
                                                     <th></th>
-                                                    <th>{{ \Auth::user()->priceFormat($total) }}</th>
+                                                    <th>{{ $user?->priceFormat($total) }}</th>
                                                 </tr>
                                             @endif
                                         </tbody>

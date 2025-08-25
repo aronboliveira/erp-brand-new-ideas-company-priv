@@ -2,12 +2,14 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
 
     $lang = Utility::fetchUserLang();
 @endphp
@@ -27,18 +29,31 @@
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
         @can('download')
-            <a href="#" id="download-pdf-link" class="{{ ViewClassNamesConstants::BT_SM_PM }} download-pdf-link"
-            data-sv-localized="true" data-func-name="saveAsPDF" data-guard-msg="{{ Utility::fetchLinkMessage($lang,ViewsConstants::RPT,'download_daily_purchase_unavailable') ?? 'Download function for daily purchases is unavailable. Please contact technical support or your domain administrator.' }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
-                <span class="btn-inner--icon"><i class="{{ ViewClassNamesConstants::TI_DWN }}"></i></span>
+            @php
+                $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_daily_purchase_unavailable') ?? 'Download function for daily purchases is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
+            <a href="#"
+            id="download-pdf-link"
+            class="{{ VW::BT_SM_PM }} download-daily-purchase"
+            data-func-name="saveAsPDF"
+            data-guard-msg="{{ $downloadGuardMsg }}"
+            data-sv-localized="true"
+            data-bs-toggle="tooltip"
+            title="{{ __('Download') }}"
+            data-original-title="{{ __('Download') }}">
+                <span class="btn-inner--icon"><i class="{{ VW::TI_DWN }}"></i></span>
             </a>
+            @push(StacksConstants::ADM_SCRP_PG)
+                <script src="{{ asset('assets/js/routes/reports/purchases/daily/download.js') }}" defer></script>
+            @endpush
         @endcan
     </div>
 @endsection
 @section(YieldingConstants::ADM_CTT)
     @php
-        $monthlyPurchaseUrl = Route::has(ViewsConstants::RPT . '.monthly.purchase') ? route(ViewsConstants::RPT . '.monthly.purchase') : '#';
+        $monthlyPurchaseUrl = Route::has(VW::RPT . '.monthly.purchase') ? route(VW::RPT . '.monthly.purchase') : '#';
     @endphp
-    <ul class="{{ ViewClassNamesConstants::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
+    <ul class="{{ VW::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
         <li class="nav-item">
             <a
                 class="nav-link active"
@@ -71,7 +86,7 @@
         $flagAttrName = 'data-monthlyPurchase-listener-added';
         $guardAttrName = 'data-url';
         $urlAttrName = 'data-url';
-        $message = Utility::fetchLinkMessage($lang, ViewsConstants::RPT, 'monthly_purchase_unavailable')
+        $message = Utility::fetchLinkMessage($lang, VW::RPT, 'monthly_purchase_unavailable')
         ?? 'Monthly purchase route is unavailable. Please contact technical support or your domain administrator.';
     @endphp
     <div class="row">
@@ -79,110 +94,85 @@
             <div class="mt-2" >
                 <div class="card">
                     @php
-                        $dailyPurchaseUrl = Route::has(ViewsConstants::RPT.'.daily.purchase')
-                            ? route(ViewsConstants::RPT.'.daily.purchase')
-                            : '#';
+                        $dailyPurchaseBase    = VW::RPT.'.daily.purchase';
+                        $dailyPurchaseKebab   = Str::kebab($dailyPurchaseBase);
+                        $dailyPurchaseResolved= Route::has($dailyPurchaseBase) ? $dailyPurchaseBase : (Route::has($dailyPurchaseKebab) ? $dailyPurchaseKebab : null);
+                        $dailyPurchaseUrl     = $dailyPurchaseResolved ? route($dailyPurchaseResolved) : '#';
+                        $formId               = 'daily_purchase_report_submit';
+                        $applyGuardMsg        = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_apply_purchase_route_unavailable') ?? 'Daily purchase apply route is unavailable. Please contact technical support or your domain administrator.';
+                        $resetGuardMsg        = Utility::fetchLinkMessage($lang, VW::RPT, 'daily_reset_purchase_route_unavailable') ?? 'Daily purchase reset route is unavailable. Please contact technical support or your domain administrator.';
                     @endphp
-                    <div class="card-body">
-                        {{ Collective\Html\FormFacade::open([
-                            'route'  => [ViewsConstants::RPT.'.daily.purchase'],
-                            'method' => 'GET',
-                            'id'     => 'daily_purchase_report_submit',
-                        ]) }}
-                        <div class="{{ ViewClassNamesConstants::R_FLX_ALC_JCE }}">
-                            <div class="{{ ViewClassNamesConstants::CL_POS1 }}">
-                                <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label(
-                                        'start_date',
-                                        __('Start Date'),
-                                        ['class'=>'form-label']
-                                    ) }}
-                                    {{ Collective\Html\FormFacade::date(
-                                        'start_date',
-                                        isset($_GET['start_date']) ? $_GET['start_date'] : '',
-                                        ['class' => 'form-control month-btn']
-                                    ) }}
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mt-2">
+                                <div class="card">
+                                    <div class="card-body">
+                                        {{ Form::open([
+                                            'method'            => 'GET',
+                                            'url'               => $dailyPurchaseUrl,
+                                            'id'                => $formId,
+                                            'data-url'          => $dailyPurchaseUrl,
+                                            'data-guard-msg'    => $applyGuardMsg,
+                                            'data-sv-localized' => 'true',
+                                        ]) }}
+                                            <div class="{{ VW::R_FLX_ALC_JCE }}">
+                                                <div class="{{ VW::CL_POS1 }}">
+                                                    <div class="btn-box">
+                                                        {{ Form::label('start_date', __('Start Date'), ['class'=>'form-label']) }}
+                                                        {{ Form::date('start_date', isset($_GET['start_date']) ? $_GET['start_date'] : '', ['class' => 'form-control month-btn']) }}
+                                                    </div>
+                                                </div>
+                                                <div class="{{ VW::CL_POS2 }}">
+                                                    <div class="btn-box">
+                                                        {{ Form::label('end_date', __('End Date'), ['class'=>'form-label']) }}
+                                                        {{ Form::date('end_date', isset($_GET['end_date']) ? $_GET['end_date'] : '', ['class' => 'form-control month-btn']) }}
+                                                    </div>
+                                                </div>
+                                                <div class="{{ VW::CL_POS3 }}">
+                                                    <div class="btn-box">
+                                                        {{ Form::label('warehouse', __('Warehouse'), ['class'=>'form-label']) }}
+                                                        {{ Form::select('warehouse', $warehouse, isset($_GET['warehouse']) ? $_GET['warehouse'] : '', ['class' => 'form-control select']) }}
+                                                    </div>
+                                                </div>
+                                                <div class="{{ VW::CL_POS3 }}">
+                                                    <div class="btn-box">
+                                                        {{ Form::label('vendor', __('Vendor'), ['class'=>'form-label']) }}
+                                                        {{ Form::select('vendor', $vendor, isset($_GET['vendor']) ? $_GET['vendor'] : '', ['class' => 'form-control select']) }}
+                                                    </div>
+                                                </div>
+                                                <div class="{{ VW::C_AT_FEND }}">
+                                                    <a href="#"
+                                                    class="{{ VW::BT_SM_PM }} apply-daily-purchase-link"
+                                                    data-form-id="{{ $formId }}"
+                                                    data-guard-msg="{{ $applyGuardMsg }}"
+                                                    data-sv-localized="true"
+                                                    data-bs-toggle="tooltip"
+                                                    data-original-title="{{ __('apply') }}"
+                                                    title="{{ __('Apply') }}">
+                                                        <span class="btn-inner--icon"><i class="{{ VW::TI_SRC }}"></i></span>
+                                                    </a>
+                                                    <a href="{{ $dailyPurchaseUrl }}"
+                                                    class="{{ VW::BT_SM_DG }} reset-daily-purchase-link"
+                                                    data-url="{{ $dailyPurchaseUrl }}"
+                                                    data-guard-msg="{{ $resetGuardMsg }}"
+                                                    data-sv-localized="true"
+                                                    data-bs-toggle="tooltip"
+                                                    data-original-title="{{ __('Reset') }}"
+                                                    title="{{ __('Reset') }}">
+                                                        <span class="btn-inner--icon"><i class="{{ VW::TI_TRS_OFF }}"></i></span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        {{ Form::close() }}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="{{ ViewClassNamesConstants::CL_POS2 }}">
-                                <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label(
-                                        'end_date',
-                                        __('End Date'),
-                                        ['class'=>'form-label']
-                                    ) }}
-                                    {{ Collective\Html\FormFacade::date(
-                                        'end_date',
-                                        isset($_GET['end_date']) ? $_GET['end_date'] : '',
-                                        ['class' => 'form-control month-btn']
-                                    ) }}
-                                </div>
-                            </div>
-                            <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
-                                <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label(
-                                        'warehouse',
-                                        __('Warehouse'),
-                                        ['class'=>'form-label']
-                                    ) }}
-                                    {{ Collective\Html\FormFacade::select(
-                                        'warehouse',
-                                        $warehouse,
-                                        isset($_GET['warehouse']) ? $_GET['warehouse'] : '',
-                                        ['class' => 'form-control select']
-                                    ) }}
-                                </div>
-                            </div>
-                            <div class="{{ ViewClassNamesConstants::CL_POS3 }}">
-                                <div class="btn-box">
-                                    {{ Collective\Html\FormFacade::label(
-                                        'vendor',
-                                        __('Vendor'),
-                                        ['class'=>'form-label']
-                                    ) }}
-                                    {{ Collective\Html\FormFacade::select(
-                                        'vendor',
-                                        $vendor,
-                                        isset($_GET['vendor']) ? $_GET['vendor'] : '',
-                                        ['class' => 'form-control select']
-                                    ) }}
-                                </div>
-                            </div>
-                            <div class="{{ ViewClassNamesConstants::C_AT_FEND }}">
-                                <a
-                                    href="{{ $dailyPurchaseUrl }}"
-                                    data-url="{{ $dailyPurchaseUrl }}"
-                                    data-apply-listener-added="false"
-                                    class="{{ ViewClassNamesConstants::BT_SM_PM }}"
-                                    data-toggle="tooltip"
-                                    data-original-title="{{ __('apply') }}"
-                                >
-                                    <span class="btn-inner--icon">
-                                        <i class="{{ ViewClassNamesConstants::TI_SRC }}"></i>
-                                    </span>
-                                </a>
-                                <a
-                                    href="{{ $dailyPurchaseUrl }}"
-                                    data-url="{{ $dailyPurchaseUrl }}"
-                                    data-reset-listener-added="false"
-                                    class="{{ ViewClassNamesConstants::BT_SM_DG }}"
-                                    data-toggle="tooltip"
-                                    data-original-title="{{ __('Reset') }}"
-                                >
-                                    <span class="btn-inner--icon">
-                                        <i class="{{ ViewClassNamesConstants::TI_TRS_OFF }}"></i>
-                                    </span>
-                                </a>
                             </div>
                         </div>
-                        {{ Collective\Html\FormFacade::close() }}
                     </div>
-                    @php
-                        $filterUnavailableMsg = Utility::fetchLinkMessage(
-                            $lang,
-                            ViewsConstants::RPT, 'filter_report_unavailable'
-                        ) ?? 'Filter report route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
+                    @push(StacksConstants::ADM_SCRP_PG)
+                        <script src="{{ asset('assets/js/routes/reports/purchases/daily/apply.js') }}" defer></script>
+                        <script src="{{ asset('assets/js/routes/reports/purchases/daily/reset.js') }}" defer></script>
+                    @endpush
                 </div>
             </div>
         </div>
@@ -191,32 +181,32 @@
         <div class="row mt-0">
             <div class="col">
                 <input type="hidden" value="{{$filter['warehouse'].' '.__('Daily Purchase').' '.'Report of'.' '.$filter['startDate'].' to '.$filter['endDate']}}" id="filename">
-                <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                    <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Report')}} :</h7>
-                    <h6 class="{{ ViewClassNamesConstants::CD_POS }}">{{__('Daily Purchase Report')}}</h6>
+                <div class="{{ VW::CD_POS }}">
+                    <h7 class="{{ VW::RPT_TX_GR }}">{{__('Report')}} :</h7>
+                    <h6 class="{{ VW::CD_POS }}">{{__('Daily Purchase Report')}}</h6>
                 </div>
             </div>
             @if(!empty($filter['warehouse']))
 
                 <div class="col">
-                    <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                        <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
-                        <h6 class="{{ ViewClassNamesConstants::CD_POS }}">{{$filter['warehouse']}}</h6>
+                    <div class="{{ VW::CD_POS }}">
+                        <h7 class="{{ VW::RPT_TX_GR }}">{{__('Warehouse')}} :</h7>
+                        <h6 class="{{ VW::CD_POS }}">{{$filter['warehouse']}}</h6>
                     </div>
                 </div>
             @endif
             @if(!empty($filter['vendor']))
                 <div class="col">
-                    <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                        <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Vendor')}} :</h7>
-                        <h6 class="{{ ViewClassNamesConstants::CD_POS }}">{{$filter['vendor']}}</h6>
+                    <div class="{{ VW::CD_POS }}">
+                        <h7 class="{{ VW::RPT_TX_GR }}">{{__('Vendor')}} :</h7>
+                        <h6 class="{{ VW::CD_POS }}">{{$filter['vendor']}}</h6>
                     </div>
                 </div>
             @endif
             <div class="col">
-                <div class="{{ ViewClassNamesConstants::CD_POS }}">
-                    <h7 class="{{ ViewClassNamesConstants::RPT_TX_GR }}">{{__('Duration')}} :</h7>
-                    <h6 class="{{ ViewClassNamesConstants::CD_POS }}">{{$filter['startDate'].' to '.$filter['endDate']}}</h6>
+                <div class="{{ VW::CD_POS }}">
+                    <h7 class="{{ VW::RPT_TX_GR }}">{{__('Duration')}} :</h7>
+                    <h6 class="{{ VW::CD_POS }}">{{$filter['startDate'].' to '.$filter['endDate']}}</h6>
                 </div>
             </div>
         </div>
@@ -538,8 +528,8 @@
             zh: { filter_unavailable: "筛选器不可用" }
         };
         
-        const APPLY_CLASS = '{{ ViewClassNamesConstants::BT_SM_PM }}';
-        const RESET_CLASS = '{{ ViewClassNamesConstants::BT_SM_DG }}';
+        const APPLY_CLASS = '{{ VW::BT_SM_PM }}';
+        const RESET_CLASS = '{{ VW::BT_SM_DG }}';
         const APPLY_ATTR = 'data-apply-listener';
         const RESET_ATTR = 'data-reset-listener';
         const FORM_ID = 'daily_purchase_report_submit';

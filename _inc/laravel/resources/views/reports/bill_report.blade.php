@@ -1,12 +1,12 @@
 @php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
-        ViewsConstants,
+        ViewsConstants as VW,
         ViewClassNamesConstants as VC,
         StacksConstants,
         YieldingConstants,
     };
-    use App\Models\{Invoice, Utility};
+    use App\Models\{Bill,Invoice, Utility};
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Crypt,Route};
     $user = Auth::user();
@@ -173,46 +173,81 @@
             <div class="mt-2" id="multiCollapseExample1">
                 <div class="{{ VC::CD }}">
                     <div class="card-body">
-                        {{ Form::open(['route' => [VW::RPT.'.bill.summary'], 'method' => 'GET', 'id' => 'report_bill_summary']) }}
-                        <div class="{{ VC::R_ALC_JCE }}">
-                            <div class="col-xl-10">
-                                <div class="{{ VC::RW }}">
-                                    <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
-                                        <div class="btn-box">
-                                            {{ Form::label('start_month', __('Start Month'), ['class'=> VC::FM_LB]) }}
-                                            {{ Form::month('start_month', data_get($_GET ?? [], 'start_month', date('Y-m', strtotime('-5 month'))), ['class' => 'month-btn ' . VC::FM_CT]) }}
+                        @php
+                            $billSummaryBase       = VW::RPT.'.bill.summary';
+                            $billSummaryKebab      = Str::kebab($billSummaryBase);
+                            $billSummaryResolved   = Route::has($billSummaryBase) ? $billSummaryBase : (Route::has($billSummaryKebab) ? $billSummaryKebab : null);
+                            $billSummaryUrl        = $billSummaryResolved ? route($billSummaryResolved) : '#';
+                            $billSummaryGuardMsg   = Utility::fetchLinkMessage($lang, VW::RPT, 'bill_summary_report_unavailable') ?? 'Bill summary report route is unavailable. Please contact technical support or your domain administrator.';
+                        @endphp
+                        {{ Form::open([
+                            'method'            => 'GET',
+                            'url'               => $billSummaryUrl,
+                            'id'                => 'report_bill_summary',
+                            'data-url'          => $billSummaryUrl,
+                            'data-guard-msg'    => $billSummaryGuardMsg,
+                            'data-sv-localized' => 'true',
+                        ]) }}
+                            <div class="{{ VC::R_ALC_JCE }}">
+                                <div class="col-xl-10">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
+                                            <div class="btn-box">
+                                                {{ Form::label('start_month', __('Start Month'), ['class'=> VC::FM_LB]) }}
+                                                {{ Form::month('start_month', data_get($_GET ?? [], 'start_month', date('Y-m', strtotime('-5 month'))), ['class' => 'month-btn ' . VC::FM_CT]) }}
+                                            </div>
+                                        </div>
+                                        <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
+                                            <div class="btn-box">
+                                                {{ Form::label('end_month', __('End Month'), ['class'=> VC::FM_LB]) }}
+                                                {{ Form::month('end_month', data_get($_GET ?? [], 'end_month', date('Y-m')), ['class' => 'month-btn ' . VC::FM_CT]) }}
+                                            </div>
+                                        </div>
+                                        <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
+                                            <div class="btn-box">
+                                                {{ Form::label('vendor', __('Vendor'), ['class'=> VC::FM_LB]) }}
+                                                {{ Form::select('vendor', (is_array($vendor ?? null) ? $vendor : []), data_get($_GET ?? [], 'vendor', ''), ['class' => VC::FM_CT_SL]) }}
+                                            </div>
+                                        </div>
+                                        <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
+                                            <div class="btn-box">
+                                                {{ Form::label('status', __('Status'), ['class'=> VC::FM_LB]) }}
+                                                {{ Form::select('status', ['' => __('Select Status')] + (is_array($status ?? null) ? $status : []), data_get($_GET ?? [], 'status', ''), ['class' => VC::FM_CT_SL]) }}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
-                                        <div class="btn-box">
-                                            {{ Form::label('end_month', __('End Month'), ['class'=> VC::FM_LB]) }}
-                                            {{ Form::month('end_month', data_get($_GET ?? [], 'end_month', date('Y-m')), ['class' => 'month-btn ' . VC::FM_CT]) }}
-                                        </div>
-                                    </div>
-                                    <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
-                                        <div class="btn-box">
-                                            {{ Form::label('vendor', __('Vendor'), ['class'=> VC::FM_LB]) }}
-                                            {{ Form::select('vendor', (is_array($vendor ?? null) ? $vendor : []), data_get($_GET ?? [], 'vendor', ''), ['class' => VC::FM_CT_SL]) }}
-                                        </div>
-                                    </div>
-                                    <div class="{{ VC::CXL3 }} {{ VC::CL3 }} {{ VC::CM6 }} {{ VC::CS12 }} {{ VC::C12 }}">
-                                        <div class="btn-box">
-                                            {{ Form::label('status', __('Status'), ['class'=> VC::FM_LB]) }}
-                                            {{ Form::select('status', ['' => __('Select Status')] + (is_array($status ?? null) ? $status : []), data_get($_GET ?? [], 'status', ''), ['class' => VC::FM_CT_SL]) }}
+                                </div>
+                                <div class="{{ VC::C_AT }}">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
+                                            <a href="#"
+                                            class="{{ VC::BT_SM_PM }} apply-bill-summary"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ __('Apply') }}"
+                                            data-original-title="{{ __('apply') }}"
+                                            data-form-id="report_bill_summary"
+                                            data-sv-localized="true"
+                                            ><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
+                                            @php
+                                                $resetUrl = $billSummaryUrl;
+                                                $resetGuardMsg = $billSummaryGuardMsg;
+                                            @endphp
+                                            <a href="{{ $resetUrl }}"
+                                            class="{{ VC::BT_SM_DG }} reset-bill-summary"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ __('Reset') }}"
+                                            data-original-title="{{ __('Reset') }}"
+                                            data-url="{{ $resetUrl }}"
+                                            data-guard-msg="{{ $resetGuardMsg }}"
+                                            data-sv-localized="true"
+                                            ><span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span></a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="{{ VC::C_AT }}">
-                                <div class="{{ VC::RW }}">
-                                    <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
-                                        <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('report_bill_summary').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}" data-original-title="{{ __('apply') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
-                                        <a href="{{ route(VW::RPT.'.bill.summary') }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}" data-original-title="{{ __('Reset') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         {{ Form::close() }}
+                        <script src="{{ asset('assets/js/routes/reports/bills/apply.js') }}" defer></script>
+                        <script src="{{ asset('assets/js/routes/reports/bills/reset.js') }}" defer></script>
                     </div>
                 </div>
             </div>
@@ -307,21 +342,40 @@
                                                         $bstatus = (int) data_get($bill,'status',-1);
                                                     @endphp
                                                     <tr>
-                                                        <td class="Id"><a href="{{ route(VW::BIL.'.show', Crypt::encrypt($bid)) }}" class="{{ VC::BT_OUTPM }}">{{ $user?->billNumberFormat(data_get($bill,'bill_id')) ?? __('Failed to get bill number') }}</a></td>
+                                                        @php
+                                                            $bidVal               = isset($bid) ? $bid : null;
+                                                            $encId                = $bidVal ? Crypt::encrypt($bidVal) : null;
+                                                            $billShowBase         = VW::BIL.'.show';
+                                                            $billShowKebab        = Str::kebab($billShowBase);
+                                                            $billShowResolved     = Route::has($billShowBase) ? $billShowBase : (Route::has($billShowKebab) ? $billShowKebab : null);
+                                                            $billShowParams       = $encId ? [$encId] : ['#'];
+                                                            $billShowUrl          = ($billShowResolved && $encId) ? route($billShowResolved, $billShowParams) : '#';
+                                                            $billShowGuardMsg     = Utility::fetchLinkMessage($lang, VW::BIL, 'show_route_unavailable') ?? 'Show bill route is unavailable. Please contact technical support or your domain administrator.';
+                                                        @endphp
+                                                        <td class="Id">
+                                                            <a href="{{ $billShowUrl }}"
+                                                            class="{{ VC::BT_OUTPM }} bill-show"
+                                                            data-url="{{ $billShowUrl }}"
+                                                            data-guard-msg="{{ $billShowGuardMsg }}"
+                                                            data-sv-localized="true">
+                                                                {{ $user?->billNumberFormat(data_get($bill,'bill_id')) ?? __('Failed to get bill number') }}
+                                                            </a>
+                                                        </td>
                                                         <td>{{ $user?->dateFormat(data_get($bill,'send_date')) ?? __('Failed to get date') }}</td>
                                                         <td>{{ data_get($bill,'vendor.name') ?? __('No vendor available') }}</td>
                                                         <td>{{ data_get($bill,'category.name') ?? __('No category available') }}</td>
                                                         @php
                                                             $statusClasses = [0=>'bg-primary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-success'];
                                                         @endphp
-                                                        <td><span class="{{ VC::BDG }} {{ $statusClasses[$bstatus] ?? 'bg-secondary' }} p-2 {{ VC::PX3 }} rounded">{{ __(\App\Models\Bill::$statuses[$bstatus] ?? __('Unknown status')) }}</span></td>
+                                                        <td><span class="{{ VC::BDG }} {{ $statusClasses[$bstatus] ?? 'bg-secondary' }} p-2 {{ VC::PX3 }} rounded">{{ __(Bill::$statuses[$bstatus] ?? __('Unknown status')) }}</span></td>
                                                         <td>{{ $user?->priceFormat((data_get($bill,'getTotal') ? $bill->getTotal() : 0) - (data_get($bill,'getDue') ? $bill->getDue() : 0)) ?? __('Failed to get paid amount') }}</td>
                                                         <td>{{ $user?->priceFormat(data_get($bill,'getDue') ? $bill->getDue() : 0) ?? __('Failed to get due amount') }}</td>
                                                         <td>{{ data_get($bill,'lastPayments.date') ? ($user?->dateFormat(data_get($bill,'lastPayments.date')) ?? __('Failed to get payment date')) : '-' }}</td>
                                                         <td>{{ $user?->priceFormat(data_get($bill,'getTotal') ? $bill->getTotal() : 0) ?? __('Failed to get amount') }}</td>
+                                                        <script src="{{ asset('assets/js/routes/bills/show.js') }}" defer></script>
                                                     </tr>
-                                                @endforeach
-                                            </tbody>
+                                                    @endforeach
+                                                </tbody>
                                         </table>
                                     </div>
                                     <div class="tab-pane fade fade show active" id="summary" role="tabpanel" aria-labelledby="profile-tab3">
