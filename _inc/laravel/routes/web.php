@@ -634,11 +634,11 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::get(ViewsConstants::RPT . '/profit-loss/{view?}', [ReportController::class, 'profitLoss'])->name(ViewsConstants::RPT . '.profit.loss');
 
             Route::get(ViewsConstants::RPT . '/ledger/{account?}', [ReportController::class, 'ledgerSummary'])->name(ViewsConstants::RPT . '.ledger');
-            Route::get(ViewsConstants::RPT . '/trial-balance', [ReportController::class, 'trialBalanceSummary'])->name('trial.balance');
+            Route::get(ViewsConstants::RPT . '/trial-balance', [ReportController::class, 'trialBalanceSummary'])->name(ViewsConstants::RPT . '.trial.balance');
 
             Route::get(ViewsConstants::RPT . '-monthly-cashflow', [ReportController::class, 'monthlyCashflow'])->name(ViewsConstants::RPT . '.monthly.cashflow')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
             Route::get(ViewsConstants::RPT . '-quarterly-cashflow', [ReportController::class, 'quarterlyCashflow'])->name(ViewsConstants::RPT . '.quarterly.cashflow')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-            Route::post('export/trial-balance', [ReportController::class, 'trialBalanceExport'])->name('trial.balance.export');
+            Route::post('export/trial-balance', [ReportController::class, 'trialBalanceExport'])->name(ViewsConstants::RPT . '.trial.balance.export');
             Route::post('export/balance-sheet', [ReportController::class, 'balanceSheetExport'])->name(ViewsConstants::RPT . '.balance.sheet.export');
             Route::post('print/balance-sheet/{view?}', [ReportController::class, 'balanceSheetPrint'])->name(ViewsConstants::RPT . '.balance.sheet.print');
             Route::post('print/trial-balance', [ReportController::class, 'trialBalancePrint'])->name('trial.balance.print');

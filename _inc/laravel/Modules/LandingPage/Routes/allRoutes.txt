@@ -715,10 +715,10 @@ use Illuminate\Support\Facades\Route;$routes = [
 		Route::get('report/balance-sheet/{view?}', [ReportController::class, 'balanceSheet'])->name('report.balance.sheet');
 		Route::get('report/profit-loss/{view?}', [ReportController::class, 'profitLoss'])->name('report.profit.loss');
 		Route::get('report/ledger/{account?}', [ReportController::class, 'ledgerSummary'])->name('report.ledger');
-		Route::get('report/trial-balance', [ReportController::class, 'trialBalanceSummary'])->name('trial.balance');
+		Route::get('report/trial-balance', [ReportController::class, 'trialBalanceSummary'])->name(ViewsConstants::RPT . '.trial.balance');
 		Route::get('reports-monthly-cashflow', [ReportController::class, 'monthlyCashflow'])->name('report.monthly.cashflow')->middleware(['auth', 'XSS']);
 		Route::get('reports-quarterly-cashflow', [ReportController::class, 'quarterlyCashflow'])->name('report.quarterly.cashflow')->middleware(['auth', 'XSS']);
-		Route::post('export/trial-balance', [ReportController::class, 'trialBalanceExport'])->name('trial.balance.export');
+		Route::post('export/trial-balance', [ReportController::class, 'trialBalanceExport'])->name(ViewsConstants::RPT. '.trial.balance.export');
 		Route::post('export/balance-sheet', [ReportController::class, 'balanceSheetExport'])->name(ViewsConstants::RPT . '.balance.sheet.export');
 		Route::post('print/balance-sheet/{view?}', [ReportController::class, 'balanceSheetPrint'])->name('balance.sheet.print');
 		Route::post('print/trial-balance', [ReportController::class, 'trialBalancePrint'])->name('trial.balance.print');

@@ -102,7 +102,7 @@
                                             <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
                                         </a>
 
-                                        <a href="{{ route('trial.balance') }}" class="btn btn-sm btn-danger"
+                                        <a href="{{ route(ViewsConstants::RPT . '.trial.balance') }}" class="btn btn-sm btn-danger"
                                             data-bs-toggle="tooltip" title="{{ __('Reset') }}"
                                             data-original-title="{{ __('Reset') }}">
                                             <span class="btn-inner--icon"><i

@@ -285,7 +285,11 @@ class ViewClassNamesConstants
 	public const CL_POS2 = self::CXL2 . ' ' . self::CL2 . ' ' . self::CM6 . ' ' . self::CS12 . ' ' . self::C12 . ' ' . self::MR2;
 	// "{{ ViewClassNamesConstants::CL_POS2 }}"
 	// col-xl-2 col-lg-2 col-md-6 col-sm-12 col-12 mr-2
-	public const CL_POS3 = self::CXL3 . ' ' . self::CL3 . ' ' . self::CM6 . ' ' . self::CS12 . ' ' . self::C12 . ' ' . self::MR2;
+	public const CL_XL3 = self::CXL3 . ' ' . self::CL3 . ' ' . self::CM6 . ' ' . self::CS12 . ' ' . self::C12;
+	// "{{ ViewClassNamesConstants::CL_XL3 }}"
+	// "{{ VC::CL_XL3 }}"
+	// col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12
+	public const CL_POS3 = self::CL_XL3 . ' ' . self::MR2;
 	// "{{ ViewClassNamesConstants::CL_POS3 }}"
 	// col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 mr-2
 	public const CL_XLG4 = self::CXL3 . ' ' . self::CL3 . ' ' . self::CM6 . ' ' . self::CS12 . ' ' . self::C12;

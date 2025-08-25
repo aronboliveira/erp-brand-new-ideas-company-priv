@@ -2,10 +2,12 @@
     use App\Config\Constants\{
         DatabaseConstants, 
         SettingsConstants,
-        ViewsConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
     };
     use App\Models\{User,Utility};
     use Illuminate\Support\Facades\{Auth,Route};
+    use Illuminate\Support\Str;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
     $authUser = $user?->creatorId() ?? null;
@@ -13,7 +15,7 @@
     $settings = Utility::settings();
     $color = !empty($settings[SettingsConstants::THM_CLR]) ? $settings[SettingsConstants::THM_CLR] : 'theme-3';
 @endphp
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
+<html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
     <head>
         <title>{{ env('APP_NAME') }} - Trial Balance</title>
         @include('fragments.std', [
@@ -64,7 +66,72 @@
                                         $credit = (float)(data_get($record,'totalCredit') ?? 0);
                                     @endphp
                                     <div class="account-inner {{ VC::DFL_AIC_JCB }}">
-                                        <p class="mb-2"><a href="{{ route(VW::RPT.'.ledger', $accId) }}?account={{ $accId }}" class="text-primary">{{ $accName }}</a></p>
+                                        @php
+                                            $accIdVal           = isset($accId) ? $accId : null;
+                                            $ledgerBase         = VW::RPT.'.ledger';
+                                            $ledgerKebab        = Str::kebab($ledgerBase);
+                                            $ledgerResolved     = Route::has($ledgerBase) ? $ledgerBase : (Route::has($ledgerKebab) ? $ledgerKebab : null);
+                                            $ledgerParams       = $accIdVal ? [$accIdVal] : ['#'];
+                                            $ledgerRouteUrl     = ($ledgerResolved && $accIdVal) ? route($ledgerResolved, $ledgerParams) : '#';
+                                            $ledgerUrl          = ($ledgerRouteUrl !== '#') ? ($ledgerRouteUrl.'?account='.urlencode($accIdVal)) : '#';
+                                            $ledgerGuardMsg     = Utility::fetchLinkMessage($lang, VW::RPT, 'ledger_report_unavailable') ?? 'Ledger report route is unavailable. Please contact technical support or your domain administrator.';
+                                            $ledgerLinkId       = 'ledger-link-'.($accIdVal ?? 'x');
+                                        @endphp
+                                        <p class="{{ VC::MB2 }}">
+                                            <a href="{{ $ledgerUrl }}"
+                                            id="{{ $ledgerLinkId }}"
+                                            class="text-primary report-ledger"
+                                            data-url="{{ $ledgerUrl }}"
+                                            data-guard-msg="{{ $ledgerGuardMsg }}"
+                                            data-sv-localized="true">{{ $accName }}</a>
+                                        </p>
+                                        <script defer>
+                                            (() => {
+                                                try {
+                                                    const a = document.getElementById('{{ $ledgerLinkId }}');
+                                                    if (!a) return;
+                                                    const flag = 'data-click-listener';
+                                                    if (a.hasAttribute(flag) && a.getAttribute(flag) === 'true') return;
+                                                    a.setAttribute(flag, 'true');
+                                                    a.addEventListener('click', function(e) {
+                                                        try {
+                                                            const href = a.getAttribute('href') || '#';
+                                                            const url  = a.getAttribute('data-url') || href || '#';
+                                                            if (href !== '#' || url !== '#') return;
+                                                            e.preventDefault();
+                                                            const msg = a.getAttribute('data-guard-msg') || 'Ledger report route is unavailable. Please contact technical support or your domain administrator.';
+                                                            const linkEl = document.querySelector('link[href*="bootstrap"]');
+                                                            const hasBootstrapToast = (typeof window !== 'undefined' && window.bootstrap && typeof window.bootstrap.Toast === 'function');
+                                                            let container = document.getElementById('toast-container');
+                                                            if (!container) {
+                                                                container = document.createElement('div');
+                                                                container.id = 'toast-container';
+                                                                container.className = 'position-fixed top-0 end-0 p-3';
+                                                                document.body.appendChild(container);
+                                                            }
+                                                            if (linkEl && hasBootstrapToast) {
+                                                                const toast = document.createElement('div');
+                                                                toast.className = 'toast';
+                                                                toast.setAttribute('role','alert');
+                                                                toast.setAttribute('aria-live','assertive');
+                                                                toast.setAttribute('aria-atomic','true');
+                                                                const body = document.createElement('div');
+                                                                body.className = 'toast-body';
+                                                                body.textContent = msg;
+                                                                toast.appendChild(body);
+                                                                container.appendChild(toast);
+                                                                const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
+                                                                toast.addEventListener('hidden.bs.toast', function() { try { toast.remove(); } catch (_) {} });
+                                                                inst.show();
+                                                            } else {
+                                                                alert(msg);
+                                                            }
+                                                            a.setAttribute('data-failed-route', 'true');
+                                                        } catch (_) {}
+                                                    }, { passive: false });
+                                                } catch (_) {}
+                                            })();
+                                        </script>
                                         <p class="mb-2 text-center">{{ $accCode }}</p>
                                         <p class="text-primary mb-2 text-end me-5">{{ $fmtNum($debit) }}</p>
                                         <p class="text-primary mb-2 {{ VC::FEND }} text-end">{{ $fmtNum($credit) }}</p>

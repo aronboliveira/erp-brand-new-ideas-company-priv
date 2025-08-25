@@ -5232,8 +5232,8 @@
                                                         'rpt_profit_loss_route_unavailable'
                                                     ) ?? 'Profit & Loss route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $trialRoute = Route::has('trial.balance')
-                                                        ? route('trial.balance')
+                                                    $trialRoute = Route::has(ViewsConstants::RPT . '.trial.balance')
+                                                        ? route(ViewsConstants::RPT . '.trial.balance')
                                                         : '#';
                                                     $trialId = 'trial-balance-link';
                                                     $trialMsg = Utility::fetchLinkMessage(
@@ -5303,7 +5303,7 @@
                                                             {{ __('Profit & Loss') }}
                                                         </a>
                                                     </li>
-                                                    <li class="dash-item {{ $routeName == 'trial.balance' ? ' active' : '' }}">
+                                                    <li class="dash-item {{ $routeName == ViewsConstants::RPT . '.trial.balance' ? ' active' : '' }}">
                                                         <a
                                                             id="{{ $trialId }}"
                                                             class="dash-link"
