@@ -194,6 +194,8 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::CXL2 }}"
 	public const CXL3 = 'col-xl-3';
 	// "{{ ViewClassNamesConstants::CXL3 }}"
+	public const CXS12 = "col-xs-12";
+	// "{{ ViewClassNamesConstants::CXS12 }}"
 	public const C_AT = 'col-auto';
 	// "{{ ViewClassNamesConstants::C_AT }}"
 	public const FW600 = 'f-w-600';
@@ -289,6 +291,10 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::CL_XL3 }}"
 	// "{{ VC::CL_XL3 }}"
 	// col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12
+	public const CL_XS12 = self::CXS12 . ' ' . self::CS12 . ' ' . self::CM4 . ' ' . self::CL3 . ' ' . self::CXL3;
+	// "{{ ViewClassNamesConstants::CL_XS12 }}"
+	// "{{ VW::CL_XS12 }}"
+	// col-xs-12 col-sm-12 col-md-4 col-lg-3 col-xl-3
 	public const CL_POS3 = self::CL_XL3 . ' ' . self::MR2;
 	// "{{ ViewClassNamesConstants::CL_POS3 }}"
 	// col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12 mr-2
@@ -583,11 +589,11 @@ class ViewClassNamesConstants
 	// ti ti-dots-vertical
 	public const TI_FL = self::TI . ' ' . self::TI . '-file';
 	// "{{ ViewClassNamesConstants::TI_FL }}"
-	// "{{ VW::TI_FL }}"
+	// "{{ VC::TI_FL }}"
 	// ti ti-file
 	public const TI_EXP = self::TI . ' ' . self::TI . '-file-export';
 	// "{{ ViewClassNamesConstants::TI_EXP }}"
-	// "{{ VW::TI_EXP }}"
+	// "{{ VC::TI_EXP }}"
 	// ti ti-file-export
 	public const TI_IMP = self::TI . ' ' . self::TI . '-file-import';
 	// "{{ ViewClassNamesConstants::TI_IMP }}"

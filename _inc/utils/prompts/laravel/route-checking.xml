@@ -31,6 +31,7 @@
 	- Remember to indent the IIFE in the script tag as well;
 	- Consider defering or asyncing the scripts if they are not essential for the initial page load;
 	- For routes that define the guard message through Utility::fetchLinkMessage, mark them with data-sv-localized="true";
+	- If there is NO clear need for keeping the script in the content of a tag (ex.: looping with an id, using secrets or server-locked variables for operating parameters), consider moving it to a separate file;
 </instructions>
 <block>
 	

@@ -26,8 +26,10 @@
 	$color??='';
 	$faviconUrl??='';
 	$lpSettings??=[];
+    $lang = DatabaseConstants::DEFAULT_LANG;
 	try {
 		$user=auth()->user();
+        $lang = Utility::fetchUserLang(user: $user);
 		$creatorId=$user?->id?:DatabaseConstants::DEFAULT_UUID;
 		$data=Utility::prepareCommonViewData($creatorId,'uploads/landing_page_image')?:[];
 		$setting=$data[SettingsConstants::ENTITY]??[];
@@ -77,7 +79,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-    <html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}"  dir="{{$siteRtl == 'on'?'rtl':''}}">
+    <html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? (app()->getLocale() : DatabaseConstants::DEFAULT_LANG) : '') : '' }}"  dir="{{$siteRtl == 'on'?'rtl':''}}">
         <head>
             <title>{{ env('APP_NAME') }}</title>
             @include('fragments.std', [

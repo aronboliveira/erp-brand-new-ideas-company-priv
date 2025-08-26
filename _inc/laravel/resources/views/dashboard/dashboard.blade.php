@@ -2,8 +2,8 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use App\Models\Utility;
@@ -280,22 +280,22 @@
                                 $canIn  = empty($employeeAttendance) || $employeeAttendance->clock_out != '00:00:00';
                                 $canOut = !empty($employeeAttendance) && $employeeAttendance->clock_out == '00:00:00';
                             @endphp
-                            <div class="{{ ViewClassNamesConstants::CD }}-body dash-card-body">
-                                <p class="{{ ViewClassNamesConstants::TXT_MT }} pb-0-5">{{ __('My Office Time: '.$officeTime['startTime'].' to '.$officeTime['endTime']) }}</p>
+                            <div class="{{ VC::CD }}-body dash-card-body">
+                                <p class="{{ VC::TXT_MT }} pb-0-5">{{ __('My Office Time: '.$officeTime['startTime'].' to '.$officeTime['endTime']) }}</p>
                                 <center>
                                     @php
                                         $inUrl = url('employee-attendances/attendance');
                                         $inMsg = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::EMP_ATD,
+                                            VW::EMP_ATD,
                                             'employee_attendance_in_route_unavailable'
                                         ) ?? 'Clock in route is unavailable. Please contact technical support or your domain administrator.';
-                                        $outUrl = Route::has(ViewsConstants::EMP_ATD.'.update')
-                                            ? route(ViewsConstants::EMP_ATD.'.update', $employeeAttendance->id)
+                                        $outUrl = Route::has(VW::EMP_ATD.'.update')
+                                            ? route(VW::EMP_ATD.'.update', $employeeAttendance->id)
                                             : '#';
                                         $outMsg = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::EMP_ATD,
+                                            VW::EMP_ATD,
                                             'employee_attendance_out_route_unavailable'
                                         ) ?? 'Clock out route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
@@ -303,7 +303,7 @@
                                         <div class="col-md-6">
                                             {!! Collective\Html\FormFacade::open(['url' => $inUrl, 'method' => 'post']) !!}
                                                 @php
-                                                    $inClass = ViewClassNamesConstants::BT . ' btn-success' . ($canIn ? '' : ' disabled');
+                                                    $inClass = VC::BT . ' btn-success' . ($canIn ? '' : ' disabled');
                                                 @endphp
                                                 <button
                                                     type="submit"
@@ -322,11 +322,11 @@
                                         </div>
                                         <div class="col-md-6">
                                             {!! Collective\Html\FormFacade::model($employeeAttendance, [
-                                                'route'  => [ViewsConstants::EMP_ATD.'.update', $employeeAttendance->id],
+                                                'route'  => [VW::EMP_ATD.'.update', $employeeAttendance->id],
                                                 'method' => 'PUT'
                                             ]) !!}
                                                 @php
-                                                    $outClass = ViewClassNamesConstants::BT . ' btn-danger' . ($canOut ? '' : ' disabled');
+                                                    $outClass = VC::BT . ' btn-danger' . ($canOut ? '' : ' disabled');
                                                 @endphp
                                                 <button
                                                     type="submit"
@@ -545,7 +545,7 @@
                     @php
                         $sections=[
                             ['title'=>__('Staff'),'metrics'=>[
-                                ['bg'=>'bg-primary','icon'=>ViewClassNamesConstants::TI_USRS,'label'=>__('Total Staff'),'value'=>$countUser+$countClient,'textClass'=>'text-success'],
+                                ['bg'=>'bg-primary','icon'=>VC::TI_USRS,'label'=>__('Total Staff'),'value'=>$countUser+$countClient,'textClass'=>'text-success'],
                                 ['bg'=>'bg-info','icon'=>'ti ti-user','label'=>__('Total Employee'),'value'=>$countUser,'textClass'=>'text-primary'],
                                 ['bg'=>'bg-danger','icon'=>'ti ti-user','label'=>__('Total Client'),'value'=>$countClient,'textClass'=>'text-danger']
                             ]],
@@ -555,7 +555,7 @@
                                 ['bg'=>'bg-danger','icon'=>'ti ti-x','label'=>__('Inactive Jobs'),'value'=>$inActiveJOb,'textClass'=>'text-danger']
                             ]],
                             ['title'=>__('Training'),'metrics'=>[
-                                ['bg'=>'bg-primary','icon'=>ViewClassNamesConstants::TI_USRS,'label'=>__('Total Training'),'value'=>$onGoingTraining+$doneTraining,'textClass'=>'text-success'],
+                                ['bg'=>'bg-primary','icon'=>VC::TI_USRS,'label'=>__('Total Training'),'value'=>$onGoingTraining+$doneTraining,'textClass'=>'text-success'],
                                 ['bg'=>'bg-info','icon'=>'ti ti-user','label'=>__('Trainer'),'value'=>$countTrainer,'textClass'=>'text-primary'],
                                 ['bg'=>'bg-danger','icon'=>'ti ti-user-check','label'=>__('Active Training'),'value'=>$onGoingTraining,'textClass'=>'text-danger'],
                                 ['bg'=>'bg-secondary','icon'=>'ti ti-user-minus','label'=>__('Done Training'),'value'=>$doneTraining,'textClass'=>'text-secondary']
@@ -565,19 +565,19 @@
                     <div class="col-md-3">
                         @foreach($sections as $section)
                             <div class="col-xxl-12">
-                                <div class="{{ ViewClassNamesConstants::CD }}">
+                                <div class="{{ VC::CD }}">
                                     <div class="card-body">
                                         <h5>{{ $section['title'] }}</h5>
-                                        <div class="{{ ViewClassNamesConstants::RW }} {{ ViewClassNamesConstants::MT4 }}">
+                                        <div class="{{ VC::RW }} {{ VC::MT4 }}">
                                             @foreach($section['metrics'] as $m)
                                                 <div class="col-md-6 col-sm-6{{ $loop->index>0?' my-3 my-sm-0':'' }}">
-                                                    <div class="{{ ViewClassNamesConstants::DFL }} {{ ViewClassNamesConstants::ALC }} {{ ViewClassNamesConstants::MB3 }}">
+                                                    <div class="{{ VC::DFL }} {{ VC::ALC }} {{ VC::MB3 }}">
                                                         <div class="theme-avatar {{ $m['bg'] }}">
                                                             <i class="{{ $m['icon'] }}"></i>
                                                         </div>
-                                                        <div class="{{ ViewClassNamesConstants::MS2 }}">
-                                                            <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ $m['label'] }}</p>
-                                                            <h4 class="{{ ViewClassNamesConstants::MB0 }} {{ $m['textClass'] }}">{{ $m['value'] }}</h4>
+                                                        <div class="{{ VC::MS2 }}">
+                                                            <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ $m['label'] }}</p>
+                                                            <h4 class="{{ VC::MB0 }} {{ $m['textClass'] }}">{{ $m['value'] }}</h4>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -589,14 +589,14 @@
                         @endforeach
                     </div>
                     <div class="col-lg-6">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
+                        <div class="{{ VC::CD }}">
                             <div class="card-header">
                                 <h5>{{ __('Announcement List') }}</h5>
                             </div>
                             <div class="card-body" style="min-height: 295px;">
                                 <div class="table-responsive">
                                     @if(count($announcements)>0)
-                                        <table class="{{ ViewClassNamesConstants::TB_AL }} {{ ViewClassNamesConstants::MB0 }}">
+                                        <table class="{{ VC::TB_AL }} {{ VC::MB0 }}">
                                             <thead>
                                                 <tr>
                                                     <th>{{ __('Title') }}</th>
@@ -622,14 +622,14 @@
                         </div>
                     </div>
                     <div class="col-lg-6">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
+                        <div class="{{ VC::CD }}">
                             <div class="card-header">
                                 <h5>{{ __('Meeting schedule') }}</h5>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     @if(count($meetings)>0)
-                                        <table class="{{ ViewClassNamesConstants::TB_AL }} {{ ViewClassNamesConstants::MB0 }}">
+                                        <table class="{{ VC::TB_AL }} {{ VC::MB0 }}">
                                             <thead>
                                                 <tr>
                                                     <th>{{ __('Title') }}</th>

@@ -2,10 +2,16 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Str;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -24,178 +30,254 @@
 
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script>
-        var year = '{{$currentYear}}';
-
-        var filename = $('#filename').val();
-
-        function saveAsPDF() {
-            var element = document.getElementById('printableArea');
-            var opt = {
-                margin: 0.3,
-                filename: filename,
-                image: {type: 'jpeg', quality: 1},
-                html2canvas: {scale: 4, dpi: 72, letterRendering: true},
-                jsPDF: {unit: 'in', format: 'A2'}
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-    </script>
+    <script async src="{{ asset('assets/js/routes/reports/taxes/summaries/lang/pdf.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/reports/taxes/summaries/pdf.js') }}"></script>
 @endpush
 
+{{--        <a class="{{ VC::BT_SM_PM }}" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--            <i class="ti ti-filter"></i>--}}
+{{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        {{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
-        {{--            <i class="ti ti-filter"></i>--}}
-        {{--        </a>--}}
-
-        <a href="#" class="btn btn-sm btn-primary" onclick="saveAsPDF()"data-bs-toggle="tooltip" title="{{__('Download')}}" data-original-title="{{__('Download')}}">
-            <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
+        @php
+            $downloadLabelTax = __('Download');
+            $downloadGuardMsgTax = Utility::fetchLinkMessage($lang, VW::RPT, 'download_tax_reports_unavailable') ?? 'Download function for Tax Reports is unavailable. Please contact technical support or your domain administrator.';
+        @endphp
+        <a href="#"
+        class="{{ VC::BT_SM_PM }} download-tax-reports"
+        data-func-name="saveAsPDF"
+        data-guard-msg="{{ $downloadGuardMsgTax }}"
+        data-sv-localized="true"
+        data-bs-toggle="tooltip"
+        title="{{ $downloadLabelTax }}"
+        aria-label="{{ $downloadLabelTax }}"
+        data-original-title="{{ $downloadLabelTax }}">
+            <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
-
+        @push(StacksConstants::ADM_SCRP_PG)
+            <script src="{{ asset('assets/js/routes/reports/taxes/download.js') }}" defer></script>
+        @endpush
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-sm-12">
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CS12 }}">
             <div class="mt-2" id="multiCollapseExample1">
-                <div class="card">
+                <div class="{{ VC::CD }}">
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open(array('route' => array(ViewsConstants::RPT . '.tax.summary'),'method' => 'GET','id'=>'report_tax_summary')) }}
-                        <div class="row align-items-center justify-content-end">
-                            <div class="col-xl-10">
-                                <div class="row">
-
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
+                        @php
+                            $taxSummaryBase = ViewsConstants::RPT.'.tax.summary';
+                            $taxSummaryKebab = Str::kebab($taxSummaryBase);
+                            $taxSummaryResolved = Route::has($taxSummaryBase) ? $taxSummaryBase : (Route::has($taxSummaryKebab) ? $taxSummaryKebab : null);
+                            $actionRoute = $taxSummaryResolved ? [$taxSummaryResolved] : ['#'];
+                            $actionUrl = $taxSummaryResolved ? route($taxSummaryResolved) : '#';
+                            $resetUrl = $actionUrl;
+                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'apply_tax_summary_route_unavailable') ?? 'Apply tax summary route is unavailable. Please contact technical support or your domain administrator.';
+                            $resetGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'reset_tax_summary_route_unavailable') ?? 'Reset tax summary route is unavailable. Please contact technical support or your domain administrator.';
+                        @endphp
+                        {{ Form::open(['route' => $actionRoute, 'method' => 'GET', 'id' => 'report_tax_summary', 'data-url' => $actionUrl, 'data-guard-msg' => $applyGuardMsg, 'data-sv-localized' => 'true']) }}
+                            <div class="{{ VC::R_ALC_JCE }}">
+                                <div class="col-xl-10">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
+                                        <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
+                                        <div class="{{ VC::CL_XL3 }}"><div class="btn-box"></div></div>
+                                        <div class="{{ VC::CL_XL3 }}">
+                                            <div class="btn-box">
+                                                {{ Form::label('year', __('Year'), ['class' => VC::FM_LB]) }}
+                                                {{ Form::select('year', $yearList ?? [], request('year',''), ['class' => VC::FM_CT_SL]) }}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
+                                </div>
+                                <div class="{{ VC::C_AT }}">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
+                                            <a id="apply-tax-summary"
+                                            href="#"
+                                            class="{{ VC::BT_SM_PM }}"
+                                            data-form-id="report_tax_summary"
+                                            data-guard-msg="{{ $applyGuardMsg }}"
+                                            data-sv-localized="true"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ __('Apply') }}"
+                                            data-original-title="{{ __('apply') }}">
+                                                <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
+                                            </a>
+                                            <a id="reset-tax-summary"
+                                            href="{{ $resetUrl }}"
+                                            class="{{ VC::BT_SM_DG }}"
+                                            data-url="{{ $resetUrl }}"
+                                            data-guard-msg="{{ $resetGuardMsg }}"
+                                            data-sv-localized="true"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ __('Reset') }}"
+                                            data-original-title="{{ __('Reset') }}">
+                                                <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
+                                            </a>
                                         </div>
                                     </div>
-
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                        </div>
-                                    </div>
-
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('year', __('Year'),['class'=>'form-label'])}}
-                                            {{ Collective\Html\FormFacade::select('year',$yearList,isset($_GET['year'])?$_GET['year']:'', array('class' => 'form-control select')) }}
-                                        </div>
-                                    </div>
-
                                 </div>
                             </div>
-                            <div class="col-auto">
-                                <div class="row">
-                                    <div class="col-auto mt-4">
-
-                                        <a href="#" class="btn btn-sm btn-primary" onclick="document.getElementById('report_tax_summary').submit(); return false;" data-bs-toggle="tooltip" title="{{__('Apply')}}" data-original-title="{{__('apply')}}">
-                                            <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
-                                        </a>
-
-                                        <a href="{{route(ViewsConstants::RPT . '.tax.summary')}}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"  title="{{ __('Reset') }}" data-original-title="{{__('Reset')}}">
-                                            <span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span>
-                                        </a>
-
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
+                        {{ Form::close() }}
+                        @push(StacksConstants::ADM_SCRP_PG)
+                            <script src="{{ asset('assets/js/routes/reports/taxes/summaries/apply.js') }}" defer></script>
+                            <script src="{{ asset('assets/js/routes/reports/taxes/summaries/reset.js') }}" defer></script>
+                        @endpush
                     </div>
-                    {{ Collective\Html\FormFacade::close() }}
                 </div>
             </div>
         </div>
     </div>
+
     <div id="printableArea">
-        <div class="row mt-3">
+        <div class="{{ VC::RW }} {{ VC::MT3 }}">
             <div class="col">
-                <input type="hidden" value="{{__('Tax Summary').' '.'Report of'.' '.$filter['startDateRange'].' to '.$filter['endDateRange']}}" id="filename">
-                <div class="card p-4 mb-4">
-                    <h7 class="report-text gray-text mb-0">{{__('Report')}} :</h7>
-                    <h6 class="report-text mb-0">{{__('Tax Summary')}}</h6>
+                <input type="hidden"
+                       id="filename"
+                       value="{{ __('Tax Summary') . ' ' . __('Report of') . ' ' . $filter['startDateRange'] . ' ' . __('to') . ' ' . $filter['endDateRange'] }}">
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{ __('Report') }} :</h7>
+                    <h6 class="{{ VC::RPT_TX_DEF }}">{{ __('Tax Summary') }}</h6>
                 </div>
             </div>
             <div class="col">
-                <div class="card p-4 mb-4">
-                    <h7 class="report-text gray-text mb-0">{{__('Duration')}} :</h7>
-                    <h6 class="report-text mb-0">{{$filter['startDateRange'].' to '.$filter['endDateRange']}}</h6>
+                <div class="{{ VC::CD_POS }}">
+                    <h7 class="{{ VC::RPT_TX_GR }}">{{ __('Duration') }} :</h7>
+                    <h6 class="{{ VC::RPT_TX_DEF }}">{{ $filter['startDateRange'] . ' ' . __('to') . ' ' . $filter['endDateRange'] }}</h6>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
+        @php
+            $colCount      = count($monthList);
+            $incomeTotals  = array_fill(0, $colCount, 0.0);
+            $expenseTotals = array_fill(0, $colCount, 0.0);
+            foreach ($incomes as $prices)
+                foreach (array_values($prices) as $i => $price)
+                    if ($i < $colCount) $incomeTotals[$i] += (float) $price;
+            foreach ($expenses as $prices)
+                foreach (array_values($prices) as $i => $price)
+                    if ($i < $colCount) $expenseTotals[$i] += (float) $price;
+            $netTotals = [];
+            for ($i = 0; $i < $colCount; $i++)
+                $netTotals[$i] = $incomeTotals[$i] - $expenseTotals[$i];
+            $noIncome  = empty($incomes);
+            $noExpense = empty($expenses);
+        @endphp
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::C12 }}">
+                <div class="{{ VC::CD }}">
                     <div class="card-body table-border-style">
-                        <div class="col-sm-12">
-                            <h5>{{__('Income')}}</h5>
-                            <div class="table-responsive mt-3 mb-3">
-                                <table class="table">
+                        <div class="{{ VC::CS12 }}">
+                            <h5>{{ __('Income') }}</h5>
+                            <div class="table-responsive {{ VC::MT3 }} {{ VC::MB3 }}">
+                                <table class="{{ VC::TB }}">
                                     <thead>
                                     <tr>
-                                        <th>{{__('Tax')}}</th>
+                                        <th>{{ __('Tax') }}</th>
                                         @foreach($monthList as $month)
-                                            <th>{{$month}}</th>
+                                            <th class="text-end">{{ $month }}</th>
                                         @endforeach
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @forelse(array_keys($incomes) as $k=> $taxName)
+                                    @forelse($incomes as $taxName => $prices)
                                         <tr>
-                                            <td>{{$taxName}}</td>
-                                            @foreach(array_values($incomes)[$k] as $price)
-                                                <td>{{\Auth::user()->priceFormat($price)}}</td>
+                                            <td>{{ $taxName }}</td>
+                                            @foreach($prices as $price)
+                                                <td class="text-end">{{ $user?->priceFormat($price) ?? __('Failed to retrieve user data.') }}</td>
                                             @endforeach
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="13" class="text-center">{{__('Income tax not found')}}</td>
+                                            <td colspan="{{ 1 + $colCount }}" class="text-center">{{ __('Income tax not found') }}</td>
                                         </tr>
                                     @endforelse
                                     </tbody>
+                                    @unless($noIncome)
+                                        <tfoot>
+                                            <tr>
+                                                <th class="text-end">{{ __('Total Income Tax') }}</th>
+                                                @foreach($incomeTotals as $sum)
+                                                    <th class="text-end">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</th>
+                                                @endforeach
+                                            </tr>
+                                        </tfoot>
+                                    @endunless
                                 </table>
                             </div>
                         </div>
-                        <div class="col-sm-12">
-                            <h5>{{__('Expense')}}</h5>
-                            <div class="table-responsive mt-4">
-                                <table class="table">
+                        <div class="{{ VC::CS12 }}">
+                            <h5>{{ __('Expense') }}</h5>
+                            <div class="table-responsive {{ VC::MT4 }}">
+                                <table class="{{ VC::TB }}">
                                     <thead>
                                     <tr>
-                                        <th>{{__('Tax')}}</th>
+                                        <th>{{ __('Tax') }}</th>
                                         @foreach($monthList as $month)
-                                            <th>{{$month}}</th>
+                                            <th class="text-end">{{ $month }}</th>
                                         @endforeach
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    @forelse(array_keys($expenses) as $k=> $taxName)
+                                    @forelse($expenses as $taxName => $prices)
                                         <tr>
-                                            <td>{{$taxName}}</td>
-                                            @foreach(array_values($expenses)[$k] as $price)
-                                                <td>{{\Auth::user()->priceFormat($price)}}</td>
+                                            <td>{{ $taxName }}</td>
+                                            @foreach($prices as $price)
+                                                <td class="text-end">{{ $user?->priceFormat($price) ?? __('Failed to retrieve user data.') }}</td>
                                             @endforeach
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="13" class="text-center">{{__('Expense tax not found')}}</td>
+                                            <td colspan="{{ 1 + $colCount }}" class="text-center">{{ __('Expense tax not found') }}</td>
                                         </tr>
                                     @endforelse
                                     </tbody>
+                                    @unless($noExpense)
+                                        <tfoot>
+                                            <tr>
+                                                <th class="text-end">{{ __('Total Expense Tax') }}</th>
+                                                @foreach($expenseTotals as $sum)
+                                                    <th class="text-end">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</th>
+                                                @endforeach
+                                            </tr>
+                                        </tfoot>
+                                    @endunless
                                 </table>
                             </div>
                         </div>
+                        @if(!$noIncome || !$noExpense)
+                            <div class="{{ VC::CS12 }}">
+                                <h5>{{ __('Net Tax (Income − Expense)') }}</h5>
+                                <div class="table-responsive {{ VC::MT3 }}">
+                                    <table class="{{ VC::TB }}">
+                                        <thead>
+                                        <tr>
+                                            <th>{{ __('Metric') }}</th>
+                                            @foreach($monthList as $month)
+                                                <th class="text-end">{{ $month }}</th>
+                                            @endforeach
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{ __('Net') }}</td>
+                                                @foreach($netTotals as $sum)
+                                                    <td class="text-end">{{ $user?->priceFormat($sum) ?? __('Failed to retrieve user data.') }}</td>
+                                                @endforeach
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
 

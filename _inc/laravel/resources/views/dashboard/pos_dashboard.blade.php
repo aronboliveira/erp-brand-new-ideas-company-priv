@@ -1,81 +1,21 @@
 @php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
+        PermissionsConstants,
         StacksConstants,
-        YieldingConstants
+        UsersConstants,
+        ViewClassNamesConstants as VC,
+        YieldingConstants,
     };
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Dashboard')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-        ar: {
-            traffic_chart_unavailable: 'فشل عرض مخطط المرور.'
-        },
-        da: {
-            traffic_chart_unavailable: 'Kunne ikke vise trafikdiagram.'
-        },
-        de: {
-            traffic_chart_unavailable: 'Fehler beim Anzeigen des Verkehrscharts.'
-        },
-        en: {
-            traffic_chart_unavailable: 'Failed to render traffic chart.'
-        },
-        es: {
-            traffic_chart_unavailable: 'Error al mostrar el gráfico de tráfico.'
-        },
-        fr: {
-            traffic_chart_unavailable: 'Échec de l’affichage du graphique de trafic.'
-        },
-        he: {
-            traffic_chart_unavailable: 'הצגת תרשים התנועה נכשלה.'
-        },
-        it: {
-            traffic_chart_unavailable: 'Visualizzazione del grafico del traffico non riuscita.'
-        },
-        ja: {
-            traffic_chart_unavailable: 'トラフィックチャートの表示に失敗しました。'
-        },
-        nl: {
-            traffic_chart_unavailable: 'Kan verkeersgrafiek niet weergeven.'
-        },
-        pl: {
-            traffic_chart_unavailable: 'Nie udało się wyświetlić wykresu ruchu.'
-        },
-        pt: {
-            traffic_chart_unavailable: 'Falha ao exibir o gráfico de tráfego.'
-        },
-        'pt-br': {
-            traffic_chart_unavailable: 'Falha ao exibir o gráfico de tráfego.'
-        },
-        ru: {
-            traffic_chart_unavailable: 'Не удалось отобразить график трафика.'
-        },
-        tr: {
-            traffic_chart_unavailable: 'Trafik grafiği oluşturulamadı.'
-        },
-        zh: {
-            traffic_chart_unavailable: '呈现流量图失败。'
-        }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/dashboards/pos/lang/chart.js') }}"></script>
     <script async>
         (() => {
         const ERR_FB = '# ERROR';
@@ -199,101 +139,104 @@ Object.keys(t).forEach(
     </li>
     <li class="breadcrumb-item">{{__('POS')}}</li>
 @endsection
-@section('content')
-    <div class="row">
-        <div class="col-lg-6 col-md-12 dashboard-card">
-            <div class="card">
+@section(YieldingConstants::ADM_CTT)
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
+            <div class="{{ VC::CD }}">
                 <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-primary">
+                    <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
+                            <div class="{{ VC::DFL_AIC }}">
+                                <div class="theme-avatar {{ VC::BG_P }}">
                                     <i class="ti ti-hand-finger"></i>
                                 </div>
                                 <div class="ms-3">
-                                    <small class="text-muted">{{ __('Total') }}</small>
+                                    <small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small>
                                     <h6 class="m-0">{{ __('POS Of This Month') }}</h6>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-auto text-end">
-                            <h4 class="m-0">{{$pos_data['monthlyPosAmount']}}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12 dashboard-card">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-warning">
-                                    <i class="ti ti-chart-pie"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <small class="text-muted">{{ __('Total') }}</small>
-                                    <h6 class="m-0">{{ __('POS Amount') }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <h4 class="m-0">{{$pos_data['totalPosAmount']}}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12 dashboard-card">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-info">
-                                    <i class="ti ti-report-money"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <small class="text-muted">{{ __('Total') }}</small>
-                                    <h6 class="m-0">{{ __('Purchase Of This Month') }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <h4 class="m-0">{{$pos_data['monthlyPurchaseAmount']}}</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-md-12 dashboard-card">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-info">
-                                    <i class="ti ti-chart-bar"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <small class="text-muted">{{ __('Total') }}</small>
-                                    <h6 class="m-0">{{ __(' Purchase Amount') }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <h4 class="m-0">{{$pos_data['totalPurchaseAmount']}}</h4>
+                        <div class="{{ VC::C_AT }} text-end">
+                            <h4 class="m-0">{{ $pos_data['monthlyPosAmount'] }}</h4>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12">
-            <div class="card">
+        <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
+            <div class="{{ VC::CD }}">
+                <div class="card-body">
+                    <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
+                            <div class="{{ VC::DFL_AIC }}">
+                                <div class="theme-avatar bg-warning">
+                                    <i class="ti ti-chart-pie"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small>
+                                    <h6 class="m-0">{{ __('POS Amount') }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="{{ VC::C_AT }} text-end">
+                            <h4 class="m-0">{{ $pos_data['totalPosAmount'] }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
+            <div class="{{ VC::CD }}">
+                <div class="card-body">
+                    <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
+                            <div class="{{ VC::DFL_AIC }}">
+                                <div class="theme-avatar bg-info">
+                                    <i class="ti ti-report-money"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small>
+                                    <h6 class="m-0">{{ __('Purchase Of This Month') }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="{{ VC::C_AT }} text-end">
+                            <h4 class="m-0">{{ $pos_data['monthlyPurchaseAmount'] }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="{{ VC::CL6 }} {{ VC::CM12 }} dashboard-card">
+            <div class="{{ VC::CD }}">
+                <div class="card-body">
+                    <div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} mb-sm-0">
+                            <div class="{{ VC::DFL_AIC }}">
+                                <div class="theme-avatar bg-info">
+                                    <i class="ti ti-chart-bar"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small>
+                                    <h6 class="m-0">{{ __(' Purchase Amount') }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="{{ VC::C_AT }} text-end">
+                            <h4 class="m-0">{{ $pos_data['totalPurchaseAmount'] }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="{{ VC::C12 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-header">
-                    <div class="row">
+                    <div class="{{ VC::RW }}">
                         <div class="col-6">
                             <h5>{{ __('Purchase Vs POS Report') }}</h5>
                         </div>
@@ -307,6 +250,5 @@ Object.keys(t).forEach(
                 </div>
             </div>
         </div>
-
     </div>
 @endsection

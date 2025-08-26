@@ -1,25 +1,36 @@
-@if(isset($users) && !empty($users) && count($users) > 0)
-    @foreach($users as $user)
-        <div class="col-lg-3 col-sm-6">
-            <div class="card hover-shadow-lg">
+@php
+    use App\Config\Constants\ViewClassNamesConstants as VC;
+
+    $users = isset($users) && !empty($users) ? $users : [];
+@endphp
+@if(count($users) > 0)
+    @foreach($users as $usr)
+        @php
+            $contacts      = data_get($usr, 'contacts', []);
+            $projects      = data_get($usr, 'projects', []);
+            $contactsCount = is_countable($contacts) ? count($contacts) : (method_exists($contacts, 'count') ? $contacts->count() : 0);
+            $projectsCount = is_countable($projects) ? count($projects) : (method_exists($projects, 'count') ? $projects->count() : 0);
+        @endphp
+        <div class="{{ VC::CL3 }} {{ VC::CS6 }}">
+            <div class="{{ VC::CD }} hover-shadow-lg">
                 <div class="card-body text-center">
                     <div class="avatar-parent-child">
-                        <img {{ $user->img_avatar }} class="avatar rounded-circle avatar-lg">
+                        <img {{ $usr->img_avatar }} class="{{ VC::AV_CC }} avatar-lg" alt="avatar">
                     </div>
-                    <h5 class="h6 mt-4 mb-0">
-                        <p>{{ $user?->name }}</p>
+                    <h5 class="{{ VC::MB0 }} {{ VC::H6 }} {{ VC::MT3 }}">
+                        <span>{{ $usr?->name }}</span>
                     </h5>
-                    <p class="d-block text-sm text-muted mb-3">{{ $user?->email }}</p>
+                    <p class="{{ VC::DBL }} {{ VC::TXSM }} {{ VC::TXT_MT }} {{ VC::MB3 }}">{{ $usr?->email }}</p>
                 </div>
-                <div class="card-body border-top">
-                    <div class="row justify-content-between align-items-center">
+                <div class="card-body {{ VC::BD }}-top">
+                    <div class="row justify-content-between {{ VC::ALC }}">
                         <div class="col-6 text-center">
-                            <span class="d-block h4 mb-0">{{ count($user?->contacts) }}</span>
-                            <span class="d-block text-sm text-muted">{{__('Contacts')}}</span>
+                            <span class="d-block h4 {{ VC::MB0 }}">{{ $contactsCount }}</span>
+                            <span class="{{ VC::DBL }} {{ VC::TXSM }} {{ VC::TXT_MT }}">{{ __('Contacts') }}</span>
                         </div>
                         <div class="col-6 text-center">
-                            <span class="d-block h4 mb-0">{{ $user?->projects->count() }}</span>
-                            <span class="d-block text-sm text-muted">{{__('Projects')}}</span>
+                            <span class="d-block h4 {{ VC::MB0 }}">{{ $projectsCount }}</span>
+                            <span class="{{ VC::DBL }} {{ VC::TXSM }} {{ VC::TXT_MT }}">{{ __('Projects') }}</span>
                         </div>
                     </div>
                 </div>
@@ -27,10 +38,10 @@
         </div>
     @endforeach
 @else
-    <div class="col-xl-12 col-lg-12 col-sm-12">
-        <div class="card">
+    <div class="{{ VC::C12 }}">
+        <div class="{{ VC::CD }}">
             <div class="card-body">
-                <h6 class="text-center mb-0">{{__('No User Found.')}}</h6>
+                <h6 class="text-center {{ VC::MB0 }}">{{ __('No User Found.') }}</h6>
             </div>
         </div>
     </div>

@@ -16,126 +16,126 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script async>
         (() => {
-        const errFb = '# ERROR';
-        const dataClientLocalized = 'data-client-localized';
-        const dataGuardMsg = 'data-guard-msg';
-        const langSessionKey = 'erp-np-lang';
-        const getLocalizedMessage = (msgKey, el) => {
-            let msg = errFb;
-            if (
-            el.getAttribute('data-sv-localized') === 'true' ||
-            el.getAttribute(dataClientLocalized) === 'true'
-            ) {
-            msg = el.getAttribute(dataGuardMsg) ?? errFb;
-            } else {
-            let lang = (
-                window.sessionStorage.getItem(langSessionKey) ??
-                document.documentElement.lang ??
-                'en'
-            )
-                .toLowerCase()
-                .replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[msgKey] ??
-                el.getAttribute(dataGuardMsg) ??
-                window.translations?.['en']?.[msgKey] ??
-                errFb;
-            if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, 'true');
-            }
-            }
-            return msg;
-        };
-        const showError = message => {
-            try {
-            let container = document.querySelector('#bootstrap-toast-container');
-            if (!container) {
-                const hasBs =
-                Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-                    .some(l => /bootstrap/i.test(l.href)) &&
-                window.bootstrap?.Toast;
-                if (hasBs) {
-                container = document.createElement('div');
-                container.id = 'bootstrap-toast-container';
-                container.setAttribute('aria-live', 'polite');
-                container.setAttribute('aria-atomic', 'true');
-                document.body.appendChild(container);
-                }
-            }
-            if (container && window.bootstrap.Toast) {
-                let toast = container.querySelector('.toast');
-                if (!toast) {
-                toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role', 'alert');
-                toast.setAttribute('aria-live', 'assertive');
-                toast.setAttribute('aria-atomic', 'true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                toast.appendChild(body);
-                container.appendChild(toast);
-                if (toast.getAttribute('data-click-listener') !== 'true') {
-                    toast.addEventListener('click', () => body.textContent = message);
-                    toast.setAttribute('data-click-listener', 'true');
+            const errFb = '# ERROR';
+            const dataClientLocalized = 'data-client-localized';
+            const dataGuardMsg = 'data-guard-msg';
+            const langSessionKey = 'erp-np-lang';
+            const getLocalizedMessage = (msgKey, el) => {
+                let msg = errFb;
+                if (
+                el.getAttribute('data-sv-localized') === 'true' ||
+                el.getAttribute(dataClientLocalized) === 'true'
+                ) {
+                msg = el.getAttribute(dataGuardMsg) ?? errFb;
+                } else {
+                let lang = (
+                    window.sessionStorage.getItem(langSessionKey) ??
+                    document.documentElement.lang ??
+                    'en'
+                )
+                    .toLowerCase()
+                    .replace(/_/g, '-');
+                lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
+                msg =
+                    window.translations?.[lang]?.[msgKey] ??
+                    el.getAttribute(dataGuardMsg) ??
+                    window.translations?.['en']?.[msgKey] ??
+                    errFb;
+                if (msg !== errFb) {
+                    el.setAttribute(dataGuardMsg, msg);
+                    el.setAttribute(dataClientLocalized, 'true');
                 }
                 }
-                toast.querySelector('.toast-body').textContent = message;
-                new bootstrap.Toast(toast).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        };
-        let errorMessage = '';
-        const onErrorPointerUp = () => {
-            if (errorMessage) {
-            showError(errorMessage);
-            errorMessage = '';
-            }
-        };
-        document.addEventListener('pointerup', onErrorPointerUp);
-        new MutationObserver((mutations, obs) => {
-            for (const m of mutations) {
-            for (const n of m.removedNodes) {
-                if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onErrorPointerUp);
-                obs.disconnect();
-                }
-            }
-            }
-        }).observe(document.body, { childList: true, subtree: true });
-        
-        try {
-            const mountEl = document.querySelector('#chart-sales');
-            if (!mountEl) throw new Error();
-            if (!window.ApexCharts) {
-            console.log('ApexCharts library missing');
-            return;
-            }
-            const dataSeries = {!! json_encode($chartData['data']) !!} ?? [];
-            const dataLabels = {!! json_encode($chartData['label']) !!} ?? [];
-            const chartOptions = {
-            series: [{ name: '{{ __("Income") }}', data: dataSeries }],
-            chart: { height: 300, type: 'area', dropShadow: { enabled: true, color: '#000', top: 18, left: 7, blur: 10, opacity: 0.2 }, toolbar: { show: false } },
-            dataLabels: { enabled: false },
-            stroke: { width: 2, curve: 'smooth' },
-            title: { text: '', align: 'left' },
-            xaxis: { categories: dataLabels, title: { text: '{{ __("Months") }}' } },
-            grid: { strokeDashArray: 4 },
-            legend: { show: false },
-            yaxis: { title: { text: '{{ __("Income") }}' } }
+                return msg;
             };
-            const chart = new ApexCharts(mountEl, chartOptions);
-            chart.render().catch(() => {
-            errorMessage = getLocalizedMessage('chart_render_failed', mountEl);
-            });
-        } catch {
-            errorMessage = getLocalizedMessage('chart_render_failed', document.body);
-        }
+            const showError = message => {
+                try {
+                let container = document.querySelector('#bootstrap-toast-container');
+                if (!container) {
+                    const hasBs =
+                    Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+                        .some(l => /bootstrap/i.test(l.href)) &&
+                    window.bootstrap?.Toast;
+                    if (hasBs) {
+                    container = document.createElement('div');
+                    container.id = 'bootstrap-toast-container';
+                    container.setAttribute('aria-live', 'polite');
+                    container.setAttribute('aria-atomic', 'true');
+                    document.body.appendChild(container);
+                    }
+                }
+                if (container && window.bootstrap.Toast) {
+                    let toast = container.querySelector('.toast');
+                    if (!toast) {
+                    toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    const body = document.createElement('div');
+                    body.className = 'toast-body';
+                    toast.appendChild(body);
+                    container.appendChild(toast);
+                    if (toast.getAttribute('data-click-listener') !== 'true') {
+                        toast.addEventListener('click', () => body.textContent = message);
+                        toast.setAttribute('data-click-listener', 'true');
+                    }
+                    }
+                    toast.querySelector('.toast-body').textContent = message;
+                    new bootstrap.Toast(toast).show();
+                } else {
+                    alert(message);
+                }
+                } catch {
+                alert(message);
+                }
+            };
+            let errorMessage = '';
+            const onErrorPointerUp = () => {
+                if (errorMessage) {
+                showError(errorMessage);
+                errorMessage = '';
+                }
+            };
+            document.addEventListener('pointerup', onErrorPointerUp);
+            new MutationObserver((mutations, obs) => {
+                for (const m of mutations) {
+                for (const n of m.removedNodes) {
+                    if (n === document.documentElement) {
+                    document.removeEventListener('pointerup', onErrorPointerUp);
+                    obs.disconnect();
+                    }
+                }
+                }
+            }).observe(document.body, { childList: true, subtree: true });
+            
+            try {
+                const mountEl = document.querySelector('#chart-sales');
+                if (!mountEl) throw new Error();
+                if (!window.ApexCharts) {
+                console.log('ApexCharts library missing');
+                return;
+                }
+                const dataSeries = {!! json_encode($chartData['data']) !!} ?? [];
+                const dataLabels = {!! json_encode($chartData['label']) !!} ?? [];
+                const chartOptions = {
+                series: [{ name: '{{ __("Income") }}', data: dataSeries }],
+                chart: { height: 300, type: 'area', dropShadow: { enabled: true, color: '#000', top: 18, left: 7, blur: 10, opacity: 0.2 }, toolbar: { show: false } },
+                dataLabels: { enabled: false },
+                stroke: { width: 2, curve: 'smooth' },
+                title: { text: '', align: 'left' },
+                xaxis: { categories: dataLabels, title: { text: '{{ __("Months") }}' } },
+                grid: { strokeDashArray: 4 },
+                legend: { show: false },
+                yaxis: { title: { text: '{{ __("Income") }}' } }
+                };
+                const chart = new ApexCharts(mountEl, chartOptions);
+                chart.render().catch(() => {
+                errorMessage = getLocalizedMessage('chart_render_failed', mountEl);
+                });
+            } catch {
+                errorMessage = getLocalizedMessage('chart_render_failed', document.body);
+            }
         })();
     </script>
 @endpush
@@ -147,7 +147,6 @@
         ['bg'=>'bg-info','icon'=>'ti ti-trophy','header'=>__('Total Plans'),'value'=>$user?->total_plan,'sub'=>__('Most Purchase Plan'),'subValue'=>$user['mostPurchasedPlan']]
     ];
 @endphp
-
 @section('content')
     <div class="row">
         @php

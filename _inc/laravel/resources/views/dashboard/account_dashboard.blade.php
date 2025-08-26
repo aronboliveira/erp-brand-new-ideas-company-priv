@@ -7,14 +7,15 @@
         SettingsConstants,
         StacksConstants,
         UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use App\Models\{Bill, Invoice, Plan, Utility};
+    use App\Models\{Bill, Goal, Invoice, Plan, Utility};
+    use Illuminate\Database\{Eloquent\ModelNotFoundException, QueryException};
     use Illuminate\Support\Facades\{Auth, Log, Route};
-    $user ??= Auth::user();
-    $lang ??= Utility::fetchUserLang(user:$user);
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user:$user);
     $plan ??= Plan::find(DatabaseConstants::DEFAULT_PLAN);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
@@ -34,44 +35,7 @@
                     ]
                 );
         @endphp
-            <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            en: {
-                cash_flow_unavailable: "Failed to load cash‑flow chart.",
-                incExpBarChart_unavailable: "Failed to load income/expense bar chart.",
-                expenseByCategory_unavailable: "Failed to load expense‑by‑category chart.",
-                incomeByCategory_unavailable: "Failed to load income‑by‑category chart.",
-                limitChart_unavailable: "Failed to load storage‑limit chart."
-            },
-            pt: {
-                cash_flow_unavailable: "Falha ao carregar o gráfico de fluxo de caixa.",
-                incExpBarChart_unavailable: "Falha ao carregar o gráfico de entradas/saídas.",
-                expenseByCategory_unavailable: "Falha ao carregar o gráfico de despesas por categoria.",
-                incomeByCategory_unavailable: "Falha ao carregar o gráfico de receitas por categoria.",
-                limitChart_unavailable: "Falha ao carregar o gráfico de limite de armazenamento."
-            },
-            "pt-br": {
-                cash_flow_unavailable: "Falha ao carregar o gráfico de fluxo de caixa.",
-                incExpBarChart_unavailable: "Falha ao carregar o gráfico de entradas/saídas.",
-                expenseByCategory_unavailable: "Falha ao carregar o gráfico de despesas por categoria.",
-                incomeByCategory_unavailable: "Falha ao carregar o gráfico de receitas por categoria.",
-                limitChart_unavailable: "Falha ao carregar o gráfico de limite de armazenamento."
-            }
-            };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-         
-          })();
-    </script>
+        <script async src="{{ asset('assets/js/routes/dashboards/account/lang/cash.js') }}"></script>
         <script defer>
             (() => {
                 const errFb = "# ERROR";
@@ -277,26 +241,203 @@ Object.keys(t).forEach(
             <div class="row">
                 @php
                     $metrics=[
-                        ['bg'=>'bg-primary','icon'=>ViewClassNamesConstants::TI_USRS,'label'=>__('Customers'),'value'=>$user->countCustomers()],
-                        ['bg'=>'bg-info','icon'=>ViewClassNamesConstants::TI_USRS,'label'=>__('Vendors'),'value'=>$user->countVendors()],
+                        ['bg'=>'bg-primary','icon'=>VC::TI_USRS,'label'=>__('Customers'),'value'=>$user->countCustomers()],
+                        ['bg'=>'bg-info','icon'=>VC::TI_USRS,'label'=>__('Vendors'),'value'=>$user->countVendors()],
                         ['bg'=>'bg-warning','icon'=>'ti ti-report-money','label'=>__('Invoices'),'value'=>$user->countInvoices()],
                         ['bg'=>'bg-danger','icon'=>'ti ti-report-money','label'=>__('Bills'),'value'=>$user->countBills()]
                     ];
+                    $currentYear ??= (string) now()->format('Y');
+                    $bankAccountDetail ??= [];
+                    $latestIncome ??= [];
+                    $latestExpense ??= [];
+                    $recentInvoice ??= [];
+                    $recentBill ??= [];
+                    $asString = static function ($value, string $alias) {
+                        return isset($value) && is_string($value) && trim($value) !== ''
+                            ? $value
+                            : __('No '.$alias.' available');
+                    };
+                    $asClass = static function ($value, string $fallback = 'bg-secondary') {
+                        return isset($value) && is_string($value) && trim($value) !== ''
+                            ? $value
+                            : $fallback;
+                    };
+                    $asNumber = static function ($value, string $alias) {
+                        return isset($value) && is_numeric($value)
+                            ? $value
+                            : __('Could not find '.$alias);
+                    };
+                    $fmtDate = static function ($value) use ($user, $asString) {
+                        try {
+                            return isset($user) && method_exists($user, 'dateFormat')
+                                ? $user->dateFormat($value ?? null)
+                                : $asString($value, 'date');
+                        } catch (ModelNotFoundException $e) {
+                            Log::error('dateFormat model not found', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get date');
+                        } catch (QueryException $e) {
+                            Log::error('dateFormat query error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get date');
+                        } catch (\TypeError $e) {
+                            Log::error('dateFormat type error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get date');
+                        } catch (\Throwable $e) {
+                            Log::error('dateFormat error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get date');
+                        }
+                    };
+                    $fmtPrice = static function ($value) use ($user, $asNumber) {
+                        try {
+                            return isset($user) && method_exists($user, 'priceFormat')
+                                ? $user->priceFormat($value ?? 0)
+                                : (is_numeric($value) ? number_format((float) $value, 2, '.', ',')
+                                    : $asNumber($value, 'amount'));
+                        } catch (ModelNotFoundException $e) {
+                            Log::error('priceFormat model not found', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get amount');
+                        } catch (QueryException $e) {
+                            Log::error('priceFormat query error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get amount');
+                        } catch (\TypeError $e) {
+                            Log::error('priceFormat type error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get amount');
+                        } catch (\Throwable $e) {
+                            Log::error('priceFormat error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get amount');
+                        }
+                    };
+                    $fmtInv = static function ($value) use ($user, $asString) {
+                        try {
+                            return isset($user) && method_exists($user, 'invoiceNumberFormat')
+                                ? $user->invoiceNumberFormat($value ?? null)
+                                : $asString($value, 'invoice number');
+                        } catch (\Throwable $e) {
+                            Log::error('invoiceNumberFormat error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get invoice number');
+                        }
+                    };
+                    $fmtBill = static function ($value) use ($user, $asString) {
+                        try {
+                            return isset($user) && method_exists($user, 'billNumberFormat')
+                                ? $user->billNumberFormat($value ?? null)
+                                : $asString($value, 'bill number');
+                        } catch (\Throwable $e) {
+                            Log::error('billNumberFormat error', [
+                                'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                                'message' => $e->getMessage(),
+                            ]);
+                            return __('Failed to get bill number');
+                        }
+                    };
+                    $invoiceStatusClasses ??= [
+                        0 => 'bg-secondary', 1 => 'bg-warning', 2 => 'bg-danger',
+                        3 => 'bg-info', 4 => 'bg-primary',
+                    ];
+                    $billStatusClasses ??= $invoiceStatusClasses;
+                    try {
+                        $metrics = is_iterable($metrics) ? $metrics : [];
+                    } catch (\Throwable $e) {
+                        Log::error('metrics iteration error', [
+                            'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                            'message' => $e->getMessage(),
+                        ]);
+                        $metrics = [];
+                    }
+                    try {
+                        $bankAccountDetail = is_iterable($bankAccountDetail) ? $bankAccountDetail : [];
+                    } catch (\Throwable $e) {
+                        Log::error('bankAccountDetail iteration error', [
+                            'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                            'message' => $e->getMessage(),
+                        ]);
+                        $bankAccountDetail = [];
+                    }
+                    try {
+                        $latestIncome = is_iterable($latestIncome) ? $latestIncome : [];
+                    } catch (\Throwable $e) {
+                        Log::error('latestIncome iteration error', [
+                            'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                            'message' => $e->getMessage(),
+                        ]);
+                        $latestIncome = [];
+                    }
+                    try {
+                        $latestExpense = is_iterable($latestExpense) ? $latestExpense : [];
+                    } catch (\Throwable $e) {
+                        Log::error('latestExpense iteration error', [
+                            'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                            'message' => $e->getMessage(),
+                        ]);
+                        $latestExpense = [];
+                    }
+                    try {
+                        $recentInvoice = is_iterable($recentInvoice) ? $recentInvoice : [];
+                    } catch (\Throwable $e) {
+                        Log::error('recentInvoice iteration error', [
+                            'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                            'message' => $e->getMessage(),
+                        ]);
+                        $recentInvoice = [];
+                    }
+                    try {
+                        $recentBill = is_iterable($recentBill) ? $recentBill : [];
+                    } catch (\Throwable $e) {
+                        Log::error('recentBill iteration error', [
+                            'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
+                            'message' => $e->getMessage(),
+                        ]);
+                        $recentBill = [];
+                    }
                 @endphp
                 <div class="col-xxl-7">
-                    <div class="{{ ViewClassNamesConstants::RW }}">
+                    <div class="{{ VC::RW }}">
                         <div class="col-md-12">
-                            <div class="{{ ViewClassNamesConstants::RW }}">
+                            <div class="{{ VC::RW }}">
                                 @foreach($metrics as $m)
+                                    @php
+                                        $bg = $asClass(data_get($m, 'bg'));
+                                        $icon = $asClass(data_get($m, 'icon'), 'ti ti-help');
+                                        $label = $asString(data_get($m, 'label'), 'label');
+                                        $value = $asNumber(data_get($m, 'value'), 'value');
+                                    @endphp
                                     <div class="col-lg-3 col-6">
-                                        <div class="{{ ViewClassNamesConstants::CD }}">
+                                        <div class="{{ VC::CD }}">
                                             <div class="card-body">
-                                                <div class="theme-avatar {{ $m['bg'] }}">
-                                                    <i class="{{ $m['icon'] }}"></i>
+                                                <div class="theme-avatar {{ $bg }}">
+                                                    <i class="{{ $icon }}"></i>
                                                 </div>
-                                                <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} mt-4 mb-2">{{ __('Total') }}</p>
-                                                <h6 class="{{ ViewClassNamesConstants::MB3 }}">{{ $m['label'] }}</h6>
-                                                <h3 class="{{ ViewClassNamesConstants::MB0 }}">{{ $m['value'] }}</h3>
+                                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} mt-4 mb-2">
+                                                    {{ __('Total') }}
+                                                </p>
+                                                <h6 class="{{ VC::MB3 }}">{{ $label }}</h6>
+                                                <h3 class="{{ VC::MB0 }}">{{ $value }}</h3>
                                             </div>
                                         </div>
                                     </div>
@@ -304,11 +445,15 @@ Object.keys(t).forEach(
                             </div>
                         </div>
                     </div>
+
                     <div class="col-xxl-12">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
+                        <div class="{{ VC::CD }}">
                             <div class="card-header">
-                                <h5>{{ __('Income & Expense') }}
-                                    <span class="{{ ViewClassNamesConstants::FEND }} {{ ViewClassNamesConstants::TXT_MT }}">{{ __('Current Year').' - '.$currentYear }}</span>
+                                <h5>
+                                    {{ __('Income & Expense') }}
+                                    <span class="{{ VC::FEND }} {{ VC::TXT_MT }}">
+                                        {{ ($currentYear ?: __('Could not find year')) }}
+                                    </span>
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -316,12 +461,15 @@ Object.keys(t).forEach(
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-12">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
-                            <div class="card-header"><h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Account Balance') }}</h5></div>
+                        <div class="{{ VC::CD }}">
+                            <div class="card-header">
+                                <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Account Balance') }}</h5>
+                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="{{ ViewClassNamesConstants::TB }}">
+                                    <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
                                                 <th>{{ __('Bank') }}</th>
@@ -331,15 +479,22 @@ Object.keys(t).forEach(
                                         </thead>
                                         <tbody>
                                             @forelse($bankAccountDetail as $account)
+                                                @php
+                                                    $bankName = $asString(data_get($account, 'bank_name'), 'bank name');
+                                                    $holder = $asString(data_get($account, 'holder_name'), 'holder name');
+                                                    $balance = $fmtPrice(data_get($account, 'opening_balance'));
+                                                @endphp
                                                 <tr class="font-style">
-                                                    <td>{{ $account->bank_name }}</td>
-                                                    <td>{{ $account->holder_name }}</td>
-                                                    <td>{{ $user->priceFormat($account->opening_balance) }}</td>
+                                                    <td>{{ $bankName }}</td>
+                                                    <td>{{ $holder }}</td>
+                                                    <td>{{ $balance }}</td>
                                                 </tr>
                                             @empty
                                                 <tr>
                                                     <td colspan="4">
-                                                        <div class="text-center"><h6>{{ __('there is no account balance') }}</h6></div>
+                                                        <div class="text-center">
+                                                            <h6>{{ __('There is no account balance') }}</h6>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @endforelse
@@ -349,12 +504,15 @@ Object.keys(t).forEach(
                             </div>
                         </div>
                     </div>
+
                     <div class="col-xxl-12">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
-                            <div class="card-header"><h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Latest Income') }}</h5></div>
+                        <div class="{{ VC::CD }}">
+                            <div class="card-header">
+                                <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Latest Income') }}</h5>
+                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="{{ ViewClassNamesConstants::TB }}">
+                                    <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
                                                 <th>{{ __('Date') }}</th>
@@ -364,14 +522,24 @@ Object.keys(t).forEach(
                                         </thead>
                                         <tbody>
                                             @forelse($latestIncome as $income)
+                                                @php
+                                                    $incDate = $fmtDate(data_get($income, 'date'));
+                                                    $incCust = $asString(data_get($income, 'customer.name'),
+                                                        'customer name');
+                                                    $incAmt = $fmtPrice(data_get($income, 'amount'));
+                                                @endphp
                                                 <tr>
-                                                    <td>{{ $user->dateFormat($income->date) }}</td>
-                                                    <td>{{ $income->customer->name ?? '-' }}</td>
-                                                    <td>{{ $user->priceFormat($income->amount) }}</td>
+                                                    <td>{{ $incDate }}</td>
+                                                    <td>{{ $incCust }}</td>
+                                                    <td>{{ $incAmt }}</td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="4"><div class="text-center"><h6>{{ __('There is no latest income') }}</h6></div></td>
+                                                    <td colspan="4">
+                                                        <div class="text-center">
+                                                            <h6>{{ __('There is no latest income') }}</h6>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -380,12 +548,15 @@ Object.keys(t).forEach(
                             </div>
                         </div>
                     </div>
+
                     <div class="col-xxl-12">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
-                            <div class="card-header"><h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Latest Expense') }}</h5></div>
+                        <div class="{{ VC::CD }}">
+                            <div class="card-header">
+                                <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Latest Expense') }}</h5>
+                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="{{ ViewClassNamesConstants::TB }}">
+                                    <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
                                                 <th>{{ __('Date') }}</th>
@@ -395,14 +566,24 @@ Object.keys(t).forEach(
                                         </thead>
                                         <tbody>
                                             @forelse($latestExpense as $expense)
+                                                @php
+                                                    $expDate = $fmtDate(data_get($expense, 'date'));
+                                                    $expVend = $asString(data_get($expense, 'vendor.name'),
+                                                        'vendor name');
+                                                    $expAmt = $fmtPrice(data_get($expense, 'amount'));
+                                                @endphp
                                                 <tr>
-                                                    <td>{{ $user->dateFormat($expense->date) }}</td>
-                                                    <td>{{ $expense->vendor->name ?? '-' }}</td>
-                                                    <td>{{ $user->priceFormat($expense->amount) }}</td>
+                                                    <td>{{ $expDate }}</td>
+                                                    <td>{{ $expVend }}</td>
+                                                    <td>{{ $expAmt }}</td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="4"><div class="text-center"><h6>{{ __('There is no latest expense') }}</h6></div></td>
+                                                    <td colspan="4">
+                                                        <div class="text-center">
+                                                            <h6>{{ __('There is no latest expense') }}</h6>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -411,12 +592,15 @@ Object.keys(t).forEach(
                             </div>
                         </div>
                     </div>
+
                     <div class="col-xxl-12">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
-                            <div class="card-header"><h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Recent Invoices') }}</h5></div>
+                        <div class="{{ VC::CD }}">
+                            <div class="card-header">
+                                <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Recent Invoices') }}</h5>
+                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="{{ ViewClassNamesConstants::TB }}">
+                                    <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -429,28 +613,50 @@ Object.keys(t).forEach(
                                         </thead>
                                         <tbody>
                                             @forelse($recentInvoice as $invoice)
+                                                @php
+                                                    $invNo = $fmtInv(data_get($invoice, 'invoice_id'));
+                                                    $invCust = $asString(data_get($invoice, 'customer.name'),
+                                                        'customer name');
+                                                    $invIssue = $fmtDate(data_get($invoice, 'issue_date'));
+                                                    $invDue = $fmtDate(data_get($invoice, 'due_date'));
+                                                    $invTotal = $fmtPrice(
+                                                        method_exists($invoice, 'getTotal')
+                                                            ? $invoice->getTotal()
+                                                            : data_get($invoice, 'total')
+                                                    );
+                                                    $stIdx = data_get($invoice, 'status');
+                                                    $bgClass = $invoiceStatusClasses[$stIdx] ?? null;
+                                                    $stText = is_array(Invoice::$statuses ?? null)
+                                                        ? data_get(Invoice::$statuses, $stIdx)
+                                                        : null;
+                                                    $stText = $asString($stText, 'status');
+                                                @endphp
                                                 <tr>
-                                                    <td>{{ $user->invoiceNumberFormat($invoice->invoice_id) }}</td>
-                                                    <td>{{ $invoice->customer->name ?? '' }}</td>
-                                                    <td>{{ $user->dateFormat($invoice->issue_date) }}</td>
-                                                    <td>{{ $user->dateFormat($invoice->due_date) }}</td>
-                                                    <td>{{ $user->priceFormat($invoice->getTotal()) }}</td>
+                                                    <td>{{ $invNo }}</td>
+                                                    <td>{{ $invCust }}</td>
+                                                    <td>{{ $invIssue }}</td>
+                                                    <td>{{ $invDue }}</td>
+                                                    <td>{{ $invTotal }}</td>
                                                     <td>
-                                                        @if($invoice->status==0)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-secondary">{{ __(Invoice::$statuses[$invoice->status]) }}</span>
-                                                        @elseif($invoice->status==1)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-warning">{{ __(Invoice::$statuses[$invoice->status]) }}</span>
-                                                        @elseif($invoice->status==2)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-danger">{{ __(Invoice::$statuses[$invoice->status]) }}</span>
-                                                        @elseif($invoice->status==3)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-info">{{ __(Invoice::$statuses[$invoice->status]) }}</span>
-                                                        @elseif($invoice->status==4)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-primary">{{ __(Invoice::$statuses[$invoice->status]) }}</span>
+                                                        @if($bgClass)
+                                                            <span class="p-2 px-3 rounded {{ VC::BDG }} {{ $bgClass }}">
+                                                                {{ __($stText) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="p-2 px-3 rounded {{ VC::BDG }} bg-secondary">
+                                                                {{ __('No status available') }}
+                                                            </span>
                                                         @endif
                                                     </td>
                                                 </tr>
                                             @empty
-                                                <tr><td colspan="6"><div class="text-center"><h6>{{ __('There is no recent invoice') }}</h6></div></td></tr>
+                                                <tr>
+                                                    <td colspan="6">
+                                                        <div class="text-center">
+                                                            <h6>{{ __('There is no recent invoice') }}</h6>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             @endforelse
                                         </tbody>
                                     </table>
@@ -458,12 +664,15 @@ Object.keys(t).forEach(
                             </div>
                         </div>
                     </div>
+
                     <div class="col-xxl-12">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
-                            <div class="card-header"><h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Recent Bills') }}</h5></div>
+                        <div class="{{ VC::CD }}">
+                            <div class="card-header">
+                                <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Recent Bills') }}</h5>
+                            </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="{{ ViewClassNamesConstants::TB }}">
+                                    <table class="{{ VC::TB }}">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -476,28 +685,50 @@ Object.keys(t).forEach(
                                         </thead>
                                         <tbody>
                                             @forelse($recentBill as $bill)
+                                                @php
+                                                    $blNo = $fmtBill(data_get($bill, 'bill_id'));
+                                                    $blVend = $asString(data_get($bill, 'vendor.name'),
+                                                        'vendor name');
+                                                    $blDate = $fmtDate(data_get($bill, 'bill_date'));
+                                                    $blDue = $fmtDate(data_get($bill, 'due_date'));
+                                                    $blTotal = $fmtPrice(
+                                                        method_exists($bill, 'getTotal')
+                                                            ? $bill->getTotal()
+                                                            : data_get($bill, 'total')
+                                                    );
+                                                    $blIdx = data_get($bill, 'status');
+                                                    $bgClass = $billStatusClasses[$blIdx] ?? null;
+                                                    $blText = is_array(Bill::$statuses ?? null)
+                                                        ? data_get(Bill::$statuses, $blIdx)
+                                                        : null;
+                                                    $blText = $asString($blText, 'status');
+                                                @endphp
                                                 <tr>
-                                                    <td>{{ $user->billNumberFormat($bill->bill_id) }}</td>
-                                                    <td>{{ $bill->vendor->name ?? '' }}</td>
-                                                    <td>{{ $user->dateFormat($bill->bill_date) }}</td>
-                                                    <td>{{ $user->dateFormat($bill->due_date) }}</td>
-                                                    <td>{{ $user->priceFormat($bill->getTotal()) }}</td>
+                                                    <td>{{ $blNo }}</td>
+                                                    <td>{{ $blVend }}</td>
+                                                    <td>{{ $blDate }}</td>
+                                                    <td>{{ $blDue }}</td>
+                                                    <td>{{ $blTotal }}</td>
                                                     <td>
-                                                        @if($bill->status==0)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-secondary">{{ __(Bill::$statuses[$bill->status]) }}</span>
-                                                        @elseif($bill->status==1)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-warning">{{ __(Bill::$statuses[$bill->status]) }}</span>
-                                                        @elseif($bill->status==2)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-danger">{{ __(Bill::$statuses[$bill->status]) }}</span>
-                                                        @elseif($bill->status==3)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-info">{{ __(Bill::$statuses[$bill->status]) }}</span>
-                                                        @elseif($bill->status==4)
-                                                            <span class="p-2 px-3 rounded {{ ViewClassNamesConstants::BDG }} bg-primary">{{ __(Bill::$statuses[$bill->status]) }}</span>
+                                                        @if($bgClass)
+                                                            <span class="p-2 px-3 rounded {{ VC::BDG }} {{ $bgClass }}">
+                                                                {{ __($blText) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="p-2 px-3 rounded {{ VC::BDG }} bg-secondary">
+                                                                {{ __('No status available') }}
+                                                            </span>
                                                         @endif
                                                     </td>
                                                 </tr>
                                             @empty
-                                                <tr><td colspan="6"><div class="text-center"><h6>{{ __('There is no recent bill') }}</h6></div></td></tr>
+                                                <tr>
+                                                    <td colspan="6">
+                                                        <div class="text-center">
+                                                            <h6>{{ __('There is no recent bill') }}</h6>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             @endforelse
                                         </tbody>
                                     </table>
@@ -506,35 +737,99 @@ Object.keys(t).forEach(
                         </div>
                     </div>
                 </div>
+                @php
+                    $tiles ??= [];
+                    $weeklyInvoice ??= [];
+                    $monthlyInvoice ??= [];
+                    $goals ??= [];
+                    $storage ??= __('Could not find storage limits');
+                    $decimalNumber ??= 2;
+                    try {
+                        $decimalNumber = (int) (Utility::getValByName('decimal_number') ?? 2);
+                    } catch (ModelNotFoundException $e) {
+                        Log::error('decimal number setting model not found', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                    } catch (QueryException $e) {
+                        Log::error('decimal number setting query error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                    } catch (\TypeError $e) {
+                        Log::error('decimal number setting type error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                    } catch (\Throwable $e) {
+                        Log::error('decimal number setting error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                    }
+
+                    try {
+                        $incomeToday = (isset($user) && method_exists($user, 'todayIncome')) ? $user->todayIncome() : null;
+                        $expenseToday = (isset($user) && method_exists($user, 'todayExpense')) ? $user->todayExpense() : null;
+                        $incomeMonth = (isset($user) && method_exists($user, 'incomeCurrentMonth')) ? $user->incomeCurrentMonth() : null;
+                        $expenseMonth = (isset($user) && method_exists($user, 'expenseCurrentMonth')) ? $user->expenseCurrentMonth() : null;
+
+                        $tiles = [
+                            ['label'=>__('Income Today'),'value'=>$fmtPrice($incomeToday),'avatarBg'=>'bg-primary','icon'=>'ti-report-money','textClass'=>'text-success'],
+                            ['label'=>__('Expense Today'),'value'=>$fmtPrice($expenseToday),'avatarBg'=>'bg-info','icon'=>'ti-file-invoice','textClass'=>'text-info'],
+                            ['label'=>__('Income This Month'),'value'=>$fmtPrice($incomeMonth),'avatarBg'=>'bg-warning','icon'=>'ti-report-money','textClass'=>'text-warning'],
+                            ['label'=>__('Expense This Month'),'value'=>$fmtPrice($expenseMonth),'avatarBg'=>'bg-danger','icon'=>'ti-file-invoice','textClass'=>'text-danger'],
+                        ];
+                    } catch (\Error $e) {
+                        Log::error('tiles build fatal error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                        $tiles = [];
+                    } catch (\Throwable $e) {
+                        Log::error('tiles build error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                        $tiles = [];
+                    }
+
+                    try {
+                        $weeklyInvoice = is_array($weeklyInvoice) ? $weeklyInvoice : [];
+                        $monthlyInvoice = is_array($monthlyInvoice) ? $monthlyInvoice : [];
+                    } catch (\Throwable $e) {
+                        Log::error('invoice stats validation error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                        $weeklyInvoice = [];
+                        $monthlyInvoice = [];
+                    }
+
+                    try {
+                        if (($user ?? null) instanceof User && ($plan ?? null) instanceof Plan && isset($user->storage_limit, $plan->storage_limit)) {
+                            $storage = (string) $user->storage_limit.'MB / '.(string) $plan->storage_limit.'MB';
+                        } else {
+                            $storage = __('Max').' '.(string) SettingsConstants::MAX_SL_LIMIT_MB.'MB';
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error('storage string build error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                        $storage = __('Could not find storage limits');
+                    }
+                @endphp
                 <div class="col-xxl-5">
                     <div class="row">
                         <div class="col-12">
-                            <div class="{{ ViewClassNamesConstants::CD }}">
+                            <div class="{{ VC::CD }}">
                                 <div class="card-header">
-                                    <h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Cashflow') }}</h5>
+                                    <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Cashflow') }}</h5>
                                 </div>
                                 <div class="card-body">
                                     <div id="cash-flow"></div>
                                 </div>
                             </div>
-                            @php
-                                $tiles=[['label'=>__('Income Today'),'value'=>$user->priceFormat($user->todayIncome()),'avatarBg'=>'bg-primary','icon'=>'ti-report-money','textClass'=>'text-success'],['label'=>__('Expense Today'),'value'=>$user->priceFormat($user->todayExpense()),'avatarBg'=>'bg-info','icon'=>'ti-file-invoice','textClass'=>'text-info'],['label'=>__('Income This Month'),'value'=>$user->priceFormat($user->incomeCurrentMonth()),'avatarBg'=>'bg-warning','icon'=>'ti-report-money','textClass'=>'text-warning'],['label'=>__('Expense This Month'),'value'=>$user->priceFormat($user->expenseCurrentMonth()),'avatarBg'=>'bg-danger','icon'=>'ti-file-invoice','textClass'=>'text-danger']];
-                            @endphp
-                            <div class="{{ ViewClassNamesConstants::CD }}">
+
+                            <div class="{{ VC::CD }}">
                                 <div class="card-header">
-                                    <h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Income Vs Expense') }}</h5>
+                                    <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Income Vs Expense') }}</h5>
                                 </div>
                                 <div class="card-body">
-                                    <div class="{{ ViewClassNamesConstants::RW }}">
+                                    <div class="{{ VC::RW }}">
                                         @foreach($tiles as $tile)
+                                            @php
+                                                $tLbl = $asString(data_get($tile, 'label'), 'label');
+                                                $tVal = $asString(data_get($tile, 'value'), 'amount');
+                                                $tBg = $asClass(data_get($tile, 'avatarBg'), 'bg-secondary');
+                                                $tIc = $asClass(data_get($tile, 'icon'), 'ti-help');
+                                                $tTx = $asClass(data_get($tile, 'textClass'), 'text-muted');
+                                            @endphp
                                             <div class="col-md-6 col-6 my-2">
-                                                <div class="{{ ViewClassNamesConstants::DFL }} align-items-start mb-2">
-                                                    <div class="theme-avatar {{ $tile['avatarBg'] }}">
-                                                        <i class="ti {{ $tile['icon'] }}"></i>
+                                                <div class="{{ VC::DFL }} align-items-start mb-2">
+                                                    <div class="theme-avatar {{ $tBg }}">
+                                                        <i class="ti {{ $tIc }}"></i>
                                                     </div>
-                                                    <div class="{{ ViewClassNamesConstants::MS2 }}">
-                                                        <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ $tile['label'] }}</p>
-                                                        <h4 class="{{ ViewClassNamesConstants::MB0 }} {{ $tile['textClass'] }}">{{ $tile['value'] }}</h4>
+                                                    <div class="{{ VC::MS2 }}">
+                                                        <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ $tLbl }}</p>
+                                                        <h4 class="{{ VC::MB0 }} {{ $tTx }}">{{ $tVal }}</h4>
                                                     </div>
                                                 </div>
                                             </div>
@@ -543,77 +838,84 @@ Object.keys(t).forEach(
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xxl-12">
-                            <div class="{{ ViewClassNamesConstants::CD }}">
+                            <div class="{{ VC::CD }}">
                                 <div class="card-header">
-                                    @php
-                                        $storage = ($user instanceof User && $plan instanceof Plan) 
-                                            ? $user->storage_limit.'MB' . '/' . $plan->storage_limit.'MB'
-                                            : (string) SettingsConstants::MAX_SL_LIMIT_MB;
-                                    @endphp
-                                    <h5>{{ __('Storage Limit') }}<small class="{{ ViewClassNamesConstants::FEND }} {{ ViewClassNamesConstants::TXT_MT }}">$storage</small></h5>
+                                    <h5>{{ __('Storage Limit') }}<small class="{{ VC::FEND }} {{ VC::TXT_MT }}">{{ $asString($storage, 'storage limits') }}</small></h5>
                                 </div>
                                 <div class="card-body">
                                     <div id="limit-chart"></div>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xxl-12">
-                            <div class="{{ ViewClassNamesConstants::CD }}">
+                            <div class="{{ VC::CD }}">
                                 <div class="card-header">
-                                    <h5>{{ __('Income By Category') }}<span class="{{ ViewClassNamesConstants::FEND }} {{ ViewClassNamesConstants::TXT_MT }}">{{ __('Year').' - '.$currentYear }}</span></h5>
+                                    <h5>{{ __('Income By Category') }}<span class="{{ VC::FEND }} {{ VC::TXT_MT }}">{{ ($currentYear ?? null) ? __('Year').' - '.$currentYear : __('Could not find year') }}</span></h5>
                                 </div>
                                 <div class="card-body">
                                     <div id="incomeByCategory"></div>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xxl-12">
-                            <div class="{{ ViewClassNamesConstants::CD }}">
+                            <div class="{{ VC::CD }}">
                                 <div class="card-header">
-                                    <h5>{{ __('Expense By Category') }}<span class="{{ ViewClassNamesConstants::FEND }} {{ ViewClassNamesConstants::TXT_MT }}">{{ __('Year').' - '.$currentYear }}</span></h5>
+                                    <h5>{{ __('Expense By Category') }}<span class="{{ VC::FEND }} {{ VC::TXT_MT }}">{{ ($currentYear ?? null) ? __('Year').' - '.$currentYear : __('Could not find year') }}</span></h5>
                                 </div>
                                 <div class="card-body">
                                     <div id="expenseByCategory"></div>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xxl-12">
-                            <div class="{{ ViewClassNamesConstants::CD }}">
+                            <div class="{{ VC::CD }}">
                                 <div class="card-body">
+                                    @php
+                                        $wTotal = $fmtPrice(data_get($weeklyInvoice, 'invoiceTotal'));
+                                        $wPaid = $fmtPrice(data_get($weeklyInvoice, 'invoicePaid'));
+                                        $wDue = $fmtPrice(data_get($weeklyInvoice, 'invoiceDue'));
+                                        $mTotal = $fmtPrice(data_get($monthlyInvoice, 'invoiceTotal'));
+                                        $mPaid = $fmtPrice(data_get($monthlyInvoice, 'invoicePaid'));
+                                        $mDue = $fmtPrice(data_get($monthlyInvoice, 'invoiceDue'));
+                                    @endphp
                                     <ul class="nav nav-pills mb-5" id="pills-tab" role="tablist">
-                                        <li class="{{ ViewClassNamesConstants::NV_IT }}">
-                                            <a class="{{ ViewClassNamesConstants::NV_LK }} active" id="pills-home-tab" data-bs-toggle="pill" href="#invoice_weekly_statistics" role="tab">{{ __('Invoices Weekly Statistics') }}</a>
+                                        <li class="{{ VC::NV_IT }}">
+                                            <a class="{{ VC::NV_LK }} active" id="pills-home-tab" data-bs-toggle="pill" href="#invoice_weekly_statistics" role="tab">{{ __('Invoices Weekly Statistics') }}</a>
                                         </li>
-                                        <li class="{{ ViewClassNamesConstants::NV_IT }}">
-                                            <a class="{{ ViewClassNamesConstants::NV_LK }}" id="pills-profile-tab" data-bs-toggle="pill" href="#invoice_monthly_statistics" role="tab">{{ __('Invoices Monthly Statistics') }}</a>
+                                        <li class="{{ VC::NV_IT }}">
+                                            <a class="{{ VC::NV_LK }}" id="pills-profile-tab" data-bs-toggle="pill" href="#invoice_monthly_statistics" role="tab">{{ __('Invoices Monthly Statistics') }}</a>
                                         </li>
                                     </ul>
                                     <div class="tab-content" id="pills-tabContent">
                                         <div class="tab-pane fade show active" id="invoice_weekly_statistics" role="tabpanel">
                                             <div class="table-responsive">
-                                                <table class="{{ ViewClassNamesConstants::TB_AL }} {{ ViewClassNamesConstants::MB0 }}">
+                                                <table class="{{ VC::TB_AL }} {{ VC::MB0 }}">
                                                     <tbody class="list">
                                                         <tr>
                                                             <td>
-                                                                <h5 class="{{ ViewClassNamesConstants::MB0 }}">{{ __('Total') }}</h5>
-                                                                <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Invoice Generated') }}</p>
+                                                                <h5 class="{{ VC::MB0 }}">{{ __('Total') }}</h5>
+                                                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Invoice Generated') }}</p>
                                                             </td>
-                                                            <td><h4 class="text-muted">{{ $user->priceFormat($weeklyInvoice['invoiceTotal']) }}</h4></td>
+                                                            <td><h4 class="text-muted">{{ $wTotal }}</h4></td>
                                                         </tr>
                                                         <tr>
                                                             <td>
-                                                                <h5 class="{{ ViewClassNamesConstants::MB0 }}">{{ __('Total') }}</h5>
-                                                                <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Paid') }}</p>
+                                                                <h5 class="{{ VC::MB0 }}">{{ __('Total') }}</h5>
+                                                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Paid') }}</p>
                                                             </td>
-                                                            <td><h4 class="text-muted">{{ $user->priceFormat($weeklyInvoice['invoicePaid']) }}</h4></td>
+                                                            <td><h4 class="text-muted">{{ $wPaid }}</h4></td>
                                                         </tr>
                                                         <tr>
                                                             <td>
-                                                                <h5 class="{{ ViewClassNamesConstants::MB0 }}">{{ __('Total') }}</h5>
-                                                                <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Due') }}</p>
+                                                                <h5 class="{{ VC::MB0 }}">{{ __('Total') }}</h5>
+                                                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Due') }}</p>
                                                             </td>
-                                                            <td><h4 class="text-muted">{{ $user->priceFormat($weeklyInvoice['invoiceDue']) }}</h4></td>
+                                                            <td><h4 class="text-muted">{{ $wDue }}</h4></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -621,28 +923,28 @@ Object.keys(t).forEach(
                                         </div>
                                         <div class="tab-pane fade" id="invoice_monthly_statistics" role="tabpanel">
                                             <div class="table-responsive">
-                                                <table class="{{ ViewClassNamesConstants::TB_AL }} {{ ViewClassNamesConstants::MB0 }}">
+                                                <table class="{{ VC::TB_AL }} {{ VC::MB0 }}">
                                                     <tbody class="list">
                                                         <tr>
                                                             <td>
-                                                                <h5 class="{{ ViewClassNamesConstants::MB0 }}">{{ __('Total') }}</h5>
-                                                                <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Invoice Generated') }}</p>
+                                                                <h5 class="{{ VC::MB0 }}">{{ __('Total') }}</h5>
+                                                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Invoice Generated') }}</p>
                                                             </td>
-                                                            <td><h4 class="text-muted">{{ $user->priceFormat($monthlyInvoice['invoiceTotal']) }}</h4></td>
+                                                            <td><h4 class="text-muted">{{ $mTotal }}</h4></td>
                                                         </tr>
                                                         <tr>
                                                             <td>
-                                                                <h5 class="{{ ViewClassNamesConstants::MB0 }}">{{ __('Total') }}</h5>
-                                                                <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Paid') }}</p>
+                                                                <h5 class="{{ VC::MB0 }}">{{ __('Total') }}</h5>
+                                                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Paid') }}</p>
                                                             </td>
-                                                            <td><h4 class="text-muted">{{ $user->priceFormat($monthlyInvoice['invoicePaid']) }}</h4></td>
+                                                            <td><h4 class="text-muted">{{ $mPaid }}</h4></td>
                                                         </tr>
                                                         <tr>
                                                             <td>
-                                                                <h5 class="{{ ViewClassNamesConstants::MB0 }}">{{ __('Total') }}</h5>
-                                                                <p class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Due') }}</p>
+                                                                <h5 class="{{ VC::MB0 }}">{{ __('Total') }}</h5>
+                                                                <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Due') }}</p>
                                                             </td>
-                                                            <td><h4 class="text-muted">{{ $user->priceFormat($monthlyInvoice['invoiceDue']) }}</h4></td>
+                                                            <td><h4 class="text-muted">{{ $mDue }}</h4></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -652,48 +954,78 @@ Object.keys(t).forEach(
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xxl-12">
-                            <div class="{{ ViewClassNamesConstants::CD }}">
+                            <div class="{{ VC::CD }}">
                                 <div class="card-header">
-                                    <h5 class="{{ ViewClassNamesConstants::MT1 }} {{ ViewClassNamesConstants::MB0 }}">{{ __('Goal') }}</h5>
+                                    <h5 class="{{ VC::MT1 }} {{ VC::MB0 }}">{{ __('Goal') }}</h5>
                                 </div>
                                 <div class="card-body">
                                     @forelse($goals as $goal)
                                         @php
-                                            $results    = $goal->target($goal->type,$goal->from,$goal->to,$goal->amount);
-                                            $total      = $results['total'];
-                                            $percentage = $results['percentage'];
-                                            $per        = number_format($percentage,Utility::getValByName('decimal_number'),'.','');
+                                            try {
+                                                $results = method_exists($goal, 'target') ? $goal->target(data_get($goal, 'type'), data_get($goal, 'from'), data_get($goal, 'to'), data_get($goal, 'amount')) : ['total'=>0,'percentage'=>0];
+                                                $total = (float) data_get($results, 'total', 0);
+                                                $percentage = (float) data_get($results, 'percentage', 0);
+                                                $per = number_format($percentage, $decimalNumber, '.', '');
+                                            } catch (ModelNotFoundException $e) {
+                                                Log::error('goal target model not found', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                                                $total = 0;
+                                                $per = number_format(0, $decimalNumber, '.', '');
+                                            } catch (QueryException $e) {
+                                                Log::error('goal target query error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                                                $total = 0;
+                                                $per = number_format(0, $decimalNumber, '.', '');
+                                            } catch (\TypeError $e) {
+                                                Log::error('goal target type error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                                                $total = 0;
+                                                $per = number_format(0, $decimalNumber, '.', '');
+                                            } catch (\Throwable $e) {
+                                                Log::error('goal target error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
+                                                $total = 0;
+                                                $per = number_format(0, $decimalNumber, '.', '');
+                                            }
+
+                                            $gName = $asString(data_get($goal, 'name'), 'goal name');
+                                            $gTypeIdx = data_get($goal, 'type');
+                                            $gTypeMap = Goal::$goalType ?? null;
+                                            $gTypeLabel = is_array($gTypeMap) ? data_get($gTypeMap, $gTypeIdx) : null;
+                                            $gType = $asString($gTypeLabel, 'type');
+                                            $gFrom = $asString(data_get($goal, 'from'), 'start date');
+                                            $gTo = $asString(data_get($goal, 'to'), 'end date');
+                                            $gAmount = $fmtPrice(data_get($goal, 'amount'));
+                                            $gTotal = $fmtPrice($total);
+                                            $perFloat = (float) $per;
                                         @endphp
-                                        <div class="{{ ViewClassNamesConstants::CD }} border-success border-2 border-bottom-0 border-start-0 border-end-0">
+                                        <div class="{{ VC::CD }} border-success border-2 border-bottom-0 border-start-0 border-end-0">
                                             <div class="card-body">
-                                                <div class="{{ ViewClassNamesConstants::FM_CHK }}">
-                                                    <label class="{{ ViewClassNamesConstants::DBL }}" for="customCheckdef1">
+                                                <div class="{{ VC::FM_CHK }}">
+                                                    <label class="{{ VC::DBL }}" for="goal-{{ (string) data_get($goal, 'id', 'x') }}">
                                                         <span>
-                                                            <span class="{{ ViewClassNamesConstants::R_ALC }}">
+                                                            <span class="{{ VC::R_ALC }}">
                                                                 <span class="col">
-                                                                    <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Name') }}</span>
-                                                                    <h6 class="text-nowrap {{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ $goal->name }}</h6>
+                                                                    <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Name') }}</span>
+                                                                    <h6 class="text-nowrap {{ VC::MB3 }} mb-sm-0">{{ $gName }}</h6>
                                                                 </span>
                                                                 <span class="col">
-                                                                    <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Type') }}</span>
-                                                                    <h6 class="{{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ __(\App\Models\Goal::$goalType[$goal->type]) }}</h6>
+                                                                    <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Type') }}</span>
+                                                                    <h6 class="{{ VC::MB3 }} mb-sm-0">{{ __($gType) }}</h6>
                                                                 </span>
                                                                 <span class="col">
-                                                                    <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Duration') }}</span>
-                                                                    <h6 class="{{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ $goal->from.' To '.$goal->to }}</h6>
+                                                                    <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Duration') }}</span>
+                                                                    <h6 class="{{ VC::MB3 }} mb-sm-0">{{ $gFrom.' '.__('To').' '.$gTo }}</h6>
                                                                 </span>
                                                                 <span class="col">
-                                                                    <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Target') }}</span>
-                                                                    <h6 class="{{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ $user->priceFormat($total).' of '.$user->priceFormat($goal->amount) }}</h6>
+                                                                    <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Target') }}</span>
+                                                                    <h6 class="{{ VC::MB3 }} mb-sm-0">{{ $gTotal.' '.__('of').' '.$gAmount }}</h6>
                                                                 </span>
                                                                 <span class="col">
-                                                                    <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Progress') }}</span>
-                                                                    <h6 class="{{ ViewClassNamesConstants::MB0 }}">{{ $per }}%</h6>
-                                                                    <div class="{{ ViewClassNamesConstants::PG }} {{ ViewClassNamesConstants::MB0 }}">
-                                                                        @if($per<=33)
+                                                                    <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Progress') }}</span>
+                                                                    <h6 class="{{ VC::MB0 }}">{{ $per }}%</h6>
+                                                                    <div class="{{ VC::PG }} {{ VC::MB0 }}">
+                                                                        @if($perFloat <= 33)
                                                                             <div class="progress-bar bg-danger" style="width: {{ $per }}%"></div>
-                                                                        @elseif($per<=66)
+                                                                        @elseif($perFloat <= 66)
                                                                             <div class="progress-bar bg-warning" style="width: {{ $per }}%"></div>
                                                                         @else
                                                                             <div class="progress-bar bg-primary" style="width: {{ $per }}%"></div>
@@ -707,7 +1039,7 @@ Object.keys(t).forEach(
                                             </div>
                                         </div>
                                     @empty
-                                        <div class="{{ ViewClassNamesConstants::CD }} pb-0">
+                                        <div class="{{ VC::CD }} pb-0">
                                             <div class="card-body text-center">
                                                 <h6>{{ __('There is no goal.') }}</h6>
                                             </div>
@@ -718,48 +1050,93 @@ Object.keys(t).forEach(
                         </div>
                     </div>
                 </div>
+                @php
+                    $goals ??= [];
+                    $decimalNumber ??= 2;
+                @endphp
                 <div class="col-xxl-12">
-                    <div class="{{ ViewClassNamesConstants::CD }}">
+                    <div class="{{ VC::CD }}">
                         <div class="card-header">
                             <h5>{{ __('Goal') }}</h5>
                         </div>
                         <div class="card-body">
                             @forelse($goals as $goal)
                                 @php
-                                    $results    = $goal->target($goal->type, $goal->from, $goal->to, $goal->amount);
-                                    $total      = $results['total'];
-                                    $percentage = $results['percentage'];
-                                    $per        = number_format($percentage, Utility::getValByName('decimal_number'), '.', '');
+                                    try {
+                                        $results = method_exists($goal, 'target') ? $goal->target(data_get($goal, 'type'), data_get($goal, 'from'), data_get($goal, 'to'), data_get($goal, 'amount')) : ['total' => 0, 'percentage' => 0];
+                                        $total = (float) data_get($results, 'total', 0);
+                                        $percentage = (float) data_get($results, 'percentage', 0);
+                                    } catch (ModelNotFoundException $e) {
+                                        Log::error('goal target model not found', ['file' => __FILE__, 'line' => __LINE__, 'class' => $e::class, 'message' => $e->getMessage()]);
+                                        $total = 0;
+                                        $percentage = 0;
+                                    } catch (QueryException $e) {
+                                        Log::error('goal target query error', ['file' => __FILE__, 'line' => __LINE__, 'class' => $e::class, 'message' => $e->getMessage()]);
+                                        $total = 0;
+                                        $percentage = 0;
+                                    } catch (\TypeError $e) {
+                                        Log::error('goal target type error', ['file' => __FILE__, 'line' => __LINE__, 'class' => $e::class, 'message' => $e->getMessage()]);
+                                        $total = 0;
+                                        $percentage = 0;
+                                    } catch (\Throwable $e) {
+                                        Log::error('goal target error', ['file' => __FILE__, 'line' => __LINE__, 'class' => $e::class, 'message' => $e->getMessage()]);
+                                        $total = 0;
+                                        $percentage = 0;
+                                    }
+
+                                    try {
+                                        $decimals = (int) ($decimalNumber ?? Utility::getValByName('decimal_number') ?? 2);
+                                    } catch (ModelNotFoundException $e) {
+                                        Log::error('decimal number model not found', ['file' => __FILE__, 'line' => __LINE__, 'class' => $e::class, 'message' => $e->getMessage()]);
+                                        $decimals = 2;
+                                    } catch (QueryException $e) {
+                                        Log::error('decimal number query error', ['file' => __FILE__, 'line' => __LINE__, 'class' => $e::class, 'message' => $e->getMessage()]);
+                                        $decimals = 2;
+                                    } catch (\Throwable $e) {
+                                        Log::error('decimal number error', ['file' => __FILE__, 'line' => __LINE__, 'class' => $e::class, 'message' => $e->getMessage()]);
+                                        $decimals = 2;
+                                    }
+
+                                    $per = number_format($percentage, $decimals, '.', '');
+                                    $gName = $asString(data_get($goal, 'name'), 'goal name');
+                                    $gTypeIdx = data_get($goal, 'type');
+                                    $gTypeMap = Goal::$goalType ?? [];
+                                    $gType = $asString(data_get($gTypeMap, $gTypeIdx), 'type');
+                                    $gFrom = $asString(data_get($goal, 'from'), 'start date');
+                                    $gTo = $asString(data_get($goal, 'to'), 'end date');
+                                    $gTotal = $fmtPrice($total);
+                                    $gAmount = $fmtPrice(data_get($goal, 'amount'));
+                                    $perFloat = (float) $per;
                                 @endphp
-                                <div class="{{ ViewClassNamesConstants::CD }} border-success border-2 border-bottom-0 border-start-0 border-end-0">
+                                <div class="{{ VC::CD }} border-success border-2 border-bottom-0 border-start-0 border-end-0">
                                     <div class="card-body">
-                                        <div class="{{ ViewClassNamesConstants::FM_CHK }}">
-                                            <label class="form-check-label {{ ViewClassNamesConstants::DBL }}" for="customCheckdef1">
+                                        <div class="{{ VC::FM_CHK }}">
+                                            <label class="form-check-label {{ VC::DBL }}" for="goal-{{ (string) data_get($goal, 'id', 'x') }}">
                                                 <span>
-                                                    <span class="{{ ViewClassNamesConstants::R_ALC }}">
+                                                    <span class="{{ VC::R_ALC }}">
                                                         <span class="col">
-                                                            <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Name') }}</span>
-                                                            <h6 class="text-nowrap {{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ $goal->name }}</h6>
+                                                            <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Name') }}</span>
+                                                            <h6 class="text-nowrap {{ VC::MB3 }} mb-sm-0">{{ $gName }}</h6>
                                                         </span>
                                                         <span class="col">
-                                                            <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Type') }}</span>
-                                                            <h6 class="{{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ __(\App\Models\Goal::$goalType[$goal->type]) }}</h6>
+                                                            <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Type') }}</span>
+                                                            <h6 class="{{ VC::MB3 }} mb-sm-0">{{ __($gType) }}</h6>
                                                         </span>
                                                         <span class="col">
-                                                            <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Duration') }}</span>
-                                                            <h6 class="{{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ $goal->from .' To '.$goal->to }}</h6>
+                                                            <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Duration') }}</span>
+                                                            <h6 class="{{ VC::MB3 }} mb-sm-0">{{ $gFrom.' '.__('To').' '.$gTo }}</h6>
                                                         </span>
                                                         <span class="col">
-                                                            <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Target') }}</span>
-                                                            <h6 class="{{ ViewClassNamesConstants::MB3 }} mb-sm-0">{{ $user->priceFormat($total) .' of '. $user->priceFormat($goal->amount) }}</h6>
+                                                            <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Target') }}</span>
+                                                            <h6 class="{{ VC::MB3 }} mb-sm-0">{{ $gTotal.' '.__('of').' '.$gAmount }}</h6>
                                                         </span>
                                                         <span class="col">
-                                                            <span class="{{ ViewClassNamesConstants::TXT_MT }} {{ ViewClassNamesConstants::TXSM }}">{{ __('Progress') }}</span>
-                                                            <h6 class="{{ ViewClassNamesConstants::MB0 }} {{ ViewClassNamesConstants::DBL }}">{{ $per }}%</h6>
-                                                            <div class="{{ ViewClassNamesConstants::PG }} {{ ViewClassNamesConstants::MB0 }}">
-                                                                @if($per <= 33)
+                                                            <span class="{{ VC::TXT_MT }} {{ VC::TXSM }}">{{ __('Progress') }}</span>
+                                                            <h6 class="{{ VC::MB0 }} {{ VC::DBL }}">{{ $per }}%</h6>
+                                                            <div class="{{ VC::PG }} {{ VC::MB0 }}">
+                                                                @if($perFloat <= 33)
                                                                     <div class="progress-bar bg-danger" style="width: {{ $per }}%"></div>
-                                                                @elseif($per <= 66)
+                                                                @elseif($perFloat <= 66)
                                                                     <div class="progress-bar bg-warning" style="width: {{ $per }}%"></div>
                                                                 @else
                                                                     <div class="progress-bar bg-primary" style="width: {{ $per }}%"></div>
@@ -773,7 +1150,7 @@ Object.keys(t).forEach(
                                     </div>
                                 </div>
                             @empty
-                                <div class="{{ ViewClassNamesConstants::CD }} pb-0">
+                                <div class="{{ VC::CD }} pb-0">
                                     <div class="card-body text-center">
                                         <h6>{{ __('There is no goal.') }}</h6>
                                     </div>

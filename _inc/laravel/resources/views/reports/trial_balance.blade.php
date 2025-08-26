@@ -11,7 +11,7 @@
     use Illuminate\Support\Str;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
-    $authUser = $user?->creatorId();
+    $authUser = $user?->creatorId() ?? null;
     $creatorUser = User::find($authUser);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)

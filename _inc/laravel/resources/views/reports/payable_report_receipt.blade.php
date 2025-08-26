@@ -10,7 +10,7 @@
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user: $user);
-    $authUser = $user?->creatorId();
+    $authUser = $user?->creatorId() ?? null;
     $creatorUser = $authUser ? User::find($authUser) : null;
     $settings = Utility::settings();
     $color = !empty($settings[SettingsConstants::THML_CLR]) ? $settings[SettingsConstants::THML_CLR] : 'theme-3';

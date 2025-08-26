@@ -1,18 +1,24 @@
-{{-- @php
+{{-- @extends(ExtendingLayoutsConstants::ADM) --}}
+@php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        YieldingConstants
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants,
     };
-@endphp
-@extends(ExtendingLayoutsConstants::ADM) --}}
-@php
-    use App\Config\Constants\{DatabaseConstants, SettingsConstants};
-    use App\Models\Utility;
+    use App\Models\{User, Utility};
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Str;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
+    $authUser = $user?->creatorId() ?? null;
+    $creatorUser = User::find($authUser);
     $settings = Utility::settings();
-    $color = !empty($setting[SettingsConstants::THML_CLR]) ? $setting[SettingsConstants::THML_CLR] : 'theme-3';
+    $color = (!empty($settings[SettingsConstants::THML_CLR])) ? $settings[SettingsConstants::THML_CLR] : 'theme-3';
 @endphp
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
+<html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $settings[SettingsConstants::RTL] == 'on' ? 'rtl' : '' }}">
     <head>
         @include('fragments.std', [
             'meta_title' => $meta_title,
@@ -27,10 +33,6 @@
     </head>
     <body class="{{ $color }}">
         <div class="mt-4">
-            @php
-                $authUser = \Auth::user()->creatorId();
-                $user = App\Models\User::find($authUser);
-            @endphp
             <div class="row">
                 <div class="col-12" id="invoice-container">
                     <div class="card">
@@ -39,70 +41,77 @@
                                 <div class="col-sm-12">
                                     <div class="tab-content" id="myTabContent2">
                                         @if ($reportName == '#customer_balance')
-                                            <table class="table table-flush" id="report-dataTable">
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
                                                 <thead>
                                                     <tr>
-                                                        <th width="33%"> {{ __('Customer Name') }}</th>
-                                                        <th width="33%"> {{ __('Invoice Balance') }}</th>
-                                                        <th width="33%"> {{ __('Available Credits') }}</th>
-                                                        <th class="text-end"> {{ __('Balance') }}</th>
+                                                        <th width="33%">{{ __('Customer Name') }}</th>
+                                                        <th width="33%">{{ __('Invoice Balance') }}</th>
+                                                        <th width="33%">{{ __('Available Credits') }}</th>
+                                                        <th class="text-end">{{ __('Balance') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @php
                                                         $mergedArray = [];
 
-                                                        foreach ($receivableCustomers as $item) {
-                                                            $name = $item['name'];
+                                                        foreach (($receivableCustomers ?? []) as $item) {
+                                                            $name = $item['name'] ?? __('No customer name available');
 
                                                             if (!isset($mergedArray[$name])) {
                                                                 $mergedArray[$name] = [
-                                                                    'name' => $name,
-                                                                    'price' => 0.0,
-                                                                    'pay_price' => 0.0,
-                                                                    'total_tax' => 0.0,
+                                                                    'name'         => $name,
+                                                                    'price'        => 0.0,
+                                                                    'pay_price'    => 0.0,
+                                                                    'total_tax'    => 0.0,
                                                                     'credit_price' => 0.0,
                                                                 ];
                                                             }
 
-                                                            $mergedArray[$name]['price'] += floatval($item['price']);
-                                                            if ($item['pay_price'] !== null) {
+                                                            $mergedArray[$name]['price']        += floatval($item['price'] ?? 0);
+                                                            if (array_key_exists('pay_price', $item) && $item['pay_price'] !== null) {
                                                                 $mergedArray[$name]['pay_price'] += floatval($item['pay_price']);
                                                             }
-                                                            $mergedArray[$name]['total_tax'] += floatval($item['total_tax']);
-                                                            $mergedArray[$name]['credit_price'] += floatval($item['credit_price']);
+                                                            $mergedArray[$name]['total_tax']    += floatval($item['total_tax'] ?? 0);
+                                                            $mergedArray[$name]['credit_price'] += floatval($item['credit_price'] ?? 0);
                                                         }
+
                                                         $resultArray = array_values($mergedArray);
                                                         $total = 0;
                                                     @endphp
-                                                    @foreach ($resultArray as $receivableCustomer)
+
+                                                    @forelse ($resultArray as $receivableCustomer)
+                                                        @php
+                                                            $customerBalance = ($receivableCustomer['price'] ?? 0)
+                                                                            + ($receivableCustomer['total_tax'] ?? 0)
+                                                                            - ($receivableCustomer['pay_price'] ?? 0);
+
+                                                            $balance = $customerBalance - ($receivableCustomer['credit_price'] ?? 0);
+                                                            $total  += $balance;
+                                                        @endphp
                                                         <tr>
-                                                            @php
-                                                                $customerBalance = $receivableCustomer['price'] + $receivableCustomer['total_tax'] - $receivableCustomer['pay_price'];
-                                                                $balance = $customerBalance - $receivableCustomer['credit_price'];
-                                                                $total += $balance;
-                                                            @endphp
-                                                            <td> {{ $receivableCustomer['name'] }}</td>
-                                                            <td> {{ \Auth::user()->priceFormat($customerBalance) }} </td>
-                                                            <td> {{ !empty($receivableCustomer['credit_price']) ? \Auth::user()->priceFormat($receivableCustomer['credit_price']) : \Auth::user()->priceFormat(0) }}
-                                                            </td>
-                                                            <td class="text-end">
-                                                                {{ \Auth::user()->priceFormat($balance) }} </td>
+                                                            <td>{{ $receivableCustomer['name'] ?: __('No customer name available') }}</td>
+                                                            <td>{{ $user?->priceFormat($customerBalance) }}</td>
+                                                            <td>{{ $user?->priceFormat($receivableCustomer['credit_price'] ?? 0) }}</td>
+                                                            <td class="text-end">{{ $user?->priceFormat($balance) }}</td>
                                                         </tr>
-                                                    @endforeach
-                                                    @if ($receivableCustomers != [])
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="4" class="text-center">{{ __('No receivable customers available') }}</td>
+                                                        </tr>
+                                                    @endforelse
+
+                                                    @if (!empty($resultArray))
                                                         <tr>
                                                             <th>{{ __('Total') }}</th>
                                                             <td></td>
                                                             <td></td>
-                                                            <th class="text-end">{{ \Auth::user()->priceFormat($total) }}
-                                                            </th>
+                                                            <th class="text-end">{{ $user?->priceFormat($total) }}</th>
                                                         </tr>
                                                     @endif
                                                 </tbody>
                                             </table>
                                         @elseif ($reportName == '#receivable_summary')
-                                            <table class="table table-flush" id="report-dataTable">
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
                                                 <thead>
                                                     <tr>
                                                         <th>{{ __('Customer Name') }}</th>
@@ -116,84 +125,102 @@
                                                 </thead>
                                                 <tbody>
                                                     @php
-                                                        $total = 0;
+                                                        $receivableSummaries = $receivableSummaries ?? [];
+
+                                                        $total       = 0;
                                                         $totalAmount = 0;
 
-                                                        function compare($a, $b)
-                                                        {
-                                                            return strtotime($b['issue_date']) - strtotime($a['issue_date']);
-                                                        }
-                                                        usort($receivableSummaries, 'compare');
+                                                        // Robust sort (handles missing or invalid dates)
+                                                        usort($receivableSummaries, function ($a, $b) {
+                                                            $ad = strtotime($a['issue_date'] ?? '1970-01-01');
+                                                            $bd = strtotime($b['issue_date'] ?? '1970-01-01');
+                                                            return $bd <=> $ad;
+                                                        });
                                                     @endphp
-                                                    @foreach ($receivableSummaries as $receivableSummary)
+
+                                                    @forelse ($receivableSummaries as $receivableSummary)
+                                                        @php
+                                                            $isInvoice = !empty($receivableSummary['invoice']);
+
+                                                            $price     = floatval($receivableSummary['price']      ?? 0);
+                                                            $totalTax  = floatval($receivableSummary['total_tax']  ?? 0);
+                                                            $payPrice  = floatval($receivableSummary['pay_price']  ?? 0);
+
+                                                            $receivableBalance = $isInvoice ? ($price + $totalTax) : (-1 * $price);
+                                                            $balance           = $receivableBalance - $payPrice;
+
+                                                            $total       += $balance;
+                                                            $totalAmount += $receivableBalance;
+
+                                                            $status      = $receivableSummary['status'] ?? null;
+                                                            $statusClasses = [
+                                                                0 => 'bg-secondary',
+                                                                1 => 'bg-warning',
+                                                                2 => 'bg-danger',
+                                                                3 => 'bg-info',
+                                                                4 => 'bg-primary',
+                                                            ];
+                                                            $bgClass = $status !== null && isset($statusClasses[$status]) ? $statusClasses[$status] : null;
+                                                        @endphp
+
                                                         <tr>
-                                                            @php
-                                                                if ($receivableSummary['invoice']) {
-                                                                    $receivableBalance = $receivableSummary['price'] + $receivableSummary['total_tax'];
-                                                                } else {
-                                                                    $receivableBalance = -$receivableSummary['price'];
-                                                                }
-                                                                $pay_price = $receivableSummary['pay_price'] != null ? $receivableSummary['pay_price'] : 0;
-                                                                $balance = $receivableBalance - $pay_price;
-                                                                $total += $balance;
-                                                                $totalAmount += $receivableBalance;
-                                                            @endphp
-                                                            <td> {{ $receivableSummary['name'] }}</td>
-                                                            <td> {{ $receivableSummary['issue_date'] }}</td>
-                                                            @if ($receivableSummary['invoice'])
-                                                                <td> {{ \Auth::user()->invoiceNumberFormat($receivableSummary['invoice']) }}
-                                                                @else
-                                                                <td>{{ __('Credit Note') }}</td>
-                                                            @endif
-                                                            </td>
+                                                            <td>{{ $receivableSummary['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ $receivableSummary['issue_date'] ?? __('No issue date available') }}</td>
+
                                                             <td>
-                                                                @if ($receivableSummary['status'] == 0)
-                                                                    <span
-                                                                        class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableSummary['status']]) }}</span>
-                                                                @elseif($receivableSummary['status'] == 1)
-                                                                    <span
-                                                                        class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableSummary['status']]) }}</span>
-                                                                @elseif($receivableSummary['status'] == 2)
-                                                                    <span
-                                                                        class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableSummary['status']]) }}</span>
-                                                                @elseif($receivableSummary['status'] == 3)
-                                                                    <span
-                                                                        class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableSummary['status']]) }}</span>
-                                                                @elseif($receivableSummary['status'] == 4)
-                                                                    <span
-                                                                        class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableSummary['status']]) }}</span>
+                                                                @if ($isInvoice)
+                                                                    {{ $user?->invoiceNumberFormat($receivableSummary['invoice']) }}
                                                                 @else
-                                                                    <span class="p-2 px-3">-</span>
+                                                                    {{ __('Credit Note') }}
                                                                 @endif
                                                             </td>
-                                                            @if ($receivableSummary['invoice'])
-                                                                <td> {{ __('Invoice') }}
+
+                                                            <td>
+                                                                @if ($bgClass)
+                                                                    <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 px-3 rounded">
+                                                                        {{ __(\App\Models\Invoice::$statuses[$status] ?? 'Unknown status') }}
+                                                                    </span>
                                                                 @else
-                                                                <td>{{ __('Credit Note') }}</td>
-                                                            @endif
-                                                            <td> {{ \Auth::user()->priceFormat($receivableBalance) }} </td>
+                                                                    <span class="status_badge {{ VC::BDG }} bg-secondary p-2 px-3 rounded">
+                                                                        {{ __('No status available') }}
+                                                                    </span>
+                                                                @endif
+                                                            </td>
 
-                                                            <td> {{ \Auth::user()->priceFormat($balance) }} </td>
+                                                            <td>
+                                                                @if ($isInvoice)
+                                                                    {{ __('Invoice') }}
+                                                                @else
+                                                                    {{ __('Credit Note') }}
+                                                                @endif
+                                                            </td>
 
-                                                            {{-- <td> {{ !empty($receivableCustomer['credit_price']) ? \Auth::user()->priceFormat($receivableCustomer['credit_price']) : \Auth::user()->priceFormat(0) }} --}}
+                                                            <td>{{ $user?->priceFormat($receivableBalance) }}</td>
+                                                            <td>{{ $user?->priceFormat($balance) }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="7" class="text-center">
+                                                                {{ __('No receivable summaries available') }}
                                                             </td>
                                                         </tr>
-                                                    @endforeach
-                                                    @if ($receivableSummaries != [])
+                                                    @endforelse
+
+                                                    @if (!empty($receivableSummaries))
                                                         <tr>
                                                             <th>{{ __('Total') }}</th>
                                                             <th></th>
                                                             <th></th>
                                                             <th></th>
                                                             <th></th>
-                                                            <th>{{ \Auth::user()->priceFormat($totalAmount) }}</th>
-                                                            <th>{{ \Auth::user()->priceFormat($total) }}</th>
+                                                            <th>{{ $user?->priceFormat($totalAmount) }}</th>
+                                                            <th>{{ $user?->priceFormat($total) }}</th>
                                                         </tr>
                                                     @endif
                                                 </tbody>
                                             </table>
                                         @elseif ($reportName == '#receivable_details')
-                                            <table class="table table-flush" id="report-dataTable">
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
                                                 <thead>
                                                     <tr>
                                                         <th>{{ __('Customer Name') }}</th>
@@ -209,80 +236,90 @@
                                                 </thead>
                                                 <tbody>
                                                     @php
-                                                        $total = 0;
-                                                        $totalQuantity = 0;
+                                                        $receivableDetails = $receivableDetails ?? [];
 
-                                                        function compares($a, $b)
-                                                        {
-                                                            return strtotime($b['issue_date']) - strtotime($a['issue_date']);
-                                                        }
-                                                        usort($receivableDetails, 'compares');
+                                                        $total          = 0;
+                                                        $totalQuantity  = 0;
+
+                                                        // Robust sort (handles missing/invalid dates)
+                                                        usort($receivableDetails, function ($a, $b) {
+                                                            $ad = strtotime($a['issue_date'] ?? '1970-01-01');
+                                                            $bd = strtotime($b['issue_date'] ?? '1970-01-01');
+                                                            return $bd <=> $ad;
+                                                        });
                                                     @endphp
-                                                    @foreach ($receivableDetails as $receivableDetail)
+
+                                                    @forelse ($receivableDetails as $receivableDetail)
+                                                        @php
+                                                            // Normalize inputs
+                                                            $hasInvoiceId       = !empty($receivableDetail['invoice']);
+                                                            $isInvoice          = (bool) $hasInvoiceId;
+                                                            $price              = floatval($receivableDetail['price']     ?? 0);
+                                                            $qty                = intval($receivableDetail['quantity']    ?? 0);
+
+                                                            // Per-row calculations
+                                                            $receivableBalance  = $isInvoice ? $price : -$price;
+                                                            $quantity           = $isInvoice ? $qty : 0;
+                                                            $itemTotal          = $isInvoice ? ($receivableBalance * $quantity) : -$price;
+
+                                                            $total             += $itemTotal;
+                                                            $totalQuantity     += $quantity;
+
+                                                            // Status badge mapping
+                                                            $status = $receivableDetail['status'] ?? null;
+                                                            $statusClasses = [
+                                                                0 => 'bg-secondary',
+                                                                1 => 'bg-warning',
+                                                                2 => 'bg-danger',
+                                                                3 => 'bg-info',
+                                                                4 => 'bg-primary',
+                                                            ];
+                                                            $bgClass = ($status !== null && isset($statusClasses[$status])) ? $statusClasses[$status] : null;
+                                                        @endphp
+
                                                         <tr>
-                                                            @php
-                                                                if ($receivableDetail['invoice']) {
-                                                                    $receivableBalance = $receivableDetail['price'];
-                                                                } else {
-                                                                    $receivableBalance = -$receivableDetail['price'];
-                                                                }
-                                                                if ($receivableDetail['invoice']) {
-                                                                    $quantity = $receivableDetail['quantity'];
-                                                                } else {
-                                                                    $quantity = 0;
-                                                                }
+                                                            <td>{{ $receivableDetail['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ $receivableDetail['issue_date'] ?? __('No issue date available') }}</td>
 
-                                                                if ($receivableDetail['invoice']) {
-                                                                    $itemTotal = $receivableBalance * $receivableDetail['quantity'];
-                                                                } else {
-                                                                    $itemTotal = -$receivableDetail['price'];
-                                                                }
-
-                                                                $total += $itemTotal;
-                                                                $totalQuantity += $quantity;
-                                                            @endphp
-                                                            <td> {{ $receivableDetail['name'] }}</td>
-                                                            <td> {{ $receivableDetail['issue_date'] }}</td>
-                                                            @if ($receivableDetail['invoice'])
-                                                                <td> {{ \Auth::user()->invoiceNumberFormat($receivableDetail['invoice']) }}
-                                                                </td>
-                                                            @else
-                                                                <td>{{ __('Credit Note') }}</td>
-                                                            @endif
-                                                            </td>
                                                             <td>
-                                                                @if ($receivableDetail['status'] == 0)
-                                                                    <span
-                                                                        class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableDetail['status']]) }}</span>
-                                                                @elseif($receivableDetail['status'] == 1)
-                                                                    <span
-                                                                        class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableDetail['status']]) }}</span>
-                                                                @elseif($receivableDetail['status'] == 2)
-                                                                    <span
-                                                                        class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableDetail['status']]) }}</span>
-                                                                @elseif($receivableDetail['status'] == 3)
-                                                                    <span
-                                                                        class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableDetail['status']]) }}</span>
-                                                                @elseif($receivableDetail['status'] == 4)
-                                                                    <span
-                                                                        class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$receivableDetail['status']]) }}</span>
+                                                                @if ($isInvoice)
+                                                                    @if($hasInvoiceId)
+                                                                        {{ $user?->invoiceNumberFormat($receivableDetail['invoice']) }}
+                                                                    @else
+                                                                        {{ __('Could not find invoice number') }}
+                                                                    @endif
                                                                 @else
-                                                                    <span class="p-2 px-3">-</span>
+                                                                    {{ __('Credit Note') }}
                                                                 @endif
                                                             </td>
-                                                            @if ($receivableDetail['invoice'])
-                                                                <td> {{ __('Invoice') }}</td>
-                                                            @else
-                                                                <td>{{ __('Credit Note') }}</td>
-                                                            @endif
-                                                            <td>{{ $receivableDetail['product_name'] }}</td>
-                                                            <td> {{ $quantity }}</td>
-                                                            <td>{{ \Auth::user()->priceFormat($receivableBalance) }}</td>
-                                                            <td>{{ \Auth::user()->priceFormat($itemTotal) }}</td>
 
+                                                            <td>
+                                                                @if($bgClass)
+                                                                    <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 px-3 rounded">
+                                                                        {{ __(\App\Models\Invoice::$statuses[$status] ?? __('Unknown status')) }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="status_badge {{ VC::BDG }} bg-secondary p-2 px-3 rounded">
+                                                                        {{ __('No status available') }}
+                                                                    </span>
+                                                                @endif
+                                                            </td>
+
+                                                            <td>{{ $isInvoice ? __('Invoice') : __('Credit Note') }}</td>
+                                                            <td>{{ $receivableDetail['product_name'] ?? __('No item name available') }}</td>
+                                                            <td>{{ $quantity }}</td>
+                                                            <td>{{ $user?->priceFormat($receivableBalance) }}</td>
+                                                            <td>{{ $user?->priceFormat($itemTotal) }}</td>
                                                         </tr>
-                                                    @endforeach
-                                                    @if ($receivableSummaries != [])
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="9" class="text-center">
+                                                                {{ __('No receivable details available') }}
+                                                            </td>
+                                                        </tr>
+                                                    @endforelse
+
+                                                    @if (!empty($receivableDetails))
                                                         <tr>
                                                             <th>{{ __('Total') }}</th>
                                                             <th></th>
@@ -292,13 +329,13 @@
                                                             <th></th>
                                                             <th>{{ $totalQuantity }}</th>
                                                             <th></th>
-                                                            <th>{{ \Auth::user()->priceFormat($total) }}</th>
+                                                            <th>{{ $user?->priceFormat($total) }}</th>
                                                         </tr>
                                                     @endif
                                                 </tbody>
                                             </table>
                                         @elseif($reportName == '#aging_summary')
-                                            <table class="table table-flush" id="report-dataTable">
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
                                                 <thead>
                                                     <tr>
                                                         <th>{{ __('Customer Name') }}</th>
@@ -313,363 +350,315 @@
 
                                                 <tbody>
                                                     @php
-                                                        $currentTotal = 0;
-                                                        $days15 = 0;
-                                                        $days30 = 0;
-                                                        $days45 = 0;
-                                                        $daysMore45 = 0;
-                                                        $total = 0;
+                                                        // Ensure we have a usable collection/array
+                                                        $agingSummaries = $agingSummaries ?? [];
 
+                                                        $currentTotal = 0.0;
+                                                        $days15       = 0.0;
+                                                        $days30       = 0.0;
+                                                        $days45       = 0.0;
+                                                        $daysMore45   = 0.0;
+                                                        $grandTotal   = 0.0;
                                                     @endphp
-                                                    @foreach ($agingSummaries as $key => $agingSummary)
+
+                                                    @forelse ($agingSummaries as $key => $agingSummary)
+                                                        @php
+                                                            // Safe value extraction with sensible defaults
+                                                            $customerName = $key ?: __('No customer name available');
+
+                                                            $cur      = (float)($agingSummary['current'] ?? 0);
+                                                            $d1_15    = (float)($agingSummary['1_15_days'] ?? 0);
+                                                            $d16_30   = (float)($agingSummary['16_30_days'] ?? 0);
+                                                            $d31_45   = (float)($agingSummary['31_45_days'] ?? 0);
+                                                            $gt45     = (float)($agingSummary['greater_than_45_days'] ?? 0);
+                                                            $rowTotal = (float)($agingSummary['total_due'] ?? ($cur + $d1_15 + $d16_30 + $d31_45 + $gt45));
+
+                                                            // Accumulate totals
+                                                            $currentTotal += $cur;
+                                                            $days15       += $d1_15;
+                                                            $days30       += $d16_30;
+                                                            $days45       += $d31_45;
+                                                            $daysMore45   += $gt45;
+                                                            $grandTotal   += $rowTotal;
+                                                        @endphp
+
                                                         <tr>
-                                                            <td> {{ $key }}</td>
-                                                            <td>{{ \Auth::user()->priceFormat($agingSummary['current']) }}
-                                                            </td>
-                                                            <td>{{ \Auth::user()->priceFormat($agingSummary['1_15_days']) }}
-                                                            </td>
-                                                            <td>{{ \Auth::user()->priceFormat($agingSummary['16_30_days']) }}
-                                                            </td>
-                                                            <td>{{ \Auth::user()->priceFormat($agingSummary['31_45_days']) }}
-                                                            </td>
-                                                            <td>{{ \Auth::user()->priceFormat($agingSummary['greater_than_45_days']) }}
-                                                            </td>
-                                                            <td>{{ \Auth::user()->priceFormat($agingSummary['total_due']) }}
+                                                            <td>{{ $customerName }}</td>
+                                                            <td>{{ $user?->priceFormat($cur) }}</td>
+                                                            <td>{{ $user?->priceFormat($d1_15) }}</td>
+                                                            <td>{{ $user?->priceFormat($d16_30) }}</td>
+                                                            <td>{{ $user?->priceFormat($d31_45) }}</td>
+                                                            <td>{{ $user?->priceFormat($gt45) }}</td>
+                                                            <td>{{ $user?->priceFormat($rowTotal) }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="7" class="text-center">
+                                                                {{ __('No aging summary data available') }}
                                                             </td>
                                                         </tr>
+                                                    @endforelse
 
-                                                        @php
-                                                            $currentTotal += $agingSummary['current'];
-                                                            $days15 += $agingSummary['1_15_days'];
-                                                            $days30 += $agingSummary['16_30_days'];
-                                                            $days45 += $agingSummary['31_45_days'];
-                                                            $daysMore45 += $agingSummary['greater_than_45_days'];
-                                                            $total += $agingSummary['total_due'];
-
-                                                        @endphp
-                                                    @endforeach
-                                                    @if ($agingSummaries != [])
+                                                    @if (!empty($agingSummaries))
                                                         <tr>
                                                             <th>{{ __('Total') }}</th>
-                                                            <th>{{ \Auth::user()->priceFormat($currentTotal) }}</th>
-                                                            <th>{{ \Auth::user()->priceFormat($days15) }}</th>
-                                                            <th>{{ \Auth::user()->priceFormat($days30) }}</th>
-                                                            <th>{{ \Auth::user()->priceFormat($days45) }}</th>
-                                                            <th>{{ \Auth::user()->priceFormat($daysMore45) }}</th>
-                                                            <th>{{ \Auth::user()->priceFormat($total) }}</th>
+                                                            <th>{{ $user?->priceFormat($currentTotal) }}</th>
+                                                            <th>{{ $user?->priceFormat($days15) }}</th>
+                                                            <th>{{ $user?->priceFormat($days30) }}</th>
+                                                            <th>{{ $user?->priceFormat($days45) }}</th>
+                                                            <th>{{ $user?->priceFormat($daysMore45) }}</th>
+                                                            <th>{{ $user?->priceFormat($grandTotal) }}</th>
                                                         </tr>
                                                     @endif
                                                 </tbody>
                                             </table>
                                         @elseif($reportName == '#aging_details')
-                                        <table class="table table-flush" id="report-dataTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>{{ __('Date') }}</th>
-                                                    <th>{{ __('Transaction') }}</th>
-                                                    <th>{{ __('Type') }}</th>
-                                                    <th>{{ __('Status') }}</th>
-                                                    <th>{{ __('Customer Name') }}</th>
-                                                    <th>{{ __('Age') }}</th>
-                                                    <th>{{ __('Amount') }}</th>
-                                                    <th>{{ __('Balance Due') }}</th>
-                                                </tr>
-                                            </thead>
+                                            @php
+                                                // Map invoice statuses to badge colors
+                                                $statusClasses = [
+                                                    0 => 'bg-secondary',
+                                                    1 => 'bg-warning',
+                                                    2 => 'bg-danger',
+                                                    3 => 'bg-info',
+                                                    4 => 'bg-primary',
+                                                ];
 
-                                            <tbody>
-                                                @php
-                                                    $currentTotal = 0;
-                                                    $currentDue = 0;
-                                                    $days15Total = 0;
-                                                    $days15Due = 0;
+                                                // Ensure buckets are iterable
+                                                $currents    = $currents    ?? [];
+                                                $days1to15   = $days1to15   ?? [];
+                                                $days16to30  = $days16to30  ?? [];
+                                                $days31to45  = $days31to45  ?? [];
+                                                $moreThan45  = $moreThan45  ?? [];
 
-                                                    $days30Total = 0;
-                                                    $days30Due = 0;
+                                                // Running totals
+                                                $currentTotal = 0;   $currentDue = 0;
+                                                $days15Total  = 0;   $days15Due  = 0;
+                                                $days30Total  = 0;   $days30Due  = 0;
+                                                $days45Total  = 0;   $days45Due  = 0;
+                                                $daysMore45Total = 0; $daysMore45Due = 0;
 
-                                                    $days45Total = 0;
-                                                    $days45Due = 0;
+                                                $hasAny = !empty($currents) || !empty($days1to15) || !empty($days16to30) || !empty($days31to45) || !empty($moreThan45);
+                                            @endphp
+                                            <table class="{{ VC::TB }} table-flush" id="report-dataTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ __('Date') }}</th>
+                                                        <th>{{ __('Transaction') }}</th>
+                                                        <th>{{ __('Type') }}</th>
+                                                        <th>{{ __('Status') }}</th>
+                                                        <th>{{ __('Customer Name') }}</th>
+                                                        <th>{{ __('Age') }}</th>
+                                                        <th>{{ __('Amount') }}</th>
+                                                        <th>{{ __('Balance Due') }}</th>
+                                                    </tr>
+                                                </thead>
 
-                                                    $daysMore45Total = 0;
-                                                    $daysMore45Due = 0;
+                                                <tbody>
+                                                    {{-- > 45 Days --}}
+                                                    @if (!empty($moreThan45))
+                                                        <tr><th>{{ __('> 45 Days') }}</th></tr>
+                                                    @endif
+                                                    @foreach ($moreThan45 as $value)
+                                                        @php
+                                                            $amount   = (float)($value['total_price']  ?? 0);
+                                                            $due      = (float)($value['balance_due'] ?? 0);
+                                                            $status   = $value['status'] ?? null;
+                                                            $bgClass  = $statusClasses[$status] ?? 'bg-secondary';
 
-                                                    $total = 0;
-                                                @endphp
-                                                @if ($moreThan45 != [])
-                                                    <tr>
-                                                        <th>{{ __(' > 45 Days') }}</th>
-                                                    </tr>
-                                                @endif
-                                                @foreach ($moreThan45 as $value)
-                                                    @php
-                                                        $daysMore45Total += $value['total_price'];
-                                                        $daysMore45Due += $value['balance_due'];
-                                                    @endphp
-                                                    <tr>
-                                                        <td>{{ $value['due_date'] }}</td>
-                                                        <td>{{ \Auth::user()->invoiceNumberFormat($value['invoice_id']) }}
-                                                        </td>
-                                                        <td>{{ __('Invoice') }}</td>
-                                                        <td>
-                                                            @if ($value['status'] == 0)
-                                                                <span
-                                                                    class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$value['status']]) }}</span>
-                                                            @elseif($value['status'] == 1)
-                                                                <span
-                                                                    class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$value['status']]) }}</span>
-                                                            @elseif($value['status'] == 2)
-                                                                <span
-                                                                    class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$value['status']]) }}</span>
-                                                            @elseif($value['status'] == 3)
-                                                                <span
-                                                                    class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$value['status']]) }}</span>
-                                                            @elseif($value['status'] == 4)
-                                                                <span
-                                                                    class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$value['status']]) }}</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $value['name'] }}</td>
-                                                        <td> {{ $value['age'] . __(' Days') }} </td>
-                                                        <td>{{ \Auth::user()->priceFormat($value['total_price']) }}</td>
-                                                        <td>{{ \Auth::user()->priceFormat($value['balance_due']) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                                @if ($moreThan45 != [])
-                                                    <tr>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th>{{ \Auth::user()->priceFormat($daysMore45Total) }}</th>
-                                                        <th>{{ \Auth::user()->priceFormat($daysMore45Due) }}</th>
-                                                    </tr>
-                                                @endif
+                                                            $daysMore45Total += $amount;
+                                                            $daysMore45Due   += $due;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $value['due_date'] ?? __('No due date available') }}</td>
+                                                            <td>{{ !empty($value['invoice_id']) ? $user?->invoiceNumberFormat($value['invoice_id']) : __('No transaction number available') }}</td>
+                                                            <td>{{ __('Invoice') }}</td>
+                                                            <td>
+                                                                <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 {{ VC::PX3 }} rounded">
+                                                                    {{ isset($value['status']) ? __(\App\Models\Invoice::$statuses[$value['status']]) : __('Status not available') }}
+                                                                </span>
+                                                            </td>
+                                                            <td>{{ $value['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ isset($value['age']) ? ($value['age'].' '.__('Days')) : __('No age available') }}</td>
+                                                            <td>{{ $user?->priceFormat($amount) }}</td>
+                                                            <td>{{ $user?->priceFormat($due) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    @if (!empty($moreThan45))
+                                                        <tr>
+                                                            <th colspan="6"></th>
+                                                            <th>{{ $user?->priceFormat($daysMore45Total) }}</th>
+                                                            <th>{{ $user?->priceFormat($daysMore45Due) }}</th>
+                                                        </tr>
+                                                    @endif
 
+                                                    {{-- 31 to 45 Days --}}
+                                                    @if (!empty($days31to45))
+                                                        <tr><th>{{ __('31 to 45 Days') }}</th></tr>
+                                                    @endif
+                                                    @foreach ($days31to45 as $day31to45)
+                                                        @php
+                                                            $amount  = (float)($day31to45['total_price']  ?? 0);
+                                                            $due     = (float)($day31to45['balance_due'] ?? 0);
+                                                            $status  = $day31to45['status'] ?? null;
+                                                            $bgClass = $statusClasses[$status] ?? 'bg-secondary';
 
-                                                @if ($days31to45 != [])
-                                                    <tr>
-                                                        <th>{{ __(' 31 to 45 Days') }}</th>
-                                                    </tr>
-                                                @endif
-                                                @foreach ($days31to45 as $day31to45)
-                                                    @php
-                                                        $days45Total += $day31to45['total_price'];
-                                                        $days45Due += $day31to45['balance_due'];
-                                                    @endphp
-                                                    <tr>
-                                                        <td>{{ $day31to45['due_date'] }}</td>
-                                                        <td>{{ \Auth::user()->invoiceNumberFormat($day31to45['invoice_id']) }}
-                                                        </td>
-                                                        <td>{{ __('Invoice') }}</td>
-                                                        <td>
-                                                            @if ($day31to45['status'] == 0)
-                                                                <span
-                                                                    class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day31to45['status']]) }}</span>
-                                                            @elseif($day31to45['status'] == 1)
-                                                                <span
-                                                                    class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day31to45['status']]) }}</span>
-                                                            @elseif($day31to45['status'] == 2)
-                                                                <span
-                                                                    class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day31to45['status']]) }}</span>
-                                                            @elseif($day31to45['status'] == 3)
-                                                                <span
-                                                                    class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day31to45['status']]) }}</span>
-                                                            @elseif($day31to45['status'] == 4)
-                                                                <span
-                                                                    class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day31to45['status']]) }}</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $day31to45['name'] }}</td>
-                                                        <td> {{ $day31to45['age'] . __(' Days') }} </td>
-                                                        <td>{{ \Auth::user()->priceFormat($day31to45['total_price']) }}</td>
-                                                        <td>{{ \Auth::user()->priceFormat($day31to45['balance_due']) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                                @if ($days31to45 != [])
-                                                    <tr>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th>{{ \Auth::user()->priceFormat($days45Total) }}</th>
-                                                        <th>{{ \Auth::user()->priceFormat($days45Due) }}</th>
-                                                    </tr>
-                                                @endif
+                                                            $days45Total += $amount;
+                                                            $days45Due   += $due;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $day31to45['due_date'] ?? __('No due date available') }}</td>
+                                                            <td>{{ !empty($day31to45['invoice_id']) ? $user?->invoiceNumberFormat($day31to45['invoice_id']) : __('No transaction number available') }}</td>
+                                                            <td>{{ __('Invoice') }}</td>
+                                                            <td>
+                                                                <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 {{ VC::PX3 }} rounded">
+                                                                    {{ isset($day31to45['status']) ? __(\App\Models\Invoice::$statuses[$day31to45['status']]) : __('Status not available') }}
+                                                                </span>
+                                                            </td>
+                                                            <td>{{ $day31to45['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ isset($day31to45['age']) ? ($day31to45['age'].' '.__('Days')) : __('No age available') }}</td>
+                                                            <td>{{ $user?->priceFormat($amount) }}</td>
+                                                            <td>{{ $user?->priceFormat($due) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    @if (!empty($days31to45))
+                                                        <tr>
+                                                            <th colspan="6"></th>
+                                                            <th>{{ $user?->priceFormat($days45Total) }}</th>
+                                                            <th>{{ $user?->priceFormat($days45Due) }}</th>
+                                                        </tr>
+                                                    @endif
 
-                                                @if ($days16to30 != [])
-                                                    <tr>
-                                                        <th>{{ __(' 16 to 30 Days') }}</th>
-                                                    </tr>
-                                                @endif
-                                                @foreach ($days16to30 as $day16to30)
-                                                    @php
-                                                        $days30Total += $day16to30['total_price'];
-                                                        $days30Due += $day16to30['balance_due'];
-                                                    @endphp
-                                                    <tr>
-                                                        <td>{{ $day16to30['due_date'] }}</td>
-                                                        <td>{{ \Auth::user()->invoiceNumberFormat($day16to30['invoice_id']) }}
-                                                        </td>
-                                                        <td>{{ __('Invoice') }}</td>
-                                                        <td>
-                                                            @if ($day16to30['status'] == 0)
-                                                                <span
-                                                                    class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day16to30['status']]) }}</span>
-                                                            @elseif($day16to30['status'] == 1)
-                                                                <span
-                                                                    class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day16to30['status']]) }}</span>
-                                                            @elseif($day16to30['status'] == 2)
-                                                                <span
-                                                                    class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day16to30['status']]) }}</span>
-                                                            @elseif($day16to30['status'] == 3)
-                                                                <span
-                                                                    class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day16to30['status']]) }}</span>
-                                                            @elseif($day16to30['status'] == 4)
-                                                                <span
-                                                                    class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day16to30['status']]) }}</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $day16to30['name'] }}</td>
-                                                        <td> {{ $day16to30['age'] . __(' Days') }} </td>
-                                                        <td>{{ \Auth::user()->priceFormat($day16to30['total_price']) }}</td>
-                                                        <td>{{ \Auth::user()->priceFormat($day16to30['balance_due']) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                                @if ($days16to30 != [])
-                                                    <tr>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th>{{ \Auth::user()->priceFormat($days30Total) }}</th>
-                                                        <th>{{ \Auth::user()->priceFormat($days30Due) }}</th>
-                                                    </tr>
-                                                @endif
+                                                    {{-- 16 to 30 Days --}}
+                                                    @if (!empty($days16to30))
+                                                        <tr><th>{{ __('16 to 30 Days') }}</th></tr>
+                                                    @endif
+                                                    @foreach ($days16to30 as $day16to30)
+                                                        @php
+                                                            $amount  = (float)($day16to30['total_price']  ?? 0);
+                                                            $due     = (float)($day16to30['balance_due'] ?? 0);
+                                                            $status  = $day16to30['status'] ?? null;
+                                                            $bgClass = $statusClasses[$status] ?? 'bg-secondary';
 
-                                                @if ($days1to15 != [])
-                                                    <tr>
-                                                        <th>{{ __(' 1 to 15 Days') }}</th>
-                                                    </tr>
-                                                @endif
-                                                @foreach ($days1to15 as $day1to15)
-                                                    @php
-                                                        $days15Total += $day1to15['total_price'];
-                                                        $days15Due += $day1to15['balance_due'];
-                                                    @endphp
-                                                    <tr>
-                                                        <td>{{ $day1to15['due_date'] }}</td>
-                                                        <td>{{ \Auth::user()->invoiceNumberFormat($day1to15['invoice_id']) }}
-                                                        </td>
-                                                        <td>{{ __('Invoice') }}</td>
-                                                        <td>
-                                                            @if ($day1to15['status'] == 0)
-                                                                <span
-                                                                    class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day1to15['status']]) }}</span>
-                                                            @elseif($day1to15['status'] == 1)
-                                                                <span
-                                                                    class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day1to15['status']]) }}</span>
-                                                            @elseif($day1to15['status'] == 2)
-                                                                <span
-                                                                    class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day1to15['status']]) }}</span>
-                                                            @elseif($day1to15['status'] == 3)
-                                                                <span
-                                                                    class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day1to15['status']]) }}</span>
-                                                            @elseif($day1to15['status'] == 4)
-                                                                <span
-                                                                    class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$day1to15['status']]) }}</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $day1to15['name'] }}</td>
-                                                        <td> {{ $day1to15['age'] . __(' Days') }} </td>
-                                                        <td>{{ \Auth::user()->priceFormat($day1to15['total_price']) }}</td>
-                                                        <td>{{ \Auth::user()->priceFormat($day1to15['balance_due']) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                                @if ($days1to15 != [])
-                                                    <tr>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th>{{ \Auth::user()->priceFormat($days15Total) }}</th>
-                                                        <th>{{ \Auth::user()->priceFormat($days15Due) }}</th>
-                                                    </tr>
-                                                @endif
+                                                            $days30Total += $amount;
+                                                            $days30Due   += $due;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $day16to30['due_date'] ?? __('No due date available') }}</td>
+                                                            <td>{{ !empty($day16to30['invoice_id']) ? $user?->invoiceNumberFormat($day16to30['invoice_id']) : __('No transaction number available') }}</td>
+                                                            <td>{{ __('Invoice') }}</td>
+                                                            <td>
+                                                                <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 {{ VC::PX3 }} rounded">
+                                                                    {{ isset($day16to30['status']) ? __(\App\Models\Invoice::$statuses[$day16to30['status']]) : __('Status not available') }}
+                                                                </span>
+                                                            </td>
+                                                            <td>{{ $day16to30['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ isset($day16to30['age']) ? ($day16to30['age'].' '.__('Days')) : __('No age available') }}</td>
+                                                            <td>{{ $user?->priceFormat($amount) }}</td>
+                                                            <td>{{ $user?->priceFormat($due) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    @if (!empty($days16to30))
+                                                        <tr>
+                                                            <th colspan="6"></th>
+                                                            <th>{{ $user?->priceFormat($days30Total) }}</th>
+                                                            <th>{{ $user?->priceFormat($days30Due) }}</th>
+                                                        </tr>
+                                                    @endif
 
-                                                @if ($currents != [])
-                                                    <tr>
-                                                        <th>{{ __('Current') }}</th>
-                                                    </tr>
-                                                @endif
-                                                @foreach ($currents as $current)
-                                                    @php
-                                                        $currentTotal += $current['total_price'];
-                                                        $currentDue += $current['balance_due'];
-                                                    @endphp
-                                                    <tr>
-                                                        <td>{{ $current['due_date'] }}</td>
-                                                        <td>{{ \Auth::user()->invoiceNumberFormat($current['invoice_id']) }}
-                                                        </td>
-                                                        <td>{{ __('Invoice') }}</td>
-                                                        <td>
-                                                            @if ($current['status'] == 0)
-                                                                <span
-                                                                    class="status_badge badge bg-secondary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$current['status']]) }}</span>
-                                                            @elseif($current['status'] == 1)
-                                                                <span
-                                                                    class="status_badge badge bg-warning p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$current['status']]) }}</span>
-                                                            @elseif($current['status'] == 2)
-                                                                <span
-                                                                    class="status_badge badge bg-danger p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$current['status']]) }}</span>
-                                                            @elseif($current['status'] == 3)
-                                                                <span
-                                                                    class="status_badge badge bg-info p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$current['status']]) }}</span>
-                                                            @elseif($current['status'] == 4)
-                                                                <span
-                                                                    class="status_badge badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Invoice::$statuses[$current['status']]) }}</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $current['name'] }}</td>
-                                                        <td> - </td>
-                                                        <td>{{ \Auth::user()->priceFormat($current['total_price']) }}</td>
-                                                        <td>{{ \Auth::user()->priceFormat($current['balance_due']) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                                @if ($currents != [])
-                                                    <tr>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th></th>
-                                                        <th>{{ \Auth::user()->priceFormat($currentTotal) }}</th>
-                                                        <th>{{ \Auth::user()->priceFormat($currentDue) }}</th>
-                                                    </tr>
-                                                @endif
-                                                @if ($currents != [] || $days1to15 != [] || $days16to30 != [] || $days31to45 != [] || $moreThan45 != []) 
-                                                <tr>
-                                                    <th>{{ __('Total') }}</th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>{{ \Auth::user()->priceFormat($currentTotal + $days15Total + $days30Total + $days45Total + $daysMore45Total) }}
-                                                    </th>
-                                                    <th>{{ \Auth::user()->priceFormat($currentDue + $days15Due + $days30Due + $days45Due + $daysMore45Due) }}
-                                                    </th>
-                                                </tr>
-                                                @endif
-                                            </tbody>
-                                        </table>
+                                                    {{-- 1 to 15 Days --}}
+                                                    @if (!empty($days1to15))
+                                                        <tr><th>{{ __('1 to 15 Days') }}</th></tr>
+                                                    @endif
+                                                    @foreach ($days1to15 as $day1to15)
+                                                        @php
+                                                            $amount  = (float)($day1to15['total_price']  ?? 0);
+                                                            $due     = (float)($day1to15['balance_due'] ?? 0);
+                                                            $status  = $day1to15['status'] ?? null;
+                                                            $bgClass = $statusClasses[$status] ?? 'bg-secondary';
+
+                                                            $days15Total += $amount;
+                                                            $days15Due   += $due;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $day1to15['due_date'] ?? __('No due date available') }}</td>
+                                                            <td>{{ !empty($day1to15['invoice_id']) ? $user?->invoiceNumberFormat($day1to15['invoice_id']) : __('No transaction number available') }}</td>
+                                                            <td>{{ __('Invoice') }}</td>
+                                                            <td>
+                                                                <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 {{ VC::PX3 }} rounded">
+                                                                    {{ isset($day1to15['status']) ? __(\App\Models\Invoice::$statuses[$day1to15['status']]) : __('Status not available') }}
+                                                                </span>
+                                                            </td>
+                                                            <td>{{ $day1to15['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ isset($day1to15['age']) ? ($day1to15['age'].' '.__('Days')) : __('No age available') }}</td>
+                                                            <td>{{ $user?->priceFormat($amount) }}</td>
+                                                            <td>{{ $user?->priceFormat($due) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    @if (!empty($days1to15))
+                                                        <tr>
+                                                            <th colspan="6"></th>
+                                                            <th>{{ $user?->priceFormat($days15Total) }}</th>
+                                                            <th>{{ $user?->priceFormat($days15Due) }}</th>
+                                                        </tr>
+                                                    @endif
+
+                                                    {{-- Current --}}
+                                                    @if (!empty($currents))
+                                                        <tr><th>{{ __('Current') }}</th></tr>
+                                                    @endif
+                                                    @foreach ($currents as $current)
+                                                        @php
+                                                            $amount  = (float)($current['total_price']  ?? 0);
+                                                            $due     = (float)($current['balance_due'] ?? 0);
+                                                            $status  = $current['status'] ?? null;
+                                                            $bgClass = $statusClasses[$status] ?? 'bg-secondary';
+
+                                                            $currentTotal += $amount;
+                                                            $currentDue   += $due;
+                                                        @endphp
+                                                        <tr>
+                                                            <td>{{ $current['due_date'] ?? __('No due date available') }}</td>
+                                                            <td>{{ !empty($current['invoice_id']) ? $user?->invoiceNumberFormat($current['invoice_id']) : __('No transaction number available') }}</td>
+                                                            <td>{{ __('Invoice') }}</td>
+                                                            <td>
+                                                                <span class="status_badge {{ VC::BDG }} {{ $bgClass }} p-2 {{ VC::PX3 }} rounded">
+                                                                    {{ isset($current['status']) ? __(\App\Models\Invoice::$statuses[$current['status']]) : __('Status not available') }}
+                                                                </span>
+                                                            </td>
+                                                            <td>{{ $current['name'] ?? __('No customer name available') }}</td>
+                                                            <td>{{ __('Current') }}</td>
+                                                            <td>{{ $user?->priceFormat($amount) }}</td>
+                                                            <td>{{ $user?->priceFormat($due) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    @if (!empty($currents))
+                                                        <tr>
+                                                            <th colspan="6"></th>
+                                                            <th>{{ $user?->priceFormat($currentTotal) }}</th>
+                                                            <th>{{ $user?->priceFormat($currentDue) }}</th>
+                                                        </tr>
+                                                    @endif
+
+                                                    {{-- Empty state --}}
+                                                    @unless ($hasAny)
+                                                        <tr>
+                                                            <td colspan="8" class="text-center">
+                                                                {{ __('No aging detail records available') }}
+                                                            </td>
+                                                        </tr>
+                                                    @endunless
+
+                                                    {{-- Grand Total --}}
+                                                    @if ($hasAny)
+                                                        <tr>
+                                                            <th>{{ __('Total') }}</th>
+                                                            <th colspan="5"></th>
+                                                            <th>{{ $user?->priceFormat($currentTotal + $days15Total + $days30Total + $days45Total + $daysMore45Total) }}</th>
+                                                            <th>{{ $user?->priceFormat($currentDue + $days15Due + $days30Due + $days45Due + $daysMore45Due) }}</th>
+                                                        </tr>
+                                                    @endif
+                                                </tbody>
+                                            </table>
                                         @endif
                                     </div>
                                 </div>
@@ -682,47 +671,8 @@
         <script src="{{ asset('js/jquery.min.js') }}"></script>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-        <script>
-            var filename = $('#filename').val();
-    
-            function saveAsPDF() {
-                var element = document.getElementById('printableArea');
-                var opt = {
-                    margin: 0.3,
-                    filename: filename,
-                    image: {
-                        type: 'jpeg',
-                        quality: 1
-                    },
-                    html2canvas: {
-                        scale: 4,
-                        dpi: 72,
-                        letterRendering: true
-                    },
-                    jsPDF: {
-                        unit: 'in',
-                        format: 'A2'
-                    }
-                };
-                html2pdf().set(opt).from(element).save();
-            }
-        </script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script>
-            $(document).ready(function() {
-                $("#filter").click(function() {
-                    $("#show_filter").toggle();
-                });
-            });
-        </script>
-        <script>
-            window.print();
-            window.onafterprint = back;
-    
-            function back() {
-                window.close();
-                window.history.back();
-            }
-        </script>
+        <script async src="{{ asset('assets/js/routes/reports/receivables/receipts/lang/pdf.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/reports/receivables/receipts/lang/pdf.js') }}"></script>
     </body>
 </html>

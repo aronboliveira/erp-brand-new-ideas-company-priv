@@ -642,16 +642,16 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::post('export/balance-sheet', [ReportController::class, 'balanceSheetExport'])->name(ViewsConstants::RPT . '.balance.sheet.export');
             Route::post('print/balance-sheet/{view?}', [ReportController::class, 'balanceSheetPrint'])->name(ViewsConstants::RPT . '.balance.sheet.print');
             Route::post('print/trial-balance', [ReportController::class, 'trialBalancePrint'])->name('trial.balance.print');
-            Route::post('export/profit-loss', [ReportController::class, 'profitLossExport'])->name('profit.loss.export');
-            Route::post('print/profit-loss/{view?}', [ReportController::class, 'profitLossPrint'])->name('profit.loss.print');
+            Route::post('export/profit-loss', [ReportController::class, 'profitLossExport'])->name(ViewsConstants::RPT . '.profit.loss.export');
+            Route::post('print/profit-loss/{view?}', [ReportController::class, 'profitLossPrint'])->name(ViewsConstants::RPT . '.profit.loss.print');
             Route::get(ViewsConstants::RPT . '/sales', [ReportController::class, 'salesReport'])->name(ViewsConstants::RPT . '.sales');
-            Route::post('export/sales', [ReportController::class, 'salesReportExport'])->name('sales.export');
-            Route::post('print/sales-report', [ReportController::class, 'salesReportPrint'])->name('sales.report.print');
+            Route::post('export/sales', [ReportController::class, 'salesReportExport'])->name(ViewsConstants::RPT . '.sales.export');
+            Route::post('print/sales-report', [ReportController::class, 'salesReportPrint'])->name(ViewsConstants::RPT . '.sales.report.print');
             Route::get(ViewsConstants::RPT . '/receivables', [ReportController::class, 'ReceivablesReport'])->name(ViewsConstants::RPT . '.receivables');
             Route::post('export/receivables', [ReportController::class, 'ReceivablesExport'])->name('receivables.export');
-            Route::post('print/receivables', [ReportController::class, 'ReceivablesPrint'])->name('receivables.print');
+            Route::post('print/receivables', [ReportController::class, 'ReceivablesPrint'])->name(ViewsConstants::RPT . '.receivables.print');
             Route::get(ViewsConstants::RPT . '/payables', [ReportController::class, 'PayablesReport'])->name(ViewsConstants::RPT . '.payables');
-            Route::post('print/payables', [ReportController::class, 'PayablesPrint'])->name('payables.print');
+            Route::post('print/payables', [ReportController::class, 'PayablesPrint'])->name(ViewsConstants::RPT . '.payables.print');
         }
     );
 
@@ -1406,10 +1406,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get('import/attendance/file', [EmployeeAttendanceController::class, 'importFile'])->name('attendance.file.import');
     Route::post('import/attendance', [EmployeeAttendanceController::class, 'import'])->name('attendance.import');
 
-    Route::get('export/transaction', [TransactionController::class, 'export'])->name('transaction.export');
-    Route::get('export/accountstatement', [ReportController::class, 'export'])->name('accountstatement.export');
-    Route::get('export/productstock', [ReportController::class, 'stock_export'])->name('productstock.export');
-    Route::get('export/payroll', [ReportController::class, 'PayrollReportExport'])->name('payroll.export');
+    Route::get('transactions/export', [TransactionController::class, 'export'])->name('transactions.export');
+    Route::get(ViewsConstants::ACC_STT . '/export', [ReportController::class, 'export'])->name(ViewsConstants::ACC_STT . '.export');
+    Route::get(ViewsConstants::PRD_STK . '/export', [ReportController::class, 'stock_export'])->name(ViewsConstants::PRD_STK . '.export');
+    Route::get('export/payroll', [ReportController::class, 'PayrollReportExport'])->name(ViewsConstants::RPT . '.payroll.export');
     Route::get('export/leave', [ReportController::class, 'LeaveReportExport'])->name(ViewsConstants::LV . '.export');
 
     Route::post('export/payslip', [PayslipController::class, 'export'])->name(ViewsConstants::PY_SLP . '.export');

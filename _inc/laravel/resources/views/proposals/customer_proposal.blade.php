@@ -257,24 +257,23 @@
                                         </div>
                                         <div class="{{ VC::RW }} {{ VC::MT3 }}">
                                             <div class="col">
+                                                @php
+                                                    $proposalStatusClasses = [
+                                                        0 => 'bg-primary',
+                                                        1 => 'bg-info',
+                                                        2 => 'bg-success', 
+                                                        3 => 'bg-warning',
+                                                        4 => 'bg-danger'
+                                                    ];
+                                                    
+                                                    $isValidStatus = !empty($proposal->status) && is_numeric($proposal->status) && $proposal->status >= 0 && $proposal->status <= 4;
+                                                    $bgClass = $isValidStatus ? $proposalStatusClasses[$proposal->status] : 'bg-secondary';
+                                                    $statusText = $isValidStatus ? __(Proposal::$statuses[$proposal->status]) : __('Unknown status');
+                                                @endphp
                                                 <small>
                                                     <strong>{{__('Status')}} :</strong><br>
-                                                    @if(!empty($proposal->status) && is_numeric($proposal->status) && $proposal->status >= 0 && $proposal->status <= 4)
-                                                        @if($proposal->status == 0)
-                                                            <span class="{{ VC::BDG }} badge-pill bg-primary">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
-                                                        @elseif($proposal->status == 1)
-                                                            <span class="{{ VC::BDG }} badge-pill bg-info">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
-                                                        @elseif($proposal->status == 2)
-                                                            <span class="{{ VC::BDG }} badge-pill bg-success">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
-                                                        @elseif($proposal->status == 3)
-                                                            <span class="{{ VC::BDG }} badge-pill bg-warning">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
-                                                        @elseif($proposal->status == 4)
-                                                            <span class="{{ VC::BDG }} badge-pill bg-danger">{{ __(Proposal::$statuses[$proposal->status]) }}</span>
-                                                        @endif
-                                                    @else
-                                                        <span class="{{ VC::BDG }} badge-pill bg-secondary">{{ __('Unknown status') }}</span>
-                                                    @endif
-                                                </small>
+                                                    <span class="{{ VC::BDG }} badge-pill {{ $bgClass }}">{{ $statusText }}</span>
+                                                </small>                                            
                                             </div>
                                             <div class="{{ VC::RW }}">
                                                 <div class="col text-end">

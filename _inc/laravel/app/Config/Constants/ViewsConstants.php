@@ -6,6 +6,7 @@ class ViewsConstants
 {
 	public const ACC_AST = 'account_assets';
 	public const ACC_DSB = 'account_dashboards';
+	public const ACC_STT = 'account_statements';
 	public const CRM_DSB = 'crm_dashboards';
 	public const HRM_DSB = 'hrm_dashboards';
 	public const POS_DSB = 'pos_dashboards';
