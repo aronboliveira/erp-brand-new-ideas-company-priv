@@ -54,7 +54,7 @@
         data-original-title="{{ $downloadLabelTax }}">
             <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/taxes/download.js') }}" defer></script>
         @endpush
     </div>
@@ -122,7 +122,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/taxes/summaries/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/taxes/summaries/reset.js') }}" defer></script>
                         @endpush

@@ -11,7 +11,7 @@
 	$logo??='';
 	$languages??=[DatabaseConstants::DEFAULT_LANG];
 	$company_logo??='';
-	$lang??=Utility::fetchUserLang();
+	$lang = Utility::fetchUserLang();
 	try {
 		$filePath=collect(array_column(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS),'file'))
 			->first(fn($p)=>str_ends_with($p,'.blade.php'))??'';

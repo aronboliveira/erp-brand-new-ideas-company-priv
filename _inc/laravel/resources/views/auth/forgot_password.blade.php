@@ -3,7 +3,7 @@
         DatabaseConstants,
         ExtendingLayoutsConstants,SettingsConstants,
         StacksConstants, UsersConstants, ViewsConstants,
-        ViewClassNamesConstants,YieldingConstants};
+        ViewClassNamesConstants as VC,YieldingConstants};
 	use App\Models\Utility;
     use Illuminate\Support\Facades\{Log, Route};
 	use Illuminate\Support\Str;
@@ -80,13 +80,13 @@
 @endif
 @endpush
 @section(YieldingConstants::AUTH_LG_BAR)
-    <div class="{{ ViewClassNamesConstants::LNG_DD_DSK }}">
-        <li class="{{ ViewClassNamesConstants::LNG_DD_IT }}">
-            <a class="{{ ViewClassNamesConstants::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+    <div class="{{ VC::LNG_DD_DSK }}">
+        <li class="{{ VC::LNG_DD_IT }}">
+            <a class="{{ VC::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="drp-text"> {{ $languages[$lang] }}
                 </span>
             </a>
-            <div class="{{ ViewClassNamesConstants::DRP_MN_DSH_END }}">
+            <div class="{{ VC::DRP_MN_DSH_END }}">
                 @foreach($languages as $code => $language)
                     @php
                         $passwordRequestRoute         = Route::has('password.request')
@@ -160,7 +160,7 @@
 @section(YieldingConstants::AUTH_CTT)
     <div class="card-body">
         <div>
-            <h2 class="{{ ViewClassNamesConstants::MB3_FW600 }}><span class="text-primary">{{ __('Reset Password') }}"</span></h2>
+            <h2 class="{{ VC::MB3_FW600 }}><span class="text-primary">{{ __('Reset Password') }}"</span></h2>
             {{-- <p>{{ __('Sign in by entering the information below?') }} </p> --}}
         </div>
         @php
@@ -184,7 +184,7 @@
             >
             @csrf
             <div class="">
-                <div class="{{ ViewClassNamesConstants::FM_GB3 }}">
+                <div class="{{ VC::FM_GB3 }}">
                     <label for="email" class="form-label">{{ __('E-Mail') }}</label>
                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
                     @error('email')
@@ -194,7 +194,7 @@
                     @enderror
                 </div>
                 @if (!empty($settings[SettingsConstants::RCPT_MDL]) && $settings[SettingsConstants::RCPT_MDL] == 'on')
-                    <div class="{{ ViewClassNamesConstants::FM_GB3 }}">
+                    <div class="{{ VC::FM_GB3 }}">
                      {!! Anhskohbo\NoCaptcha\Facades\NoCaptcha::display($colorSettings[SettingsConstants::CST_DRK]=='on' ? ['data-theme' => 'dark'] : []) !!}                        
                         @error(SettingsConstants::G_RCPT_RES)
                         <span class="small text-danger" role="alert">
@@ -319,9 +319,9 @@
 
 {{-- @section(YieldingConstants::AUTH_CTT)
     <div class="">
-        <h2 class="{{ ViewClassNamesConstants::MB3_FW600 }}>{{__('Reset Password')}}"</h2>
+        <h2 class="{{ VC::MB3_FW600 }}>{{__('Reset Password')}}"</h2>
         @if(session('status'))
-            <p class="{{ ViewClassNamesConstants::MB4_TXMT }}">
+            <p class="{{ VC::MB4_TXMT }}">
                 {{ session('status') }}
             </p>
         @endif
@@ -330,7 +330,7 @@
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
         <div class="">
-            <div class="{{ ViewClassNamesConstants::FM_GB3 }}">
+            <div class="{{ VC::FM_GB3 }}">
                 <label for="email" class="form-label">{{ __('E-Mail') }}</label>
                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
                 @error('email')
@@ -341,7 +341,7 @@
             </div>
 
             @if(env(SettingsConstants::RCPT_MDL) == 'on')
-                <div class="{{ ViewClassNamesConstants::FM_GB3 }}">
+                <div class="{{ VC::FM_GB3 }}">
                     {!! Anhskohbo\NoCaptcha\Facades\NoCaptcha::display() !!}
                     @error(SettingsConstants::G_RCPT_RES)
                     <span class="small text-danger" role="alert">

@@ -241,7 +241,7 @@
                         data-sv-localized="true">
                             <u>{{ __('System Setting') }}</u>
                         </a>
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/settings/open.js') }}" defer></script>
                         @endpush
                     </div>
@@ -265,7 +265,7 @@
                         data-sv-localized="true">
                             <u>{{ __('here') }}</u>
                         </a>
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/users/open.js') }}" defer></script>
                         @endpush
                     </div>
@@ -289,7 +289,7 @@
                         data-sv-localized="true">
                             <u>{{ __('here') }}</u>
                         </a>
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/roles/open.js') }}" defer></script>
                         @endpush
                     </div>
@@ -490,7 +490,7 @@
                                                     data-original-title="{{ __('View') }}">
                                                         <i class="{{ VC::TI_EYE_WT }}"></i>
                                                     </a>
-                                                    @push(StacksConstants::ADM_SCRP_PG)
+                                                    @push(StacksConstants::ADM_SCR_PG)
                                                         <script src="{{ asset('assets/js/routes/projects/show.js') }}" defer></script>
                                                     @endpush
                                                 </div>

@@ -150,7 +150,7 @@
                         data-guard-msg="{{ $purchasePdfGuardMsg }}"
                         data-sv-localized="true">{{ __('Download') }}</a>
                     </div>
-                    @push(StacksConstants::ADM_SCRP_PG)
+                    @push(StacksConstants::ADM_SCR_PG)
                         <script src="{{ asset('assets/js/routes/purchases/pdf.js') }}" defer></script>
                     @endpush
                 </div>
@@ -216,7 +216,7 @@
                                                 <div id="{{ $qrElId }}" data-url="{{ $billCopyLinkUrl }}" data-guard-msg="{{ $billCopyLinkMsg }}" data-sv-localized="true">
                                                     {!! DNS2D::getBarcodeHTML($billCopyLinkUrl, 'QRCODE', 2, 2) !!}
                                                 </div>
-                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                @push(StacksConstants::ADM_SCR_PG)
                                                     <script>
                                                         (() => {
                                                             try {

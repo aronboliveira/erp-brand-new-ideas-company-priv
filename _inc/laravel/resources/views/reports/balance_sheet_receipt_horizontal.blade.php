@@ -107,7 +107,7 @@
                                                                                     {{ $name ?: __('No account name available') }}
                                                                                 </a>
                                                                             </p>
-                                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                                            @push(StacksConstants::ADM_SCR_PG)
                                                                                 <script>
                                                                                     (() => {
                                                                                         try {
@@ -226,7 +226,7 @@
                                                                                 </a>
                                                                             </p>
                                                                             <p class="mb-2 text-center">{{ data_get($record,'account_code') ?? '-' }}</p>
-                                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                                            @push(StacksConstants::ADM_SCR_PG)
                                                                                 <script>
                                                                                     (() => {
                                                                                         try {

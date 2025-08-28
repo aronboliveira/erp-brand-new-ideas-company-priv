@@ -49,7 +49,7 @@
         title="{{ __('Export') }}">
             <i class="{{ VC::TI_EXP }}"></i>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script defer src="{{ asset('assets/js/routes/reports/products/stocks/export.js') }}">
             </script>
         @endpush

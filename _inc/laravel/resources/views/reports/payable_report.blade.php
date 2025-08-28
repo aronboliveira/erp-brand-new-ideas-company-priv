@@ -64,7 +64,7 @@
             <input type="hidden" name="report" class="report">
             <button type="submit" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{ __('Print') }}" data-original-title="{{ __('Print') }}"><i class="ti ti-printer"></i></button>
         {{ Form::close() }}
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/payables/index/print.js') }}" defer></script>
         @endpush
     </div>
@@ -153,7 +153,7 @@
                                     </div>
                                 </div>
                             {{ Form::close() }}
-                            @push(StacksConstants::ADM_SCRP_PG)
+                            @push(StacksConstants::ADM_SCR_PG)
                                 <script src="{{ asset('assets/js/routes/reports/payables/index/apply.js') }}" defer></script>
                                 <script src="{{ asset('assets/js/routes/reports/payables/index/reset.js') }}" defer></script>
                             @endpush

@@ -1,32 +1,60 @@
-{{Collective\Html\FormFacade::open(array('url'=>'saturationdeduction','method'=>'post'))}}
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\{Facades\Route, Str};
+    $lang = Utility::fetchUserLang();
+    $satDedBaseName     = VW::STR_DD;
+    $satDedKebabName    = Str::kebab($satDedBaseName);
+    $satDedResolvedName = Route::has($satDedBaseName)
+        ? $satDedBaseName
+        : (Route::has($satDedKebabName) ? $satDedKebabName : null);
+    $satDedUrl          = $satDedResolvedName ? route($satDedResolvedName) : '#';
+    $satDedGuardMsg     = Utility::fetchLinkMessage($lang, VW::STR_DD, 'store_saturation_deduction_unavailable') ?? 'Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
+    $satDedFormId       = 'create_saturation_deduction_form';
+@endphp
+
+{{ Form::open([
+    'url'                 => VW::STR_DD,
+    'method'              => 'post',
+    'id'                  => $satDedFormId,
+    'data-action-url'     => $satDedUrl,
+    'data-form-guard-msg' => $satDedGuardMsg,
+    'data-sv-localized'   => 'true',
+]) }}
 <div class="modal-body">
+    {{ Form::hidden('employee_id', $employee->id, []) }}
 
-    {{ Collective\Html\FormFacade::hidden('employee_id',$employee->id, array()) }}
-    <div class="row">
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('deduction_option', __('Deduction Options'),['class'=>'form-label']) }}<span class="text-danger">*</span>
-            {{ Collective\Html\FormFacade::select('deduction_option',$deduction_options,null, array('class' => 'form-control select','required'=>'required')) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('title', __('Title'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('type', __('Type'), ['class' => 'form-label']) }}
-            {{ Collective\Html\FormFacade::select('type', $saturationdeduc, null, ['class' => 'form-control select amount_type', 'required' => 'required']) }}
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::FM_GCB6 }}">
+            {{ Form::label('deduction_option', __('Deduction Options'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
+            {{ Form::select('deduction_option', $deduction_options, null, [ 'class' => VC::FM_CT_SL, 'required' => 'required' ]) }}
         </div>
 
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('amount', __('Amount'),['class'=>'form-label amount_label']) }}
-            {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required','step'=>'0.01')) }}
+        <div class="{{ VC::FM_GCB6 }}">
+            {{ Form::label('title', __('Title'), [ 'class' => VC::FM_LB ]) }}
+            {{ Form::text('title', null, [ 'class' => VC::FM_CT, 'required' => 'required' ]) }}
         </div>
 
+        <div class="{{ VC::FM_GCB6 }}">
+            {{ Form::label('type', __('Type'), [ 'class' => VC::FM_LB ]) }}
+            {{ Form::select('type', $saturationdeduc, null, [ 'class' => VC::FM_CT_SL . ' amount_type', 'required' => 'required' ]) }}
+        </div>
+
+        <div class="{{ VC::FM_GCB6 }}">
+            {{ Form::label('amount', __('Amount'), [ 'class' => VC::FM_LB . ' amount_label' ]) }}
+            {{ Form::number('amount', null, [ 'class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01' ]) }}
+        </div>
     </div>
 </div>
 
 <div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+    <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+    <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
 </div>
 
-    {{ Collective\Html\FormFacade::close() }}
+{{ Form::close() }}
+
+@push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/saturationDeductions/store.js') }}"></script>
+@endpush

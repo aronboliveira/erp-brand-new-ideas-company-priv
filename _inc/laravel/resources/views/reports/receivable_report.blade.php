@@ -64,7 +64,7 @@
                 <i class="ti ti-printer"></i>
             </button>
         {{ Form::close() }}
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/receivables/print.js') }}" defer></script>
         @endpush
     </div>
@@ -144,7 +144,7 @@
                                     </div>
                                 </div>
                             {{ Form::close() }}
-                            @push(StacksConstants::ADM_SCRP_PG)
+                            @push(StacksConstants::ADM_SCR_PG)
                                 <script src="{{ asset('assets/js/routes/reports/receivables/apply.js') }}" defer></script>
                                 <script src="{{ asset('assets/js/routes/reports/receivables/reset.js') }}" defer></script>
                             @endpush
@@ -186,7 +186,7 @@
                         </ul>
                     </div>
                 </div>
-                @push(StacksConstants::ADM_SCRP_PG)
+                @push(StacksConstants::ADM_SCR_PG)
                     <script>
                         (function () {
                             const list = document.getElementById('pills-tab');

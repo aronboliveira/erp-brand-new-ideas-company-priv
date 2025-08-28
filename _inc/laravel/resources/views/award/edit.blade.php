@@ -120,7 +120,7 @@
     </div>
 {{ Form::close() }}
 
-@push(StacksConstants::ADM_SCRP_PG)
+@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('{{ $formId }}');

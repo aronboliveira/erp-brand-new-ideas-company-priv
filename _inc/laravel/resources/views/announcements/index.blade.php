@@ -127,7 +127,7 @@
                                                     <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                         {!! Collective\Html\FormFacade::open([
                                                             'method' => 'DELETE',
-                                                            'route'  => [ViewsConstants::ANC.'.destroy', $announcement->id],
+                                                            'route'  => [$deleteRoute],
                                                             'id'     => 'delete-form-'.$announcement->id
                                                         ]) !!}
                                                             <a

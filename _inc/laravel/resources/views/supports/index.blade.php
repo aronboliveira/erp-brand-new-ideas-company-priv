@@ -2,7 +2,8 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use App\Models\{Support, Utility};
@@ -30,219 +31,500 @@
     <li class="breadcrumb-item">{{__('Support')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-        <a href="{{ route(ViewsConstants::SPT.'.grid') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{__('Grid View')}}">
-            <i class="ti ti-layout-grid text-white"></i>
+    @php
+        $sptGridBase = VW::SPT.'.grid';
+        $sptGridKebab = Str::kebab($sptGridBase);
+        $sptGridResolved = Route::has($sptGridBase) ? $sptGridBase : (Route::has($sptGridKebab) ? $sptGridKebab : null);
+        $sptGridUrl = $sptGridResolved ? route($sptGridResolved) : '#';
+        $sptCreateBase = VW::SPT.'.create';
+        $sptCreateKebab = Str::kebab($sptCreateBase);
+        $sptCreateResolved = Route::has($sptCreateBase) ? $sptCreateBase : (Route::has($sptCreateKebab) ? $sptCreateKebab : null);
+        $sptCreateUrl = $sptCreateResolved ? route($sptCreateResolved) : '#';
+        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+        $gridGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'grid_support_route_unavailable') ?? 'Grid support route is unavailable. Please contact technical support or your domain administrator.';
+        $createGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'create_support_route_unavailable') ?? 'Create support route is unavailable. Please contact technical support or your domain administrator.';
+    @endphp
+    <div class="{{ VC::FEND }}">
+        <a href="{{ $sptGridUrl }}"
+           class="{{ VC::BT_SM_PM }} support-grid"
+           data-url="{{ $sptGridUrl }}"
+           data-guard-msg="{{ $gridGuardMsg }}"
+           data-sv-localized="true"
+           data-bs-toggle="tooltip"
+           title="{{ __('Grid View') }}">
+            <i class="ti ti-layout-grid {{ VC::TXT_WT }}"></i>
         </a>
-       <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::SPT.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create Support')}}" class="btn btn-sm btn-primary">
-            <i class="ti ti-plus"></i>
+        <a href="{{ $sptCreateUrl }}"
+           data-size="lg"
+           data-url="{{ $sptCreateUrl }}"
+           data-ajax-popup="true"
+           data-bs-toggle="tooltip"
+           title="{{ __('Create') }}"
+           data-title="{{ __('Create Support') }}"
+           class="{{ VC::BT_SM_PM }} support-create"
+           data-guard-msg="{{ $createGuardMsg }}"
+           data-sv-localized="true">
+            <i class="{{ VC::TI_PLS }}"></i>
         </a>
     </div>
+    @push(StacksConstants::ADM_SCR_PG)
+        <script src="{{ asset('assets/js/routes/supports/index/grid.js') }}" defer></script>
+        <script src="{{ asset('assets/js/routes/supports/create.js') }}" defer></script>
+    @endpush
 @endsection
+
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-primary">
-                                    <i class="ti ti-cast"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <small class="text-muted">{{__('Total')}}</small>
-                                    <h6 class="m-0">{{__('Ticket')}}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <h3 class="m-0">{{ $countTicket }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-info">
-                                    <i class="ti ti-cast"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <small class="text-muted">{{__('Open')}}</small>
-                                    <h6 class="m-0">{{__('Ticket')}}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <h3 class="m-0">{{ $countOpenTicket }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-warning">
-                                    <i class="ti ti-cast"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <small class="text-muted">{{__('On Hold')}}</small>
-                                    <h6 class="m-0">{{__('Ticket')}}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <h3 class="m-0">{{ $countonholdTicket }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row align-items-center justify-content-between">
-                        <div class="col-auto mb-3 mb-sm-0">
-                            <div class="d-flex align-items-center">
-                                <div class="theme-avatar bg-danger">
-                                    <i class="ti ti-cast"></i>
-                                </div>
-                                <div class="ms-3">
-                                    <small class="text-muted">{{__('Close')}}</small>
-                                    <h6 class="m-0">{{__('Ticket')}}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <h3 class="m-0">{{ $countCloseTicket }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="table datatable">
-                            <thead>
-                            <tr>
-                                <th scope="col">{{__('Created By')}}</th>
-                                <th scope="col">{{__('Ticket')}}</th>
-                                <th scope="col">{{__('Code')}}</th>
-                                <th scope="col">{{__('Attachment')}}</th>
-                                <th scope="col">{{__('Assign User')}}</th>
-                                <th scope="col">{{__('Status')}}</th>
-                                <th scope="col">{{__('Created At')}}</th>
-                                <th scope="col" >{{__('Action')}}</th>
-                            </tr>
-                            </thead>
-                            <tbody class="list">
-                                @php
-                                    $supportpath = Utility::getFile('uploads/supports');
-                                @endphp
-                                @foreach($supports as $support)
-                                    <tr>
-                                        <td scope="row">
-                                            <div class="media align-items-center">
-                                                <div>
-                                                    <div class="avatar-parent-child">
-                                                        <img alt="" class="avatar rounded-circle avatar-sm me-1" @if(!empty($support->createdBy) && !empty($support->createdBy->avatar) && file_exists('storage/uploads/avatar/'.$support->createdBy->avatar)) src="{{asset(Storage::url('uploads/avatar')).'/'.$support->createdBy->avatar}}" @else  src="{{asset(Storage::url('uploads/avatar')).'/avatar.png'}}" @endif>
-                                                        @if($support->replyUnread()>0)
-                                                            <span class="avatar-child avatar-badge bg-success"></span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                <div class="media-body">
-                                                    {{!empty($support->createdBy)?$support->createdBy->name:''}}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td scope="row">
-                                            <div class="media align-items-center">
-                                                <div class="media-body">
-                                                    <a href="{{ route(ViewsConstants::SPT.'.reply',Crypt::encrypt($support->id)) }}" class="name h6 mb-0 text-sm">{{$support->subject}}</a><br>
-                                                    @if($support->priority == 0)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-primary p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
-                                                    @elseif($support->priority == 1)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-info p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
-                                                    @elseif($support->priority == 2)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-warning p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
-                                                    @elseif($support->priority == 3)
-                                                        <span data-toggle="tooltip" data-title="{{__('Priority')}}" class="text-capitalize badge bg-danger p-2 px-3 rounded">   {{ __( Support::$priority[$support->priority]) }}</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>{{$support->ticket_code}}</td>
-                                        <td>
-                                            @if(!empty($support->attachment))
-                                                <a  class="action-btn bg-primary ms-2 btn btn-sm align-items-center" href="{{ $supportpath . '/' . $support->attachment }}" download=""  data-bs-toggle="tooltip" title="{{__('Download')}}" target="_blank">
-                                                    <i class="ti ti-download text-white"></i>
-                                                </a>
-                                                <a href="{{ $supportpath . '/' . $support->attachment }}"
-                                                class="action-btn bg-secondary ms-2 mx-3 btn btn-sm align-items-center">
-                                                    <span class="btn-inner--icon"><i class="ti ti-crosshair text-white" ></i></span>
-                                                </a>
-                                            @else
-                                                -
-                                            @endif
-
-                                        </td>
-                                        <td>{{!empty($support->assignUser)?$support->assignUser->name:'-'}}</td>
-                                        <td>
-                                            @if($support->status == 'Open')
-                                                <span class="status_badge text-capitalize badge bg-success p-2 px-3 rounded">{{ __( Support::$status[$support->status]) }}</span>
-                                            @elseif($support->status == 'Close')
-                                                <span class="status_badge text-capitalize badge bg-danger p-2 px-3 rounded">{{ __( Support::$status[$support->status]) }}</span>
-                                            @elseif($support->status == 'On Hold')
-                                                <span  class="status_badge text-capitalize badge bg-warning p-2 px-3 rounded">{{ __( Support::$status[$support->status]) }}</span>
-                                            @endif
-                                        </td>
-                                        <td>{{$user?->dateFormat($support->created_at)}}</td>
-                                        <td class="Action">
-                                        <span>
-                                            <div class="action-btn bg-warning ms-2">
-                                                <a href="{{ route(ViewsConstants::SPT.'.reply',Crypt::encrypt($support->id)) }}" data-title="{{__('Support Reply')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Reply')}}" data-original-title="{{__('Reply')}}">
-                                                    <i class="ti ti-corner-up-left text-white"></i>
-                                                </a>
-                                            </div>
-                                            @if($user?->type=='company' || $user?->id==$support->ticket_created)
-                                                <div class="action-btn bg-primary ms-2">
-                                                    <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::SPT.'.edit',$support->id) }}" data-ajax-popup="true" data-title="{{__('Edit Support')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
-                                                        <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
+	<div class="{{ VC::RW }}">
+		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
+			<div class="{{ VC::CD }}">
+				<div class="card-body">
+					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+						<div class="col-auto mb-3 mb-sm-0">
+							<div class="{{ VC::DFL_AIC }}">
+								<div class="theme-avatar {{ VC::BG_P }}"><i class="ti ti-cast"></i></div>
+								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('Total') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
+							</div>
+						</div>
+						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countTicket ?? 0) }}</h3></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
+			<div class="{{ VC::CD }}">
+				<div class="card-body">
+					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+						<div class="col-auto mb-3 mb-sm-0">
+							<div class="{{ VC::DFL_AIC }}">
+								<div class="theme-avatar bg-info"><i class="ti ti-cast"></i></div>
+								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('Open') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
+							</div>
+						</div>
+						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countOpenTicket ?? 0) }}</h3></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
+			<div class="{{ VC::CD }}">
+				<div class="card-body">
+					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+						<div class="col-auto mb-3 mb-sm-0">
+							<div class="{{ VC::DFL_AIC }}">
+								<div class="theme-avatar bg-warning"><i class="ti ti-cast"></i></div>
+								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('On Hold') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
+							</div>
+						</div>
+						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countonholdTicket ?? 0) }}</h3></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="{{ VC::CL3 }} {{ VC::CM6 }}">
+			<div class="{{ VC::CD }}">
+				<div class="card-body">
+					<div class="{{ VC::RW }} {{ VC::ALC }} {{ VC::JCB }}">
+						<div class="col-auto mb-3 mb-sm-0">
+							<div class="{{ VC::DFL_AIC }}">
+								<div class="theme-avatar bg-danger"><i class="ti ti-cast"></i></div>
+								<div class="ms-3"><small class="{{ VC::TXT_MT }}">{{ __('Close') }}</small><h6 class="m-0">{{ __('Ticket') }}</h6></div>
+							</div>
+						</div>
+						<div class="col-auto text-end"><h3 class="m-0">{{ (int)($countCloseTicket ?? 0) }}</h3></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="{{ VC::RW }}">
+		<div class="{{ VC::CM12 }}">
+			<div class="{{ VC::CD }}">
+				<div class="card-body table-border-style">
+					<div class="table-responsive">
+						<table class="{{ VC::TB }} datatable">
+							<thead>
+								<tr>
+									<th scope="col">{{ __('Created By') }}</th>
+									<th scope="col">{{ __('Ticket') }}</th>
+									<th scope="col">{{ __('Code') }}</th>
+									<th scope="col">{{ __('Attachment') }}</th>
+									<th scope="col">{{ __('Assign User') }}</th>
+									<th scope="col">{{ __('Status') }}</th>
+									<th scope="col">{{ __('Created At') }}</th>
+									<th scope="col">{{ __('Action') }}</th>
+								</tr>
+							</thead>
+							<tbody class="list">
+								@php
+									$supportpath = \App\Models\Utility::getFile('uploads/supports') ?? '';
+								@endphp
+								@forelse((($supports ?? null) instanceof \Illuminate\Support\Collection || is_array($supports ?? null)) ? $supports : [] as $support)
+									<tr>
+										<td scope="row">
+											<div class="{{ VC::MD_AIC }}">
+												<div>
+													<div class="avatar-parent-child">
+														@php
+															$avatar = data_get($support,'createdBy.avatar');
+															$avatarSrc = !empty($avatar) ? asset(Storage::url('uploads/avatar')).'/'.$avatar : asset(Storage::url('uploads/avatar')).'/avatar.png';
+															$unread = (is_object($support) && method_exists($support,'replyUnread')) ? (int)($support->replyUnread() ?? 0) : 0;
+														@endphp
+														<img alt="" class="{{ VC::AV_CC_SM }} me-1" src="{{ $avatarSrc }}">
+														@if($unread > 0)
+															<span class="avatar-child avatar-badge bg-success"></span>
+														@endif
+													</div>
+												</div>
+												<div class="media-body">{{ data_get($support,'createdBy.name') ?: __('No creator name available') }}</div>
+											</div>
+										</td>
+										<td scope="row">
+											<div class="{{ VC::MD_AIC }}">
+												<div class="media-body">
+													@php
+                                                        $sptReplyBase = VW::SPT.'.reply';
+                                                        $sptReplyKebab = Str::kebab($sptReplyBase);
+                                                        $sptReplyResolved = Route::has($sptReplyBase) ? $sptReplyBase : (Route::has($sptReplyKebab) ? $sptReplyKebab : null);
+                                                        $supportIdRaw = data_get($support,'id');
+                                                        $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                        $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                        $sptReplyUrl = ($sptReplyResolved && $sptEncryptedId) ? route($sptReplyResolved, $sptEncryptedId) : '#';
+                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                        $sptReplyGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'reply_support_route_unavailable') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $sptReplyAnchorId = 'support-reply-'.Str::uuid();
+                                                    @endphp
+                                                    <a id="{{ $sptReplyAnchorId }}"
+                                                    href="{{ $sptReplyUrl }}"
+                                                    class="name {{ VC::H6 }} {{ VC::MB0 }} {{ VC::TXSM }}"
+                                                    data-url="{{ $sptReplyUrl }}"
+                                                    data-guard-msg="{{ $sptReplyGuardMsg }}"
+                                                    data-sv-localized="true"
+                                                    data-bs-toggle="tooltip"
+                                                    title="{{ __('Reply') }}">
+                                                        {{ data_get($support,'subject') ?: __('No subject available') }}
                                                     </a>
-                                                </div>
-                                                <div class="action-btn bg-danger ms-2">
-                                                    {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::SPT.'.destroy', $support->id],'id'=>'delete-form-'.$support->id]) !!}
-                                                        <a href="#!" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$support->id}}').submit();">
-                                                            <i class="ti ti-trash text-white"></i>
+                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                        <script defer>
+                                                            (() => {
+                                                                try {
+                                                                    const el = document.getElementById('{{ $sptReplyAnchorId }}');
+                                                                    if (!el) { return; }
+                                                                    if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                    el.setAttribute('data-listener-active', 'true');
+                                                                    el.addEventListener('click', (e) => {
+                                                                        try {
+                                                                            const href = el.getAttribute('href') ?? '#';
+                                                                            const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                            if (url !== '#' && href !== '#') { return; }
+                                                                            e.preventDefault();
+                                                                            const msg = el.getAttribute('data-guard-msg') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role', 'alert');
+                                                                                toast.setAttribute('aria-live', 'assertive');
+                                                                                toast.setAttribute('aria-atomic', 'true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            el.setAttribute('data-failed-route', 'true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                } catch (err) {}
+                                                            })();
+                                                        </script>
+                                                    @endpush
+                                                    <br/>
+													@php
+														$priorityBadgeClasses = [0 => VC::BG_P, 1 => 'bg-info', 2 => 'bg-warning', 3 => 'bg-danger'];
+														$prio = data_get($support,'priority');
+														$prioClass = $priorityBadgeClasses[$prio] ?? 'bg-secondary';
+														$priorityMap = Support::$priority ?? [];
+														$prioLabel = isset($priorityMap[$prio]) ? __($priorityMap[$prio]) : __('No priority available');
+													@endphp
+													<span data-toggle="tooltip" data-title="{{ __('Priority') }}" class="text-capitalize badge {{ $prioClass }} p-2 px-3 rounded">{{ $prioLabel }}</span>
+												</div>
+											</div>
+										</td>
+										<td>{{ data_get($support,'ticket_code') ?: __('No code available') }}</td>
+										<td>
+											@php
+												$attachment = data_get($support,'attachment');
+												$fileUrl = !empty($attachment) && !empty($supportpath) ? $supportpath.'/'.$attachment : '';
+											@endphp
+											@if(!empty($fileUrl))
+												<a class="{{ VC::ACT_BTN_PRIM }} {{ VC::BT_SM_CT }}" href="{{ $fileUrl }}" download data-bs-toggle="tooltip" title="{{ __('Download') }}" target="_blank">
+													<i class="{{ VC::TI_DWN }} {{ VC::TXT_WT }}"></i>
+												</a>
+												<a href="{{ $fileUrl }}" class="action-btn bg-secondary ms-2 {{ VC::BT_SM_CT }}">
+													<span class="btn-inner--icon"><i class="ti ti-crosshair {{ VC::TXT_WT }}"></i></span>
+												</a>
+											@else
+												-
+											@endif
+										</td>
+										<td>{{ data_get($support,'assignUser.name') ?: __('No user name found') }}</td>
+										<td>
+											@php
+												$status = (string) data_get($support,'status','');
+												$statusMap = Support::$status ?? [];
+												$statusLabel = isset($statusMap[$status]) ? __($statusMap[$status]) : __('No status available');
+												$statusClass = $status === 'Open' ? 'bg-success' : ($status === 'Close' ? 'bg-danger' : ($status === 'On Hold' ? 'bg-warning' : 'bg-secondary'));
+											@endphp
+											<span class="status_badge text-capitalize badge {{ $statusClass }} p-2 px-3 rounded">{{ $statusLabel }}</span>
+										</td>
+										<td>{{ $user?->dateFormat(data_get($support,'created_at')) ?? __('Failed to get created date') }}</td>
+										<td class="Action">
+											<span>
+												<div class="{{ VC::ACT_BTN_WRN }} me-2">
+													@php
+                                                        $sptReplyBase = VW::SPT.'.reply';
+                                                        $sptReplyKebab = Str::kebab($sptReplyBase);
+                                                        $sptReplyResolved = Route::has($sptReplyBase) ? $sptReplyBase : (Route::has($sptReplyKebab) ? $sptReplyKebab : null);
+                                                        $supportIdRaw = data_get($support,'id');
+                                                        $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                        $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                        $sptReplyUrl = ($sptReplyResolved && $sptEncryptedId) ? route($sptReplyResolved, $sptEncryptedId) : '#';
+                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                        $sptReplyGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'reply_support_route_unavailable') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $sptReplyAnchorId = 'support-reply-'.($supportId ? substr(md5($supportId),0,8) : 'x');
+                                                    @endphp
+                                                    <a id="{{ $sptReplyAnchorId }}"
+                                                    href="{{ $sptReplyUrl }}"
+                                                    data-title="{{ __('Support Reply') }}"
+                                                    class="{{ VC::BT_SM_CT }}"
+                                                    data-bs-toggle="tooltip"
+                                                    title="{{ __('Reply') }}"
+                                                    data-original-title="{{ __('Reply') }}"
+                                                    data-url="{{ $sptReplyUrl }}"
+                                                    data-guard-msg="{{ $sptReplyGuardMsg }}"
+                                                    data-sv-localized="true">
+                                                        <i class="ti ti-corner-up-left {{ VC::TXT_WT }}"></i>
+                                                    </a>
+                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                        <script defer>
+                                                            (() => {
+                                                                try {
+                                                                    const el = document.getElementById('{{ $sptReplyAnchorId }}');
+                                                                    if (!el) { return; }
+                                                                    if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                    el.setAttribute('data-listener-active', 'true');
+                                                                    el.addEventListener('click', (e) => {
+                                                                        try {
+                                                                            const href = el.getAttribute('href') ?? '#';
+                                                                            const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                            if (url !== '#' && href !== '#') { return; }
+                                                                            e.preventDefault();
+                                                                            const msg = el.getAttribute('data-guard-msg') ?? 'Reply support route is unavailable. Please contact technical support or your domain administrator.';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role', 'alert');
+                                                                                toast.setAttribute('aria-live', 'assertive');
+                                                                                toast.setAttribute('aria-atomic', 'true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            el.setAttribute('data-failed-route', 'true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                } catch (err) {}
+                                                            })();
+                                                        </script>
+                                                    @endpush
+												</div>
+												@if((($user?->type) ?? '') === 'company' || (($user?->id) ?? null) === data_get($support,'ticket_created'))
+													<div class="{{ VC::ACT_BTN_PRIM }} me-2">
+														@php
+                                                            $sptEditBase = VW::SPT.'.edit';
+                                                            $sptEditKebab = Str::kebab($sptEditBase);
+                                                            $sptEditResolved = Route::has($sptEditBase) ? $sptEditBase : (Route::has($sptEditKebab) ? $sptEditKebab : null);
+                                                            $supportIdRaw = data_get($support,'id');
+                                                            $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                            $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                            $sptEditUrl = ($sptEditResolved && $sptEncryptedId) ? route($sptEditResolved, $sptEncryptedId) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $sptEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'edit_support_route_unavailable') ?? 'Edit support route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $sptEditAnchorId = 'support-edit-'.($supportId ? substr(md5($supportId),0,8) : 'x');
+                                                        @endphp
+                                                        <a
+                                                            id="{{ $sptEditAnchorId }}"
+                                                            href="{{ $sptEditUrl }}"
+                                                            data-size="lg"
+                                                            data-url="{{ $sptEditUrl }}"
+                                                            data-ajax-popup="true"
+                                                            data-title="{{ __('Edit Support') }}"
+                                                            class="{{ VC::BT_SM_CT }}"
+                                                            data-bs-toggle="tooltip"
+                                                            title="{{ __('Edit') }}"
+                                                            data-original-title="{{ __('Edit') }}"
+                                                            data-guard-msg="{{ $sptEditGuardMsg }}"
+                                                            data-sv-localized="true"
+                                                        >
+                                                            <i class="{{ VC::TI_PC_WT }}"></i>
                                                         </a>
-                                                    {!! Collective\Html\FormFacade::close() !!}
-                                                </div>
-
-                                            @endif
-                                        </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            </div>
-    </div>
+                                                        @push(StacksConstants::ADM_SCR_PG)
+                                                            <script defer>
+                                                                (() => {
+                                                                    try {
+                                                                        const el = document.getElementById('{{ $sptEditAnchorId }}');
+                                                                        if (!el) { return; }
+                                                                        if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                        el.setAttribute('data-listener-active', 'true');
+                                                                        el.addEventListener('click', (e) => {
+                                                                            try {
+                                                                                const href = el.getAttribute('href') ?? '#';
+                                                                                const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                                if (url !== '#' && href !== '#') { return; }
+                                                                                e.preventDefault();
+                                                                                const msg = el.getAttribute('data-guard-msg') ?? 'Edit support route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                let container = document.getElementById('toast-container');
+                                                                                if (!container) {
+                                                                                    container = document.createElement('div');
+                                                                                    container.id = 'toast-container';
+                                                                                    document.body.appendChild(container);
+                                                                                }
+                                                                                if (hasBootstrap) {
+                                                                                    const toast = document.createElement('div');
+                                                                                    toast.className = 'toast';
+                                                                                    toast.setAttribute('role', 'alert');
+                                                                                    toast.setAttribute('aria-live', 'assertive');
+                                                                                    toast.setAttribute('aria-atomic', 'true');
+                                                                                    const body = document.createElement('div');
+                                                                                    body.className = 'toast-body';
+                                                                                    body.textContent = msg;
+                                                                                    toast.appendChild(body);
+                                                                                    container.appendChild(toast);
+                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                } else {
+                                                                                    alert(msg);
+                                                                                }
+                                                                                el.setAttribute('data-failed-route', 'true');
+                                                                            } catch (err) {}
+                                                                        });
+                                                                    } catch (err) {}
+                                                                })();
+                                                            </script>
+                                                        @endpush
+													</div>
+													<div class="{{ VC::ACT_BTN_DNG_2 }}">
+														@php
+                                                            $sptDestroyBase = VW::SPT.'.destroy';
+                                                            $sptDestroyKebab = Str::kebab($sptDestroyBase);
+                                                            $sptDestroyResolved = Route::has($sptDestroyBase) ? $sptDestroyBase : (Route::has($sptDestroyKebab) ? $sptDestroyKebab : null);
+                                                            $supportIdRaw = data_get($support,'id');
+                                                            $supportId = (is_string($supportIdRaw) && Str::isUuid($supportIdRaw)) ? $supportIdRaw : null;
+                                                            $sptEncryptedId = $supportId ? Crypt::encrypt($supportId) : null;
+                                                            $sptDestroyUrl = ($sptDestroyResolved && $sptEncryptedId) ? route($sptDestroyResolved, $sptEncryptedId) : '#';
+                                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                            $sptDeleteGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'delete_support_route_unavailable') ?? 'Delete support route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $confirmTitle = __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?');
+                                                            $confirmBody = __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                                            $formId = 'support-delete-form-'.Str::uuid();
+                                                            $anchorId = 'support-delete-btn-'.Str::uuid();
+                                                        @endphp
+                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE','url' => $sptDestroyUrl,'id' => $formId]) !!}
+                                                            <a id="{{ $anchorId }}"
+                                                            href="#!"
+                                                            class="{{ VC::BT_SM_CT_PR }}"
+                                                            data-bs-toggle="tooltip"
+                                                            title="{{ __('Delete') }}"
+                                                            data-original-title="{{ __('Delete') }}"
+                                                            data-confirm="{{ $confirmTitle }}|{{ $confirmBody }}"
+                                                            data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
+                                                            data-url="{{ $sptDestroyUrl }}"
+                                                            data-guard-msg="{{ $sptDeleteGuardMsg }}"
+                                                            data-sv-localized="true">
+                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                            </a>
+                                                        {!! Collective\Html\FormFacade::close() !!}
+                                                        @push(StacksConstants::ADM_SCR_PG)
+                                                            <script defer>
+                                                                (() => {
+                                                                    try {
+                                                                        const el = document.getElementById('{{ $anchorId }}');
+                                                                        if (!el) { return; }
+                                                                        if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                        el.setAttribute('data-listener-active', 'true');
+                                                                        el.addEventListener('click', (e) => {
+                                                                            try {
+                                                                                const form = document.getElementById('{{ $formId }}');
+                                                                                const action = form ? (form.getAttribute('action') ?? '#') : '#';
+                                                                                const href = el.getAttribute('href') ?? '#!';
+                                                                                const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                                if (url !== '#' && href !== '#!' && action !== '#') { return; }
+                                                                                e.preventDefault();
+                                                                                const msg = el.getAttribute('data-guard-msg') ?? 'Delete support route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                let container = document.getElementById('toast-container');
+                                                                                if (!container) {
+                                                                                    container = document.createElement('div');
+                                                                                    container.id = 'toast-container';
+                                                                                    document.body.appendChild(container);
+                                                                                }
+                                                                                if (hasBootstrap) {
+                                                                                    const toast = document.createElement('div');
+                                                                                    toast.className = 'toast';
+                                                                                    toast.setAttribute('role', 'alert');
+                                                                                    toast.setAttribute('aria-live', 'assertive');
+                                                                                    toast.setAttribute('aria-atomic', 'true');
+                                                                                    const body = document.createElement('div');
+                                                                                    body.className = 'toast-body';
+                                                                                    body.textContent = msg;
+                                                                                    toast.appendChild(body);
+                                                                                    container.appendChild(toast);
+                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                } else {
+                                                                                    alert(msg);
+                                                                                }
+                                                                                el.setAttribute('data-failed-route', 'true');
+                                                                                if (form) { form.setAttribute('data-failed-route', 'true'); }
+                                                                            } catch (err) {}
+                                                                        });
+                                                                    } catch (err) {}
+                                                                })();
+                                                            </script>
+                                                        @endpush
+													</div>
+												@endif
+											</span>
+										</td>
+									</tr>
+								@empty
+									<tr><td colspan="8" class="text-center text-muted">{{ __('No supports available') }}</td></tr>
+								@endforelse
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 @endsection
-

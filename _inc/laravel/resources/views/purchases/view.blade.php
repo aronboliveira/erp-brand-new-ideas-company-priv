@@ -156,7 +156,7 @@
         <li class="breadcrumb-item">
             <a href="{{ $purchaseIndexUrl }}" id="{{ $purchaseIndexLinkId }}" class="{{ VC::BT_LNK ?? '' }}" data-ajax-popup="true" data-title="{{ __('Purchase') }}" data-url="{{ $purchaseIndexUrl }}" data-guard-msg="{{ $purchaseIndexGuardMsg }}" data-sv-localized="true">{{ __('Purchase') }}</a>
         </li>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/purchases/index.js') }}" defer></script>
         @endpush
         <li class="breadcrumb-item">{{ ($user instanceof User && method_exists($user, 'purchaseNumberFormat')) ? $user->purchaseNumberFormat($purchase->id) : __('Failed to format purchase number') }}</li>
@@ -199,7 +199,7 @@
                                             data-sv-localized="true">
                                                 <i class="{{ VC::TI_PC }} {{ VC::MR2 }}"></i>{{ __('Edit') }}
                                             </a>
-                                            @push(StacksConstants::ADM_SCRP_PG)
+                                            @push(StacksConstants::ADM_SCR_PG)
                                                 <script src="{{ asset('assets/js/routes/purchases/edit.js') }}" defer></script>
                                             @endpush
                                         @endcan
@@ -236,7 +236,7 @@
                                                 data-sv-localized="true">
                                                     <i class="ti ti-send {{ VC::MR2 }}"></i>{{ __('Send') }}
                                                 </a>
-                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                @push(StacksConstants::ADM_SCR_PG)
                                                     <script src="{{ asset('assets/js/routes/purchases/sent.js') }}" defer></script>
                                                 @endpush
                                             @endcan
@@ -267,7 +267,7 @@
                                                 data-sv-localized="true">
                                                     <i class="ti ti-report-money {{ VC::MR2 }}"></i>{{ __('Add Payment') }}
                                                 </a>
-                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                @push(StacksConstants::ADM_SCR_PG)
                                                     <script src="{{ asset('assets/js/routes/purchases/payment.js') }}" defer></script>
                                                 @endpush
                                             @endcan
@@ -315,7 +315,7 @@
                             data-guard-msg="{{ $purchasePdfGuardMsg }}"
                             data-sv-localized="true">{{ __('Download') }}</a>
                         </div>
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/purchases/resent.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/purchases/pdf.js') }}" defer></script>
                         @endpush
@@ -419,7 +419,7 @@
                                         <div id="{{ $qrElId }}" data-url="{{ $purchaseCopyLinkUrl }}" data-guard-msg="{{ $purchaseCopyLinkMsg }}" data-sv-localized="true">
                                             {!! DNS2D::getBarcodeHTML($purchaseCopyLinkUrl, 'QRCODE', 2, 2) !!}
                                         </div>
-                                        @push(StacksConstants::ADM_SCRP_PG)
+                                        @push(StacksConstants::ADM_SCR_PG)
                                             <script defer>
                                                 (() => {
                                                     try {
@@ -680,7 +680,7 @@
                                                             <i class="{{ VC::TI_TRS_WT }}"></i>
                                                         </a>
                                                     {!! Collective\Html\FormFacade::close() !!}
-                                                    @push(StacksConstants::ADM_SCRP_PG)
+                                                    @push(StacksConstants::ADM_SCR_PG)
                                                         <script src="{{ asset('assets/js/routes/purchases/delete.js') }}" defer></script>
                                                     @endpush
                                                 </div>

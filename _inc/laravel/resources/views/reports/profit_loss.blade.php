@@ -101,7 +101,7 @@
             <i class="ti ti-separator-vertical"></i>
         </a>
     </div>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/routes/reports/profits/index/loss/print.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/reports/profits/index/loss/export.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/reports/profits/index/loss/horizontal.js') }}" defer></script>
@@ -138,7 +138,7 @@
             data-url="{{ $monthlyPurchaseUrl }}"
             data-guard-msg="{{ $guardMsg }}"
             data-sv-localized="true">{{ __('Quarterly') }}</a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/reports/purchases/monthly/open.js') }}" defer></script>
             @endpush
         </li>
@@ -188,7 +188,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/profits/index/loss/summaries/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/profits/index/loss/summaries/reset.js') }}" defer></script>
                         @endpush

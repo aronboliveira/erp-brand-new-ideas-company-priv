@@ -56,7 +56,7 @@
                 <i class="ti ti-printer"></i>
             </button>
         {{ Form::close() }}
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/profits/horizontal/loss/print.js') }}" defer></script>
         @endpush
     </div>
@@ -77,7 +77,7 @@
                 <i class="{{ VC::TI_EXP }}"></i>
             </button>
         {{ Form::close() }}
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/profits/horizontal/loss/export.js') }}" defer></script>
         @endpush
     </div>
@@ -106,7 +106,7 @@
         aria-label="{{ __('Vertical View') }}">
             <i class="ti ti-separator-horizontal"></i>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/profits/horizontal/loss/vertical.js') }}" defer></script>
         @endpush
     </div>
@@ -187,7 +187,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/profits/horizontal/loss/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/profits/horizontal/loss/reset.js') }}" defer></script>
                         @endpush
@@ -259,7 +259,7 @@
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
-                                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                                @push(StacksConstants::ADM_SCR_PG)
                                                                     <script defer>
                                                                         (() => {
                                                                             try {
@@ -330,7 +330,7 @@
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
-                                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                                @push(StacksConstants::ADM_SCR_PG)
                                                                     <script defer>
                                                                         (() => {
                                                                             try {
@@ -444,7 +444,7 @@
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
-                                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                                @push(StacksConstants::ADM_SCR_PG)
                                                                     <script defer>
                                                                         (() => {
                                                                             try {
@@ -515,7 +515,7 @@
                                                                 data-sv-localized="true">
                                                                     {{ $accLabel }}
                                                                 </a>
-                                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                                @push(StacksConstants::ADM_SCR_PG)
                                                                     <script defer>
                                                                         (() => {
                                                                             try {

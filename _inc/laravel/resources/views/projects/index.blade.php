@@ -27,7 +27,7 @@
         </a>
     </li>
     <li class="breadcrumb-item">{{ __('Projects') }}</li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script>
             (() => {
                 try {
@@ -144,7 +144,7 @@
             </a>
         @endcan
     </div>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script>
             (() => {
                 try {

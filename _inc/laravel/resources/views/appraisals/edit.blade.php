@@ -18,7 +18,7 @@
 @endphp
 
 {{ Form::model($appraisal, [
-    'route'             => [ViewsConstants::APR.'.update', $appraisal->id],
+    'route'             => [$updateRoute],
     'method'            => 'PUT',
     'id'                => $formId,
     'data-url'          => $updateRoute,

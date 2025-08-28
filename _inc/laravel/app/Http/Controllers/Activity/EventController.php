@@ -1,5 +1,5 @@
 <?php
-
+// TODO STOPPED MEASURING ACTIVITIES HERE
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
@@ -43,7 +43,7 @@ class EventController extends Controller
         ->whereRaw('MONTH(end_date)=' . $todayMonth)
         ->get();
       $arrEvents          = $events
-        ->map(fn ($e) => [
+        ->map(fn($e) => [
           'id'        => $e->id,
           'title'     => $e->title,
           'start'     => $e->start_date,

@@ -455,7 +455,7 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                @push(StacksConstants::ADM_SCRP_PG)
+                                @push(StacksConstants::ADM_SCR_PG)
                                     <script defer>
                                         (() => {
                                             document.querySelectorAll('[id^="customer-show-btn-"]').forEach(btn => {

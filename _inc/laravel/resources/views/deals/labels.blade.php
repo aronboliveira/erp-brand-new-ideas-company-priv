@@ -62,7 +62,7 @@
         <input type="submit" value="{{ __('Save') }}" class="{{ VC::BT_PRM }}">
     </div>
 {{ Form::close() }}
-@push(StacksConstants::ADM_SCRP_PG)
+@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('labels-store-form');

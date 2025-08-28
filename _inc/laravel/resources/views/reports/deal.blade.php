@@ -43,7 +43,7 @@
         data-original-title="{{ __('Download') }}">
             <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/deals/download.js') }}" defer></script>
         @endpush
     </div>

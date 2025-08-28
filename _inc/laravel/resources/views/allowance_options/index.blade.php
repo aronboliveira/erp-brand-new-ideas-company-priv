@@ -80,35 +80,24 @@
                             </thead>
                             <tbody class="font-style">
                                 @foreach($allowanceoptions as $option)
-                                    @php
-                                        $editRoute = Route::has(ViewsConstants::ALW_OPT.'.edit')
-                                            ? route(ViewsConstants::ALW_OPT.'.edit', $option->id)
-                                            : Route::has(Str::kebab(ViewsConstants::ALW_OPT.'.edit'))
-                                                ? route(Str::kebab(ViewsConstants::ALW_OPT.'.edit'), $option->id)
-                                                : '#';
-                                        $editId = "allowance-option-edit-{$option->id}-link";
-                                        $editMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::ALW_OPT,
-                                            'allowance_option_edit_route_unavailable'
-                                        ) ?? 'Edit Allowance Option route is unavailable. Please contact technical support or your domain administrator.';
-                                        $destroyRoute = Route::has(ViewsConstants::ALW_OPT.'.destroy')
-                                            ? route(ViewsConstants::ALW_OPT.'.destroy', $option->id)
-                                            : Route::has(Str::kebab(ViewsConstants::ALW_OPT.'.destroy'))
-                                                ? route(Str::kebab(ViewsConstants::ALW_OPT.'.destroy'), $option->id)
-                                                : '#';
-                                        $deleteId = "allowance-option-delete-{$option->id}-link";
-                                        $deleteMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::ALW_OPT,
-                                            'allowance_option_destroy_route_unavailable'
-                                        ) ?? 'Delete Allowance Option route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
                                     <tr>
                                         <td>{{ $option->name }}</td>
                                         <td>
                                             @can('edit allowance option')
                                                 <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
+                                                    @php
+                                                        $editRoute = Route::has(ViewsConstants::ALW_OPT.'.edit')
+                                                            ? route(ViewsConstants::ALW_OPT.'.edit', $option->id)
+                                                            : Route::has(Str::kebab(ViewsConstants::ALW_OPT.'.edit'))
+                                                                ? route(Str::kebab(ViewsConstants::ALW_OPT.'.edit'), $option->id)
+                                                                : '#';
+                                                        $editId = "allowance-option-edit-{$option->id}-link";
+                                                        $editMsg = Utility::fetchLinkMessage(
+                                                            $lang,
+                                                            ViewsConstants::ALW_OPT,
+                                                            'allowance_option_edit_route_unavailable'
+                                                        ) ?? 'Edit Allowance Option route is unavailable. Please contact technical support or your domain administrator.';
+                                                    @endphp
                                                     <a
                                                         id="{{ $editId }}"
                                                         href="{{ $editRoute }}"
@@ -126,10 +115,23 @@
                                                 </div>
                                             @endcan
                                             @can('delete allowance option')
+                                                @php
+                                                    $destroyRoute = Route::has(ViewsConstants::ALW_OPT.'.destroy')
+                                                        ? route(ViewsConstants::ALW_OPT.'.destroy', $option->id)
+                                                        : Route::has(Str::kebab(ViewsConstants::ALW_OPT.'.destroy'))
+                                                            ? route(Str::kebab(ViewsConstants::ALW_OPT.'.destroy'), $option->id)
+                                                            : '#';
+                                                    $deleteId = "allowance-option-delete-{$option->id}-link";
+                                                    $deleteMsg = Utility::fetchLinkMessage(
+                                                        $lang,
+                                                        ViewsConstants::ALW_OPT,
+                                                        'allowance_option_destroy_route_unavailable'
+                                                    ) ?? 'Delete Allowance Option route is unavailable. Please contact technical support or your domain administrator.';
+                                                @endphp
                                                 <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                     {!! Form::open([
                                                         'method' => 'DELETE',
-                                                        'route'  => [ViewsConstants::ALW_OPT.'.destroy', $option->id],
+                                                        'route'  => [$destroyRoute],
                                                         'id'     => "delete-form-{$option->id}"
                                                     ]) !!}
                                                         <a

@@ -244,6 +244,7 @@ class ViewClassNamesConstants
 	// avatar rounded-circle
 	public const AV_CC_SM = self::AV_CC . ' avatar-sm';
 	// "{{ ViewClassNamesConstants::AV_CC_SM }}"
+	// "{{ VC::AV_CC_SM }}"
 	// avatar rounded-circle avatar-sm
 	public const BDG_XS = self::BDG . ' ' . self::BDG . '-xs';
 	// "{{ ViewClassNamesConstants::BDG_XS }}"
@@ -672,6 +673,7 @@ class ViewClassNamesConstants
 	// report-text gray-text mb-0
 	public const R_ALC = self::RW . ' ' . self::ALC;
 	// "{{ ViewClassNamesConstants::R_ALC }}"
+	// "{{ VC::R_ALC }}"
 	// row align-items-center
 	public const R_ALC_SMPD = self::R_ALC . ' ' . self::PX3 . ' ' . self::PY2;
 	// "{{ ViewClassNamesConstants::R_ALC_SMPD }}"

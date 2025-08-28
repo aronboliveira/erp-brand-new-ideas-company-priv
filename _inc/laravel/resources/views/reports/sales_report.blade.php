@@ -85,7 +85,7 @@
     <div class="float-end me-2" id="filter">
         <button id="filter" class="{{ VC::BT_SM_PM }}"><i class="ti ti-filter"></i></button>
     </div>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/routes/reports/sales/print.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/reports/sales/export.js') }}" defer></script>
     @endpush
@@ -163,7 +163,7 @@
                                     </div>
                                 </div>
                             {{ Form::close() }}
-                            @push(StacksConstants::ADM_SCRP_PG)
+                            @push(StacksConstants::ADM_SCR_PG)
                                 <script src="{{ asset('assets/js/routes/reports/sales/apply.js') }}" defer></script>
                                 <script src="{{ asset('assets/js/routes/reports/sales/reset.js') }}" defer></script>
                             @endpush

@@ -16,7 +16,7 @@
 @endphp
 
 {{ Form::model($allowance, [
-    'route'             => [ViewsConstants::ALW.'.update', $allowance->id],
+    'route'             => $updateRoute,
     'method'            => 'PUT',
     'id'                => $formId,
     'data-url'          => $updateRoute,

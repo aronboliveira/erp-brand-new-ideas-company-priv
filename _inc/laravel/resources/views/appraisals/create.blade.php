@@ -16,7 +16,7 @@
         'appraisal_store_route_unavailable'
     ) ?? 'Appraisal store route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-{{ Form::open(['url'=>ViewsConstants::APR,'method'=>'post']) }}
+{{ Form::open(['url'=> $storeRoute,'method'=>'post']) }}
     <div class="modal-body">
         <div class="{{ ViewClassNamesConstants::RW }}">
             <div class="{{ ViewClassNamesConstants::C12 }}">

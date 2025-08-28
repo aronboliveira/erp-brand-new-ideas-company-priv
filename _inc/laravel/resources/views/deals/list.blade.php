@@ -240,7 +240,7 @@ Object.keys(t).forEach(
           <i class="{{ VC::TI_PLS }}"></i>
       </a>
   </div>
-  @push(StacksConstants::ADM_SCRP_PG)
+  @push(StacksConstants::ADM_SCR_PG)
       <script defer>
           (() => {
               const btn = document.getElementById('deal-kanban-btn');
@@ -459,7 +459,7 @@ Object.keys(t).forEach(
                                                                 <i class="{{ VC::TI_EYE_WT }}"></i>
                                                             </a>
                                                         </div>
-                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                        @push(StacksConstants::ADM_SCR_PG)
                                                             <script defer>
                                                                 (() => {
                                                                     const btn = document.getElementById('deal-view-btn-{{ $deal->id }}');
@@ -528,7 +528,7 @@ Object.keys(t).forEach(
                                                       >
                                                           <i class="{{ VC::TI_PC_WT }}"></i>
                                                       </a>
-                                                      @push(StacksConstants::ADM_SCRP_PG)
+                                                      @push(StacksConstants::ADM_SCR_PG)
                                                           <script defer>
                                                               (() => {
                                                                   const btn = document.getElementById('deal-edit-btn-{{ $deal->id }}');

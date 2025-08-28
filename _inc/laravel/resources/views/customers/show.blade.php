@@ -45,7 +45,7 @@
             {{ __('Customer') }}
         </a>
     </li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script defer>
             (() => {
                 const el = document.getElementById('customer-index-breadcrumb');
@@ -283,7 +283,7 @@ Object.keys(t).forEach(
             >
                 {{ __('Create Invoice') }}
             </a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script defer>
                     (() => {
                         const btn = document.getElementById('invoice-create-btn-{{ $customer->id }}');
@@ -412,7 +412,7 @@ Object.keys(t).forEach(
         >
             <i class="{{ VC::TI_PC }}"></i>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script defer>
                 (() => {
                     const btn = document.getElementById('customer-edit-btn-{{ $customer['id'] }}');
@@ -677,7 +677,7 @@ Object.keys(t).forEach(
                                             >
                                                 {{ $user?->invoiceNumberFormat($invoice->invoice_id) }}
                                             </a>
-                                            @push(StacksConstants::ADM_SCRP_PG)
+                                            @push(StacksConstants::ADM_SCR_PG)
                                             <script defer>
                                                 (() => {
                                                 document.querySelectorAll('[id^="invoice-show-btn-"]').forEach(btn => {

@@ -1,208 +1,146 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants
-        YieldingConstants,
-    };
-    use Illuminate\Support\Facades\Route;
+	use App\Config\Constants\{
+		ExtendingLayoutsConstants,
+		StacksConstants,
+		ViewClassNamesConstants as VC,
+		ViewsConstants as VW,
+		YieldingConstants
+	};
+	use App\Models\Utility;
+	use Collective\Html\FormFacade as Form;
+	use Illuminate\Support\{Facades\Route, Facades\Storage, Str};
+
+	$lang = Utility::fetchUserLang();
+
+	$dashResolved = Route::has('dashboard') ? 'dashboard' : (Route::has(Str::kebab('dashboard')) ? Str::kebab('dashboard') : null);
+	$dashUrl = $dashResolved ? route($dashResolved) : '#';
+	$dashGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'dashboard_route_unavailable') ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
+
+	$viewBase = VW::TMT . '.images.index';
+	$viewResolvedName = Route::has($viewBase) ? $viewBase : (Route::has(Str::kebab($viewBase)) ? Str::kebab($viewBase) : null);
+
+	$destroyBase = VW::TMT . '.destroy';
+	$destroyResolvedName = Route::has($destroyBase) ? $destroyBase : (Route::has(Str::kebab($destroyBase)) ? Str::kebab($destroyBase) : null);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
+
 @section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Tracker')}}
+	{{ __('Manage Tracker') }}
 @endsection
+
 @section(YieldingConstants::ADM_BDC)
-    <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
-            {{ __('Dashboard') }}
-        </a>
-    </li>
-    <li class="breadcrumb-item">{{__('Tracker')}}</li>
+	<li class="breadcrumb-item">
+		<a id="dashboard-link"
+		   href="{{ $dashUrl }}"
+		   data-url="{{ $dashUrl }}"
+		   data-guard-msg="{{ $dashGuardMsg }}"
+		   data-sv-localized="true"
+		   {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
+			{{ __('Dashboard') }}
+		</a>
+	</li>
+	<li class="breadcrumb-item">{{ __('Tracker') }}</li>
 @endsection
 
 @push(StacksConstants::ADM_CSS)
-    <link rel="stylesheet" href="{{url('css/swiper.min.css')}}">
-    <link rel="stylesheet" href="{{url('css/swiper.min.css')}}">
-    <style>
-        .product-thumbs .swiper-slide img {
-        border:2px solid transparent;
-        object-fit: cover;
-        cursor: pointer;
-        }
-        .product-thumbs .swiper-slide-active img {
-        border-color: #bc4f38;
-        }
-
-        .product-slider .swiper-button-next:after,
-        .product-slider .swiper-button-prev:after {
-            font-size: 20px;
-            color: #000;
-            font-weight: bold;
-        }
-        .modal-dialog.modal-md {
-            background-color: #fff !important;
-        }
-
-        .no-image{
-            min-height: 300px;
-            align-items: center;
-            display: flex;
-            justify-content: center;
-        }
-    </style>
+	<link rel="stylesheet" href="{{ url('css/swiper.min.css') }}">
+	<link rel="stylesheet" href="{{ asset('assets/css/routes/timeTrackers/index.css') }}">
 @endpush
 
+@section(YieldingConstants::ADM_CTT)
+	<div class="{{ VC::RW }}">
+		<div class="{{ VC::C12 }}">
+			<div class="card">
+				<div class="card-body table-border-style mt-2">
+					<div class="table-responsive">
+						<table class="table datatable">
+							<thead>
+								<tr>
+									<th>{{ __('Title') }}</th>
+									<th>{{ __('Task') }}</th>
+									<th>{{ __('Project') }}</th>
+									<th>{{ __('Start Time') }}</th>
+									<th>{{ __('End Time') }}</th>
+									<th>{{ __('Total Time') }}</th>
+									<th>{{ __('Action') }}</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach(($trackers ?? []) as $tracker)
+									@php
+										$total_name = \App\Models\Utility::secondToTime($tracker->total_time ?? 0) ?? __('No total available');
 
-@section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body table-border-style mt-2">
-                    <div class="table-responsive">
-                        <table class="table datatable">
-                            <thead>
-                            <tr>
+										$viewUrl = ($viewResolvedName && ($tracker->id ?? null)) ? route($viewResolvedName, [$tracker->id]) : '#';
+										$viewGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'route_view_tracker_images_unavailable') ?? 'View tracker images route is unavailable. Please contact technical support or your domain administrator.';
 
-                                <th> {{__('Title')}}</th>
-                                <th> {{__('Task')}}</th>
-                                 <th> {{__('Project')}}</th>
-                                <th> {{__('Start Time')}}</th>
-                                <th> {{__('End Time')}}</th>
-                                <th>{{__('Total Time')}}</th>
-                                <th>{{__('Action')}}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
+										$destroyUrl = ($destroyResolvedName && ($tracker->id ?? null)) ? route($destroyResolvedName, [$tracker->id]) : '#';
+										$destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::TMT, 'route_delete_tracker_unavailable') ?? 'Delete tracker route is unavailable. Please contact technical support or your domain administrator.';
+										$formId = 'delete-form-' . ($tracker->id ?? 'unknown');
+										$imgId = 'track-images-' . ($tracker->id ?? 'unknown');
+									@endphp
+									<tr>
+										<td>{{ $tracker->name ?? __('No title available') }}</td>
+										<td>{{ $tracker->project_task ?? __('No task available') }}</td>
+										<td>{{ $tracker->project_name ?? __('No project available') }}</td>
+										<td>{{ isset($tracker->start_time) ? date('H:i:s', strtotime($tracker->start_time)) : __('No start time') }}</td>
+										<td>{{ isset($tracker->end_time) ? date('H:i:s', strtotime($tracker->end_time)) : __('No end time') }}</td>
+										<td>{{ $total_name }}</td>
+										<td>
+											<img alt="Image placeholder"
+												 src="{{ asset('assets/images/gallery.png') }}"
+												 class="{{ VC::AV_CC_SM }} view-images"
+												 data-bs-toggle="tooltip"
+												 title="{{ __('View Screenshot images') }}"
+												 data-original-title="{{ __('View Screenshot images') }}"
+												 style="height:25px;width:24px;margin-right:10px;cursor:pointer;"
+												 data-id="{{ $tracker->id ?? '' }}"
+												 id="{{ $imgId }}"
+												 data-url="{{ $viewUrl }}"
+												 data-guard-msg="{{ $viewGuardMsg }}"
+												 data-sv-localized="true">
 
-                            @foreach ($treckers as $trecker)
+											<div class="{{ VC::ACT_BTN_DNG_2 }}">
+												{!! Form::open([
+													'method'               => 'DELETE',
+													'url'                  => $destroyUrl,
+													'id'                   => $formId,
+													'data-resolved-action' => $destroyUrl,
+													'data-guard-msg'       => $destroyGuardMsg,
+													'data-sv-localized'    => 'true',
+												]) !!}
+													<a href="#"
+													   class="{{ VC::BT_SM_CT_PR }}"
+													   data-bs-toggle="tooltip"
+													   title="{{ __('Delete') }}"
+													   data-original-title="{{ __('Delete') }}"
+													   data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }} | {{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+													   data-confirm-yes="document.getElementById('{{ $formId }}').submit();">
+														<i class="{{ VC::TI_TRS_WT }}"></i>
+													</a>
+												{!! Form::close() !!}
+											</div>
+										</td>
+									</tr>
+								@endforeach
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-                                @php
-                                    $total_name = Utility::secondToTime($trecker->total_time);
-                                @endphp
-                                <tr>
-                                    <td>{{$trecker->name}}</td>
-                                    <td>{{$trecker->project_task}}</td>
-                                    <td>{{$trecker->project_name}}</td>
-                                    <td>{{date("H:i:s",strtotime($trecker->start_time))}}</td>
-                                    <td>{{date("H:i:s",strtotime($trecker->end_time))}}</td>
-                                    <td>{{$total_name}}</td>
-                                    <td>
-                                        <img alt="Image placeholder" src="{{ asset('assets/images/gallery.png')}}" class="avatar view-images rounded-circle avatar-sm"
-                                             data-bs-toggle="tooltip" title="{{__('View Screenshot images')}}" data-original-title="{{__('View Screenshot images')}}" style="height: 25px;width:24px;margin-right:10px;cursor: pointer;" data-id="{{$trecker->id}}" id="track-images-{{$trecker->id}}">
-                                        <div class="action-btn bg-danger ms-2">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['time_trackers.destroy', $trecker->id],'id'=>'delete-form-'.$trecker->id]) !!}
-
-                                            <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{__('Are You Sure?').' | '.__('This action can not be undone. Do you want to continue?')}}" data-confirm-yes="document.getElementById('delete-form-{{$trecker->id}}').submit();">
-                                                <i class="ti ti-trash text-white"></i>
-                                            </a>
-                                            {!! Collective\Html\FormFacade::close() !!}
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="{{ ViewClassNamesConstants::MD_FD }}" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg ss_modale" role="document">
-          <div class="modal-content image_sider_div">
-
-          </div>
-        </div>
-    </div>
-
+	<div class="{{ VC::MD_FD }}" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg ss_modale" role="document">
+			<div class="modal-content image_sider_div"></div>
+		</div>
+	</div>
 @endsection
 
-@push(StacksConstants::ADM_SCR_PG)
-
-<script src="{{url('js/swiper.min.js')}}"></script>
-
-
-<script type="text/javascript">
-
-    function init_slider()
-    {
-            if($(".product-left").length){
-                    var productSlider = new Swiper('.product-slider', {
-                        spaceBetween: 0,
-                        centeredSlides: false,
-                        loop:false,
-                        direction: 'horizontal',
-                        loopedSlides: 5,
-                        navigation: {
-                            nextEl: ".swiper-button-next",
-                            prevEl: ".swiper-button-prev",
-                        },
-                        resizeObserver:true,
-                    });
-                var productThumbs = new Swiper('.product-thumbs', {
-                    spaceBetween: 0,
-                    centeredSlides: true,
-                    loop: false,
-                    slideToClickedSlide: true,
-                    direction: 'horizontal',
-                    slidesPerView: 7,
-                    loopedSlides: 5,
-                });
-                productSlider.controller.control = productThumbs;
-                productThumbs.controller.control = productSlider;
-            }
-        }
-
-    $(document).on('click', '.view-images', function () {
-
-            var p_url = "{{route('time_trackers.image.view')}}";
-            var data = {
-                'id': $(this).attr('data-id')
-            };
-            postAjax(p_url, data, function (res) {
-                $('.image_sider_div').html(res);
-                $('#exampleModalCenter').modal('show');
-                setTimeout(function(){
-                    var total = $('.product-left').find('.product-slider').length
-                    if(total > 0){
-                        init_slider();
-                    }
-
-                },200);
-
-            });
-            });
-
-    // ============================ Remove Track Image ===============================//
-    $(document).on("click", '.track-image-remove', function () {
-            var rid = $(this).attr('data-pid');
-            $('.confirm_yes').addClass('image_remove');
-            $('.confirm_yes').attr('image_id', rid);
-            $('#cModal').modal('show');
-            var total = $('.product-left').find('.swiper-slide').length
-            });
-
-    function removeImage(id){
-        var p_url = "{{route('time_trackers.image.remove')}}";
-        var data = {id: id};
-        deleteAjax(p_url, data, function (res) {
-            if(res.flag){
-                $('#slide-thum-'+id).remove();
-                $('#slide-'+id).remove();
-                setTimeout(function(){
-                    var total = $('.product-left').find('.swiper-slide').length
-                    if(total > 0){
-                        init_slider();
-                    }else{
-                        $('.product-left').html('<div class="no-image"><h5 class="text-muted">Images Not Available .</h5></div>');
-                    }
-                },200);
-            }
-            $('#cModal').modal('hide');
-            show_toastr('error',res.msg,'error');
-        });
-    }
-</script>
+@push(StacksConstants::ADM_SCRP_PG)
+    <script src="{{url('js/swiper.min.js')}}"></script>
+    <script async src="{{ asset('assets/js/routes/timeTrackers/lang/images.js') }}"></script>
+	<script defer src="{{ asset('assets/js/routes/timeTrackers/viewImages.js') }}"></script>
+	<script defer src="{{ asset('assets/js/routes/timeTrackers/destroy.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/timeTrackers/images.js') }}"></script>
 @endpush

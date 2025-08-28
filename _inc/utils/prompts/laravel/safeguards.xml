@@ -1,3 +1,0 @@
-- Read through this .blade.php block and refactor applying safeguards with isset(), empty(), nullish coalescence/checks and, for multidepth chains of property (2+), using data_get()
-
-- IF the string is meant to reach the html to be sent to the client view, default the failed values to some sort of variation of __('Could not find [alias for the property]'), __('Failed to get [alias for the property']), __('No [alias for the property] available'), etc.

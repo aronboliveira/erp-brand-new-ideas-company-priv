@@ -47,7 +47,7 @@
         data-original-title="{{ __('Download') }}">
             <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/cashflow/monthly/download.js') }}" defer></script>
         @endpush
     </div>
@@ -79,7 +79,7 @@
             data-sv-localized="true">
                 {{ __('Quarterly') }}
             </a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/reports/cashflow/quarterly/open.js') }}" defer></script>
             @endpush
         </li>
@@ -148,7 +148,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/cashflow/monthly/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/cashflow/monthly/reset.js') }}" defer></script>
                         @endpush

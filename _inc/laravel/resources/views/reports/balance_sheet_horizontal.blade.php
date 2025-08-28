@@ -54,7 +54,7 @@
             'data-guard-msg'      => $balanceSheetPrintGuardMsg,
             'data-sv-localized'   => 'true',
         ]) }}
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/balances/horizontal/index/print.js') }}" defer></script>
         @endpush
     </div>
@@ -104,7 +104,7 @@
             <i class="ti ti-separator-horizontal"></i>
         </a>
     </div>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/routes/reports/balances/horizontal/index/export.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/reports/balances/horizontal/index/filter.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/reports/balances/horizontal/index/vertical.js') }}" defer></script>
@@ -174,7 +174,7 @@
                                     </div>
                                 </div>
                             {{ Form::close() }}
-                            @push(StacksConstants::ADM_SCRP_PG)
+                            @push(StacksConstants::ADM_SCR_PG)
                                 <script src="{{ asset('assets/js/routes/reports/balances/horizontal/index/index.js') }}" defer></script>
                                 <script src="{{ asset('assets/js/routes/reports/balances/horizontal/index/reset.js') }}" defer></script>
                             @endpush
@@ -239,7 +239,7 @@
                                                                                 {{ $name ?: __('No account name available') }}
                                                                             </a>
                                                                         </p>
-                                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                                        @push(StacksConstants::ADM_SCR_PG)
                                                                             <script>
                                                                                 (() => {
                                                                                     try {
@@ -360,7 +360,7 @@
                                                                                 {{ $name ?: __('No account name available') }}
                                                                             </a>
                                                                         </p>
-                                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                                        @push(StacksConstants::ADM_SCR_PG)
                                                                             <script>
                                                                                 (() => {
                                                                                     try {

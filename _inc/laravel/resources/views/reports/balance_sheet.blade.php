@@ -55,7 +55,7 @@
             'data-guard-msg'      => $balanceSheetPrintGuardMsg,
             'data-sv-localized'   => 'true',
         ]) }}
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/balances/index/print.js') }}" defer></script>
         @endpush
     </div>
@@ -105,7 +105,7 @@
             <i class="ti ti-separator-vertical"></i>
         </a>
     </div>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/routes/reports/balances/index/export.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/reports/balances/index/filter.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/reports/balances/index/horizontal.js') }}" defer></script>
@@ -133,7 +133,7 @@
                                 'data-guard-msg'      => $balanceSheetGuardMsg,
                                 'data-sv-localized'   => 'true',
                             ]) }}
-                                @push(StacksConstants::ADM_SCRP_PG)
+                                @push(StacksConstants::ADM_SCR_PG)
                                     <script src="{{ asset('assets/js/routes/reports/balances/index/index.js') }}" defer></script>
                                 @endpush
                                 <div class="{{ VC::R_ALC_JCE }}">
@@ -169,7 +169,7 @@
                                                 data-sv-localized="true">
                                                     <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
                                                 </a>
-                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                @push(StacksConstants::ADM_SCR_PG)
                                                     <script src="{{ asset('assets/js/routes/reports/balances/index/reset.js') }}" defer></script>
                                                 @endpush
                                             </div>
@@ -242,7 +242,7 @@
                                                                     {{ $name !== '' ? $name : __('No account name available') }}
                                                                 </a>
                                                             </p>
-                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                            @push(StacksConstants::ADM_SCR_PG)
                                                                 <script>
                                                                     (() => {
                                                                         try {

@@ -317,7 +317,7 @@ Object.keys(t).forEach(
         </a>
     </div>
 @endsection
-@push(StacksConstants::ADM_SCRP_PG)
+@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('change-pipeline-form');
@@ -557,7 +557,7 @@ Object.keys(t).forEach(
                                             >
                                                 {{ $deal->name }}
                                             </a>
-                                            @push(StacksConstants::ADM_SCRP_PG)
+                                            @push(StacksConstants::ADM_SCR_PG)
                                                 <script defer>
                                                     (() => {
                                                         const btn = document.getElementById('deal-show-btn-{{ $deal->id }}');
@@ -643,7 +643,7 @@ Object.keys(t).forEach(
                                                             >
                                                                 <i class="{{ VC::TI_PC }}"></i> <span>{{ __('Edit') }}</span>
                                                             </a>
-                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                            @push(StacksConstants::ADM_SCR_PG)
                                                                 <script defer>
                                                                     (() => {
                                                                         const btn = document.getElementById('deal-labels-btn-{{ $deal->id }}');

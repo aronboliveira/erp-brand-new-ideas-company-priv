@@ -49,7 +49,7 @@
            data-original-title="{{ $downloadLabelPl }}">
             <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/profits/index/loss/summaries/download.js') }}" defer></script>
         @endpush
     </div>
@@ -85,7 +85,7 @@
             data-url="{{ $monthlyPurchaseUrl }}"
             data-guard-msg="{{ $guardMsg }}"
             data-sv-localized="true">{{ __('Quarterly') }}</a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/reports/purchases/monthly/open.js') }}" defer></script>
             @endpush
         </li>
@@ -160,7 +160,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/profits/index/loss/summaries/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/profits/index/loss/summaries/reset.js') }}" defer></script>
                         @endpush

@@ -174,7 +174,7 @@
             data-sv-localized="true">
                 <i class="ti ti-plus"></i>
             </a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/purchases/create.js') }}" defer></script>
             @endpush
         @endcan
@@ -205,7 +205,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @push(StacksConstants::ADM_SCRP_PG)
+                                @push(StacksConstants::ADM_SCR_PG)
                                     <script src="{{ asset('assets/js/routes/purchases/show.js') }}" defer></script>
                                     @can('edit purchase')
                                         <script src="{{ asset('assets/js/routes/purchases/edit.js') }}" defer></script>

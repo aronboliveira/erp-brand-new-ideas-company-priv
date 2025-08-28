@@ -1,15 +1,11 @@
-
+@php
+	use App\Config\Constants\ViewClassNamesConstants as VC;
+	$desc = data_get($termination ?? null, 'description');
+	$desc = isset($desc) && !empty($desc) ? $desc : __('No description available');
+@endphp
 <div class="modal-body">
-
-    <div class="form-group">
-        <label class="form-label" for="exampleFormControlTextarea1">{{__('Description')}}</label>
-        <textarea class="form-control" id="exampleFormControlTextarea1" rows="10" readonly>{{$termination->description}}</textarea>
-    </div>
-
+	<div class="{{ VC::FM_G }}">
+		<label class="{{ VC::FM_LB }}" for="termination-description">{{ __('Description') }}</label>
+		<textarea class="{{ VC::FM_CT }}" id="termination-description" rows="10" readonly>{{ $desc }}</textarea>
+	</div>
 </div>
-
-
-
-
-
-

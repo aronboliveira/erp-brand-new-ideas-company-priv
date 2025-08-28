@@ -1,37 +1,55 @@
-{{Collective\Html\FormFacade::model($saturationdeduction,array('route' => array('saturationdeduction.update', $saturationdeduction->id), 'method' => 'PUT')) }}
-    <div class="modal-body">
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\{Facades\Route, Str};
+    $lang = Utility::fetchUserLang();
+    $satUpdBaseName      = VW::STR_DD.'.update';
+    $satUpdKebabName     = Str::kebab($satUpdBaseName);
+    $satUpdResolvedName  = Route::has($satUpdBaseName)
+        ? $satUpdBaseName
+        : (Route::has($satUpdKebabName) ? $satUpdKebabName : null);
+    $satUpdObjectIdValue = isset($saturationDeduction) && !empty($saturationDeduction->id) ? $saturationDeduction->id : null;
+    $satUpdUrl           = ($satUpdResolvedName && $satUpdObjectIdValue) ? route($satUpdResolvedName, [$satUpdObjectIdValue]) : '#';
+    $satUpdGuardMsg      = Utility::fetchLinkMessage($lang, 'payroll', 'update_saturation_deduction_unavailable') ?? 'Update saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
+    $satUpdFormId        = 'edit-saturation-deduction-form-'.($satUpdObjectIdValue ?? 'x');
+    $formOpenOpts = ($satUpdResolvedName && $satUpdObjectIdValue)
+        ? ['route' => [$satUpdResolvedName, $satUpdObjectIdValue], 'method' => 'PUT', 'id' => $satUpdFormId]
+        : ['url' => '#', 'method' => 'PUT', 'id' => $satUpdFormId];
+    $formOpenOpts['data-action-url']     = $satUpdUrl;
+    $formOpenOpts['data-form-guard-msg'] = $satUpdGuardMsg;
+    $formOpenOpts['data-sv-localized']   = 'true';
+@endphp
 
-    <div class="card-body p-0">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('deduction_option', __('Deduction Options')) }}<span class="text-danger">*</span>
-                    {{ Collective\Html\FormFacade::select('deduction_option',$deduction_options,null, array('class' => 'form-control select','required'=>'required')) }}
+{{ Form::model($saturationDeduction, $formOpenOpts) }}
+    <div class="modal-body">
+        <div class="{{ VC::CD }} {{ VC::SNN }} p-0">
+            <div class="{{ VC::RW }}">
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('deduction_option', __('Deduction Options'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+                    {{ Form::select('deduction_option', $deduction_options, null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('title', __('Title')) }}
-                    {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('title', __('Title'), ['class' => VC::FM_LB]) }}
+                    {{ Form::text('title', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('type', __('Type'), ['class' => 'form-label']) }}
-                    {{ Collective\Html\FormFacade::select('type', $saturationdeduc, null, ['class' => 'form-control select amount_type', 'required' => 'required']) }}
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('type', __('Type'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('type', $saturationdeduc, null, ['class' => VC::FM_CT_SL . ' amount_type', 'required' => 'required']) }}
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('amount', __('Amount'),['class'=>'form-label amount_label']) }}
-                    {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required','step'=>'0.01')) }}
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('amount', __('Amount'), ['class' => VC::FM_LB . ' amount_label']) }}
+                    {{ Form::number('amount', null, ['class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01']) }}
                 </div>
             </div>
         </div>
     </div>
-    </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
-{{Collective\Html\FormFacade::close()}}
+{{ Form::close() }}
+
+@push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/saturationDeductions/update.js') }}"></script>
+@endpush

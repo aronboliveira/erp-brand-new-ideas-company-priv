@@ -1,203 +1,134 @@
 @php
-    use App\Config\Constants\{DatabaseConstants, ViewClassNamesConstants};
-    use Illuminate\Support\Str;
-    $currentLang = Illuminate\Support\Facades\Auth::user()?->lang ?? DatabaseConstants::DEFAULT_LANG;
+use App\Config\Constants\{DatabaseConstants, StacksConstants, ViewClassNamesConstants as VC};
+use App\Models\Utility;
+use Collective\Html\FormFacade as Form;
+use Illuminate\Support\{Facades\Log, Str};
+
+$templateName ??= [];
+$lang = Utility::fetchUserLang();
+$formId = 'ai-template-form';
+$descId = 'ai-description';
+$genBtnId = 'ai-generate-btn';
+$copyAllBtnId = 'ai-copy-all-btn';
+$copySelBtnId = 'ai-copy-selected-btn';
+$labelForWhat = __('For What') ?: __('No label available');
+$labelLanguage = __('Language') ?: __('No label available');
+$labelTone = __('Tone') ?: __('No label available');
+$labelCreativity = __('AI Creativity') ?: __('No label available');
+$labelNumResults = __('Number of Result') ?: __('No label available');
+$labelMaxLen = __('Maximum Result Length') ?: __('No label available');
+$labelDescription = __('Description') ?: __('No description available');
+$labelGenerate = __('Generate') ?: __('Generate');
+$labelCopy = __('Copy Text') ?: __('Copy Text');
+$labelCopySel = __('Copy Selected Text') ?: __('Copy Selected Text');
+$selectTemplateMsg = Utility::fetchLinkMessage($lang, 'ai_templates', 'select_template_first') ?? 'Please select a template first.';
+$copyAllMsg = Utility::fetchLinkMessage($lang, 'ai_templates', 'copied_all_to_clipboard') ?? 'Text copied to clipboard.';
+$copySelMsg = Utility::fetchLinkMessage($lang, 'ai_templates', 'copied_selected_to_clipboard') ?? 'Selected text copied to clipboard.';
+$copyErrorMsg = Utility::fetchLinkMessage($lang, 'ai_templates', 'copy_failed') ?? 'Copy failed. Please try again.';
+
+$flags = [];
+try { $flags = Utility::flagOfCountry() ?? []; } catch (\Throwable $e) { Log::error('Blade aiTemplates/form: flagOfCountry error: ' . $e->getMessage()); $flags = []; }
+
+$tone = [
+'funny' => 'funny',
+'casual' => 'casual',
+'excited' => 'excited',
+'professional'=> 'professional',
+'witty' => 'witty',
+'sarcastic' => 'sarcastic',
+'feminine' => 'feminine',
+'masculine' => 'masculine',
+'bold' => 'bold',
+'dramatic' => 'dramatic',
+'gumpy' => 'gumpy',
+'secretive' => 'secretive',
+];
 @endphp
-<form action="" id="myForm">
-    @csrf
-    <div class="row">
-        <div class="col-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('template',__('For What'),array('class'=>'col-form-label'))}}</br>
-                @foreach($templateName as $key => $value)
-                    <div class="{{ ViewClassNamesConstants::FM_CHK_IL }}">
-                        <input class="form-check-input template_name" type="radio" name="template_name" value="{{ $value->id }}" id="product_name_{{ $value->id }}" data-name="{{ $value->template_name }}">
-                        <label class="form-check-label" for="product_name_{{ $value->id }}">
-                            {{ ucWords(str_replace('_',' ',$value->template_name)) }}
-                        </label>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('language',__('Language'),array('class'=>'col-form-label'))}}
-                <select name="language" class="form-select" id="language">
-                    @foreach (App\Models\Utility::flagOfCountry() as $key => $lang)
-                        <option value="{{ $key }}" {{ $currentLang == $key ? 'selected' : '' }}>{{ Str::upper($lang) }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
 
-
-        <div class="col-6 tone">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('',__('Tone'),array('class'=>'col-form-label'))}}
-                @php
-                    $tone =  [
-                        'funny'=>'funny',
-                        'casual'=> 'casual',
-                        'excited'=>'excited',
-                        'professional'=>'professional',
-                        'witty'=>'witty',
-                        'sarcastic'=>'sarcastic',
-                        'feminine'=>'feminine',
-                        'masculine'=> 'masculine',
-                        'bold'=> 'bold',
-                        'dramatic'=> 'dramatic',
-                        'gumpy'=> 'gumpy',
-                        'secretive'=> 'secretive'
-
-                    ]
-                @endphp
-                {{ Collective\Html\FormFacade::select('tone',$tone,null,['class'=>'form-control']) }}
+{{ Form::open([
+	'url'    => '#',
+	'method' => 'post',
+	'id'     => $formId,
+]) }}
+<div class="{{ VC::RW }}">
+    <div class="{{ VC::C12 }}">
+        <div class="{{ VC::FM_G }}">
+            {{ Form::label('template', $labelForWhat, ['class' => VC::FM_LB]) }}<br>
+            @foreach(is_iterable($templateName) ? $templateName : [] as $key => $value)
+            @php
+            $valId = data_get($value, 'id') ?? '';
+            $valTm = data_get($value, 'template_name') ?? '';
+            $human = (string) Str::of($valTm)->replace('_', ' ')->title() ?: __('No template name available');
+            $inputId = 'product_name_' . $valId;
+            @endphp
+            <div class="{{ VC::FM_CHK_IL }}">
+                <input class="form-check-input template_name" type="radio" name="template_name" value="{{ $valId }}" id="{{ $inputId }}" data-name="{{ $valTm }}">
+                <label class="form-check-label" for="{{ $inputId }}">{{ $human }}</label>
             </div>
+            @endforeach
         </div>
-        <div class="col-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('',__('AI Creativity'),array('class'=>'col-form-label'))}}
-                <select name="ai_creativity" id="ai_creativity" class="form-select">
-                    <option value="1">{{ __('High') }}</option>
-                    <option value="0.5">{{ __('Meduium') }}</option>
-                    <option value="0">{{ __('Low') }}</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('',__('Number of Result'),array('class'=>'col-form-label'))}}
-                <select name="num_of_result" id="" class="form-select">
-                    @for($i = 1; $i <= 10; $i++)
-                        <option value="{{ $i }}">{{ $i }}</option>
-                    @endfor
-                </select>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('',__('Maximum Result Length'),array('class'=>'col-form-label'))}}
-                {{ Collective\Html\FormFacade::number('result_length',10,['class'=>'form-control']) }}
-            </div>
-        </div>
-        <div class="col-12" id="getkeywords">
-        </div>
-
     </div>
-</form>
-<div class="response" >
 
-    <a class="btn btn-primary btn-sm float-left" href="#!" id="generate">{{ __('Generate') }}</a>
-    <a href="#!" onclick="copyText()" class="btn btn-primary btn-sm float-end "><i class="ti ti-copy"></i> {{ __('Copy Text') }}</a>
-    <a href="#!" onclick="copySelectedText()" class="btn btn-primary btn-sm float-end me-2"><i class="ti ti-copy"></i> {{ __('Copy Selected Text') }}</a>
-    <div class="form-group mt-3" >
-        {{ Collective\Html\FormFacade::textarea('description', null, ['class' => 'form-control','rows' => 5,'placeholder' => __('Description'),'id'=>'ai-description']) }}
+    <div class="{{ VC::FM_GCB6 }}">
+        <div class="{{ VC::FM_G }}">
+            {{ Form::label('language', $labelLanguage, ['class' => VC::FM_LB]) }}
+            <select name="language" class="{{ VC::FM_CT_SL }}" id="language">
+                @foreach($flags as $key => $lng)
+                <option value="{{ $key }}" {{ $lang === $key ? 'selected' : '' }}>{{ Str::upper($lng) }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+
+    <div class="{{ VC::FM_GCB6 }} tone">
+        <div class="{{ VC::FM_G }}">
+            {{ Form::label('tone', $labelTone, ['class' => VC::FM_LB]) }}
+            {{ Form::select('tone', $tone, null, ['class' => VC::FM_CT]) }}
+        </div>
+    </div>
+
+    <div class="{{ VC::FM_GCB6 }}">
+        <div class="{{ VC::FM_G }}">
+            {{ Form::label('ai_creativity', $labelCreativity, ['class' => VC::FM_LB]) }}
+            <select name="ai_creativity" id="ai_creativity" class="{{ VC::FM_CT_SL }}">
+                <option value="1">{{ __('High') }}</option>
+                <option value="0.5">{{ __('Medium') }}</option>
+                <option value="0">{{ __('Low') }}</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="{{ VC::FM_GCB6 }}">
+        <div class="{{ VC::FM_G }}">
+            {{ Form::label('num_of_result', $labelNumResults, ['class' => VC::FM_LB]) }}
+            <select name="num_of_result" id="num_of_result" class="{{ VC::FM_CT_SL }}">
+                @for($i = 1; $i <= 10; $i++)
+                    <option value="{{ $i }}">{{ $i }}</option>
+                    @endfor
+            </select>
+        </div>
+    </div>
+
+    <div class="{{ VC::FM_GCB6 }}">
+        <div class="{{ VC::FM_G }}">
+            {{ Form::label('result_length', $labelMaxLen, ['class' => VC::FM_LB]) }}
+            {{ Form::number('result_length', 10, ['class' => VC::FM_CT]) }}
+        </div>
+    </div>
+
+    <div class="{{ VC::C12 }}" id="getkeywords"></div>
+</div>
+{{ Form::close() }}
+
+<div class="response">
+    <a class="{{ VC::BT_SM_PM }} float-left" href="#!" id="{{ $genBtnId }}" data-msg-select-template="{{ $selectTemplateMsg }}" data-sv-localized="true">{{ $labelGenerate }}</a>
+    <a href="#!" id="{{ $copyAllBtnId }}" class="{{ VC::BT_SM_PM }} {{ VC::FEND }}"><i class="{{ VC::TI_CC_PLS }}"></i> {{ $labelCopy }}</a>
+    <a href="#!" id="{{ $copySelBtnId }}" class="{{ VC::BT_SM_PM }} {{ VC::FEND }} {{ VC::MS2 }}"><i class="{{ VC::TI_CC_PLS }}"></i> {{ $labelCopySel }}</a>
+    <div class="{{ VC::FM_G }} {{ VC::MT3 }}">
+        {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => 5, 'placeholder' => $labelDescription, 'id' => $descId, 'data-copy-all-msg' => $copyAllMsg, 'data-copy-sel-msg' => $copySelMsg, 'data-copy-err-msg' => $copyErrorMsg, 'data-sv-localized' => 'true']) }}
     </div>
 </div>
-
-<script>
-    function copyText() {
-        var selected = $('input[name="template_name"]:checked').attr('data-name');
-        var copied = $("#ai-description").val();
-
-        var input= $('input[name='+selected+']').length;
-        if(input>0){
-            $('input[name='+selected+']').val(copied)
-        }
-        else{
-
-            if($('textarea[name='+selected+']').hasClass('summernote-simple') || $('textarea[name='+selected+']').hasClass('summernote-simple-2')) {
-
-                $('textarea[name='+selected+']').summernote("code", copied);
-            }
-            else{
-                $('textarea[name='+selected+']').val(copied)
-            }
-        }
-        show_toastr('success', 'Result text has been copied successfully', 'success');
-        $('#commonModalOver').modal('hide');
-    }
-    function copySelectedText() {
-        var selected = $('input[name="template_name"]:checked').attr('data-name');
-        var selectedText = window.getSelection().toString();
-        var input= $('input[name='+selected+']').length;
-        $('#ai-description').after("Copied to clipboard");
-        if(input>0){
-            $('input[name='+selected+']').val(selectedText)
-        }
-        else{
-            if($('textarea[name='+selected+']').hasClass('summernote-simple') || $('textarea[name='+selected+']').hasClass('summernote-simple-2')) {
-                $('textarea[name='+selected+']').summernote("code", selectedText);
-            }
-            else{
-                $('textarea[name='+selected+']').val(selectedText)
-            }
-        }
-        show_toastr('success', 'Result text has been copied successfully', 'success');
-        $('#commonModalOver').modal('hide');
-
-    }
-
-    $('body').ready(function(){
-        $("#commonModalOver input:radio:first").prop("checked", true).trigger("change");
-
-    });
-    $('body').on('change','.template_name',function(){
-        var templateId = $(this).val();
-        var url =
-            $.ajax({
-                type:'post',
-                url: '{{route('generate.keywords',['__templateId'])}}'.replace('__templateId', templateId),
-                datType: 'json',
-                data: {
-                    '_token': '{{ csrf_token() }}',
-                    'template_id': templateId,
-                },
-                success: function(data){
-                    if(data.tone == 1){
-                        $('.tone').removeClass('d-none');
-                        $('.tone select').attr('name','tone');
-                    }
-                    else{
-                        $('.tone').addClass('d-none');
-                        $('.d-none select').removeAttr('name');
-                    }
-
-                    $('#getkeywords').empty();
-                    $('#getkeywords').append(data.template)
-                },
-            })
-    })
-    $('body').on('click','#generate',function(){
-        var form=$("#myForm");
-        $.ajax({
-            type:'post',
-            url : '{{ route('generate.response') }}',
-            datType: 'json',
-            data:form.serialize(),
-            beforeSend: function(msg){
-                $("#generate").empty();
-                var html = '<span class="spinner-grow spinner-grow-sm" role="status"></span>';
-                $("#generate").append(html);
-            },
-            afterSend: function(msg){
-                $("#generate2").empty();
-                var html = `<a class="btn btn-primary" href="#!" id="generate">{{ __('Generate') }}</a>`;
-                $("#generate2").replaceWith(html);
-
-            },
-            success: function(data){
-                $('.response').removeClass('d-none');
-                $('#generate').text('Re-Generate');
-                if(data.message){
-                    show_toastr('error', data.message, 'error');
-                    $('#commonModalOver').modal('hide');
-                }
-                else{
-                    $('#ai-description').val(data)
-                }
-            },
-        });
-    });
-
-</script>
+<script async src="{{ asset('assets/js/routes/ai/generate/lang/copy.js') }}"></script>
+<script async src="{{ asset('assets/js/routes/ai/generate/copy.js') }}"></script>
+<script defer src="{{ asset('assets/js/routes/ai/generate/index.js') }}"></script>
+<script defer src="{{ asset('assets/js/routes/ai/generate/clipboard.js') }}"></script>

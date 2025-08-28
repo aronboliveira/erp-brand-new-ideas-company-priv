@@ -2,226 +2,23 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as C,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use Illuminate\Support\Facades\Route;
     use App\Http\Controllers\EmployeeAttendanceController as EAC;
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\Route;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Bulk Attendance')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-        ar: {
-            present_all_toggle_failed: 'فشل تبديل جميع خانات الاختيار.',
-            present_toggle_failed: 'فشل تبديل خانة الحضور.'
-        },
-        da: {
-            present_all_toggle_failed: 'Kunne ikke slå alle afkrydsningsfelter til/fra.',
-            present_toggle_failed: 'Kunne ikke skifte tilstedeværelsesfelt.'
-        },
-        de: {
-            present_all_toggle_failed: 'Konnte nicht alle Kontrollkästchen umschalten.',
-            present_toggle_failed: 'Konnte das Anwesenheitskontrollkästchen nicht umschalten.'
-        },
-        en: {
-            present_all_toggle_failed: 'Failed to toggle all checkboxes.',
-            present_toggle_failed: 'Failed to toggle attendance checkbox.'
-        },
-        es: {
-            present_all_toggle_failed: 'Error al alternar todas las casillas.',
-            present_toggle_failed: 'Error al alternar la casilla de asistencia.'
-        },
-        fr: {
-            present_all_toggle_failed: 'Échec du basculement de toutes les cases.',
-            present_toggle_failed: 'Échec du basculement de la case de présence.'
-        },
-        he: {
-            present_all_toggle_failed: 'לא ניתן להחליף את כל תיבות הסימון.',
-            present_toggle_failed: 'לא ניתן להחליף את תיבת הסימון של נוכחות.'
-        },
-        it: {
-            present_all_toggle_failed: 'Impossibile attivare/disattivare tutte le caselle.',
-            present_toggle_failed: 'Impossibile attivare/disattivare la casella di presenza.'
-        },
-        ja: {
-            present_all_toggle_failed: 'すべてのチェックボックスの切り替えに失敗しました。',
-            present_toggle_failed: '出席チェックボックスの切り替えに失敗しました。'
-        },
-        nl: {
-            present_all_toggle_failed: 'Kan niet alle selectievakjes wisselen.',
-            present_toggle_failed: 'Kan selectievakje voor aanwezigheid niet wisselen.'
-        },
-        pl: {
-            present_all_toggle_failed: 'Nie udało się przełączyć wszystkich pól wyboru.',
-            present_toggle_failed: 'Nie udało się przełączyć pola wyboru obecności.'
-        },
-        pt: {
-            present_all_toggle_failed: 'Falha ao alternar todas as caixas de seleção.',
-            present_toggle_failed: 'Falha ao alternar a caixa de presença.'
-        },
-        'pt-br': {
-            present_all_toggle_failed: 'Falha ao alternar todas as caixas de seleção.',
-            present_toggle_failed: 'Falha ao alternar a caixa de presença.'
-        },
-        ru: {
-            present_all_toggle_failed: 'Не удалось переключить все флажки.',
-            present_toggle_failed: 'Не удалось переключить флажок присутствия.'
-        },
-        tr: {
-            present_all_toggle_failed: 'Tüm onay kutuları değiştirilemedi.',
-            present_toggle_failed: 'Yoklama onay kutusu değiştirilemedi.'
-        },
-        zh: {
-            present_all_toggle_failed: '无法切换所有复选框。',
-            present_toggle_failed: '无法切换出席复选框。'
-        }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (() => {
-            const errFb = '# ERROR';
-            const dataClientLocalized = 'data-client-localized';
-            const dataGuardMsg = 'data-guard-msg';
-            const langSessionKey = 'erp-np-lang';
-            const getLocalizedMessage = (msgKey, el) => {
-                let msg = errFb;
-                if (el.getAttribute('data-sv-localized') === 'true' || el.getAttribute(dataClientLocalized) === 'true') {
-                msg = el.getAttribute(dataGuardMsg) ?? errFb;
-                } else {
-                let lang = (window.sessionStorage.getItem(langSessionKey) ?? document.documentElement.lang ?? 'en')
-                    .toLowerCase().replace(/_/g, '-');
-                lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-                msg =
-                    window.translations?.[lang]?.[msgKey] ??
-                    el.getAttribute(dataGuardMsg) ??
-                    window.translations?.['en']?.[msgKey] ??
-                    errFb;
-                if (msg !== errFb) {
-                    el.setAttribute(dataGuardMsg, msg);
-                    el.setAttribute(dataClientLocalized, 'true');
-                }
-                }
-                return msg;
-            };
-            const showError = message => {
-                try {
-                let container = document.querySelector('#bootstrap-toast-container');
-                if (!container) {
-                    const hasBs = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-                    .some(l => /bootstrap/i.test(l.href)) && window.bootstrap?.Toast;
-                    if (hasBs) {
-                    container = document.createElement('div');
-                    container.id = 'bootstrap-toast-container';
-                    container.setAttribute('aria-live', 'polite');
-                    container.setAttribute('aria-atomic', 'true');
-                    document.body.appendChild(container);
-                    }
-                }
-                if (container && window.bootstrap.Toast) {
-                    let toast = container.querySelector('.toast');
-                    if (!toast) {
-                    toast = document.createElement('div');
-                    toast.className = 'toast';
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-                    const body = document.createElement('div');
-                    body.className = 'toast-body';
-                    toast.appendChild(body);
-                    container.appendChild(toast);
-                    if (toast.getAttribute('data-click-listener') !== 'true') {
-                        toast.addEventListener('click', () => body.textContent = message);
-                        toast.setAttribute('data-click-listener', 'true');
-                    }
-                    }
-                    toast.querySelector('.toast-body').textContent = message;
-                    new bootstrap.Toast(toast).show();
-                } else {
-                    alert(message);
-                }
-                } catch {
-                alert(message);
-                }
-            };
-            const presentAllEl = document.getElementById('present_all');
-            if (presentAllEl && presentAllEl.dataset.listenerAttached !== 'true') {
-                presentAllEl.dataset.listenerAttached = 'true';
-                const obsAll = new MutationObserver((ms, obs) => {
-                ms.forEach(m => [...m.removedNodes].forEach(n => {
-                    if (n === presentAllEl) {
-                    presentAllEl.removeEventListener('click', onPresentAllClick);
-                    obs.disconnect();
-                    }
-                }));
-                });
-                obsAll.observe(document.body, { childList: true, subtree: true });
-                presentAllEl.addEventListener('click', onPresentAllClick);
-            }
-            function onPresentAllClick() {
-                try {
-                const checked = presentAllEl.checked ?? false;
-                document.querySelectorAll('.present').forEach(el => {
-                    if (el instanceof HTMLInputElement) el.checked = checked;
-                });
-                document.querySelectorAll('.present_check_in').forEach(el => {
-                    el.classList.toggle('d-none', !checked);
-                    el.classList.toggle('d-block', checked);
-                });
-                } catch {
-                showError(getLocalizedMessage('present_all_toggle_failed', presentAllEl));
-                }
-            }
-            document.querySelectorAll('.present').forEach(el => {
-                if (el.dataset.listenerAttached === 'true') return;
-                el.dataset.listenerAttached = 'true';
-                const obsPres = new MutationObserver((ms, obs) => {
-                ms.forEach(m => [...m.removedNodes].forEach(n => {
-                    if (n === el) {
-                    el.removeEventListener('click', onPresentClick);
-                    obs.disconnect();
-                    }
-                }));
-                });
-                obsPres.observe(document.body, { childList: true, subtree: true });
-                el.addEventListener('click', onPresentClick);
-            });
-            function onPresentClick(event) {
-                try {
-                const el = event.currentTarget;
-                const container = el.parentElement?.parentElement?.parentElement?.parentElement;
-                const checkInEl = container?.querySelector('.present_check_in');
-                if (!checkInEl) return;
-                if (el.checked) {
-                    checkInEl.classList.remove('d-none');
-                    checkInEl.classList.add('d-block');
-                } else {
-                    checkInEl.classList.remove('d-block');
-                    checkInEl.classList.add('d-none');
-                }
-                } catch {
-                showError(getLocalizedMessage('present_toggle_failed', event.currentTarget));
-                }
-            }
-        })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/attendances/bulk/lang/toggle.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/attendances/bulk/toggle.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_BDC)
     <li class="breadcrumb-item">
@@ -240,137 +37,227 @@ Object.keys(t).forEach(
 {{--    </div>--}}
 {{--@endsection--}}
 @section(YieldingConstants::ADM_CTT)
-    <div class="{{ C::RW }}">
+    <div class="{{ VC::RW }}">
         <div class="col-sm-12">
             <div id="multiCollapseExample1">
-                <div class="{{ C::CD }}">
+                <div class="{{ VC::CD }}">
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open([
-                            'route' => [ViewsConstants::EMP_ATD.'.'.EAC::BK_ATD],
-                            'method'=> 'get',
-                            'id'    => 'bulkattendance_filter'
+                        @php
+                            $bulkBase = VW::EMP_ATD.'.'.EAVC::BK_ATD;
+                            $bulkKebab = Str::kebab($bulkBase);
+                            $bulkResolved = Route::has($bulkBase) ? $bulkBase : (Route::has($bulkKebab) ? $bulkKebab : null);
+                            $bulkUrl = $bulkResolved ? route($bulkResolved) : '#';
+                            $formId = 'bulkattendance_filter';
+                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP_ATD, 'apply_bulk_attendance_route_unavailable') ?? 'Apply bulk attendance route is unavailable. Please contact technical support or your domain administrator.';
+                        @endphp
+                        {{ Form::open([
+                            'method' => 'GET',
+                            'url' => $bulkUrl,
+                            'id' => $formId,
+                            'data-url' => $bulkUrl,
+                            'data-guard-msg' => $applyGuardMsg,
+                            'data-sv-localized' => 'true',
                         ]) }}
-                        <div class="{{ C::DFL }} {{ C::ALC }} {{ C::JCE }}">
-                            <div class="col-xl-10">
-                                <div class="{{ C::RW }}">
-                                    <div class="{{ C::CLMS3 }}">
-                                        <div class="btn-box">
+                            <div class="{{ VC::DFL }} {{ VC::ALC }} {{ VC::JCE }}">
+                                <div class="col-xl-10">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::CLMS3 }}">
+                                            <div class="btn-box"></div>
+                                        </div>
+                                        <div class="{{ VC::CLMS3 }}">
+                                            {{ Form::label('date', __('Date'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::date('date', request('date',''), ['class'=>VC::FM_CT]) }}
+                                        </div>
+                                        <div class="{{ VC::CLMS3 }}">
+                                            {{ Form::label('branch', __('Branch'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::select('branch', $branch, request('branch',''), ['class'=>VC::FM_CT.' select','required']) }}
+                                        </div>
+                                        <div class="{{ VC::CLMS3 }}">
+                                            {{ Form::label('department', __('Department'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::select('department', $department, request('department',''), ['class'=>VC::FM_CT.' select','required']) }}
                                         </div>
                                     </div>
-                                    <div class="{{ C::CLMS3 }}">
-                                        {{ Collective\Html\FormFacade::label('date', __('Date'), ['class'=>C::FM_LB]) }}
-                                        {{ Collective\Html\FormFacade::date('date', request('date',''), ['class'=>C::FM_CT]) }}
-                                    </div>
-                                    <div class="{{ C::CLMS3 }}">
-                                        {{ Collective\Html\FormFacade::label('branch', __('Branch'), ['class'=>C::FM_LB]) }}
-                                        {{ Collective\Html\FormFacade::select('branch', $branch, request('branch',''), ['class'=>C::FM_CT.' select','required']) }}
-                                    </div>
-                                    <div class="{{ C::CLMS3 }}">
-                                        {{ Collective\Html\FormFacade::label('department', __('Department'), ['class'=>C::FM_LB]) }}
-                                        {{ Collective\Html\FormFacade::select('department', $department, request('department',''), ['class'=>C::FM_CT.' select','required']) }}
-                                    </div>
+                                </div>
+                                <div class="{{ VC::C_AT }} {{ VC::FEND }} {{ VC::MS2 }} {{ VC::MT4 }}">
+                                    <a href="#"
+                                    class="{{ VC::BT_SM_PM }} apply-bulkattendance"
+                                    data-form-id="{{ $formId }}"
+                                    data-guard-msg="{{ $applyGuardMsg }}"
+                                    data-sv-localized="true"
+                                    title="{{__('Apply')}}">
+                                        <i class="{{ VC::TI_SRC }}"></i>
+                                    </a>
                                 </div>
                             </div>
-                            <div class="{{ C::C_AT }} {{ C::FEND }} {{ C::MS2 }} {{ C::MT4 }}">
-                                <a href="#" class="{{ C::BT_SM_PM }}" onclick="document.getElementById('bulkattendance_filter').submit();return false;" title="{{__('Apply')}}">
-                                    <i class="{{ C::TI_SRC }}"></i>
-                                </a>
-                            </div>
-                        </div>
+                        {{ Form::close() }}
+                        @push(StacksConstants::ADM_SCR_PG)
+                            <script src="{{ asset('assets/js/routes/attendances/bulk/apply.js') }}" defer></script>
+                        @endpush
                     </div>
-                    {{ Collective\Html\FormFacade::close() }}
                 </div>
             </div>
         </div>
     </div>
-   <div class="{{ C::RW }}">
+   <div class="{{ VC::RW }}">
         <div class="col-xl-12">
-            <div class="{{ C::CD }}">
-                <div class="card-header {{ C::CD_MT }}">
-                    {{ Collective\Html\FormFacade::open([
-                        'route'  => [ViewsConstants::EMP_ATD.'.'.EAC::BK_ATD],
-                        'method' => 'post'
+            <div class="{{ VC::CD }}">
+                <div class="card-header {{ VC::CD_MT }}">
+                    @php
+                        $bulkPostBase = VW::EMP_ATD.'.'.EAVC::BK_ATD;
+                        $bulkPostKebab = Str::kebab($bulkPostBase);
+                        $bulkPostResolved = Route::has($bulkPostBase) ? $bulkPostBase : (Route::has($bulkPostKebab) ? $bulkPostKebab : null);
+                        $bulkPostUrl = $bulkPostResolved ? route($bulkPostResolved) : '#';
+                        $bulkPostFormId = 'bulkattendance_post';
+                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                        $submitGuardMsg = Utility::fetchLinkMessage($langValue, VW::EMP_ATD, 'submit_bulk_attendance_route_unavailable') ?? 'Submit bulk attendance route is unavailable. Please contact technical support or your domain administrator.';
+                    @endphp
+                    {{ Form::open([
+                        'method' => 'POST',
+                        'url' => $bulkPostUrl,
+                        'id' => $bulkPostFormId,
+                        'data-url' => $bulkPostUrl,
+                        'data-guard-msg' => $submitGuardMsg,
+                        'data-sv-localized' => 'true',
                     ]) }}
-                    <div class="table-responsive">
-                        <table class="{{ C::TB_AL }}" id="pc-dt-simple">
-                            <thead>
-                            <tr>
-                                <th width="10%">{{ __('Employee Id') }}</th>
-                                <th>{{ __('Employee') }}</th>
-                                <th>{{ __('Branch') }}</th>
-                                <th>{{ __('Department') }}</th>
-                                <th>
-                                    <div class="form-group my-auto">
-                                        <div class="custom-control ">
-                                            <input class="form-check-input" type="checkbox" name="present_all"
-                                                   id="present_all" {{ old('remember') ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="present_all">
-                                                {{ __('Attendance') }}</label>
-                                        </div>
-                                    </div>
-                                </th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($employees as $employee)
-                                    @php
-                                        $attendance = $employee->presentStatus($employee->id, request('date', date('Y-m-d')));
-                                    @endphp
+                        <div class="table-responsive">
+                            <table class="{{ VC::TB_AL }}" id="pc-dt-simple">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <input type="hidden" name="employee_id[]" value="{{ $employee->id }}">
-                                            <a href="{{ route('employees.show', encrypt($employee->id)) }}"
-                                               class="btn btn-outline-primary">
-                                               {{ Auth::user()->employeeIdFormat($employee->employee_id) }}
-                                            </a>
-                                        </td>
-                                        <td>{{ $employee->name }}</td>
-                                        <td>{{ $employee->branch->name ?? '' }}</td>
-                                        <td>{{ $employee->department->name ?? '' }}</td>
-                                        <td>
-                                            <div class="{{ C::RW }}">
-                                                <div class="{{ C::CM3 }}">
-                                                    <div class="{{ C::CST_CTL }} {{ C::CST_CB }}">
-                                                        <input type="checkbox"
-                                                               class="form-check-input present"
-                                                               name="present-{{ $employee->id }}"
-                                                               id="present{{ $employee->id }}"
-                                                               {{ optional($attendance)->status=='Present'?'checked':'' }}>
-                                                        <label class="{{ C::CST_LB }}" for="present{{ $employee->id }}"></label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-8 {{ $attendance?'':'d-none' }}">
-                                                    <div class="{{ C::RW }}">
-                                                        <label class="{{ C::CM3 }} {{ C::FM_LB }}">{{ __('In') }}</label>
-                                                        <div class="{{ C::CM4 }}">
-                                                            <input type="time"
-                                                                   class="{{ C::FM_CT }}"
-                                                                   name="in-{{ $employee->id }}"
-                                                                   value="{{ $attendance->clock_in!='00:00:00'?$attendance->clock_in:Utility::getValByName('company_start_time') }}">
-                                                        </div>
-                                                        <label class="{{ C::CM2 }} {{ C::FM_LB }}">{{ __('Out') }}</label>
-                                                        <div class="{{ C::CM4 }}">
-                                                            <input type="time"
-                                                                   class="{{ C::FM_CT }}"
-                                                                   name="out-{{ $employee->id }}"
-                                                                   value="{{ $attendance->clock_out!='00:00:00'?$attendance->clock_out:Utility::getValByName('company_end_time') }}">
-                                                        </div>
-                                                    </div>
+                                        <th width="10%">{{ __('Employee Id') }}</th>
+                                        <th>{{ __('Employee') }}</th>
+                                        <th>{{ __('Branch') }}</th>
+                                        <th>{{ __('Department') }}</th>
+                                        <th>
+                                            <div class="form-group my-auto">
+                                                <div class="custom-control ">
+                                                    <input class="form-check-input" type="checkbox" name="present_all" id="present_all" {{ old('remember') ? 'checked' : '' }}>
+                                                    <label class="custom-control-label" for="present_all">{{ __('Attendance') }}</label>
                                                 </div>
                                             </div>
-                                        </td>
+                                        </th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="{{ C::FEND }} pt-4">
-                        <input type="hidden" name="date" value="{{ request('date', date('Y-m-d')) }}">
-                        <input type="hidden" name="branch" value="{{ request('branch','') }}">
-                        <input type="hidden" name="department" value="{{ request('department','') }}">
-                        {{ Collective\Html\FormFacade::submit(__('Update'), ['class'=>C::BT_SM_PM]) }}
-                    </div>
-                    {{ Collective\Html\FormFacade::close() }}
+                                </thead>
+                                <tbody>
+                                    @foreach($employees as $employee)
+                                        @php
+                                            $attendance = $employee->presentStatus($employee->id, request('date', date('Y-m-d')));
+                                            $empShowBase = ViewsConstants::EMP.'.show';
+                                            $empShowKebab = Str::kebab($empShowBase);
+                                            $empShowResolved = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
+                                            $empIdVal = isset($employee->id) ? (int)$employee->id : 0;
+                                            $empEncryptedId = $empIdVal ? encrypt($empIdVal) : null;
+                                            $empShowUrl = ($empShowResolved && $empEncryptedId) ? route($empShowResolved, $empEncryptedId) : '#';
+                                            $langLocal = $langValue;
+                                            $empShowGuardMsg = Utility::fetchLinkMessage($langLocal, ViewsConstants::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
+                                            $empAnchorId = 'employee-show-link-'.$empIdVal;
+                                        @endphp
+                                        <tr>
+                                            <td>
+                                                <input type="hidden" name="employee_id[]" value="{{ $employee->id }}">
+                                                <a id="{{ $empAnchorId }}"
+                                                href="{{ $empShowUrl }}"
+                                                class="btn btn-outline-primary"
+                                                data-url="{{ $empShowUrl }}"
+                                                data-guard-msg="{{ $empShowGuardMsg }}"
+                                                data-sv-localized="true">
+                                                    {{ !empty($employee->employee_id) ? $user->employeeIdFormat($employee->employee_id) : __('Failed to get employee id') }}
+                                                </a>
+                                            </td>
+                                            <td>{{ $employee->name ?? __('Failed to get employee name') }}</td>
+                                            <td>{{ $employee->branch->name ?? __('Failed to get branch name') }}</td>
+                                            <td>{{ $employee->department->name ?? __('Failed to get department name') }}</td>
+                                            <td>
+                                                <div class="{{ VC::RW }}">
+                                                    <div class="{{ VC::CM3 }}">
+                                                        <div class="{{ VC::CST_CTL }} {{ VC::CST_CB }}">
+                                                            <input type="checkbox"
+                                                                class="form-check-input present"
+                                                                name="present-{{ $employee->id }}"
+                                                                id="present{{ $employee->id }}"
+                                                                {{ optional($attendance)->status=='Present'?'checked':'' }}>
+                                                            <label class="{{ VC::CST_LB }}" for="present{{ $employee->id }}"></label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-8 {{ $attendance?'':'d-none' }}">
+                                                        <div class="{{ VC::RW }}">
+                                                            <label class="{{ VC::CM3 }} {{ VC::FM_LB }}">{{ __('In') }}</label>
+                                                            <div class="{{ VC::CM4 }}">
+                                                                <input type="time"
+                                                                    class="{{ VC::FM_CT }}"
+                                                                    name="in-{{ $employee->id }}"
+                                                                    value="{{ $attendance->clock_in!='00:00:00'?$attendance->clock_in:Utility::getValByName('company_start_time') }}">
+                                                            </div>
+                                                            <label class="{{ VC::CM2 }} {{ VC::FM_LB }}">{{ __('Out') }}</label>
+                                                            <div class="{{ VC::CM4 }}">
+                                                                <input type="time"
+                                                                    class="{{ VC::FM_CT }}"
+                                                                    name="out-{{ $employee->id }}"
+                                                                    value="{{ $attendance->clock_out!='00:00:00'?$attendance->clock_out:Utility::getValByName('company_end_time') }}">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer>
+                                                (() => {
+                                                    try {
+                                                        const el = document.getElementById('{{ $empAnchorId }}');
+                                                        if (!el) { return; }
+                                                        if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                        el.setAttribute('data-listener-active', 'true');
+                                                        el.addEventListener('click', (e) => {
+                                                            try {
+                                                                const href = el.getAttribute('href') ?? '#';
+                                                                const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                if (url !== '#' && href !== '#') { return; }
+                                                                e.preventDefault();
+                                                                const msg = el.getAttribute('data-guard-msg') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
+                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                let container = document.getElementById('toast-container');
+                                                                if (!container) {
+                                                                    container = document.createElement('div');
+                                                                    container.id = 'toast-container';
+                                                                    document.body.appendChild(container);
+                                                                }
+                                                                if (hasBootstrap) {
+                                                                    const toast = document.createElement('div');
+                                                                    toast.className = 'toast';
+                                                                    toast.setAttribute('role', 'alert');
+                                                                    toast.setAttribute('aria-live', 'assertive');
+                                                                    toast.setAttribute('aria-atomic', 'true');
+                                                                    const body = document.createElement('div');
+                                                                    body.className = 'toast-body';
+                                                                    body.textContent = msg;
+                                                                    toast.appendChild(body);
+                                                                    container.appendChild(toast);
+                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                } else {
+                                                                    alert(msg);
+                                                                }
+                                                                el.setAttribute('data-failed-route', 'true');
+                                                            } catch (err) {}
+                                                        });
+                                                    } catch (err) {}
+                                                })();
+                                            </script>
+                                        @endpush
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="{{ VC::FEND }} pt-4">
+                            <input type="hidden" name="date" value="{{ request('date', date('Y-m-d')) }}">
+                            <input type="hidden" name="branch" value="{{ request('branch','') }}">
+                            <input type="hidden" name="department" value="{{ request('department','') }}">
+                            {{ Form::submit(__('Update'), ['class'=>VC::BT_SM_PM]) }}
+                        </div>
+                    {{ Form::close() }}
+                    @push(StacksConstants::ADM_SCR_PG)
+                        <script src="{{ asset('assets/js/routes/attendances/bulk/submit.js') }}" defer></script>
+                    @endpush
                 </div>
             </div>
         </div>

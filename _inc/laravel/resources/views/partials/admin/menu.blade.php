@@ -6270,7 +6270,7 @@
                                         $linkId = 'tasks-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::TSKB,
+                                            ViewsConstants::TSK,
                                             'taskboard_view_route_unavailable'
                                         ) ?? 'Tasks route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp

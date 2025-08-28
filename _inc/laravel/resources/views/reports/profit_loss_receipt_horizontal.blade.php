@@ -100,7 +100,7 @@
                                                                         data-sv-localized="true">
                                                                             {{ $accLabel }}
                                                                         </a>
-                                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                                        @push(StacksConstants::ADM_SCR_PG)
                                                                             <script defer>
                                                                                 (() => {
                                                                                     try {
@@ -171,7 +171,7 @@
                                                                         data-sv-localized="true">
                                                                             {{ $accLabel }}
                                                                         </a>
-                                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                                        @push(StacksConstants::ADM_SCR_PG)
                                                                             <script defer>
                                                                                 (() => {
                                                                                     try {
@@ -293,7 +293,7 @@
                                                                         data-sv-localized="true">
                                                                             {{ $accLabel }}
                                                                         </a>
-                                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                                        @push(StacksConstants::ADM_SCR_PG)
                                                                             <script defer>
                                                                                 (() => {
                                                                                     try {
@@ -364,7 +364,7 @@
                                                                         data-sv-localized="true">
                                                                             {{ $accLabel }}
                                                                         </a>
-                                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                                        @push(StacksConstants::ADM_SCR_PG)
                                                                             <script defer>
                                                                                 (() => {
                                                                                     try {

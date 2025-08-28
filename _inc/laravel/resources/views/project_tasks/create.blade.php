@@ -157,7 +157,7 @@
         <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
 {!! Form::close() !!}
-@push(StacksConstants::ADM_SCRP_PG)
+@push(StacksConstants::ADM_SCR_PG)
     <script>
         (() => {
             try {

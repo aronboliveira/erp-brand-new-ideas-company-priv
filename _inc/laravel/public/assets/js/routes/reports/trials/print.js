@@ -25,7 +25,7 @@
     const hasBsLink =
       qs('link[rel="stylesheet"][href*="bootstrap"]') ||
       qs('link[href*="bootstrap"]');
-    const hasBsToast = !!(window.bootstrap && window.bootstrap.Toast);
+    const hasBsToast = window.bootstrap && window.bootstrap.Toast;
     if (hasBsLink && hasBsToast) {
       const container = ensureToastContainer();
       const tid = "np-toast";

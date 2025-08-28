@@ -108,7 +108,7 @@
                                             <button type="submit" value="0" name="in" id="clock_in" class="btn-create badge-success disabled" disabled>{{ __('CLOCK IN') }}</button>
                                         @endif
                                     {{ Form::close() }}
-                                    @push(StacksConstants::ADM_SCRP_PG)
+                                    @push(StacksConstants::ADM_SCR_PG)
                                         <script src="{{ asset('assets/js/routes/employeeAttendances/clockIn.js') }}" defer></script>
                                     @endpush
                                 </div>
@@ -134,7 +134,7 @@
                                         ]) }}
                                             <button type="submit" value="1" name="out" id="clock_out" class="btn-create badge-danger">{{ __('CLOCK OUT') }}</button>
                                         {{ Form::close() }}
-                                        @push(StacksConstants::ADM_SCRP_PG)
+                                        @push(StacksConstants::ADM_SCR_PG)
                                             <script src="{{ asset('assets/js/routes/employeeAttendances/clockOut.js') }}" defer></script>
                                         @endpush
                                     @else

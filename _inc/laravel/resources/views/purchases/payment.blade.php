@@ -67,6 +67,6 @@
     </div>
 {!! Form::close() !!}
 
-@push(ST::ADM_SCRP_PG)
+@push(ST::ADM_SCR_PG)
     <script defer src="{{ asset('assets/js/routes/purchases/payment.js') }}"></script>
 @endpush

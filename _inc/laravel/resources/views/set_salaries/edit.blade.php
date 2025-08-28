@@ -24,7 +24,7 @@
     $createRoute = Route::has(ViewsConstants::ALW . '.store')
         ? route(ViewsConstants::ALW . '.store')
         : '#';
-    $allowanceFormId      = 'allowance-create-form';
+    $allowanceFormId      = 'allowance-store-form';
     $createMsg   = Utility::fetchLinkMessage(
         $lang,
         ViewsConstants::ALW,
@@ -875,39 +875,27 @@
                                         </thead>
                                         <tbody class="font-style">
                                             @foreach($overtimes as $ot)
-                                                @php
-                                                    $overtimeEditRoute    = Route::has(ViewsConstants::OVT . '.edit')
-                                                        ? route(ViewsConstants::OVT . '.edit', $ot->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::OVT . '.edit'))
-                                                            ? route(Str::kebab(ViewsConstants::OVT . '.edit'), $ot->id)
-                                                            : '#');
-                                                    $overtimeEditBtnId    = 'overtime-edit-' . $ot->id;
-                                                    $overtimeEditMsg      = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::OVT,
-                                                        'overtime_edit_route_unavailable'
-                                                    ) ?? 'Overtime edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                    $overtimeDestroyRoute = Route::has(ViewsConstants::OVT . '.destroy')
-                                                        ? route(ViewsConstants::OVT . '.destroy', $ot->id)
-                                                        : (Route::has(Str::kebab(ViewsConstants::OVT . '.destroy'))
-                                                            ? route(Str::kebab(ViewsConstants::OVT . '.destroy'), $ot->id)
-                                                            : '#');
-                                                    $overtimeDeleteBtnId  = 'overtime-delete-' . $ot->id;
-                                                    $overtimeDeleteFormId = 'overtime-delete-form-' . $ot->id;
-                                                    $overtimeDestroyMsg   = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::OVT,
-                                                        'overtime_destroy_route_unavailable'
-                                                    ) ?? 'Overtime destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
                                                 <tr>
-                                                    <td>{{ $ot->employee()->name }}</td>
-                                                    <td>{{ $ot->title }}</td>
-                                                    <td>{{ $ot->number_of_days }}</td>
-                                                    <td>{{ $ot->hours }}</td>
-                                                    <td>{{ $user->priceFormat($ot->rate) }}</td>
+                                                    <td>{{ $ot->employee()?->name ?? __('No name available') }}</td>
+                                                    <td>{{ $ot->title ?? __('No title available') }}</td>
+                                                    <td>{{ $ot->number_of_days ?? __('No number of days available') }}</td>
+                                                    <td>{{ $ot->hours ?? __('No overtime hours available') }}</td>
+                                                    <td>{{ !empty($ot->rate) ? $user->priceFormat($ot->rate) ?? __('No rate available') : __('No rate available') }}</td>
                                                     <td class="{{ VC::JCE }}">
                                                         @can('edit overtime')
+                                                            @php
+                                                                $overtimeEditRoute    = Route::has(ViewsConstants::OVT . '.edit')
+                                                                    ? route(ViewsConstants::OVT . '.edit', $ot->id)
+                                                                    : (Route::has(Str::kebab(ViewsConstants::OVT . '.edit'))
+                                                                        ? route(Str::kebab(ViewsConstants::OVT . '.edit'), $ot->id)
+                                                                        : '#');
+                                                                $overtimeEditBtnId    = 'overtime-edit-' . $ot->id;
+                                                                $overtimeEditMsg      = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::OVT,
+                                                                    'overtime_edit_route_unavailable'
+                                                                ) ?? 'Overtime edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                            @endphp
                                                             <a id="{{ $overtimeEditBtnId }}"
                                                             href="{{ $overtimeEditRoute }}"
                                                             data-url="{{ $overtimeEditRoute }}"
@@ -921,6 +909,20 @@
                                                             </a>
                                                         @endcan
                                                         @can('delete overtime')
+                                                            @php
+                                                                $overtimeDestroyRoute = Route::has(ViewsConstants::OVT . '.destroy')
+                                                                    ? route(ViewsConstants::OVT . '.destroy', $ot->id)
+                                                                    : (Route::has(Str::kebab(ViewsConstants::OVT . '.destroy'))
+                                                                        ? route(Str::kebab(ViewsConstants::OVT . '.destroy'), $ot->id)
+                                                                        : '#');
+                                                                $overtimeDeleteBtnId  = 'overtime-delete-' . $ot->id;
+                                                                $overtimeDeleteFormId = 'overtime-delete-form-' . $ot->id;
+                                                                $overtimeDestroyMsg   = Utility::fetchLinkMessage(
+                                                                    $lang,
+                                                                    ViewsConstants::OVT,
+                                                                    'overtime_destroy_route_unavailable'
+                                                                ) ?? 'Overtime destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                            @endphp
                                                             <a id="{{ $overtimeDeleteBtnId }}"
                                                             href="#"
                                                             data-url="{{ $overtimeDestroyRoute }}"
@@ -932,7 +934,7 @@
                                                                 <i class="ti ti-trash"></i>
                                                             </a>
                                                             {!! Form::open([
-                                                                'route'            => [ViewsConstants::OVT . '.destroy', $ot->id],
+                                                                'route'            => [$overtimeDestroyRoute],
                                                                 'method'           => 'DELETE',
                                                                 'id'               => $overtimeDeleteFormId,
                                                                 'data-url'         => $overtimeDestroyRoute,
@@ -957,70 +959,7 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-        ar: {
-            select_any_designation: 'اختر أي مسمى وظيفي'
-        },
-        da: {
-            select_any_designation: 'Vælg en titel'
-        },
-        de: {
-            select_any_designation: 'Wählen Sie eine Bezeichnung'
-        },
-        en: {
-            select_any_designation: 'Select any Designation'
-        },
-        es: {
-            select_any_designation: 'Seleccione cualquier designación'
-        },
-        fr: {
-            select_any_designation: 'Sélectionnez une désignation'
-        },
-        he: {
-            select_any_designation: 'בחר כל תואר'
-        },
-        it: {
-            select_any_designation: 'Seleziona una qualifica'
-        },
-        ja: {
-            select_any_designation: '任意の役職を選択'
-        },
-        nl: {
-            select_any_designation: 'Selecteer een functie'
-        },
-        pl: {
-            select_any_designation: 'Wybierz dowolne stanowisko'
-        },
-        pt: {
-            select_any_designation: 'Selecione qualquer designação'
-        },
-        'pt-br': {
-            select_any_designation: 'Selecione qualquer designação'
-        },
-        ru: {
-            select_any_designation: 'Выберите любое назначение'
-        },
-        tr: {
-            select_any_designation: 'Herhangi bir görev seçin'
-        },
-        zh: {
-            select_any_designation: '选择任意职称'
-        }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
+    <script async src="{{ asset('assets/js/routes/setSalaries/lang/index.js') }}">
     </script>
     <script defer>
         (() => {
@@ -1175,318 +1114,11 @@ Object.keys(t).forEach(
         }
         })();
     </script>
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $salaryFormId }}');
-            if (form && form.getAttribute('data-listener-active') !== 'true') {
-                form.setAttribute('data-listener-active', 'true');
-                form.addEventListener('submit', event => {
-                    try {
-                        const action = form.getAttribute('action');
-                        const url    = form.getAttribute('data-url');
-                        if ((action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        form.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            }
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const attachGuard = (el, eventType) => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(eventType, event => {
-                    try {
-                        const href = el.tagName === 'A' ? el.getAttribute('href') : null;
-                        const url  = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            attachGuard(document.getElementById('{{ $allowanceFormId }}'), 'submit');
-
-            document.querySelectorAll('[id^="allowance-edit-"]').forEach(el => {
-                attachGuard(el, 'click');
-            });
-
-            document.querySelectorAll('[id^="allowance-delete-"]').forEach(el => {
-                attachGuard(el, 'click');
-            });
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const attachGuard = (el, eventType) => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(eventType, event => {
-                    try {
-                        const href = el.tagName === 'A' ? el.getAttribute('href') : null;
-                        const url  = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            attachGuard(document.getElementById('{{ $comFormId }}'), 'submit');
-            document.querySelectorAll('[id^="commission-edit-"]').forEach(el => attachGuard(el, 'click'));
-            document.querySelectorAll('[id^="commission-delete-"]').forEach(el => attachGuard(el, 'click'));
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const attachGuard = (el, eventType) => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(eventType, event => {
-                    try {
-                        const href = el.tagName === 'A' ? el.getAttribute('href') : null;
-                        const action = el.tagName === 'FORM' ? el.getAttribute('action') : null;
-                        const url  = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            attachGuard(document.getElementById('{{ $loanFormId }}'), 'submit');
-            document.querySelectorAll('[id^="loan-edit-"]').forEach(el => attachGuard(el, 'click'));
-            document.querySelectorAll('[id^="loan-delete-"]').forEach(el => attachGuard(el, 'click'));
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const attachGuard = (el, eventType) => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(eventType, event => {
-                    try {
-                        const href   = el.tagName === 'A' ? el.getAttribute('href') : null;
-                        const action = el.tagName === 'FORM' ? el.getAttribute('action') : null;
-                        const url    = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            attachGuard(document.getElementById('{{ $sdFormId }}'), 'submit');
-            document.querySelectorAll('[id^="saturation-deduction-edit-"]').forEach(el => attachGuard(el, 'click'));
-            document.querySelectorAll('[id^="saturation-deduction-delete-"]').forEach(el => attachGuard(el, 'click'));
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const attachGuard = (el, eventType) => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(eventType, event => {
-                    try {
-                        const href   = el.tagName === 'A' ? el.getAttribute('href') : null;
-                        const action = el.tagName === 'FORM' ? el.getAttribute('action') : null;
-                        const url    = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            attachGuard(document.getElementById('{{ $otherPayFormId }}'), 'submit');
-            document.querySelectorAll('[id^="other-payment-edit-"]').forEach(el => attachGuard(el, 'click'));
-            document.querySelectorAll('[id^="other-payment-delete-"]').forEach(el => attachGuard(el, 'click'));
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const attachGuard = (el, eventType) => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(eventType, event => {
-                    try {
-                        const href   = el.tagName === 'A' ? el.getAttribute('href') : null;
-                        const action = el.tagName === 'FORM' ? el.getAttribute('action') : null;
-                        const url    = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            attachGuard(document.getElementById('{{ $overtimeFormId }}'), 'submit');
-            document.querySelectorAll('[id^="overtime-edit-"]').forEach(el => attachGuard(el, 'click'));
-            document.querySelectorAll('[id^="overtime-delete-"]').forEach(el => attachGuard(el, 'click'));
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/setSalaries/updateSalary.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/allowances/storeSalary.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/commissions/storeSalary.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/loans/storeSalary.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/saturationDeductions/storeSalary.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/otherPayments/store.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/overtimes/store.js') }}"></script>
 @endpush

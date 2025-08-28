@@ -36,7 +36,7 @@
     <li class="breadcrumb-item">
         <a href="{{ $purchaseIndexUrl }}" id="{{ $purchaseIndexLinkId }}" class="{{ VC::BT_LNK ?? '' }}" data-ajax-popup="true" data-title="{{ __('Purchase') }}" data-url="{{ $purchaseIndexUrl }}" data-guard-msg="{{ $purchaseIndexGuardMsg }}" data-sv-localized="true">{{ __('Purchase') }}</a>
     </li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/routes/purchases/index.js') }}" defer></script>
     @endpush
     <li class="breadcrumb-item">{{__('Purchase Create')}}</li>
@@ -387,7 +387,7 @@
         'data-guard-msg' => $purchaseStoreGuardMsg,
         'data-sv-localized' => 'true',
     ]) }}
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/bills/vendor.js') }}" defer></script>
             <script src="{{ asset('assets/js/routes/purchases/store.js') }}" defer></script>
         @endpush
@@ -495,7 +495,7 @@
                                         ]
                                     ) }}
                                 </td>
-                                @push(StacksConstants::ADM_SCRP_PG)
+                                @push(StacksConstants::ADM_SCR_PG)
                                     <script src="{{ asset('assets/js/routes/purchases/product.js') }}" defer></script>
                                 @endpush
                                 <td>
@@ -567,7 +567,7 @@
                 data-guard-msg="{{ $purchaseIndexGuardMsg }}"
                 data-sv-localized="true"
             >{{ __('Cancel') }}</button>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/purchases/cancel.js') }}" defer></script>
             @endpush
             <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Create') }}</button>

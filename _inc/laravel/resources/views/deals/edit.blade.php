@@ -64,7 +64,7 @@
             >
                 <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
             </a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script defer>
                     (() => {
                         const btn = document.getElementById('generate-ai-btn-{{ $deal->id }}');

@@ -208,7 +208,7 @@
                                             data-sv-localized="true">
                                                 {{ $users?->contractNumberFormat($contract->id) ?? __('Contract number not available') }}
                                             </a>
-                                            @push(StacksConstants::ADM_SCRP_PG)
+                                            @push(StacksConstants::ADM_SCR_PG)
                                                 <script src="{{ asset('assets/js/routes/contracts/show.js') }}" defer></script>
                                             @endpush
                                         </td>

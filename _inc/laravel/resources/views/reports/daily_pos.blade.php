@@ -31,7 +31,7 @@
         data-sv-localized="true" data-func-name="saveAsPDF" data-guard-msg="{{ Utility::fetchLinkMessage($lang,VC::RPT,'download_daily_pos_unavailable') ?? 'Download function for daily POS is unavailable. Please contact technical support or your domain administrator.' }}" data-bs-toggle="tooltip" title="{{ __('Download') }}" data-original-title="{{ __('Download') }}">
             <span class="btn-inner--icon"><i class="{{ VW::TI_DWN }}"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/pos/daily/download.js') }}" defer></script>
         @endpush
     </div>

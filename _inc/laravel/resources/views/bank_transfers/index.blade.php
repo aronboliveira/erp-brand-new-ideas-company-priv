@@ -82,59 +82,194 @@
     </script>
 @endpush
 
-@section('content')
+@section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }} mb-3">
+        @php
+            $bnkTrfIndexBase = ViewsConstants::BNK_TRF.'.index';
+            $bnkTrfIndexKebab = Str::kebab($bnkTrfIndexBase);
+            $bnkTrfIndexResolved = Route::has($bnkTrfIndexBase) ? $bnkTrfIndexBase : (Route::has($bnkTrfIndexKebab) ? $bnkTrfIndexKebab : null);
+            $bnkTrfIndexUrl = $bnkTrfIndexResolved ? route($bnkTrfIndexResolved) : '#';
+            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+            $applyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BNK_TRF, 'apply_bank_transfer_route_unavailable') ?? 'Apply bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+            $resetGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BNK_TRF, 'reset_bank_transfer_route_unavailable') ?? 'Reset bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+            $formId = 'transfer_form';
+            $applyId = 'transfer-apply';
+            $resetId = 'transfer-reset';
+        @endphp
         {{ Form::open([
-            'route' => [ViewsConstants::BNK_TRF.'.index'],
-            'method'=> 'GET',
-            'id'    => 'transfer_form'
+            'method' => 'GET',
+            'url' => $bnkTrfIndexUrl,
+            'id' => $formId,
+            'data-url' => $bnkTrfIndexUrl,
+            'data-guard-msg' => $applyGuardMsg,
+            'data-sv-localized' => 'true',
         ]) }}
-        <div class="{{ VC::R_ALC_JCE }}">
-            <div class="{{ VC::CLMS10 }}">
-                <div class="{{ VC::RW }}">
-                    <div class="{{ VC::CM3 }} month">
-                        {{ Form::label('date', __('Date'), ['class'=>VC::FM_LB]) }}
-                        {{ Form::text('date',
-                            request('date'),
-                            ['class'=>VC::FM_CT . ' month-btn','id'=>'pc-daterangepicker-1','readonly']
-                        ) }}
-                    </div>
-                    <div class="{{ VC::CM3 }} date">
-                        {{ Form::label('f_account', __('From Account'), ['class'=>VC::FM_LB]) }}
-                        {{ Form::select('f_account',
-                            $account,
-                            request('f_account'),
-                            ['class'=>VC::FM_CT_SL]
-                        ) }}
-                    </div>
-                    <div class="{{ VC::CM3 }}">
-                        {{ Form::label('t_account', __('To Account'), ['class'=>VC::FM_LB]) }}
-                        {{ Form::select('t_account',
-                            $account,
-                            request('t_account'),
-                            ['class'=>VC::FM_CT_SL]
-                        ) }}
+            <div class="{{ VC::R_ALC_JCE }}">
+                <div class="{{ VC::CLMS10 }}">
+                    <div class="{{ VC::RW }}">
+                        <div class="{{ VC::CM3 }} month">
+                            {{ Form::label('date', __('Date'), ['class'=>VC::FM_LB]) }}
+                            {{ Form::text('date', request('date'), ['class'=>VC::FM_CT.' month-btn','id'=>'pc-daterangepicker-1','readonly']) }}
+                        </div>
+                        <div class="{{ VC::CM3 }} date">
+                            {{ Form::label('f_account', __('From Account'), ['class'=>VC::FM_LB]) }}
+                            {{ Form::select('f_account', $account, request('f_account'), ['class'=>VC::FM_CT_SL]) }}
+                        </div>
+                        <div class="{{ VC::CM3 }}">
+                            {{ Form::label('t_account', __('To Account'), ['class'=>VC::FM_LB]) }}
+                            {{ Form::select('t_account', $account, request('t_account'), ['class'=>VC::FM_CT_SL]) }}
+                        </div>
                     </div>
                 </div>
+                <div class="{{ VC::C_AT_FEND }}">
+                    <a href="#"
+                    id="{{ $applyId }}"
+                    class="{{ VC::BT_SM_PM }}"
+                    data-form-id="{{ $formId }}"
+                    data-guard-msg="{{ $applyGuardMsg }}"
+                    data-sv-localized="true"
+                    data-bs-toggle="tooltip"
+                    title="{{ __('Apply') }}">
+                        <i class="{{ VC::TI_SRC }}"></i>
+                    </a>
+                    <a href="{{ $bnkTrfIndexUrl }}"
+                    id="{{ $resetId }}"
+                    class="{{ VC::BT_SM_DG }} ms-2"
+                    data-url="{{ $bnkTrfIndexUrl }}"
+                    data-guard-msg="{{ $resetGuardMsg }}"
+                    data-sv-localized="true"
+                    data-bs-toggle="tooltip"
+                    title="{{ __('Reset') }}">
+                        <i class="{{ VC::TI_TRS_OFF }}"></i>
+                    </a>
+                </div>
             </div>
-            <div class="{{ VC::C_AT_FEND }}">
-                <a href="#" class="{{ VC::BT_SM_PM }}" 
-                   onclick="document.getElementById('transfer_form').submit(); return false;"
-                   data-bs-toggle="tooltip"
-                   title="{{ __('Apply') }}">
-                    <i class="{{ VC::TI_SRC }}"></i>
-                </a>
-                <a href="{{ route(ViewsConstants::BNK_TRF.'.index') }}"
-                   class="{{ VC::BT_SM_DG }} ms-2"
-                   data-bs-toggle="tooltip"
-                   title="{{ __('Reset') }}">
-                    <i class="{{ VC::TI_TRS_OFF }}"></i>
-                </a>
-            </div>
-        </div>
         {{ Form::close() }}
+        @push(StacksConstants::ADM_SCR_PG)
+            <script defer>
+                (() => {
+                    try {
+                        const fm = document.getElementById('{{ $formId }}');
+                        if (fm && fm.getAttribute('data-submit-guarded') !== 'true') {
+                            fm.setAttribute('data-submit-guarded','true');
+                            fm.addEventListener('submit',(e) => {
+                                try {
+                                    const action = fm.getAttribute('action') ?? '#';
+                                    const url = fm.getAttribute('data-url') ?? action ?? '#';
+                                    if (url !== '#' && action !== '#') { return; }
+                                    e.preventDefault();
+                                    const msg = fm.getAttribute('data-guard-msg') ?? 'Apply bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    let container = document.getElementById('toast-container');
+                                    if (!container) {
+                                        container = document.createElement('div');
+                                        container.id = 'toast-container';
+                                        document.body.appendChild(container);
+                                    }
+                                    if (hasBootstrap) {
+                                        const toast = document.createElement('div');
+                                        toast.className = 'toast';
+                                        toast.setAttribute('role','alert');
+                                        toast.setAttribute('aria-live','assertive');
+                                        toast.setAttribute('aria-atomic','true');
+                                        const body = document.createElement('div');
+                                        body.className = 'toast-body';
+                                        body.textContent = msg;
+                                        toast.appendChild(body);
+                                        container.appendChild(toast);
+                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                    } else {
+                                        alert(msg);
+                                    }
+                                    fm.setAttribute('data-failed-route','true');
+                                } catch (err) {}
+                            });
+                        }
+                        const apply = document.getElementById('{{ $applyId }}');
+                        if (apply && apply.getAttribute('data-listener-active') !== 'true') {
+                            apply.setAttribute('data-listener-active','true');
+                            apply.addEventListener('click',(e) => {
+                                try {
+                                    e.preventDefault();
+                                    const fid = apply.getAttribute('data-form-id') ?? '';
+                                    if (!fid) { return; }
+                                    const form = document.getElementById(fid);
+                                    if (!form) { return; }
+                                    const action = form.getAttribute('action') ?? '#';
+                                    const url = form.getAttribute('data-url') ?? action ?? '#';
+                                    if (url === '#' || action === '#') {
+                                        const msg = apply.getAttribute('data-guard-msg') ?? 'Apply bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                        let container = document.getElementById('toast-container');
+                                        if (!container) {
+                                            container = document.createElement('div');
+                                            container.id = 'toast-container';
+                                            document.body.appendChild(container);
+                                        }
+                                        if (hasBootstrap) {
+                                            const toast = document.createElement('div');
+                                            toast.className = 'toast';
+                                            toast.setAttribute('role','alert');
+                                            toast.setAttribute('aria-live','assertive');
+                                            toast.setAttribute('aria-atomic','true');
+                                            const body = document.createElement('div');
+                                            body.className = 'toast-body';
+                                            body.textContent = msg;
+                                            toast.appendChild(body);
+                                            container.appendChild(toast);
+                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                        } else {
+                                            alert(msg);
+                                        }
+                                        apply.setAttribute('data-failed-route','true');
+                                        form.setAttribute('data-failed-route','true');
+                                        return;
+                                    }
+                                    form.submit();
+                                } catch (err) {}
+                            });
+                        }
+                        const reset = document.getElementById('{{ $resetId }}');
+                        if (reset && reset.getAttribute('data-listener-active') !== 'true') {
+                            reset.setAttribute('data-listener-active','true');
+                            reset.addEventListener('click',(e) => {
+                                try {
+                                    const href = reset.getAttribute('href') ?? '#';
+                                    const url = reset.getAttribute('data-url') ?? href ?? '#';
+                                    if (url !== '#' && href !== '#') { return; }
+                                    e.preventDefault();
+                                    const msg = reset.getAttribute('data-guard-msg') ?? 'Reset bank transfer route is unavailable. Please contact technical support or your domain administrator.';
+                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                    let container = document.getElementById('toast-container');
+                                    if (!container) {
+                                        container = document.createElement('div');
+                                        container.id = 'toast-container';
+                                        document.body.appendChild(container);
+                                    }
+                                    if (hasBootstrap) {
+                                        const toast = document.createElement('div');
+                                        toast.className = 'toast';
+                                        toast.setAttribute('role','alert');
+                                        toast.setAttribute('aria-live','assertive');
+                                        toast.setAttribute('aria-atomic','true');
+                                        const body = document.createElement('div');
+                                        body.className = 'toast-body';
+                                        body.textContent = msg;
+                                        toast.appendChild(body);
+                                        container.appendChild(toast);
+                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                    } else {
+                                        alert(msg);
+                                    }
+                                    reset.setAttribute('data-failed-route','true');
+                                } catch (err) {}
+                            });
+                        }
+                    } catch (err) {}
+                })();
+            </script>
+        @endpush
     </div>
-
     <div class="{{ VC::RW }}">
         <div class="col-12">
             <div class="{{ VC::CD }}">

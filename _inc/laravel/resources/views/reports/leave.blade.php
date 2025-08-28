@@ -56,7 +56,7 @@
         data-original-title="{{ __('Download') }}">
             <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/leaves/download.js') }}" defer></script>
         @endpush
     </div>
@@ -159,7 +159,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/leaves/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/leaves/reset.js') }}" defer></script>
                         @endpush
@@ -418,7 +418,7 @@
                                             <td colspan="5" class="text-center text-muted">{{ __('No leave records available for the selected filters') }}</td>
                                         </tr>
                                     @endforelse
-                                    @push(StacksConstants::ADM_SCRP_PG)
+                                    @push(StacksConstants::ADM_SCR_PG)
                                         <script src="{{ asset('assets/js/routes/reports/leaves/view.js') }}" defer></script>
                                     @endpush
                                 </tbody>

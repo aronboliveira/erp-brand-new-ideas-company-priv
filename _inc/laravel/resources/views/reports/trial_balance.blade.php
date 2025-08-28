@@ -57,7 +57,7 @@
             'data-guard-msg'    => $trialExportGuardMsg,
             'data-sv-localized' => 'true',
         ]) }}
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/reports/trialBalanceExport.js') }}" defer></script>
             @endpush
             <input type="hidden" name="start_date" class="start_date">
@@ -139,7 +139,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/trials/balance/index.js') }}" defer></script>
                         @endpush
                     </div>
@@ -197,7 +197,7 @@
                                         data-guard-msg="{{ $ledgerGuardMsg }}"
                                         data-sv-localized="true">{{ $accName }}</a>
                                     </p>
-                                    @push(StacksConstants::ADM_SCRP_PG)
+                                    @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
                                             (() => {
                                                 try {

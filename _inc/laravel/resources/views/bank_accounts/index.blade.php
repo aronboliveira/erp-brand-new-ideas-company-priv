@@ -7,7 +7,8 @@
         YieldingConstants,
     };
     use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth,Route};
+    use Illuminate\Support\Facades\{Auth, Gate, Route};
+    use Illuminate\Support\Str;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
 @endphp
@@ -134,47 +135,207 @@
                             <tbody>
                                 @foreach($accounts as $account)
                                     <tr class="font-style">
-                                        <td>{{ $account->chartAccount->name ?? '-' }}</td>
-                                        <td>{{ $account->holder_name }}</td>
-                                        <td>{{ $account->bank_name }}</td>
-                                        <td>{{ $account->account_number }}</td>
-                                        <td>{{ $user->priceFormat($account->opening_balance) }}</td>
-                                        <td>{{ $account->contact_number }}</td>
-                                        <td>{{ $account->bank_address }}</td>
+                                        <td>{{ $account->chartAccount->name ?? __('No name available for Chart') }}</td>
+                                        <td>{{ $account->holder_name ?? __('No name available for Holder') }}</td>
+                                        <td>{{ $account->bank_name ?? __('No name available for Bank') }}</td>
+                                        <td>{{ $account->account_number ?? __('No name available for Account Number') }}</td>
+                                        <td>{{ $user->priceFormat($account->opening_balance) ?? __('No name available for Current Balance') }}</td>
+                                        <td>{{ $account->contact_number ?? __('No name available for Contact Number') }}</td>
+                                        <td>{{ $account->bank_address ?? __('No name available for Bank Branch') }}</td>
                                         @if(Gate::check('edit bank account') || Gate::check('delete bank account'))
                                             <td class="Action">
                                                 <span>
                                                     @if($account->holder_name!='Cash')
                                                         @can('edit bank account')
                                                             <div class="{{ ViewClassNamesConstants::ACT_BTN }} {{ ViewClassNamesConstants::BG_P }} {{ ViewClassNamesConstants::MS2 }}">
-                                                                <a href="#"
-                                                                   class="{{ ViewClassNamesConstants::BT_SM_MX3 }} {{ ViewClassNamesConstants::AL_IT_CT }}"
-                                                                   data-url="{{ route(ViewsConstants::BNK_ACC.'.edit',$account->id) }}"
-                                                                   data-ajax-popup="true"
-                                                                   data-title="{{ __('Edit Bank Account') }}"
-                                                                   data-bs-toggle="tooltip"
-                                                                   data-size="lg"
-                                                                   title="{{ __('Edit') }}">
+                                                                @php
+                                                                    $bnkAccEditBase = ViewsConstants::BNK_ACC.'.edit';
+                                                                    $bnkAccEditKebab = Str::kebab($bnkAccEditBase);
+                                                                    $bnkAccIdValue = data_get($account,'id','');
+                                                                    $bnkAccEditResolved = Route::has($bnkAccEditBase) ? $bnkAccEditBase : (Route::has($bnkAccEditKebab) ? $bnkAccEditKebab : null);
+                                                                    $bnkAccEditUrl = ($bnkAccEditResolved && $bnkAccIdValue !== '') ? route($bnkAccEditResolved,$bnkAccIdValue) : '#';
+                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                    $bnkAccEditGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BNK_ACC, 'edit_bank_account_route_unavailable') ?? 'Edit bank account route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $bnkAccEditAnchorId = 'bank-account-edit-'.($bnkAccIdValue === '' ? 'x' : $bnkAccIdValue);
+                                                                @endphp
+                                                                <a href="{{ $bnkAccEditUrl }}"
+                                                                id="{{ $bnkAccEditAnchorId }}"
+                                                                class="{{ ViewClassNamesConstants::BT_SM_MX3 }} {{ ViewClassNamesConstants::AL_IT_CT }}"
+                                                                data-url="{{ $bnkAccEditUrl }}"
+                                                                data-ajax-popup="true"
+                                                                data-title="{{ __('Edit Bank Account') }}"
+                                                                data-bs-toggle="tooltip"
+                                                                data-size="lg"
+                                                                title="{{ __('Edit') }}"
+                                                                data-guard-msg="{{ $bnkAccEditGuardMsg }}"
+                                                                data-sv-localized="true">
                                                                     <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
                                                                 </a>
+                                                                @push(StacksConstants::ADM_SCR_PG)
+                                                                    <script defer>
+                                                                        (() => {
+                                                                            try {
+                                                                                const el = document.getElementById('{{ $bnkAccEditAnchorId }}');
+                                                                                if (!el) { return; }
+                                                                                if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                                el.setAttribute('data-listener-active','true');
+                                                                                el.addEventListener('click',(e) => {
+                                                                                    try {
+                                                                                        const href = el.getAttribute('href') ?? '#';
+                                                                                        const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                                        if (url !== '#' && href !== '#') { return; }
+                                                                                        e.preventDefault();
+                                                                                        const msg = el.getAttribute('data-guard-msg') ?? 'Edit bank account route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+                                                                                        el.setAttribute('data-failed-route','true');
+                                                                                    } catch (err) {}
+                                                                                });
+                                                                            } catch (err) {}
+                                                                        })();
+                                                                    </script>
+                                                                @endpush
                                                             </div>
                                                         @endcan
                                                         @can('delete bank account')
                                                             <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
+                                                                @php
+                                                                    $bnkAccDestroyBase = ViewsConstants::BNK_ACC.'.destroy';
+                                                                    $bnkAccDestroyKebab = Str::kebab($bnkAccDestroyBase);
+                                                                    $accIdValue = data_get($account,'id','');
+                                                                    $bnkAccDestroyResolved = Route::has($bnkAccDestroyBase) ? $bnkAccDestroyBase : (Route::has($bnkAccDestroyKebab) ? $bnkAccDestroyKebab : null);
+                                                                    $bnkAccDestroyUrl = ($bnkAccDestroyResolved && $accIdValue !== '') ? route($bnkAccDestroyResolved,$accIdValue) : '#';
+                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                    $bnkAccDestroyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::BNK_ACC, 'destroy_bank_account_route_unavailable') ?? 'Destroy bank account route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $delFormId = 'delete-form-'.($accIdValue === '' ? 'x' : $accIdValue);
+                                                                    $delAnchorId = 'delete-bank-account-'.($accIdValue === '' ? 'x' : $accIdValue);
+                                                                @endphp
                                                                 {!! Collective\Html\FormFacade::open([
-                                                                    'method'=>'DELETE',
-                                                                    'route'=>[ViewsConstants::BNK_ACC.'.destroy',$account->id],
-                                                                    'id'=>'delete-form-'.$account->id
+                                                                    'method' => 'DELETE',
+                                                                    'url' => $bnkAccDestroyUrl,
+                                                                    'id' => $delFormId,
+                                                                    'data-url' => $bnkAccDestroyUrl,
+                                                                    'data-guard-msg' => $bnkAccDestroyGuardMsg,
+                                                                    'data-sv-localized' => 'true'
                                                                 ]) !!}
-                                                                <a href="#"
-                                                                   class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
-                                                                   data-bs-toggle="tooltip"
-                                                                   title="{{ __('Delete') }}"
-                                                                   data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                                   data-confirm-yes="document.getElementById('delete-form-{{$account->id}}').submit();">
-                                                                    <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>
-                                                                </a>
+                                                                    <a href="#"
+                                                                    id="{{ $delAnchorId }}"
+                                                                    class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
+                                                                    data-bs-toggle="tooltip"
+                                                                    title="{{ __('Delete') }}"
+                                                                    data-confirm="{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                    data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();"
+                                                                    data-form-id="{{ $delFormId }}"
+                                                                    data-guard-msg="{{ $bnkAccDestroyGuardMsg }}"
+                                                                    data-sv-localized="true">
+                                                                        <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>
+                                                                    </a>
                                                                 {!! Collective\Html\FormFacade::close() !!}
+                                                                @push(StacksConstants::ADM_SCR_PG)
+                                                                    <script defer>
+                                                                        (() => {
+                                                                            try {
+                                                                                const a = document.getElementById('{{ $delAnchorId }}');
+                                                                                const f = document.getElementById('{{ $delFormId }}');
+                                                                                if (!a || !f) { return; }
+                                                                                if (a.getAttribute('data-listener-active') === 'true') { return; }
+                                                                                a.setAttribute('data-listener-active','true');
+                                                                                a.addEventListener('click',(e) => {
+                                                                                    try {
+                                                                                        const fid = a.getAttribute('data-form-id') ?? '';
+                                                                                        if (!fid) { return; }
+                                                                                        const fm = document.getElementById(fid);
+                                                                                        if (!fm) { return; }
+                                                                                        const action = fm.getAttribute('action') ?? '#';
+                                                                                        const url = fm.getAttribute('data-url') ?? action ?? '#';
+                                                                                        if (url !== '#' && action !== '#') { return; }
+                                                                                        e.preventDefault();
+                                                                                        const msg = a.getAttribute('data-guard-msg') ?? 'Destroy bank account route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+                                                                                        a.setAttribute('data-failed-route','true');
+                                                                                        fm.setAttribute('data-failed-route','true');
+                                                                                    } catch (err) {}
+                                                                                });
+                                                                                if (f.getAttribute('data-submit-guarded') !== 'true') {
+                                                                                    f.setAttribute('data-submit-guarded','true');
+                                                                                    f.addEventListener('submit',(e) => {
+                                                                                        try {
+                                                                                            const action = f.getAttribute('action') ?? '#';
+                                                                                            const url = f.getAttribute('data-url') ?? action ?? '#';
+                                                                                            if (url !== '#' && action !== '#') { return; }
+                                                                                            e.preventDefault();
+                                                                                            const msg = f.getAttribute('data-guard-msg') ?? 'Destroy bank account route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                            let container = document.getElementById('toast-container');
+                                                                                            if (!container) {
+                                                                                                container = document.createElement('div');
+                                                                                                container.id = 'toast-container';
+                                                                                                document.body.appendChild(container);
+                                                                                            }
+                                                                                            if (hasBootstrap) {
+                                                                                                const toast = document.createElement('div');
+                                                                                                toast.className = 'toast';
+                                                                                                toast.setAttribute('role','alert');
+                                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                                const body = document.createElement('div');
+                                                                                                body.className = 'toast-body';
+                                                                                                body.textContent = msg;
+                                                                                                toast.appendChild(body);
+                                                                                                container.appendChild(toast);
+                                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                            } else {
+                                                                                                alert(msg);
+                                                                                            }
+                                                                                            f.setAttribute('data-failed-route','true');
+                                                                                        } catch (err) {}
+                                                                                    });
+                                                                                }
+                                                                            } catch (err) {}
+                                                                        })();
+                                                                    </script>
+                                                                @endpush
                                                             </div>
                                                         @endcan
                                                     @else

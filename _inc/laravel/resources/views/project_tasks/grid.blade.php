@@ -100,7 +100,7 @@
                     : (Route::has($taskboardListKebabName) ? $taskboardListKebabName : null);
                 $taskboardListParam        = 'list';
                 $taskboardListUrl          = $taskboardListResolvedName ? route($taskboardListResolvedName, $taskboardListParam) : '#';
-                $taskboardListGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::TSKB, 'list_taskboard_route_unavailable') ?? 'List taskboard route is unavailable. Please contact technical support or your domain administrator.';
+                $taskboardListGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::TSK, 'list_taskboard_route_unavailable') ?? 'List taskboard route is unavailable. Please contact technical support or your domain administrator.';
                 $taskboardListLinkId       = 'taskboard-list-view-link';
                 $taskboardListTitle        = __('List View');
             @endphp
@@ -157,9 +157,29 @@
                 </script>
             @endpush
         @else
-            <a href="{{ route(VW::TSKB.'.view', 'grid') }}" class="{{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" title="{{ __('Card View') }}">
+            @php
+                $taskboardViewBase = VW::TSKB.'.view';
+                $taskboardViewKebab = Str::kebab($taskboardViewBase);
+                $taskboardViewResolved = Route::has($taskboardViewBase) ? $taskboardViewBase : (Route::has($taskboardViewKebab) ? $taskboardViewKebab : null);
+                $viewMode = 'grid';
+                $taskboardViewUrl = $taskboardViewResolved ? route($taskboardViewResolved, $viewMode) : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $taskboardViewGuardMsg = Utility::fetchLinkMessage($langValue, VW::TSK, 'view_taskboard_grid_route_unavailable') ?? 'View taskboard as grid route is unavailable. Please contact technical support or your domain administrator.';
+                $taskboardViewAnchorId = 'taskboard-view-'.$viewMode;
+            @endphp
+            <a id="{{ $taskboardViewAnchorId }}"
+            href="{{ $taskboardViewUrl }}"
+            class="{{ VC::BT_SM_PM }}"
+            data-bs-toggle="tooltip"
+            title="{{ __('Card View') }}"
+            data-url="{{ $taskboardViewUrl }}"
+            data-guard-msg="{{ $taskboardViewGuardMsg }}"
+            data-sv-localized="true">
                 <span class="btn-inner--text"><i class="ti ti-table"></i></span>
             </a>
+            @push(StacksConstants::ADM_SCR_PG)
+                <script defer src="{{ asset('assets/js/routes/projectTasks/grid.js') }}"></script>
+            @endpush
         @endif
     </div>
 @endsection
@@ -215,18 +235,85 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <a class="{{ VC::H6 }} task-name-break" href="{{ route(VW::PRJ_TSK_C . '.index', $projectId) }}">{{ $taskName }}</a>
+                                        @php
+                                            $taskIndexBase = VW::PRJ_TSK_C.'.index';
+                                            $taskIndexKebab = Str::kebab($taskIndexBase);
+                                            $taskIndexResolved = Route::has($taskIndexBase) ? $taskIndexBase : (Route::has($taskIndexKebab) ? $taskIndexKebab : null);
+                                            $projIdValue = isset($projectId) ? $projectId : null;
+                                            $taskIndexUrl = ($taskIndexResolved && $projIdValue) ? route($taskIndexResolved, $projIdValue) : '#';
+                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                            $taskIndexGuardMsg = Utility::fetchLinkMessage($langValue, VW::PRJ_TSK_C, 'index_project_task_route_unavailable') ?? 'Index project task route is unavailable. Please contact technical support or your domain administrator.';
+                                            $taskIndexAnchorId = 'project-task-index-'.($projIdValue ?? 'x').'-'.Str::slug($taskName ?? 'task','-');
+                                        @endphp
+                                        <a id="{{ $taskIndexAnchorId }}"
+                                        class="{{ VC::H6 }} task-name-break"
+                                        href="{{ $taskIndexUrl }}"
+                                        data-url="{{ $taskIndexUrl }}"
+                                        data-guard-msg="{{ $taskIndexGuardMsg }}"
+                                        data-sv-localized="true">
+                                            {{ $taskName }}
+                                        </a>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer>
+                                                (() => {
+                                                    try {
+                                                        const el = document.getElementById('{{ $taskIndexAnchorId }}');
+                                                        if (!el) { return; }
+                                                        if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                        el.setAttribute('data-listener-active','true');
+                                                        el.addEventListener('click',(e) => {
+                                                            try {
+                                                                const href = el.getAttribute('href') ?? '#';
+                                                                const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                if (url !== '#' && href !== '#') { return; }
+                                                                e.preventDefault();
+                                                                const msg = el.getAttribute('data-guard-msg') ?? 'Index project task route is unavailable. Please contact technical support or your domain administrator.';
+                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                let container = document.getElementById('toast-container');
+                                                                if (!container) {
+                                                                    container = document.createElement('div');
+                                                                    container.id = 'toast-container';
+                                                                    document.body.appendChild(container);
+                                                                }
+                                                                if (hasBootstrap) {
+                                                                    const toast = document.createElement('div');
+                                                                    toast.className = 'toast';
+                                                                    toast.setAttribute('role','alert');
+                                                                    toast.setAttribute('aria-live','assertive');
+                                                                    toast.setAttribute('aria-atomic','true');
+                                                                    const body = document.createElement('div');
+                                                                    body.className = 'toast-body';
+                                                                    body.textContent = msg;
+                                                                    toast.appendChild(body);
+                                                                    container.appendChild(toast);
+                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                } else {
+                                                                    alert(msg);
+                                                                }
+                                                                el.setAttribute('data-failed-route','true');
+                                                            } catch (err) {}
+                                                        });
+                                                    } catch (err) {}
+                                                })();
+                                            </script>
+                                        @endpush
                                         <div class="{{ VC::R_ALC }}">
                                             <div class="col-12">
                                                 <div class="actions {{ VC::DFL_JCB }} mt-2 mb-2">
                                                     @if($filesCount > 0)
                                                         <div class="action-item {{ VC::MR2 }}"><i class="ti ti-paperclip {{ VC::MR2 }}"></i>{{ $filesCount }}</div>
+                                                    @else
+                                                        <div class="action-item {{ VC::MR2 }}"><i class="ti ti-paperclip {{ VC::MR2 }}"></i>{{ __('No files found') }}</div>
                                                     @endif
                                                     @if($commentsCount > 0)
                                                         <div class="action-item {{ VC::MR2 }}"><i class="ti ti-brand-hipchat {{ VC::MR2 }}"></i>{{ $commentsCount }}</div>
+                                                    @else
+                                                        <div class="action-item {{ VC::MR2 }}"><i class="ti ti-brand-hipchat {{ VC::MR2 }}"></i>{{ __('No comments found') }}</div>
                                                     @endif
                                                     @if($checklistCount > 0)
                                                         <div class="action-item {{ VC::MR2 }}"><i class="ti ti-list-check {{ VC::MR2 }}"></i>{{ $checklistTotal }}</div>
+                                                    @else
+                                                        <div class="action-item {{ VC::MR2 }}"><i class="ti ti-list-check {{ VC::MR2 }}"></i>{{ __('No checklist items found') }}</div>
                                                     @endif
                                                 </div>
                                             </div>
@@ -275,72 +362,283 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        // ready
-        $(function () {
-            var sort = 'created_at-desc';
-            var status = '';
-            ajaxFilterTaskView('created_at-desc', '', ['see_my_tasks']);
-
-            // when change status
-            $(".task-filter-actions").on('click', '.filter-action', function (e) {
-                if ($(this).hasClass('filter-show-all')) {
-                $('.filter-action').removeClass('active'); $(this).addClass('active');
+    <script async src="{{ asset('assets/js/routes/projectTasks/lang/sortGrid.js') }}"></script>
+    <script defer>
+        (function () {
+            const $ = window.jQuery;
+            const errFb = "# ERROR";
+            const dataClientLocalized = "data-client-localized";
+            const dataGuardMsg = "data-guard-msg";
+            const dataSvLocalized = "data-sv-localized";
+            const dataErrGuard = "data-error-guard";
+            const boundFilter = "data-bound-filter";
+            const boundSort = "data-bound-sort";
+            const boundSearch = "data-bound-search";
+            const qs = (s, r = document) => r.querySelector(s);
+            const ensureToastContainer = () => {
+                const id = "np-toast-container";
+                let c = qs("#" + id);
+                if (c) {
+                return c;
+                }
+                c = document.createElement("div");
+                c.id = id;
+                c.setAttribute("aria-live", "polite");
+                c.setAttribute("aria-atomic", "true");
+                c.style.position = "fixed";
+                c.style.top = "1rem";
+                c.style.right = "1rem";
+                document.body.appendChild(c);
+                return c;
+            };
+            const showErrorNow = message => {
+                const hasBootstrap =
+                (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+                    qs('link[href*="bootstrap"]')) &&
+                window.bootstrap &&
+                window.bootstrap.Toast;
+                if (hasBootstrap) {
+                const container = ensureToastContainer();
+                let t = qs("#np-toast", container);
+                if (!t) {
+                    t = document.createElement("div");
+                    t.id = "np-toast";
+                    t.className = "toast";
+                    t.setAttribute("role", "alert");
+                    t.setAttribute("aria-live", "assertive");
+                    t.setAttribute("aria-atomic", "true");
+                    t.innerHTML =
+                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                    container.appendChild(t);
+                }
+                const body = qs(".toast-body", t);
+                if (body) {
+                    body.textContent = message ?? errFb;
+                }
+                try {
+                    new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+                } catch (_) {
+                    alert(message ?? errFb);
+                }
                 } else {
-                $('.filter-show-all').removeClass('active');
-                if ($(this).hasClass('filter-other')) { $('.filter-other').removeClass('active'); }
-                if ($(this).hasClass('active')) { $(this).removeClass('active').blur(); } else { $(this).addClass('active'); }
+                alert(message ?? errFb);
+                }
+            };
+            const scheduleInteractiveError = message => {
+                const host = document.body;
+                if (!host || host.getAttribute(dataErrGuard) === "true") {
+                return;
+                }
+                host.setAttribute(dataErrGuard, "true");
+                const once = () => {
+                try {
+                    showErrorNow(message);
+                } finally {
+                    host.removeAttribute(dataErrGuard);
+                }
+                };
+                document.addEventListener("pointerup", once, { once: true });
+                const mo = new MutationObserver((m, o) => {
+                if (!document.body.contains(host)) {
+                    document.removeEventListener("pointerup", once);
+                    o.disconnect();
+                }
+                });
+                mo.observe(document.documentElement, { childList: true, subtree: true });
+            };
+            const getMsg = (el, key) => {
+                let msg = errFb;
+                if (
+                el?.getAttribute(dataSvLocalized) === "true" ||
+                el?.getAttribute(dataClientLocalized) === "true"
+                ) {
+                msg = el.getAttribute(dataGuardMsg) || errFb;
+                } else {
+                let lang = (
+                    window.sessionStorage.getItem("erp-np-lang") ||
+                    document.documentElement.lang ||
+                    "en"
+                )
+                    .toLowerCase()
+                    .replace(/_/g, "-");
+                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                const msgKey = key;
+                msg =
+                    window.translations?.[lang]?.[msgKey] ||
+                    el?.getAttribute(dataGuardMsg) ||
+                    window.translations?.en?.[msgKey] ||
+                    errFb;
+                if (el && msg !== errFb) {
+                    el.setAttribute(dataGuardMsg, msg);
+                    el.setAttribute(dataClientLocalized, "true");
+                }
+                }
+                return msg;
+            };
+            const ajaxFilterTaskView = (task_sort, keyword = "", status = []) => {
+                const mainEle = $("#taskboard_view");
+                const containerEl = mainEle.get(0) ?? document.body;
+                const explicit = '{{ route("project.taskboard.view") }}';
+                const urlAttr = mainEle.attr("data-url") || "";
+                const hrefAttr = mainEle.is("form")
+                ? mainEle.attr("action") || ""
+                : mainEle.attr("href") || "";
+                const url =
+                explicit && explicit !== "#"
+                    ? explicit
+                    : urlAttr && urlAttr !== "#"
+                    ? urlAttr
+                    : hrefAttr;
+                if (!url || url === "#") {
+                scheduleInteractiveError(getMsg(containerEl, "task_view_unavailable"));
+                return;
+                }
+                const view = '{{ $view ?? "" }}';
+                const data = {
+                view: view,
+                sort: task_sort ?? "created_at-desc",
+                keyword: keyword ?? "",
+                status: status ?? [],
+                };
+                $.ajax({
+                url: url,
+                data: data,
+                cache: false,
+                success: function (resp) {
+                    try {
+                    const html = (resp && resp.html) ?? resp;
+                    if (mainEle.length) {
+                        mainEle.html(html ?? "");
+                    }
+                    } catch (_) {
+                    scheduleInteractiveError(
+                        getMsg(containerEl, "task_view_unavailable")
+                    );
+                    }
+                },
+                error: function () {
+                    scheduleInteractiveError(getMsg(containerEl, "ajax_unavailable"));
+                },
+                });
+            };
+            const bindFilterClicks = () => {
+                const box = qs(".task-filter-actions");
+                if (!box) {
+                return;
+                }
+                if (box.getAttribute(boundFilter) === "true") {
+                return;
+                }
+                box.setAttribute(boundFilter, "true");
+                $(box).on("click.filterAction", ".filter-action", function (e) {
+                const $btn = $(this);
+                if ($btn.hasClass("filter-show-all")) {
+                    $(".filter-action").removeClass("active");
+                    $btn.addClass("active");
+                } else {
+                    $(".filter-show-all").removeClass("active");
+                    if ($btn.hasClass("filter-other")) {
+                    $(".filter-other").removeClass("active");
+                    }
+                    if ($btn.hasClass("active")) {
+                    $btn.removeClass("active");
+                    $btn.blur();
+                    } else {
+                    $btn.addClass("active");
+                    }
                 }
                 const filterArray = [];
-                $('div.task-filter-actions').find('.active').each(function () { filterArray.push($(this).attr('data-val')); });
-                status = filterArray;
-                ajaxFilterTaskView(sort, $('#task_keyword').val() ?? '', status);
-            });
-            el.setAttribute(dataGuardAttached, 'true');
+                $(box)
+                    .find(".active")
+                    .each(function () {
+                    filterArray.push($(this).attr("data-val"));
+                    });
+                state.status = filterArray;
+                ajaxFilterTaskView(
+                    state.sort,
+                    $("#task_keyword").val() ?? "",
+                    state.status
+                );
+                });
+                const mo = new MutationObserver((m, o) => {
+                if (!document.body.contains(box)) {
+                    $(box).off(".filterAction");
+                    o.disconnect();
+                }
+                });
+                mo.observe(document.body, { childList: true, subtree: true });
             };
-
-            const attachSortHandlers = () => {
-            const el = $sort.get(0);
-            if (!el || el.getAttribute(dataGuardAttached) === 'true') return;
-            $sort.on('click.tasksort', 'a', function (e) {
-                const url = this.getAttribute('data-url');
-                const href = this.href;
-                if ((!url || url === '#') && (!href || href === '#')) { e.preventDefault(); showErrorUI(this, 'taskboard_unavailable'); return; }
-                sort = $(this).attr('data-val') ?? sort;
-                ajaxFilterTaskView(sort, $('#task_keyword').val() ?? '', status);
-                $('#task_sort a').removeClass('active'); $(this).addClass('active');
-            });
-            el.setAttribute(dataGuardAttached, 'true');
+            const bindSortClicks = () => {
+                const wrap = qs("#task_sort");
+                if (!wrap) {
+                return;
+                }
+                if (wrap.getAttribute(boundSort) === "true") {
+                return;
+                }
+                wrap.setAttribute(boundSort, "true");
+                $(wrap).on("click.sort", "a", function () {
+                state.sort = $(this).attr("data-val") ?? state.sort;
+                ajaxFilterTaskView(
+                    state.sort,
+                    $("#task_keyword").val() ?? "",
+                    state.status
+                );
+                $("#task_sort a").removeClass("active");
+                $(this).addClass("active");
+                });
+                const mo = new MutationObserver((m, o) => {
+                if (!document.body.contains(wrap)) {
+                    $(wrap).off(".sort");
+                    o.disconnect();
+                }
+                });
+                mo.observe(document.body, { childList: true, subtree: true });
             };
-
-            const attachSearchHandler = () => {
-            const el = $search.get(0);
-            if (!el || el.getAttribute(dataGuardAttached) === 'true') return;
-            $search.on('pointerup.tasksearch', function () {
-                ajaxFilterTaskView(sort, $(this).val() ?? '', status);
-            });
-            el.setAttribute(dataGuardAttached, 'true');
+            const bindSearchKeyup = () => {
+                const input = qs("#task_keyword");
+                if (!input) {
+                return;
+                }
+                if (input.getAttribute(boundSearch) === "true") {
+                return;
+                }
+                input.setAttribute(boundSearch, "true");
+                $(document).on("keyup.searchTasks", "#task_keyword", function () {
+                ajaxFilterTaskView(state.sort, $(this).val() ?? "", state.status);
+                });
+                const mo = new MutationObserver((m, o) => {
+                if (!document.body.contains(input)) {
+                    $(document).off("keyup.searchTasks");
+                    o.disconnect();
+                }
+                });
+                mo.observe(document.body, { childList: true, subtree: true });
             };
-
+            const state = { sort: "created_at-desc", status: [] };
             const init = () => {
-            ajaxFilterTaskView('created_at-desc', '', ['see_my_tasks']);
-            attachFilterHandlers();
-            attachSortHandlers();
-            attachSearchHandler();
+                if (!$ || !$.fn) {
+                try {
+                    console.error("jQuery unavailable");
+                } catch (_) {}
+                scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
+                return;
+                }
+                state.status = ["see_my_tasks"];
+                ajaxFilterTaskView(
+                state.sort,
+                $("#task_keyword").val() ?? "",
+                state.status
+                );
+                bindFilterClicks();
+                bindSortClicks();
+                bindSearchKeyup();
             };
-
-            const mo = new MutationObserver(() => {
-            if (!$filters.length || $filters.get(0)?.getAttribute(dataGuardAttached) !== 'true') { attachFilterHandlers(); }
-            if (!$sort.length || $sort.get(0)?.getAttribute(dataGuardAttached) !== 'true') { attachSortHandlers(); }
-            if (!$search.length || $search.get(0)?.getAttribute(dataGuardAttached) !== 'true') { attachSearchHandler(); }
-            if ($filters.length === 0) { $('.task-filter-actions').off('.taskfilters'); }
-            if ($sort.length === 0) { $('#task_sort').off('.tasksort'); }
-            if ($search.length === 0) { $('#task_keyword').off('.tasksearch'); }
-            });
-
-            try { mo.observe(document.body, { childList: true, subtree: true }); } catch (_) {}
-
-            $(function () { init(); });
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", init, { once: true });
+            } else {
+                init();
+            }
         })();
     </script>
 @endpush

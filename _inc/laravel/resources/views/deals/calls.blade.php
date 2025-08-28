@@ -89,7 +89,7 @@
             'calls_store_route_unavailable'
         ) ?? 'Call store route is unavailable. Please contact technical support or your domain administrator.';
     @endphp
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('deal-call-store-form');
@@ -163,7 +163,7 @@
                 >
                     <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>
-                @push(StacksConstants::ADM_SCRP_PG)
+                @push(StacksConstants::ADM_SCR_PG)
                     <script defer>
                         (() => {
                             const btn = document.getElementById('generate-ai-btn-{{ $deal->id }}');

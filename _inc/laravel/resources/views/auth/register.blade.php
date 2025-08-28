@@ -13,7 +13,7 @@
 	$colorSettings??=[];
 	$logo??='';
 	$languages??=[DatabaseConstants::DEFAULT_LANG];
-    $lang??=Utility::fetchUserLang();
+    $lang = Utility::fetchUserLang();
 	try {
         $user=auth()->user()?:null;
 		$filePath=collect(

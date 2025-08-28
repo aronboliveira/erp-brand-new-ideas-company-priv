@@ -37,7 +37,7 @@
         </a>
     </li>
     <li class="breadcrumb-item">{{ __('Promotion') }}</li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script src="{{ asset('assets/js/routes/dashboard/index.js') }}" defer></script>
     @endpush
 @endsection
@@ -69,7 +69,7 @@
                     <i class="{{ ViewClassNamesConstants::TI_PLS_LG }}"></i>
                 </a>
             </div>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/promotions/create.js') }}" defer></script>
             @endpush
         @endcan
@@ -148,7 +148,7 @@
                                                         </a>
                                                     </div>
                                                     @if(!$promotionEditScriptPushed)
-                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                        @push(StacksConstants::ADM_SCR_PG)
                                                             <script src="{{ asset('assets/js/routes/promotions/edit.js') }}" defer></script>
                                                         @endpush
                                                         @php $promotionEditScriptPushed = true; @endphp
@@ -186,7 +186,7 @@
                                                         {!! Form::close() !!}
                                                     </div>
                                                     @if(!$promotionDeleteScriptPushed)
-                                                        @push(StacksConstants::ADM_SCRP_PG)
+                                                        @push(StacksConstants::ADM_SCR_PG)
                                                             <script src="{{ asset('assets/js/routes/promotions/delete.js') }}" defer></script>
                                                         @endpush
                                                         @php $promotionDeleteScriptPushed = true; @endphp

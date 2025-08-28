@@ -358,7 +358,7 @@ Object.keys(t).forEach(
             {{ __('Deal') }}
         </a>
     </li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script defer>
             (() => {
                 const el = document.getElementById('deal-index-breadcrumb');
@@ -428,7 +428,7 @@ Object.keys(t).forEach(
               >
                   <i class="ti ti-exchange"></i>
               </a>
-              @push(StacksConstants::ADM_SCRP_PG)
+              @push(StacksConstants::ADM_SCR_PG)
                   <script defer>
                       (() => {
                           const btn = document.getElementById('deal-convert-btn-{{ $deal->id }}');
@@ -495,7 +495,7 @@ Object.keys(t).forEach(
               >
                   <i class="ti ti-exchange"></i>
               </a>
-              @push(StacksConstants::ADM_SCRP_PG)
+              @push(StacksConstants::ADM_SCR_PG)
                   <script defer>
                       (() => {
                           const btn = document.getElementById('deal-show-convert-btn-{{ $deal->id }}');
@@ -585,7 +585,7 @@ Object.keys(t).forEach(
                 <i class="{{ VC::TI_PC }}"></i>
             </a>
         </div>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script defer>
                 (() => {
                     const btn = document.getElementById('deal-labels-btn-{{ $deal->id }}');
@@ -698,7 +698,7 @@ Object.keys(t).forEach(
                               </a>
                           @endforeach
                       </div>
-                      @push(StacksConstants::ADM_SCRP_PG)
+                      @push(StacksConstants::ADM_SCR_PG)
                           <script defer>
                               (() => {
                                   const sidenav = document.getElementById('deal-sidenav');
@@ -983,7 +983,7 @@ Object.keys(t).forEach(
                                                       </a>
                                                   {!! Form::close() !!}
                                               </div>
-                                              @push(StacksConstants::ADM_SCRP_PG)
+                                              @push(StacksConstants::ADM_SCR_PG)
                                                   <script defer>
                                                       (() => {
                                                           const btn = document.getElementById('{{ $btnId }}');
@@ -1166,7 +1166,7 @@ Object.keys(t).forEach(
                                                       </a>
                                                   {!! Form::close() !!}
                                               </div>
-                                              @push(StacksConstants::ADM_SCRP_PG)
+                                              @push(StacksConstants::ADM_SCR_PG)
                                                   <script defer>
                                                       (() => {
                                                           const btn = document.getElementById('{{ $btnId }}');
@@ -1432,7 +1432,7 @@ Object.keys(t).forEach(
                                       >
                                           <i class="{{ VC::TI_PLS }}"></i>
                                       </a>
-                                      @push(StacksConstants::ADM_SCRP_PG)
+                                      @push(StacksConstants::ADM_SCR_PG)
                                           <script defer>
                                               (() => {
                                                   const btn = document.getElementById('deal-email-create-btn-{{ $deal->id }}');
@@ -1545,7 +1545,7 @@ Object.keys(t).forEach(
                                     >
                                         <i class="{{ VC::TI_PLS }}"></i>
                                     </a>
-                                    @push(StacksConstants::ADM_SCRP_PG)
+                                    @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
                                             (() => {
                                                 const btn = document.getElementById('deal-discussions-create-btn-{{ $deal->id }}');
@@ -1676,7 +1676,7 @@ Object.keys(t).forEach(
                                             <i class="{{ VC::FAS_RB }}"></i> {{ __('Generate with AI') }}
                                         </a>
                                     </div>
-                                    @push(StacksConstants::ADM_SCRP_PG)
+                                    @push(StacksConstants::ADM_SCR_PG)
                                         <script defer>
                                             (() => {
                                                 const btn = document.getElementById('grammar-check-btn');
@@ -1895,7 +1895,7 @@ Object.keys(t).forEach(
                                           >
                                               <i class="{{ VC::TI_PC_WT }}"></i>
                                           </a>
-                                          @push(StacksConstants::ADM_SCRP_PG)
+                                          @push(StacksConstants::ADM_SCR_PG)
                                               <script defer>
                                                   (() => {
                                                       const btn = document.getElementById('deal-call-edit-btn-{{ $deal->id }}-{{ $call->id }}');

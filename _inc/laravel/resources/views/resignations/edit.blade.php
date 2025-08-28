@@ -1,34 +1,51 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
+    use App\Config\Constants\{PlansConstants, UsersConstants, ViewsConstants, ViewClassNamesConstants as VC, StacksConstants};
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\{Facades\Route, Str};
     use Illuminate\Support\Facades\Auth;
 
-    $lang = Utility::fetchUserLang();
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
+
+    $genBaseName = 'generate';
+    $genKebabName = Str::kebab($genBaseName);
+    $genResolvedName = Route::has($genBaseName) ? $genBaseName : (Route::has($genKebabName) ? $genKebabName : null);
+    $genUrl = $genResolvedName ? route($genResolvedName, ['resignation']) : '#';
+    $genLinkId = 'resignation-generate-link';
+    $genGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RSG, 'generate_resignation_route_unavailable') ?? 'Generate resignation route is unavailable. Please contact technical support or your domain administrator.';
+    $updateBaseName = ViewsConstants::RSG . '.update';
+    $updateKebabName = Str::kebab($updateBaseName);
+    $updateResolvedName = Route::has($updateBaseName) ? $updateBaseName : (Route::has($updateKebabName) ? $updateKebabName : null);
+    $updateUrl = $updateResolvedName ? route($updateResolvedName, [$resignation->id]) : '#';
+    $formId = 'edit_resignation';
+    $updateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::RSG, 'update_resignation_route_unavailable') ?? 'Update resignation route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
 {!! Form::model($resignation, [
-    'route'  => [ViewsConstants::RSG . '.update', $resignation->id],
+    'url'    => $updateUrl,
     'method' => 'PUT',
-    'id'     => 'edit_resignation',
+    'id'     => $formId,
+    'data-action-url'    => $updateUrl,
+    'data-form-guard-msg'=> $updateGuardMsg,
+    'data-sv-localized'  => 'true',
 ]) !!}
     <div class="modal-body">
         @php($plan = Utility::getChatGPTSettings())
         @if($plan?->{PlansConstants::COL_GPT} == 1)
             <div class="text-end">
-                <a href="#"
+                <a href="{{ $genUrl }}"
+                   id="{{ $genLinkId }}"
                    data-size="md"
                    class="{{ VC::BT_SM_PM }} btn-icon btn-sm"
                    data-ajax-popup-over="true"
-                   data-url="{{ route('generate', ['resignation']) }}"
+                   data-url="{{ $genUrl }}"
                    data-bs-placement="top"
-                   data-title="{{ __('Generate content with AI') }}">
+                   data-title="{{ __('Generate content with AI') }}"
+                   data-guard-msg="{{ $genGuardMsg }}"
+                   data-sv-localized="true"
+                   data-bs-toggle="tooltip"
+                   title="{{ __('Generate with AI') }}">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
                 </a>
@@ -64,3 +81,8 @@
         <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
 {!! Form::close() !!}
+
+@push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/resignations/generate.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/resignations/update.js') }}"></script>
+@endpush

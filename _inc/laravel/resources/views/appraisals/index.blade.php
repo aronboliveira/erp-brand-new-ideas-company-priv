@@ -7,7 +7,8 @@
         YieldingConstants,
     };
     use App\Model\Utility;
-    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Facades\{Gate, Route};
+    use Illuminate\Support\Str;
     $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
@@ -330,12 +331,6 @@ Object.keys(t).forEach(
     <div class="{{ ViewClassNamesConstants::FEND }}">
         @can('create appraisal')
             @php
-                use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants, StacksConstants};
-                use App\Models\Utility;
-                use Illuminate\Support\Facades\Route;
-                use Illuminate\Support\Str;
-
-                $lang = Utility::fetchUserLang();
                 $createAppraisalRoute = Route::has(ViewsConstants::APR.'.create')
                     ? route(ViewsConstants::APR.'.create')
                     : Route::has(Str::kebab(ViewsConstants::APR.'.create'))
@@ -442,10 +437,10 @@ Object.keys(t).forEach(
                                         $overallrating = $ratingData ? array_sum($ratingData)/count($ratingData) : 0;
                                     @endphp
                                     <tr>
-                                        <td>{{ $appraisal->branches->name ?? '' }}</td>
-                                        <td>{{ $appraisal->employees->department->name ?? '' }}</td>
-                                        <td>{{ $appraisal->employees->designation->name ?? '' }}</td>
-                                        <td>{{ $appraisal->employees->name ?? '' }}</td>
+                                        <td>{{ $appraisal->branches->name ?? __('Failed to fetch branch name') }}</td>
+                                        <td>{{ $appraisal->employees->department->name ?? __('Failed to fetch department name') }}</td>
+                                        <td>{{ $appraisal->employees->designation->name ?? __('Failed to fetch designation name') }}</td>
+                                        <td>{{ $appraisal->employees->name ?? __('Failed to fetch employee name') }}</td>
                                         <td>
                                             @for($i=1;$i<=5;$i++)
                                                 @if($targetRating < $i)
@@ -553,7 +548,7 @@ Object.keys(t).forEach(
                                                 <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
                                                     {!! Collective\Html\FormFacade::open([
                                                         'method' => 'DELETE',
-                                                        'route'  => [ViewsConstants::APR.'.destroy', $appraisal->id],
+                                                        'route'  => [$deleteRoute],
                                                         'id'     => 'delete-form-'.$appraisal->id
                                                     ]) !!}
                                                         <a

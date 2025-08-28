@@ -65,7 +65,7 @@
         class="btn btn-sm btn-primary">
             <i class="ti ti-file-export"></i>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/accountStatements/export.js') }}" defer></script>
         @endpush
         @php
@@ -83,7 +83,7 @@
         data-original-title="{{ $downloadLabelAs }}">
             <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/accountStatements/download.js') }}" defer></script>
         @endpush
     </div>
@@ -165,7 +165,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/accountStatements/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/accountStatements/reset.js') }}" defer></script>
                         @endpush

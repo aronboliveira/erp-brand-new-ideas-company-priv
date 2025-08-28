@@ -22,7 +22,7 @@
     ) ?? 'Announcement update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 {{ Form::model($announcement, [
-    'route'             => [ViewsConstants::ANC.'.update', $announcement->id],
+    'route'             => [$updateRoute],
     'method'            => 'PUT',
     'id'                => $formId,
     'data-url'          => $updateRoute,

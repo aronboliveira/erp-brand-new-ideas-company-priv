@@ -269,7 +269,7 @@
         data-original-title="{{ $downloadLabel }}">
             <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCRP_PG)
+        @push(StacksConstants::ADM_SCR_PG)
             <script src="{{ asset('assets/js/routes/reports/payrolls/download.js') }}" defer></script>
         @endpush
     </div>
@@ -380,7 +380,7 @@
                                 </div>
                             </div>
                         {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCRP_PG)
+                        @push(StacksConstants::ADM_SCR_PG)
                             <script src="{{ asset('assets/js/routes/reports/payrolls/apply.js') }}" defer></script>
                             <script src="{{ asset('assets/js/routes/reports/payrolls/reset.js') }}" defer></script>
                         @endpush
@@ -514,7 +514,7 @@
                                             data-sv-localized="true">
                                                 {{ $empLabel }}
                                             </a>
-                                            @push(StacksConstants::ADM_SCRP_PG)
+                                            @push(StacksConstants::ADM_SCR_PG)
                                                 <script defer>
                                                     (() => {
                                                         try {

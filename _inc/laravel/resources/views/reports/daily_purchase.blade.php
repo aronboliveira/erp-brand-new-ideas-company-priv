@@ -43,7 +43,7 @@
             data-original-title="{{ __('Download') }}">
                 <span class="btn-inner--icon"><i class="{{ VW::TI_DWN }}"></i></span>
             </a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script src="{{ asset('assets/js/routes/reports/purchases/daily/download.js') }}" defer></script>
             @endpush
         @endcan
@@ -169,7 +169,7 @@
                             </div>
                         </div>
                     </div>
-                    @push(StacksConstants::ADM_SCRP_PG)
+                    @push(StacksConstants::ADM_SCR_PG)
                         <script src="{{ asset('assets/js/routes/reports/purchases/daily/apply.js') }}" defer></script>
                         <script src="{{ asset('assets/js/routes/reports/purchases/daily/reset.js') }}" defer></script>
                     @endpush

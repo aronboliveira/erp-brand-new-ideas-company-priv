@@ -49,7 +49,7 @@
         <a href="{{ $prjShowUrl }}" id="{{ $prjShowLinkId }}" data-url="{{ $prjShowUrl }}" data-guard-msg="{{ $prjShowGuardMsg }}" {{ $prjShowUrl === '#' ? 'aria-disabled=true' : '' }}>{{ ucwords($projectNameVal) }}</a>
     </li>
     <li class="breadcrumb-item">{{ __('Gantt Chart') }}</li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script>
             (() => {
                 try {
@@ -139,7 +139,7 @@
                 $backGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'show_project_route_unavailable') ?? 'Show project route is unavailable. Please contact technical support or your domain administrator.';
             @endphp
             <a href="{{ $backUrl }}" id="{{ $backLinkId }}" class="{{ VC::BT_SM_PM }}" data-url="{{ $backUrl }}" data-bs-toggle="tooltip" title="{{ __('Back') }}" data-guard-msg="{{ $backGuardMsg }}"><span class="btn-inner--icon"><i class="{{ VC::TI }} ti-arrow-left"></i></span></a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script>
                     (() => {
                         try {
