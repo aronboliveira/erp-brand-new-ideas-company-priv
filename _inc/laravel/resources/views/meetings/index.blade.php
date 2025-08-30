@@ -520,7 +520,7 @@ Object.keys(t).forEach(
                 try {
                 const data =
                     (await $.ajax({
-                    url: '{{route(ViewsConstants::MT.'.getemployee')}}',
+                    url: '{{route(ViewsConstants::MT.".getemployee")}}',
                     type: "POST",
                     data: { department_id: did, _token: "{{ csrf_token() }}" },
                     })) ?? {};

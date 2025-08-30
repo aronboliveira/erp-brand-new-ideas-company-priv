@@ -1,21 +1,42 @@
+@php
+	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
+	use App\Models\Utility;
+	use Collective\Html\FormFacade as Form;
+	use Illuminate\Support\{Facades\Route, Str};
 
-    {{Collective\Html\FormFacade::model($trainingType,array('route' => array('trainingtype.update', $trainingType->id), 'method' => 'PUT')) }}
-    <div class="modal-body">
+	$lang = Utility::fetchUserLang();
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('name',__('Name'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('name',null,array('class'=>'form-control'))}}
-            </div>
-        </div>
+	$formId = 'update_training_type_form';
+	$typeId = data_get($trainingType ?? null, 'id', '');
 
-    </div>
-    </div>
+	$updateBase  = VW::TNG_TP . '.update';
+	$updateKebab = Str::kebab($updateBase);
+	$updateName  = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+	$updateUrl   = ($updateName && $typeId) ? route($updateName, [$typeId]) : '#';
+	$guardMsg    = Utility::fetchLinkMessage($lang, VW::TNG_TP, 'update_training_type_route_unavailable') ?? 'Update training type route is unavailable. Please contact technical support or your domain administrator.';
+@endphp
 
-    <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
-    </div>
-    {{Collective\Html\FormFacade::close()}}
+{!! Form::model($trainingType, [
+	'url'                  => $updateUrl,
+	'method'               => 'PUT',
+	'id'                   => $formId,
+	'data-resolved-action' => $updateUrl,
+	'data-guard-msg'       => $guardMsg,
+	'data-sv-localized'    => 'true',
+]) !!}
+	<div class="modal-body">
+		<div class="{{ VC::RW }}">
+			<div class="{{ VC::FM_GCB12 }}">
+				{{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
+				{{ Form::text('name', null, ['class' => VC::FM_CT]) }}
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-footer">
+		<input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+		<input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
+	</div>
+  <script defer src="{{ asset('assets/js/routes/trainings/types/update.js') }}"></script>
+{!! Form::close() !!}
 

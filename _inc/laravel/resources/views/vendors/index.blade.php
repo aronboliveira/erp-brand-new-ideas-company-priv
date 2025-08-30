@@ -115,7 +115,7 @@
                                                                 {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['vendor.destroy', $Vendor['id']], 'id' => 'delete-form-' . $Vendor['id']]) !!}
                                                                     <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip"
                                                                            data-original-title="{{ __('Delete') }}" title="{{ __('Delete') }}"
-                                                                           data-confirm="{{ __('Are You Sure?') . '|' . __('This action can not be undone. Do you want to continue?') }}"
+                                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                            data-confirm-yes="document.getElementById('delete-form-{{ $Vendor['id'] }}').submit();">
                                                                         <i class="ti ti-trash text-white"></i>
                                                                     </a>

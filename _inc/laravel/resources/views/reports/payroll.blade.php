@@ -161,8 +161,8 @@
             try { $table.DataTable(opts); } catch (_) { scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"), false); }
             };
 
-            const deptUrl = '{{route(VW::RPT . '.payroll.getdepartment')}}';
-            const empUrl = '{{route(VW::RPT . '.payroll.getemployee')}}';
+            const deptUrl = '{{route(VW::RPT . ".payroll.getdepartment")}}';
+            const empUrl = '{{route(VW::RPT . ".payroll.getemployee")}}';
 
             const renderDepartmentSelect = (data) => {
             const wrap = document.getElementById("department_div");

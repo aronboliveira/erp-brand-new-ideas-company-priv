@@ -1,49 +1,72 @@
-{{Collective\Html\FormFacade::open(array('url'=>'trainer','method'=>'post'))}}
-<div class="modal-body">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('branch',__('Branch'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('branch',$branches,null,array('class'=>'form-control select','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('firstname',__('First Name'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('firstname',null,array('class'=>'form-control','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('lastname',__('Last Name'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('lastname',null,array('class'=>'form-control','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('contact',__('Contact'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('contact',null,array('class'=>'form-control','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('email',__('Email'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('email',null,array('class'=>'form-control','required'=>'required'))}}
-            </div>
-        </div>
-        <div class="form-group col-lg-12">
-            {{Collective\Html\FormFacade::label('expertise',__('Expertise'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::textarea('expertise',null,array('class'=>'form-control','placeholder'=>__('Expertise')))}}
-        </div>
-        <div class="form-group col-lg-12">
-            {{Collective\Html\FormFacade::label('address',__('Address'),['class'=>'form-label'])}}
-            {{Collective\Html\FormFacade::textarea('address',null,array('class'=>'form-control','placeholder'=>__('Address')))}}
-        </div>
-    
-    </div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
-</div>
-{{Collective\Html\FormFacade::close()}}
+@php
+	use App\Config\Constants\{StacksConstants, ViewClassNamesConstants as VC, ViewsConstants as VW};
+	use App\Models\Utility;
+	use Collective\Html\FormFacade as Form;
+	use Illuminate\Support\{Facades\Route, Str};
+
+	$lang = Utility::fetchUserLang();
+	$formId = 'store_trainer_form';
+	$branches = $branches ?? [];
+	$trainerCreateBase   = VW::TNR;
+	$trainerCreateKebab  = Str::kebab($trainerCreateBase);
+	$trainerCreateName   = Route::has($trainerCreateBase)
+		? $trainerCreateBase
+		: (Route::has($trainerCreateKebab) ? $trainerCreateKebab : null);
+	$trainerCreateAction = $trainerCreateName ? route($trainerCreateName) : '#';
+	$trainerCreateGuard  = Utility::fetchLinkMessage($lang, VW::TNR, 'store_trainer_route_unavailable') ?? 'Store trainer route is unavailable. Please contact technical support or your domain administrator.';
+@endphp
+
+{!! Form::open([
+	'url'                  => $trainerCreateAction,
+	'method'               => 'post',
+	'id'                   => $formId,
+	'data-resolved-action' => $trainerCreateAction,
+	'data-guard-msg'       => $trainerCreateGuard,
+	'data-sv-localized'    => 'true',
+]) !!}
+	<div class="modal-body">
+		<div class="{{ VC::RW }}">
+			<div class="{{ VC::FM_GCB12 }}">
+				{{ Form::label('branch', __('Branch'), ['class' => VC::FM_LB]) }}
+				{{ Form::select('branch', $branches, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
+			</div>
+
+			<div class="{{ VC::FM_GCB6 }}">
+				{{ Form::label('firstname', __('First Name'), ['class' => VC::FM_LB]) }}
+				{{ Form::text('firstname', null, ['class' => VC::FM_CT, 'required' => true]) }}
+			</div>
+
+			<div class="{{ VC::FM_GCB6 }}">
+				{{ Form::label('lastname', __('Last Name'), ['class' => VC::FM_LB]) }}
+				{{ Form::text('lastname', null, ['class' => VC::FM_CT, 'required' => true]) }}
+			</div>
+
+			<div class="{{ VC::FM_GCB6 }}">
+				{{ Form::label('contact', __('Contact'), ['class' => VC::FM_LB]) }}
+				{{ Form::text('contact', null, ['class' => VC::FM_CT, 'required' => true]) }}
+			</div>
+
+			<div class="{{ VC::FM_GCB6 }}">
+				{{ Form::label('email', __('Email'), ['class' => VC::FM_LB]) }}
+				{{ Form::text('email', null, ['class' => VC::FM_CT, 'required' => true]) }}
+			</div>
+
+			<div class="{{ VC::FM_GCB12 }}">
+				{{ Form::label('expertise', __('Expertise'), ['class' => VC::FM_LB]) }}
+				{{ Form::textarea('expertise', null, ['class' => VC::FM_CT, 'placeholder' => __('Expertise')]) }}
+			</div>
+
+			<div class="{{ VC::FM_GCB12 }}">
+				{{ Form::label('address', __('Address'), ['class' => VC::FM_LB]) }}
+				{{ Form::textarea('address', null, ['class' => VC::FM_CT, 'placeholder' => __('Address')]) }}
+			</div>
+		</div>
+	</div>
+
+	<div class="modal-footer">
+		<input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+		<input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+	</div>
+    <script defer src="{{ asset('assets/js/routes/trainers/store.js') }}"></script>
+{!! Form::close() !!}
+

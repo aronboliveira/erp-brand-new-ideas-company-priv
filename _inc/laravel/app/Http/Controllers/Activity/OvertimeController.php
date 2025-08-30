@@ -1,11 +1,13 @@
 <?php
-
+// TODO STOPPED MEASURE HERE
 namespace App\Http\Controllers;
 
+use App\Config\Constants\{DatabaseConstants, ViewsConstants as VW};
 use App\Models\{Employee, Overtime};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Log, Validator};
+use Illuminate\View\View;
 
 class OvertimeController extends Controller
 {
@@ -14,19 +16,18 @@ class OvertimeController extends Controller
   private const PERM_EDIT = 'edit overtime';
   private const PERM_MANAGE = 'manage overtime';
 
-  /** @return \Illuminate\View\View|RedirectResponse|JsonResponse */
-  public function index(Request $request)
+  public function index(Request $request): View|RedirectResponse|JsonResponse
   {
     if (!self::authorizePerm($request, self::PERM_MANAGE)) return redirect()->back();
-    $overtimes = Overtime::where('created_by', $request->user()->creatorId())->get();
-    return view('overtime.index', compact('overtimes'));
+    $overtimes = Overtime::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
+    return view(VW::OVT . '.index', compact('overtimes'));
   }
 
   /** @return \Illuminate\View\View|RedirectResponse */
   public function overtimeCreate(int|string $id)
   {
     $employee = Employee::find($id);
-    return view('overtime.create', compact('employee'));
+    return view(VW::OVT . '.create', compact('employee'));
   }
 
   /** @return RedirectResponse|JsonResponse|null */
@@ -68,7 +69,7 @@ class OvertimeController extends Controller
       return response()->json(['error' => __('Permission denied.')], 401);
     $ot = self::getOvertime($request, $overtime);
     if (!$ot) return response()->json(['error' => __('Permission denied.')], 401);
-    return view('overtime.edit', compact('overtime'));
+    return view(VW::OVT . '.edit', compact('overtime'));
   }
 
   /** @return RedirectResponse|JsonResponse|null */

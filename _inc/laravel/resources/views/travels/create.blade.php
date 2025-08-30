@@ -1,31 +1,48 @@
 @php
     use App\Config\Constants\{
         PlansConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        StacksConstants
     };
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
 
     $lang = Utility::fetchUserLang();
+
+    $storeBase     = VW::TRV . '.store';
+    $storeResolved = Route::has($storeBase) ? $storeBase : (Route::has(Str::kebab($storeBase)) ? Str::kebab($storeBase) : null);
+    $storeUrl      = $storeResolved ? route($storeResolved) : url(VW::TRV);
+    $storeGuard    = Utility::fetchLinkMessage($lang, VW::TRV, 'store_travel_route_unavailable') ?? 'Store travel route is unavailable. Please contact technical support or your domain administrator.';
+
+    $genResolved   = Route::has('generate') ? 'generate' : (Route::has(Str::kebab('generate')) ? Str::kebab('generate') : null);
+    $genUrl        = $genResolved ? route($genResolved, ['travel']) : '#';
+    $genGuard      = Utility::fetchLinkMessage($lang, VW::TRV, 'generate_route_unavailable') ?? 'Generate content route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
 {!! Form::open([
-    'url'  => ViewsConstants::TRV,
+    'url'  => $storeUrl,
     'method' => 'post',
     'id'     => 'create_travel',
+    'data-guard-msg' => $storeGuard,
+    'data-sv-localized' => 'true',
 ]) !!}
     <div class="modal-body">
         @php($plan = Utility::getChatGPTSettings())
         @if($plan?->{PlansConstants::COL_GPT} == 1)
             <div class="text-end">
-                <a href="#"
+                <a href="{{ $genUrl }}"
+                   id="travel-generate-link"
                    data-size="md"
                    class="{{ VC::BT_SM_PM }} btn-icon"
                    data-ajax-popup-over="true"
-                   data-url="{{ route('generate', ['travel']) }}"
+                   data-url="{{ $genUrl }}"
                    data-bs-placement="top"
-                   data-title="{{ __('Generate content with AI') }}">
+                   data-title="{{ __('Generate content with AI') }}"
+                   data-guard-msg="{{ $genGuard }}"
+                   data-sv-localized="true">
                     <i class="{{ VC::FAS_RB }}"></i>
                     <span>{{ __('Generate with AI') }}</span>
                 </a>
@@ -67,6 +84,10 @@
 
     <div class="modal-footer">
         <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
-        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+        <input type="submit" value="{{ __('Store') }}" class="{{ VC::BT_PRM }}">
     </div>
+    <script defer src="{{ asset('assets/js/routes/travels/store.js') }}"></script>
+    @if($plan?->{PlansConstants::COL_GPT} == 1)
+        <script defer src="{{ asset('assets/js/routes/travels/generate.js') }}"></script>
+    @endif
 {!! Form::close() !!}

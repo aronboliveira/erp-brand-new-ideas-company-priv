@@ -80,7 +80,7 @@
 													   href="{{ $editUrl }}"
 													   data-url="{{ $editUrl }}"
 													   data-ajax-popup="true"
-													   data-title="{{ __('Edit Document Type') }}"
+													   data-title="{{ __('Edit Termination Type') }}"
 													   data-bs-toggle="tooltip"
 													   title="{{ __('Edit') }}"
 													   data-guard-msg="{{ $editGuardMsg }}"
@@ -89,7 +89,7 @@
 														<i class="{{ VC::TI_PC_WT }}"></i>
 													</a>
 												</div>
-												@push(StacksConstants::ADM_SCRP_PG)
+												@push(StacksConstants::ADM_SCR_PG)
 													<script>
 														(() => {
 															try {
@@ -157,12 +157,15 @@
 														'data-guard-msg'       => $destroyGuardMsg,
 														'data-sv-localized'    => 'true',
 													]) !!}
-														<a id="{{ $btnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}">
+														<a id="{{ $btnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" 
+														 data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+														 data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
+														title="{{ __('Delete') }}">
 															<i class="{{ VC::TI_TRS_WT }}"></i>
 														</a>
 													{!! Form::close() !!}
 												</div>
-												@push(StacksConstants::ADM_SCRP_PG)
+												@push(StacksConstants::ADM_SCR_PG)
 													<script>
 														(() => {
 															try {
@@ -230,6 +233,6 @@
 	</div>
 @endsection
 
-@push(StacksConstants::ADM_SCRP_PG)
+@push(StacksConstants::ADM_SCR_PG)
 	<script defer src="{{ asset('assets/js/routes/terminations/types/create.js') }}"></script>
 @endpush

@@ -1,20 +1,155 @@
-@php
-use App\Config\Constants\{DatabaseConstants, ViewsConstants};
-use Illuminate\Support\Facades\Crypt;
-$settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::TABLE_CREATOR]);
-@endphp
+<?php
+# Template 1
+use App\Config\Constants\{DatabaseConstants, SettingsConstants, ViewsConstants};
+use App\Models\Utility;
+use App\Models\ProductServiceUnit;
+use Illuminate\Support\Facades\{Crypt, Log, Route};
+use Milon\Barcode\DNS2D;
+
+if (!function_exists('e')) {
+    function e($v)
+    {
+        return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
+    }
+}
+
+$bill          ??= null;
+$vendor        ??= null;
+$settings      ??= [];
+$settings_data ??= [];
+$customFields  ??= [];
+$meta_title    ??= '';
+$meta_desc     ??= '';
+$themeCSS      ??= '';
+$color         ??= '#4b4b4b';
+$font_color    ??= '#000000';
+$img           ??= '';
+$preview       ??= null;
+
+if (trim((string)$themeCSS) === '') {
+    $themeCSS = ":root { --theme-color: {$color}; --white: #ffffff; --black: #000000; }";
+}
+
+try {
+    $lang = Utility::fetchUserLang();
+} catch (\Throwable $e) {
+    Log::error('fetchUserLang: ' . get_class($e) . ' | ' . $e->getMessage());
+    $lang = null;
+}
+try {
+    $docLang = $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG);
+} catch (\Throwable $e) {
+    Log::error('DocLang: ' . get_class($e) . ' | ' . $e->getMessage());
+    $docLang = DatabaseConstants::DEFAULT_LANG;
+}
+
+if (empty($bill)) {
+    echo '<!DOCTYPE html><html lang="' . e($docLang) . '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bill</title></head><body><div class="alert alert-warning">No bill data available.</div></body></html>';
+    return;
+}
+
+try {
+    $settings_data = Utility::settingsById(data_get($bill, DatabaseConstants::TABLE_CREATOR));
+} catch (\Throwable $e) {
+    Log::error('settingsById: ' . $e->getMessage());
+    $settings_data = [];
+}
+
+try {
+    $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
+} catch (\Throwable $e) {
+    Log::error('RTL: ' . $e->getMessage());
+    $dir = '';
+}
+
+try {
+    $billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id')) ?: __('Could not find bill number');
+} catch (\Throwable $e) {
+    Log::error('billNumber: ' . $e->getMessage());
+    $billNumber = __('Could not find bill number');
+}
+
+try {
+    $billDate = Utility::dateFormat($settings, data_get($bill, 'issue_date')) ?: __('Failed to get bill date');
+} catch (\Throwable $e) {
+    Log::error('billDate: ' . $e->getMessage());
+    $billDate = __('Failed to get bill date');
+}
+
+try {
+    $dueDate = Utility::dateFormat($settings, data_get($bill, 'due_date')) ?: __('Failed to get due date');
+} catch (\Throwable $e) {
+    Log::error('dueDate: ' . $e->getMessage());
+    $dueDate = __('Failed to get due date');
+}
+
+$qrHtml = '';
+try {
+    $rid = data_get($bill, 'bill_id');
+    $enc = $rid ? Crypt::encrypt($rid) : null;
+    $routeName = ViewsConstants::BIL . '.link.copy';
+    $url = ($enc && Route::has($routeName)) ? route($routeName, $enc) : '#';
+    $qrHtml = DNS2D::getBarcodeHTML($url, 'QRCODE', 2, 2);
+} catch (\Throwable $e) {
+    Log::error('QR: ' . get_class($e) . ' | ' . $e->getMessage());
+    $qrHtml = '<div></div>';
+}
+
+$totalQty         = (string)(data_get($bill, 'totalQuantity') ?? '0');
+$totalRate        = '0';
+$totalDiscount    = '0';
+$totalTaxPrice    = '0';
+$subTotal         = '0';
+$grandTotalRow    = '0';
+$paidTotal        = '0';
+$debitNoteTotal   = '0';
+$dueAmount        = '0';
+
+try {
+    $totalRate     = Utility::priceFormat($settings, data_get($bill, 'totalRate', 0)) ?: '0';
+} catch (\Throwable $e) {
+}
+try {
+    $totalDiscount = Utility::priceFormat($settings, data_get($bill, 'totalDiscount', 0)) ?: '0';
+} catch (\Throwable $e) {
+}
+try {
+    $totalTaxPrice = Utility::priceFormat($settings, data_get($bill, 'totalTaxPrice', 0)) ?: '0';
+} catch (\Throwable $e) {
+}
+try {
+    $subTotal      = Utility::priceFormat($settings, method_exists($bill, 'getSubTotal') ? $bill->getSubTotal() : 0) ?: '0';
+} catch (\Throwable $e) {
+}
+try {
+    $grandTotalRow  = Utility::priceFormat($settings, (method_exists($bill, 'getSubTotal') ? $bill->getSubTotal() : 0) - (method_exists($bill, 'getTotalDiscount') ? $bill->getTotalDiscount() : 0) + (method_exists($bill, 'getTotalTax') ? $bill->getTotalTax() : 0)) ?: '0';
+} catch (\Throwable $e) {
+}
+try {
+    $paidTotal      = Utility::priceFormat($settings, (method_exists($bill, 'getTotal') ? $bill->getTotal() : 0) - (method_exists($bill, 'getDue') ? $bill->getDue() : 0) - (method_exists($bill, 'billTotalDebitNote') ? $bill->billTotalDebitNote() : 0)) ?: '0';
+} catch (\Throwable $e) {
+}
+try {
+    $debitNoteTotal = Utility::priceFormat($settings, method_exists($bill, 'billTotalDebitNote') ? $bill->billTotalDebitNote() : 0) ?: '0';
+} catch (\Throwable $e) {
+}
+try {
+    $dueAmount      = Utility::priceFormat($settings, method_exists($bill, 'getDue') ? $bill->getDue() : 0) ?: '0';
+} catch (\Throwable $e) {
+}
+?>
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$settings_data[SettingsConstants::RTL] == 'on'?'rtl':''}}">
+<html lang="<?= e($docLang) ?>" dir="<?= e($dir) ?>">
 
 <head>
-    @include('fragments.std', [
-    'meta_title' => $meta_title,
-    'meta_desc' => $meta_desc
-    ])
+    <?php try {
+        echo view('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc])->render();
+    } catch (\Throwable $e) {
+        Log::error('Meta view: ' . $e->getMessage());
+    } ?>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
     <style>
-        <?php echo $themeCSS; ?>
+        <?= $themeCSS ?>
     </style>
     <style type="text/css">
         body {
@@ -43,12 +178,12 @@ $settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::TABL
         }
 
         table tr th {
-            padding: 0.75rem;
+            padding: .75rem;
             text-align: left;
         }
 
         table tr td {
-            padding: 0.75rem;
+            padding: .75rem;
             text-align: left;
         }
 
@@ -107,8 +242,6 @@ $settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::TABL
             padding: 30px 25px 0;
         }
 
-
-
         table.add-border tr {
             border-top: 1px solid var(--theme-color);
         }
@@ -166,23 +299,20 @@ $settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::TABL
             margin-right: auto;
         }
     </style>
-
-    @if($settings_data[SettingsConstants::RTL]=='on')
-    <link rel="stylesheet" href="{{ asset('css/bootstrap-rtl.css') }}">
-    @endif
+    <?php if (data_get($settings_data, SettingsConstants::RTL) === 'on'): ?>
+        <link rel="stylesheet" href="<?= e(asset('css/bootstrap-rtl.css')) ?>">
+    <?php endif; ?>
 </head>
 
-<body class="">
+<body>
     <div class="bill-preview-main" id="boxes">
-        <div class="bill-header" style="background: <?= $color ?>;color:{{$font_color}}">
+        <div class="bill-header" style="background: <?= e($color) ?>; color: <?= e($font_color) ?>">
             <table>
                 <tbody>
                     <tr>
-                        <td>
-                            <img class="bill-logo" src="{{$img}}" alt="">
-                        </td>
+                        <td><img class="bill-logo" src="<?= e($img) ?>" alt=""></td>
                         <td class="text-right">
-                            <h3 style="text-transform: uppercase; font-size: 40px; font-weight: bold;">{{__('BILL')}}</h3>
+                            <h3 style="text-transform:uppercase;font-size:40px;font-weight:bold;"><?= e(__('BILL')) ?></h3>
                         </td>
                     </tr>
                 </tbody>
@@ -192,50 +322,53 @@ $settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::TABL
                     <tr>
                         <td>
                             <p>
-                                @if($settings['company_name']){{$settings['company_name']}}@endif<br>
-                                @if($settings['mail_from_address']){{$settings['mail_from_address']}}@endif<br><br><br>
-                                @if($settings['company_address']){{$settings['company_address']}}@endif
-                                @if($settings['company_city']) <br> {{$settings['company_city']}}, @endif
-                                @if($settings['company_state']){{$settings['company_state']}}@endif
-                                @if($settings['company_zipcode']) - {{$settings['company_zipcode']}}@endif
-                                @if($settings['company_country']) <br>{{$settings['company_country']}}@endif
-                                @if($settings['company_telephone']){{$settings['company_telephone']}}@endif<br>
-                                @if(!empty($settings['registration_number'])){{__('Registration Number')}} : {{$settings['registration_number']}} @endif<br>
-                                @if($settings['vat_gst_number_switch'] == 'on')
-                                @if(!empty($settings['tax_type']) && !empty($settings['vat_number'])){{$settings['tax_type'].' '. __('Number')}} : {{$settings['vat_number']}} <br>@endif
-                                @endif
+                                <?= !empty($settings['company_name']) ? e($settings['company_name']) : e(__('No company name available')) ?><br>
+                                <?= !empty($settings['mail_from_address']) ? e($settings['mail_from_address']) : e(__('No email available')) ?><br><br><br>
+                                <?= !empty($settings['company_address']) ? e($settings['company_address']) : e(__('No address available')) ?>
+                                <?= !empty($settings['company_city']) ? '<br>' . e($settings['company_city']) . ', ' : e(__('No company city available')) ?>
+                                <?= !empty($settings['company_state']) ? e($settings['company_state']) : e(__('No company state available')) ?>
+                                <?= !empty($settings['company_zipcode']) ? ' - ' . e($settings['company_zipcode']) : e(__('No company zipcode available')) ?>
+                                <?= !empty($settings['company_country']) ? '<br>' . e($settings['company_country']) : e(__('No company country available')) ?>
+                                <?= !empty($settings['company_telephone']) ? e($settings['company_telephone']) : e(__('No company telephone available')) ?><br>
+                                <?php
+                                $reg = (string)($settings['registration_number'] ?? '');
+                                echo $reg !== '' ? e(__('Registration Number')) . ' : ' . e($reg) . ' <br>' : e(__('No registration number available')) . ' <br>';
+                                if (data_get($settings, 'vat_gst_number_switch') === 'on') {
+                                    $taxType = (string)($settings['tax_type'] ?? '');
+                                    $vatNum  = (string)($settings['vat_number'] ?? '');
+                                    echo ($taxType !== '' && $vatNum !== '')
+                                        ? e($taxType . ' ' . __('Number')) . ' : ' . e($vatNum) . ' <br>'
+                                        : e(__('No VAT/GST number available')) . ' <br>';
+                                }
+                                ?>
                             </p>
                         </td>
                         <td>
-                            <table class="no-space" style="width: 45%;margin-left: auto;">
+                            <table class="no-space" style="width:45%;margin-left:auto;">
                                 <tbody>
                                     <tr>
-                                        <td>{{__('Number')}}:</td>
-                                        <td class="text-right">{{Utility::billNumberFormat($settings,$bill->bill_id)}}</td>
+                                        <td><?= e(__('Number')) ?>:</td>
+                                        <td class="text-right"><?= e($billNumber) ?></td>
                                     </tr>
-
                                     <tr>
-                                        <td>{{__('Bill Date')}}:</td>
-                                        <td class="text-right">{{Utility::dateFormat($settings,$bill->issue_date)}}</td>
+                                        <td><?= e(__('Bill Date')) ?>:</td>
+                                        <td class="text-right"><?= e($billDate) ?></td>
                                     </tr>
-
                                     <tr>
-                                        <td>{{__('Due Date')}}:</td>
-                                        <td class="text-right">{{Utility::dateFormat($settings,$bill->due_date)}}</td>
+                                        <td><?= e(__('Due Date')) ?>:</td>
+                                        <td class="text-right"><?= e($dueDate) ?></td>
                                     </tr>
-                                    @if(!empty($customFields) && count($bill->customField)>0)
-                                    @foreach($customFields as $field)
-                                    <tr>
-                                        <td>{{$field->name}} :</td>
-                                        <td> {{!empty($bill->customField)?$bill->customField[$field->id]:'-'}}</td>
-                                    </tr>
-                                    @endforeach
-                                    @endif
+                                    <?php if (!empty($customFields) && count(data_get($bill, 'customField', [])) > 0): ?>
+                                        <?php foreach ($customFields as $field): ?>
+                                            <tr>
+                                                <td><?= e(data_get($field, 'name', '')) ?> :</td>
+                                                <td><?= e(data_get($bill->customField, $field->id) ?? '-') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                     <tr>
                                         <td colspan="2">
-                                            <div class="view-qrcode">
-                                                {!! DNS2D::getBarcodeHTML(route(ViewsConstants::BIL.'.link.copy', Crypt::encrypt($bill->bill_id)), "QRCODE",2,2) !!}
-                                            </div>
+                                            <div class="view-qrcode"><?= $qrHtml ?></div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -245,161 +378,191 @@ $settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::TABL
                 </tbody>
             </table>
         </div>
+
         <div class="bill-body">
             <table>
                 <tbody>
                     <tr>
                         <td>
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Bill To')}}:</strong>
-                            @if(!empty($vendor->billing_name))
+                            <strong style="margin-bottom:10px;display:block;"><?= e(__('Bill To')) ?>:</strong>
                             <p>
-                                {{!empty($vendor->billing_name)?$vendor->billing_name:''}}<br>
-                                {{!empty($vendor->billing_address)?$vendor->billing_address:''}}<br>
-                                {{!empty($vendor->billing_city)?$vendor->billing_city:'' .', '}}<br>
-                                {{!empty($vendor->billing_state)?$vendor->billing_state:'',', '}},
-                                {{!empty($vendor->billing_zip)?$vendor->billing_zip:''}}<br>
-                                {{!empty($vendor->billing_country)?$vendor->billing_country:''}}<br>
-                                {{!empty($vendor->billing_phone)?$vendor->billing_phone:''}}<br>
+                                <?= e(data_get($vendor, 'billing_name', __('No name for billing available.'))) ?><br>
+                                <?= e(data_get($vendor, 'billing_address', __('No address for billing available.'))) ?><br>
+                                <?= e(data_get($vendor, 'billing_city', __('No city for billing available.'))) ?><?= !empty(data_get($vendor, 'billing_city')) ? ', ' : '' ?><br>
+                                <?= e(data_get($vendor, 'billing_state', __('No state for billing available.'))) ?><?= !empty(data_get($vendor, 'billing_state')) ? ', ' : '' ?>, <?= e(data_get($vendor, 'billing_zip', __('No zip for billing available.'))) ?><br>
+                                <?= e(data_get($vendor, 'billing_country', __('No country for billing available.'))) ?><br>
+                                <?= e(data_get($vendor, 'billing_phone', __('No phone for billing available'))) ?><br>
                             </p>
-                            @else
-                            -
-                            @endif
                         </td>
-                        @if($settings['shipping_display']=='on')
-                        <td class="text-right">
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Ship To')}}:</strong>
-                            @if(!empty($vendor->shipping_name))
-                            <p>
-                                {{!empty($vendor->shipping_name)?$vendor->shipping_name:''}}<br>
-                                {{!empty($vendor->shipping_address)?$vendor->shipping_address:''}}<br>
-                                {{!empty($vendor->shipping_city)?$vendor->shipping_city:'' . ', '}}<br>
-                                {{!empty($vendor->shipping_state)?$vendor->shipping_state:'' .', '}},
-                                {{!empty($vendor->shipping_zip)?$vendor->shipping_zip:''}}<br>
-                                {{!empty($vendor->shipping_country)?$vendor->shipping_country:''}}<br>
-                                {{!empty($vendor->shipping_phone)?$vendor->shipping_phone:''}}<br>
-                            </p>
-                            @else
-                            -
-                            @endif
-                        </td>
-                        @endif
+                        <?php if (data_get($settings, 'shipping_display') === 'on'): ?>
+                            <td class="text-right">
+                                <strong style="margin-bottom:10px;display:block;"><?= e(__('Ship To')) ?>:</strong>
+                                <p>
+                                    <?= e(data_get($vendor, 'shipping_name', __('No name for shipping available.'))) ?><br>
+                                    <?= e(data_get($vendor, 'shipping_address', __('No address for shipping available.'))) ?><br>
+                                    <?= e(data_get($vendor, 'shipping_city', __('No city for shipping available.'))) ?><?= !empty(data_get($vendor, 'shipping_city')) ? ', ' : '' ?><br>
+                                    <?= e(data_get($vendor, 'shipping_state', __('No state for shipping available.'))) ?><?= !empty(data_get($vendor, 'shipping_state')) ? ', ' : '' ?>, <?= e(data_get($vendor, 'shipping_zip', __('No zip for shipping available.'))) ?><br>
+                                    <?= e(data_get($vendor, 'shipping_country', __('No country for shipping available.'))) ?><br>
+                                    <?= e(data_get($vendor, 'shipping_phone', __('No phone for shipping available.'))) ?><br>
+                                </p>
+                            </td>
+                        <?php endif; ?>
                     </tr>
                 </tbody>
             </table>
-            <table class="add-border bill-summary" style="margin-top: 30px;">
-                <thead style="background: <?= $color ?>;color:{{$font_color}}">
+
+            <table class="add-border bill-summary" style="margin-top:30px;">
+                <thead style="background: <?= e($color) ?>; color: <?= e($font_color) ?>">
                     <tr>
-                        <th>{{__('Item')}}</th>
-                        <th>{{__('Quantity')}}</th>
-                        <th>{{__('Rate')}}</th>
-                        <th>{{__('Discount')}}</th>
-                        <th>{{__('Tax')}} (%)</th>
-                        <th>{{__('Price')}} <small>{{__('after tax & discount')}}</small></th>
+                        <th><?= e(__('Item')) ?></th>
+                        <th><?= e(__('Quantity')) ?></th>
+                        <th><?= e(__('Rate')) ?></th>
+                        <th><?= e(__('Discount')) ?></th>
+                        <th><?= e(__('Tax')) ?> (%)</th>
+                        <th><?= e(__('Price')) ?> <small><?= e(__('after tax & discount')) ?></small></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if(isset($bill->itemData) && count($bill->itemData) > 0)
-                    @foreach($bill->itemData as $key => $item)
-                    <tr>
-                        <td>{{$item->name}}</td>
-                        @php
-                        $unitName = App\Models\ProductServiceUnit::find($item->unit);
-                        @endphp
-                        <td>{{$item->quantity . ' (' . $unitName->name . ')'}}</td>
-                        <td>{{Utility::priceFormat($settings,$item->price)}}</td>
-                        <td>{{($item->discount!=0)? Utility::priceFormat($settings,$item->discount):'-'}}</td>
-                        @php
-                        $itemtax = 0;
-                        @endphp
-                        <td>
-                            @if(!empty($item->itemTax))
-
-                            @foreach($item->itemTax as $taxes)
-                            @php
-                            $itemtax += $taxes['tax_price'];
-                            @endphp
-                            <p>{{$taxes['name']}} ({{$taxes['rate']}}) {{$taxes['price']}}</p>
-                            @endforeach
-                            @else
-                            <span>-</span>
-                            @endif
-                        </td>
-                        <td>{{Utility::priceFormat($settings,$item->price * $item->quantity -  $item->discount + $itemtax)}}</td>
-                        @if(!empty($item->description))
-                    <tr class="border-0 itm-description ">
-                        <td colspan="6">{{$item->description}}</td>
-                    </tr>
-                    @endif
-                    </tr>
-                    @endforeach
-                    @else
-                    @endif
-
+                    <?php if (isset($bill->itemData) && is_iterable($bill->itemData) && count($bill->itemData) > 0): ?>
+                        <?php foreach ($bill->itemData as $item): ?>
+                            <?php
+                            $price = (float) data_get($item, 'price', 0);
+                            $qty   = (float) data_get($item, 'quantity', 0);
+                            $disc  = (float) data_get($item, 'discount', 0);
+                            $itemtax = 0.0;
+                            $unitLabel = '';
+                            try {
+                                $unit = ProductServiceUnit::find(data_get($item, 'unit'));
+                                $unitLabel = data_get($unit, 'name', '');
+                            } catch (\Throwable $e) {
+                                Log::error('Unit find: ' . $e->getMessage());
+                            }
+                            ?>
+                            <tr>
+                                <td><?= e(data_get($item, 'name', '')) ?></td>
+                                <td><?= e((string)$qty) . ($unitLabel ? ' (' . e($unitLabel) . ')' : '') ?></td>
+                                <td><?php try {
+                                        echo e(Utility::priceFormat($settings, $price));
+                                    } catch (\Throwable $e) {
+                                        Log::error('Rate fmt: ' . $e->getMessage());
+                                        echo '0';
+                                    } ?></td>
+                                <td><?php try {
+                                        echo $disc != 0.0 ? e(Utility::priceFormat($settings, $disc)) : '-';
+                                    } catch (\Throwable $e) {
+                                        Log::error('Disc fmt: ' . $e->getMessage());
+                                        echo '-';
+                                    } ?></td>
+                                <td>
+                                    <?php if (!empty(data_get($item, 'itemTax'))): ?>
+                                        <?php foreach ((array) data_get($item, 'itemTax', []) as $taxes): ?>
+                                            <?php $itemtax += (float) data_get($taxes, 'tax_price', 0); ?>
+                                            <p><?= e((data_get($taxes, 'name', 'Tax')) . ' (' . (data_get($taxes, 'rate', '0')) . ') ' . (data_get($taxes, 'price', '0'))) ?></p>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <span>-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php
+                                    try {
+                                        echo e(Utility::priceFormat($settings, $price * $qty - $disc + $itemtax));
+                                    } catch (\Throwable $e) {
+                                        Log::error('Line total: ' . $e->getMessage());
+                                        echo '0';
+                                    }
+                                    ?>
+                                </td>
+                            </tr>
+                            <?php if (!empty(data_get($item, 'description'))): ?>
+                                <tr class="border-0 itm-description">
+                                    <td colspan="6"><?= e(data_get($item, 'description', '')) ?></td>
+                                </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td>{{__('Total')}}</td>
-                        <td>{{$bill->totalQuantity}}</td>
-                        <td>{{Utility::priceFormat($settings,$bill->totalRate)}}</td>
-                        <td>{{Utility::priceFormat($settings,$bill->totalDiscount)}}</td>
-                        <td>{{Utility::priceFormat($settings,$bill->totalTaxPrice) }}</td>
-                        <td>{{Utility::priceFormat($settings,$bill->getSubTotal())}}</td>
+                        <td><?= e(__('Total')) ?></td>
+                        <td><?= e($totalQty) ?></td>
+                        <td><?= e($totalRate) ?></td>
+                        <td><?= e($totalDiscount) ?></td>
+                        <td><?= e($totalTaxPrice) ?></td>
+                        <td><?= e($subTotal) ?></td>
                     </tr>
                     <tr>
                         <td colspan="4"></td>
                         <td colspan="2" class="sub-total">
                             <table class="total-table">
                                 <tr>
-                                    <td>{{__('Subtotal')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$bill->getSubTotal())}}</td>
+                                    <td><?= e(__('Subtotal')) ?>:</td>
+                                    <td><?= e($subTotal) ?></td>
                                 </tr>
-                                @if($bill->getTotalDiscount())
+                                <?php if (method_exists($bill, 'getTotalDiscount') && $bill->getTotalDiscount()): ?>
+                                    <tr>
+                                        <td><?= e(__('Discount')) ?>:</td>
+                                        <td><?php try {
+                                                echo e(Utility::priceFormat($settings, $bill->getTotalDiscount()));
+                                            } catch (\Throwable $e) {
+                                                Log::error('Total discount: ' . $e->getMessage());
+                                                echo '0';
+                                            } ?></td>
+                                    </tr>
+                                <?php endif; ?>
+                                <?php if (!empty($bill->taxesData)): ?>
+                                    <?php foreach ($bill->taxesData as $taxName => $taxPrice): ?>
+                                        <tr>
+                                            <td><?= e($taxName) . ' :' ?></td>
+                                            <td><?php try {
+                                                    echo e(Utility::priceFormat($settings, $taxPrice));
+                                                } catch (\Throwable $e) {
+                                                    Log::error('Tax row: ' . $e->getMessage());
+                                                    echo '0';
+                                                } ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                                 <tr>
-                                    <td>{{__('Discount')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$bill->getTotalDiscount())}}</td>
-                                </tr>
-                                @endif
-                                @if(!empty($bill->taxesData))
-                                @foreach($bill->taxesData as $taxName => $taxPrice)
-                                <tr>
-                                    <td>{{$taxName}} :</td>
-                                    <td>{{ Utility::priceFormat($settings,$taxPrice)  }}</td>
-                                </tr>
-                                @endforeach
-                                @endif
-                                <tr>
-                                    <td>{{__('Total')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$bill->getSubTotal()-$bill->getTotalDiscount()+$bill->getTotalTax())}}</td>
+                                    <td><?= e(__('Total')) ?>:</td>
+                                    <td><?= e($grandTotalRow) ?></td>
                                 </tr>
                                 <tr>
-                                    <td>{{__('Paid')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,($bill->getTotal()-$bill->getDue())-($bill->billTotalDebitNote()))}}</td>
+                                    <td><?= e(__('Paid')) ?>:</td>
+                                    <td><?= e($paidTotal) ?></td>
                                 </tr>
                                 <tr>
-                                    <td>{{__('Debit Note')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,($bill->billTotalDebitNote()))}}</td>
+                                    <td><?= e(__('Debit Note')) ?>:</td>
+                                    <td><?= e($debitNoteTotal) ?></td>
                                 </tr>
                                 <tr>
-                                    <td>{{__('Due Amount')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$bill->getDue())}}</td>
+                                    <td><?= e(__('Due Amount')) ?>:</td>
+                                    <td><?= e($dueAmount) ?></td>
                                 </tr>
-
                             </table>
                         </td>
                     </tr>
                 </tfoot>
             </table>
+
             <div class="bill-footer">
-                <b>{{$settings['footer_title']}}</b> <br>
-                {!! $settings['footer_notes'] !!}
+                <b><?= e(data_get($settings, 'footer_title', __('No footer title available'))) ?></b> <br>
+                <?php try {
+                    echo (string) data_get($settings, 'footer_notes', '');
+                } catch (\Throwable $e) {
+                    Log::error('Footer notes: ' . $e->getMessage());
+                } ?>
             </div>
         </div>
-
     </div>
-    @if(!isset($preview))
-    @include(ViewsConstants::BIL.'.script');
-    @endif
 
+    <?php if (!isset($preview)): ?>
+        <?php try {
+            echo view(ViewsConstants::BIL . '.script')->render();
+        } catch (\Throwable $e) {
+            Log::error('Script include: ' . $e->getMessage());
+        } ?>
+    <?php endif; ?>
 </body>
 
 </html>

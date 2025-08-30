@@ -57,7 +57,7 @@
                 ]) !!}
             <a href="#"
                class="btn btn-sm btn-danger bs-pass-para"
-               data-confirm="{{ __('Are You Sure?') . '|' . __('This action can not be undone. Do you want to continue?') }}"
+                data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                data-confirm-yes="document.getElementById('delete-form-{{ $vendor->id }}').submit();">
                 <i class="ti ti-trash text-white"></i>
             </a>

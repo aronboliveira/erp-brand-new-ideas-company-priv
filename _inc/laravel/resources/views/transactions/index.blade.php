@@ -2,9 +2,16 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants
     };
-    use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Str;
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -26,198 +33,298 @@
     <link rel="stylesheet" href="{{ asset('css/datatable/buttons.dataTables.min.css') }}">
 @endpush
 
+{{--    <script src="{{ asset('js/datatable/dataTables.buttons.min.js') }}"></script>--}}
+{{--    <script src="{{ asset('js/datatable/buttons.html5.min.js') }}"></script>--}}
+{{--    <script type="text/javascript" src="{{ asset('js/datatable/buttons.print.min.js') }}"></script>--}}
+{{--    <script src="{{ asset('assets/js/plugins/simple-datatables.js') }}"></script>--}}
 @push(StacksConstants::ADM_SCR_PG)
-    {{--    <script src="{{ asset('assets/js/plugins/simple-datatables.js') }}"></script>--}}
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script src="{{ asset('js/datatable/jszip.min.js') }}"></script>
-    <script src="{{ asset('js/datatable/pdfmake.min.js') }}"></script>
-    <script src="{{ asset('js/datatable/vfs_fonts.js') }}"></script>
-    {{--    <script src="{{ asset('js/datatable/dataTables.buttons.min.js') }}"></script>--}}
-    {{--    <script src="{{ asset('js/datatable/buttons.html5.min.js') }}"></script>--}}
-    {{--    <script type="text/javascript" src="{{ asset('js/datatable/buttons.print.min.js') }}"></script>--}}
-
-    <script>
-        var filename = $('#filename').val();
-
-        function saveAsPDF() {
-            var element = document.getElementById('printableArea');
-            var opt = {
-                margin: 0.3,
-                filename: filename,
-                image: {type: 'jpeg', quality: 1},
-                html2canvas: {scale: 4, dpi: 72, letterRendering: true},
-                jsPDF: {unit: 'in', format: 'A4'}
-            };
-            html2pdf().set(opt).from(element).save();
-
-        }
-    </script>
+		<script async src="{{ asset('js/routes/transactions/lang/pdf.js') }}"></script>
+		<script defer src="{{ asset('js/routes/transactions/pdf.js') }}"></script>
+    <script defer src="{{ asset('js/datatable/jszip.min.js') }}"></script>
+    <script defer src="{{ asset('js/datatable/pdfmake.min.js') }}"></script>
+    <script defer src="{{ asset('js/datatable/vfs_fonts.js') }}"></script>
 @endpush
 
+{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
+{{--            <i class="ti ti-filter"></i>--}}
+{{--        </a>--}}
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        {{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
-        {{--            <i class="ti ti-filter"></i>--}}
-        {{--        </a>--}}
-
-        <a href="{{route('transaction.export')}}" data-bs-toggle="tooltip" title="{{__('Export')}}" class="btn btn-sm btn-primary">
-            <i class="ti ti-file-export"></i>
+        @php
+            $tstExportBase = VW::TST.'.export';
+            $tstExportKebab = Str::kebab($tstExportBase);
+            $tstExportResolved = Route::has($tstExportBase) ? $tstExportBase : (Route::has($tstExportKebab) ? $tstExportKebab : null);
+            $tstExportUrl = $tstExportResolved ? route($tstExportResolved) : '#';
+            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+            $tstExportGuardMsg = Utility::fetchLinkMessage($langValue, VW::TST, 'export_test_route_unavailable') ?? 'Export test route is unavailable. Please contact technical support or your domain administrator.';
+            $tstExportAnchorId = 'tst-export-btn';
+        @endphp
+        <a href="{{ $tstExportUrl }}"
+        id="{{ $tstExportAnchorId }}"
+        data-url="{{ $tstExportUrl }}"
+        data-guard-msg="{{ $tstExportGuardMsg }}"
+        data-sv-localized="true"
+        data-bs-toggle="tooltip"
+        title="{{ __('Export') }}"
+        class="{{ VC::BT_SM_PM }}">
+            <i class="{{ VC::TI_EXP }}"></i>
         </a>
-
-        <a href="#" class="btn btn-sm btn-primary" onclick="saveAsPDF()"data-bs-toggle="tooltip" title="{{__('Download')}}" data-original-title="{{__('Download')}}">
+        @push(StacksConstants::ADM_SCR_PG)
+            <script defer>
+                (() => {
+                    try {
+                        const el = document.getElementById('{{ $tstExportAnchorId }}');
+                        if (!el) { return; }
+                        if (el.getAttribute('data-listener-active') === 'true') { return; }
+                        el.setAttribute('data-listener-active','true');
+                        el.addEventListener('click',(e) => {
+                            try {
+                                const href = el.getAttribute('href') ?? '#';
+                                const url = el.getAttribute('data-url') ?? href ?? '#';
+                                if (url !== '#' && href !== '#') { return; }
+                                e.preventDefault();
+                                const msg = el.getAttribute('data-guard-msg') ?? 'Export test route is unavailable. Please contact technical support or your domain administrator.';
+                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                let container = document.getElementById('toast-container');
+                                if (!container) {
+                                    container = document.createElement('div');
+                                    container.id = 'toast-container';
+                                    document.body.appendChild(container);
+                                }
+                                if (hasBootstrap) {
+                                    const toast = document.createElement('div');
+                                    toast.className = 'toast';
+                                    toast.setAttribute('role','alert');
+                                    toast.setAttribute('aria-live','assertive');
+                                    toast.setAttribute('aria-atomic','true');
+                                    const body = document.createElement('div');
+                                    body.className = 'toast-body';
+                                    body.textContent = msg;
+                                    toast.appendChild(body);
+                                    container.appendChild(toast);
+                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                } else {
+                                    alert(msg);
+                                }
+                                el.setAttribute('data-failed-route','true');
+                            } catch (err) {}
+                        });
+                    } catch (err) {}
+                })();
+            </script>
+        @endpush
+        @php
+            $downloadLabelTr = __('Download');
+            $downloadGuardMsgTr = Utility::fetchLinkMessage($lang, VW::TST, 'download_transactions_report_unavailable') ?? 'Download function for Transactions report is unavailable. Please contact technical support or your domain administrator.';
+        @endphp
+        <a href="#"
+        class="{{ VC::BT_SM_PM }} download-transactions"
+        data-func-name="saveAsPDF"
+        data-guard-msg="{{ $downloadGuardMsgTr }}"
+        data-sv-localized="true"
+        data-bs-toggle="tooltip"
+        title="{{ $downloadLabelTr }}"
+        aria-label="{{ $downloadLabelTr }}"
+        data-original-title="{{ $downloadLabelTr }}">
             <span class="btn-inner--icon"><i class="ti ti-download"></i></span>
         </a>
-
+        @push(StacksConstants::ADM_SCR_PG)
+            <script src="{{ asset('assets/js/routes/reports/transactions/download.js') }}" defer></script>
+        @endpush
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="mt-2" id="multiCollapseExample1">
-                <div class="card">
-                    <div class="card-body">
-                        {{ Collective\Html\FormFacade::open(array('route' => array('transaction.index'),'method'=>'get','id'=>'transaction_report')) }}
-                        <div class="row align-items-center justify-content-end">
-                            <div class="col-xl-10">
-                                <div class="row">
-
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('start_month', __('Start Month'),['class'=>'form-label'])}}
-                                            {{Collective\Html\FormFacade::month('start_month',isset($_GET['start_month'])?$_GET['start_month']:date('Y-m', strtotime("-5 month")),array('class'=>'month-btn form-control'))}}
-                                        </div>
-                                    </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('end_month', __('End Month'),['class'=>'form-label'])}}
-                                            {{Collective\Html\FormFacade::month('end_month',isset($_GET['end_month'])?$_GET['end_month']:date('Y-m'),array('class'=>'month-btn form-control'))}}
-                                        </div>
-                                    </div>
-
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('account', __('Account'),['class'=>'form-label'])}}
-                                            {{ Collective\Html\FormFacade::select('account', $account,isset($_GET['account'])?$_GET['account']:'', array('class' => 'form-control select')) }}
-                                        </div>
-                                    </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('category', __('Category'),['class'=>'form-label'])}}
-                                            {{ Collective\Html\FormFacade::select('category', $category,isset($_GET['category'])?$_GET['category']:'', array('class' => 'form-control select')) }}
-                                        </div>
-                                    </div>
-
+	@php
+		$indexBase      = VW::TST . '.index';
+		$indexKebab     = Str::kebab($indexBase);
+		$indexResolved  = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
+		$indexUrl       = $indexResolved ? route($indexResolved) : '#';
+		$indexGuard     = Utility::fetchLinkMessage($lang, VW::TST, 'index_transaction_route_unavailable') ?? 'Transaction index route is unavailable. Please contact technical support or your domain administrator.';
+		$accountOptions = is_array($account ?? null) ? $account : (method_exists(($account ?? null), 'toArray') ? $account->toArray() : ['' => __('No accounts available')]);
+		$categoryOpts   = is_array($category ?? null) ? $category : (method_exists(($category ?? null), 'toArray') ? $category->toArray() : ['' => __('No categories available')]);
+	@endphp
+	<div class="{{ VC::RW }}">
+		<div class="{{ VC::CS12 }}">
+			<div class="mt-2" id="multiCollapseExample1">
+				<div class="{{ VC::CD }}">
+					<div class="card-body">
+						{{ Form::open([
+							'url'                  => $indexUrl,
+							'method'               => 'get',
+							'id'                   => 'transaction_report',
+							'data-resolved-action' => $indexUrl,
+							'data-guard-msg'       => $indexGuard,
+							'data-sv-localized'    => 'true',
+						]) }}
+							<div class="{{ VC::R_ALC_JCE }}">
+								<div class="col-xl-10">
+									<div class="{{ VC::RW }}">
+										<div class="{{ VC::CL_XL3 }}">
+											<div class="btn-box">
+												{{ Form::label('start_month', __('Start Month'), ['class' => VC::FM_LB]) }}
+												{{ Form::month('start_month', $_GET['start_month'] ?? date('Y-m', strtotime('-5 month')), ['class' => 'month-btn ' . VC::FM_CT]) }}
+											</div>
+										</div>
+										<div class="{{ VC::CL_XL3 }}">
+											<div class="btn-box">
+												{{ Form::label('end_month', __('End Month'), ['class' => VC::FM_LB]) }}
+												{{ Form::month('end_month', $_GET['end_month'] ?? date('Y-m'), ['class' => 'month-btn ' . VC::FM_CT]) }}
+											</div>
+										</div>
+										<div class="{{ VC::CL_XL3 }}">
+											<div class="btn-box">
+												{{ Form::label('account', __('Account'), ['class' => VC::FM_LB]) }}
+												{{ Form::select('account', $accountOptions, $_GET['account'] ?? '', ['class' => VC::FM_CT_SL]) }}
+											</div>
+										</div>
+										<div class="{{ VC::CL_XL3 }}">
+											<div class="btn-box">
+												{{ Form::label('category', __('Category'), ['class' => VC::FM_LB]) }}
+												{{ Form::select('category', $categoryOpts, $_GET['category'] ?? '', ['class' => VC::FM_CT_SL]) }}
+											</div>
+										</div>
+									</div>
                                 </div>
-                            </div>
-                            <div class="col-auto mt-4">
-                                <div class="row">
-                                    <div class="col-auto">
-                                        <a href="#" class="btn btn-sm btn-primary" onclick="document.getElementById('transaction_report').submit(); return false;" data-bs-toggle="tooltip" title="{{__('Apply')}}" data-original-title="{{__('apply')}}">
-                                            <span class="btn-inner--icon"><i class="ti ti-search"></i></span></a>
+								<div class="{{ VC::C_AT }} {{ VC::MT4 }}">
+									<div class="{{ VC::RW }}">
+										<div class="{{ VC::C_AT }}">
+											<a href="#"
+											   class="{{ VC::BT_SM_PM }}"
+											   onclick="document.getElementById('transaction_report').submit(); return false;"
+											   data-bs-toggle="tooltip"
+											   title="{{ __('Apply') }}"
+											   data-original-title="{{ __('apply') }}">
+												<span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
+											</a>
+											<a href="#"
+											   id="transaction-report-reset"
+											   class="{{ VC::BT_SM_DG }}"
+											   data-url="{{ $indexUrl }}"
+											   data-guard-msg="{{ $indexGuard }}"
+											   data-sv-localized="true"
+											   data-bs-toggle="tooltip"
+											   title="{{ __('Reset') }}"
+											   data-original-title="{{ __('Reset') }}">
+												<span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
+											</a>
+										</div>
+									</div>
+								</div>
+							</div>
+						{{ Form::close() }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="printableArea">
+		<div class="{{ VC::RW }}">
+			<div class="col">
+				<input type="hidden" value="{{ (data_get($filter,'category') ?: __('No category available')).' '.__('Category').' '.__('Transaction').' '.__('Report of').' '.(data_get($filter,'startDateRange') ?: __('No start date available')).' '.__('to').' '.(data_get($filter,'endDateRange') ?: __('No end date available')) }}" id="filename">
+				<div class="{{ VC::CD_POS }}">
+					<h6 class="{{ VC::MB0 }}">{{ __('Report') }} :</h6>
+					<h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Transaction Summary') }}</h7>
+				</div>
+			</div>
+			@if((data_get($filter,'account') ?? '') != __('All'))
+				<div class="col">
+					<div class="{{ VC::CD_POS }}">
+						<h6 class="{{ VC::MB0 }}">{{ __('Account') }} :</h6>
+						<h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ data_get($filter,'account') ?: __('No account available') }}</h7>
+					</div>
+				</div>
+			@endif
+			@if((data_get($filter,'category') ?? '') != __('All'))
+				<div class="col">
+					<div class="{{ VC::CD_POS }}">
+						<h6 class="{{ VC::MB0 }}">{{ __('Category') }} :</h6>
+						<h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ data_get($filter,'category') ?: __('No category available') }}</h7>
+					</div>
+				</div>
+			@endif
+			<div class="col">
+				<div class="{{ VC::CD_POS }}">
+					<h6 class="{{ VC::MB0 }}">{{ __('Duration') }} :</h6>
+					<h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ (data_get($filter,'startDateRange') ?: __('No start date available')).' '.__('to').' '.(data_get($filter,'endDateRange') ?: __('No end date available')) }}</h7>
+				</div>
+			</div>
+		</div>
 
-                                        <a href="{{route('transaction.index')}}" class="btn btn-sm btn-danger" data-bs-toggle="tooltip"  title="{{ __('Reset') }}" data-original-title="{{__('Reset')}}">
-                                            <span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span>
-                                        </a>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{ Collective\Html\FormFacade::close() }}
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="printableArea">
-        <div class="row">
-            <div class="col">
-                <input type="hidden" value="{{$filter['category'].' '.__('Category').' '.__('Transaction').' '.'Report of'.' '.$filter['startDateRange'].' to '.$filter['endDateRange']}}" id="filename">
-                <div class="card p-4 mb-4">
-                    <h6 class="mb-0">{{__('Report')}} :</h6>
-                    <h7 class="text-sm mb-0">{{__('Transaction Summary')}}</h7>
-                </div>
-            </div>
-            @if($filter['account']!= __('All'))
-                <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{__('Account')}} :</h6>
-                        <h7 class="text-sm mb-0">{{$filter['account']}}</h7>
-                    </div>
-                </div>
-            @endif
-            @if($filter['category']!= __('All'))
-                <div class="col">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{__('Category')}} :</h6>
-                        <h7 class="text-sm mb-0">{{$filter['category']}}</h7>
-                    </div>
-                </div>
-            @endif
-            <div class="col">
-                <div class="card p-4 mb-4">
-                    <h6 class="mb-0">{{__('Duration')}} :</h6>
-                    <h7 class="text-sm mb-0">{{$filter['startDateRange'].' to '.$filter['endDateRange']}}</h7>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            @foreach($accounts as $account)
-                <div class="col-xl-3 col-md-6 col-lg-3">
-                    <div class="card p-4 mb-4">
-                        @if($account->holder_name =='Cash')
-                            <h6 class="mb-0">{{$account->holder_name}}</h6>
-                        @elseif(empty($account->holder_name))
-                            <h6 class="mb-0">{{__('Stripe / Paypal')}}</h6>
-                        @else
-                            <h6 class="mb-0">{{$account->holder_name.' - '.$account->bank_name}}</h6>
-                        @endif
-                        <h7 class="text-sm mb-0">{{\Auth::user()->priceFormat($account->total)}}</h7>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="table datatable">
-                            <thead>
-                            <tr>
-                                <th>{{__('Date')}}</th>
-                                <th>{{__('Account')}}</th>
-                                <th>{{__('Type')}}</th>
-                                <th>{{__('Category')}}</th>
-                                <th>{{__('Description')}}</th>
-                                <th>{{__('Amount')}}</th>
-                            </tr>
-                            </thead>
-
-                            <tbody>
-                            @foreach ($transactions as $transaction)
-                                <tr>
-                                    <td>{{ \Auth::user()->dateFormat($transaction->date)}}</td>
-                                    <td>
-                                        @if(!empty($transaction->bankAccount()) && $transaction->bankAccount()->holder_name=='Cash')
-                                            {{$transaction->bankAccount()->holder_name}}
-                                        @else
-                                            {{!empty($transaction->bankAccount())?$transaction->bankAccount()->bank_name.' '.$transaction->bankAccount()->holder_name:'-'}}
-                                        @endif
-                                    </td>
-                                    <td>{{  $transaction->type}}</td>
-                                    <td>{{  $transaction->category}}</td>
-                                    <td>{{  !empty($transaction->description)?$transaction->description:'-'}}</td>
-                                    <td>{{\Auth::user()->priceFormat($transaction->amount)}}</td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+		<div class="{{ VC::RW }}">
+			@forelse(((($accounts ?? null) && (is_array($accounts) || method_exists($accounts,'toArray')))) ? (is_array($accounts) ? $accounts : $accounts->toArray()) : [] as $account)
+				@php
+					$__holder = (string) (data_get($account,'holder_name') ?? '');
+					$__bank   = (string) (data_get($account,'bank_name') ?? '');
+					$__total  = data_get($account,'total');
+				@endphp
+				<div class="{{ VC::CL_XL3 }}">
+					<div class="{{ VC::CD_POS }}">
+						@if($__holder === 'Cash')
+							<h6 class="{{ VC::MB0 }}">{{ $__holder }}</h6>
+						@elseif(empty($__holder))
+							<h6 class="{{ VC::MB0 }}">{{ __('Stripe / Paypal') }}</h6>
+						@else
+							<h6 class="{{ VC::MB0 }}">{{ trim($__holder.' - '.$__bank) }}</h6>
+						@endif
+						<h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $user?->priceFormat((float)($__total ?? 0)) ?? __('Failed to get amount') }}</h7>
+					</div>
+				</div>
+			@empty
+				<div class="{{ VC::CM12 }}"><p class="text-center text-muted">{{ __('No accounts available') }}</p></div>
+			@endforelse
+		</div>
+	</div>
+	<div class="{{ VC::RW }}">
+		<div class="{{ VC::CM12 }}">
+			<div class="{{ VC::CD }}">
+				<div class="card-body table-border-style">
+					<div class="table-responsive">
+						<table class="{{ VC::TB }} datatable">
+							<thead>
+							<tr>
+								<th>{{ __('Date') }}</th>
+								<th>{{ __('Account') }}</th>
+								<th>{{ __('Type') }}</th>
+								<th>{{ __('Category') }}</th>
+								<th>{{ __('Description') }}</th>
+								<th>{{ __('Amount') }}</th>
+							</tr>
+							</thead>
+							<tbody>
+							@forelse(((($transactions ?? null) && (is_array($transactions) || method_exists($transactions,'toArray')))) ? (is_array($transactions) ? $transactions : $transactions->toArray()) : [] as $transaction)
+								<tr>
+									<td>{{ $user?->dateFormat(data_get($transaction,'date')) ?? __('Failed to get date') }}</td>
+									<td>
+										@php
+											$__ba      = (is_object($transaction) && method_exists($transaction,'bankAccount')) ? ($transaction->bankAccount() ?? null) : null;
+											$__bHolder = data_get($__ba,'holder_name');
+											$__bName   = data_get($__ba,'bank_name');
+										@endphp
+										@if($__ba && $__bHolder === 'Cash')
+											{{ $__bHolder }}
+										@else
+											{{ $__ba ? (trim((string)($__bName ?? '').' '.(string)($__bHolder ?? '')) ?: __('No account available')) : __('No account available') }}
+										@endif
+									</td>
+									<td>{{ data_get($transaction,'type') ?: __('No type available') }}</td>
+									<td>{{ data_get($transaction,'category') ?: __('No category available') }}</td>
+									<td>{{ data_get($transaction,'description') ?: __('No description available') }}</td>
+									<td>{{ $user?->priceFormat((float)(data_get($transaction,'amount') ?? 0)) ?? __('Failed to get amount') }}</td>
+								</tr>
+							@empty
+								<tr><td colspan="6" class="text-center text-muted">{{ __('No transactions available') }}</td></tr>
+							@endforelse
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 @endsection
+
+@push(StacksConstants::ADM_SCR_PG)
+	<script defer src="{{ asset('assets/js/routes/transactions/report.js') }}"></script>
+@endpush

@@ -282,7 +282,7 @@
         function getEmployee(did) {
 
             $.ajax({
-                url: '{{route(ViewsConstans::MT.'.getemployee')}}',
+                url: '{{route(ViewsConstans::MT.".getemployee")}}',
                 type: 'POST',
                 data: {
                     "department_id": did, "_token": "{{ csrf_token() }}",

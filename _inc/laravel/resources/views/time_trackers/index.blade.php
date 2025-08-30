@@ -137,10 +137,10 @@
 	</div>
 @endsection
 
-@push(StacksConstants::ADM_SCRP_PG)
-    <script src="{{url('js/swiper.min.js')}}"></script>
-    <script async src="{{ asset('assets/js/routes/timeTrackers/lang/images.js') }}"></script>
+@push(StacksConstants::ADM_SCR_PG)
+  <script src="{{url('js/swiper.min.js')}}"></script>
+  <script async src="{{ asset('assets/js/routes/timeTrackers/lang/images.js') }}"></script>
 	<script defer src="{{ asset('assets/js/routes/timeTrackers/viewImages.js') }}"></script>
 	<script defer src="{{ asset('assets/js/routes/timeTrackers/destroy.js') }}"></script>
-    <script defer src="{{ asset('assets/js/routes/timeTrackers/images.js') }}"></script>
+  <script defer src="{{ asset('assets/js/routes/timeTrackers/images.js') }}"></script>
 @endpush

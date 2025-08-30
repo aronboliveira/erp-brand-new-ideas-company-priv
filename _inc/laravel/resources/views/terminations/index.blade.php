@@ -146,7 +146,7 @@
 															<i class="{{ VC::TI_PC_WT }}"></i>
 														</a>
 													</div>
-													@push(StacksConstants::ADM_SCRP_PG)
+													@push(StacksConstants::ADM_SCR_PG)
 														<script>
 															(() => {
 																try {
@@ -227,7 +227,7 @@
 															</a>
 														{!! Form::close() !!}
 													</div>
-													@push(StacksConstants::ADM_SCRP_PG)
+													@push(StacksConstants::ADM_SCR_PG)
 														<script>
 															(() => {
 																try {
@@ -288,7 +288,7 @@
 											</td>
 										@endif
 									</tr>
-									@push(StacksConstants::ADM_SCRP_PG)
+									@push(StacksConstants::ADM_SCR_PG)
 										<script>
 											(() => {
 												try {
@@ -348,7 +348,7 @@
 	</div>
 @endsection
 
-@push(StacksConstants::ADM_SCRP_PG)
+@push(StacksConstants::ADM_SCR_PG)
 	@can('create termination')
 		<script defer src="{{ asset('assets/js/routes/terminations/create.js') }}"></script>
 	@endcan
