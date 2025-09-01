@@ -9,6 +9,7 @@ use Chatify\Facades\ChatifyMessenger as Chatify;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\{Routing\Controller, Support\Str};
 use Illuminate\Support\Facades\{Auth, Log, Response as ResponseFacade, Request as RequestFacade};
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
 class MessagesController extends Controller
@@ -17,7 +18,7 @@ class MessagesController extends Controller
 
     private const DOWNLOAD_PATH = 'chatify.attachments.folder';
 
-    public function pusherAuth(Request $request): Response
+    public function pusherAuth(Request $request): Response|JsonResponse|null
     {
         try {
             self::_checkLogin() instanceof Response && abort(401);
@@ -33,7 +34,7 @@ class MessagesController extends Controller
         }
     }
 
-    public function index(?int $id = null): Response
+    public function index(?int $id = null): Response|RedirectResponse
     {
         try {
             self::_checkLogin() instanceof Response && abort(401);
@@ -67,11 +68,11 @@ class MessagesController extends Controller
                 : Utility::getFile('/' . config('chatify.user_avatar.folder') . '/avatar.png');
             return JsonResponse::json(compact('favorite', 'user', 'avatar'));
         } catch (\Throwable $e) {
-            $this->handleException($request, $e);
+            return $this->handleException($request, $e);
         }
     }
 
-    public function download(string $fileName)
+    public function download(string $fileName): JsonResponse | RedirectResponse | BinaryFileResponse
     {
         try {
             self::_checkLogin() instanceof Response && abort(401);
@@ -139,7 +140,7 @@ class MessagesController extends Controller
             self::_checkLogin() instanceof Response && abort(401);
             $query   = Chatify::fetchMessagesQuery($request->id)->orderBy('created_at', 'asc');
             $messages = $query->get();
-            $html    = $messages->reduce(fn ($carry, $msg) => $carry . Chatify::messageCard(Chatify::fetchMessage($msg->id)), '');
+            $html    = $messages->reduce(fn($carry, $msg) => $carry . Chatify::messageCard(Chatify::fetchMessage($msg->id)), '');
             return JsonResponse::json([
                 'count'    => $query->count(),
                 'messages' => $query->count() ? $html : '<p class="message-hint"><span>Say \'hi\' and start messaging</span></p>',
@@ -163,7 +164,7 @@ class MessagesController extends Controller
         }
     }
 
-    public function getContacts(Request $request): JsonResponse
+    public function getContacts(Request $request): JsonResponse|RedirectResponse
     {
         try {
             if (
@@ -174,15 +175,15 @@ class MessagesController extends Controller
             $user = $userOrRedirect;
             self::_checkLogin() instanceof Response && abort(401);
             $userId = Auth::id();
-            $users  = Message::join('users', fn ($j) => $j->on('ch_messages.from_id', 'users.id')->orOn('ch_messages.to_id', 'users.id'))
+            $users  = Message::join('users', fn($j) => $j->on('ch_messages.from_id', 'users.id')->orOn('ch_messages.to_id', 'users.id'))
                 ->where('ch_messages.from_id', $userId)->orWhere('ch_messages.to_id', $userId)
                 ->orderBy('ch_messages.created_at', 'desc')->get()->unique('id');
-            $contacts = $users->reject(fn ($u) => $u->id === $userId)
-                ->reduce(fn ($html, $u) => $html . Chatify::getContactItem($request->messenger_id, $u), '');
+            $contacts = $users->reject(fn($u) => $u->id === $userId)
+                ->reduce(fn($html, $u) => $html . Chatify::getContactItem($request->messenger_id, $u), '');
             $members = User::where('type', '!=', 'client')->where('created_by', $user?->creatorId())
-                ->when($user[UsersConstants::COL_TP] !== 'company', fn ($q) => $q->where('id', '!=', $userId)->orWhere('id', $user?->creatorId()))
+                ->when($user[UsersConstants::COL_TP] !== 'company', fn($q) => $q->where('id', '!=', $userId)->orWhere('id', $user?->creatorId()))
                 ->get();
-            $allUsers = $members->reduce(fn ($h, $m) => $h . view('vendor.Chatify.layouts.listItem', ['get' => 'all_members', 'type' => 'user', 'user' => $m])->render(), '');
+            $allUsers = $members->reduce(fn($h, $m) => $h . view('vendor.Chatify.layouts.list_item', ['get' => 'all_members', 'type' => 'user', 'user' => $m])->render(), '');
             return JsonResponse::json([
                 'contacts' => $contacts ?: '<p class="message-hint"><span>' . __('Your contact list is empty') . '</span></p>',
                 'allUsers' => $allUsers ?: '<p class="message-hint"><span>' . __('Your member list is empty') . '</span></p>',
@@ -241,7 +242,7 @@ class MessagesController extends Controller
             $favorites = Favorite::where(UsersConstants::COL_USER_ID, Auth::id())->get();
             $count    = $favorites->count();
             $html     = $favorites->reduce(
-                fn ($h, $fav) => $h
+                fn($h, $fav) => $h
                     . view('Chatify::layouts.favorite', ['user' => User::find($fav->favorite_id)])->render(),
                 ''
             );
@@ -260,7 +261,7 @@ class MessagesController extends Controller
     /**
      * Search users by name.
      */
-    public function search(Request $request): JsonResponse
+    public function search(Request $request): JsonResponse|RedirectResponse
     {
         try {
             if (
@@ -276,7 +277,7 @@ class MessagesController extends Controller
                 ->where(UsersConstants::COL_NM, 'LIKE', "%{$term}%")
                 ->get();
             $html = $records->reduce(
-                fn ($h, $r) => $h
+                fn($h, $r) => $h
                     . view('Chatify::layouts.listItem', [
                         'get'  => 'search_item',
                         'type' => 'user',
@@ -305,7 +306,7 @@ class MessagesController extends Controller
             self::_checkLogin() instanceof Response && abort(401);
             $shared = Chatify::getSharedPhotos($request->user_id);
             $html  = collect($shared)->reduce(
-                fn ($h, $img) => $h
+                fn($h, $img) => $h
                     . view('Chatify::layouts.listItem', [
                         'get'   => 'sharedPhoto',
                         'image' => Utility::getFile("attachments/{$img}")
@@ -341,7 +342,7 @@ class MessagesController extends Controller
     /**
      * Update user display settings (dark mode, color, avatar).
      */
-    public function updateSettings(Request $request): JsonResponse
+    public function updateSettings(Request $request): JsonResponse|RedirectResponse
     {
         try {
             if (
@@ -406,7 +407,7 @@ class MessagesController extends Controller
         }
     }
 
-    private function authorizeUser(Request $request, string $permission): User|RedirectResponse|null
+    private function authorizeUser(Request $request, string $permission)
     {
         if (
             ($userOrRedirect = self::_checkLogin())

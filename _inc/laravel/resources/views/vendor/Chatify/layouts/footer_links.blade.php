@@ -1,0 +1,9 @@
+<script src="https://js.pusher.com/7.0.3/pusher.min.js"></script>
+<script>
+  messenger = "{{ @$id ?? '0' }}";
+</script>
+<script src="{{ asset('js/chatify/code.js') }}"></script>
+@unless(app()->environment('production'))
+  <script src="{{ asset('assets/js/routes/vendors/chatify/lang/pusher.js') }}"></script>
+  <script src="{{ asset('assets/js/routes/vendors/chatify/pusher.js') }}"></script>
+@endunless

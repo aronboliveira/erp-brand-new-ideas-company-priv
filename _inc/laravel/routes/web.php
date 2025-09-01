@@ -1387,33 +1387,32 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // Import/Export Data Route
 
-    Route::get('export/productservice', [ProductServiceController::class, 'export'])->name(VW::PRD_SV . '.export');
+    Route::get(VW::PRD_SV . '/export', [ProductServiceController::class, 'export'])->name(VW::PRD_SV . '.export');
     // Route::get('import'.VW::PRD_SV.//file', [ProductServiceController::class, 'importFile'])->name(VW::PRD_SV . '.file.import');
-    Route::post('import/productservice', [ProductServiceController::class, 'import'])->name(VW::PRD_SV . '.import');
-    Route::get('export/customer', [CustomerController::class, 'export'])->name(VW::CST . '.export');
-    Route::get('import/customer/file', [CustomerController::class, 'importFile'])->name(VW::CST . '.file.import');
-    Route::post('import/customer', [CustomerController::class, 'import'])->name(VW::CST . '.import');
-    Route::get('export/vendor', [VendorController::class, 'export'])->name('vendor.export');
-    Route::get('import/vendor/file', [VendorController::class, 'importFile'])->name('vendor.file.import');
-    Route::post('import/vendor', [VendorController::class, 'import'])->name('vendor.import');
-    Route::get('export/invoice', [InvoiceController::class, 'export'])->name(VW::INV . '.export');
-    Route::get('export/proposal', [ProposalController::class, 'export'])->name(VW::PPS . '.export');
-    Route::get('export/bill', [BillController::class, 'export'])->name(VW::BIL . '.export');
+    Route::post(VW::PRD_SV . '/import', [ProductServiceController::class, 'import'])->name(VW::PRD_SV . '.import');
+    Route::get(VW::CST . '/export', [CustomerController::class, 'export'])->name(VW::CST . '.export');
+    Route::get(VW::CST . '/import/file', [CustomerController::class, 'importFile'])->name(VW::CST . '.file.import');
+    Route::post(VW::CST . '/import/index', [CustomerController::class, 'import'])->name(VW::CST . '.import');
+    Route::get(VW::VND . '/export', [VendorController::class, 'export'])->name(VW::VND . '.export');
+    Route::get(VW::VND . '/import/file', [VendorController::class, 'importFile'])->name(VW::VND . '.file.import');
+    Route::post(VW::VND . '/import/index', [VendorController::class, 'import'])->name(VW::VND . '.import');
+    Route::get(VW::INV . '/export', [InvoiceController::class, 'export'])->name(VW::INV . '.export');
+    Route::get(VW::PPS . '/export', [ProposalController::class, 'export'])->name(VW::PPS . '.export');
+    Route::get(VW::BIL . '/export', [BillController::class, 'export'])->name(VW::BIL . '.export');
 
-    Route::get('export/employee', [EmployeeController::class, 'export'])->name(VW::EMP . '.export');
-    Route::get('importVW::EMP.//file', [EmployeeController::class, 'importFile'])->name(VW::EMP . '.file.import');
-    Route::post('import/employee', [EmployeeController::class, 'import'])->name(VW::EMP . '.import');
+    Route::get(VW::EMP . '/export', [EmployeeController::class, 'export'])->name(VW::EMP . '.export');
+    Route::get(VW::EMP . '/import/file', [EmployeeController::class, 'importFile'])->name(VW::EMP . '.file.import');
+    Route::post(VW::EMP . '/import/index', [EmployeeController::class, 'import'])->name(VW::EMP . '.import');
 
-    Route::get('import/attendance/file', [EmployeeAttendanceController::class, 'importFile'])->name('attendance.file.import');
-    Route::post('import/attendance', [EmployeeAttendanceController::class, 'import'])->name('attendance.import');
+    Route::get('attendance/import/file', [EmployeeAttendanceController::class, 'importFile'])->name('attendance.file.import');
+    Route::post('attendance/import/index', [EmployeeAttendanceController::class, 'import'])->name('attendance.import');
 
     Route::get('transactions/export', [TransactionController::class, 'export'])->name('transactions.export');
     Route::get(VW::ACC_STT . '/export', [ReportController::class, 'export'])->name(VW::ACC_STT . '.export');
     Route::get(VW::PRD_STK . '/export', [ReportController::class, 'stock_export'])->name(VW::PRD_STK . '.export');
-    Route::get('export/payroll', [ReportController::class, 'PayrollReportExport'])->name(VW::RPT . '.payroll.export');
-    Route::get('export/leave', [ReportController::class, 'LeaveReportExport'])->name(VW::LV . '.export');
-
-    Route::post('export/payslip', [PayslipController::class, 'export'])->name(VW::PY_SLP . '.export');
+    Route::get(VW::RPT . '/payrolls/export', [ReportController::class, 'PayrollReportExport'])->name(VW::RPT . '.payroll.export');
+    Route::get(VW::LV . '/export', [ReportController::class, 'LeaveReportExport'])->name(VW::LV . '.export');
+    Route::post(VW::PY_SLP . '/export', [PayslipController::class, 'export'])->name(VW::PY_SLP . '.export');
 
     // Time-Tracker
     Route::post('stop-tracker', [DashboardController::class, DashboardController::STP_TRK])->name('stop.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1546,15 +1545,15 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //pos barcode
     Route::get('barcode/pos', [PosController::class, 'barcode'])->name(VW::POS . '.barcode')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::SET . '/pos', [PosController::class, 'setting'])->name(VW::POS . '.setting')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('barcode/settings', [PosController::class, 'BarcodesettingStore'])->name('barcode.setting');
-    Route::get('print/pos', [PosController::class, 'printBarcode'])->name(VW::POS . '.print')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::POS . '/getproduct', [PosController::class, 'getproduct'])->name(VW::POS . '.getproduct')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('barcode/settings', [PosController::class, PosController::BC_ST_STR])->name('barcode.setting');
+    Route::get('print/pos', [PosController::class, PosController::BC_PRT])->name(VW::POS . '.print')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::POS . '/getproduct', [PosController::class, PosController::GET_PRD])->name(VW::POS . '.getproduct')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::any('pos-receipt', [PosController::class, 'receipt'])->name(VW::POS . '.receipt')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/cartdiscount', [PosController::class, 'cartdiscount'])->name('cartdiscount')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('/cartdiscount', [PosController::class, PosController::CRT_DSC])->name('cartdiscount')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     //Storage Setting
 
-    Route::post('storage-settings', [SystemController::class, 'storageSettingStore'])->name(VW::SET . '.storage.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('storage-settings', [SystemController::class, SystemController::STG_ST_STR])->name(VW::SET . '.storage.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     //appricalStar
 

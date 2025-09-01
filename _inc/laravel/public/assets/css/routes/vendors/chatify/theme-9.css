@@ -1,0 +1,48 @@
+.m-list-active,
+.m-list-active:hover,
+.m-list-active:focus {
+  background: linear-gradient(141.55deg, #48494b 3.46%, #48494b 99.86%), #48494b !important;
+}
+
+.mc-sender p {
+  background: linear-gradient(141.55deg, #48494b 3.46%, #48494b 99.86%), #48494b !important;
+}
+
+.messenger-favorites div.avatar {
+  box-shadow: 0px 0px 0px 2px #48494b !important;
+}
+
+.messenger-listView-tabs a,
+.messenger-listView-tabs a:hover,
+.messenger-listView-tabs a:focus {
+  color: linear-gradient(141.55deg, #48494b 3.46%, #48494b 99.86%), #48494b !important;
+}
+
+.m-header svg {
+  color: #48494b !important;
+}
+
+.active-tab {
+  border-bottom: 2px solid #48494b !important;
+}
+
+.messenger-infoView nav a {
+  color: linear-gradient(141.55deg, #48494b 3.46%, #48494b 99.86%), #48494b !important;
+}
+
+.lastMessageIndicator {
+  color: #48494b !important;
+}
+
+.messenger-list-item td span .lastMessageIndicator {
+  color: #48494b !important;
+  font-weight: bold;
+}
+
+.messenger-sendCard button svg {
+  color: #48494b !important;
+}
+
+.messenger-list-item.m-list-active td span .lastMessageIndicator {
+  color: #fff !important;
+}

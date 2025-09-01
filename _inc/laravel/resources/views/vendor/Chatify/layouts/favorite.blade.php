@@ -1,12 +1,15 @@
+@php
+    use Illuminate\Support\Collection;
+    use Illuminate\Support\Str;
+    use App\Config\Constants\ViewClassNamesConstants as VC;
+@endphp
 <div class="favorite-list-item">
-    @if(!empty($user->avatar))
-        <div data-id="{{ $user->id }}" data-action="0" class="avatar av-m"
-             style="background-image: url('{{ asset('/storage/'.config('chatify.user_avatar.folder').'/'.$user->avatar) }}');">
-        </div>
-    @else
-        <div data-id="{{ $user->id }}" data-action="0" class="avatar av-m"
-             style="background-image: url('{{ asset('/storage/'.config('chatify.user_avatar.folder').'/avatar.png') }}');">
-        </div>
-    @endif
-    <p>{{ strlen($user->name) > 5 ? substr($user->name,0,6).'..' : $user->name }}</p>
+    <div data-id="{{ (string) data_get($user,'id','') }}"
+         data-action="0"
+         class="{{ VC::AV }} {{ VC::AV_CC_SM }}"
+         style="background-image: url('{{ asset('/storage/'.config('chatify.user_avatar.folder','uploads/avatar').'/'.(data_get($user,'avatar') ?: 'avatar.png')) }}');">
+    </div>
+    <p class="{{ VC::TXSM }}">
+        {{ ($__n = (string) (data_get($user,'name') ?? '')) !== '' ? Str::limit($__n, 6, '..') : __('No name available') }}
+    </p>
 </div>

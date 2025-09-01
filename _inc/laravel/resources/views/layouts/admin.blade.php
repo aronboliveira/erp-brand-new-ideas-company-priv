@@ -265,7 +265,7 @@
             </div>
         </div>
         @include('partials.admin.footer')
-        @include('Chatify::layouts.footerLinks')
+        @include('Chatify::layouts.footer_links')
         <script>
             console.log(
                 'Current route:',

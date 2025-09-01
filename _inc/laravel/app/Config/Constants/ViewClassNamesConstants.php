@@ -546,6 +546,7 @@ class ViewClassNamesConstants
 	// ti ti-home
 	public const TI_SRC = self::TI . ' ' . self::TI . '-search';
 	// "{{ ViewClassNamesConstants::TI_SRC }}"
+	// "{{ VW::TI_SRC }}"
 	// ti ti-search
 	public const TI_TRS = self::TI . ' ' . self::TI . '-trash';
 	// "{{ ViewClassNamesConstants::BT_SM_PM }}"

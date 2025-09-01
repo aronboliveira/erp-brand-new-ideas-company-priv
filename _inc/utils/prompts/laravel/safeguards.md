@@ -2,6 +2,8 @@
 
 - IF the string is meant to reach the html to be sent to the client view, default the failed values to some sort of variation of **('Could not find [alias for the property]'), **('Failed to get [alias for the property']), \_\_('No [alias for the property] available'), etc
 
+- When you see Auth::user() being used multiple times, just fech the $user at the start of the blade php and then reuse it. You should always make a nullish coalescen check for $user, since it can be null; also, don't forget that the $user variable can be passed to fetchUserLang (never fetch the $user just for that, though).
+
 ---
 
 Example 1:

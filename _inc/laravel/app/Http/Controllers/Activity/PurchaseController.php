@@ -76,16 +76,14 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($fetchStart, $action, 'fetchIndexData');
                 Log::info("[{$class}::{$action}] dataset ready", ['purchase_count' => $purchases->count(), 'vendor_options' => $vendors->count()]);
                 $renderStart = microtime(true);
-                if (!View::exists($viewPath)) {
-                    Log::error("[{$class}::{$action}] view missing", ['view_path' => $viewPath]);
-                    return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
-                }
+                if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['purchases', 'status', 'vendors']]);
+                $resp = view($viewPath, compact('purchases', 'status', 'vendors'));
                 $this->logExecutionTime($renderStart, $action, 'renderIndex');
-                return view($viewPath, compact('purchases', 'status', 'vendors'));
+                return $resp;
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['message' => $e->getMessage()]);
-                Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);
+                Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
@@ -114,16 +112,14 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($loadStart, $action, 'loadCreateFormData');
                 Log::info("[{$class}::{$action}] form data ready", ['custom_fields' => $customFields->count(), 'product_services' => $productServices->count()]);
                 $renderStart = microtime(true);
-                if (!View::exists($viewPath)) {
-                    Log::error("[{$class}::{$action}] view missing", ['view_path' => $viewPath]);
-                    return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
-                }
+                if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['vendors', 'purchaseNumber', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse']]);
+                $resp = view($viewPath, compact('vendors', 'purchaseNumber', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse'));
                 $this->logExecutionTime($renderStart, $action, 'renderCreate');
-                return view($viewPath, compact('vendors', 'purchaseNumber', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse'));
+                return $resp;
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['message' => $e->getMessage()]);
-                Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);
+                Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'vendor_id' => $vendorId]);

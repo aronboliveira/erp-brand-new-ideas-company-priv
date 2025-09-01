@@ -13,70 +13,75 @@ use App\Models\{TaskStage, Utility};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
-use Illuminate\Support\Facades\{DB, Log, Validator};
+use Illuminate\Support\Facades\{DB, Log, Route, Validator};
 
 class TaskStageController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_INDEX = 'project-task-stages.index';
+    private const REDIRECT_INDEX = ViewsConstants::PRJ_TSK_STG . '.index';
 
-    public function index(Request $request): View|RedirectResponse|null
+    public function index(Request $request): View|RedirectResponse|bool|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            PermissionsConstants::MNG_PRJ_TSK_STG,
-            self::REDIRECT_INDEX
-        ) !== true
-        )) return $redirect;
-        Log::info("$action called", ['user_id' => $user?->id]);
-        try {
-            $stages = TaskStage::where(
-                DatabaseConstants::TABLE_CREATOR,
-                $user?->creatorId()
-            )
-                ->orderBy('order', 'asc')
-                ->get();
-            Log::debug("$action fetched", ['count' => $stages->count()]);
-            return view(ViewsConstants::TSK_STG . '.index', compact('stages'));
-        } catch (\Throwable $e) {
-            Log::error("$action failed", [
-                'error' => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
-                'error' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                $action,
-                route(self::REDIRECT_INDEX)
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::TSK_STG . '.index';
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, PermissionsConstants::MNG_PRJ_TSK_STG, self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['user_id' => $user?->id, 'method' => $method]);
+            try {
+                $buildStart = microtime(true);
+                $query = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->orderBy('order', 'asc');
+                $this->logExecutionTime($buildStart, $action, 'buildQuery');
+                $fetchStart = microtime(true);
+                $stages = $query->get();
+                $this->logExecutionTime($fetchStart, $action, 'fetchStages');
+                Log::debug("[{$base}::{$action}] fetched", ['count' => $stages->count()]);
+                if (!\Illuminate\Support\Facades\View::exists($viewPath)) {
+                    Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
+                    Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['stages']]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, compact('stages'));
+                $this->logExecutionTime($renderStart, $action, 'renderIndex');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function create(Request $request): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'create project task stage',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", ['user_id' => $user?->id]);
-        return view(ViewsConstants::TSK_STG . '.create');
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::TSK_STG . '.create';
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'create project task stage', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['user_id' => $user?->id, 'method' => $method]);
+            if (!\Illuminate\Support\Facades\View::exists($viewPath)) {
+                Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
+                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => []]);
+                return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            }
+            $renderStart = microtime(true);
+            $resp = view($viewPath);
+            $this->logExecutionTime($renderStart, $action, 'renderCreate');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function show(Request $request, TaskStage $taskStage): View|JsonResponse|RedirectResponse|null
@@ -285,7 +290,7 @@ class TaskStageController extends Controller
         }
     }
 
-    public function edit(Request $request, int $id): View|JsonResponse|null
+    public function edit(Request $request, int|string $id): View|JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
         if (
@@ -312,7 +317,7 @@ class TaskStageController extends Controller
         return view(ViewsConstants::TSK_STG . '.edit', compact('stage'));
     }
 
-    public function update(Request $request, int $id): RedirectResponse|null
+    public function update(Request $request, int|string $id): RedirectResponse|null
     {
         $action = __METHOD__;
         if (
@@ -348,7 +353,7 @@ class TaskStageController extends Controller
         }
 
         try {
-            DB::transaction(fn () => $stage->update([
+            DB::transaction(fn() => $stage->update([
                 'name'  => $request->name,
                 'color' => '#' . $request->color
             ]));
@@ -373,7 +378,7 @@ class TaskStageController extends Controller
         }
     }
 
-    public function destroy(Request $request, int $id): RedirectResponse|null
+    public function destroy(Request $request, int|string $id): RedirectResponse|null
     {
         $action = __METHOD__;
         if (
@@ -397,7 +402,7 @@ class TaskStageController extends Controller
             );
         }
         try {
-            DB::transaction(fn () => $stage->delete());
+            DB::transaction(fn() => $stage->delete());
             Log::info("$action deleted", ['stageId' => $id]);
             return redirect()
                 ->route(self::REDIRECT_INDEX)
@@ -419,7 +424,7 @@ class TaskStageController extends Controller
         }
     }
 
-    public function order(Request $request): JsonResponse|null
+    public function order(Request $request): JsonResponse|RedirectResponse|null
     {
         $action = __METHOD__;
         if (

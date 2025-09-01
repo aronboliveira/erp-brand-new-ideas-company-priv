@@ -2,26 +2,22 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth, Crypt, Route};
+    use Illuminate\Support\{Collection, Str};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
     $profile = asset(Storage::url('uploads/avatar/'));
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        $(document).on('click', '#billing_data', function() {
-            $("[name='shipping_name']").val($("[name='billing_name']").val());
-            $("[name='shipping_country']").val($("[name='billing_country']").val());
-            $("[name='shipping_state']").val($("[name='billing_state']").val());
-            $("[name='shipping_city']").val($("[name='billing_city']").val());
-            $("[name='shipping_phone']").val($("[name='billing_phone']").val());
-            $("[name='shipping_zip']").val($("[name='billing_zip']").val());
-            $("[name='shipping_address']").val($("[name='billing_address']").val());
-        })
-    </script>
+    <script async src="{{ asset('js/routes/vendors/lang/copy.js') }}"></script>
+    <script defer src="{{ asset('js/routes/vendors/copy.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_PG_TTL)
     {{ __('Manage Vendors') }}
@@ -36,28 +32,83 @@
     <li class="breadcrumb-item">{{__('Vendor')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-        <a href="#" class="btn btn-sm btn-primary" data-url="{{ route('vendor.file.import') }}" data-ajax-popup="true" data-bs-toggle="tooltip"
-           title="{{ __('Import') }}">
-            <i class="ti ti-file-import"></i>
+    <div class="{{ VC::FEND }}">
+        @php
+            $vndImportBase = VW::VND.'.file.import';
+            $vndImportKebab = Str::kebab($vndImportBase);
+            $vndImportResolved = Route::has($vndImportBase) ? $vndImportBase : (Route::has($vndImportKebab) ? $vndImportKebab : null);
+            $vndImportUrl = $vndImportResolved ? route($vndImportResolved) : '#';
+            $vndExportBase = VW::VND.'.export';
+            $vndExportKebab = Str::kebab($vndExportBase);
+            $vndExportResolved = Route::has($vndExportBase) ? $vndExportBase : (Route::has($vndExportKebab) ? $vndExportKebab : null);
+            $vndExportUrl = $vndExportResolved ? route($vndExportResolved) : '#';
+            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+            $vndImportGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'import_vendor_file_route_unavailable') ?? 'Import vendor file route is unavailable. Please contact technical support or your domain administrator.';
+            $vndExportGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'export_vendor_route_unavailable') ?? 'Export vendor route is unavailable. Please contact technical support or your domain administrator.';
+            $vndImportAnchorId = 'vendor-import';
+            $vndExportAnchorId = 'vendor-export';
+        @endphp
+        <a href="{{ $vndImportUrl }}"
+        id="{{ $vndImportAnchorId }}"
+        class="{{ VC::BT_SM_PM }}"
+        data-url="{{ $vndImportUrl }}"
+        data-ajax-popup="true"
+        data-bs-toggle="tooltip"
+        title="{{ __('Import') }}"
+        data-guard-msg="{{ $vndImportGuardMsg }}"
+        data-sv-localized="true">
+            <i class="{{ VC::TI_IMP }}"></i>
         </a>
-        <a href="{{ route('vendor.export') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="{{ __('Export') }}">
-            <i class="ti ti-file-export"></i>
+        <a href="{{ $vndExportUrl }}"
+        id="{{ $vndExportAnchorId }}"
+        class="{{ VC::BT_SM_PM }}"
+        data-url="{{ $vndExportUrl }}"
+        data-bs-toggle="tooltip"
+        title="{{ __('Export') }}"
+        data-guard-msg="{{ $vndExportGuardMsg }}"
+        data-sv-localized="true">
+            <i class="{{ VC::TI_EXP }}"></i>
         </a>
+        @push(StacksConstants::ADM_SCR_PG)
+            <script defer src="{{ asset('js/routes/vendors/exportImport.js') }}"></script>
+        @endpush
         @can('create vendor')
-            <a href="#" data-size="lg" data-url="{{ route('vendor.create') }}" data-ajax-popup="true" data-title="{{__('Create New Vendor')}}" data-bs-toggle="tooltip" title="{{ __('Create') }}" class="btn btn-sm btn-primary">
-                <i class="ti ti-plus"></i>
+            @php
+                $vendorCreateBase = VW::VND.'.create';
+                $vendorCreateKebab = Str::kebab($vendorCreateBase);
+                $vendorCreateResolved = Route::has($vendorCreateBase) ? $vendorCreateBase : (Route::has($vendorCreateKebab) ? $vendorCreateKebab : null);
+                $vendorCreateUrl = $vendorCreateResolved ? route($vendorCreateResolved) : '#';
+                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                $vendorCreateGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'create_vendor_route_unavailable') ?? 'Create vendor route is unavailable. Please contact technical support or your domain administrator.';
+                $vendorCreateAnchorId = 'vendor-create-link';
+            @endphp
+            <a href="{{ $vendorCreateUrl }}"
+            id="{{ $vendorCreateAnchorId }}"
+            data-size="lg"
+            data-url="{{ $vendorCreateUrl }}"
+            data-ajax-popup="true"
+            data-title="{{ __('Create New Vendor') }}"
+            data-bs-toggle="tooltip"
+            title="{{ __('Create') }}"
+            class="{{ VC::BT_SM_PM }}"
+            data-guard-msg="{{ $vendorCreateGuardMsg }}"
+            data-sv-localized="true">
+                <i class="{{ VC::TI_PLS }}"></i>
             </a>
+            @push(StacksConstants::ADM_SCRP_PG)
+                <script defer src="{{ asset('assets/js/routes/vendors/create.js') }}"></script>
+            @endpush
         @endcan
     </div>
 @endsection
+
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CM12 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -69,64 +120,361 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($vendors as $k => $Vendor)
-                                    <tr class="cust_tr" id="vend_detail">
-                                        <td class="Id">
-                                            @can('show vendor')
-                                                <a href="{{ route('vendor.show', Crypt::encrypt($Vendor['id'])) }}" class="btn btn-outline-primary">
-                                                    {{ $user?->vendorNumberFormat($Vendor['vendor_id']) }}
-                                                </a>
-                                            @else
-                                                <a href="#" class="btn btn-outline-primary"> {{ $user?->vendorNumberFormat($Vendor['vendor_id']) }}
-                                                </a>
-                                            @endcan
-                                        </td>
-                                        <td>{{ $Vendor['name'] }}</td>
-                                        <td>{{ $Vendor['contact'] }}</td>
-                                        <td>{{ $Vendor['email'] }}</td>
-                                        <td>{{ $user?->priceFormat($Vendor['balance']) }}</td>
-                                        <td class="Action">
-                                            <span>
-                                                    @if ($Vendor['is_active'] == 0)
+                                @if(((is_array($vendors ?? null) && count($vendors) > 0) || (($vendors ?? null) instanceof Collection && ($vendors)->isNotEmpty())))
+                                    @foreach ($vendors as $k => $Vendor)
+                                        <tr class="cust_tr" id="vend_detail">
+                                            <td class="Id">
+                                                @can('show vendor')
+                                                    @php
+                                                        $vendorShowBase = VW::VND.'.show';
+                                                        $vendorShowKebab = Str::kebab($vendorShowBase);
+                                                        $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                        $encryptedVendorId = $vendorIdValue !== '' ? Crypt::encrypt($vendorIdValue) : null;
+                                                        $vendorShowResolved = Route::has($vendorShowBase) ? $vendorShowBase : (Route::has($vendorShowKebab) ? $vendorShowKebab : null);
+                                                        $vendorShowUrl = ($vendorShowResolved && $encryptedVendorId) ? route($vendorShowResolved, $encryptedVendorId) : '#';
+                                                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                        $vendorShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'show_vendor_route_unavailable') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $vendorShowAnchorId = 'vendor-show-link-'.Str::random(8);
+                                                        $vendorNumberLabel = !is_null(data_get($Vendor,'vendor_id')) ? ($user?->vendorNumberFormat(data_get($Vendor,'vendor_id')) ?? __('Failed to get vendor number')) : __('No vendor number available');
+                                                    @endphp
+                                                    <a id="{{ $vendorShowAnchorId }}"
+                                                    href="{{ $vendorShowUrl }}"
+                                                    class="{{ VC::BT_OUTPM }}"
+                                                    data-guard-msg="{{ $vendorShowGuardMsg }}"
+                                                    data-sv-localized="true">
+                                                        {{ $vendorNumberLabel }}
+                                                    </a>
+                                                    @push(StacksConstants::ADM_SCRP_PG)
+                                                        <script defer>
+                                                            (() => {
+                                                                try {
+                                                                    const el = document.getElementById('{{ $vendorShowAnchorId }}');
+                                                                    if (!el) { return; }
+                                                                    if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                    el.setAttribute('data-listener-active','true');
+                                                                    el.addEventListener('click',(e) => {
+                                                                        try {
+                                                                            const href = el.getAttribute('href') ?? '#';
+                                                                            if (href !== '#') { return; }
+                                                                            e.preventDefault();
+                                                                            const msg = el.getAttribute('data-guard-msg') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                            let container = document.getElementById('toast-container');
+                                                                            if (!container) {
+                                                                                container = document.createElement('div');
+                                                                                container.id = 'toast-container';
+                                                                                document.body.appendChild(container);
+                                                                            }
+                                                                            if (hasBootstrap) {
+                                                                                const toast = document.createElement('div');
+                                                                                toast.className = 'toast';
+                                                                                toast.setAttribute('role','alert');
+                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                const body = document.createElement('div');
+                                                                                body.className = 'toast-body';
+                                                                                body.textContent = msg;
+                                                                                toast.appendChild(body);
+                                                                                container.appendChild(toast);
+                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                            } else {
+                                                                                alert(msg);
+                                                                            }
+                                                                            el.setAttribute('data-failed-route','true');
+                                                                        } catch (err) {}
+                                                                    });
+                                                                } catch (err) {}
+                                                            })();
+                                                        </script>
+                                                    @endpush
+                                                @else
+                                                    <a href="#" class="{{ VC::BT_OUTPM }}">
+                                                        {{ !is_null(data_get($Vendor,'vendor_id')) ? ($user?->vendorNumberFormat(data_get($Vendor,'vendor_id')) ?? __('Failed to get vendor number')) : __('No vendor number available') }}
+                                                    </a>
+                                                @endcan
+                                            </td>
+                                            <td>{{ data_get($Vendor,'name') ?: __('No name available') }}</td>
+                                            <td>{{ data_get($Vendor,'contact') ?: __('No contact available') }}</td>
+                                            <td>{{ data_get($Vendor,'email') ?: __('No email available') }}</td>
+                                            <td>
+                                                {{ is_numeric(data_get($Vendor,'balance')) ? ($user?->priceFormat(data_get($Vendor,'balance')) ?? __('Failed to format balance')) : __('No balance available') }}
+                                            </td>
+                                            <td class="Action">
+                                                <span>
+                                                    @if ((int) data_get($Vendor,'is_active',0) === 0)
                                                         <i class="fa fa-lock" title="Inactive"></i>
                                                     @else
                                                         @can('show vendor')
-                                                            <div class="action-btn bg-info ms-2">
-                                                                <a href="{{ route('vendor.show', Crypt::encrypt($Vendor['id'])) }}"
-                                                                    class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip"
-                                                                    title="{{ __('View') }}">
-                                                                    <i class="ti ti-eye text-white"></i>
+                                                            @php
+                                                                $vendorShowBase = VW::VND.'.show';
+                                                                $vendorShowKebab = Str::kebab($vendorShowBase);
+                                                                $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                                $encryptedVendorId = $vendorIdValue !== '' ? Crypt::encrypt($vendorIdValue) : null;
+                                                                $vendorShowResolved = Route::has($vendorShowBase) ? $vendorShowBase : (Route::has($vendorShowKebab) ? $vendorShowKebab : null);
+                                                                $vendorShowUrl = ($vendorShowResolved && $encryptedVendorId) ? route($vendorShowResolved, $encryptedVendorId) : '#';
+                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $vendorShowGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'show_vendor_route_unavailable') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $vendorShowAnchorId = 'vendor-show-btn-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                            @endphp
+                                                            <div class="{{ VC::ACT_BTN_INF }}">
+                                                                <a id="{{ $vendorShowAnchorId }}"
+                                                                href="{{ $vendorShowUrl }}"
+                                                                class="{{ VC::BT_SM_CT }}"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ __('View') }}"
+                                                                data-url="{{ $vendorShowUrl }}"
+                                                                data-guard-msg="{{ $vendorShowGuardMsg }}"
+                                                                data-sv-localized="true">
+                                                                    <i class="{{ VC::TI_EYE_WT }}"></i>
                                                                 </a>
                                                             </div>
+                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                                <script defer>
+                                                                    (() => {
+                                                                        try {
+                                                                            const el = document.getElementById('{{ $vendorShowAnchorId }}');
+                                                                            if (!el) { return; }
+                                                                            if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                            el.setAttribute('data-listener-active','true');
+                                                                            el.addEventListener('click',(e) => {
+                                                                                try {
+                                                                                    const href = el.getAttribute('href') ?? '#';
+                                                                                    const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                                    if (url !== '#' && href !== '#') { return; }
+                                                                                    e.preventDefault();
+                                                                                    const msg = el.getAttribute('data-guard-msg') ?? 'Show vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    let container = document.getElementById('toast-container');
+                                                                                    if (!container) {
+                                                                                        container = document.createElement('div');
+                                                                                        container.id = 'toast-container';
+                                                                                        document.body.appendChild(container);
+                                                                                    }
+                                                                                    if (hasBootstrap) {
+                                                                                        const toast = document.createElement('div');
+                                                                                        toast.className = 'toast';
+                                                                                        toast.setAttribute('role','alert');
+                                                                                        toast.setAttribute('aria-live','assertive');
+                                                                                        toast.setAttribute('aria-atomic','true');
+                                                                                        const body = document.createElement('div');
+                                                                                        body.className = 'toast-body';
+                                                                                        body.textContent = msg;
+                                                                                        toast.appendChild(body);
+                                                                                        container.appendChild(toast);
+                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                    } else {
+                                                                                        alert(msg);
+                                                                                    }
+                                                                                    el.setAttribute('data-failed-route','true');
+                                                                                } catch (err) {}
+                                                                            });
+                                                                        } catch (err) {}
+                                                                    })();
+                                                                </script>
+                                                            @endpush
                                                         @endcan
                                                         @can('edit vendor')
-                                                            <div class="action-btn bg-primary ms-2">
-                                                                <a href="#" class="mx-3 btn btn-sm align-items-center" data-size="lg"
-                                                                data-title="{{__('Edit Vendor')}}"
-                                                                    data-url="{{ route('vendor.edit', $Vendor['id']) }}"
-                                                                    data-ajax-popup="true" title="{{ __('Edit') }}"
-                                                                    data-bs-toggle="tooltip" data-original-title="{{ __('Edit') }}">
-                                                                    <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                                                </a>
-                                                            </div>
+                                                            @php
+                                                                $vendorEditBase = VW::VND.'.edit';
+                                                                $vendorEditKebab = Str::kebab($vendorEditBase);
+                                                                $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                                $vendorEditResolved = Route::has($vendorEditBase) ? $vendorEditBase : (Route::has($vendorEditKebab) ? $vendorEditKebab : null);
+                                                                $vendorEditUrl = ($vendorEditResolved && $vendorIdValue !== '') ? route($vendorEditResolved, $vendorIdValue) : '#';
+                                                                $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                $vendorEditGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'edit_vendor_route_unavailable') ?? 'Edit vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $vendorEditAnchorId = 'vendor-edit-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                            @endphp
+                                                            <a href="{{ $vendorEditUrl }}"
+                                                            class="{{ VC::BT_SM_CT }}"
+                                                            id="{{ $vendorEditAnchorId }}"
+                                                            data-size="lg"
+                                                            data-title="{{ __('Edit Vendor') }}"
+                                                            data-url="{{ $vendorEditUrl }}"
+                                                            data-ajax-popup="true"
+                                                            title="{{ __('Edit') }}"
+                                                            data-bs-toggle="tooltip"
+                                                            data-original-title="{{ __('Edit') }}"
+                                                            data-guard-msg="{{ $vendorEditGuardMsg }}"
+                                                            data-sv-localized="true">
+                                                                <i class="{{ VC::TI_PC_WT }}"></i>
+                                                            </a>
+                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                                <script defer>
+                                                                    (() => {
+                                                                        try {
+                                                                            const el = document.getElementById('{{ $vendorEditAnchorId }}');
+                                                                            if (!el) { return; }
+                                                                            if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                                            el.setAttribute('data-listener-active','true');
+                                                                            el.addEventListener('click',(e) => {
+                                                                                try {
+                                                                                    const href = el.getAttribute('href') ?? '#';
+                                                                                    const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                                    if (url !== '#' && href !== '#') { return; }
+                                                                                    e.preventDefault();
+                                                                                    const msg = el.getAttribute('data-guard-msg') ?? 'Edit vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                    let container = document.getElementById('toast-container');
+                                                                                    if (!container) {
+                                                                                        container = document.createElement('div');
+                                                                                        container.id = 'toast-container';
+                                                                                        document.body.appendChild(container);
+                                                                                    }
+                                                                                    if (hasBootstrap) {
+                                                                                        const toast = document.createElement('div');
+                                                                                        toast.className = 'toast';
+                                                                                        toast.setAttribute('role','alert');
+                                                                                        toast.setAttribute('aria-live','assertive');
+                                                                                        toast.setAttribute('aria-atomic','true');
+                                                                                        const body = document.createElement('div');
+                                                                                        body.className = 'toast-body';
+                                                                                        body.textContent = msg;
+                                                                                        toast.appendChild(body);
+                                                                                        container.appendChild(toast);
+                                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                    } else {
+                                                                                        alert(msg);
+                                                                                    }
+                                                                                    el.setAttribute('data-failed-route','true');
+                                                                                } catch (err) {}
+                                                                            });
+                                                                        } catch (err) {}
+                                                                    })();
+                                                                </script>
+                                                            @endpush
                                                         @endcan
                                                         @can('delete vendor')
-                                                            <div class="action-btn bg-danger ms-2">
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['vendor.destroy', $Vendor['id']], 'id' => 'delete-form-' . $Vendor['id']]) !!}
-                                                                    <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip"
-                                                                           data-original-title="{{ __('Delete') }}" title="{{ __('Delete') }}"
-                                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                                           data-confirm-yes="document.getElementById('delete-form-{{ $Vendor['id'] }}').submit();">
-                                                                        <i class="ti ti-trash text-white"></i>
+                                                            <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                                @php
+                                                                    $vndDestroyBase = VW::VND.'.destroy';
+                                                                    $vndDestroyKebab = Str::kebab($vndDestroyBase);
+                                                                    $vendorIdValue = (string) data_get($Vendor,'id','');
+                                                                    $vndDestroyResolved = Route::has($vndDestroyBase) ? $vndDestroyBase : (Route::has($vndDestroyKebab) ? $vndDestroyKebab : null);
+                                                                    $vndDestroyUrl = ($vndDestroyResolved && $vendorIdValue !== '') ? route($vndDestroyResolved, $vendorIdValue) : '#';
+                                                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                                                    $vndDestroyGuardMsg = Utility::fetchLinkMessage($langValue, VW::VND, 'delete_vendor_route_unavailable') ?? 'Delete vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    $delFormId = 'delete-form-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                                    $delAnchorId = 'delete-vendor-'.($vendorIdValue === '' ? 'x' : $vendorIdValue);
+                                                                @endphp
+                                                                {!! Form::open([
+                                                                    'method' => 'DELETE',
+                                                                    'url' => $vndDestroyUrl,
+                                                                    'id' => $delFormId,
+                                                                    'data-url' => $vndDestroyUrl,
+                                                                    'data-guard-msg' => $vndDestroyGuardMsg,
+                                                                    'data-sv-localized' => 'true',
+                                                                ]) !!}
+                                                                    <a href="#"
+                                                                    id="{{ $delAnchorId }}"
+                                                                    class="{{ VC::BT_SM_CT_PR }}"
+                                                                    data-bs-toggle="tooltip"
+                                                                    data-original-title="{{ __('Delete') }}"
+                                                                    title="{{ __('Delete') }}"
+                                                                    data-confirm="{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($langValue, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                    data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();"
+                                                                    data-form-id="{{ $delFormId }}"
+                                                                    data-guard-msg="{{ $vndDestroyGuardMsg }}"
+                                                                    data-sv-localized="true">
+                                                                        <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                     </a>
-                                                                {!! Collective\Html\FormFacade::close() !!}
+                                                                {!! Form::close() !!}
+                                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                                    <script defer>
+                                                                        (() => {
+                                                                            try {
+                                                                                const a = document.getElementById('{{ $delAnchorId }}');
+                                                                                const f = document.getElementById('{{ $delFormId }}');
+                                                                                if (!a || !f) { return; }
+                                                                                if (a.getAttribute('data-listener-active') === 'true') { return; }
+                                                                                a.setAttribute('data-listener-active','true');
+                                                                                a.addEventListener('click',(e) => {
+                                                                                    try {
+                                                                                        const fid = a.getAttribute('data-form-id') ?? '';
+                                                                                        if (!fid) { return; }
+                                                                                        const fm = document.getElementById(fid);
+                                                                                        if (!fm) { return; }
+                                                                                        const action = fm.getAttribute('action') ?? '#';
+                                                                                        const url = fm.getAttribute('data-url') ?? action ?? '#';
+                                                                                        if (url !== '#' && action !== '#') { return; }
+                                                                                        e.preventDefault();
+                                                                                        const msg = a.getAttribute('data-guard-msg') ?? 'Destroy vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (hasBootstrap) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else {
+                                                                                            alert(msg);
+                                                                                        }
+                                                                                        a.setAttribute('data-failed-route','true');
+                                                                                        fm.setAttribute('data-failed-route','true');
+                                                                                    } catch (err) {}
+                                                                                });
+                                                                                if (f.getAttribute('data-submit-guarded') !== 'true') {
+                                                                                    f.setAttribute('data-submit-guarded','true');
+                                                                                    f.addEventListener('submit',(e) => {
+                                                                                        try {
+                                                                                            const action = f.getAttribute('action') ?? '#';
+                                                                                            const url = f.getAttribute('data-url') ?? action ?? '#';
+                                                                                            if (url !== '#' && action !== '#') { return; }
+                                                                                            e.preventDefault();
+                                                                                            const msg = f.getAttribute('data-guard-msg') ?? 'Destroy vendor route is unavailable. Please contact technical support or your domain administrator.';
+                                                                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                                            let container = document.getElementById('toast-container');
+                                                                                            if (!container) {
+                                                                                                container = document.createElement('div');
+                                                                                                container.id = 'toast-container';
+                                                                                                document.body.appendChild(container);
+                                                                                            }
+                                                                                            if (hasBootstrap) {
+                                                                                                const toast = document.createElement('div');
+                                                                                                toast.className = 'toast';
+                                                                                                toast.setAttribute('role','alert');
+                                                                                                toast.setAttribute('aria-live','assertive');
+                                                                                                toast.setAttribute('aria-atomic','true');
+                                                                                                const body = document.createElement('div');
+                                                                                                body.className = 'toast-body';
+                                                                                                body.textContent = msg;
+                                                                                                toast.appendChild(body);
+                                                                                                container.appendChild(toast);
+                                                                                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                            } else {
+                                                                                                alert(msg);
+                                                                                            }
+                                                                                            f.setAttribute('data-failed-route','true');
+                                                                                        } catch (err) {}
+                                                                                    });
+                                                                                }
+                                                                            } catch (err) {}
+                                                                        })();
+                                                                    </script>
+                                                                @endpush
                                                             </div>
                                                         @endcan
-                                                @endif
-                                            </span>
-                                        </td>
+                                                    @endif
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="6" class="text-center">{{ __('No vendors found.') }}</td>
                                     </tr>
-                                @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>
