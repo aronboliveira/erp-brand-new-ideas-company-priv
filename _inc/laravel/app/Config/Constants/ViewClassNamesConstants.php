@@ -194,6 +194,8 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::CXL2 }}"
 	public const CXL3 = 'col-xl-3';
 	// "{{ ViewClassNamesConstants::CXL3 }}"
+	public const CXL4 = 'col-xl-4';
+	// "{{ ViewClassNamesConstants::CXL4 }}"
 	public const CXS12 = "col-xs-12";
 	// "{{ ViewClassNamesConstants::CXS12 }}"
 	public const C_AT = 'col-auto';
@@ -292,6 +294,10 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::CL_XL3 }}"
 	// "{{ VC::CL_XL3 }}"
 	// col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12
+	public const CL_XL4 = self::CL4 . ' ' . self::CXL4 . ' ' . self::CM4;
+	// "{{ ViewClassNamesConstants::CL_XL4 }}"
+	// "{{ VC::CL_XL4 }}"
+	// col-lg-4 col-xl-4 col-md-4
 	public const CL_XS12 = self::CXS12 . ' ' . self::CS12 . ' ' . self::CM4 . ' ' . self::CL3 . ' ' . self::CXL3;
 	// "{{ ViewClassNamesConstants::CL_XS12 }}"
 	// "{{ VW::CL_XS12 }}"

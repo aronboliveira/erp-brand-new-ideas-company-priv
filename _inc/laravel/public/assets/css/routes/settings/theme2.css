@@ -1,0 +1,29 @@
+.btn-check:checked + .btn-outline-primary,
+.btn-check:active + .btn-outline-primary,
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.btn-outline-primary.dropdown-toggle.show {
+  color: #ffffff;
+  background: linear-gradient(
+      141.55deg,
+      rgba(240, 244, 243, 0) 3.46%,
+      #4ebbd3 99.86%
+    )
+    #1f3996 !important;
+  border-color: #4ebbd3 !important;
+}
+
+.btn-outline-primary:hover {
+  color: #ffffff;
+  background: linear-gradient(
+      141.55deg,
+      rgba(240, 244, 243, 0) 3.46%,
+      #4ebbd3 99.86%
+    )
+    #1f3996 !important;
+  border-color: #4ebbd3 !important;
+}
+.btn.btn-outline-primary {
+  color: #1f3996;
+  border-color: #4ebbd3 !important;
+}

@@ -10,26 +10,43 @@
 @endsection
 
 @section('container')
-    <p style="color:red;"><strong>Default Super Admin Created : superadmin@example.com / 1234</strong></p>
-    <p style="color:red;"><strong>Default Company Created : company@example.com / 1234</strong></p>
-    <p style="color:red;"><strong>Default User Created : accountant@example.com / 1234</strong></p>
+    @php
+        use Illuminate\Support\Arr;
 
-    @if(session('message')['dbOutputLog'])
+        // Only show seeded credentials in safe contexts (local by default, or if explicitly enabled)
+        $showSeededCreds = (bool) config('installer.show_seeded_credentials', app()->environment('local'));
+
+        $messageBag    = session('message', []);
+        $dbOutputLog   = data_get($messageBag, 'dbOutputLog');
+        $consoleOutput = $finalMessages       ?? '';
+        $statusLog     = $finalStatusMessage  ?? '';
+        $envDump       = $finalEnvFile        ?? '';
+    @endphp
+
+    @if($showSeededCreds)
+        <div role="alert" aria-live="polite" class="alert alert-warning" style="margin-bottom:1rem;">
+            <strong>{{ __('Seeded Accounts (local only)') }}:</strong><br>
+            {{ __('Super Admin') }}: <code>superadmin@example.com / 1234</code><br>
+            {{ __('Company') }}: <code>company@example.com / 1234</code><br>
+            {{ __('User') }}: <code>accountant@example.com / 1234</code>
+        </div>
+    @endif
+
+    @if(!empty($dbOutputLog))
         <p><strong><small>{{ trans('installer_messages.final.migration') }}</small></strong></p>
-        <pre><code>{{ session('message')['dbOutputLog'] }}</code></pre>
+        <pre><code>{{ $dbOutputLog }}</code></pre>
     @endif
 
     <p><strong><small>{{ trans('installer_messages.final.console') }}</small></strong></p>
-    <pre><code>{{ $finalMessages }}</code></pre>
+    <pre><code>{{ $consoleOutput }}</code></pre>
 
     <p><strong><small>{{ trans('installer_messages.final.log') }}</small></strong></p>
-    <pre><code>{{ $finalStatusMessage }}</code></pre>
+    <pre><code>{{ $statusLog }}</code></pre>
 
     <p><strong><small>{{ trans('installer_messages.final.env') }}</small></strong></p>
-    <pre><code>{{ $finalEnvFile }}</code></pre>
+    <pre><code>{{ $envDump }}</code></pre>
 
     <div class="buttons">
         <a href="{{ url('/') }}" class="button">{{ trans('installer_messages.final.exit') }}</a>
     </div>
-
 @endsection

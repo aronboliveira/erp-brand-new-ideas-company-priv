@@ -9,7 +9,7 @@ use App\Config\Constants\{
 use App\Models\{Customer, Language, User, Utility, Vendor};
 use App\Traits\ChecksPermissions;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
-use Illuminate\Support\Facades\{Cache, DB, File, Log, Redirect};
+use Illuminate\Support\Facades\{Cache, DB, File, Log, Redirect, View as ViewFacade};
 use Illuminate\View\View;
 use function App\Http\Controllers\defaultUndefinedException;
 
@@ -44,7 +44,7 @@ class LanguageController extends Controller
                 $rtlValue = in_array($lang, ['ar', 'he']) ? 'on' : 'off';
                 $creatorCol = DatabaseConstants::TABLE_CREATOR;
                 $startDB = microtime(true);
-                DB::transaction(fn () => DB::insert(
+                DB::transaction(fn() => DB::insert(
                     'insert into settings (`value`,`name`,`' . $creatorCol . '`) values (?,?,?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)',
                     [$rtlValue, 'SITE_RTL', $user?->creatorId()]
                 ));
@@ -136,7 +136,7 @@ class LanguageController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] failed load message files", ['error' => $e->getMessage()]);
                 $viewName = 'lang.index';
-                if (!View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
             }
         }, ['req' => $request]);
     }
@@ -218,7 +218,7 @@ class LanguageController extends Controller
             $startOverall = microtime(true);
             try {
                 $viewName = 'lang.create';
-                if (!View::exists($viewName))
+                if (!ViewFacade::exists($viewName))
                     return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 Log::info("[$action] rendering create language view");
                 $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');

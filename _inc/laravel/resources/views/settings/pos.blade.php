@@ -63,266 +63,10 @@
     <li class="breadcrumb-item">{{__('Print-Settings')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:{scrollspy_unavailable:"تعذّر تفعيل ScrollSpy",purchase_preview_unavailable:"تعذّر عرض معاينة أمر الشراء",purchase_logo_unavailable:"تعذّر معاينة شعار أمر الشراء",pos_preview_unavailable:"تعذّر عرض معاينة نقطة البيع",pos_logo_unavailable:"تعذّر معاينة شعار نقطة البيع"},
-            da:{scrollspy_unavailable:"Kunne ikke aktivere ScrollSpy",purchase_preview_unavailable:"Kunne ikke vise indkøbsforhåndsvisning",purchase_logo_unavailable:"Kunne ikke forhåndsvise indkøbslogo",pos_preview_unavailable:"Kunne ikke vise POS-forhåndsvisning",pos_logo_unavailable:"Kunne ikke forhåndsvise POS-logo"},
-            de:{scrollspy_unavailable:"ScrollSpy konnte nicht aktiviert werden",purchase_preview_unavailable:"Bestellvorschau konnte nicht geladen werden",purchase_logo_unavailable:"Bestelllogo konnte nicht angezeigt werden",pos_preview_unavailable:"POS-Vorschau konnte nicht geladen werden",pos_logo_unavailable:"POS-Logo konnte nicht angezeigt werden"},
-            en:{scrollspy_unavailable:"Cannot enable ScrollSpy",purchase_preview_unavailable:"Cannot load purchase preview",purchase_logo_unavailable:"Cannot preview purchase logo",pos_preview_unavailable:"Cannot load POS preview",pos_logo_unavailable:"Cannot preview POS logo"},
-            es:{scrollspy_unavailable:"No se puede activar ScrollSpy",purchase_preview_unavailable:"No se puede cargar la vista previa de compra",purchase_logo_unavailable:"No se puede previsualizar el logo de compra",pos_preview_unavailable:"No se puede cargar la vista previa de POS",pos_logo_unavailable:"No se puede previsualizar el logo de POS"},
-            fr:{scrollspy_unavailable:"Impossible d’activer ScrollSpy",purchase_preview_unavailable:"Impossible de charger l’aperçu d’achat",purchase_logo_unavailable:"Impossible d’afficher l’aperçu du logo d’achat",pos_preview_unavailable:"Impossible de charger l’aperçu du PDV",pos_logo_unavailable:"Impossible d’afficher l’aperçu du logo PDV"},
-            he:{scrollspy_unavailable:"לא ניתן להפעיל ScrollSpy",purchase_preview_unavailable:"לא ניתן לטעון תצוגה מקדימה של הזמנה",purchase_logo_unavailable:"לא ניתן להציג תצוגה מקדימה של לוגו הזמנה",pos_preview_unavailable:"לא ניתן לטעון תצוגה מקדימה של קופה",pos_logo_unavailable:"לא ניתן להציג תצוגה מקדימה של לוגו קופה"},
-            it:{scrollspy_unavailable:"Impossibile abilitare ScrollSpy",purchase_preview_unavailable:"Impossibile caricare l’anteprima ordine",purchase_logo_unavailable:"Impossibile anteprima logo ordine",pos_preview_unavailable:"Impossibile caricare anteprima POS",pos_logo_unavailable:"Impossibile anteprima logo POS"},
-            ja:{scrollspy_unavailable:"ScrollSpy を有効にできません",purchase_preview_unavailable:"購入プレビューを読み込めません",purchase_logo_unavailable:"購入ロゴをプレビューできません",pos_preview_unavailable:"POS プレビューを読み込めません",pos_logo_unavailable:"POS ロゴをプレビューできません"},
-            nl:{scrollspy_unavailable:"ScrollSpy kan niet worden ingeschakeld",purchase_preview_unavailable:"Voorbeeld van inkoop kan niet laden",purchase_logo_unavailable:"Voorbeeld van inkooplogo mislukt",pos_preview_unavailable:"POS-voorbeeld kan niet laden",pos_logo_unavailable:"POS-logo kan niet worden bekeken"},
-            pl:{scrollspy_unavailable:"Nie można włączyć ScrollSpy",purchase_preview_unavailable:"Nie można wczytać podglądu zamówienia",purchase_logo_unavailable:"Nie można podglądnąć logo zamówienia",pos_preview_unavailable:"Nie można wczytać podglądu POS",pos_logo_unavailable:"Nie można podglądnąć logo POS"},
-            pt:{scrollspy_unavailable:"Não foi possível ativar o ScrollSpy",purchase_preview_unavailable:"Não foi possível carregar a pré-visualização de compra",purchase_logo_unavailable:"Não foi possível pré-visualizar o logotipo da compra",pos_preview_unavailable:"Não foi possível carregar a pré-visualização do POS",pos_logo_unavailable:"Não foi possível pré-visualizar o logotipo do POS"},
-            "pt-br":{scrollspy_unavailable:"Não foi possível ativar o ScrollSpy",purchase_preview_unavailable:"Não foi possível carregar a prévia da compra",purchase_logo_unavailable:"Não foi possível pré-visualizar o logo da compra",pos_preview_unavailable:"Não foi possível carregar a prévia do PDV",pos_logo_unavailable:"Não foi possível pré-visualizar o logo do PDV"},
-            ru:{scrollspy_unavailable:"Не удалось включить ScrollSpy",purchase_preview_unavailable:"Не удалось загрузить предварительный просмотр закупки",purchase_logo_unavailable:"Не удалось показать логотип закупки",pos_preview_unavailable:"Не удалось загрузить предварительный просмотр POS",pos_logo_unavailable:"Не удалось показать логотип POS"},
-            tr:{scrollspy_unavailable:"ScrollSpy etkinleştirilemedi",purchase_preview_unavailable:"Satın alma önizlemesi yüklenemiyor",purchase_logo_unavailable:"Satın alma logosu önizlenemiyor",pos_preview_unavailable:"POS önizlemesi yüklenemiyor",pos_logo_unavailable:"POS logosu önizlenemiyor"},
-            zh:{scrollspy_unavailable:"无法启用 ScrollSpy",purchase_preview_unavailable:"无法加载采购预览",purchase_logo_unavailable:"无法预览采购徽标",pos_preview_unavailable:"无法加载收银预览",pos_logo_unavailable:"无法预览收银徽标"}
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (() => {
-            const errFb = "# ERROR";
-            const dataClientLocalized = "data-client-localized";
-            const dataGuardMsg = "data-guard-msg";
-            const DATA_LISTENER_ADDED = "data-listener-added";
-            const getMsg = (el, msgKey) => {
-                let msg = errFb;
-                if (
-                el?.getAttribute("data-sv-localized") === "true" ||
-                el?.getAttribute(dataClientLocalized) === "true"
-                )
-                msg = el.getAttribute(dataGuardMsg) || errFb;
-                else {
-                let lang = (
-                    window.sessionStorage.getItem("erp-np-lang") ||
-                    document.documentElement.lang ||
-                    "en"
-                )
-                    .toLowerCase()
-                    .replace(/_/g, "-");
-                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-                const key = msgKey;
-                msg =
-                    window.translations?.[lang]?.[key] ||
-                    el?.getAttribute(dataGuardMsg) ||
-                    window.translations?.en?.[key] ||
-                    errFb;
-                if (msg !== errFb) {
-                    el?.setAttribute(dataGuardMsg, msg);
-                    el?.setAttribute(dataClientLocalized, "true");
-                }
-                }
-                return msg;
-            };
-            const showFeedback = (el, key, ev = "click") => {
-                const text = getMsg(el || document.body, key);
-                const hasBs =
-                document.querySelector('link[href*="bootstrap"]') &&
-                window.bootstrap?.Toast;
-                if (hasBs) {
-                let toast = document.querySelector("#np-error-toast");
-                if (!toast) {
-                    toast = document.createElement("div");
-                    toast.id = "np-error-toast";
-                    toast.className = "toast align-items-center text-bg-danger border-0";
-                    toast.setAttribute("role", "alert");
-                    toast.setAttribute("aria-live", "assertive");
-                    toast.setAttribute("aria-atomic", "true");
-                    toast.innerHTML = `<div class="d-flex"><div class="toast-body">${text}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
-                    document.body.appendChild(toast);
-                }
-                const handler = () => new bootstrap.Toast(toast).show();
-                if (!toast.getAttribute(DATA_LISTENER_ADDED)) {
-                    toast.setAttribute(DATA_LISTENER_ADDED, "true");
-                    const mo = new MutationObserver((_, o) => {
-                    if (!document.body.contains(toast)) {
-                        document.removeEventListener(ev, handler);
-                        o.disconnect();
-                    }
-                    });
-                    mo.observe(document.body, { childList: true, subtree: true });
-                }
-                document.addEventListener(ev, handler, { once: true });
-                } else {
-                const handler = () => alert(text);
-                document.addEventListener(ev, handler, { once: true });
-                }
-            };
-            const guardOnce = (el, key, ev = "click") => {
-                if (!el || el.getAttribute(DATA_LISTENER_ADDED) === "true") return;
-                const handler = () => showFeedback(el, key, ev);
-                el.addEventListener(ev, handler, { once: true });
-                el.setAttribute(DATA_LISTENER_ADDED, "true");
-                const mo = new MutationObserver((_, o) => {
-                if (!document.body.contains(el)) {
-                    el.removeEventListener(ev, handler);
-                    o.disconnect();
-                }
-                });
-                mo.observe(document.body, { childList: true, subtree: true });
-            };
-            const routeGuard = (element, alt) => {
-                const url = element?.getAttribute?.("data-url");
-                const href = element?.action ?? element?.href;
-                return (
-                (!url || url === "#") && (!href || href === "#") && (!alt || alt === "#")
-                );
-            };
-            try {
-                if (typeof $ === "undefined") {
-                console.error("jQuery failed to load");
-                return;
-                }
-                try {
-                if (window.bootstrap?.ScrollSpy) {
-                    new bootstrap.ScrollSpy(document.body, {
-                    target: "#useradd-sidenav",
-                    offset: 300,
-                    });
-                } else {
-                    guardOnce(document.body, "scrollspy_unavailable", "click");
-                }
-                } catch {
-                guardOnce(document.body, "scrollspy_unavailable", "click");
-                }
-                $(document).on(
-                "change",
-                "select[name='purchase_template'], input[name='purchase_color']",
-                function () {
-                    try {
-                    const template = $("select[name='purchase_template']").val() ?? "";
-                    const color = $("input[name='purchase_color']:checked").val() ?? "";
-                    const $frame = $("#purchase_frame");
-                    const preview = `{{url('/purchase/preview')}}/${template}/${color}`;
-                    if (!$frame.length || routeGuard($frame.get(0), preview)) {
-                        guardOnce(
-                        $frame.get(0) || document.body,
-                        "purchase_preview_unavailable",
-                        "click"
-                        );
-                        return;
-                    }
-                    $frame.attr("src", preview);
-                    } catch {
-                    guardOnce(document.body, "purchase_preview_unavailable", "click");
-                    }
-                }
-                );
-                (() => {
-                const input = document.getElementById("purchase_logo");
-                const img = document.getElementById("purchase_image");
-                if (!input || !img) {
-                    guardOnce(document.body, "purchase_logo_unavailable", "click");
-                    return;
-                }
-                if (!input.getAttribute(DATA_LISTENER_ADDED)) {
-                    input.addEventListener(
-                    "change",
-                    () => {
-                        try {
-                        const f = input.files?.[0];
-                        if (!f) {
-                            return;
-                        }
-                        const src = URL.createObjectURL(f);
-                        img.src = src;
-                        } catch {
-                        guardOnce(input, "purchase_logo_unavailable", "click");
-                        }
-                    },
-                    { once: false }
-                    );
-                    input.setAttribute(DATA_LISTENER_ADDED, "true");
-                    const mo = new MutationObserver((_, o) => {
-                    if (!document.body.contains(input)) {
-                        input.removeEventListener("change", () => {});
-                        o.disconnect();
-                    }
-                    });
-                    mo.observe(document.body, { childList: true, subtree: true });
-                }
-                })();
-                $(document).on(
-                "change",
-                "select[name='pos_template'], input[name='pos_color']",
-                function () {
-                    try {
-                    const template = $("select[name='pos_template']").val() ?? "";
-                    const color = $("input[name='pos_color']:checked").val() ?? "";
-                    const $frame = $("#pos_frame");
-                    const preview = `{{url('/pos/preview')}}/${template}/${color}`;
-                    if (!$frame.length || routeGuard($frame.get(0), preview)) {
-                        guardOnce(
-                        $frame.get(0) || document.body,
-                        "pos_preview_unavailable",
-                        "click"
-                        );
-                        return;
-                    }
-                    $frame.attr("src", preview);
-                    } catch {
-                    guardOnce(document.body, "pos_preview_unavailable", "click");
-                    }
-                }
-                );
-                (() => {
-                const input = document.getElementById("pos_logo");
-                const img = document.getElementById("pos_image");
-                if (!input || !img) {
-                    guardOnce(document.body, "pos_logo_unavailable", "click");
-                    return;
-                }
-                if (!input.getAttribute(DATA_LISTENER_ADDED)) {
-                    input.addEventListener(
-                    "change",
-                    () => {
-                        try {
-                        const f = input.files?.[0];
-                        if (!f) {
-                            return;
-                        }
-                        const src = URL.createObjectURL(f);
-                        img.src = src;
-                        } catch {
-                        guardOnce(input, "pos_logo_unavailable", "click");
-                        }
-                    },
-                    { once: false }
-                    );
-                    input.setAttribute(DATA_LISTENER_ADDED, "true");
-                    const mo = new MutationObserver((_, o) => {
-                    if (!document.body.contains(input)) {
-                        input.removeEventListener("change", () => {});
-                        o.disconnect();
-                    }
-                    });
-                    mo.observe(document.body, { childList: true, subtree: true });
-                }
-                })();
-            } catch (e) {
-                console.error("Initialization failed", e);
-            }
-        })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/settings/pos/lang/purchase.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/settings/pos/purchase.js') }}"></script>
 @endpush
-@section('content')
+@section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::CS12 }} {{ VC::MT4 }}">
         <div class="{{ VC::CD }}">
             <div class="card-body">
@@ -350,7 +94,11 @@ Object.keys(t).forEach(
                         </a>
                     </li>
                 </ul>
-
+                @php 
+                    $templateData = Utility::templateData(); 
+                    $templates = $templateData['templates'];
+                    $colors = $templateData['colors'];
+                @endphp
                 <div class="tab-content" id="pills-tabContent">
                     <div class="tab-pane fade show active" id="pills-purchase" role="tabpanel" aria-labelledby="pills-purchase-tab">
                         <div class="bg-none">
@@ -358,33 +106,53 @@ Object.keys(t).forEach(
                                 <div class="{{ VC::CM3 }}">
                                     <div class="card-body">
                                         <h5></h5>
-                                        <form id="setting-form" method="post" action="{{ route(ViewsConstants::PRC_TMP . 'settings') }}" enctype="multipart/form-data">
+                                        @php
+                                            $prcSettingsBase = ViewsConstants::PRC_TMP.'.settings';
+                                            $prcSettingsKebab = Str::kebab($prcSettingsBase);
+                                            $prcSettingsResolved = Route::has($prcSettingsBase) ? $prcSettingsBase : (Route::has($prcSettingsKebab) ? $prcSettingsKebab : null);
+                                            $prcSettingsUrl = $prcSettingsResolved ? route($prcSettingsResolved) : '#';
+                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                            $prcSettingsGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PRC_TMP, 'settings_purchase_template_route_unavailable') ?? 'Purchase template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                            $prcTmpFormId = 'prc-settings-form';
+                                        @endphp
+                                        <form id="{{ $prcTmpFormId }}" method="post" action="{{ $prcSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $prcSettingsUrl }}" data-guard-msg="{{ $prcSettingsGuardMsg }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="address" class="{{ VC::FM_LB }}">{{ __('Purchase Template') }}</label>
                                                 <select class="{{ VC::FM_CT }}" name="purchase_template">
-                                                    @foreach(Utility::templateData()['templates'] as $key => $template)
-                                                        <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_PRC_TMP]) && $settings[BillsConstants::COL_PRC_TMP] == $key) ? 'selected' : '' }}>
-                                                            {{ $template }}
-                                                        </option>
-                                                    @endforeach
+                                                    @if (is_array($templates) && count($templates) || $templates instanceof Collection && $templates->isNotEmpty())
+                                                        @foreach($templates as $key => $template)
+                                                            <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_PRC_TMP]) && $settings[BillsConstants::COL_PRC_TMP] == $key) ? 'selected' : '' }}>
+                                                                {{ $template }}
+                                                            </option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="" disabled>{{ __('No templates available') }}</option>
+                                                    @endif
                                                 </select>
                                             </div>
-
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @foreach(Utility::templateData()['colors'] as $key => $color)
+                                                    @if (is_array($colors) && count($colors) || $colors instanceof Collection && $colors->isNotEmpty())
+                                                        @foreach($colors as $key => $color)
+                                                            <div class="{{ VC::C_AT }}">
+                                                                <label class="colorinput">
+                                                                    <input name="purchase_color" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['purchase_color']) && $settings['purchase_color'] == $color) ? 'checked' : '' }}>
+                                                                    <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
                                                         <div class="{{ VC::C_AT }}">
                                                             <label class="colorinput">
-                                                                <input name="purchase_color" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['purchase_color']) && $settings['purchase_color'] == $color) ? 'checked' : '' }}>
-                                                                <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                <input name="purchase_color" type="radio" value="" class="colorinput-input" {{ (isset($settings['purchase_color']) && $settings['purchase_color'] == '') ? 'checked' : '' }}>
+                                                                <span class="colorinput-color" style="background: #ffffff"></span>
                                                             </label>
                                                         </div>
-                                                    @endforeach
+                                                    @endif
                                                 </div>
                                             </div>
-
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Purchase Logo') }}</label>
                                                 <div class="choose-files mt-2">
@@ -397,21 +165,39 @@ Object.keys(t).forEach(
                                                     </label>
                                                 </div>
                                             </div>
-
                                             <div class="{{ VC::FM_G }} mt-2 text-end">
                                                 <input type="submit" value="{{ __('Save') }}" class="{{ VC::BT_PR_PRM10 }}">
                                             </div>
                                         </form>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer src="{{ asset('assets/js/routes/settings/pos/purchaseSettings.js') }}">
+                                            </script>
+                                        @endpush
                                     </div>
                                 </div>
-
+                                @php
+                                    $prcPreviewBase = ViewsConstants::PRC.'.preview';
+                                    $prcPreviewKebab = Str::kebab($prcPreviewBase);
+                                    $prcPreviewResolved = Route::has($prcPreviewBase) ? $prcPreviewBase : (Route::has($prcPreviewKebab) ? $prcPreviewKebab : null);
+                                    $tplValue = (isset($settings[BillsConstants::COL_PRC_TMP]) && isset($settings['purchase_color'])) ? $settings[BillsConstants::COL_PRC_TMP] : 'template1';
+                                    $colorValue = (isset($settings[BillsConstants::COL_PRC_TMP]) && isset($settings['purchase_color'])) ? $settings['purchase_color'] : 'ffffff';
+                                    $prcPreviewUrl = $prcPreviewResolved ? route($prcPreviewResolved, [$tplValue, $colorValue]) : '#';
+                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                    $prcPreviewGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::PRC, 'preview_purchase_route_unavailable') ?? 'Purchase preview route is unavailable. Please contact technical support or your domain administrator.';
+                                    $iframeId = 'purchase_frame';
+                                @endphp
                                 <div class="{{ VC::CM9 }}">
-                                    @if(isset($settings[BillsConstants::COL_PRC_TMP]) && isset($settings['purchase_color']))
-                                        <iframe id="purchase_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::PRC . '.preview', [$settings[BillsConstants::COL_PRC_TMP], $settings['purchase_color']]) }}"></iframe>
-                                    @else
-                                        <iframe id="purchase_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::PRC . '.preview', ['template1','ffffff']) }}"></iframe>
-                                    @endif
+                                    <iframe id="{{ $iframeId }}"
+                                            class="w-100 h-100"
+                                            frameborder="0"
+                                            src="{{ $prcPreviewUrl }}"
+                                            data-url="{{ $prcPreviewUrl }}"
+                                            data-guard-msg="{{ $prcPreviewGuardMsg }}"
+                                            data-sv-localized="true"></iframe>
                                 </div>
+                                @push(StacksConstants::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/settings/pos/purchasePreview.js') }}"></script>
+                                @endpush
                             </div>
                         </div>
                     </div>
@@ -421,29 +207,51 @@ Object.keys(t).forEach(
                                 <div class="{{ VC::CM3 }}">
                                     <div class="card-body">
                                         <h5></h5>
-                                        <form id="setting-form" method="post" action="{{ route(ViewsConstants::PRC_TMP . 'settings') }}" enctype="multipart/form-data">
+                                        @php
+                                            $posSettingsBase = ViewsConstants::POS_TMP.'.settings';
+                                            $posSettingsKebab = Str::kebab($posSettingsBase);
+                                            $posSettingsResolved = Route::has($posSettingsBase) ? $posSettingsBase : (Route::has($posSettingsKebab) ? $posSettingsKebab : null);
+                                            $posSettingsUrl = $posSettingsResolved ? route($posSettingsResolved) : '#';
+                                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                            $posSettingsGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::POS_TMP, 'settings_pos_template_route_unavailable') ?? 'POS template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                            $posTmpSettings = 'pos-settings-form';
+                                        @endphp
+                                        <form id="{{ $posTmpSettings }}" method="post" action="{{ $posSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $posSettingsUrl }}" data-guard-msg="{{ $posSettingsGuardMsg }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="address" class="{{ VC::FM_LB }}">{{ __('POS Template') }}</label>
                                                 <select class="{{ VC::FM_CT }}" name="pos_template">
-                                                    @foreach(Utility::templateData()['templates'] as $key => $template)
-                                                        <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_BL_]) && $settings[BillsConstants::COL_BL_] == $key) ? 'selected' : '' }}>
-                                                            {{ $template }}
-                                                        </option>
-                                                    @endforeach
+                                                    @if (is_array($templates) && count($templates) || $templates instanceof Collection && $templates->isNotEmpty())
+                                                        @foreach($templates as $key => $template)
+                                                            <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_BL_]) && $settings[BillsConstants::COL_BL_] == $key) ? 'selected' : '' }}>
+                                                                {{ $template }}
+                                                            </option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="">{{ __('No templates found for POS') }}</option>
+                                                    @endif
                                                 </select>
                                             </div>
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @foreach(Utility::templateData()['colors'] as $key => $color)
+                                                    @if (is_array($colors) && count($colors) || $colors instanceof Collection && $colors->isNotEmpty())
+                                                        @foreach($colors as $key => $color)
+                                                            <div class="{{ VC::C_AT }}">
+                                                                <label class="colorinput">
+                                                                    <input name="pos_color" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['pos_color']) && $settings['pos_color'] == $color) ? 'checked' : '' }}>
+                                                                    <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
                                                         <div class="{{ VC::C_AT }}">
                                                             <label class="colorinput">
-                                                                <input name="pos_color" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['pos_color']) && $settings['pos_color'] == $color) ? 'checked' : '' }}>
-                                                                <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                <input name="pos_color" type="radio" value="" class="colorinput-input">
+                                                                <span class="colorinput-color" style="background: #ffffff"></span>
                                                             </label>
                                                         </div>
-                                                    @endforeach
+                                                    @endif   
                                                 </div>
                                             </div>
                                             <div class="{{ VC::FM_G }}">
@@ -462,15 +270,35 @@ Object.keys(t).forEach(
                                                 <input type="submit" value="{{ __('Save') }}" class="{{ VC::BT_PR_PRM10 }}">
                                             </div>
                                         </form>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer src="{{ asset('assets/js/routes/settings/pos/posSettings.js') }}">
+                                            </script>
+                                        @endpush
                                     </div>
                                 </div>
+                                @php
+                                    $posPreviewBase = ViewsConstants::POS.'.preview';
+                                    $posPreviewKebab = Str::kebab($posPreviewBase);
+                                    $posPreviewResolved = Route::has($posPreviewBase) ? $posPreviewBase : (Route::has($posPreviewKebab) ? $posPreviewKebab : null);
+                                    $tplValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['pos_color'])) ? $settings[BillsConstants::COL_POS_TMP] : 'template1';
+                                    $colorValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['pos_color'])) ? $settings['pos_color'] : 'ffffff';
+                                    $posPreviewUrl = $posPreviewResolved ? route($posPreviewResolved, [$tplValue, $colorValue]) : '#';
+                                    $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                                    $posPreviewGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::POS, 'preview_pos_route_unavailable') ?? 'POS preview route is unavailable. Please contact technical support or your domain administrator.';
+                                    $iframeId = 'pos_frame';
+                                @endphp
                                 <div class="{{ VC::CM9 }}">
-                                    @if(isset($settings[BillsConstants::COL_BL_]) && isset($settings['pos_color']))
-                                        <iframe id="pos_frame" class="w-100 h-100" frameborder="0" src="{{ route('pos.preview', [$settings[BillsConstants::COL_BL_], $settings['pos_color']]) }}"></iframe>
-                                    @else
-                                        <iframe id="pos_frame" class="w-100 h-100" frameborder="0" src="{{ route('pos.preview', ['template1','ffffff']) }}"></iframe>
-                                    @endif
+                                    <iframe id="{{ $iframeId }}"
+                                            class="w-100 h-100"
+                                            frameborder="0"
+                                            src="{{ $posPreviewUrl }}"
+                                            data-url="{{ $posPreviewUrl }}"
+                                            data-guard-msg="{{ $posPreviewGuardMsg }}"
+                                            data-sv-localized="true"></iframe>
                                 </div>
+                                @push(StacksConstants::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/settings/pos/posPreview.js') }}"></script>
+                                @endpush
                             </div>
                         </div>
                     </div>

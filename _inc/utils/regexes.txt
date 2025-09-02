@@ -39,3 +39,6 @@ use Illuminate\Database\Migrations\Migration;"]
     }
   }
 }
+
+'\{\{route\s*\(\s*['"][A-Za-z]*\.
+View::exists

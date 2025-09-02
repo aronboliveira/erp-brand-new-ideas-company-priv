@@ -11,7 +11,7 @@ use App\Config\Constants\{
 use App\Models\Source;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{Request, RedirectResponse};
-use Illuminate\Support\Facades\{DB, Log, Route, Validator};
+use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
 class SourceController extends Controller
@@ -47,7 +47,7 @@ class SourceController extends Controller
                 Log::debug("[{$class}::{$action}] fetching sources", ['creator_id' => $creatorId]);
                 $sources = Source::where('created_by', $creatorId)->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchSources');
-                if (!View::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'count' => is_countable($sources) ? count($sources) : null]);
                 return view($viewPath, compact('sources'));
             } catch (\Throwable $e) {
@@ -70,7 +70,7 @@ class SourceController extends Controller
             if (($redirect = self::guard($req, 'create source', self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::info("[{$class}::{$action}] start", ['user_id' => $req->user()->id, 'method' => $method]);
             try {
-                if (!View::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $resp = view($viewPath);
                 $this->logExecutionTime($renderStart, $action, 'renderCreate');
@@ -96,7 +96,7 @@ class SourceController extends Controller
             if ($source[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             Log::info("[{$class}::{$action}] start", ['source_id' => $source->id, 'user_id' => $req->user()->id, 'method' => $method]);
             try {
-                if (!View::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $resp = view($viewPath, compact('source'));
                 $this->logExecutionTime($renderStart, $action, 'renderShow');
@@ -158,7 +158,7 @@ class SourceController extends Controller
             if ($source[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             Log::info("[{$class}::{$action}] start", ['source_id' => $source->id, 'user_id' => $req->user()->id, 'method' => $method]);
             try {
-                if (!View::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $resp = view($viewPath, compact('source'));
                 $this->logExecutionTime($renderStart, $action, 'renderEdit');

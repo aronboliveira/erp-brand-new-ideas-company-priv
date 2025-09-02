@@ -46,7 +46,8 @@ use Illuminate\Support\Facades\{
   Mail,
   Log,
   Route,
-  Validator
+  Validator,
+  View as ViewFacade
 };
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -86,7 +87,7 @@ class DealController extends Controller
         $this->logExecutionTime($dealsStart, $action, 'loadDeals');
         $cntDeal = ['total' => Deal::getDealSummary($deals)];
         Log::debug("[{$class}::{$action}]", ['cntDeal' => $cntDeal]);
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view(DatabaseConstants::TABLE_DEALS . '.' . $action, compact(DatabaseConstants::TABLE_PIPELINES, Str::singular(DatabaseConstants::TABLE_PIPELINES), 'cntDeal'));
         $this->logExecutionTime($renderStart, $action, 'renderIndex');
@@ -132,7 +133,7 @@ class DealController extends Controller
           : Deal::join('user_deals', 'user' . DatabaseConstants::TABLE_DEALS . '_' . 'deal_id', '=', DatabaseConstants::TABLE_DEALS . '.id')->where('user' . DatabaseConstants::TABLE_DEALS . '_' . '.user_id', $user?->id);
         $deals = $ordered->where(DatabaseConstants::TABLE_DEALS . '.pipeline_id', $pipeline->id)->orderBy(DatabaseConstants::TABLE_DEALS . '.order')->get();
         $this->logExecutionTime($ordStart, $action, 'loadOrderedDeals');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view(DatabaseConstants::TABLE_DEALS . '.list', compact(DatabaseConstants::TABLE_PIPELINES, Str::singular(DatabaseConstants::TABLE_PIPELINES), 'deals', 'cntDeal'));
         $this->logExecutionTime($renderStart, $action, 'renderDealList');
@@ -165,7 +166,7 @@ class DealController extends Controller
         $clients = User::where(DatabaseConstants::TABLE_CREATOR, $ownerId)->where(UsersConstants::COL_TP, PermissionsConstants::CL)->pluck('name', 'id');
         $customFields = CustomField::where('module', 'deal')->get();
         $this->logExecutionTime($listStart, $action, 'loadClientsAndCustomFields');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view(DatabaseConstants::TABLE_DEALS . '.' . $action, compact(DatabaseConstants::TABLE_CLIENTS, 'customFields'));
         $this->logExecutionTime($renderStart, $action, 'renderCreate');
@@ -274,7 +275,7 @@ class DealController extends Controller
         $deal->products = explode(',', $deal->products);
         $deal->customField = CustomField::getData($deal, 'deal');
         $this->logExecutionTime($prepStart, $action, 'prepareDealExtras');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_PIPELINES, 'sources', DatabaseConstants::TABLE_PRODUCTS, 'customFields'));
         $this->logExecutionTime($renderStart, $action, 'renderEdit');
@@ -466,7 +467,7 @@ class DealController extends Controller
         $labels = Label::where('pipeline_id', $deal->pipeline_id)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
         $selected = $deal->labels()->pluck('id')->toArray();
         $this->logExecutionTime($listStart, $action, 'loadLabelsAndSelected');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', 'labels', 'selected'));
         $this->logExecutionTime($renderStart, $action, 'renderLabels');
@@ -533,7 +534,7 @@ class DealController extends Controller
           $q->select(UsersConstants::COL_USER_ID)->from('user_deals')->where('deal_id', $id);
         })->get()->filter(fn($u) => $u->can(PermissionsConstants::MNG_DL))->pluck('name', 'id')->prepend(__('Select Users'), '');
         $this->logExecutionTime($usersStart, $action, 'loadAssignableUsers');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_USERS));
         $this->logExecutionTime($renderStart, $action, 'renderUserEdit');
@@ -640,7 +641,7 @@ class DealController extends Controller
         $clients = User::where(DatabaseConstants::TABLE_CREATOR, $request->user()->ownerId())->where(UsersConstants::COL_TP, PermissionsConstants::CL)->whereNotIn('id', $exclude)->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadEligibleClients');
         Log::info("[{$class}::{$action}] fetched clients", ['count' => $clients->count()]);
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_CLIENTS));
         $this->logExecutionTime($renderStart, $action, 'renderClients');
@@ -747,7 +748,7 @@ class DealController extends Controller
         $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $request->user()->ownerId())->whereNotIn('id', $excluded)->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadEligibleProducts');
         Log::info("[{$class}::{$action}] fetched products", ['count' => $products->count()]);
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_PRODUCTS));
         $this->logExecutionTime($renderStart, $action, 'renderProducts');
@@ -1006,7 +1007,7 @@ class DealController extends Controller
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
         if (($r = self::guard($request, 'create task', self::ROUTE_INDEX)) instanceof RedirectResponse) return response()->json(['error' => __('Permission Denied.')], 401);
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, ['deal' => $deal, 'priorities' => DealTask::$priorities, 'status' => DealTask::$status]);
         $this->logExecutionTime($renderStart, $action, 'renderTaskCreate');
@@ -1072,7 +1073,7 @@ class DealController extends Controller
         $taskStart = microtime(true);
         $task = DealTask::findOrFail($taskId);
         $this->logExecutionTime($taskStart, $action, 'loadTask');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', 'task'));
         $this->logExecutionTime($renderStart, $action, 'renderTaskShow');
@@ -1102,7 +1103,7 @@ class DealController extends Controller
         $taskStart = microtime(true);
         $task = DealTask::findOrFail($taskId);
         $this->logExecutionTime($taskStart, $action, 'loadTask');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, ['deal' => $deal, 'task' => $task, 'priorities' => DealTask::$priorities, 'status' => DealTask::$status]);
         $this->logExecutionTime($renderStart, $action, 'renderTaskEdit');
@@ -1227,7 +1228,7 @@ class DealController extends Controller
         $selected = $deal->sources()?->pluck('id')->toArray() ?: [];
         $this->logExecutionTime($listStart, $action, 'loadSources');
         Log::info("[{$class}::{$action}] fetched sources", ['count' => count($sources)]);
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', 'sources', 'selected'));
         $this->logExecutionTime($renderStart, $action, 'renderSources');
@@ -1332,7 +1333,7 @@ class DealController extends Controller
         $selected = $perm ? explode(',', $perm->permissions) : [];
         $permissions = Deal::$permissions;
         $this->logExecutionTime($permStart, $action, 'loadPermissions');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', PermissionsConstants::CL, 'selected', DatabaseConstants::TABLE_PERMISSIONS));
         $this->logExecutionTime($renderStart, $action, 'renderPermissionView');
@@ -1458,7 +1459,7 @@ class DealController extends Controller
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal'));
         $this->logExecutionTime($renderStart, $action, 'renderDiscussionCreate');
@@ -1545,7 +1546,7 @@ class DealController extends Controller
         $usersStart = microtime(true);
         $users = UserDeal::where('deal_id', $id)->pluck(UsersConstants::COL_USER_ID);
         $this->logExecutionTime($usersStart, $action, 'loadDealUsers');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_USERS));
         $this->logExecutionTime($renderStart, $action, 'renderCallCreate');
@@ -1621,7 +1622,7 @@ class DealController extends Controller
         $usersStart = microtime(true);
         $users = UserDeal::where('deal_id', $id)->pluck(UsersConstants::COL_USER_ID);
         $this->logExecutionTime($usersStart, $action, 'loadDealUsers');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', 'call', DatabaseConstants::TABLE_USERS));
         $this->logExecutionTime($renderStart, $action, 'renderCallEdit');
@@ -1716,7 +1717,7 @@ class DealController extends Controller
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal'));
         $this->logExecutionTime($renderStart, $action, 'renderEmailCreate');
@@ -1808,7 +1809,7 @@ class DealController extends Controller
         $deal->customField = CustomField::getData($deal, 'deal')->toArray();
         $this->logExecutionTime($customStart, $action, 'loadCustomFields');
         Log::info("[{$class}::{$action}] rendering view", ['deal_id' => $deal->id, 'tasks_count' => count($calendarTasks)]);
-        if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
         $response = view($viewPath, compact('deal', 'customFields', 'calendarTasks', 'permission'));
         $this->logExecutionTime($renderStart, $action, 'renderShow');

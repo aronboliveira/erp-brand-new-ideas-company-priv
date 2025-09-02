@@ -99,121 +99,13 @@
 @endsection
 
 @push(StacksConstants::ADM_CSS)
-    @if($color == 'theme-3')
-        <style>
-            .btn-check:checked + .btn-outline-primary, .btn-check:active + .btn-outline-primary,
-            .btn-outline-primary:active, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show {
-                color: #ffffff;
-                background-color: #6fd943 !important;
-                border-color: #6fd943 !important;
-            }
-
-            .btn-outline-primary:hover
-            {
-                color: #ffffff;
-                background-color: #6fd943 !important;
-                border-color: #6fd943 !important;
-            }
-
-            .btn[class*="btn-outline-"]:hover {
-
-                border-color: #6fd943 !important;
-            }
-        </style>
-    @endif
-    @if($color == 'theme-2')
-        <style>
-            .btn-check:checked + .btn-outline-primary, .btn-check:active + .btn-outline-primary, .btn-outline-primary:active, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show {
-                color: #ffffff;
-                background: linear-gradient(141.55deg, rgba(240, 244, 243, 0) 3.46%, #4ebbd3 99.86%)#1f3996 !important;
-                border-color: #4ebbd3 !important;
-            }
-
-            .btn-outline-primary:hover
-            {
-                color: #ffffff;
-                background: linear-gradient(141.55deg, rgba(240, 244, 243, 0) 3.46%, #4ebbd3 99.86%)#1f3996 !important;
-                border-color: #4ebbd3 !important;
-            }
-            .btn.btn-outline-primary{
-                color: #1F3996;
-                border-color: #4ebbd3 !important;
-            }
-        </style>
-    @endif
-    @if($color == 'theme-4')
-        <style>
-            .btn-check:checked + .btn-outline-primary, .btn-check:active + .btn-outline-primary, .btn-outline-primary:active, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show {
-                color: #ffffff;
-                background-color: #584ed2 !important;
-                border-color: #584ed2 !important;
-
-            }
-
-            .btn-outline-primary:hover
-            {
-                color: #ffffff;
-                background-color: #584ed2 !important;
-                border-color: #584ed2 !important;
-            }
-            .btn.btn-outline-primary{
-                color: #584ed2;
-                border-color: #584ed2 !important;
-            }
-        </style>
-    @endif
-    @if($color == 'theme-1')
-        <style>
-            .btn-check:checked + .btn-outline-primary, .btn-check:active + .btn-outline-primary,
-            .btn-outline-primary:active, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show {
-                color: #ffffff;
-                background: linear-gradient(141.55deg, rgba(81, 69, 157, 0) 3.46%, rgba(255, 58, 110, 0.6) 99.86%), #51459d !important;
-                border-color: #51459d !important;
-            }
-
-            body.theme-1 .btn-outline-primary:hover
-            {
-                color: #ffffff;
-                background: linear-gradient(141.55deg, rgba(81, 69, 157, 0) 3.46%, rgba(255, 58, 110, 0.6) 99.86%), #51459d !important;
-                border-color: #51459d !important;
-            }
-        </style>
+    @if(in_array($color, ['theme-1', 'theme-2', 'theme-3', 'theme-4']))
+        <link rel="stylesheet" href="{{ asset('assets/css/routes/settings/' . str_replace('theme-', 'theme', $color) . '.css') }}" />
     @endif
 @endpush
 
 @push(StacksConstants::ADM_SCR_PG)
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:{scrollspy_unavailable:"تعذّر تفعيل ScrollSpy",theme_color_unavailable:"تعذّر تغيير لون السمة",storage_setting_unavailable:"تعذّر تبديل إعدادات التخزين",logo_dark_unavailable:"تعذّر معاينة الشعار الداكن",logo_light_unavailable:"تعذّر معاينة الشعار الفاتح",favicon_unavailable:"تعذّر معاينة الأيقونة",email_modal_unavailable:"تعذّر فتح نموذج البريد",email_test_unavailable:"تعذّر إرسال بريد تجريبي",cookie_unavailable:"تعذّر تفعيل إعدادات ملفات الارتباط",style_switch_unavailable:"تعذّر تبديل نمط الواجهة"},
-            da:{scrollspy_unavailable:"Kunne ikke aktivere ScrollSpy",theme_color_unavailable:"Kunne ikke ændre temafarve",storage_setting_unavailable:"Kunne ikke skifte lagerindstillinger",logo_dark_unavailable:"Kunne ikke forhåndsvise mørkt logo",logo_light_unavailable:"Kunne ikke forhåndsvise lyst logo",favicon_unavailable:"Kunne ikke forhåndsvise favicon",email_modal_unavailable:"Kunne ikke åbne e-mailformular",email_test_unavailable:"Kunne ikke sende testmail",cookie_unavailable:"Kunne ikke aktivere cookieindstillinger",style_switch_unavailable:"Kunne ikke skifte stil"},
-            de:{scrollspy_unavailable:"ScrollSpy konnte nicht aktiviert werden",theme_color_unavailable:"Designfarbe konnte nicht geändert werden",storage_setting_unavailable:"Speichereinstellungen konnten nicht gewechselt werden",logo_dark_unavailable:"Vorschau des dunklen Logos fehlgeschlagen",logo_light_unavailable:"Vorschau des hellen Logos fehlgeschlagen",favicon_unavailable:"Favicon-Vorschau fehlgeschlagen",email_modal_unavailable:"E-Mail-Formular konnte nicht geöffnet werden",email_test_unavailable:"Test-E-Mail konnte nicht gesendet werden",cookie_unavailable:"Cookie-Einstellungen konnten nicht aktiviert werden",style_switch_unavailable:"Stilwechsel fehlgeschlagen"},
-            en:{scrollspy_unavailable:"Cannot enable ScrollSpy",theme_color_unavailable:"Cannot change theme color",storage_setting_unavailable:"Cannot toggle storage settings",logo_dark_unavailable:"Cannot preview dark logo",logo_light_unavailable:"Cannot preview light logo",favicon_unavailable:"Cannot preview favicon",email_modal_unavailable:"Cannot open email form",email_test_unavailable:"Cannot send test email",cookie_unavailable:"Cannot enable cookie settings",style_switch_unavailable:"Cannot toggle UI style"},
-            es:{scrollspy_unavailable:"No se puede activar ScrollSpy",theme_color_unavailable:"No se puede cambiar el color del tema",storage_setting_unavailable:"No se pueden cambiar los ajustes de almacenamiento",logo_dark_unavailable:"No se puede previsualizar el logo oscuro",logo_light_unavailable:"No se puede previsualizar el logo claro",favicon_unavailable:"No se puede previsualizar el favicon",email_modal_unavailable:"No se puede abrir el formulario de correo",email_test_unavailable:"No se puede enviar el correo de prueba",cookie_unavailable:"No se pueden habilitar las cookies",style_switch_unavailable:"No se puede cambiar el estilo"},
-            fr:{scrollspy_unavailable:"Impossible d’activer ScrollSpy",theme_color_unavailable:"Impossible de changer la couleur du thème",storage_setting_unavailable:"Impossible de basculer les paramètres de stockage",logo_dark_unavailable:"Impossible d’apercevoir le logo sombre",logo_light_unavailable:"Impossible d’apercevoir le logo clair",favicon_unavailable:"Impossible d’apercevoir le favicon",email_modal_unavailable:"Impossible d’ouvrir le formulaire e-mail",email_test_unavailable:"Impossible d’envoyer l’e-mail de test",cookie_unavailable:"Impossible d’activer les cookies",style_switch_unavailable:"Impossible de changer le style"},
-            he:{scrollspy_unavailable:"לא ניתן להפעיל ScrollSpy",theme_color_unavailable:"לא ניתן לשנות צבע ערכת הנושא",storage_setting_unavailable:"לא ניתן להחליף הגדרות אחסון",logo_dark_unavailable:"לא ניתן להציג תצוגה מקדימה של לוגו כהה",logo_light_unavailable:"לא ניתן להציג תצוגה מקדימה של לוגו בהיר",favicon_unavailable:"לא ניתן להציג תצוגה מקדימה של favicon",email_modal_unavailable:"לא ניתן לפתוח טופס דוא\"ל",email_test_unavailable:"לא ניתן לשלוח דוא\"ל בדיקה",cookie_unavailable:"לא ניתן להפעיל הגדרות קוקיות",style_switch_unavailable:"לא ניתן להחליף סגנון"},
-            it:{scrollspy_unavailable:"Impossibile abilitare ScrollSpy",theme_color_unavailable:"Impossibile cambiare il colore del tema",storage_setting_unavailable:"Impossibile cambiare le impostazioni di archiviazione",logo_dark_unavailable:"Impossibile visualizzare l’anteprima del logo scuro",logo_light_unavailable:"Impossibile visualizzare l’anteprima del logo chiaro",favicon_unavailable:"Impossibile visualizzare l’anteprima della favicon",email_modal_unavailable:"Impossibile aprire il form e-mail",email_test_unavailable:"Impossibile inviare l’e-mail di test",cookie_unavailable:"Impossibile abilitare i cookie",style_switch_unavailable:"Impossibile cambiare stile"},
-            ja:{scrollspy_unavailable:"ScrollSpy を有効にできません",theme_color_unavailable:"テーマ色を変更できません",storage_setting_unavailable:"ストレージ設定を切り替えできません",logo_dark_unavailable:"ダークロゴをプレビューできません",logo_light_unavailable:"ライトロゴをプレビューできません",favicon_unavailable:"ファビコンをプレビューできません",email_modal_unavailable:"メールフォームを開けません",email_test_unavailable:"テストメールを送信できません",cookie_unavailable:"Cookie 設定を有効にできません",style_switch_unavailable:"スタイルを切り替えできません"},
-            nl:{scrollspy_unavailable:"ScrollSpy kan niet worden ingeschakeld",theme_color_unavailable:"Kan themakleur niet wijzigen",storage_setting_unavailable:"Kan opslaginstellingen niet wisselen",logo_dark_unavailable:"Kan donker logo niet bekijken",logo_light_unavailable:"Kan licht logo niet bekijken",favicon_unavailable:"Kan favicon niet bekijken",email_modal_unavailable:"Kan e-mailformulier niet openen",email_test_unavailable:"Kan testmail niet verzenden",cookie_unavailable:"Kan cookie-instellingen niet inschakelen",style_switch_unavailable:"Kan stijl niet wisselen"},
-            pl:{scrollspy_unavailable:"Nie można włączyć ScrollSpy",theme_color_unavailable:"Nie można zmienić koloru motywu",storage_setting_unavailable:"Nie można przełączyć ustawień magazynu",logo_dark_unavailable:"Nie można podejrzeć ciemnego logo",logo_light_unavailable:"Nie można podejrzeć jasnego logo",favicon_unavailable:"Nie można podejrzeć faviconu",email_modal_unavailable:"Nie można otworzyć formularza e-mail",email_test_unavailable:"Nie można wysłać wiadomości testowej",cookie_unavailable:"Nie można włączyć ustawień ciasteczek",style_switch_unavailable:"Nie można przełączyć stylu"},
-            pt:{scrollspy_unavailable:"Não foi possível ativar o ScrollSpy",theme_color_unavailable:"Não foi possível alterar a cor do tema",storage_setting_unavailable:"Não foi possível alternar as definições de armazenamento",logo_dark_unavailable:"Não foi possível pré-visualizar o logo escuro",logo_light_unavailable:"Não foi possível pré-visualizar o logo claro",favicon_unavailable:"Não foi possível pré-visualizar o favicon",email_modal_unavailable:"Não foi possível abrir o formulário de e-mail",email_test_unavailable:"Não foi possível enviar o e-mail de teste",cookie_unavailable:"Não foi possível ativar as cookies",style_switch_unavailable:"Não foi possível alternar o estilo"},
-            "pt-br":{scrollspy_unavailable:"Não foi possível ativar o ScrollSpy",theme_color_unavailable:"Não foi possível alterar a cor do tema",storage_setting_unavailable:"Não foi possível alternar as configurações de armazenamento",logo_dark_unavailable:"Não foi possível pré-visualizar o logo escuro",logo_light_unavailable:"Não foi possível pré-visualizar o logo claro",favicon_unavailable:"Não foi possível pré-visualizar o favicon",email_modal_unavailable:"Não foi possível abrir o formulário de e-mail",email_test_unavailable:"Não foi possível enviar o e-mail de teste",cookie_unavailable:"Não foi possível ativar as configurações de cookie",style_switch_unavailable:"Não foi possível alternar o estilo"},
-            ru:{scrollspy_unavailable:"Не удалось включить ScrollSpy",theme_color_unavailable:"Не удалось сменить цвет темы",storage_setting_unavailable:"Не удалось переключить настройки хранилища",logo_dark_unavailable:"Не удалось показать тёмный логотип",logo_light_unavailable:"Не удалось показать светлый логотип",favicon_unavailable:"Не удалось показать favicon",email_modal_unavailable:"Не удалось открыть форму e-mail",email_test_unavailable:"Не удалось отправить тестовое письмо",cookie_unavailable:"Не удалось включить настройки cookie",style_switch_unavailable:"Не удалось переключить стиль"},
-            tr:{scrollspy_unavailable:"ScrollSpy etkinleştirilemedi",theme_color_unavailable:"Tema rengi değiştirilemiyor",storage_setting_unavailable:"Depolama ayarları değiştirilemiyor",logo_dark_unavailable:"Koyu logo önizlenemiyor",logo_light_unavailable:"Açık logo önizlenemiyor",favicon_unavailable:"Favicon önizlenemiyor",email_modal_unavailable:"E-posta formu açılamıyor",email_test_unavailable:"Test e-postası gönderilemiyor",cookie_unavailable:"Çerez ayarları etkinleştirilemiyor",style_switch_unavailable:"Stil değiştirilemiyor"},
-            zh:{scrollspy_unavailable:"无法启用 ScrollSpy",theme_color_unavailable:"无法更改主题颜色",storage_setting_unavailable:"无法切换存储设置",logo_dark_unavailable:"无法预览深色徽标",logo_light_unavailable:"无法预览浅色徽标",favicon_unavailable:"无法预览网站图标",email_modal_unavailable:"无法打开邮件表单",email_test_unavailable:"无法发送测试邮件",cookie_unavailable:"无法启用 Cookie 设置",style_switch_unavailable:"无法切换样式"}
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
+    <script async src="{{ asset('assets/js/routes/settings/lang/color.js') }}">
     </script>
     <script defer>
         (() => {
@@ -633,44 +525,7 @@ Object.keys(t).forEach(
                             'data-guard-msg' => $systemStoreGuardMsg
                         ]) !!}
                         @push(StacksConstants::ADM_SCR_PG)
-                            <script defer>
-                                (() => {
-                                    const form = document.getElementById('{{ $systemStoreFormId }}');
-                                    if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                                    form.setAttribute('data-listener-active', 'true');
-                                    form.addEventListener('submit', (e) => {
-                                        try {
-                                            const url = form.getAttribute('data-url') || '#';
-                                            const action = form.getAttribute('action') || '#';
-                                            if (url !== '#' || action !== '#') return;
-                                            e.preventDefault();
-                                            const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                            let container = document.getElementById('toast-container');
-                                            if (!container) {
-                                                container = document.createElement('div');
-                                                container.id = 'toast-container';
-                                                document.body.appendChild(container);
-                                            }
-                                            if (hasBootstrap) {
-                                                const toast = document.createElement('div');
-                                                toast.className = 'toast';
-                                                toast.setAttribute('role', 'alert');
-                                                toast.setAttribute('aria-live', 'assertive');
-                                                toast.setAttribute('aria-atomic', 'true');
-                                                const body = document.createElement('div');
-                                                body.className = 'toast-body';
-                                                body.textContent = msg;
-                                                toast.appendChild(body);
-                                                container.appendChild(toast);
-                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                            } else {
-                                                alert(msg);
-                                            }
-                                            form.setAttribute('data-failed-route', 'true');
-                                        } catch (err) {}
-                                    });
-                                })();
+                            <script defer src="{{ asset('assets/js/routes/settings/systems/store.js') }}">
                             </script>
                         @endpush
                         <div class="card-body">
@@ -700,7 +555,7 @@ Object.keys(t).forEach(
                                                 @error('logo_dark')
                                                     <div class="{{ VC::RW }}">
                                                         <span class="invalid-logo" role="alert">
-                                                            <strong class="text-danger">{{ $message }}</strong>
+                                                            <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                         </span>
                                                     </div>
                                                 @enderror
@@ -733,7 +588,7 @@ Object.keys(t).forEach(
                                                 @error('logo_light')
                                                     <div class="{{ VC::RW }}">
                                                         <span class="invalid-logo" role="alert">
-                                                            <strong class="text-danger">{{ $message }}</strong>
+                                                            <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                         </span>
                                                     </div>
                                                 @enderror
@@ -762,7 +617,7 @@ Object.keys(t).forEach(
                                                 @error(SettingsConstants::FAV_ICN)
                                                     <div class="{{ VC::RW }}">
                                                         <span class="invalid-logo" role="alert">
-                                                            <strong class="text-danger">{{ $message }}</strong>
+                                                            <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                         </span>
                                                     </div>
                                                 @enderror
@@ -778,37 +633,40 @@ Object.keys(t).forEach(
                                         {{ Form::text('title_text', null, ['class' => VC::FM_CT, 'placeholder' => __('Title Text')]) }}
                                         @error('title_text')
                                             <span class="invalid-title_text" role="alert">
-                                                <strong class="text-danger">{{ $message }}</strong>
+                                                <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                             </span>
                                         @enderror
                                     </div>
                                 </div>
-
                                 <div class="col-md-4">
                                     <div class="{{ VC::FM_G }}">
                                         {{ Form::label(SettingsConstants::FT_TXT, __('Footer Text'), ['class' => VC::FM_LB]) }}
                                         {{ Form::text(SettingsConstants::FT_TXT, Utility::getValByName(SettingsConstants::FT_TXT), ['class' => VC::FM_CT, 'placeholder' => __('Enter Footer Text')]) }}
                                         @error(SettingsConstants::FT_TXT)
                                             <span class="invalid-footer_text" role="alert">
-                                                <strong class="text-danger">{{ $message }}</strong>
+                                                <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                             </span>
                                         @enderror
                                     </div>
                                 </div>
-
                                 <div class="col-md-4">
                                     <div class="{{ VC::FM_G }}">
                                         {{ Form::label(SettingsConstants::DEF_LNG, __('Default Language'), ['class' => VC::FM_LB . ' text-dark']) }}
                                         <div class="changeLanguage">
                                             <select name="default_language" id="default_language" class="{{ VC::FM_CT }} select">
-                                                @foreach (\Utility::languages() as $code => $language)
-                                                    <option @if ($lang == $code) selected @endif value="{{ $code }}">{{ ucFirst($language) }}</option>
-                                                @endforeach
+                                                @php $langs = Utility::languages(); @endphp
+                                                @if (is_array($langs) && count($langs) > 0 || $langs instanceof Collection && $langs->isNotEmpty())
+                                                    @foreach ($langs as $code => $language)
+                                                        <option @if ($lang == $code) selected @endif value="{{ $code }}">{{ ucFirst($language) }}</option>
+                                                    @endforeach
+                                                @else
+                                                    <option value="{{ DatabaseConstants::DEFAULT_LANG }}">{{ __('No languages options available') }}</option>
+                                                @endif
                                             </select>
                                         </div>
                                         @error(SettingsConstants::DEF_LNG)
                                             <span class="invalid-default_language" role="alert">
-                                                <strong class="text-danger">{{ $message }}</strong>
+                                                <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                             </span>
                                         @enderror
                                     </div>
@@ -819,12 +677,11 @@ Object.keys(t).forEach(
                                     <div class="custom-control custom-switch">
                                         <label class="text-dark mb-1 mt-3" for="SITE_RTL">{{ __('Enable RTL') }}</label>
                                         <div>
-                                            <input type="checkbox" name="SITE_RTL" id="SITE_RTL" data-toggle="switchbutton" data-onstyle="primary" {{ $settings[SettingsConstants::RTL] == 'on' ? 'checked="checked"' : '' }}>
+                                            <input type="checkbox" name="SITE_RTL" id="SITE_RTL" data-toggle="switchbutton" data-onstyle="primary" {{ !empty($settings[SettingsConstants::RTL]) && $settings[SettingsConstants::RTL] == 'on' ? 'checked="checked"' : '' }}>
                                             <label class="custom-control-label" for="SITE_RTL"></label>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="col-md-3">
                                     <div class="{{ VC::FM_G }}">
                                         <label class="text-dark mb-1 mt-3" for="display_landing_page">{{ __('Enable Landing Page') }}</label>
@@ -834,7 +691,6 @@ Object.keys(t).forEach(
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="col-md-3">
                                     <div class="{{ VC::FM_G }}">
                                         <label class="text-dark mb-1 mt-3" for="enable_signup">{{ __('Enable Sign-Up Page') }}</label>
@@ -844,52 +700,44 @@ Object.keys(t).forEach(
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="col-auto">
                                     <div class="{{ VC::FM_G }}">
                                         <label class="text-dark mb-1 mt-3" for="email_verification">{{ __('Email Verification') }}</label>
                                         <div>
-                                            <input type="checkbox" name="email_verification" id="email_verification" data-toggle="switchbutton" {{ $settings['email_verification'] == 'on' ? 'checked="checked"' : '' }} data-onstyle="primary">
+                                            <input type="checkbox" name="email_verification" id="email_verification" data-toggle="switchbutton" {{ !empty($settings['email_verification']) ? ($settings['email_verification'] == 'on' ? 'checked="checked"' : '') : '' }} data-onstyle="primary">
                                             <label class="form-check-label" for="email_verification"></label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                             <h4 class="small-title">{{ __('Theme Customizer') }}</h4>
                             <div class="setting-card setting-logo-box p-3">
                                 <div class="{{ VC::RW }}">
-                                    <div class="col-lg-4 col-xl-4 col-md-4">
+                                    <div class="{{ VC::CL_XL4 }}">
                                         <h6 class="mt-2">
                                             <i data-feather="credit-card" class="me-2"></i>{{ __('Primary color settings') }}
                                         </h6>
                                         <hr class="my-2"/>
                                         <div class="theme-color themes-color">
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-1' ? 'active_color' : '' }}" data-value="theme-1"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-1" {{ $settings['color'] == 'theme-1' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-2' ? 'active_color' : '' }}" data-value="theme-2"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-2" {{ $settings['color'] == 'theme-2' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-3' ? 'active_color' : '' }}" data-value="theme-3"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-3" {{ $settings['color'] == 'theme-3' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-4' ? 'active_color' : '' }}" data-value="theme-4"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-4" {{ $settings['color'] == 'theme-4' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-5' ? 'active_color' : '' }}" data-value="theme-5"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-5" {{ $settings['color'] == 'theme-5' ? 'checked' : '' }}>
-                                            <br>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-6' ? 'active_color' : '' }}" data-value="theme-6"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-6" {{ $settings['color'] == 'theme-6' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-7' ? 'active_color' : '' }}" data-value="theme-7"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-7" {{ $settings['color'] == 'theme-7' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-8' ? 'active_color' : '' }}" data-value="theme-8"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-8" {{ $settings['color'] == 'theme-8' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-9' ? 'active_color' : '' }}" data-value="theme-9"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-9" {{ $settings['color'] == 'theme-9' ? 'checked' : '' }}>
-                                            <a href="#!" class="themes-color-change {{ $settings['color'] == 'theme-10' ? 'active_color' : '' }}" data-value="theme-10"></a>
-                                            <input type="radio" class="theme_color d-none" name="color" value="theme-10" {{ $settings['color'] == 'theme-10' ? 'checked' : '' }}>
+                                            @php
+                                                $themes = ['theme-1', 'theme-2', 'theme-3', 'theme-4', 'theme-5'];
+                                                $themesRow2 = ['theme-6', 'theme-7', 'theme-8', 'theme-9', 'theme-10'];
+                                                $breakAfter = 5;
+                                            @endphp
+                                            @foreach($themes as $index => $theme)
+                                                <a href="#!" class="themes-color-change {{ $settings['color'] == $theme ? 'active_color' : '' }}" data-value="{{ $theme }}"></a>
+                                                <input type="radio" class="theme_color d-none" name="color" value="{{ $theme }}" {{ $settings['color'] == $theme ? 'checked' : '' }}>
+                                                @if($index + 1 == $breakAfter)
+                                                    <br>
+                                                @endif
+                                            @endforeach
+                                            @foreach($themesRow2 as $theme)
+                                                <a href="#!" class="themes-color-change {{ $settings['color'] == $theme ? 'active_color' : '' }}" data-value="{{ $theme }}"></a>
+                                                <input type="radio" class="theme_color d-none" name="color" value="{{ $theme }}" {{ $settings['color'] == $theme ? 'checked' : '' }}>
+                                            @endforeach
                                         </div>
                                     </div>
-
-                                    <div class="col-lg-4 col-xl-4 col-md-4">
+                                    <div class="{{ VC::CL_XL4 }}">
                                         <h6 class="mt-2">
                                             <i data-feather="layout" class="me-2"></i>{{ __('Sidebar settings') }}
                                         </h6>
@@ -899,8 +747,7 @@ Object.keys(t).forEach(
                                             <label class="form-check-label f-w-600 pl-1" for="cust-theme-bg">{{ __('Transparent layout') }}</label>
                                         </div>
                                     </div>
-
-                                    <div class="col-lg-4 col-xl-4 col-md-4">
+                                    <div class="{{ VC::CL_XL4 }}">
                                         <h6 class="mt-2">
                                             <i data-feather="sun" class="me-2"></i>{{ __('Layout settings') }}
                                         </h6>
@@ -912,13 +759,11 @@ Object.keys(t).forEach(
                                     </div>
                                 </div>
                             </div>
-
                             <div class="card-footer text-end">
                                 <div class="{{ VC::FM_G }}">
                                     <input class="{{ VC::BT_PR_PRM10 }}" type="submit" value="{{ __('Save Changes') }}">
                                 </div>
                             </div>
-
                             {{ Form::close() }}
                         </div>
                     </div>
@@ -946,44 +791,7 @@ Object.keys(t).forEach(
                                 'data-guard-msg' => $emailSettingsGuardMsg
                             ]) !!}
                                 @push(StacksConstants::ADM_SCR_PG)
-                                    <script defer>
-                                        (() => {
-                                            const form = document.getElementById('{{ $emailSettingsFormId }}');
-                                            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                                            form.setAttribute('data-listener-active', 'true');
-                                            form.addEventListener('submit', e => {
-                                                try {
-                                                    const url = form.getAttribute('data-url') || '#';
-                                                    const action = form.getAttribute('action') || '#';
-                                                    if (url !== '#' || action !== '#') return;
-                                                    e.preventDefault();
-                                                    const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (hasBootstrap) {
-                                                        const toast = document.createElement('div');
-                                                        toast.className = 'toast';
-                                                        toast.setAttribute('role','alert');
-                                                        toast.setAttribute('aria-live','assertive');
-                                                        toast.setAttribute('aria-atomic','true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toast.appendChild(body);
-                                                        container.appendChild(toast);
-                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    form.setAttribute('data-failed-route', 'true');
-                                                } catch (err) {}
-                                            });
-                                        })();
+                                    <script defer src="{{ asset('assets/js/routes/settings/email.js') }}">
                                     </script>
                                 @endpush
                                 @csrf
@@ -994,7 +802,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_driver', isset($settings['mail_driver']) ? $settings['mail_driver'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail Driver')]) }}
                                             @error('mail_driver')
                                                 <span class="invalid-mail_driver" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1005,7 +813,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_host', isset($settings['mail_host']) ? $settings['mail_host'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail Host')]) }}
                                             @error('mail_host')
                                                 <span class="invalid-mail_host" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1016,7 +824,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_port', isset($settings['mail_port']) ? $settings['mail_port'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail Port')]) }}
                                             @error('mail_port')
                                                 <span class="invalid-mail_port" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1029,7 +837,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_username', isset($settings['mail_username']) ? $settings['mail_username'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail Username')]) }}
                                             @error('mail_username')
                                                 <span class="invalid-mail_username" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1040,7 +848,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_password', isset($settings['mail_password']) ? $settings['mail_password'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail Password')]) }}
                                             @error('mail_password')
                                                 <span class="invalid-mail_password" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1051,7 +859,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_encryption', isset($settings['mail_encryption']) ? $settings['mail_encryption'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail Encryption')]) }}
                                             @error('mail_encryption')
                                                 <span class="invalid-mail_encryption" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1064,7 +872,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_from_address', isset($settings['mail_from_address']) ? $settings['mail_from_address'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail From Address')]) }}
                                             @error('mail_from_address')
                                                 <span class="invalid-mail_from_address" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1075,7 +883,7 @@ Object.keys(t).forEach(
                                             {{ Form::text('mail_from_name', isset($settings['mail_from_name']) ? $settings['mail_from_name'] : '', ['class' => VC::FM_CT, 'placeholder' => __('Enter Mail From Name')]) }}
                                             @error('mail_from_name')
                                                 <span class="invalid-mail_from_name" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             @enderror
                                         </div>
@@ -1126,45 +934,7 @@ Object.keys(t).forEach(
                             'data-guard-msg' => $companyPaymentSettingsGuardMsg
                         ]) !!}
                             @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const form = document.getElementById('{{ $companyPaymentSettingsFormId }}');
-                                        if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                                        form.setAttribute('data-listener-active', 'true');
-                                        form.addEventListener('submit', (e) => {
-                                            try {
-                                                const url = form.getAttribute('data-url') || '#';
-                                                const action = form.getAttribute('action') || '#';
-                                                if (url !== '#' || action !== '#') return;
-                                                e.preventDefault();
-                                                const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                form.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    })();
-                                </script>
+                                <script defer src="{{ asset('assets/js/routes/settings/companies/index.js') }}"></script>
                             @endpush
                             @csrf
                             <div class="card-body">
@@ -1536,7 +1306,7 @@ Object.keys(t).forEach(
                                                                                                     <small class="text-xs">{!! __($field['help']) !!}</small>
                                                                                                 @endif
                                                                                                 @error($name)
-                                                                                                    <span class="invalid-feedback d-block">{{ $message }}</span>
+                                                                                                    <span class="invalid-feedback d-block">{{ !empty($message) ? $message : __('No message available')  }}</span>
                                                                                                 @enderror
                                                                                             </div>
                                                                                         </div>
@@ -1588,45 +1358,7 @@ Object.keys(t).forEach(
                             'data-guard-msg' => $settingsPusherGuardMsg
                         ]) !!}
                             @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const form = document.getElementById('{{ $settingsPusherFormId }}');
-                                        if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                                        form.setAttribute('data-listener-active', 'true');
-                                        form.addEventListener('submit', (e) => {
-                                            try {
-                                                const url = form.getAttribute('data-url') || '#';
-                                                const action = form.getAttribute('action') || '#';
-                                                if (url !== '#' || action !== '#') return;
-                                                e.preventDefault();
-                                                const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role', 'alert');
-                                                    toast.setAttribute('aria-live', 'assertive');
-                                                    toast.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                form.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    })();
-                                </script>
+                                <script defer src="{{ asset('assets/js/routes/settings/pusher.js') }}"></script>
                             @endpush
                             @csrf
                             <div class="{{ VC::CD }}-body">
@@ -1636,10 +1368,9 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::FM_G }}">
                                                 {{ Form::label($field['name'], $field['label'], ['class' => VC::FM_LB]) }}
                                                 {{ Form::text($field['name'], null, ['class' => VC::FM_CT . ' font-style']) }}
-
                                                 @error($field['name'])
                                                     <span class="invalid-{{ $field['name'] }}" role="alert">
-                                                        <strong class="text-danger">{{ $message }}</strong>
+                                                        <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                     </span>
                                                 @enderror
                                             </div>
@@ -1693,45 +1424,7 @@ Object.keys(t).forEach(
                             'data-guard-msg' => $settingsRecaptchaStoreGuardMsg
                         ]) !!}
                             @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const form = document.getElementById('{{ $settingsRecaptchaStoreFormId }}');
-                                        if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                                        form.setAttribute('data-listener-active', 'true');
-                                        form.addEventListener('submit', (e) => {
-                                            try {
-                                                const url = form.getAttribute('data-url') || '#';
-                                                const action = form.getAttribute('action') || '#';
-                                                if (url !== '#' || action !== '#') return;
-                                                e.preventDefault();
-                                                const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                form.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    })();
-                                </script>
+                                <script defer src="{{ asset('assets/js/routes/settings/recaptcha.js') }}"></script>
                             @endpush
                             @csrf
                             <div class="{{ VC::CD }}-header">
@@ -1743,7 +1436,6 @@ Object.keys(t).forEach(
                                             <small>({{ __('How to Get Google reCaptcha Site and Secret key') }})</small>
                                         </a>
                                     </div>
-
                                     <div class="col switch-width text-end">
                                         <div class="{{ VC::FM_G }} {{ VC::MB0 }}">
                                             <div class="{{ VC::CST_CTL }} custom-switch">
@@ -1779,7 +1471,7 @@ Object.keys(t).forEach(
                                                 >
                                                 @error($field['name'])
                                                     <span class="invalid-{{ $field['name'] }}" role="alert">
-                                                        <strong class="text-danger">{{ $message }}</strong>
+                                                        <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                     </span>
                                                 @enderror
                                             </div>
@@ -1917,7 +1609,7 @@ Object.keys(t).forEach(
                                         @error('meta_image')
                                             <div class="{{ VC::RW }}">
                                                 <span class="invalid-logo" role="alert">
-                                                    <strong class="text-danger">{{ $message }}</strong>
+                                                    <strong class="text-danger">{{ !empty($message) ? $message : __('No message available')  }}</strong>
                                                 </span>
                                             </div>
                                         @enderror
@@ -2069,194 +1761,7 @@ Object.keys(t).forEach(
                         {{ Form::close() }}
                     </div>
                     @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                try {
-                                    const seoGen = document.getElementById('{{ $generateSeoLinkId }}');
-                                    if (seoGen && seoGen.getAttribute('data-listener-active') !== 'true') {
-                                        seoGen.setAttribute('data-listener-active', 'true');
-                                        seoGen.addEventListener('click', e => {
-                                            try {
-                                                const url = seoGen.getAttribute('data-url') || '#';
-                                                if (url !== '#') return;
-                                                e.preventDefault();
-                                                const msg = seoGen.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                seoGen.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    }
-
-                                    const cookieGen = document.getElementById('{{ $generateCookieLinkId }}');
-                                    if (cookieGen && cookieGen.getAttribute('data-listener-active') !== 'true') {
-                                        cookieGen.setAttribute('data-listener-active', 'true');
-                                        cookieGen.addEventListener('click', e => {
-                                            try {
-                                                const url = cookieGen.getAttribute('data-url') || '#';
-                                                if (url !== '#') return;
-                                                e.preventDefault();
-                                                const msg = cookieGen.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                cookieGen.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    }
-
-                                    const seoForm = document.getElementById('{{ $settingsSeoStoreFormId }}');
-                                    if (seoForm && seoForm.getAttribute('data-listener-active') !== 'true') {
-                                        seoForm.setAttribute('data-listener-active', 'true');
-                                        seoForm.addEventListener('submit', e => {
-                                            try {
-                                                const url = seoForm.getAttribute('data-url') || '#';
-                                                const action = seoForm.getAttribute('action') || '#';
-                                                if (url !== '#' || action !== '#') return;
-                                                e.preventDefault();
-                                                const msg = seoForm.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                seoForm.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    }
-
-                                    const cookiesForm = document.getElementById('{{ $settingsCookiesStoreFormId }}');
-                                    if (cookiesForm && cookiesForm.getAttribute('data-listener-active') !== 'true') {
-                                        cookiesForm.setAttribute('data-listener-active', 'true');
-                                        cookiesForm.addEventListener('submit', e => {
-                                            try {
-                                                const url = cookiesForm.getAttribute('data-url') || '#';
-                                                const action = cookiesForm.getAttribute('action') || '#';
-                                                if (url !== '#' || action !== '#') return;
-                                                e.preventDefault();
-                                                const msg = cookiesForm.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                cookiesForm.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    }
-
-                                    const chatForm = document.getElementById('{{ $settingsChatGptFormId }}');
-                                    if (chatForm && chatForm.getAttribute('data-listener-active') !== 'true') {
-                                        chatForm.setAttribute('data-listener-active', 'true');
-                                        chatForm.addEventListener('submit', e => {
-                                            try {
-                                                const url = chatForm.getAttribute('data-url') || '#';
-                                                const action = chatForm.getAttribute('action') || '#';
-                                                if (url !== '#' || action !== '#') return;
-                                                e.preventDefault();
-                                                const msg = chatForm.getAttribute('data-guard-msg') || '# ERROR';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role','alert');
-                                                    toast.setAttribute('aria-live','assertive');
-                                                    toast.setAttribute('aria-atomic','true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                chatForm.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    }
-                                } catch (err) {}
-                            })();
-                        </script>
+                        <script defer src="{{ asset('assets/js/routes/settings/seo.js') }}"></script>
                     @endpush
                     @php
                         $cacheSettingsStoreBaseName         = 'cache.settings.store';
@@ -2304,45 +1809,7 @@ Object.keys(t).forEach(
                         {{ Form::close() }}
                     </div>
                     @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                const form = document.getElementById('{{ $cacheSettingsStoreFormId }}');
-                                if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                                form.setAttribute('data-listener-active', 'true');
-                                form.addEventListener('submit', e => {
-                                    try {
-                                        const url = form.getAttribute('data-url') || '#';
-                                        const action = form.getAttribute('action') || '#';
-                                        if (url !== '#' || action !== '#') return;
-                                        e.preventDefault();
-                                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        form.setAttribute('data-failed-route', 'true');
-                                    } catch (err) {}
-                                });
-                            })();
-                        </script>
+                        <script defer src="{{ asset('assets/js/routes/settings/cache.js') }}"></script>
                     @endpush
                     {{--  End for all settings tab --}}
                 </div>

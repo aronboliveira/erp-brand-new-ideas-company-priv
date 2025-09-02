@@ -11,7 +11,7 @@ use App\Config\Constants\{
 use App\Models\{Deal, Pipeline, Stage};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\{DB, Log, Route, Validator};
+use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
 class StageController extends Controller
@@ -62,7 +62,7 @@ class StageController extends Controller
                     $pipelines[$pid]['stages'][] = $stage;
                 }
                 $this->logExecutionTime($groupStart, $action, 'groupStagesByPipeline');
-                if (!View::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'pipelines_count' => count($pipelines)]);
                 $renderStart = microtime(true);
                 $resp = view($viewPath, compact('pipelines'));
@@ -91,7 +91,7 @@ class StageController extends Controller
                 $fetchStart = microtime(true);
                 $pipelines = Pipeline::where('created_by', $ownerId)->pluck('name', 'id');
                 $this->logExecutionTime($fetchStart, $action, 'fetchPipelines');
-                if (!View::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $resp = view($viewPath, compact('pipelines'));
                 $this->logExecutionTime($renderStart, $action, 'renderCreate');
@@ -174,7 +174,7 @@ class StageController extends Controller
             $fetchStart = microtime(true);
             $pipelines = Pipeline::where('created_by', $user?->ownerId())->pluck('name', 'id');
             $this->logExecutionTime($fetchStart, $action, 'fetchPipelines');
-            if (!View::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             $renderStart = microtime(true);
             $resp = view($viewPath, compact('stage', 'pipelines'));
             $this->logExecutionTime($renderStart, $action, 'renderEdit');

@@ -303,7 +303,12 @@ Object.keys(t).forEach(
         })();
     </script>
 @endpush
-@section('content')
+@section(YieldingConstants::ADM_CTT)
+    @php 
+        $templateData = Utility::templateData(); 
+        $templates = $templateData['templates'];
+        $colors = $templateData['colors'];
+    @endphp
     <div class="{{ VC::CS12 }} {{ VC::MT4 }}">
         <div class="{{ VC::CD }}">
             <div class="card-body">
@@ -314,197 +319,303 @@ Object.keys(t).forEach(
                         ['id' => 'bill',     'label' => __('Bill Print Setting')],
                     ];
                 @endphp
-
                 <ul class="{{ VC::NAV_PL }} {{ VC::MB3 }}" id="pills-tab" role="tablist">
-                    @foreach($tabs as $index => $tab)
-                        <li class="{{ VC::NV_IT }}" role="presentation">
-                            <a class="{{ VC::NV_LK }} {{ $index === 0 ? 'active' : '' }}"
-                            id="pills-{{ $tab['id'] }}-tab"
-                            data-bs-toggle="pill"
-                            href="#pills-{{ $tab['id'] }}"
-                            role="tab"
-                            aria-controls="pills-{{ $tab['id'] }}"
-                            aria-selected="{{ $index === 0 ? 'true' : 'false' }}">
-                                {{ $tab['label'] }}
-                            </a>
-                        </li>
-                    @endforeach
+                    @if(is_array($tabs) && count($tabs) || $tabs instanceof Collection && $tabs->isNotEmpty())
+                        @foreach($tabs as $index => $tab)
+                            <li class="{{ VC::NV_IT }}" role="presentation">
+                                <a class="{{ VC::NV_LK }} {{ $index === 0 ? 'active' : '' }}"
+                                id="pills-{{ $tab['id'] }}-tab"
+                                data-bs-toggle="pill"
+                                href="#pills-{{ $tab['id'] }}"
+                                role="tab"
+                                aria-controls="pills-{{ $tab['id'] }}"
+                                aria-selected="{{ $index === 0 ? 'true' : 'false' }}">
+                                    {{ $tab['label'] }}
+                                </a>
+                            </li>
+                        @endforeach
+                    @else
+                        <li class="{{ VC::NV_IT }}" role="presentation">{{ __('No tabs available') }}</li>
+                    @endif
                 </ul>
-
                 <div class="tab-content" id="pills-tabContent">
-                    <!-- Proposal Setting -->
+                    {{-- Proposal Setting --}}
                     <div class="tab-pane fade show active" id="pills-proposal" role="tabpanel" aria-labelledby="pills-proposal-tab">
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
                                     <div class="card-body">
                                         <h5></h5>
-                                        <form id="setting-form" method="post" action="{{ route(ViewsConstants::PPS_TMP . 'settings') }}" enctype="multipart/form-data">
+                                        @php
+                                            $proposalTemplateSettingsRouteBase = ViewsConstants::PPS_TMP.'settings';
+                                            $proposalTemplateSettingsRouteKebab = Str::kebab($proposalTemplateSettingsRouteBase);
+                                            $proposalTemplateSettingsRouteResolved = Route::has($proposalTemplateSettingsRouteBase) ? $proposalTemplateSettingsRouteBase : (Route::has($proposalTemplateSettingsRouteKebab) ? $proposalTemplateSettingsRouteKebab : null);
+                                            $proposalTemplateSettingsUrl = $proposalTemplateSettingsRouteResolved ? route($proposalTemplateSettingsRouteResolved) : '#';
+                                            $userLangForProposalTemplate = isset($lang) ? $lang : Utility::fetchUserLang();
+                                            $proposalTemplateSettingsGuardMsg = Utility::fetchLinkMessage($userLangForProposalTemplate, ViewsConstants::PPS_TMP, 'settings_proposal_template_route_unavailable') ?? 'Proposal template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                            $proposalTemplateSettingsFormId = 'proposal-template-settings-form';
+                                            $proposalTemplateSelectId = 'proposal-template-select';
+                                            $proposalColorRadioName = 'proposal_color';
+                                            $proposalLogoFileInputId = 'proposal-logo-input';
+                                            $proposalLogoPreviewImgId = 'proposal-logo-preview-img';
+                                        @endphp
+                                        <form id="{{ $proposalTemplateSettingsFormId }}" method="post" action="{{ $proposalTemplateSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $proposalTemplateSettingsUrl }}" data-guard-msg="{{ $proposalTemplateSettingsGuardMsg }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
-                                                <label for="proposal_template" class="{{ VC::FM_LB }}">{{ __('Proposal Template') }}</label>
-                                                <select id="proposal_template" class="{{ VC::FM_CT }} select2" name="proposal_template">
-                                                    @foreach(Utility::templateData()['templates'] as $key => $template)
-                                                        <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_PPS_TMP]) && $settings[BillsConstants::COL_PPS_TMP] == $key) ? 'selected' : '' }}>
-                                                            {{ $template }}
-                                                        </option>
-                                                    @endforeach
+                                                <label for="{{ $proposalTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Proposal Template') }}</label>
+                                                <select id="{{ $proposalTemplateSelectId }}" class="{{ VC::FM_CT }} select2" name="proposal_template">
+                                                    @if (is_array($templates) && count($templates) || $templates instanceof Collection && $templates->isNotEmpty())
+                                                        @foreach($templates as $key => $template)
+                                                            <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_PPS_TMP]) && $settings[BillsConstants::COL_PPS_TMP] == $key) ? 'selected' : '' }}>
+                                                                {{ $template }}
+                                                            </option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="">{{ __('No templates available for Proposals') }}</option>
+                                                    @endif
                                                 </select>
                                             </div>
-
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @foreach(Utility::templateData()['colors'] as $key => $color)
+                                                    @if (is_array($colors) && count($colors) || $colors instanceof Collection && $colors->isNotEmpty())
+                                                        @foreach($colors as $key => $color)
+                                                            <div class="{{ VC::C_AT }}">
+                                                                <label class="colorinput">
+                                                                    <input name="{{ $proposalColorRadioName }}" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['proposal_color']) && $settings['proposal_color'] == $color) ? 'checked' : '' }}>
+                                                                    <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
                                                         <div class="{{ VC::C_AT }}">
                                                             <label class="colorinput">
-                                                                <input name="proposal_color" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['proposal_color']) && $settings['proposal_color'] == $color) ? 'checked' : '' }}>
+                                                                <input name="{{ $proposalColorRadioName }}" type="radio" value="" class="colorinput-input" disabled>
                                                                 <span class="colorinput-color" style="background: #{{ $color }}"></span>
                                                             </label>
                                                         </div>
-                                                    @endforeach
+                                                    @endif
                                                 </div>
                                             </div>
-
                                             <div class="{{ VC::FM_G }}">
-                                                <label class="{{ VC::FM_LB }}">{{ __('Proposal Logo') }}</label>
+                                                <label class="{{ VC::FM_LB }}" for="{{ $proposalLogoFileInputId }}">{{ __('Proposal Logo') }}</label>
                                                 <div class="choose-files">
-                                                    <label for="proposal_logo">
+                                                    <label for="{{ $proposalLogoFileInputId }}">
                                                         <div class="{{ VC::BG_P }} proposal_logo_update">
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
-                                                        <input type="file" class="{{ VC::FM_CT }} file" name="proposal_logo" id="proposal_logo" data-filename="proposal_logo_update">
-                                                        <img id="proposal_image" class="mt-2" style="width:25%;" />
+                                                        <input type="file" class="{{ VC::FM_CT }} file" name="proposal_logo" id="{{ $proposalLogoFileInputId }}" data-filename="proposal_logo_update">
+                                                        <img id="{{ $proposalLogoPreviewImgId }}" class="mt-2" style="width:25%;" />
                                                     </label>
                                                 </div>
                                             </div>
-
                                             <div class="{{ VC::FM_G }} mt-2 text-end">
                                                 <input type="submit" value="{{ __('Save') }}" class="{{ VC::BT_PR_PRM10 }}">
                                             </div>
                                         </form>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer src="{{ asset('assets/js/routes/settings/proposals/settings.js') }}"></script>
+                                        @endpush
                                     </div>
                                 </div>
-
+                                @php
+                                    $proposalPreviewRouteBase = ViewsConstants::PPS.'.preview';
+                                    $proposalPreviewRouteKebab = Str::kebab($proposalPreviewRouteBase);
+                                    $proposalPreviewRouteResolved = Route::has($proposalPreviewRouteBase) ? $proposalPreviewRouteBase : (Route::has($proposalPreviewRouteKebab) ? $proposalPreviewRouteKebab : null);
+                                    $proposalTemplateValue = (isset($settings[BillsConstants::COL_PPS_TMP]) && isset($settings['proposal_color'])) ? $settings[BillsConstants::COL_PPS_TMP] : 'template1';
+                                    $proposalColorValue = (isset($settings[BillsConstants::COL_PPS_TMP]) && isset($settings['proposal_color'])) ? $settings['proposal_color'] : 'ffffff';
+                                    $proposalPreviewUrl = $proposalPreviewRouteResolved ? route($proposalPreviewRouteResolved, [$proposalTemplateValue, $proposalColorValue]) : '#';
+                                    $userLangForProposalPreview = isset($lang) ? $lang : Utility::fetchUserLang();
+                                    $proposalPreviewGuardMsg = Utility::fetchLinkMessage($userLangForProposalPreview, ViewsConstants::PPS, 'preview_proposal_route_unavailable') ?? 'Proposal preview route is unavailable. Please contact technical support or your domain administrator.';
+                                    $proposalTemplatePreviewIframeId = 'proposal-template-preview-frame';
+                                @endphp
                                 <div class="{{ VC::CM9 }}">
-                                    @if(isset($settings[BillsConstants::COL_PPS_TMP]) && isset($settings['proposal_color']))
-                                        <iframe id="proposal_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::PPS . '.preview', [$settings[BillsConstants::COL_PPS_TMP], $settings['proposal_color']]) }}"></iframe>
-                                    @else
-                                        <iframe id="proposal_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::PPS . '.preview', ['template1','ffffff']) }}"></iframe>
-                                    @endif
+                                    <iframe id="{{ $proposalTemplatePreviewIframeId }}" class="w-100 h-100" frameborder="0" src="{{ $proposalPreviewUrl }}" data-url="{{ $proposalPreviewUrl }}" data-guard-msg="{{ $proposalPreviewGuardMsg }}" data-sv-localized="true"></iframe>
                                 </div>
+                                @push(StacksConstants::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/settings/proposals/preview.js') }}">
+                                    </script>
+                                @endpush
                             </div>
                         </div>
                     </div>
-
-                    <!-- Invoice Setting -->
+                    {{-- Invoice Setting --}}
                     <div class="tab-pane fade" id="pills-invoice" role="tabpanel" aria-labelledby="pills-invoice-tab">
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
                                     <div class="card-body">
                                         <h5></h5>
-                                        <form id="setting-form" method="post" action="{{ route('template.setting') }}" enctype="multipart/form-data">
+                                        @php
+                                            $invoiceTemplateSettingsRouteBase = 'template.setting';
+                                            $invoiceTemplateSettingsRouteKebab = Str::kebab($invoiceTemplateSettingsRouteBase);
+                                            $invoiceTemplateSettingsRouteResolved = Route::has($invoiceTemplateSettingsRouteBase) ? $invoiceTemplateSettingsRouteBase : (Route::has($invoiceTemplateSettingsRouteKebab) ? $invoiceTemplateSettingsRouteKebab : null);
+                                            $invoiceTemplateSettingsUrl = $invoiceTemplateSettingsRouteResolved ? route($invoiceTemplateSettingsRouteResolved) : '#';
+                                            $userLangForInvoiceTemplate = isset($lang) ? $lang : Utility::fetchUserLang();
+                                            $invoiceTemplateSettingsGuardMsg = Utility::fetchLinkMessage($userLangForInvoiceTemplate, VW::INV, 'settings_invoice_template_route_unavailable') ?? 'Invoice template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                            $invoiceTemplateSettingsFormId = 'invoice-template-settings-form';
+                                            $invoiceTemplateSelectId = 'invoice-template-select';
+                                            $invoiceColorRadioName = 'invoice_color';
+                                            $invoiceLogoFileInputId = 'invoice-logo-input';
+                                            $invoiceLogoPreviewImgId = 'invoice-logo-preview-img';
+                                        @endphp
+                                        <form id="{{ $invoiceTemplateSettingsFormId }}" method="post" action="{{ $invoiceTemplateSettingsUrl }}" enctype="multipart/form-data" data-url="{{ $invoiceTemplateSettingsUrl }}" data-guard-msg="{{ $invoiceTemplateSettingsGuardMsg }}" data-sv-localized="true">
                                             @csrf
                                             <div class="{{ VC::FM_G }}">
-                                                <label for="invoice_template" class="{{ VC::FM_LB }}">{{ __('Invoice Template') }}</label>
-                                                <select id="invoice_template" class="{{ VC::FM_CT }} select2" name="invoice_template">
-                                                    @foreach(Utility::templateData()['templates'] as $key => $template)
-                                                        <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_INV_TMP]) && $settings[BillsConstants::COL_INV_TMP] == $key) ? 'selected' : '' }}>
-                                                            {{ $template }}
-                                                        </option>
-                                                    @endforeach
+                                                <label for="{{ $invoiceTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Invoice Template') }}</label>
+                                                <select id="{{ $invoiceTemplateSelectId }}" class="{{ VC::FM_CT }} select2" name="invoice_template">
+                                                    @if(is_array($templates) && count($templates) || $templates instanceof Collection && $templates->isNotEmpty())
+                                                        @foreach($templates as $key => $template)
+                                                            <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_INV_TMP]) && $settings[BillsConstants::COL_INV_TMP] == $key) ? 'selected' : '' }}>
+                                                                {{ $template }}
+                                                            </option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="">{{ __('No templates available for Invoices') }}</option>
+                                                    @endif
                                                 </select>
                                             </div>
-
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @foreach(Utility::templateData()['colors'] as $key => $color)
+                                                    @if(is_array($colors) && count($colors) || $colors instanceof Collection && $colors->isNotEmpty())
+                                                        @foreach($colors as $key => $color)
+                                                            <div class="{{ VC::C_AT }}">
+                                                                <label class="colorinput">
+                                                                    <input name="{{ $invoiceColorRadioName }}" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['invoice_color']) && $settings['invoice_color'] == $color) ? 'checked' : '' }}>
+                                                                    <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
                                                         <div class="{{ VC::C_AT }}">
                                                             <label class="colorinput">
-                                                                <input name="invoice_color" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['invoice_color']) && $settings['invoice_color'] == $color) ? 'checked' : '' }}>
-                                                                <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                <input name="{{ $invoiceColorRadioName }}" type="radio" value="ffffff" class="colorinput-input" {{ (isset($settings['invoice_color']) && $settings['invoice_color'] == 'ffffff') ? 'checked' : '' }}>
+                                                                <span class="colorinput-color" style="background: #ffffff"></span>
                                                             </label>
                                                         </div>
-                                                    @endforeach
+                                                    @endif
                                                 </div>
                                             </div>
-
                                             <div class="{{ VC::FM_G }}">
-                                                <label class="{{ VC::FM_LB }}">{{ __('Invoice Logo') }}</label>
+                                                <label class="{{ VC::FM_LB }}" for="{{ $invoiceLogoFileInputId }}">{{ __('Invoice Logo') }}</label>
                                                 <div class="choose-files">
-                                                    <label for="invoice_logo">
+                                                    <label for="{{ $invoiceLogoFileInputId }}">
                                                         <div class="{{ VC::BG_P }} invoice_logo_update">
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
-                                                        <input type="file" class="{{ VC::FM_CT }} file" name="invoice_logo" id="invoice_logo" data-filename="invoice_logo_update">
-                                                        <img id="invoice_image" class="mt-2" style="width:25%;" />
+                                                        <input type="file" class="{{ VC::FM_CT }} file" name="invoice_logo" id="{{ $invoiceLogoFileInputId }}" data-filename="invoice_logo_update">
+                                                        <img id="{{ $invoiceLogoPreviewImgId }}" class="mt-2" style="width:25%;" />
                                                     </label>
                                                 </div>
                                             </div>
-
                                             <div class="{{ VC::FM_G }} mt-2 text-end">
                                                 <input type="submit" value="{{ __('Save') }}" class="{{ VC::BT_PR_PRM10 }}">
                                             </div>
                                         </form>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer src="{{ asset('assets/js/routes/settings/invoices/settings.js') }}"></script>
+                                        @endpush
                                     </div>
                                 </div>
-
+                                @php
+                                    $invoicePreviewRouteBase = ViewsConstants::INV.'.preview';
+                                    $invoicePreviewRouteKebab = Str::kebab($invoicePreviewRouteBase);
+                                    $invoicePreviewRouteResolved = Route::has($invoicePreviewRouteBase) ? $invoicePreviewRouteBase : (Route::has($invoicePreviewRouteKebab) ? $invoicePreviewRouteKebab : null);
+                                    $invoiceTemplateValue = (isset($settings[BillsConstants::COL_INV_TMP]) && isset($settings['invoice_color'])) ? $settings[BillsConstants::COL_INV_TMP] : 'template1';
+                                    $invoiceColorValue = (isset($settings[BillsConstants::COL_INV_TMP]) && isset($settings['invoice_color'])) ? $settings['invoice_color'] : 'ffffff';
+                                    $invoicePreviewUrl = $invoicePreviewRouteResolved ? route($invoicePreviewRouteResolved, [$invoiceTemplateValue, $invoiceColorValue]) : '#';
+                                    $userLangForInvoicePreview = isset($lang) ? $lang : Utility::fetchUserLang();
+                                    $invoicePreviewGuardMsg = Utility::fetchLinkMessage($userLangForInvoicePreview, ViewsConstants::INV, 'preview_invoice_route_unavailable') ?? 'Invoice preview route is unavailable. Please contact technical support or your domain administrator.';
+                                    $invoiceTemplatePreviewIframeId = 'invoice-template-preview-frame';
+                                @endphp
                                 <div class="{{ VC::CM9 }}">
-                                    @if(isset($settings[BillsConstants::COL_INV_TMP]) && isset($settings['invoice_color']))
-                                        <iframe id="invoice_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::INV . '.preview', [$settings[BillsConstants::COL_INV_TMP], $settings['invoice_color']]) }}"></iframe>
-                                    @else
-                                        <iframe id="invoice_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::INV . '.preview', ['template1','ffffff']) }}"></iframe>
-                                    @endif
+                                    <iframe id="{{ $invoiceTemplatePreviewIframeId }}" class="w-100 h-100" frameborder="0" src="{{ $invoicePreviewUrl }}" data-url="{{ $invoicePreviewUrl }}" data-guard-msg="{{ $invoicePreviewGuardMsg }}" data-sv-localized="true"></iframe>
                                 </div>
+                                @push(StacksConstants::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/settings/invoices/preview.js') }}"></script>
+                                @endpush
                             </div>
                         </div>
                     </div>
-
-                    <!-- Bill Setting -->
+                    {{-- Bill Setting --}}
                     <div class="tab-pane fade" id="pills-bill" role="tabpanel" aria-labelledby="pills-bill-tab">
                         <div class="bg-none">
                             <div class="{{ VC::RW }} company-setting">
                                 <div class="{{ VC::CM3 }}">
                                     <div class="card-body">
                                         <h5></h5>
-                                        <form id="setting-form" method="post" action="{{ route(ViewsConstants::BIL_TMP . 'settings') }}" enctype="multipart/form-data">
+                                        @php
+                                            $billTemplateSettingsRouteBase = ViewsConstants::BIL_TMP.'settings';
+                                            $billTemplateSettingsRouteKebab = Str::kebab($billTemplateSettingsRouteBase);
+                                            $billTemplateSettingsRouteResolved = Route::has($billTemplateSettingsRouteBase)
+                                                ? $billTemplateSettingsRouteBase
+                                                : (Route::has($billTemplateSettingsRouteKebab) ? $billTemplateSettingsRouteKebab : null);
+                                            $billTemplateSettingsUrl = $billTemplateSettingsRouteResolved ? route($billTemplateSettingsRouteResolved) : '#';
+                                            $billTemplateSettingsUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
+                                            $billTemplateSettingsGuardMsg = Utility::fetchLinkMessage($billTemplateSettingsUserLang, ViewsConstants::BIL_TMP, 'settings_bill_template_route_unavailable') ?? 'Bill template settings route is unavailable. Please contact technical support or your domain administrator.';
+                                            $billTemplateSettingsFormId   = 'bill-template-settings-form';
+                                            $billTemplateSelectId         = 'bill-template-select';
+                                            $billColorRadioName           = 'bill_color';
+                                            $billLogoFileInputId          = 'bill-logo-input';
+                                            $billLogoPreviewImgId         = 'bill-logo-preview-img';
+                                        @endphp
+                                        <form id="{{ $billTemplateSettingsFormId }}"
+                                            method="post"
+                                            action="{{ $billTemplateSettingsUrl }}"
+                                            enctype="multipart/form-data"
+                                            data-url="{{ $billTemplateSettingsUrl }}"
+                                            data-guard-msg="{{ $billTemplateSettingsGuardMsg }}"
+                                            data-sv-localized="true">
                                             @csrf
+
                                             <div class="{{ VC::FM_G }}">
-                                                <label for="bill_template" class="{{ VC::FM_LB }}">{{ __('Bill Template') }}</label>
-                                                <select id="bill_template" class="{{ VC::FM_CT }}" name="bill_template">
-                                                    @foreach(Utility::templateData()['templates'] as $key => $template)
-                                                        <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_POS_TMP]) && $settings[BillsConstants::COL_POS_TMP] == $key) ? 'selected' : '' }}>
-                                                            {{ $template }}
-                                                        </option>
-                                                    @endforeach
+                                                <label for="{{ $billTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Bill Template') }}</label>
+                                                <select id="{{ $billTemplateSelectId }}" class="{{ VC::FM_CT }}" name="bill_template">
+                                                    @if(is_array($templates) && count($templates) || $templates instanceof Collection && $templates->isNotEmpty())
+                                                        @foreach($templates as $key => $template)
+                                                            <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_POS_TMP]) && $settings[BillsConstants::COL_POS_TMP] == $key) ? 'selected' : '' }}>
+                                                                {{ $template }}
+                                                            </option>
+                                                        @endforeach
+                                                    @else
+                                                        <option value="" disabled>{{ __('No templates available for Bills') }}</option>
+                                                    @endif
                                                 </select>
                                             </div>
 
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @foreach(Utility::templateData()['colors'] as $key => $color)
+                                                    @if(is_array($colors) && count($color) || $colors instanceof Collection && $colors->isNotEmpty())
+                                                        @foreach($colors as $key => $color)
+                                                            <div class="{{ VC::C_AT }}">
+                                                                <label class="colorinput">
+                                                                    <input name="{{ $billColorRadioName }}" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['bill_color']) && $settings['bill_color'] == $color) ? 'checked' : '' }}>
+                                                                    <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                </label>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
                                                         <div class="{{ VC::C_AT }}">
                                                             <label class="colorinput">
-                                                                <input name="bill_color" type="radio" value="{{ $color }}" class="colorinput-input" {{ (isset($settings['bill_color']) && $settings['bill_color'] == $color) ? 'checked' : '' }}>
-                                                                <span class="colorinput-color" style="background: #{{ $color }}"></span>
+                                                                <input name="{{ $billColorRadioName }}" type="radio" value="" class="colorinput-input" {{ (isset($settings['bill_color']) && $settings['bill_color'] == '') ? 'checked' : '' }}>
+                                                                <span class="colorinput-color" style="background: #{{ '' }}"></span>
                                                             </label>
                                                         </div>
-                                                    @endforeach
+                                                    @endif
                                                 </div>
                                             </div>
 
                                             <div class="{{ VC::FM_G }}">
-                                                <label class="{{ VC::FM_LB }}">{{ __('Bill Logo') }}</label>
+                                                <label class="{{ VC::FM_LB }}" for="{{ $billLogoFileInputId }}">{{ __('Bill Logo') }}</label>
                                                 <div class="choose-files">
-                                                    <label for="bill_logo">
+                                                    <label for="{{ $billLogoFileInputId }}">
                                                         <div class="{{ VC::BG_P }} bill_logo_update">
                                                             <i class="{{ VC::TI }} ti-upload px-1"></i>{{ __('Choose file here') }}
                                                         </div>
-                                                        <input type="file" class="{{ VC::FM_CT }} file" name="bill_logo" id="bill_logo" data-filename="bill_logo_update">
-                                                        <img id="bill_image" class="mt-2" style="width:25%;" />
+                                                        <input type="file" class="{{ VC::FM_CT }} file" name="bill_logo" id="{{ $billLogoFileInputId }}" data-filename="bill_logo_update">
+                                                        <img id="{{ $billLogoPreviewImgId }}" class="mt-2" style="width:25%;" />
                                                     </label>
                                                 </div>
                                             </div>
@@ -513,21 +624,38 @@ Object.keys(t).forEach(
                                                 <input type="submit" value="{{ __('Save') }}" class="{{ VC::BT_PR_PRM10 }}">
                                             </div>
                                         </form>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer src="{{asset('assets/js/routes/settings/bills/settings.js')}}"></script>
+                                        @endpush
                                     </div>
                                 </div>
-
+                                @php
+                                    $billPreviewRouteBase = ViewsConstants::BIL.'.preview';
+                                    $billPreviewRouteKebab = Str::kebab($billPreviewRouteBase);
+                                    $billPreviewRouteResolved = Route::has($billPreviewRouteBase) ? $billPreviewRouteBase : (Route::has($billPreviewRouteKebab) ? $billPreviewRouteKebab : null);
+                                    $billTemplateValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['bill_color'])) ? $settings[BillsConstants::COL_POS_TMP] : 'template1';
+                                    $billColorValue = (isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['bill_color'])) ? $settings['bill_color'] : 'ffffff';
+                                    $billPreviewUrl = $billPreviewRouteResolved ? route($billPreviewRouteResolved, [$billTemplateValue, $billColorValue]) : '#';
+                                    $billPreviewLang = isset($lang) ? $lang : Utility::fetchUserLang();
+                                    $billPreviewGuardMsg = Utility::fetchLinkMessage($billPreviewLang, ViewsConstants::BIL, 'preview_bill_route_unavailable') ?? 'Bill preview route is unavailable. Please contact technical support or your domain administrator.';
+                                    $billTemplatePreviewIframeId = 'bill-template-preview-frame';
+                                @endphp
                                 <div class="{{ VC::CM9 }}">
-                                    @if(isset($settings[BillsConstants::COL_POS_TMP]) && isset($settings['bill_color']))
-                                        <iframe id="bill_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::BIL . '.preview', [$settings[BillsConstants::COL_POS_TMP], $settings['bill_color']]) }}"></iframe>
-                                    @else
-                                        <iframe id="bill_frame" class="w-100 h-100" frameborder="0" src="{{ route(ViewsConstants::BIL . '.preview', ['template1','ffffff']) }}"></iframe>
-                                    @endif
+                                    <iframe id="{{ $billTemplatePreviewIframeId }}"
+                                            class="w-100 h-100"
+                                            frameborder="0"
+                                            src="{{ $billPreviewUrl }}"
+                                            data-url="{{ $billPreviewUrl }}"
+                                            data-guard-msg="{{ $billPreviewGuardMsg }}"
+                                            data-sv-localized="true"></iframe>
                                 </div>
+                                @push(StacksConstants::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/settings/bills/preview.js') }}"></script>
+                                @endpush
                             </div>
                         </div>
                     </div>
-
-                </div><!-- /.tab-content -->
+                </div>
             </div>
         </div>
     </div>

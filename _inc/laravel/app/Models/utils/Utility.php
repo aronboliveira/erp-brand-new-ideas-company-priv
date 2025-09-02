@@ -17,7 +17,6 @@ use App\Config\Constants\{
     UsersConstants
 };
 use App\Mail\CommonEmailTemplate;
-use App\Mail\TestMail;
 use App\Models\{
     Branch,
     Department,
@@ -33,7 +32,7 @@ use Carbon\{Carbon, CarbonPeriod};
 use Faker\Factory as Faker;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Eloquent\{Model, ModelNotFoundException};
-use Illuminate\Http\Request;
+use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\{Collection, Str};
 use Illuminate\Support\Facades\{
     App,
@@ -597,15 +596,48 @@ class Utility extends Model
     public static function templateData(): array
     {
         $colors = [
-            '003580', '666666', '6676ef', 'f50102', 'f9b034', 'fbdd03', 'c1d82f', '37a4e4',
-            '8a7966', '6a737b', '050f2c', '0e3666', '3baeff', '3368e6', 'b84592', 'f64f81',
-            'f66c5f', 'fac168', '46de98', '40c7d0', 'be0028', '2f9f45', '371676', '52325d',
-            '511378', '0f3866', '48c0b6', '297cc0', 'ffffff', '000',
+            '003580',
+            '666666',
+            '6676ef',
+            'f50102',
+            'f9b034',
+            'fbdd03',
+            'c1d82f',
+            '37a4e4',
+            '8a7966',
+            '6a737b',
+            '050f2c',
+            '0e3666',
+            '3baeff',
+            '3368e6',
+            'b84592',
+            'f64f81',
+            'f66c5f',
+            'fac168',
+            '46de98',
+            '40c7d0',
+            'be0028',
+            '2f9f45',
+            '371676',
+            '52325d',
+            '511378',
+            '0f3866',
+            '48c0b6',
+            '297cc0',
+            'ffffff',
+            '000',
         ];
         $templates = [
-            'template1' => 'New York', 'template2' => 'Toronto', 'template3' => 'Rio', 'template4' => 'London',
-            'template5' => 'Istanbul', 'template6' => 'Mumbai', 'template7' => 'Hong Kong', 'template8' => 'Tokyo',
-            'template9' => 'Sydney', 'template10' => 'Paris',
+            'template1' => 'New York',
+            'template2' => 'Toronto',
+            'template3' => 'Rio',
+            'template4' => 'London',
+            'template5' => 'Istanbul',
+            'template6' => 'Mumbai',
+            'template7' => 'Hong Kong',
+            'template8' => 'Tokyo',
+            'template9' => 'Sydney',
+            'template10' => 'Paris',
         ];
         return ['colors' => $colors, 'templates' => $templates];
     }
@@ -792,18 +824,18 @@ class Utility extends Model
         $hex = ltrim($hex, '#');
         if (strlen($hex) === 3) {
             $chars = str_split($hex);
-            $hex = implode('', array_map(fn ($c) => str_repeat($c, 2), $chars));
+            $hex = implode('', array_map(fn($c) => str_repeat($c, 2), $chars));
         }
         $pairs = str_split($hex, 2);
-        return array_map(fn ($pair) => hexdec($pair), $pairs);
+        return array_map(fn($pair) => hexdec($pair), $pairs);
     }
 
     public static function getFontColor(string $colorCode): string
     {
         $rgb = self::hex2rgb($colorCode);
-        $norm = array_map(fn ($v) => $v / 255, $rgb);
+        $norm = array_map(fn($v) => $v / 255, $rgb);
         $lin = array_map(
-            fn ($c) => $c <= 0.03928
+            fn($c) => $c <= 0.03928
                 ? $c / 12.92
                 : pow(($c + 0.055) / 1.055, 2.4),
             $norm
@@ -907,11 +939,11 @@ class Utility extends Model
         }
     }
 
-    public static function sendEmailTemplate(string $emailTemplate, array $mailTo, array $obj): array
+    public static function sendEmailTemplate(string $emailTemplate, array $mailTo, array $obj): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -957,11 +989,11 @@ class Utility extends Model
         return [];
     }
 
-    public static function sendUserEmailTemplate(string $emailTemplate, array $mailTo, array $obj): array
+    public static function sendUserEmailTemplate(string $emailTemplate, array $mailTo, array $obj): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -1756,11 +1788,11 @@ class Utility extends Model
         return $settings;
     }
 
-    public static function getCompanyPayment(): array
+    public static function getCompanyPayment(): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -1896,7 +1928,7 @@ class Utility extends Model
             return;
         $msg = self::replaceVariable($notiLang->content, $obj);
         $settings = self::settingsById($user?->id);
-        $bot  = $settings['telegram_accestoken'] ?? '';
+        $bot  = $settings['telegram_accesstoken'] ?? '';
         $chat = $settings['telegram_chatid'] ?? '';
         if (!$bot || !$chat)
             return;
@@ -1980,7 +2012,7 @@ class Utility extends Model
         DB::transaction(function () use ($fromWarehouse, $toWarehouse, $productId, $quantity, $delete) {
             if (
                 ($userOrRedirect = self::_checkLogin())
-                instanceof \Illuminate\Http\RedirectResponse
+                instanceof RedirectResponse
             )
                 return $userOrRedirect;
             $user = $userOrRedirect;
@@ -2016,7 +2048,7 @@ class Utility extends Model
         DB::transaction(function () use ($productId, $quantity, $type, $description, $typeId) {
             if (
                 ($userOrRedirect = self::_checkLogin())
-                instanceof \Illuminate\Http\RedirectResponse
+                instanceof RedirectResponse
             )
                 return $userOrRedirect;
             $user = $userOrRedirect;
@@ -2031,11 +2063,11 @@ class Utility extends Model
         });
     }
 
-    public static function g(): array
+    public static function g(): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -2150,7 +2182,6 @@ class Utility extends Model
         return self::getGdpr()[$key] ?? '';
     }
 
-
     public static function addWarehouseStock(int $productId, int $quantity, int $warehouseId): void
     {
         try {
@@ -2163,7 +2194,8 @@ class Utility extends Model
                     $newQty = $record->quantity + $quantity;
                 WarehouseProduct::updateOrCreate(
                     [
-                        'warehouse_id' => $warehouseId, 'product_id' => $productId,
+                        'warehouse_id' => $warehouseId,
+                        'product_id' => $productId,
                         UsersConstants::COL_USER_ID => Auth::id()
                     ],
                     ['quantity' => $newQty, UsersConstants::COL_USER_ID => Auth::id()]
@@ -2174,11 +2206,11 @@ class Utility extends Model
         }
     }
 
-    public static function startingNumber(int $id, string $type): int
+    public static function startingNumber(int $id, string $type): int|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -2542,9 +2574,15 @@ class Utility extends Model
     {
         $rows = DB::table(DatabaseConstants::TABLE_SETTINGS)
             ->whereIn('name', [
-                'enable_cookie', 'cookie_logging', 'cookie_title',
-                'cookie_description', 'necessary_cookies', 'strictly_cookie_title',
-                'strictly_cookie_description', 'more_information_description', 'contactus_url'
+                'enable_cookie',
+                'cookie_logging',
+                'cookie_title',
+                'cookie_description',
+                'necessary_cookies',
+                'strictly_cookie_title',
+                'strictly_cookie_description',
+                'more_information_description',
+                'contactus_url'
             ])->get();
         $defaults = [
             'enable_cookie'              => 'off',
@@ -2721,6 +2759,7 @@ class Utility extends Model
                 throw new \RuntimeException('Key not found in link messages for the specified language.');
             }
             $resultMsg = $langMsg[$key] ?? ($shouldFallback ? null : $startMsg);
+            return $resultMsg;
         } catch (\Throwable) {
             if ($shouldFallback) return null;
             return !$isFailure && !(is_string($resultMsg) && !empty($resultMsg)) ? $startMsg : 'Something went wrong! Try again later.';
@@ -2762,11 +2801,11 @@ class Utility extends Model
         return $settings;
     }
 
-    public static function getChatGPTSettings(): ?Plan
+    public static function getChatGPTSettings(): Plan|RedirectResponse|null
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = User::find($userOrRedirect->creatorId());
@@ -2775,11 +2814,11 @@ class Utility extends Model
         return Plan::find($user?->plan);
     }
 
-    public static function getAccountBalance(int $accountId, ?string $startDate = null, ?string $endDate = null): float
+    public static function getAccountBalance(int $accountId, ?string $startDate = null, ?string $endDate = null): float|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -2787,49 +2826,49 @@ class Utility extends Model
         $end  = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
         $invoiceProductIds = ProductService::where('sale_chartaccount_id', $accountId)->pluck('id');
         $invoiceAmount = InvoiceProduct::whereIn('product_id', $invoiceProductIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
         $accountIds = BankAccount::where('chart_account_id', $accountId)
             ->where(UsersConstants::COL_USER_ID, $user?->creatorId())
             ->pluck('id');
         $invoicePaymentAmount = InvoicePayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         $revenueAmount = Revenue::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         $billProductIds = ProductService::where('expense_chartaccount_id', $accountId)->pluck('id');
         $billProductAmount = BillProduct::whereIn('product_id', $billProductIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
         $billAmount = BillAccount::where('chart_account_id', $accountId)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum('price');
         $billPaymentAmount = BillPayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         $paymentAmount = Payment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         $journalCredit = JournalItem::join(DatabaseConstants::TABLE_JOURNAL_ENTRIES, DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
             ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->sum('credit');
         $journalDebit = JournalItem::join(DatabaseConstants::TABLE_JOURNAL_ENTRIES, DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
             ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->sum('debit');
         return ($invoiceAmount + $invoicePaymentAmount + $revenueAmount + $journalCredit)
             - ($journalDebit + $billProductAmount + $billAmount + $billPaymentAmount + $paymentAmount);
     }
 
-    public static function getAccountData(int $accountId, ?string $startDate = null, ?string $endDate = null): array
+    public static function getAccountData(int $accountId, ?string $startDate = null, ?string $endDate = null): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -2837,34 +2876,34 @@ class Utility extends Model
         $end  = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
         $invoiceProducts = ProductService::where('sale_chartaccount_id', $accountId)->pluck('id');
         $invoice = InvoiceProduct::whereIn('product_id', $invoiceProducts)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->get();
         $accountIds = BankAccount::where('chart_account_id', $accountId)
             ->pluck('id');
         $invoicePayment = InvoicePayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->get();
         $revenue = Revenue::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->get();
         $billProducts = ProductService::where('expense_chartaccount_id', $accountId)->pluck('id');
         $bill = BillProduct::whereIn('product_id', $billProducts)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->get();
         $billData = BillAccount::where('chart_account_id', $accountId)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->get();
         $billPayment = BillPayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->get();
         $payment = Payment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->get();
         $journalItems = JournalItem::select(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.journal_id', DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.date as transaction_date', 'journal_items.*')
             ->join(DatabaseConstants::TABLE_JOURNAL_ENTRIES, DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
             ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->get();
         return [
             'invoice'        => $invoice,
@@ -2884,14 +2923,14 @@ class Utility extends Model
         $end  = $endDate   ?: date('Y-m-t');
         $invoiceProducts = ProductService::where('sale_chartaccount_id', $accountId)->pluck('id');
         $invoiceAmount = InvoiceProduct::whereIn('product_id', $invoiceProducts)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
         $accountIds = BankAccount::where('chart_account_id', $accountId)->pluck('id');
         $invoicePaymentAmount = InvoicePayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         $revenueAmount = Revenue::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         return $invoiceAmount + $invoicePaymentAmount + $revenueAmount;
     }
@@ -2902,26 +2941,26 @@ class Utility extends Model
         $end  = $endDate   ?: date('Y-m-t');
         $billProducts = ProductService::where('expense_chartaccount_id', $accountId)->pluck('id');
         $billProductAmount = BillProduct::whereIn('product_id', $billProducts)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
         $billAmount = BillAccount::where('chart_account_id', $accountId)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum('price');
         $accountIds = BankAccount::where('chart_account_id', $accountId)->pluck('id');
         $billPaymentAmount = BillPayment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         $paymentAmount = Payment::whereIn('account_id', $accountIds)
-            ->when($startDate && $endDate, fn ($q) => $q->whereBetween('date', [$start, $end]))
+            ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         return $billProductAmount + $billAmount + $billPaymentAmount + $paymentAmount;
     }
 
-    public static function trialBalance(int $accountType, string $start, string $end): array
+    public static function trialBalance(int $accountType, string $start, string $end): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;

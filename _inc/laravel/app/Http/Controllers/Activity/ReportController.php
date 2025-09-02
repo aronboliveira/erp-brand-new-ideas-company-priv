@@ -147,7 +147,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'name')) $viewName = $view->name();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -184,7 +184,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -221,7 +221,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -257,7 +257,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -322,7 +322,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -358,7 +358,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -394,7 +394,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -430,7 +430,7 @@ final class ReportController extends Controller
                     if (method_exists($result, 'getName')) $viewName = $result->getName();
                     elseif (property_exists($result, 'name')) $viewName = $result->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $result;
             } catch (\Throwable $e) {
@@ -466,7 +466,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -502,7 +502,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -537,7 +537,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -573,7 +573,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -609,7 +609,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -644,7 +644,7 @@ final class ReportController extends Controller
                     if (method_exists($view, 'getName')) $viewName = $view->getName();
                     elseif (property_exists($view, 'name')) $viewName = $view->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -793,7 +793,7 @@ final class ReportController extends Controller
                 $stocks = StockReport::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($startFetch, "{$action} fetchStocks", 'completed');
                 $viewName = ViewsConstants::RPT . '.product_stock_report';
-                if (!View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
                 return view($viewName, compact('stocks'));
             } catch (\Throwable $e) {
@@ -1108,7 +1108,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1143,7 +1143,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1178,7 +1178,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1213,7 +1213,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1248,7 +1248,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1283,7 +1283,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1319,7 +1319,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1355,7 +1355,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1391,7 +1391,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1428,7 +1428,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1464,7 +1464,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1504,7 +1504,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startBuild, "{$action} buildData", 'completed');
                 $filter = ['startDateRange' => $start, 'endDateRange' => $end];
                 $viewName = $view === 'horizontal' ? ViewsConstants::RPT . '.trial_balance_receipt_horizontal' : ViewsConstants::RPT . '.trial_balance_receipt';
-                if (!View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return view($viewName, compact('filter', 'totalAccounts'));
             } catch (\Throwable $e) {
@@ -1540,7 +1540,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1576,7 +1576,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1612,7 +1612,7 @@ final class ReportController extends Controller
                     if (method_exists($resp, 'getName')) $viewName = $resp->getName();
                     elseif (property_exists($resp, 'name')) $viewName = $resp->name;
                 }
-                if ($viewName && !View::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
+                if ($viewName && !ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
@@ -1850,7 +1850,7 @@ final class ReportController extends Controller
             }
             $this->logExecutionTime($buildStart, $action, 'buildPayableData');
             $renderStart = microtime(true);
-            if (!View::exists($viewPath)) {
+            if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$class}::{$action}] missing view", ['view_path' => $viewPath] + $this->logContext());
                 Log::debug("[{$class}::{$action}] debug missing view details", ['method' => $method, 'action' => $action, 'route' => Route::getCurrentRoute()?->getName()]);
                 return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -1883,7 +1883,7 @@ final class ReportController extends Controller
             }
             $this->logExecutionTime($buildStart, $action, 'buildPayableData');
             $renderStart = microtime(true);
-            if (!View::exists($viewPath)) {
+            if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$class}::{$action}] missing view", ['view_path' => $viewPath] + $this->logContext());
                 Log::debug("[{$class}::{$action}] debug missing view details", ['method' => $method, 'action' => $action, 'route' => Route::getCurrentRoute()?->getName()]);
                 return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");

@@ -26,7 +26,7 @@
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('css/summernote/summernote-bs4.js')}}"></script>
-    <script src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
+   <script defer src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
         <script async>
           (() => { 
               if (!window.translations) {

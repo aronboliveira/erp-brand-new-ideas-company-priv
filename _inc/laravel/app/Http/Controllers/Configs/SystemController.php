@@ -924,7 +924,7 @@ class SystemController extends Controller
         $user = $userOrRedirect;
         Log::info(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
         $settings = [
-            'telegramAccesToken' => $request->input('telegram_accestoken'),
+            'telegramAccesToken' => $request->input('telegram_accesstoken'),
             'telegramChatId'     => $request->input('telegram_chatid')
         ];
         $flags = [

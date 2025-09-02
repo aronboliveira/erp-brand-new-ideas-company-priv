@@ -27,7 +27,9 @@ use Illuminate\Support\Facades\{
     Crypt,
     DB,
     Log,
-    Validator
+    Route,
+    Validator,
+    View as ViewFacade
 };
 
 class TrainingController extends Controller
@@ -38,349 +40,324 @@ class TrainingController extends Controller
 
     public function index(Request $request): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            PermissionsConstants::MNG_TNG,
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", [UsersConstants::COL_USER_ID => $user?->id]);
-        try {
-            $creatorId = $user?->creatorId();
-            $trainings = Training::with(['branches', 'types'])
-                ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-                ->get();
-            $status = Training::$status;
-            Log::debug("$action fetched", ['count' => $trainings->count()]);
-            return view(ViewsConstants::TNR . '.' . __FUNCTION__, compact('trainings', 'status'));
-        } catch (\Throwable $e) {
-            Log::error("$action failed", [
-                'error' => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
-                'error' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                $action,
-                route(self::REDIRECT_INDEX)
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::TNR . '.' . $action;
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, PermissionsConstants::MNG_TNG, self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
+            try {
+                $buildStart = microtime(true);
+                $creatorId = $user?->creatorId();
+                $query = Training::with(['branches', 'types'])->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                $this->logExecutionTime($buildStart, $action, 'buildQuery');
+                $fetchStart = microtime(true);
+                $trainings = $query->get();
+                $this->logExecutionTime($fetchStart, $action, 'fetchTrainings');
+                $status = Training::$status;
+                Log::debug("[{$base}::{$action}] fetched", ['count' => $trainings->count()]);
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
+                    Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['trainings', 'status']]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, compact('trainings', 'status'));
+                $this->logExecutionTime($renderStart, $action, 'renderIndex');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function create(Request $request): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'create training',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", [UsersConstants::COL_USER_ID => $user?->id]);
-        $creatorId = $user?->creatorId();
-        $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-        $trainingTypes = TrainingType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck('name', 'id');
-        $trainers = Trainer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck('first_name', 'id');
-        $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck(UsersConstants::COL_NM, 'id');
-        $options = Training::$options;
-
-        return view(
-            ViewsConstants::TNR . '.create',
-            compact('branches', 'trainingTypes', 'trainers', 'employees', 'options')
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::TNR . '.create';
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'create training', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
+            $creatorId = $user?->creatorId();
+            $listsStart = microtime(true);
+            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $trainingTypes = TrainingType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $trainers = Trainer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
+            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
+            $options = Training::$options;
+            $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
+            if (!ViewFacade::exists($viewPath)) {
+                Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
+                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['branches', 'trainingTypes', 'trainers', 'employees', 'options']]);
+                return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            }
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact('branches', 'trainingTypes', 'trainers', 'employees', 'options'));
+            $this->logExecutionTime($renderStart, $action, 'renderCreate');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function store(Request $request): RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'create training',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", ['input' => $request->all()]);
-        $rules = [
-            'branch'         => 'required',
-            'training_type'  => 'required',
-            'training_cost'  => 'required|numeric',
-            'employee'       => 'required',
-            'start_date'     => 'required|date',
-            'end_date'       => 'required|date'
-        ];
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            $msg = $validator->getMessageBag()->first();
-            Log::warning("$action validation failed", ['message' => $msg]);
-            return redirect()
-                ->back()
-                ->with('error', $msg);
-        }
-
-        try {
-            DB::transaction(function () use ($request, $user) {
-                Training::create([
-                    'branch'         => $request->branch,
-                    'trainer_option' => $request->trainer_option,
-                    'training_type'  => $request->training_type,
-                    'trainer'        => $request->trainer,
-                    'training_cost'  => $request->training_cost,
-                    'employee'       => $request->employee,
-                    'start_date'     => $request->start_date,
-                    'end_date'       => $request->end_date,
-                    'description'    => $request->description,
-                    DatabaseConstants::TABLE_CREATOR     => $user?->creatorId()
-                ]);
-            });
-            Log::info("$action committed");
-            return redirect()
-                ->route(self::REDIRECT_INDEX)
-                ->with('success', __('Training successfully created.'));
-        } catch (\Throwable $e) {
-            Log::error("$action failed", [
-                'error' => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
-                'error' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                $action,
-                route(self::REDIRECT_INDEX)
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'create training', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['input' => $req->all(), 'method' => $method]);
+            $rules = [
+                'branch' => 'required',
+                'training_type' => 'required',
+                'training_cost' => 'required|numeric',
+                'employee' => 'required',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date'
+            ];
+            $valStart = microtime(true);
+            $validator = Validator::make($req->all(), $rules);
+            $this->logExecutionTime($valStart, $action, 'buildValidator');
+            if ($validator->fails()) {
+                $msg = $validator->getMessageBag()->first();
+                Log::warning("[{$base}::{$action}] validation failed", ['message' => $msg]);
+                Log::debug("[{$base}::{$action}] validation context", ['route' => Route::getCurrentRoute()?->getName(), 'input_keys' => array_keys($req->all())]);
+                return redirect()->back()->with('error', $msg);
+            }
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($req, $user, $action) {
+                    $createStart = microtime(true);
+                    Training::create([
+                        'branch' => $req->branch,
+                        'trainer_option' => $req->trainer_option,
+                        'training_type' => $req->training_type,
+                        'trainer' => $req->trainer,
+                        'training_cost' => $req->training_cost,
+                        'employee' => $req->employee,
+                        'start_date' => $req->start_date,
+                        'end_date' => $req->end_date,
+                        'description' => $req->description,
+                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                    ]);
+                    $this->logExecutionTime($createStart, $action, 'createTraining');
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                Log::info("[{$base}::{$action}] committed");
+                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Training successfully created.'));
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function show(Request $request, string $id): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'view training',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", ['encryptedId' => $id]);
-        try {
-            $traId = Crypt::decrypt($id);
-        } catch (\Throwable $e) {
-            Log::warning("$action decrypt failed", ['id' => $id]);
-            return redirect()
-                ->back()
-                ->with('error', __('Training Not Found.'));
-        }
-        $training = Training::findOrFail($traId);
-        $performance = Training::$performance;
-        $status = Training::$status;
-        return view(
-            ViewsConstants::TNR . '.' . __FUNCTION__,
-            compact('training', 'performance', 'status')
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::TNR . '.' . $action;
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'view training', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['encrypted_id' => $id, 'user_id' => $user?->id, 'method' => $method]);
+            $decStart = microtime(true);
+            try {
+                $traId = Crypt::decrypt($id);
+                $this->logExecutionTime($decStart, $action, 'decryptId');
+            } catch (\Throwable $e) {
+                Log::warning("[{$base}::{$action}] decrypt failed", ['encrypted_id' => $id]);
+                Log::debug("[{$base}::{$action}] decrypt context", ['exception' => get_class($e), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return redirect()->back()->with('error', __('Training Not Found.'));
+            }
+            try {
+                $fetchStart = microtime(true);
+                $training = Training::findOrFail($traId);
+                $this->logExecutionTime($fetchStart, $action, 'fetchTraining');
+                $performance = Training::$performance;
+                $status = Training::$status;
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
+                    Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['training', 'performance', 'status']]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, compact('training', 'performance', 'status'));
+                $this->logExecutionTime($renderStart, $action, 'renderShow');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'encrypted_id' => $id]);
     }
 
     public function edit(Request $request, Training $training): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'edit training',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", ['trainingId' => $training->id]);
-        $creatorId = $user?->creatorId();
-        $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-        $trainingTypes = TrainingType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck('name', 'id');
-        $trainers = Trainer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck('first_name', 'id');
-        $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-            ->pluck(UsersConstants::COL_NM, 'id');
-        $options = Training::$options;
-        return view(
-            ViewsConstants::TNR . '.' . __FUNCTION__,
-            compact('branches', 'trainingTypes', 'trainers', 'employees', 'options', 'training')
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::TNR . '.' . $action;
+        return $this->measureProfile($action, function () use ($req, $training, $action, $method, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'edit training', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['trainingId' => $training->id, 'user_id' => $user?->id, 'method' => $method]);
+            $creatorId = $user?->creatorId();
+            $listsStart = microtime(true);
+            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $trainingTypes = TrainingType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $trainers = Trainer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
+            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
+            $options = Training::$options;
+            $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
+            if (!ViewFacade::exists($viewPath)) {
+                Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
+                Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['branches', 'trainingTypes', 'trainers', 'employees', 'options', 'training']]);
+                return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            }
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact('branches', 'trainingTypes', 'trainers', 'employees', 'options', 'training'));
+            $this->logExecutionTime($renderStart, $action, 'renderEdit');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'training_id' => $training->id]);
     }
 
     public function update(Request $request, Training $training): RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'edit training',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", [
-            'trainingId' => $training->id,
-            'input'      => $request->all()
-        ]);
-        $rules = [
-            'branch'         => 'required',
-            'training_type'  => 'required',
-            'training_cost'  => 'required|numeric',
-            'employee'       => 'required',
-            'start_date'     => 'required|date',
-            'end_date'       => 'required|date'
-        ];
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            $msg = $validator->getMessageBag()->first();
-            Log::warning("$action validation failed", ['message' => $msg]);
-            return redirect()
-                ->back()
-                ->with('error', $msg);
-        }
-
-        try {
-            DB::transaction(function () use ($request, $training) {
-                $training->update([
-                    'branch'         => $request->branch,
-                    'trainer_option' => $request->trainer_option,
-                    'training_type'  => $request->training_type,
-                    'trainer'        => $request->trainer,
-                    'training_cost'  => $request->training_cost,
-                    'employee'       => $request->employee,
-                    'start_date'     => $request->start_date,
-                    'end_date'       => $request->end_date,
-                    'description'    => $request->description
-                ]);
-            });
-            Log::info("$action committed", ['trainingId' => $training->id]);
-            return redirect()
-                ->route(self::REDIRECT_INDEX)
-                ->with('success', __('Training successfully updated.'));
-        } catch (\Throwable $e) {
-            Log::error("$action failed", [
-                'error' => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
-                'error' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                $action,
-                route(self::REDIRECT_INDEX)
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        return $this->measureProfile($action, function () use ($req, $training, $action, $method, $class, $base) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'edit training', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['trainingId' => $training->id, 'input' => $req->all(), 'method' => $method, 'user_id' => $user?->id]);
+            $rules = ['branch' => 'required', 'training_type' => 'required', 'training_cost' => 'required|numeric', 'employee' => 'required', 'start_date' => 'required|date', 'end_date' => 'required|date'];
+            $valStart = microtime(true);
+            $validator = Validator::make($req->all(), $rules);
+            $this->logExecutionTime($valStart, $action, 'buildValidator');
+            if ($validator->fails()) {
+                $msg = $validator->getMessageBag()->first();
+                Log::warning("[{$base}::{$action}] validation failed", ['message' => $msg]);
+                Log::debug("[{$base}::{$action}] validation context", ['route' => Route::getCurrentRoute()?->getName(), 'input_keys' => array_keys($req->all()), 'training_id' => $training->id]);
+                return redirect()->back()->with('error', $msg);
+            }
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($req, $training, $action) {
+                    $updStart = microtime(true);
+                    $training->update([
+                        'branch' => $req->branch,
+                        'trainer_option' => $req->trainer_option,
+                        'training_type' => $req->training_type,
+                        'trainer' => $req->trainer,
+                        'training_cost' => $req->training_cost,
+                        'employee' => $req->employee,
+                        'start_date' => $req->start_date,
+                        'end_date' => $req->end_date,
+                        'description' => $req->description
+                    ]);
+                    $this->logExecutionTime($updStart, $action, 'updateTraining');
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                Log::info("[{$base}::{$action}] committed", ['trainingId' => $training->id]);
+                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Training successfully updated.'));
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'training_id' => $training->id]);
     }
 
     public function destroy(Request $request, Training $training): RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'delete training',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", ['trainingId' => $training->id]);
-        try {
-            DB::transaction(fn () => $training->delete());
-            Log::info("$action committed", ['trainingId' => $training->id]);
-            return redirect()
-                ->route(self::REDIRECT_INDEX)
-                ->with('success', __('Training successfully deleted.'));
-        } catch (\Throwable $e) {
-            Log::error("$action failed", [
-                'error' => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
-                'error' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                $action,
-                route(self::REDIRECT_INDEX)
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        return $this->measureProfile($action, function () use ($req, $training, $action, $method, $class, $base) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'delete training', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['trainingId' => $training->id, 'user_id' => $user?->id, 'method' => $method]);
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($training, $action) {
+                    $delStart = microtime(true);
+                    $training->delete();
+                    $this->logExecutionTime($delStart, $action, 'deleteTraining');
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                Log::info("[{$base}::{$action}] committed", ['trainingId' => $training->id]);
+                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Training successfully deleted.'));
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'training_id' => $training->id]);
     }
 
+    public const UPD_STT = 'updateStatus';
     public function updateStatus(Request $request): RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard(
-            $request,
-            'edit training',
-            self::REDIRECT_INDEX
-        )) !== true) return $redirect;
-        Log::info("$action called", ['input' => $request->all()]);
-        try {
-            DB::transaction(function () use ($request) {
-                $t = Training::findOrFail($request->id);
-                $t->update([
-                    'performance' => $request->performance,
-                    'status'      => $request->status,
-                    'remarks'     => $request->remarks
-                ]);
-            });
-            Log::info("$action committed", ['trainingId' => $request->id]);
-            return redirect()
-                ->route(self::REDIRECT_INDEX)
-                ->with('success', __('Training status successfully updated.'));
-        } catch (\Throwable $e) {
-            Log::error("$action failed", [
-                'error' => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug("$action failed", [
-                'error' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                $action,
-                route(self::REDIRECT_INDEX)
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, 'edit training', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info("[{$base}::{$action}] called", ['input' => $req->all(), 'user_id' => $user?->id, 'method' => $method]);
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($req, $action) {
+                    $fetchStart = microtime(true);
+                    $t = Training::findOrFail($req->id);
+                    $this->logExecutionTime($fetchStart, $action, 'fetchTraining');
+                    $updStart = microtime(true);
+                    $t->update(['performance' => $req->performance, 'status' => $req->status, 'remarks' => $req->remarks]);
+                    $this->logExecutionTime($updStart, $action, 'updateTrainingStatus');
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                Log::info("[{$base}::{$action}] committed", ['trainingId' => $req->id]);
+                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Training status successfully updated.'));
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 }

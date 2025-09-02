@@ -158,33 +158,199 @@
     @can('create leave')
         <script defer src="{{ asset('assets/js/routes/leaves/create.js') }}"></script>
     @endcan
-    <script>
-        $(document).on('change', '#employee_id', function () {
-            var employee_id = $(this).val();
-
+    <script async src="{{ asset('assets/js/routes/leaves/lang/index.js') }}"></script>
+    <script defer>
+        (function () {
+        const $ = window.jQuery;
+        const errFb = "# ERROR";
+        const dataClientLocalized = "data-client-localized";
+        const dataGuardMsg = "data-guard-msg";
+        const dataSvLocalized = "data-sv-localized";
+        const dataInit = "data-leaves-bound";
+        const dataErr = "data-leaves-error";
+        const ns = "._npLeaves";
+        const qs = (s, r = document) => r.querySelector(s);
+        const hasBS = () =>
+            !!(
+            qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+            qs('link[href*="bootstrap"]')
+            ) && !!(window.bootstrap && window.bootstrap.Toast);
+        const ensureToastContainer = () => {
+            let c = qs("#np-toast-container");
+            if (c) return c;
+            c = document.createElement("div");
+            c.id = "np-toast-container";
+            c.setAttribute("aria-live", "polite");
+            c.setAttribute("aria-atomic", "true");
+            c.style.position = "fixed";
+            c.style.top = "1rem";
+            c.style.right = "1rem";
+            document.body.appendChild(c);
+            return c;
+        };
+        const showErrorNow = message => {
+            if (hasBS()) {
+            const container = ensureToastContainer();
+            let t = qs("#np-toast", container);
+            if (!t) {
+                t = document.createElement("div");
+                t.id = "np-toast";
+                t.className = "toast";
+                t.setAttribute("role", "alert");
+                t.setAttribute("aria-live", "assertive");
+                t.setAttribute("aria-atomic", "true");
+                t.innerHTML =
+                '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                container.appendChild(t);
+            }
+            const body = t.querySelector(".toast-body");
+            if (body) body.textContent = message ?? errFb;
+            try {
+                new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+            } catch (_) {
+                alert(message ?? errFb);
+            }
+            } else {
+            alert(message ?? errFb);
+            }
+        };
+        const schedulePointerupError = msg => {
+            const host = document.body;
+            if (!host || host.getAttribute(dataErr) === "true") return;
+            host.setAttribute(dataErr, "true");
+            const once = () => {
+            try {
+                showErrorNow(msg);
+            } finally {
+                host.removeAttribute(dataErr);
+            }
+            };
+            document.addEventListener("pointerup", once, { once: true });
+            const mo = new MutationObserver((m, o) => {
+            if (!document.body.contains(host)) {
+                document.removeEventListener("pointerup", once);
+                o.disconnect();
+            }
+            });
+            mo.observe(document.documentElement, { childList: true, subtree: true });
+        };
+        const getMsg = (el, key) => {
+            let msg = errFb;
+            if (
+            el?.getAttribute?.(dataSvLocalized) === "true" ||
+            el?.getAttribute?.(dataClientLocalized) === "true"
+            ) {
+            msg = el.getAttribute(dataGuardMsg) || errFb;
+            } else {
+            let lang = (
+                window.sessionStorage.getItem("erp-np-lang") ||
+                document.documentElement.lang ||
+                "en"
+            )
+                .toLowerCase()
+                .replace(/_/g, "-");
+            lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+            const msgKey = key;
+            msg =
+                window.translations?.[lang]?.[msgKey] ||
+                el?.getAttribute?.(dataGuardMsg) ||
+                window.translations?.en?.[msgKey] ||
+                errFb;
+            if (msg !== errFb && el) {
+                el.setAttribute(dataGuardMsg, msg);
+                el.setAttribute(dataClientLocalized, "true");
+            }
+            }
+            return msg;
+        };
+        const ensureJq = () => {
+            if (!$ || !$.fn) {
+            try {
+                console.error("jQuery unavailable");
+            } catch (_) {}
+            schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
+            return false;
+            }
+            return true;
+        };
+        const buildEndpoint = el => {
+            const url = el?.getAttribute?.("data-url") ?? "";
+            const href = el?.getAttribute?.("href") ?? "";
+            if ((!url || url === "#") && (!href || href === "#"))
+            return "{{route('leaves.jsoncount')}}";
+            return url && url !== "#" ? url : href;
+        };
+        const bind = () => {
+            if (!ensureJq()) return;
+            const host = document.body;
+            if (host.getAttribute(dataInit) === "true") return;
+            host.setAttribute(dataInit, "true");
+            $(document).on("change" + ns, "#employee_id", function () {
+            const empEl = this;
+            const employee_id = $(this).val() ?? "";
+            const endpoint = buildEndpoint(empEl);
+            if (!endpoint || endpoint === "#") {
+                schedulePointerupError(getMsg(empEl, "route_unavailable"));
+                return;
+            }
             $.ajax({
-                url: '{{route('leave.jsoncount')}}',
-                type: 'POST',
+                url: endpoint,
+                type: "POST",
                 data: {
-                    "employee_id": employee_id, "_token": "{{ csrf_token() }}",
+                employee_id: employee_id,
+                _token:
+                    document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content") ?? "",
                 },
                 success: function (data) {
-
-                    $('#leave_type_id').empty();
-                    $('#leave_type_id').append('<option value="">{{__('Select Leave Type')}}</option>');
-
-                    $.each(data, function (key, value) {
-
-                        if (value.total_leave >= value.days) {
-                            $('#leave_type_id').append('<option value="' + value.id + '" disabled>' + value.title + '&nbsp(' + value.total_leave + '/' + value.days + ')</option>');
-                        } else {
-                            $('#leave_type_id').append('<option value="' + value.id + '">' + value.title + '&nbsp(' + value.total_leave + '/' + value.days + ')</option>');
-                        }
-                    });
-
+                const $select = $("#leave_type_id");
+                if (!$select.length) {
+                    schedulePointerupError(getMsg(empEl, "leaves_unavailable"));
+                    return;
                 }
+                $select.empty();
+                $select.append('<option value="">{{__('Select Leave Type')}}</option>');
+                try {
+                    $.each(data ?? [], function (key, value) {
+                    const id = value?.id ?? "";
+                    const title = value?.title ?? "";
+                    const total = Number(value?.total_leave ?? 0);
+                    const days = Number(value?.days ?? 0);
+                    const disabled = total >= days ? " disabled" : "";
+                    const label = title + "&nbsp(" + total + "/" + days + ")";
+                    $select.append(
+                        '<option value="' +
+                        id +
+                        '"' +
+                        disabled +
+                        ">" +
+                        label +
+                        "</option>"
+                    );
+                    });
+                } catch (_) {
+                    schedulePointerupError(getMsg(empEl, "leaves_unavailable"));
+                }
+                },
+                error: function () {
+                schedulePointerupError(getMsg(empEl, "leaves_unavailable"));
+                },
             });
-        });
-
+            });
+            const mo = new MutationObserver(function () {
+            if (!$("#employee_id").length) {
+                $(document).off("change" + ns, "#employee_id");
+                host.removeAttribute(dataInit);
+            }
+            });
+            mo.observe(document.documentElement, { childList: true, subtree: true });
+        };
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", bind, { once: true });
+        } else {
+            bind();
+        }
+        })();
     </script>
 @endpush

@@ -45,7 +45,8 @@ use Illuminate\Support\Facades\{
     Log,
     Route,
     Storage,
-    Validator
+    Validator,
+    View as ViewFacade
 };
 use Illuminate\View\View;
 
@@ -76,7 +77,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($fetchStart, $action, 'fetchIndexData');
                 Log::info("[{$class}::{$action}] dataset ready", ['purchase_count' => $purchases->count(), 'vendor_options' => $vendors->count()]);
                 $renderStart = microtime(true);
-                if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['purchases', 'status', 'vendors']]);
                 $resp = view($viewPath, compact('purchases', 'status', 'vendors'));
                 $this->logExecutionTime($renderStart, $action, 'renderIndex');
@@ -112,7 +113,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($loadStart, $action, 'loadCreateFormData');
                 Log::info("[{$class}::{$action}] form data ready", ['custom_fields' => $customFields->count(), 'product_services' => $productServices->count()]);
                 $renderStart = microtime(true);
-                if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] rendering view", ['view_path' => $viewPath, 'compact_vars' => ['vendors', 'purchaseNumber', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse']]);
                 $resp = view($viewPath, compact('vendors', 'purchaseNumber', 'productServices', 'category', 'customFields', 'vendorId', 'warehouse'));
                 $this->logExecutionTime($renderStart, $action, 'renderCreate');
@@ -211,7 +212,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($loadStart, $action, 'loadPurchaseAndRelations');
                 Log::info("[{$class}::{$action}] purchase ready", ['purchase_id' => $id, 'items_count' => (is_countable($items) ? count($items) : 0)]);
                 $renderStart = microtime(true);
-                if (!View::exists($viewPath)) {
+                if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$class}::{$action}] view missing", ['view_path' => $viewPath]);
                     return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
@@ -256,7 +257,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($loadStart, $action, 'loadEditData');
                 Log::info("[{$class}::{$action}] data ready", ['purchase_id' => $id]);
                 $renderStart = microtime(true);
-                if (!View::exists($viewPath)) {
+                if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$class}::{$action}] view missing", ['view_path' => $viewPath]);
                     return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
@@ -540,7 +541,7 @@ class PurchaseController extends Controller
                 $viewPath = ViewsConstants::PRC_TMP . ($settings[BillsConstants::COL_PRC_TMP] ?? '');
                 Log::info("[{$class}::{$action}] rendering template", ['template' => $settings[BillsConstants::COL_PRC_TMP] ?? null, 'view_path' => $viewPath]);
                 $renderStart = microtime(true);
-                if (!View::exists($viewPath)) {
+                if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$class}::{$action}] view missing", ['view_path' => $viewPath]);
                     return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 }
@@ -611,7 +612,7 @@ class PurchaseController extends Controller
             $this->logExecutionTime($brandStart, $action, 'prepareBranding');
             $viewPath = ViewsConstants::PRC_TMP . $template;
             Log::info("[{$class}::{$action}] rendering preview", ['view_path' => $viewPath]);
-            if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             return view($viewPath, compact('purchase', 'preview', 'color', 'img', 'settings', 'vendor', 'font_color'));
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'template' => $template]);
     }
@@ -711,7 +712,7 @@ class PurchaseController extends Controller
                 $items = $purchase->items;
                 $this->logExecutionTime($loadStart, $action, 'loadPurchaseLinkData');
                 Log::info("[{$class}::{$action}] rendering customer purchase link", ['purchase_id' => $id]);
-                if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $response = view($viewPath, compact('purchase', 'vendor', 'items', 'purchasePayment', 'user'));
                 $this->logExecutionTime($renderStart, $action, 'renderCustomerBill');
@@ -744,7 +745,7 @@ class PurchaseController extends Controller
                 $accounts = BankAccount::select('*', DB::raw("CONCAT(bank_name,' ',holder_name) AS name"))->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
                 $this->logExecutionTime($loadStart, $action, 'loadPaymentData');
                 Log::info("[{$class}::{$action}] dataset ready", ['vendors_count' => $vendors->count(), 'categories_count' => $categories->count(), 'accounts_count' => $accounts->count()]);
-                if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $response = view($viewPath, compact('vendors', 'categories', 'accounts', 'purchase'));
                 $this->logExecutionTime($renderStart, $action, 'renderPayment');
@@ -919,7 +920,7 @@ class PurchaseController extends Controller
                 $vendor = Vendor::findOrFail($request->id);
                 $this->logExecutionTime($loadStart, $action, 'loadVendor');
                 Log::debug("[{$class}::{$action}] vendor loaded", ['vendor_id' => $vendor->id]);
-                if (!View::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 $renderStart = microtime(true);
                 $response = view($viewPath, compact('vendor'));
                 $this->logExecutionTime($renderStart, $action, 'renderVendorDetail');

@@ -152,7 +152,7 @@
         <link rel="stylesheet" href="{{ asset('assets/css/plugins/dragula.min.css') }}" id="main-style-link">
     @endpush
     @push(StacksConstants::ADM_SCR_PG)
-        <script src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
+       <script defer src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
         <script async>
         window.translations = {
             ar:{dragula_unavailable:"تعذّر تفعيل السحب والإفلات",kanban_move_unavailable:"تعذّر نقل العنصر",comment_add_unavailable:"تعذّر إضافة التعليق",comment_delete_unavailable:"تعذّر حذف التعليق",file_add_unavailable:"تعذّر إضافة الملف",file_delete_unavailable:"تعذّر حذف الملف"},

@@ -1,0 +1,19 @@
+.btn-check:checked + .btn-outline-primary,
+.btn-check:active + .btn-outline-primary,
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.btn-outline-primary.dropdown-toggle.show {
+  color: #ffffff;
+  background-color: #584ed2 !important;
+  border-color: #584ed2 !important;
+}
+
+.btn-outline-primary:hover {
+  color: #ffffff;
+  background-color: #584ed2 !important;
+  border-color: #584ed2 !important;
+}
+.btn.btn-outline-primary {
+  color: #584ed2;
+  border-color: #584ed2 !important;
+}

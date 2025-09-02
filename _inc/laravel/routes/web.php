@@ -283,9 +283,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::resource(DatabaseConstants::TABLE_PERMISSIONS, PermissionController::class)
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     #endregion
+
+    //================================= Languages ====================================//
+    #region
     Route::group(
-        //================================= Languages ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -301,12 +302,12 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::any('store-language', [LanguageController::class, LanguageController::STR_LNG])->name(VW::LNG . '.store');
             Route::delete('/lang/{lang}', [LanguageController::class, LanguageController::DEL_LNG])->name(VW::LNG . '.destroy');
         }
-        #endregion
     );
+    #endregion
 
+    //================================= System Settings  ====================================//
+    #region
     Route::group(
-        //================================= System Settings  ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -354,8 +355,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::post('cache-settings', [SystemController::class, SystemController::CC_ST_STR])->name('cache.settings.store')
                 ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
         }
-        #endregion
     );
+    #endregion
 
     //================================= Product Services ====================================//
     #region
@@ -376,9 +377,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::resource(VW::PRD_STK, ProductStockController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
 
+    //================================= Customers ====================================//
+    #region
     Route::group(
-        //================================= Customers ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -391,13 +392,12 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
                 ->name(VW::CST . '.show');
             Route::resource(VW::CST, CustomerController::class);
         }
-        #endregion
     );
+    #endregion
 
-    //Vendor
+    //================================= Vendors ====================================//
+    #region
     Route::group(
-        //================================= Vendors ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -410,12 +410,12 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
                 ->name(VW::VND . '.show');
             Route::resource(VW::VND, VendorController::class);
         }
-        #endregion
     );
+    #endregion
 
+    //================================= Bank Accounts ====================================//
+    #region
     Route::group(
-        //================================= Bank Accounts ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -426,12 +426,12 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         function () {
             Route::resource(VW::BNK_ACC, BankAccountController::class);
         }
-        #endregion
     );
+    #endregion
 
+    //================================= Bank Transfers ====================================//
+    #region
     Route::group(
-        //================================= Bank Transfers ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -443,8 +443,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::get(VW::BNK_TRF . '/index', [BankTransferController::class, 'index'])->name(VW::BNK_TRF . '.index');
             Route::resource(VW::BNK_TRF, BankTransferController::class);
         }
-        #endregion
     );
+    #endregion
 
     //================================= Product Service Categories ====================================//
     #region
@@ -522,6 +522,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     );
     #endregion
 
+    //================================= Bills ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -543,9 +545,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         }
     );
 
-    Route::get(VW::BIL . 'preview/{template}/{color}', [BillController::class, 'previewBill'])->name(VW::BIL . '.preview')
+    Route::get(VW::BIL . '/preview/{template}/{color}', [BillController::class, 'previewBill'])->name(VW::BIL . '.preview')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::BIL . 'template/setting', [BillController::class, BillController::SV_BIL_TMP])
+    Route::post(VW::BIL . '/template/setting', [BillController::class, BillController::SV_BIL_TMP])
         ->name(VW::BIL_TMP . 'setting');
 
     Route::resource(VW::TX, TaxController::class)
@@ -557,13 +559,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         MiddlewaresConstants::REV
     ]);
 
-    Route::resource(VW::RVN, RevenueController::class)->middleware([
-        MiddlewaresConstants::AUTH,
-        MiddlewaresConstants::XSS,
-        MiddlewaresConstants::REV
-    ]);
-
-    Route::get(VW::BIL . 'pdf/{id}', [BillController::class, 'bill'])->name(VW::BIL . '.pdf')->middleware([
+    Route::get(VW::BIL . '/pdf/{id}', [BillController::class, 'bill'])->name(VW::BIL . '.pdf')->middleware([
         MiddlewaresConstants::XSS,
         MiddlewaresConstants::REV
     ]);
@@ -593,10 +589,23 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::get(VW::BIL . 'create/{cid}', [BillController::class, 'create'])->name(VW::BIL . '.create');
         }
     );
+    #endregion
 
-    Route::get('payment/index', [PaymentController::class, 'index'])->name('payment.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    //================================= Revenues ====================================//
+    #region
+    Route::resource(VW::RVN, RevenueController::class)->middleware([
+        MiddlewaresConstants::AUTH,
+        MiddlewaresConstants::XSS,
+        MiddlewaresConstants::REV
+    ]);
+    #endregion
 
-    Route::resource('payment', PaymentController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    //================================= Payments ====================================//
+    #region
+    Route::get(VW::PAY . '/index', [PaymentController::class, 'index'])->name(VW::PAY . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+
+    Route::resource(VW::PAY, PaymentController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    #endregion
 
     Route::group(
         [
@@ -607,13 +616,13 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             ],
         ],
         function () {
-            Route::get(VW::RPT . '/transaction', [TransactionController::class, 'index'])->name('transaction.index');
+            Route::get(VW::RPT . '/transaction', [TransactionController::class, 'index'])->name('transactions.index');
         }
     );
 
+    //================================= Reports ====================================//
+    #region
     Route::group(
-        //================================= Reports ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -653,8 +662,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::get(VW::RPT . '/payables', [ReportController::class, ReportController::PAY_RPT])->name(VW::RPT . '.payables');
             Route::post('print/payables', [ReportController::class, ReportController::PAY_PRT])->name(VW::RPT . '.payables.print');
         }
-        #endregion
     );
+    #endregion
 
     Route::group(
         [
@@ -843,7 +852,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     Route::get(VW::USR . '/{id}/plan', [UserController::class, UserController::UPG_PLN])->name(VW::PLN . '.upgrade')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::USR . '/{id}/plan/{pid}', [UserController::class, UserController::ACT_PLN])->name(VW::PLN . '.active')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/{uid}/notification/seen', [UserController::class, 'notificationSeen'])->name('notification.seen');
+    Route::get('/{uid}/notifications/seen', [UserController::class, 'notificationSeen'])->name('notifications.seen');
 
     // Email Templates
     Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 'manageEmailLang'])->name('manage.email.language')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -853,9 +862,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     // End Email Templates
 
     // HRM
-    Route::resource('user', UserController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::USR, UserController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::EMP . '/json', [EmployeeController::class, 'json'])->name(VW::EMP . '.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('branchVW::EMP.//json', [EmployeeController::class, 'employeeJson'])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, 'employeeJson'])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('employee-profile', [EmployeeController::class, 'profile'])->name(VW::EMP . '.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('show-employee-profile/{id}', [EmployeeController::class, 'profileShow'])->name('show.employee.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
@@ -874,7 +883,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     Route::get(VW::EMP . '/salary/{eid}', [SetSalaryController::class, 'employeeBasicSalary'])->name(VW::EMP . '.salary.basic')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    //payslip
+    //================================= Payslips ====================================//
 
     Route::resource(VW::ALW, AllowanceController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::ALW_OPT, AllowanceOptionController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -900,12 +909,12 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get('overtimes/create/{eid}', [OvertimeController::class, 'overtimeCreate'])->name('overtimes.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/paysalary/{id}/{date}', [PayslipController::class, 'paysalary'])->name(VW::PY_SLP . '.paysalary')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/bulk_pay_create/{date}', [PayslipController::class, 'bulkPayCreate'])->name(VW::PY_SLP . '.bulk_pay_create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::PY_SLP . '/bulkpayment/{date}', [PayslipController::class, 'bulkPayment'])->name(VW::PY_SLP . '.bulkpayment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::PY_SLP . '/bulk_payment/{date}', [PayslipController::class, 'bulkPayment'])->name(VW::PY_SLP . '.bulkpayment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::PY_SLP . '/search_json', [PayslipController::class, 'searchJson'])->name(VW::PY_SLP . '.search_json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/employeepayslip', [PayslipController::class, 'employeePayslip'])->name(VW::PY_SLP . '.employeepayslip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/show/{id}', [PayslipController::class, 'showEmployee'])->name(VW::PY_SLP . '.showemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/edit/{id}', [PayslipController::class, 'editEmployee'])->name(VW::PY_SLP . '.editemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::PY_SLP . '/update/{id}', [PayslipController::class, 'updateEmployee'])->name(VW::PY_SLP . '.updateemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::PY_SLP . '/employee/update/{id}', [PayslipController::class, 'updateEmployee'])->name(VW::PY_SLP . '.updateEmployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/pdf/{id}/{m}', [PayslipController::class, 'pdf'])->name(VW::PY_SLP . '.pdf')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/payslipPdf/{id}', [PayslipController::class, 'payslipPdf'])->name(VW::PY_SLP . '.payslipPdf')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/send/{id}/{m}', [PayslipController::class, 'send'])->name(VW::PY_SLP . '.send')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -934,9 +943,11 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::resource(VW::TNG_TP, TrainingTypeController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::TNR, TrainerController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::post('training/status', [TrainingController::class, 'updateStatus'])->name('training.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
-    Route::resource('training', TrainingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Training ====================================//
+    #region
+    Route::post(VW::TNG . '/status', [TrainingController::class, TrainingController::UPD_STT])->name(VW::TNG . '.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::TNG, TrainingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     // HRM - HR Module
 
@@ -995,7 +1006,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get('task-board-view', [ProjectTaskController::class, ProjectTaskController::TSK_BD_VW])->name(VW::PRJ . '.taskboard.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::resource(VW::DOC_UP, DocumentUploadController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::resource('transfer', TransferController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::TRF, TransferController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::EMP_ATD . '/' . EmployeeAttendanceController::BK_ATD, [EmployeeAttendanceController::class, EmployeeAttendanceController::BK_ATD])->name(VW::EMP_ATD . '.' . EmployeeAttendanceController::BK_ATD)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::EMP_ATD . '/' . EmployeeAttendanceController::BK_ATD, [EmployeeAttendanceController::class, EmployeeAttendanceController::BK_ATD_DT])->name(VW::EMP_ATD . '.' . EmployeeAttendanceController::BK_ATD)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::EMP_ATD . '/attendance', [EmployeeAttendanceController::class, 'attendance'])->name(VW::EMP_ATD . '.attendance')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1127,13 +1138,15 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post('/calendar/{id}/drag', [ProjectTaskController::class, ProjectTaskController::CLD_DRG])->name(VW::PRJ_TSK_C . '.calendar.drag');
     Route::get('calendar/{task}/{pid?}', [ProjectTaskController::class, ProjectTaskController::CLD_VW])->name(VW::PRJ_TSK_C . '.calendar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::resource('project-task-stages', TaskStageController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/project-task-stages/order', [TaskStageController::class, 'order'])->name('project-task-stages.order');
-
-    Route::post(VW::PRJ_TSK_STG . '-new', [TaskStageController::class, 'storingValue'])->name(VW::PRJ_TSK_STG . '.new')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Project Task Stages ====================================//
+    #region
+    Route::resource(VW::PRJ_TSK_STG, TaskStageController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::PRJ_TSK_STG . '/order', [TaskStageController::class, 'order'])->name(VW::PRJ_TSK_STG . '.order');
+    Route::post(VW::PRJ_TSK_STG . '-new', [TaskStageController::class, TaskStageController::STR_V])->name(VW::PRJ_TSK_STG . '.new')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
     // End Task Module
 
-    //================================= Project Expenses  ====================================//
+    //================================= Project Expenses ====================================//
     #region
     Route::get(VW::PRJ . '/{id}/expenses', [ExpenseController::class, 'index'])->name(VW::PRJ_EXP . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PRJ . '/{pid}/' . VW::EXP . '/create', [ExpenseController::class, 'create'])->name(VW::PRJ_EXP . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1531,16 +1544,18 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         MiddlewaresConstants::XSS
     ]);
 
-    //warehouse-transfer
-    Route::resource('warehouse-transfers', WarehouseTransferController::class)->middleware([
+    //================================= Warehouse Transfers ====================================//
+    #region
+    Route::resource(VW::WRH_TRF, WarehouseTransferController::class)->middleware([
         MiddlewaresConstants::AUTH,
         MiddlewaresConstants::XSS,
         MiddlewaresConstants::REV
     ]);
-    Route::post('warehouse-transfers/getproduct', [WarehouseTransferController::class, 'getproduct'])->name('warehouse-transfer.getproduct')
+    Route::post(VW::WRH_TRF . '/get-product', [WarehouseTransferController::class, WarehouseTransferController::GET_PRD])->name(VW::WRH_TRF . '.getproduct')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('warehouse-transfers/getquantity', [WarehouseTransferController::class, 'getquantity'])
-        ->name('warehouse-transfer.getquantity')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::WRH_TRF . '/get-quantity', [WarehouseTransferController::class, WarehouseTransferController::GET_QT])
+        ->name(VW::WRH_TRF . '.getquantity')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //pos barcode
     Route::get('barcode/pos', [PosController::class, 'barcode'])->name(VW::POS . '.barcode')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);

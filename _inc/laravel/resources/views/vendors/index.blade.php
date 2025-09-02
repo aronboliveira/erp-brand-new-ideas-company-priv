@@ -95,7 +95,7 @@
             data-sv-localized="true">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script defer src="{{ asset('assets/js/routes/vendors/create.js') }}"></script>
             @endpush
         @endcan
@@ -144,7 +144,7 @@
                                                     data-sv-localized="true">
                                                         {{ $vendorNumberLabel }}
                                                     </a>
-                                                    @push(StacksConstants::ADM_SCRP_PG)
+                                                    @push(StacksConstants::ADM_SCR_PG)
                                                         <script defer>
                                                             (() => {
                                                                 try {
@@ -228,7 +228,7 @@
                                                                     <i class="{{ VC::TI_EYE_WT }}"></i>
                                                                 </a>
                                                             </div>
-                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                            @push(StacksConstants::ADM_SCR_PG)
                                                                 <script defer>
                                                                     (() => {
                                                                         try {
@@ -298,7 +298,7 @@
                                                             data-sv-localized="true">
                                                                 <i class="{{ VC::TI_PC_WT }}"></i>
                                                             </a>
-                                                            @push(StacksConstants::ADM_SCRP_PG)
+                                                            @push(StacksConstants::ADM_SCR_PG)
                                                                 <script defer>
                                                                     (() => {
                                                                         try {
@@ -378,7 +378,7 @@
                                                                         <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                     </a>
                                                                 {!! Form::close() !!}
-                                                                @push(StacksConstants::ADM_SCRP_PG)
+                                                                @push(StacksConstants::ADM_SCR_PG)
                                                                     <script defer>
                                                                         (() => {
                                                                             try {

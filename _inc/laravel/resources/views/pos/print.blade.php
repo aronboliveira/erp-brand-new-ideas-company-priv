@@ -39,47 +39,7 @@
         </a>
     </li>
     @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                try {
-                    const l = document.getElementById('{{ $posProductBarcodeLinkId }}');
-                    if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                    l.setAttribute('data-listener-active', 'true');
-                    l.addEventListener('click', e => {
-                        try {
-                            const href = l.getAttribute('href') || '#';
-                            const url  = l.getAttribute('data-url') || href || '#';
-                            if (href !== '#' || url !== '#') return;
-                            e.preventDefault();
-                            const msg = l.getAttribute('data-guard-msg') || 'Access pos product barcode route is unavailable. Please contact technical support or your domain administrator.';
-                            const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (hasBootstrap) {
-                                const toast = document.createElement('div');
-                                toast.className = 'toast';
-                                toast.setAttribute('role','alert');
-                                toast.setAttribute('aria-live','assertive');
-                                toast.setAttribute('aria-atomic','true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toast.appendChild(body);
-                                container.appendChild(toast);
-                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                            } else {
-                                alert(msg);
-                            }
-                            l.setAttribute('data-failed-route', 'true');
-                        } catch (err) {}
-                    });
-                } catch (error) {}
-            })();
-        </script>
+        <script defer src="{{ asset('assets/js/routes/pos/productBarcode.js') }}"></script>
     @endpush
     <li class="breadcrumb-item">{{__('POS Barcode Print')}}</li>
 @endsection
@@ -88,38 +48,7 @@
 @endpush
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:{pos_fetch_unavailable:"تعذّر جلب المنتجات من المستودع",copy_unavailable:"تعذّر نسخ الرابط",copy_success:"تم نسخ الرابط إلى الحافظة",pdf_unavailable:"تعذّر إنشاء ملف PDF"},
-            da:{pos_fetch_unavailable:"Kunne ikke hente produkter fra lageret",copy_unavailable:"Kunne ikke kopiere linket",copy_success:"Link kopieret til udklipsholder",pdf_unavailable:"Kunne ikke generere PDF"},
-            de:{pos_fetch_unavailable:"Produkte konnten nicht aus dem Lager abgerufen werden",copy_unavailable:"Link konnte nicht kopiert werden",copy_success:"Link in die Zwischenablage kopiert",pdf_unavailable:"PDF konnte nicht erstellt werden"},
-            en:{pos_fetch_unavailable:"Could not fetch products for this warehouse",copy_unavailable:"Could not copy the link",copy_success:"Link copied to clipboard",pdf_unavailable:"Could not generate the PDF"},
-            es:{pos_fetch_unavailable:"No se pudieron obtener productos del almacén",copy_unavailable:"No se pudo copiar el enlace",copy_success:"Enlace copiado al portapapeles",pdf_unavailable:"No se pudo generar el PDF"},
-            fr:{pos_fetch_unavailable:"Impossible de récupérer les produits de l’entrepôt",copy_unavailable:"Impossible de copier le lien",copy_success:"Lien copié dans le presse-papiers",pdf_unavailable:"Impossible de générer le PDF"},
-            he:{pos_fetch_unavailable:"לא ניתן לאחזר מוצרים מהמחסן",copy_unavailable:"לא ניתן להעתיק את הקישור",copy_success:"הקישור הועתק ללוח",pdf_unavailable:"לא ניתן ליצור קובץ PDF"},
-            it:{pos_fetch_unavailable:"Impossibile recuperare i prodotti dal magazzino",copy_unavailable:"Impossibile copiare il link",copy_success:"Link copiato negli appunti",pdf_unavailable:"Impossibile generare il PDF"},
-            ja:{pos_fetch_unavailable:"倉庫の商品を取得できませんでした",copy_unavailable:"リンクをコピーできませんでした",copy_success:"リンクをクリップボードにコピーしました",pdf_unavailable:"PDF を生成できませんでした"},
-            nl:{pos_fetch_unavailable:"Producten konden niet uit het magazijn worden opgehaald",copy_unavailable:"Link kon niet worden gekopieerd",copy_success:"Link gekopieerd naar klembord",pdf_unavailable:"PDF kon niet worden gegenereerd"},
-            pl:{pos_fetch_unavailable:"Nie udało się pobrać produktów z magazynu",copy_unavailable:"Nie można skopiować linku",copy_success:"Link skopiowano do schowka",pdf_unavailable:"Nie udało się wygenerować PDF"},
-            pt:{pos_fetch_unavailable:"Não foi possível buscar os produtos do armazém",copy_unavailable:"Não foi possível copiar o link",copy_success:"Link copiado para a área de transferência",pdf_unavailable:"Não foi possível gerar o PDF"},
-            "pt-br":{pos_fetch_unavailable:"Não foi possível buscar os produtos do armazém",copy_unavailable:"Não foi possível copiar o link",copy_success:"Link copiado para a área de transferência",pdf_unavailable:"Não foi possível gerar o PDF"},
-            ru:{pos_fetch_unavailable:"Не удалось получить товары со склада",copy_unavailable:"Не удалось скопировать ссылку",copy_success:"Ссылка скопирована в буфер обмена",pdf_unavailable:"Не удалось создать PDF"},
-            tr:{pos_fetch_unavailable:"Depodan ürünler alınamadı",copy_unavailable:"Bağlantı kopyalanamadı",copy_success:"Bağlantı panoya kopyalandı",pdf_unavailable:"PDF oluşturulamadı"},
-            zh:{pos_fetch_unavailable:"无法从仓库获取产品",copy_unavailable:"无法复制链接",copy_success:"链接已复制到剪贴板",pdf_unavailable:"无法生成 PDF"}
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
+    <script async src="{{ asset('assets/js/routes/pos/lang/fetch.js') }}">
     </script>
     <script defer>
         (()=>{
@@ -179,7 +108,7 @@ Object.keys(t).forEach(
             if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
 
             const csrf=$('meta[name="csrf-token"]').attr('content') ?? "";
-            const POS_URL='{{route('pos.getproduct')}}';
+            const POS_URL='{{route("pos.getproduct")}}';
 
             const ensureSelect=($wrap)=>{
                 if(!$wrap?.length) return null;
@@ -294,14 +223,28 @@ Object.keys(t).forEach(
     </script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="{{ VC::FEND }}">
-        <a href="{{ route(VW::POS.'.barcode') }}"
-           class="{{ VC::BT_SM_PM }}"
-           data-bs-toggle="tooltip"
-           title="{{ __('Back') }}">
-            <i class="ti ti-arrow-left text-white"></i>
-        </a>
-    </div>
+    @php
+        $posBarcodeRouteBase = VW::POS.'.barcode';
+        $posBarcodeRouteKebab = Str::kebab($posBarcodeRouteBase);
+        $posBarcodeRouteResolved = Route::has($posBarcodeRouteBase) ? $posBarcodeRouteBase : (Route::has($posBarcodeRouteKebab) ? $posBarcodeRouteKebab : null);
+        $posBarcodeUrl = $posBarcodeRouteResolved ? route($posBarcodeRouteResolved) : '#';
+        $posBarcodeUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
+        $posBarcodeGuardMsg = Utility::fetchLinkMessage($posBarcodeUserLang, VW::POS, 'barcode_pos_route_unavailable') ?? 'POS barcode route is unavailable. Please contact technical support or your domain administrator.';
+        $posBarcodeBackLinkId = 'pos-barcode-back-link';
+    @endphp
+    <a href="{{ $posBarcodeUrl }}"
+    id="{{ $posBarcodeBackLinkId }}"
+    class="{{ VC::BT_SM_PM }}"
+    data-url="{{ $posBarcodeUrl }}"
+    data-guard-msg="{{ $posBarcodeGuardMsg }}"
+    data-sv-localized="true"
+    data-bs-toggle="tooltip"
+    title="{{ __('Back') }}">
+        <i class="ti ti-arrow-left text-white"></i>
+    </a>
+    @push(StacksConstants::ADM_SCRP_PG)
+        <script defer src="{{ asset('assets/js/routes/pos/barcode.js') }}"></script>
+    @endpush
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
@@ -330,47 +273,7 @@ Object.keys(t).forEach(
                     ]) !!}
                         @csrf
                         @push(StacksConstants::ADM_SCR_PG)
-                            <script defer>
-                                (() => {
-                                    try {
-                                        const f = document.getElementById('{{ $posReceiptFormId }}');
-                                        if (!f || f.getAttribute('data-listener-active') === 'true') return;
-                                        f.setAttribute('data-listener-active', 'true');
-                                        f.addEventListener('submit', e => {
-                                            try {
-                                                const url = f.getAttribute('data-url') || '#';
-                                                const action = f.getAttribute('action') || '#';
-                                                if (url !== '#' || action !== '#') return;
-                                                e.preventDefault();
-                                                const msg = f.getAttribute('data-guard-msg') || 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
-                                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (hasBootstrap) {
-                                                    const toast = document.createElement('div');
-                                                    toast.className = 'toast';
-                                                    toast.setAttribute('role', 'alert');
-                                                    toast.setAttribute('aria-live', 'assertive');
-                                                    toast.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toast.appendChild(body);
-                                                    container.appendChild(toast);
-                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                f.setAttribute('data-failed-route', 'true');
-                                            } catch (err) {}
-                                        });
-                                    } catch (error) {}
-                                })();
-                            </script>
+                            <script defer src="{{ asset('assets/js/routes/pos/receipt.js') }}"></script>
                         @endpush
                         <div class="{{ VC::RW }}" id="printableArea">
                             <div class="col-md-4">

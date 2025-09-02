@@ -9,19 +9,21 @@
 @endsection
 
 @section('container')
-
+    @php
+        $envErrors = data_get($environment ?? [], 'errors', null);
+    @endphp
     <form method="post" action="{{ route('LaravelInstaller::environmentSaveClassic') }}">
         {!! csrf_field() !!}
-        <textarea class="textarea" name="envConfig">{{ $envConfig }}</textarea>
+        <textarea class="textarea" name="envConfig">{{ old('envConfig', $envConfig ?? '') }}</textarea>
         <div class="buttons buttons--right">
             <button class="button button--light" type="submit">
-            	<i class="fa fa-floppy-o fa-fw" aria-hidden="true"></i>
-             	{!! trans('installer_messages.environment.classic.save') !!}
+                <i class="fa fa-floppy-o fa-fw" aria-hidden="true"></i>
+                {!! trans('installer_messages.environment.classic.save') !!}
             </button>
         </div>
     </form>
 
-    @if( ! isset($environment['errors']))
+    @if(empty($envErrors))
         <div class="buttons-container">
             <a class="button float-left" href="{{ route('LaravelInstaller::environmentWizard') }}">
                 <i class="fa fa-sliders fa-fw" aria-hidden="true"></i>
@@ -34,5 +36,4 @@
             </a>
         </div>
     @endif
-
 @endsection
