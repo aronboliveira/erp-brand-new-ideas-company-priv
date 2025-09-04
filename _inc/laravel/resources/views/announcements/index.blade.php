@@ -211,293 +211,213 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-        ar: {
-            announcement_department_unavailable: 'قائمة أقسام الإعلان غير متوفرة.',
-            announcement_employee_unavailable: 'قائمة موظفي الإعلان غير متوفرة.'
-        },
-        da: {
-            announcement_department_unavailable: 'Annonceringsafdelinger er ikke tilgængelige.',
-            announcement_employee_unavailable: 'Annonceringsmedarbejdere er ikke tilgængelige.'
-        },
-        de: {
-            announcement_department_unavailable: 'Ankündigungsabteilungen sind nicht verfügbar.',
-            announcement_employee_unavailable: 'Ankündigungsmitarbeiter sind nicht verfügbar.'
-        },
-        en: {
-            announcement_department_unavailable: 'Announcement departments are unavailable.',
-            announcement_employee_unavailable: 'Announcement employee list is unavailable.'
-        },
-        es: {
-            announcement_department_unavailable: 'Los departamentos del anuncio no están disponibles.',
-            announcement_employee_unavailable: 'Los empleados del anuncio no están disponibles.'
-        },
-        fr: {
-            announcement_department_unavailable: 'Les départements de l’annonce ne sont pas disponibles.',
-            announcement_employee_unavailable: 'La liste des employés de l’annonce n’est pas disponible.'
-        },
-        he: {
-            announcement_department_unavailable: 'מחלקות ההודעה אינן זמינות.',
-            announcement_employee_unavailable: 'רשימת העובדים של ההודעה אינה זמינה.'
-        },
-        it: {
-            announcement_department_unavailable: 'I reparti dell’annuncio non sono disponibili.',
-            announcement_employee_unavailable: 'La lista dei dipendenti dell’annuncio non è disponibile.'
-        },
-        ja: {
-            announcement_department_unavailable: 'アナウンスの部署が利用できません。',
-            announcement_employee_unavailable: 'アナウンスの従業員リストが利用できません。'
-        },
-        nl: {
-            announcement_department_unavailable: 'Aankondigingsafdelingen zijn niet beschikbaar.',
-            announcement_employee_unavailable: 'Aankondigingswerknemerslijst is niet beschikbaar.'
-        },
-        pl: {
-            announcement_department_unavailable: 'Działy ogłoszenia są niedostępne.',
-            announcement_employee_unavailable: 'Lista pracowników ogłoszenia jest niedostępna.'
-        },
-        pt: {
-            announcement_department_unavailable: 'Departamentos do anúncio não estão disponíveis.',
-            announcement_employee_unavailable: 'Lista de funcionários do anúncio não está disponível.'
-        },
-        'pt-br': {
-            announcement_department_unavailable: 'Departamentos do anúncio não estão disponíveis.',
-            announcement_employee_unavailable: 'Lista de funcionários do anúncio não está disponível.'
-        },
-        ru: {
-            announcement_department_unavailable: 'Отделы объявления недоступны.',
-            announcement_employee_unavailable: 'Список сотрудников объявления недоступен.'
-        },
-        tr: {
-            announcement_department_unavailable: 'Duyuru bölümleri kullanılamıyor.',
-            announcement_employee_unavailable: 'Duyuru çalışan listesi kullanılamıyor.'
-        },
-        zh: {
-            announcement_department_unavailable: '公告部门不可用。',
-            announcement_employee_unavailable: '公告员工列表不可用。'
-        }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/announcements/lang/index.js') }}"></script>
     <script defer>
         (() => {
-        const errFb = '# ERROR';
-        const dataClientLocalized = 'data-client-localized';
-        const dataGuardMsg = 'data-guard-msg';
-        const langSessionKey = 'erp-np-lang';
-        
-        const getLocalizedMessage = (msgKey, el) => {
-            let msg = errFb;
-            if (
-            el.getAttribute('data-sv-localized') === 'true' ||
-            el.getAttribute(dataClientLocalized) === 'true'
-            ) {
-            msg = el.getAttribute(dataGuardMsg) ?? errFb;
-            } else {
-            let lang = (
-                window.sessionStorage.getItem(langSessionKey) ??
-                document.documentElement.lang ??
-                'en'
-            )
-                .toLowerCase()
-                .replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[msgKey] ??
-                el.getAttribute(dataGuardMsg) ??
-                window.translations?.['en']?.[msgKey] ??
-                errFb;
-            if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, 'true');
-            }
-            }
-            return msg;
-        };
-        
-        const showError = message => {
-            try {
-            let container = document.querySelector('#bootstrap-toast-container');
-            if (!container) {
-                const hasBs =
-                Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-                    .some(l => /bootstrap/i.test(l.href)) &&
-                window.bootstrap?.Toast;
-                if (hasBs) {
-                container = document.createElement('div');
-                container.id = 'bootstrap-toast-container';
-                container.setAttribute('aria-live', 'polite');
-                container.setAttribute('aria-atomic', 'true');
-                document.body.appendChild(container);
-                }
-            }
-            if (container && window.bootstrap.Toast) {
-                let toast = container.querySelector('.toast');
-                if (!toast) {
-                toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role', 'alert');
-                toast.setAttribute('aria-live', 'assertive');
-                toast.setAttribute('aria-atomic', 'true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                toast.appendChild(body);
-                container.appendChild(toast);
-                if (toast.getAttribute('data-click-listener') !== 'true') {
-                    toast.addEventListener('click', () => body.textContent = message);
-                    toast.setAttribute('data-click-listener', 'true');
+            const errFb = '# ERROR';
+            const dataClientLocalized = 'data-client-localized';
+            const dataGuardMsg = 'data-guard-msg';
+            const langSessionKey = 'erp-np-lang';
+            
+            const getLocalizedMessage = (msgKey, el) => {
+                let msg = errFb;
+                if (
+                el.getAttribute('data-sv-localized') === 'true' ||
+                el.getAttribute(dataClientLocalized) === 'true'
+                ) {
+                msg = el.getAttribute(dataGuardMsg) ?? errFb;
+                } else {
+                let lang = (
+                    window.sessionStorage.getItem(langSessionKey) ??
+                    document.documentElement.lang ??
+                    'en'
+                )
+                    .toLowerCase()
+                    .replace(/_/g, '-');
+                lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
+                msg =
+                    window.translations?.[lang]?.[msgKey] ??
+                    el.getAttribute(dataGuardMsg) ??
+                    window.translations?.['en']?.[msgKey] ??
+                    errFb;
+                if (msg !== errFb) {
+                    el.setAttribute(dataGuardMsg, msg);
+                    el.setAttribute(dataClientLocalized, 'true');
                 }
                 }
-                toast.querySelector('.toast-body').textContent = message;
-                new bootstrap.Toast(toast).show();
-            } else {
+                return msg;
+            };
+            
+            const showError = message => {
+                try {
+                let container = document.querySelector('#bootstrap-toast-container');
+                if (!container) {
+                    const hasBs =
+                    Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+                        .some(l => /bootstrap/i.test(l.href)) &&
+                    window.bootstrap?.Toast;
+                    if (hasBs) {
+                    container = document.createElement('div');
+                    container.id = 'bootstrap-toast-container';
+                    container.setAttribute('aria-live', 'polite');
+                    container.setAttribute('aria-atomic', 'true');
+                    document.body.appendChild(container);
+                    }
+                }
+                if (container && window.bootstrap.Toast) {
+                    let toast = container.querySelector('.toast');
+                    if (!toast) {
+                    toast = document.createElement('div');
+                    toast.className = 'toast';
+                    toast.setAttribute('role', 'alert');
+                    toast.setAttribute('aria-live', 'assertive');
+                    toast.setAttribute('aria-atomic', 'true');
+                    const body = document.createElement('div');
+                    body.className = 'toast-body';
+                    toast.appendChild(body);
+                    container.appendChild(toast);
+                    if (toast.getAttribute('data-click-listener') !== 'true') {
+                        toast.addEventListener('click', () => body.textContent = message);
+                        toast.setAttribute('data-click-listener', 'true');
+                    }
+                    }
+                    toast.querySelector('.toast-body').textContent = message;
+                    new bootstrap.Toast(toast).show();
+                } else {
+                    alert(message);
+                }
+                } catch {
                 alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        };
-        
-        let errorMessage = '';
-        const onErrorPointerUp = () => {
-            if (errorMessage) {
-            showError(errorMessage);
-            errorMessage = '';
-            }
-        };
-        document.addEventListener('pointerup', onErrorPointerUp);
-        new MutationObserver((muts, obs) => {
-            muts.forEach(m => m.removedNodes.forEach(n => {
-            if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onErrorPointerUp);
-                obs.disconnect();
-            }
-            }));
-        }).observe(document.body, { childList: true, subtree: true });
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const branchEl = document.getElementById('branch_id');
-            if (branchEl) {
-            if (branchEl.dataset.listenerAttached !== 'true') {
-                branchEl.dataset.listenerAttached = 'true';
-                branchEl.addEventListener('change', () => loadDepartments(branchEl.value));
-                new MutationObserver((m, o) => {
-                m.forEach(mut => mut.removedNodes.forEach(node => {
-                    if (node === branchEl) {
-                    branchEl.removeEventListener('change', loadDepartments);
-                    o.disconnect();
-                    }
-                }));
-                }).observe(document.body, { childList: true, subtree: true });
-            }
-            loadDepartments(branchEl.value ?? '');
-            }
-        
-            const deptEl = document.getElementById('department_id');
-            if (deptEl) {
-            if (deptEl.dataset.listenerAttached !== 'true') {
-                deptEl.dataset.listenerAttached = 'true';
-                deptEl.addEventListener('change', () => loadEmployees(deptEl.value));
-                new MutationObserver((m, o) => {
-                m.forEach(mut => mut.removedNodes.forEach(node => {
-                    if (node === deptEl) {
-                    deptEl.removeEventListener('change', loadEmployees);
-                    o.disconnect();
-                    }
-                }));
-                }).observe(document.body, { childList: true, subtree: true });
-            }
-            }
-        });
-        
-        function loadDepartments(branchId) {
-            try {
-            $.ajax({
-                url: '{{ route("announcements.getdepartment") }}',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                branch_id: branchId,
-                _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
                 }
-            })
-            .done(data => {
+            };
+            
+            let errorMessage = '';
+            const onErrorPointerUp = () => {
+                if (errorMessage) {
+                showError(errorMessage);
+                errorMessage = '';
+                }
+            };
+            document.addEventListener('pointerup', onErrorPointerUp);
+            new MutationObserver((muts, obs) => {
+                muts.forEach(m => m.removedNodes.forEach(n => {
+                if (n === document.documentElement) {
+                    document.removeEventListener('pointerup', onErrorPointerUp);
+                    obs.disconnect();
+                }
+                }));
+            }).observe(document.body, { childList: true, subtree: true });
+            
+            document.addEventListener('DOMContentLoaded', () => {
+                const branchEl = document.getElementById('branch_id');
+                if (branchEl) {
+                if (branchEl.dataset.listenerAttached !== 'true') {
+                    branchEl.dataset.listenerAttached = 'true';
+                    branchEl.addEventListener('change', () => loadDepartments(branchEl.value));
+                    new MutationObserver((m, o) => {
+                    m.forEach(mut => mut.removedNodes.forEach(node => {
+                        if (node === branchEl) {
+                        branchEl.removeEventListener('change', loadDepartments);
+                        o.disconnect();
+                        }
+                    }));
+                    }).observe(document.body, { childList: true, subtree: true });
+                }
+                loadDepartments(branchEl.value ?? '');
+                }
+            
                 const deptEl = document.getElementById('department_id');
-                if (!deptEl) return;
-                deptEl.innerHTML = '';
-                const opt0 = document.createElement('option');
-                opt0.value = '';
-                opt0.textContent = '{{ __("Select Department") }}';
-                deptEl.appendChild(opt0);
-                const optAll = document.createElement('option');
-                optAll.value = '0';
-                optAll.textContent = '{{ __("All Department") }}';
-                deptEl.appendChild(optAll);
-                Object.entries(data).forEach(([key, val]) => {
-                const o = document.createElement('option');
-                o.value = key;
-                o.textContent = val;
-                deptEl.appendChild(o);
-                });
-            })
-            .fail(() => {
-                errorMessage = getLocalizedMessage('announcement_department_unavailable', document.getElementById('branch_id') || document.body);
-            });
-            } catch {
-            errorMessage = getLocalizedMessage('announcement_department_unavailable', document.getElementById('branch_id') || document.body);
-            }
-        }
-        
-        function loadEmployees(deptId) {
-            try {
-            $.ajax({
-                url: '{{ route("announcements.getemployee") }}',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                department_id: deptId,
-                _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+                if (deptEl) {
+                if (deptEl.dataset.listenerAttached !== 'true') {
+                    deptEl.dataset.listenerAttached = 'true';
+                    deptEl.addEventListener('change', () => loadEmployees(deptEl.value));
+                    new MutationObserver((m, o) => {
+                    m.forEach(mut => mut.removedNodes.forEach(node => {
+                        if (node === deptEl) {
+                        deptEl.removeEventListener('change', loadEmployees);
+                        o.disconnect();
+                        }
+                    }));
+                    }).observe(document.body, { childList: true, subtree: true });
                 }
-            })
-            .done(data => {
-                const empEl = document.getElementById('employee_id');
-                if (!empEl) return;
-                empEl.innerHTML = '';
-                const opt0 = document.createElement('option');
-                opt0.value = '';
-                opt0.textContent = '{{ __("Select Employee") }}';
-                empEl.appendChild(opt0);
-                const optAll = document.createElement('option');
-                optAll.value = '0';
-                optAll.textContent = '{{ __("All Employee") }}';
-                empEl.appendChild(optAll);
-                Object.entries(data).forEach(([key, val]) => {
-                const o = document.createElement('option');
-                o.value = key;
-                o.textContent = val;
-                empEl.appendChild(o);
-                });
-            })
-            .fail(() => {
-                errorMessage = getLocalizedMessage('announcement_employee_unavailable', document.getElementById('department_id') || document.body);
+                }
             });
-            } catch {
-            errorMessage = getLocalizedMessage('announcement_employee_unavailable', document.getElementById('department_id') || document.body);
+            
+            function loadDepartments(branchId) {
+                try {
+                $.ajax({
+                    url: '{{ route("announcements.getdepartment") }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                    branch_id: branchId,
+                    _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+                    }
+                })
+                .done(data => {
+                    const deptEl = document.getElementById('department_id');
+                    if (!deptEl) return;
+                    deptEl.innerHTML = '';
+                    const opt0 = document.createElement('option');
+                    opt0.value = '';
+                    opt0.textContent = '{{ __("Select Department") }}';
+                    deptEl.appendChild(opt0);
+                    const optAll = document.createElement('option');
+                    optAll.value = '0';
+                    optAll.textContent = '{{ __("All Department") }}';
+                    deptEl.appendChild(optAll);
+                    Object.entries(data).forEach(([key, val]) => {
+                    const o = document.createElement('option');
+                    o.value = key;
+                    o.textContent = val;
+                    deptEl.appendChild(o);
+                    });
+                })
+                .fail(() => {
+                    errorMessage = getLocalizedMessage('announcement_department_unavailable', document.getElementById('branch_id') || document.body);
+                });
+                } catch {
+                errorMessage = getLocalizedMessage('announcement_department_unavailable', document.getElementById('branch_id') || document.body);
+                }
             }
-        }
+            
+            function loadEmployees(deptId) {
+                try {
+                $.ajax({
+                    url: '{{ route("announcements.getemployee") }}',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                    department_id: deptId,
+                    _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
+                    }
+                })
+                .done(data => {
+                    const empEl = document.getElementById('employee_id');
+                    if (!empEl) return;
+                    empEl.innerHTML = '';
+                    const opt0 = document.createElement('option');
+                    opt0.value = '';
+                    opt0.textContent = '{{ __("Select Employee") }}';
+                    empEl.appendChild(opt0);
+                    const optAll = document.createElement('option');
+                    optAll.value = '0';
+                    optAll.textContent = '{{ __("All Employee") }}';
+                    empEl.appendChild(optAll);
+                    Object.entries(data).forEach(([key, val]) => {
+                    const o = document.createElement('option');
+                    o.value = key;
+                    o.textContent = val;
+                    empEl.appendChild(o);
+                    });
+                })
+                .fail(() => {
+                    errorMessage = getLocalizedMessage('announcement_employee_unavailable', document.getElementById('department_id') || document.body);
+                });
+                } catch {
+                errorMessage = getLocalizedMessage('announcement_employee_unavailable', document.getElementById('department_id') || document.body);
+                }
+            }
         })();
     </script>
 @endpush

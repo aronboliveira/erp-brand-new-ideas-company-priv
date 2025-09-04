@@ -301,7 +301,7 @@ Object.keys(t).forEach(
             const coupon = $row.find(".coupon").val();
             if (!coupon) { showDeferredError("coupon_apply_unavailable", this, "click"); return; }
             $.ajax({
-                url: '{{ route('apply.coupon') }}',
+                url: '{{ route(VW::CPN . ".apply") }}',
                 dataType: "json",
                 data: {
                 plan_id: '{{ Crypt::encrypt($plan->id) }}',
@@ -431,7 +431,7 @@ Object.keys(t).forEach(
                 const plan_id = planInput ? planInput.value : "";
                 if (!plan_id) { return; }
                 $.ajax({
-                url: '{{ route('payfast.payment') }}',
+                url: '{{ route("payfast.payment") }}',
                 method: 'POST',
                 data: { plan_id, coupon_amount: amount, coupon_code: coupon },
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },

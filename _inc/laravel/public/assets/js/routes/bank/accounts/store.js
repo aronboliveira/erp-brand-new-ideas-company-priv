@@ -36,7 +36,8 @@
     } catch (e) {}
   });
   const observer = new MutationObserver(() => {
-    if (!document.getElementById("{{ $formId }}")) observer.disconnect();
+    if (!document.getElementById("bank-account-store-form"))
+      observer.disconnect();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 })();

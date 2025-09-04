@@ -127,7 +127,7 @@
             $vatOn = (data_get($settings,'vat_gst_number_switch') === 'on');
             $bName = data_get($vendor,'billing_name'); $bPhone = data_get($vendor,'billing_phone'); $bAddr = data_get($vendor,'billing_address'); $bZip = data_get($vendor,'billing_zip'); $bCity = data_get($vendor,'billing_city'); $bState = data_get($vendor,'billing_state'); $bCountry = data_get($vendor,'billing_country'); $bTax = data_get($vendor,'tax_number');
             $sName = data_get($vendor,'shipping_name'); $sPhone = data_get($vendor,'shipping_phone'); $sAddr = data_get($vendor,'shipping_address'); $sZip = data_get($vendor,'shipping_zip'); $sCity = data_get($vendor,'shipping_city'); $sState = data_get($vendor,'shipping_state'); $sCountry = data_get($vendor,'shipping_country');
-            $items = is_iterable($iteams ?? null) ? $iteams : [];
+            $items = is_iterable($items ?? null) ? $items : [];
         @endphp
         <div class="{{ VC::MCT_CT }}">
             <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }} {{ VC::MB3 }}">

@@ -30,7 +30,6 @@
         ViewsConstants::AWD,
         'award_generate_route_unavailable'
     ) ?? 'Award generate route is unavailable. Please contact technical support or your domain administrator.';
-
     $fields = [
         [
             'name'     => 'employee_id',
@@ -71,130 +70,58 @@
         ],
     ];
 @endphp
+@if(!empty($award) && isset($award?->id))
+    {{ Form::model($award, [
+        'url'            => $updateRoute,
+        'method'         => 'PUT',
+        'id'             => $formId,
+        'data-url'       => $updateRoute,
+        'data-guard-msg' => $updateMsg,
+    ]) }}
+        <div class="{{ VC::RW }}">
+            @if($plan?->{PlansConstants::COL_GPT} == 1)
+                <div class="{{ VC::FEND }} {{ VC::MB3 }}">
+                    <a id="{{ $linkId }}"
+                    href="{{ $generateRoute }}"
+                    class="{{ VC::BT_SM_PM }} btn-icon"
+                    data-ajax-popup-over="true"
+                    data-size="md"
+                    data-url="{{ $generateRoute }}"
+                    data-guard-msg="{{ $generateMsg }}"
+                    title="{{ __('Generate content with AI') }}">
+                        <i class="{{ VC::FAS_RB }}"></i> {{ __('Generate with AI') }}
+                    </a>
+                </div>
+            @endif
 
-{{ Form::model($award, [
-    'url'            => $updateRoute,
-    'method'         => 'PUT',
-    'id'             => $formId,
-    'data-url'       => $updateRoute,
-    'data-guard-msg' => $updateMsg,
-]) }}
+            @foreach($fields as $f)
+                <div class="{{ VC::FM_G }} {{ $f['colClass'] }}">
+                    {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+                    @php
+                        $attrs = ['class' => VC::FM_CT, 'required' => 'required'];
+                        if (! empty($f['attrs']))
+                            $attrs = array_merge($attrs, $f['attrs']);
+                    @endphp
+                    @if($f['type'] === 'select')
+                        {{ Form::select($f['name'], $f['options'], null, $attrs + ['placeholder' => '']) }}
+                    @elseif($f['type'] === 'textarea')
+                        {{ Form::textarea($f['name'], null, $attrs) }}
+                    @else
+                        {{ Form::{$f['type']}($f['name'], null, $attrs) }}
+                    @endif
+                </div>
+            @endforeach
+        </div>
+        <div class="{{ VC::CD_POS }}">
+            <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+            <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Update') }}</button>
+        </div>
+        <script defer src="{{ asset('assets/js/routes/awards/edit.js') }}"></script>
+    {{ Form::close() }}
+@else
     <div class="{{ VC::RW }}">
-        @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="{{ VC::FEND }} {{ VC::MB3 }}">
-                <a id="{{ $linkId }}"
-                   href="{{ $generateRoute }}"
-                   class="{{ VC::BT_SM_PM }} btn-icon"
-                   data-ajax-popup-over="true"
-                   data-size="md"
-                   data-url="{{ $generateRoute }}"
-                   data-guard-msg="{{ $generateMsg }}"
-                   title="{{ __('Generate content with AI') }}">
-                    <i class="{{ VC::FAS_RB }}"></i> {{ __('Generate with AI') }}
-                </a>
-            </div>
-        @endif
-
-        @foreach($fields as $f)
-            <div class="{{ VC::FM_G }} {{ $f['colClass'] }}">
-                {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
-                @php
-                    $attrs = ['class' => VC::FM_CT, 'required' => 'required'];
-                    if (! empty($f['attrs']))
-                        $attrs = array_merge($attrs, $f['attrs']);
-                @endphp
-                @if($f['type'] === 'select')
-                    {{ Form::select($f['name'], $f['options'], null, $attrs + ['placeholder' => '']) }}
-                @elseif($f['type'] === 'textarea')
-                    {{ Form::textarea($f['name'], null, $attrs) }}
-                @else
-                    {{ Form::{$f['type']}($f['name'], null, $attrs) }}
-                @endif
-            </div>
-        @endforeach
+        <div class="col-md-12">
+            <p class="text-muted">{{ __('No award found.') }}</p>
+        </div>
     </div>
-    <div class="{{ VC::CD_POS }}">
-        <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-        <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Update') }}</button>
-    </div>
-{{ Form::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $formId }}');
-            if (form && form.getAttribute('data-listener-active') !== 'true') {
-                form.setAttribute('data-listener-active', 'true');
-                form.addEventListener('submit', event => {
-                    try {
-                        const action = form.getAttribute('action');
-                        const url    = form.getAttribute('data-url');
-                        if ((action && action !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (! container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        form.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            }
-
-            const link = document.getElementById('{{ $linkId }}');
-            if (link && link.getAttribute('data-listener-active') !== 'true') {
-                link.setAttribute('data-listener-active', 'true');
-                link.addEventListener('click', event => {
-                    try {
-                        const href = link.getAttribute('href');
-                        const url  = link.getAttribute('data-url');
-                        if ((href && href !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (! container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        link.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            }
-        })();
-    </script>
-@endpush
+@endif

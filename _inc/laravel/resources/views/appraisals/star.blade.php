@@ -11,11 +11,12 @@
 <div class="{{ VC::RW }}">
     <div class="col-5 text-end" style="margin-left:51px;"><h5>{{ __('Indicator') }}</h5></div>
     <div class="col-4 text-end"><h5>{{ __('Appraisal') }}</h5></div>
-    @if(isset($performance_types) && !empty($performance_types) && count($performance_types) > 0)
+    @if((is_array($performance_types ?? null) && count($performance_types) > 0) || (($performance_types ?? null) instanceof \Illuminate\Support\Collection && $performance_types->isNotEmpty()))
         @foreach($performance_types as $performance_type)
             <div class="{{ VC::CM12 }} {{ VC::MT3 }}"><h6>{{ $performance_type->name ?? __('No name found') }}</h6><hr class="mt-0"></div>
-            @if(isset($performance_type->types) && !empty($performance_type->types) && count($performance_type->types) > 0)
-                @foreach($performance_type->types as $type)
+            @php $types = $performance_type->types ?? null; @endphp
+            @if((is_array($types) && count($types) > 0) || ($types instanceof \Illuminate\Support\Collection && $types->isNotEmpty()))
+                @foreach($types as $type)
                     <div class="col-4">{{ $type->name ?? __('No name found') }}</div>
                     <div class="col-4">
                         <fieldset class="rating">
@@ -34,7 +35,11 @@
                         </fieldset>
                     </div>
                 @endforeach
+            @else
+                <div class="col-4">{{ __('No type found') }}</div>
             @endif
         @endforeach
+    @else
+        <div class="col-3 text-end"><h5>{{ __('No Indicator group found') }}</h5></div>
     @endif
 </div>

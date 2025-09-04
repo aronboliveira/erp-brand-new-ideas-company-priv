@@ -57,149 +57,154 @@
         @endcan
     </div>
 @endsection
-
-@section(YieldingConstants::ADM_CTT)
-    <div class="{{ VC::RW }}">
-        <div class="col-3">
-            @include('layouts.hrm_setup')
-        </div>
-        <div class="col-9">
-            <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD }}-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="{{ VC::TB }} datatable">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('Branch') }}</th>
-                                    <th width="200px">{{ __('Action') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="font-style">
-                                @foreach ($branches as $branch)
-                                    @php
-                                        $branchEditRoute    = Route::has(ViewsConstants::BRC . '.edit')
-                                            ? route(ViewsConstants::BRC . '.edit', $branch->id)
-                                            : '#';
-                                        $branchEditBtnId    = 'branch-edit-btn-' . $branch->id;
-                                        $branchEditMsg      = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::BRC,
-                                            'branch_edit_route_unavailable'
-                                        ) ?? 'Branch edit route is unavailable. Please contact technical support or your domain administrator.';
-
-                                        $branchDestroyRoute = Route::has(ViewsConstants::BRC . '.destroy')
-                                            ? route(ViewsConstants::BRC . '.destroy', $branch->id)
-                                            : '#';
-                                        $branchDestroyBtnId = 'branch-delete-btn-' . $branch->id;
-                                        $branchDestroyFormId= 'delete-form-' . $branch->id;
-                                        $branchDestroyMsg   = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::BRC,
-                                            'branch_destroy_route_unavailable'
-                                        ) ?? 'Branch destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
+@if(!is_array($branches) && $branches->count() || $branches instanceof Collection && $branches->isNotEmpty())
+    @section(YieldingConstants::ADM_CTT)
+        <div class="{{ VC::RW }}">
+            <div class="col-3">
+                @include('layouts.hrm_setup')
+            </div>
+            <div class="col-9">
+                <div class="{{ VC::CD }}">
+                    <div class="{{ VC::CD }}-body table-border-style">
+                        <div class="table-responsive">
+                            <table class="{{ VC::TB }} datatable">
+                                <thead>
                                     <tr>
-                                        <td>{{ $branch->name }}</td>
-                                        <td class="Action text-end">
-                                            @can('edit branch')
-                                                <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                    <a
-                                                        id="{{ $branchEditBtnId }}"
-                                                        href="#"
-                                                        data-url="{{ $branchEditRoute }}"
-                                                        data-guard-msg="{{ $branchEditMsg }}"
-                                                        data-ajax-popup="true"
-                                                        data-title="{{ __('Edit Branch') }}"
-                                                        class="{{ VC::BT_SM_CT }}"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ __('Edit') }}"
-                                                    >
-                                                        <i class="{{ VC::TI_PC_WT }}"></i>
-                                                    </a>
-                                                </div>
-                                            @endcan
-                                            @can('delete branch')
-                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                    {!! Collective\Html\FormFacade::open([
-                                                        'url'            => $branchDestroyRoute,
-                                                        'method'         => 'DELETE',
-                                                        'id'             => $branchDestroyFormId,
-                                                        'data-url'       => $branchDestroyRoute,
-                                                        'data-guard-msg' => $branchDestroyMsg,
-                                                    ]) !!}
-                                                        <a
-                                                            id="{{ $branchDestroyBtnId }}"
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT_PR }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Delete') }}"
-                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                            data-confirm-yes="document.getElementById('{{ $branchDestroyFormId }}').submit();"
-                                                        >
-                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                        </a>
-                                                    {!! Collective\Html\FormFacade::close() !!}
-                                                </div>
-                                            @endcan
-                                        </td>
+                                        <th>{{ __('Branch') }}</th>
+                                        <th width="200px">{{ __('Action') }}</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="font-style">
+                                    @foreach ($branches as $branch)
+                                        @php
+                                            $branchEditRoute    = Route::has(ViewsConstants::BRC . '.edit')
+                                                ? route(ViewsConstants::BRC . '.edit', $branch->id)
+                                                : '#';
+                                            $branchEditBtnId    = 'branch-edit-btn-' . $branch->id;
+                                            $branchEditMsg      = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::BRC,
+                                                'branch_edit_route_unavailable'
+                                            ) ?? 'Branch edit route is unavailable. Please contact technical support or your domain administrator.';
+
+                                            $branchDestroyRoute = Route::has(ViewsConstants::BRC . '.destroy')
+                                                ? route(ViewsConstants::BRC . '.destroy', $branch->id)
+                                                : '#';
+                                            $branchDestroyBtnId = 'branch-delete-btn-' . $branch->id;
+                                            $branchDestroyFormId= 'delete-form-' . $branch->id;
+                                            $branchDestroyMsg   = Utility::fetchLinkMessage(
+                                                $lang,
+                                                ViewsConstants::BRC,
+                                                'branch_destroy_route_unavailable'
+                                            ) ?? 'Branch destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $branch->name }}</td>
+                                            <td class="Action text-end">
+                                                @can('edit branch')
+                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                        <a
+                                                            id="{{ $branchEditBtnId }}"
+                                                            href="#"
+                                                            data-url="{{ $branchEditRoute }}"
+                                                            data-guard-msg="{{ $branchEditMsg }}"
+                                                            data-ajax-popup="true"
+                                                            data-title="{{ __('Edit Branch') }}"
+                                                            class="{{ VC::BT_SM_CT }}"
+                                                            data-bs-toggle="tooltip"
+                                                            title="{{ __('Edit') }}"
+                                                        >
+                                                            <i class="{{ VC::TI_PC_WT }}"></i>
+                                                        </a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete branch')
+                                                    <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                        {!! Collective\Html\FormFacade::open([
+                                                            'url'            => $branchDestroyRoute,
+                                                            'method'         => 'DELETE',
+                                                            'id'             => $branchDestroyFormId,
+                                                            'data-url'       => $branchDestroyRoute,
+                                                            'data-guard-msg' => $branchDestroyMsg,
+                                                        ]) !!}
+                                                            <a
+                                                                id="{{ $branchDestroyBtnId }}"
+                                                                href="#"
+                                                                class="{{ VC::BT_SM_CT_PR }}"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ __('Delete') }}"
+                                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                data-confirm-yes="document.getElementById('{{ $branchDestroyFormId }}').submit();"
+                                                            >
+                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                            </a>
+                                                        {!! Collective\Html\FormFacade::close() !!}
+                                                    </div>
+                                                @endcan
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    @endsection
+    @push(StacksConstants::ADM_SCR_PG)
+        <script defer>
+            (() => {
+                const guardClick = id => {
+                    const el = document.getElementById(id);
+                    if (!el || el.getAttribute('data-listener-active') === 'true') return;
+                    el.setAttribute('data-listener-active', 'true');
+                    el.addEventListener('click', event => {
+                        try {
+                            const href = el.getAttribute('href');
+                            const url  = el.getAttribute('data-url');
+                            if ((href && href !== '#') || (url && url !== '#')) return;
+                            event.preventDefault();
+                            const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
+                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                            let container       = document.getElementById('toast-container');
+                            if (!container) {
+                                container       = document.createElement('div');
+                                container.id    = 'toast-container';
+                                document.body.appendChild(container);
+                            }
+                            if (bootstrapLink && window.bootstrap) {
+                                const toastEl      = document.createElement('div');
+                                toastEl.className  = 'toast';
+                                toastEl.setAttribute('role', 'alert');
+                                toastEl.setAttribute('aria-live', 'assertive');
+                                toastEl.setAttribute('aria-atomic', 'true');
+                                const body         = document.createElement('div');
+                                body.className     = 'toast-body';
+                                body.textContent   = msg;
+                                toastEl.appendChild(body);
+                                container.appendChild(toastEl);
+                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                            } else {
+                                alert(msg);
+                            }
+                            el.setAttribute('data-failed-route', 'true');
+                        } catch (e) {}
+                    });
+                };
+
+                guardClick('{{ $branchCreateBtnId }}');
+
+                @foreach ($branches as $branch)
+                    guardClick('branch-edit-btn-{{ $branch->id }}');
+                    guardClick('branch-delete-btn-{{ $branch->id }}');
+                @endforeach
+            })();
+        </script>
+    @endpush
+@else
+    <div class="text-center">
+        <h5>{{ __('No branches found') }}</h5>
+        <p class="text-muted">{{ __('Please create a new branch to get started.') }}</p>
     </div>
-@endsection
-
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const guardClick = id => {
-                const el = document.getElementById(id);
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener('click', event => {
-                    try {
-                        const href = el.getAttribute('href');
-                        const url  = el.getAttribute('data-url');
-                        if ((href && href !== '#') || (url && url !== '#')) return;
-                        event.preventDefault();
-                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            guardClick('{{ $branchCreateBtnId }}');
-
-            @foreach ($branches as $branch)
-                guardClick('branch-edit-btn-{{ $branch->id }}');
-                guardClick('branch-delete-btn-{{ $branch->id }}');
-            @endforeach
-        })();
-    </script>
-@endpush
+@endif

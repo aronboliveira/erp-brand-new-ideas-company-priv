@@ -160,7 +160,7 @@
 	</div>
 @endsection
 
-@push(StacksConstants::ADM_SCR_PG)
+@push(StacksConstants::AUTH_CST_SCR)
 	<script defer src="{{ asset('assets/js/routes/auth/passwords/confirm.js') }}"></script>
 	<script defer src="{{ asset('assets/js/routes/auth/passwords/forgot.js') }}"></script>
 @endpush

@@ -6,7 +6,6 @@
     use Illuminate\Support\Str;
 
     $lang = Utility::fetchUserLang();
-
     $bankAccountStoreRoute = Route::has(ViewsConstants::BNK_ACC)
         ? route(ViewsConstants::BNK_ACC)
         : (Route::has(Str::kebab(ViewsConstants::BNK_ACC))
@@ -19,7 +18,6 @@
         ViewsConstants::BNK_ACC,
         'bank_account_store_route_unavailable'
     ) ?? 'Bank Account store route is unavailable. Please contact technical support or your domain administrator.';
-
     $fields = [
         [
             'name'    => 'chart_account_id',
@@ -76,40 +74,40 @@
     'data-url'       => $bankAccountStoreRoute,
     'data-guard-msg' => $storeMsg,
 ]) }}
-<div class="modal-body">
-    <div class="row">
-        @foreach($fields as $f)
-            <div class="form-group col-md-{{ $f['cols'] }}">
-                {{ Form::label($f['name'], $f['label'], ['class' => 'form-label']) }}
-                @php
-                    $common = ['class' => 'form-control', 'required' => 'required'];
-                    if (!empty($f['attrs'])) {
-                        $common = array_merge($common, $f['attrs']);
-                    }
-                @endphp
-                @if($f['type'] === 'select')
-                    {{ Form::select($f['name'], $f['options'], null, $common + ['placeholder' => '']) }}
-                @elseif($f['type'] === 'textarea')
-                    {{ Form::textarea($f['name'], null, $common) }}
-                @else
-                    {{ Form::{$f['type']}($f['name'], null, $common) }}
-                @endif
-            </div>
-        @endforeach
-
-        @if(!$customFields->isEmpty())
-            <div class="col-md-12">
-                <div class="tab-pane fade show" id="tab-2" role="tabpanel">
-                    @include(ViewsConstants::CST_FD . '.formBuilder')
+    <div class="modal-body">
+        <div class="row">
+            @foreach($fields as $f)
+                <div class="form-group col-md-{{ $f['cols'] }}">
+                    {{ Form::label($f['name'], $f['label'], ['class' => 'form-label']) }}
+                    @php
+                        $common = ['class' => 'form-control', 'required' => 'required'];
+                        if (!empty($f['attrs'])) {
+                            $common = array_merge($common, $f['attrs']);
+                        }
+                    @endphp
+                    @if($f['type'] === 'select')
+                        {{ Form::select($f['name'], $f['options'], null, $common + ['placeholder' => '']) }}
+                    @elseif($f['type'] === 'textarea')
+                        {{ Form::textarea($f['name'], null, $common) }}
+                    @else
+                        {{ Form::{$f['type']}($f['name'], null, $common) }}
+                    @endif
                 </div>
-            </div>
-        @endif
+            @endforeach
+
+            @if(!$customFields->isEmpty())
+                <div class="col-md-12">
+                    <div class="tab-pane fade show" id="tab-2" role="tabpanel">
+                        @include(ViewsConstants::CST_FD . '.formBuilder')
+                    </div>
+                </div>
+            @endif
+        </div>
     </div>
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-    <button type="submit" class="btn btn-primary">{{ __('Create') }}</button>
-</div>
-<script defer src="{{ asset('assets/js/routes/bank/accounts/store.js') }}"></script>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="submit" class="btn btn-primary">{{ __('Create') }}</button>
+    </div>
+    <script defer src="{{ asset('assets/js/routes/bank/accounts/store.js') }}"></script>
 {{ Form::close() }}
 

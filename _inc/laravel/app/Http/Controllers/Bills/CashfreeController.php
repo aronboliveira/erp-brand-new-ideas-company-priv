@@ -14,6 +14,7 @@ use App\Models\{
     UserCoupon,
     Utility
 };
+use App\Traits\ChecksLogin;
 use GuzzleHttp\Client;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{RedirectResponse, Request};
@@ -21,11 +22,15 @@ use Illuminate\Support\Facades\{
     Auth,
     Crypt,
     DB,
-    Log
+    Log,
+    Route,
+    View as ViewFacade
 };
 
 final class CashfreeController extends Controller
 {
+
+    use ChecksLogin;
 
     public function __construct()
     {
@@ -45,234 +50,270 @@ final class CashfreeController extends Controller
         Log::info(__METHOD__ . ' loaded config', ['settings' => $s]);
     }
 
+    public const CF_PAY_STR = 'cashfreePaymentStore';
     public function cashfreePaymentStore(Request $req): RedirectResponse
     {
-
-        Log::info(__METHOD__ . ' start', [
-            'user_id' => Auth::id(),
-            'plan_id' => $req->plan_id,
-            'coupon'  => $req->coupon
-        ]);
-        try {
-            $plan = Plan::find(Crypt::decrypt($req->plan_id));
-            if ($r = self::guardPlan($plan, $req)) return $r;
-            $usr = $req->user();
-            self::paymentConfig();
-            $amount = $plan->price;
-            $coupon = Coupon::where('code', strtoupper($req->coupon ?? ''))
-                ->where('is_active', 1)->first();
-            if ($coupon) {
-                if ($coupon->limit <= $coupon->used_coupon()) {
-                    Log::warning(__METHOD__ . ' coupon expired', ['code' => $coupon->code]);
-                    return redirect()->back()
-                        ->with('error', __('This coupon code has expired.'));
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            Log::info("[{$base}::{$action}] start", ['user_id' => Auth::id(), 'plan_id' => $req->plan_id, 'coupon' => $req->coupon, 'method' => $method]);
+            try {
+                $decStart = microtime(true);
+                $planId = Crypt::decrypt($req->plan_id);
+                $this->logExecutionTime($decStart, $action, 'decryptPlanId');
+                $planFindStart = microtime(true);
+                $plan = Plan::find($planId);
+                $this->logExecutionTime($planFindStart, $action, 'findPlan');
+                if ($r = self::guardPlan($plan, $req)) return $r;
+                $usr = $req->user();
+                $cfgStart = microtime(true);
+                self::paymentConfig();
+                $this->logExecutionTime($cfgStart, $action, 'paymentConfig');
+                $amount = $plan->price;
+                $couponFetchStart = microtime(true);
+                $coupon = Coupon::where('code', strtoupper($req->coupon ?? ''))->where('is_active', 1)->first();
+                $this->logExecutionTime($couponFetchStart, $action, 'fetchCoupon');
+                if ($coupon) {
+                    if ($coupon->limit <= $coupon->used_coupon()) {
+                        Log::warning("[{$base}::{$action}] coupon expired", ['code' => $coupon->code]);
+                        return redirect()->back()->with('error', __('This coupon code has expired.'));
+                    }
+                    $applyStart = microtime(true);
+                    $discount = ($plan->price / 100) * $coupon->discount;
+                    $amount -= $discount;
+                    $this->logExecutionTime($applyStart, $action, 'applyCoupon');
+                    Log::info("[{$base}::{$action}] coupon applied", ['code' => $coupon->code, 'discount' => $discount, 'amount' => $amount]);
+                    if ($amount <= 0) return self::activateFreePlan($usr, $plan, $coupon);
                 }
-                $discount = ($plan->price / 100) * $coupon->discount;
-                $amount -= $discount;
-                Log::info(__METHOD__ . ' coupon applied', [
-                    'code'     => $coupon->code,
-                    'discount' => $discount,
-                    'amount'   => $amount
-                ]);
-                if ($amount <= 0) {
-                    return self::activateFreePlan($usr, $plan, $coupon);
+                $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
+                $httpStart = microtime(true);
+                $resp = self::curlPost(
+                    config('services.cashfree.url'),
+                    [
+                        'Content-Type: application/json',
+                        'x-api-version: 2022-01-01',
+                        'x-client-id: ' . config('services.cashfree.key'),
+                        'x-client-secret: ' . config('services.cashfree.secret'),
+                    ],
+                    [
+                        'order_id' => $orderId,
+                        'order_amount' => $amount,
+                        'order_currency' => config('services.cashfree.currency'),
+                        'order_name' => $plan->name,
+                        'customer_details' => [
+                            'customer_id' => "customer_{$usr->id}",
+                            'customer_name' => $usr->name,
+                            'customer_email' => $usr->email,
+                            'customer_phone' => '1234567890',
+                        ],
+                        'order_meta' => [
+                            'return_url' => route('cashfree.payment.success') . "?order_id={order_id}&plan_id={$plan->id}&amount={$amount}&coupon=" . ($coupon?->code ?? 0),
+                        ],
+                    ]
+                );
+                $this->logExecutionTime($httpStart, $action, 'createCharge');
+                if ($resp) {
+                    Log::info("[{$base}::{$action}] redirecting to payment", ['link' => $resp->payment_link]);
+                    return redirect()->to($resp->payment_link);
                 }
+                Log::error("[{$base}::{$action}] curl failed");
+                return defaultUndefinedException($req, 'curl failed', $class . '::' . $action);
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] exception", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
             }
-            $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
-            $resp = self::curlPost(
-                config('services.cashfree.url'),
-                [
-                    'Content-Type: application/json',
-                    'x-api-version: 2022-01-01',
-                    'x-client-id: ' . config('services.cashfree.key'),
-                    'x-client-secret: ' . config('services.cashfree.secret'),
-                ],
-                [
-                    'order_id'        => $orderId,
-                    'order_amount'    => $amount,
-                    'order_currency'  => config('services.cashfree.currency'),
-                    'order_name'      => $plan->name,
-                    'customer_details' => [
-                        'customer_id'    => "customer_{$usr->id}",
-                        'customer_name'  => $usr->name,
-                        'customer_email' => $usr->email,
-                        'customer_phone' => '1234567890',
-                    ],
-                    'order_meta'      => [
-                        'return_url' => route('cashfree.payment.success')
-                            . "?order_id={order_id}&plan_id={$plan->id}&amount={$amount}"
-                            . "&coupon=" . ($coupon?->code ?? 0),
-                    ],
-                ]
-            );
-            if ($resp) {
-                Log::info(__METHOD__ . ' redirecting to payment', [
-                    'link' => $resp->payment_link
-                ]);
-                return redirect()->to($resp->payment_link);
-            }
-            Log::error(__METHOD__ . ' curl failed');
-            return defaultUndefinedException($req, 'curl failed', __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'plan_id' => $req->plan_id, 'coupon' => $req->coupon]);
     }
 
+    public const CF_PAY_SCS = 'cashfreePaymentSuccess';
     public function cashfreePaymentSuccess(Request $req): RedirectResponse
     {
-        Log::info(__METHOD__ . ' start', [
-            'user_id' => Auth::id(),
-            'order_id' => $req->order_id,
-            'coupon'  => $req->coupon
-        ]);
-        try {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            Log::info("[{$base}::{$action}] start", ['order_id' => $req->order_id, 'coupon' => $req->coupon, 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $usr = $req->user();
+            $planFindStart = microtime(true);
             $plan = Plan::find($req->plan_id);
+            $this->logExecutionTime($planFindStart, $action, 'findPlan');
             if ($r = self::guardPlan($plan, $req)) return $r;
+            $cfgStart = microtime(true);
             self::paymentConfig();
+            $this->logExecutionTime($cfgStart, $action, 'paymentConfig');
+            $infoStart = microtime(true);
             $info = self::getPaymentInfo($req->order_id);
+            $this->logExecutionTime($infoStart, $action, 'getPaymentInfo');
             if (!$info || $info->payment_status !== 'SUCCESS') {
-                Log::warning(__METHOD__ . ' payment failed', ['status' => $info?->payment_status]);
-                return redirect()->route('plans.index')
-                    ->with('error', __('Transaction failed.'));
+                Log::warning("[{$base}::{$action}] payment failed", ['status' => $info?->payment_status]);
+                return redirect()->route('plans.index')->with('error', __('Transaction failed.'));
             }
             DB::beginTransaction();
             try {
                 $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
-                self::recordOrder(
-                    $orderId,
-                    $usr,
-                    $plan,
-                    $req->amount,
-                    config('services.cashfree.currency')
-                );
+                $recStart = microtime(true);
+                self::recordOrder($orderId, $usr, $plan, $req->amount, config('services.cashfree.currency'));
+                $this->logExecutionTime($recStart, $action, 'recordOrder');
                 if ($cid = $req->coupon) {
+                    $coupStart = microtime(true);
                     self::attachCoupon($usr, $cid, $orderId);
+                    $this->logExecutionTime($coupStart, $action, 'attachCoupon');
                 }
+                $assignStart = microtime(true);
                 $assign = $usr->assignPlan($plan->id);
-                if (!$assign['is_success']) {
-                    throw new \RuntimeException($assign['error']);
-                }
+                $this->logExecutionTime($assignStart, $action, 'assignPlan');
+                if (!$assign['is_success']) throw new \RuntimeException($assign['error']); // !
+                $commitStart = microtime(true);
                 DB::commit();
-                Log::info(__METHOD__ . ' plan activated', [
-                    'user_id' => $usr->id,
-                    'plan_id' => $plan->id
-                ]);
-                return redirect()->route('plans.index')
-                    ->with('success', __('Plan successfully activated.'));
+                $this->logExecutionTime($commitStart, $action, 'commitTransaction');
+                Log::info("[{$base}::{$action}] plan activated", ['user_id' => $usr->id, 'plan_id' => $plan->id, 'order_id' => $orderId]);
+                return redirect()->route('plans.index')->with('success', __('Plan successfully activated.'));
             } catch (\Throwable $e) {
+                $rbStart = microtime(true);
                 DB::rollBack();
-                Log::error(__METHOD__ . ' transaction failed', ['error' => $e->getMessage()]);
-                return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
+                $this->logExecutionTime($rbStart, $action, 'rollbackTransaction');
+                Log::error("[{$base}::{$action}] transaction failed", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
             }
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'order_id' => $req->order_id, 'coupon' => $req->coupon]);
     }
 
     public const INV_PAY_CF = 'invoicePayWithCashfree';
     public function invoicePayWithCashfree(Request $req): RedirectResponse
     {
-        Log::info(__METHOD__ . ' start', [
-            'invoice_id' => $req->invoice_id,
-            'amount' => $req->amount
-        ]);
-        try {
-            $invoice = Invoice::find(Crypt::decrypt($req->invoice_id));
-            if (!$invoice) {
-                Log::error(__METHOD__ . ' invoice missing');
-                throw new \RuntimeException('invoice missing');
-            }
-            $usr = Auth::check() ? $req->user() : User::find($invoice->created_by);
-            self::paymentConfig(Utility::getCompanyPaymentSetting($usr->id));
-            $amount = $req->amount;
-            if ($amount <= 0 || $amount > $invoice->getDue()) {
-                Log::warning(__METHOD__ . ' invalid amount', ['amount' => $amount]);
-                return redirect()->back()->with('error', __('Invalid amount.'));
-            }
-            $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
-            $resp = self::curlPost(
-                config('services.cashfree.url'),
-                [
-                    'Content-Type: application/json',
-                    'x-api-version: 2022-01-01',
-                    'x-client-id: ' . config('services.cashfree.key'),
-                    'x-client-secret: ' . config('services.cashfree.secret'),
-                ],
-                [
-                    'order_id'        => $orderId,
-                    'order_amount'    => $amount,
-                    'order_currency'  => 'INR',
-                    'order_name'      => $invoice->name,
-                    'customer_details' => [
-                        'customer_id'    => "customer_{$usr->id}",
-                        'customer_name'  => $usr->name,
-                        'customer_email' => $usr->email,
-                        'customer_phone' => '1234567890',
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            Log::info("[{$base}::{$action}] start", ['invoice_id' => $req->invoice_id, 'amount' => $req->amount, 'method' => $method]);
+            try {
+                $decStart = microtime(true);
+                $invId = Crypt::decrypt($req->invoice_id);
+                $this->logExecutionTime($decStart, $action, 'decryptInvoiceId');
+                $findStart = microtime(true);
+                $invoice = Invoice::find($invId);
+                $this->logExecutionTime($findStart, $action, 'findInvoice');
+                if (!$invoice) {
+                    Log::error("[{$base}::{$action}] invoice missing", ['invoice_id' => $invId]);
+                    throw new \RuntimeException('invoice missing');
+                }
+                $usr = Auth::check() ? $req->user() : User::find($invoice->created_by);
+                $cfgStart = microtime(true);
+                self::paymentConfig(Utility::getCompanyPaymentSetting($usr->id));
+                $this->logExecutionTime($cfgStart, $action, 'paymentConfig');
+                $amount = $req->amount;
+                if ($amount <= 0 || $amount > $invoice->getDue()) {
+                    Log::warning("[{$base}::{$action}] invalid amount", ['amount' => $amount, 'due' => $invoice->getDue()]);
+                    return redirect()->back()->with('error', __('Invalid amount.'));
+                }
+                $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
+                $httpStart = microtime(true);
+                $resp = self::curlPost(
+                    config('services.cashfree.url'),
+                    [
+                        'Content-Type: application/json',
+                        'x-api-version: 2022-01-01',
+                        'x-client-id: ' . config('services.cashfree.key'),
+                        'x-client-secret: ' . config('services.cashfree.secret'),
                     ],
-                    'order_meta'      => [
-                        'return_url' => route(ViewsConstants::INV . '.cashfree.payment.success')
-                            . "?order_id={order_id}&invoice_id={$invoice->id}"
-                            . "&amount={$amount}",
-                    ],
-                ]
-            );
-            if ($resp) {
-                Log::info(__METHOD__ . ' redirecting to payment', [
-                    'link' => $resp->payment_link
-                ]);
-                return redirect()->to($resp->payment_link);
+                    [
+                        'order_id' => $orderId,
+                        'order_amount' => $amount,
+                        'order_currency' => 'INR',
+                        'order_name' => $invoice->name,
+                        'customer_details' => [
+                            'customer_id' => "customer_{$usr->id}",
+                            'customer_name' => $usr->name,
+                            'customer_email' => $usr->email,
+                            'customer_phone' => '1234567890',
+                        ],
+                        'order_meta' => [
+                            'return_url' => route(ViewsConstants::INV . '.cashfree.payment.success') . "?order_id={order_id}&invoice_id={$invoice->id}&amount={$amount}",
+                        ],
+                    ]
+                );
+                $this->logExecutionTime($httpStart, $action, 'createCharge');
+                if ($resp) {
+                    Log::info("[{$base}::{$action}] redirecting to payment", ['link' => $resp->payment_link]);
+                    return redirect()->to($resp->payment_link);
+                }
+                Log::error("[{$base}::{$action}] curl failed");
+                return defaultUndefinedException($req, 'curl failed', $class . '::' . $action);
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] exception", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
             }
-            Log::error(__METHOD__ . ' curl failed');
-            return defaultUndefinedException($req, 'curl failed', __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'invoice_id' => $req->invoice_id, 'amount' => $req->amount]);
     }
 
     public const GET_INV_PAY_STT = 'getInvoicePaymentStatus';
     public function getInvoicePaymentStatus(Request $req): RedirectResponse
     {
-        Log::info(__METHOD__ . ' start', ['order_id' => $req->order_id]);
-        try {
-            $invoice = Invoice::find($req->invoice_id);
-            if (!$invoice) {
-                Log::error(__METHOD__ . ' invoice missing');
-                throw new \RuntimeException('invoice missing');
-            }
-            $usr = User::find($invoice->created_by);
-            self::paymentConfig(Utility::getCompanyPaymentSetting($usr->id));
-            $info = self::getPaymentInfo($req->order_id);
-            if (!$info || $info->payment_status !== 'SUCCESS') {
-                Log::warning(__METHOD__ . ' payment failed', ['status' => $info?->payment_status]);
-                return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($invoice->id))
-                    ->with('error', __('Transaction failed.'));
-            }
-            DB::beginTransaction();
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            Log::info("[{$base}::{$action}] start", ['order_id' => $req->order_id, 'method' => $method]);
+            $invId = $req->invoice_id;
             try {
-                self::recordInvoicePayment($invoice, $req->amount);
-                Utility::updateUserBalance('customer', $invoice->customer_id, $req->amount, 'debit');
-                $req->session()->forget('invoice_data');
-                DB::commit();
-                Log::info(__METHOD__ . ' invoice paid', [
-                    'invoice_id' => $invoice->id,
-                    'amount' => $req->amount
-                ]);
-                return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($invoice->id))
-                    ->with('success', __('Invoice paid successfully!'));
+                $findStart = microtime(true);
+                $invoice = Invoice::find($invId);
+                $this->logExecutionTime($findStart, $action, 'findInvoice');
+                if (!$invoice) {
+                    Log::error("[{$base}::{$action}] invoice missing", ['invoice_id' => $invId]);
+                    throw new \RuntimeException('invoice missing');
+                }
+                $usr = User::find($invoice->created_by);
+                $cfgStart = microtime(true);
+                self::paymentConfig(Utility::getCompanyPaymentSetting($usr->id));
+                $this->logExecutionTime($cfgStart, $action, 'paymentConfig');
+                $infoStart = microtime(true);
+                $info = self::getPaymentInfo($req->order_id);
+                $this->logExecutionTime($infoStart, $action, 'getPaymentInfo');
+                if (!$info || $info->payment_status !== 'SUCCESS') {
+                    Log::warning("[{$base}::{$action}] payment failed", ['status' => $info?->payment_status]);
+                    return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('error', __('Transaction failed.'));
+                }
+                DB::beginTransaction();
+                try {
+                    $recStart = microtime(true);
+                    self::recordInvoicePayment($invoice, $req->amount);
+                    $this->logExecutionTime($recStart, $action, 'recordInvoicePayment');
+                    $balStart = microtime(true);
+                    Utility::updateUserBalance('customer', $invoice->customer_id, $req->amount, 'debit');
+                    $this->logExecutionTime($balStart, $action, 'updateUserBalance');
+                    $sessStart = microtime(true);
+                    $req->session()->forget('invoice_data');
+                    $this->logExecutionTime($sessStart, $action, 'forgetSession');
+                    $commitStart = microtime(true);
+                    DB::commit();
+                    $this->logExecutionTime($commitStart, $action, 'commitTransaction');
+                    Log::info("[{$base}::{$action}] invoice paid", ['invoice_id' => $invoice->id, 'amount' => $req->amount]);
+                    return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('success', __('Invoice paid successfully!'));
+                } catch (\Throwable $e) {
+                    $rbStart = microtime(true);
+                    DB::rollBack();
+                    $this->logExecutionTime($rbStart, $action, 'rollbackTransaction');
+                    Log::error("[{$base}::{$action}] transaction failed", ['error' => $e->getMessage()]);
+                    Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                    return defaultUndefinedException($req, $e, $class . '::' . $action);
+                }
             } catch (\Throwable $e) {
-                DB::rollBack();
-                Log::error(__METHOD__ . ' transaction failed', ['error' => $e->getMessage()]);
-                return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
+                Log::error("[{$base}::{$action}] exception", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                $safeId = isset($invoice) ? $invoice->id : $invId;
+                return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($safeId ?? ''))->with('error', $e->getMessage());
             }
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' exception', ['error' => $e->getMessage()]);
-            return redirect()->route(ViewsConstants::INV . '.link.copy', Crypt::encrypt($invoice->id ?? ''))
-                ->with('error', $e->getMessage());
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'order_id' => $req->order_id, 'invoice_id' => $req->invoice_id]);
     }
 
     private static function curlPost(string $url, array $headers, array $body): ?object

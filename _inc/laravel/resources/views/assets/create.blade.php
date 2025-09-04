@@ -74,6 +74,6 @@
         <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
         <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Create') }}</button>
     </div>
+    <script defer src="{{ asset('assets/js/routes/accountAssets/generate.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/accountAssets/store.js') }}"></script>
 {{ Form::close() }}
-<script defer src="{{ asset('assets/js/routes/accountAssets/generate.js') }}"></script>
-<script defer src="{{ asset('assets/js/routes/accountAssets/store.js') }}"></script>

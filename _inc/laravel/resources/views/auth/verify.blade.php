@@ -75,7 +75,7 @@
     <div class="{{ ViewClassNamesConstants::LNG_DD_DSK }}">
         <li class="{{ ViewClassNamesConstants::LNG_DD_IT }}">
             <a class="{{ ViewClassNamesConstants::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="drp-text"> {{ $languages[$lang] }}
+                <span class="drp-text"> {{ !empty($languages) && !empty($languages[$lang]) ? $languages[$lang] : __(DatabaseConstants::DEFAULT_LANG) }}
                 </span>
             </a>
             <div class="{{ ViewClassNamesConstants::DRP_MN_DSH_END }}">
@@ -211,50 +211,7 @@
                 </div>
             </div>
             @push(StacksConstants::AUTH_CST_SCR)
-                <script defer>
-                    (() => {
-                        const guardForm = (formId) => {
-                            const form = document.getElementById(formId);
-                            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                            form.setAttribute('data-listener-active', 'true');
-                            form.addEventListener('submit', event => {
-                                try {
-                                    const action = form.getAttribute('action');
-                                    const url    = form.getAttribute('data-url');
-                                    if ((action && action !== '#') || (url && url !== '#')) return;
-                                    event.preventDefault();
-                                    const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                    let container       = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container       = document.createElement('div');
-                                        container.id    = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (bootstrapLink && window.bootstrap) {
-                                        const toastEl      = document.createElement('div');
-                                        toastEl.className  = 'toast';
-                                        toastEl.setAttribute('role', 'alert');
-                                        toastEl.setAttribute('aria-live', 'assertive');
-                                        toastEl.setAttribute('aria-atomic', 'true');
-                                        const body         = document.createElement('div');
-                                        body.className     = 'toast-body';
-                                        body.textContent   = msg;
-                                        toastEl.appendChild(body);
-                                        container.appendChild(toastEl);
-                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    form.setAttribute('data-failed-route', 'true');
-                                } catch (e) {}
-                            });
-                        };
-            
-                        guardForm('{{ $resendFormId }}');
-                        guardForm('{{ $logoutFormId }}');
-                    })();
-                </script>
+                <script defer src="{{ asset('assets/js/routes/auth/login/verify.js') }}"></script>
             @endpush
         </div>
     </div>

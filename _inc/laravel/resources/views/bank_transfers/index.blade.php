@@ -9,6 +9,7 @@
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\{Collection, Str};
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
 @endphp
@@ -58,7 +59,7 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
-            const btn = document.querySelector('a.{{ VC::BT_SM_PM }}[data-ajax-popup]');
+            const btn = document.querySelector('a.btn-sm.btn-primary[data-ajax-popup]');
             if (btn && btn.getAttribute('data-create-listener-added') !== 'true') {
                 btn.setAttribute('data-create-listener-added', 'true');
                 btn.addEventListener('click', e => {
@@ -146,128 +147,7 @@
             </div>
         {{ Form::close() }}
         @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    try {
-                        const fm = document.getElementById('{{ $formId }}');
-                        if (fm && fm.getAttribute('data-submit-guarded') !== 'true') {
-                            fm.setAttribute('data-submit-guarded','true');
-                            fm.addEventListener('submit',(e) => {
-                                try {
-                                    const action = fm.getAttribute('action') ?? '#';
-                                    const url = fm.getAttribute('data-url') ?? action ?? '#';
-                                    if (url !== '#' && action !== '#') { return; }
-                                    e.preventDefault();
-                                    const msg = fm.getAttribute('data-guard-msg') ?? 'Apply bank transfer route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (hasBootstrap) {
-                                        const toast = document.createElement('div');
-                                        toast.className = 'toast';
-                                        toast.setAttribute('role','alert');
-                                        toast.setAttribute('aria-live','assertive');
-                                        toast.setAttribute('aria-atomic','true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = msg;
-                                        toast.appendChild(body);
-                                        container.appendChild(toast);
-                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    fm.setAttribute('data-failed-route','true');
-                                } catch (err) {}
-                            });
-                        }
-                        const apply = document.getElementById('{{ $applyId }}');
-                        if (apply && apply.getAttribute('data-listener-active') !== 'true') {
-                            apply.setAttribute('data-listener-active','true');
-                            apply.addEventListener('click',(e) => {
-                                try {
-                                    e.preventDefault();
-                                    const fid = apply.getAttribute('data-form-id') ?? '';
-                                    if (!fid) { return; }
-                                    const form = document.getElementById(fid);
-                                    if (!form) { return; }
-                                    const action = form.getAttribute('action') ?? '#';
-                                    const url = form.getAttribute('data-url') ?? action ?? '#';
-                                    if (url === '#' || action === '#') {
-                                        const msg = apply.getAttribute('data-guard-msg') ?? 'Apply bank transfer route is unavailable. Please contact technical support or your domain administrator.';
-                                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (hasBootstrap) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        apply.setAttribute('data-failed-route','true');
-                                        form.setAttribute('data-failed-route','true');
-                                        return;
-                                    }
-                                    form.submit();
-                                } catch (err) {}
-                            });
-                        }
-                        const reset = document.getElementById('{{ $resetId }}');
-                        if (reset && reset.getAttribute('data-listener-active') !== 'true') {
-                            reset.setAttribute('data-listener-active','true');
-                            reset.addEventListener('click',(e) => {
-                                try {
-                                    const href = reset.getAttribute('href') ?? '#';
-                                    const url = reset.getAttribute('data-url') ?? href ?? '#';
-                                    if (url !== '#' && href !== '#') { return; }
-                                    e.preventDefault();
-                                    const msg = reset.getAttribute('data-guard-msg') ?? 'Reset bank transfer route is unavailable. Please contact technical support or your domain administrator.';
-                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (hasBootstrap) {
-                                        const toast = document.createElement('div');
-                                        toast.className = 'toast';
-                                        toast.setAttribute('role','alert');
-                                        toast.setAttribute('aria-live','assertive');
-                                        toast.setAttribute('aria-atomic','true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = msg;
-                                        toast.appendChild(body);
-                                        container.appendChild(toast);
-                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    reset.setAttribute('data-failed-route','true');
-                                } catch (err) {}
-                            });
-                        }
-                    } catch (err) {}
-                })();
-            </script>
+            <script defer src="{{ asset('assets/js/routes/bank/transfers/index.js') }}"></script>
         @endpush
     </div>
     <div class="{{ VC::RW }}">
@@ -290,137 +170,52 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            @foreach($transfers as $t)
-                                <tr>
-                                    <td>{{ $user?->dateFormat($t->date) }}</td>
-                                    <td>
-                                        {{ optional($t->fromBankAccount())->bank_name }}
-                                        {{ optional($t->fromBankAccount())->holder_name }}
-                                    </td>
-                                    <td>
-                                        {{ optional($t->toBankAccount())->bank_name }}
-                                        {{ optional($t->toBankAccount())->holder_name }}
-                                    </td>
-                                    <td>{{ $user?->priceFormat($t->amount) }}</td>
-                                    <td>{{ $t->reference }}</td>
-                                    <td>{{ $t->description }}</td>
-                                    @if(Gate::check('edit transfer') || Gate::check('delete transfer'))
-                                        @php
-                                            $transferEditRoute    = Route::has(ViewsConstants::BNK_TRF . '.edit')
-                                                ? route(ViewsConstants::BNK_TRF . '.edit', $t->id)
-                                                : (Route::has(Str::kebab(ViewsConstants::BNK_TRF . '.edit'))
-                                                    ? route(Str::kebab(ViewsConstants::BNK_TRF . '.edit'), $t->id)
-                                                    : '#');
-                                            $transferEditBtnId    = 'transfer-edit-' . $t->id;
-                                            $transferEditMsg      = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::BNK_TRF,
-                                                'transfer_edit_route_unavailable'
-                                            ) ?? 'Transfer edit route is unavailable. Please contact technical support or your domain administrator.';
-                                            $transferDestroyRoute = Route::has(ViewsConstants::BNK_TRF . '.destroy')
-                                                ? route(ViewsConstants::BNK_TRF . '.destroy', $t->id)
-                                                : (Route::has(Str::kebab(ViewsConstants::BNK_TRF . '.destroy'))
-                                                    ? route(Str::kebab(ViewsConstants::BNK_TRF . '.destroy'), $t->id)
-                                                    : '#');
-                                            $transferDeleteBtnId  = 'transfer-delete-' . $t->id;
-                                            $transferDeleteFormId = 'transfer-delete-form-' . $t->id;
-                                            $transferDestroyMsg   = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::BNK_TRF,
-                                                'transfer_destroy_route_unavailable'
-                                            ) ?? 'Transfer destroy route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
-                                        <td class="Action">
-                                            @can('edit transfer')
-                                                <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                    <a
-                                                        id="{{ $transferEditBtnId }}"
-                                                        href="{{ $transferEditRoute }}"
-                                                        data-url="{{ $transferEditRoute }}"
-                                                        data-guard-msg="{{ $transferEditMsg }}"
-                                                        data-ajax-popup="true"
-                                                        data-title="{{ __('Edit Transfer') }}"
-                                                        class="{{ VC::BT_SM_CT }} ms-2"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ __('Edit') }}"
-                                                    >
-                                                        <i class="{{ VC::TI_PC_WT }}"></i>
-                                                    </a>
-                                                </div>
-                                            @endcan
-                                            @can('delete transfer')
-                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                    {!! Form::open([
-                                                        'route'            => $transferDestroyRoute,
-                                                        'method'         => 'DELETE',
-                                                        'id'             => $transferDeleteFormId,
-                                                        'data-url'       => $transferDestroyRoute,
-                                                        'data-guard-msg' => $transferDestroyMsg,
-                                                    ]) !!}
-                                                        <a
-                                                            id="{{ $transferDeleteBtnId }}"
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT_PR }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Delete') }}"
-                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                            data-confirm-yes="document.getElementById('{{ $transferDeleteFormId }}').submit();"
-                                                        >
-                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                        </a>
-                                                    {!! Form::close() !!}
-                                                </div>
-                                            @endcan
-                                        </td>
-                                        @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                    const guard = id => {
-                                                        const btn = document.getElementById(id);
-                                                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                        btn.setAttribute('data-listener-active', 'true');
-                                                        btn.addEventListener('click', event => {
-                                                            try {
-                                                                const href = btn.getAttribute('href');
-                                                                const url  = btn.getAttribute('data-url');
-                                                                if ((href && href !== '#') || (url && url !== '#')) return;
-                                                                event.preventDefault();
-                                                                const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                let container = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bootstrapLink && window.bootstrap) {
-                                                                    const toastEl = document.createElement('div');
-                                                                    toastEl.className = 'toast';
-                                                                    toastEl.setAttribute('role', 'alert');
-                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toastEl.appendChild(body);
-                                                                    container.appendChild(toastEl);
-                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                btn.setAttribute('data-failed-route', 'true');
-                                                            } catch (e) {}
-                                                        });
-                                                    };
-                                        
-                                                    guard('{{ $transferEditBtnId }}');
-                                                    guard('{{ $transferDeleteBtnId }}');
-                                                })();
-                                            </script>
-                                        @endpush
-                                    @endif
-                                </tr>
-                            @endforeach
+                                @php $transfersList=(is_array($transfers)&&!empty($transfers))?$transfers:(($transfers instanceof \Illuminate\Support\Collection&&$transfers->isNotEmpty())?$transfers:[]); @endphp
+                                @forelse($transfersList as $t)
+                                    @php
+                                        $from=is_callable([$t,'fromBankAccount'])?$t->fromBankAccount():null;
+                                        $to=is_callable([$t,'toBankAccount'])?$t->toBankAccount():null;
+                                        $tid=data_get($t,'id');
+                                        $transferEditRoute=Route::has(ViewsConstants::BNK_TRF.'.edit')?route(ViewsConstants::BNK_TRF.'.edit',$tid):(Route::has(Str::kebab(ViewsConstants::BNK_TRF.'.edit'))?route(Str::kebab(ViewsConstants::BNK_TRF.'.edit'),$tid):'#');
+                                        $transferEditBtnId='transfer-edit-'.$tid;
+                                        $transferEditMsg=Utility::fetchLinkMessage($lang,ViewsConstants::BNK_TRF,'transfer_edit_route_unavailable')??__('Failed to get transfer edit route');
+                                        $transferDestroyRoute=Route::has(ViewsConstants::BNK_TRF.'.destroy')?route(ViewsConstants::BNK_TRF.'.destroy',$tid):(Route::has(Str::kebab(ViewsConstants::BNK_TRF.'.destroy'))?route(Str::kebab(ViewsConstants::BNK_TRF.'.destroy'),$tid):'#');
+                                        $transferDeleteBtnId='transfer-delete-'.$tid;
+                                        $transferDeleteFormId='transfer-delete-form-'.$tid;
+                                        $transferDestroyMsg=Utility::fetchLinkMessage($lang,ViewsConstants::BNK_TRF,'transfer_destroy_route_unavailable')??__('Failed to get transfer destroy route');
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $user?->dateFormat(data_get($t,'date')) ?? __('Failed to format transfer date') }}</td>
+                                        <td>{{ data_get($from,'bank_name') ?? __('No bank name available') }} {{ data_get($from,'holder_name') ?? __('No account holder name available') }}</td>
+                                        <td>{{ data_get($to,'bank_name') ?? __('No bank name available') }} {{ data_get($to,'holder_name') ?? __('No account holder name available') }}</td>
+                                        <td>{{ $user?->priceFormat(data_get($t,'amount')) ?? __('Failed to format amount') }}</td>
+                                        <td>{{ data_get($t,'reference') ?: __('No reference available') }}</td>
+                                        <td>{{ data_get($t,'description') ?: __('No description available') }}</td>
+                                        @if(Gate::check('edit transfer') || Gate::check('delete transfer'))
+                                            <td class="Action">
+                                                @can('edit transfer')
+                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                        <a id="{{ $transferEditBtnId }}" href="{{ $transferEditRoute }}" data-url="{{ $transferEditRoute }}" data-guard-msg="{{ $transferEditMsg }}" data-ajax-popup="true" data-title="{{ __('Edit Transfer') }}" class="{{ VC::BT_SM_CT }} ms-2" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete transfer')
+                                                    <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                        {!! Form::open(['route'=>$transferDestroyRoute,'method'=>'DELETE','id'=>$transferDeleteFormId,'data-url'=>$transferDestroyRoute,'data-guard-msg'=>$transferDestroyMsg]) !!}
+                                                            <a id="{{ $transferDeleteBtnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $transferDeleteFormId }}').submit();"><i class="{{ VC::TI_TRS_WT }}"></i></a>
+                                                        {!! Form::close() !!}
+                                                    </div>
+                                                @endcan
+                                            </td>
+                                            @push(StacksConstants::ADM_SCR_PG)
+                                                <script defer>
+                                                    (()=>{const g=id=>{const b=document.getElementById(id);if(!b||b.getAttribute('data-listener-active')==='true')return;b.setAttribute('data-listener-active','true');b.addEventListener('click',e=>{try{const h=b.getAttribute('href');const u=b.getAttribute('data-url');if((h&&h!=='#')||(u&&u!=='#'))return;e.preventDefault();const m=b.getAttribute('data-guard-msg')??'{{ __('Failed action') }}';const hasB=document.querySelector('link[href*="bootstrap"]')&&window.bootstrap;let c=document.getElementById('toast-container');if(!c){c=document.createElement('div');c.id='toast-container';document.body.appendChild(c);}if(hasB){const t=document.createElement('div');t.className='toast';t.setAttribute('role','alert');t.setAttribute('aria-live','assertive');t.setAttribute('aria-atomic','true');const body=document.createElement('div');body.className='toast-body';body.textContent=m;t.appendChild(body);c.appendChild(t);bootstrap.Toast.getOrCreateInstance(t).show();}else{alert(m);}b.setAttribute('data-failed-route','true');}catch(_){}});};g('{{ $transferEditBtnId }}');g('{{ $transferDeleteBtnId }}');})();
+                                                </script>
+                                            @endpush
+                                        @endif
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="7" class="text-center text-muted">{{ __('No transfers available') }}</td></tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

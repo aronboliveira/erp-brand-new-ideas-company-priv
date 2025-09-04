@@ -95,5 +95,5 @@
 		<input type="button" value="{{ $cancelLabel }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
 		<input type="submit" value="{{ $uploadLabel }}" class="{{ VC::BT_PRM }}">
 	</div>
+	<script defer src="{{ asset('assets/js/routes/attendances/import.js') }}"></script>
 {{ Form::close() }}
-<script defer src="{{ asset('assets/js/routes/attendances/import.js') }}"></script>

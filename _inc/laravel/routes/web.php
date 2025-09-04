@@ -151,6 +151,7 @@ use App\Config\Constants\{
     PermissionsConstants,
     ViewsConstants as VW
 };
+use App\Models\Coupon;
 use Modules\LandingPage\{
     Config\Constants\RoutesResourcesConstants,
     Http\Controllers\HomeController
@@ -242,7 +243,7 @@ Route::get('/dashboard', [DashboardController::class, DashboardController::ACC_D
     ->middleware([MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
 #endregion
 //================================= Invoice Payment Gateways  ====================================//
-
+#region
 Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //================================= Dashboard root  ====================================//
     #region
@@ -265,7 +266,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::any('edit-profile', [UserController::class, UserController::EDT_PRF])->name(VW::USR . '.account.update')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
 
-    Route::resource(DatabaseConstants::TABLE_USERS, UserController::class)
+    Route::resource(VW::USR, UserController::class)
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
 
     Route::post('change-password', [UserController::class, UserController::UPD_PSW])
@@ -461,9 +462,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     //================================= Invoices ====================================//
     #region
+    //================================= Invoices Procedures ====================================//
+    #region
     Route::group(
-        //================================= Invoices Procedures ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -489,15 +490,15 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::resource(VW::INV, InvoiceController::class);
             Route::get(VW::INV . '/create/{cid}', [InvoiceController::class, 'create'])->name(VW::INV . '.create');
         }
-        #endregion
     );
     Route::get(VW::INV . '/preview/{template}/{color}', [InvoiceController::class, InvoiceController::INV_PRV])->name(VW::INV . '.preview');
     Route::post(VW::INV . '/template/setting', [InvoiceController::class, InvoiceController::SV_IV_TMP])
         ->name(VW::INV_TMP . 'settings');
+    #endregion
 
+    //================================= Credit Invoices ====================================//
+    #region
     Route::group(
-        //================================= Credit Invoices ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -507,9 +508,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         ],
         function () {
             Route::get(str_replace('_', '-', VW::CRD_NT), [CreditNoteController::class, 'index'])->name('credit.note');
-            Route::get('custom-credit-note', [CreditNoteController::class, 'customCreate'])->name(VW::INV . '.custom.credit.note');
-            Route::post('custom-credit-note', [CreditNoteController::class, 'customStore'])->name(VW::INV . '.custom.credit.note');
-            Route::get(VW::CRD_NT . '/invoice', [CreditNoteController::class, 'getInvoice'])->name(VW::INV . '.get');
+            Route::get('custom-credit-note', [CreditNoteController::class, CreditNoteController::CST_CRT])->name(VW::INV . '.custom.credit.note');
+            Route::post('custom-credit-note', [CreditNoteController::class, CreditNoteController::CST_STR])->name(VW::INV . '.custom.credit.note');
+            Route::get(VW::CRD_NT . '/invoice', [CreditNoteController::class, CreditNoteController::GET_INV])->name(VW::INV . '.get');
             Route::get(VW::INV . '/{id}/credit-note', [CreditNoteController::class, 'create'])->name(VW::INV . '.credit.note');
             Route::post(VW::INV . '/{id}/credit-note', [CreditNoteController::class, 'store'])->name(VW::INV . '.credit.note');
             Route::get(VW::INV . '/{id}/credit-note/edit/{cn_id}', [CreditNoteController::class, 'edit'])->name(VW::INV . '.edit.credit.note');
@@ -518,11 +519,13 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::delete(VW::INV . '/{id}/credit-note/delete/{cn_id}', [CreditNoteController::class, 'destroy'])
                 ->name(VW::INV . '.delete.credit.note');
         }
-        #endregion
     );
+    #endregion
     #endregion
 
     //================================= Bills ====================================//
+    #region
+    //================================= Debit Notes ====================================//
     #region
     Route::group(
         [
@@ -534,9 +537,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         ],
         function () {
             Route::get(VW::DBT_NT, [DebitNoteController::class, 'index'])->name('debit.note');
-            Route::get('custom-debit-note', [DebitNoteController::class, 'customCreate'])->name(VW::BIL . '.custom.debit.note');
-            Route::post('custom-debit-note', [DebitNoteController::class, 'customStore'])->name(VW::BIL . '.custom.debit.note');
-            Route::get(VW::DBT_NT . '/bill', [DebitNoteController::class, 'getbill'])->name(VW::BIL . '.get');
+            Route::get('custom-debit-note', [DebitNoteController::class, DebitNoteController::CST_CRT])->name(VW::BIL . '.custom.debit.note');
+            Route::post('custom-debit-note', [DebitNoteController::class, DebitNoteController::CST_STR])->name(VW::BIL . '.custom.debit.note');
+            Route::get(VW::DBT_NT . '/bill', [DebitNoteController::class, DebitNoteController::GET_BIL])->name(VW::BIL . '.get');
             Route::get(VW::BIL . '{id}/debit-note', [DebitNoteController::class, 'create'])->name(VW::BIL . '.debit.note');
             Route::post(VW::BIL . '{id}/debit-note', [DebitNoteController::class, 'store'])->name(VW::BIL . '.debit.note');
             Route::get(VW::BIL . '{id}/' . VW::DBT_NT . '/edit/{cn_id}', [DebitNoteController::class, 'edit'])->name(VW::BIL . '.edit.debit.note');
@@ -544,8 +547,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::delete(VW::BIL . '{id}/' . VW::DBT_NT . '/delete/{cn_id}', [DebitNoteController::class, 'destroy'])->name(VW::BIL . '.delete.debit.note');
         }
     );
+    #endregion
 
-    Route::get(VW::BIL . '/preview/{template}/{color}', [BillController::class, 'previewBill'])->name(VW::BIL . '.preview')
+    Route::get(VW::BIL . '/preview/{template}/{color}', [BillController::class, BillController::PV_BIL])->name(VW::BIL . '.preview')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::BIL . '/template/setting', [BillController::class, BillController::SV_BIL_TMP])
         ->name(VW::BIL_TMP . 'setting');
@@ -574,16 +578,16 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         ],
         function () {
             Route::get(VW::BIL . '{id}/duplicate', [BillController::class, 'duplicate'])->name(VW::BIL . '.duplicate');
-            Route::get(VW::BIL . '{id}/shipping/print', [BillController::class, 'shippingDisplay'])->name(VW::BIL . '.shipping.print');
+            Route::get(VW::BIL . '{id}/shipping/print', [BillController::class, BillController::SHP_DSP])->name(VW::BIL . '.shipping.print');
             Route::get(VW::BIL . 'index', [BillController::class, 'index'])->name(VW::BIL . '.index');
-            Route::post(VW::BIL . 'product/destroy', [BillController::class, 'productDestroy'])->name(VW::BIL . '.product.destroy');
+            Route::post(VW::BIL . 'product/destroy', [BillController::class, BillController::PRD_DST])->name(VW::BIL . '.product.destroy');
             Route::post(VW::BIL . 'product', [BillController::class, 'product'])->name(VW::BIL . '.product');
             Route::post(VW::BIL . 'vendor', [BillController::class, 'vendor'])->name(VW::BIL . '.vendor');
             Route::get(VW::BIL . '{id}/sent', [BillController::class, 'sent'])->name(VW::BIL . '.sent');
             Route::get(VW::BIL . '{id}/resent', [BillController::class, 'resent'])->name(VW::BIL . '.resent');
             Route::get(VW::BIL . '{id}/payment', [BillController::class, 'payment'])->name(VW::BIL . '.payment');
-            Route::post(VW::BIL . '{id}/payment', [BillController::class, 'createPayment'])->name(VW::BIL . '.payment');
-            Route::post(VW::BIL . '{id}/payment/{pid}/destroy', [BillController::class, 'paymentDestroy'])->name(VW::BIL . '.payment.destroy');
+            Route::post(VW::BIL . '{id}/payment', [BillController::class, BillController::PAY_CRT])->name(VW::BIL . '.payment');
+            Route::post(VW::BIL . '{id}/payment/{pid}/destroy', [BillController::class, BillController::PAY_DST])->name(VW::BIL . '.payment.destroy');
             Route::get(VW::BIL . 'items', [BillController::class, 'items'])->name(VW::BIL . '.items');
             Route::resource(VW::BIL, BillController::class);
             Route::get(VW::BIL . 'create/{cid}', [BillController::class, 'create'])->name(VW::BIL . '.create');
@@ -607,6 +611,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::resource(VW::PAY, PaymentController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     #endregion
 
+    //================================= Transactions ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -619,6 +625,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::get(VW::RPT . '/transaction', [TransactionController::class, 'index'])->name('transactions.index');
         }
     );
+    #endregion
 
     //================================= Reports ====================================//
     #region
@@ -665,6 +672,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     );
     #endregion
 
+    //================================= Proposals ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -687,20 +696,22 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::get(VW::PPS . '/create/{cid}', [ProposalController::class, 'create'])->name(VW::PPS . '.create');
         }
     );
-
     Route::get(VW::PPS . '/preview/{template}/{color}', [ProposalController::class, ProposalController::PV_PPS])->name(VW::PPS . '.preview');
     Route::post(VW::PPS . '/templates/settings', [ProposalController::class, ProposalController::SV_PPS_TMP])
         ->name(VW::PPS . 'settings');
-
-    Route::resource('goal', GoalController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-
-    //Budget Planner //
-    Route::resource('budget', BudgetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-
-    Route::resource('account_assets', AssetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-
+    #endregion
+    //================================= Goals ====================================//
+    #region
+    Route::resource(VW::GL, GoalController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    #endregion
+    //================================= Budgets ====================================//
+    #region
+    Route::resource(VW::BDG, BudgetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    #endregion
+    //================================= Planners ====================================//
+    #region
+    Route::resource(VW::ACC_AST, AssetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     Route::resource(VW::CST_FD, CustomFieldController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-
     Route::post(VW::COA . '/subtype', [ChartOfAccountController::class, 'getSubType'])->name(VW::COA . '.sub_type')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
 
     Route::group(
@@ -732,6 +743,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::resource('journal-entry', JournalEntryController::class);
         }
     );
+    #endregion
 
     // Client Module
 
@@ -1048,7 +1060,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // User Module
 
-    Route::get('users/{view?}', [UserController::class, 'index'])->name(DatabaseConstants::TABLE_USERS)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('users/{view?}', [UserController::class, 'index'])->name(VW::USR)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('users-view', [UserController::class, 'filterUserView'])->name('filter.user.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('checkuserexists', [UserController::class, 'checkUserExists'])->name(VW::USR . '.exists')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('profile', [UserController::class, 'profile'])->name('profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1233,28 +1245,29 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get('dashboard', [DashboardController::class, DashboardController::CL_VW])->name('client.dashboard.view')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    // saas
-    Route::resource(DatabaseConstants::TABLE_USERS, UserController::class)->middleware([
+    //================================= SaaS Base ====================================//
+    #region
+    Route::resource(VW::USR, UserController::class)->middleware([
         MiddlewaresConstants::AUTH,
         MiddlewaresConstants::XSS,
         MiddlewaresConstants::REV
     ]);
-    Route::resource(DatabaseConstants::TABLE_PLANS, PlanController::class)->middleware([
+    Route::resource(VW::PLN, PlanController::class)->middleware([
         MiddlewaresConstants::AUTH,
         MiddlewaresConstants::XSS,
         MiddlewaresConstants::REV
     ]);
-    Route::resource('coupons', CouponController::class)->middleware([
+    #endregion
+    //================================= Coupons ====================================//
+    #region
+    Route::resource(VW::CPN, CouponController::class)->middleware([
         MiddlewaresConstants::AUTH,
         MiddlewaresConstants::XSS,
         MiddlewaresConstants::REV
     ]);
-
-    Route::get('/apply-coupon', [CouponController::class, 'applyCoupon'])->name('apply.coupon')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-
+    Route::get(VW::CPN . '/apply', [CouponController::class, CouponController::AP_CPN])->name(VW::CPN . '.apply')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    #endregion
     //================================= Form Builder ====================================//
-
-    // Form Builder
     Route::resource('form_builder', FormBuilderController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Form link base view
@@ -1330,9 +1343,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //
     //    Route::get(
     //        '/get_landing_page_section/{name}', function ($name) {
-    //        $plans = \DB::table(DatabaseConstants::TABLE_PLANS)->get();
+    //        $plans = \DB::table(VW::PLN)->get();
     //
-    //        return view('custom_landing_page.' . $name, compact(DatabaseConstants::TABLE_PLANS));
+    //        return view('custom_landing_page.' . $name, compact(VW::PLN));
     //    }
     //    );
     //
@@ -1340,20 +1353,23 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //    Route::post('/LandingPage/setOrder', [LandingPageSectionController::class, 'setOrder'])->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     //    Route::post('/LandingPage/copySection', [LandingPageSectionController::class, 'copySection'])->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    // Plan Payment Gateways
-    Route::post('plan-pay-with-bank', [BankTransferPaymentController::class, 'planPayWithBank'])->name(VW::PLN . '.pay.with.bank')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-
-    Route::any('/payment/initiate', [BenefitPaymentController::class, 'initiatePayment'])->name(VW::PLN . '.pay.with.benefit');
-    Route::any('callBack', [BenefitPaymentController::class, 'callBack'])->name('benefit.callback');
-
-    Route::post('cashfree/payments/store', [CashfreeController::class, 'cashfreePaymentStore'])->name(VW::PLN . '.pay.with.cashfree');
-    Route::any('cashfree/payments/success', [CashfreeController::class, 'cashfreePaymentSuccess'])->name('cashfree.payment.success');
-
-    //plan-order
-    Route::post('order/{id}/changeaction', [BankTransferPaymentController::class, 'changeStatus'])->name('order.change.status');
-    Route::delete('order/{id}', [BankTransferPaymentController::class, 'orderDestroy'])->name('order.destroy');
-    Route::get('order/{id}/action', [BankTransferPaymentController::class, 'action'])->name('order.action');
-
+    //================================= Benefits for Gateways ====================================//
+    #region
+    Route::any(VW::PAY . '/benefit/initiate', [BenefitPaymentController::class, BenefitPaymentController::INI_PAY])->name(VW::PLN . '.pay.with.benefit');
+    Route::any(VW::PAY . '/benefit/callback', [BenefitPaymentController::class, BenefitPaymentController::CB])->name('benefit.callback');
+    #endregion
+    //================================= Cashfree for Gateways ====================================//
+    #region
+    Route::post('cashfree/payments/store', [CashfreeController::class, CashfreeController::CF_PAY_STR])->name(VW::PLN . '.pay.with.cashfree');
+    Route::any('cashfree/payments/success', [CashfreeController::class, CashfreeController::CF_PAY_SCS])->name('cashfree.payment.success');
+    #endregion
+    //================================= Bank Transfer Payments for Gateways ====================================//
+    #region
+    Route::post('plan-pay-with-bank', [BankTransferPaymentController::class, BankTransferPaymentController::PL_PAY_BNK])->name(VW::PLN . '.pay.with.bank')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    Route::post(VW::OD . '/{id}/changeaction', [BankTransferPaymentController::class, BankTransferPaymentController::CHG_STT])->name(VW::OD . '.change.status');
+    Route::delete(VW::OD . '/{id}', [BankTransferPaymentController::class, BankTransferPaymentController::OD_DST])->name(VW::OD . '.destroy');
+    Route::get(VW::OD . '/{id}/action', [BankTransferPaymentController::class, 'action'])->name(VW::OD . '.action');
+    #endregion
     //================================= Supports ====================================//
     #region
     Route::group(
@@ -1800,7 +1816,7 @@ Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name(
 //         ],
 //     ],
 //     function () {
-//         Route::get('order', [StripePaymentController::class, 'index'])->name('order.index');
+//         Route::get('order', [StripePaymentController::class, 'index'])->name(VW::OD.'.index');
 //         Route::get('/stripe/{code}', [StripePaymentController::class, 'stripe'])->name('stripe');
 //         Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
 //     }
@@ -1820,7 +1836,7 @@ Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name(
     //         ],
     //     ],
     //     function () {
-    //         Route::get('/orders', [StripePaymentController::class, 'index'])->name('order.index');
+    //         Route::get('/orders', [StripePaymentController::class, 'index'])->name(VW::OD.'.index');
     //         Route::get('/stripe/{code}', [StripePaymentController::class, 'stripe'])->name('stripe');
     //         Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
     //     }

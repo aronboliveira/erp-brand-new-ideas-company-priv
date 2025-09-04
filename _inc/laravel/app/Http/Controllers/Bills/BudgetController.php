@@ -6,256 +6,310 @@ use App\Config\Constants\{
     DatabaseConstants,
     MiddlewaresConstants,
     UsersConstants,
-    ViewsConstants
+    ViewsConstants as VW
 };
 use App\Models\{Bill, Budget, Invoice, Payment, ProductServiceCategory, Revenue, Utility};
 use App\Traits\ChecksLogin;
+use App\Traits\ChecksPermissions;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
-use Illuminate\Support\Facades\{Auth, Crypt, DB, Log};
+use Illuminate\Support\Facades\{Auth, Crypt, DB, Log, Route, View as ViewFacade};
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 final class BudgetController extends Controller
 {
     use ChecksLogin;
+    use ChecksPermissions;
 
     public function __construct()
     {
         $this->middleware([MiddlewaresConstants::AUTH]);
     }
 
-    public function index(Request $req): Response|RedirectResponse|JsonResponse
+    public function index(Request $req): View|Response|RedirectResponse|JsonResponse
     {
-        Log::info(__CLASS__ . '@index start', ['user_ip' => $req->ip()]);
-        if (($u = self::_checkLogin()) instanceof RedirectResponse)
-            return $u;
-        $user = $u;
-        if ($resp = $this->deny($req, 'manage budget plan'))
-            return $resp;
-        try {
-            $budgets = Budget::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-            Log::info(__CLASS__ . '@index loaded budgets', ['count' => $budgets->count()]);
-            return view(ViewsConstants::BDG . '.' . __FUNCTION__, [
-                'budgets' => $budgets,
-                'periods' => Budget::$period,
-            ]);
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '@' . __FUNCTION__ . ' error', [
-                'exception' => $e->getMessage(),
-                UsersConstants::COL_USER_ID   => $user?->id
-            ]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $viewPath = VW::BDG . '.index';
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+            Log::info("[{$base}::{$action}] start", ['user_ip' => $req->ip(), 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+            if (($g = self::guard($req, 'manage budget plan')) !== true) return $g;
+            try {
+                $fetchStart = microtime(true);
+                $budgets = Budget::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $this->logExecutionTime($fetchStart, $action, 'fetchBudgets');
+                Log::info("[{$base}::{$action}] loaded budgets", ['count' => $budgets->count()]);
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                $renderStart = microtime(true);
+                $resp = view($viewPath, ['budgets' => $budgets, 'periods' => Budget::$period]);
+                $this->logExecutionTime($renderStart, $action, 'renderIndex');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), UsersConstants::COL_USER_ID => $user?->id]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
-    public function create(Request $req): Response|JsonResponse
+    public function create(Request $req): View|Response|RedirectResponse|JsonResponse
     {
-        Log::info(__CLASS__ . '@' . __FUNCTION__ . ' start', ['user_ip' => $req->ip()]);
-        if (($u = self::_checkLogin()) instanceof RedirectResponse)
-            return $u;
-        $user = $u;
-        if ($resp = $this->deny($req, 'create budget plan'))
-            return $resp;
-        try {
-            $incomeCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
-                ->where(UsersConstants::COL_TP, 'income')->get();
-            $expenseCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
-                ->where(UsersConstants::COL_TP, 'expense')->get();
-            Log::info(__CLASS__ . '@' . __FUNCTION__ . ' rendering form', [
-                'income_count'  => $incomeCats->count(),
-                'expense_count' => $expenseCats->count()
-            ]);
-            return view(ViewsConstants::BDG . '.' . __FUNCTION__, [
-                'periods'               => Budget::$period,
-                'incomeproduct'         => $incomeCats,
-                'expenseproduct'        => $expenseCats,
-                'monthList'             => self::_months(),
-                'quarterly_monthlist'   => ['Jan-Mar', 'Apr-Jun', 'Jul-Sep', 'Oct-Dec'],
-                'half_yearly_monthlist' => ['Jan-Jun', 'Jul-Dec'],
-                'yearly_monthlist'      => ['Jan-Dec'],
-                'yearList'              => self::_years(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '@' . __FUNCTION__ . ' error', ['exception' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $viewPath = VW::BDG . '.create';
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
+            Log::info("[{$base}::{$action}] start", ['user_ip' => $req->ip(), 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+            if (($g = self::guard($req, 'create budget plan')) !== true) return $g;
+            try {
+                $incStart = microtime(true);
+                $incomeCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
+                $this->logExecutionTime($incStart, $action, 'fetchIncomeCategories');
+                $expStart = microtime(true);
+                $expenseCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
+                $this->logExecutionTime($expStart, $action, 'fetchExpenseCategories');
+                Log::info("[{$base}::{$action}] rendering form", ['income_count' => $incomeCats->count(), 'expense_count' => $expenseCats->count()]);
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                $renderStart = microtime(true);
+                $resp = view($viewPath, [
+                    'periods' => Budget::$period,
+                    'incomeproduct' => $incomeCats,
+                    'expenseproduct' => $expenseCats,
+                    'monthList' => self::_months(),
+                    'quarterly_monthlist' => ['Jan-Mar', 'Apr-Jun', 'Jul-Sep', 'Oct-Dec'],
+                    'half_yearly_monthlist' => ['Jan-Jun', 'Jul-Dec'],
+                    'yearly_monthlist' => ['Jan-Dec'],
+                    'yearList' => self::_years(),
+                ]);
+                $this->logExecutionTime($renderStart, $action, 'renderCreate');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function store(Request $req): RedirectResponse|JsonResponse
     {
-        Log::info(__CLASS__ . '@store start', ['input' => $req->only(['name', 'year', 'period'])]);
-        if (($u = self::_checkLogin()) instanceof RedirectResponse)
-            return $u;
-        $user = $u;
-        if ($resp = $this->deny($req, 'create budget plan'))
-            return $resp;
-        $req->validate([
-            'name'   => 'required',
-            'period' => 'required',
-        ]);
-        try {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            Log::info("[{$base}::{$action}] start", ['input' => $req->only(['name', 'year', 'period']), 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+            if (($g = self::guard($req, 'create budget plan')) !== true) return $g;
+            $valStart = microtime(true);
+            $req->validate(['name' => 'required', 'period' => 'required']);
+            $this->logExecutionTime($valStart, $action, 'validateInput');
             DB::beginTransaction();
-            $budget = Budget::create([
-                'name'         => $req->name,
-                'from'         => $req->year,
-                'period'       => $req->period,
-                'income_data'  => json_encode($req->income),
-                'expense_data' => json_encode($req->expense),
-                DatabaseConstants::TABLE_CREATOR   => $user?->creatorId(),
-            ]);
-            Log::info(__CLASS__ . '@' . __FUNCTION__ . ' created budget', ['budget_id' => $budget->id]);
-            Utility::notifyNewBudget($budget);
-            DB::commit();
-            return redirect()->route(ViewsConstants::BDG . '.index')
-                ->with('success', __('Budget Plan successfully created.'));
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error(__CLASS__ . '@' . __FUNCTION__ . ' failed', [
-                'exception' => $e->getMessage(),
-                'input'    => $req->all()
-            ]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
-    }
-
-    public function show(string $enc): Response|RedirectResponse
-    {
-        Log::info(__CLASS__ . '@show start', ['enc' => $enc]);
-        if (($u = self::_checkLogin()) instanceof RedirectResponse)
-            return $u;
-        $user = $u;
-        if ($resp = $this->deny(request(), 'view budget plan'))
-            return $resp;
-        try {
-            $id    = Crypt::decryptString($enc);
-            $budget = Budget::findOrFail($id);
-            if (!$this->isOwner($budget, $user)) {
-                Log::warning(__CLASS__ . '@' . __FUNCTION__ . ' ownership failed', [
-                    'budget_id' => $id, UsersConstants::COL_USER_ID => $user?->id
+            try {
+                $createStart = microtime(true);
+                $budget = Budget::create([
+                    'name' => $req->name,
+                    'from' => $req->year,
+                    'period' => $req->period,
+                    'income_data' => json_encode(!empty($req->income) ? $req->income : []),
+                    'expense_data' => json_encode(!empty($req->expense) ? $req->expense : []),
+                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
                 ]);
-                return defaultPermissionDenial(
-                    request(),
-                    new \Exception('owner'),
-                    __CLASS__ . '::' . __FUNCTION__
-                );
+                $this->logExecutionTime($createStart, $action, 'createBudget');
+                Log::info("[{$base}::{$action}] created budget", ['budget_id' => $budget->id]);
+                $notifyStart = microtime(true);
+                Utility::notifyNewBudget($budget);
+                $this->logExecutionTime($notifyStart, $action, 'notifyNewBudget');
+                $txnEndStart = microtime(true);
+                DB::commit();
+                $this->logExecutionTime($txnEndStart, $action, 'commitTransaction');
+                return redirect()->route(VW::BDG . '.index')->with('success', __('Budget Plan successfully created.'));
+            } catch (\Throwable $e) {
+                $rbStart = microtime(true);
+                DB::rollBack();
+                $this->logExecutionTime($rbStart, $action, 'rollbackTransaction');
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'input' => $req->all()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
             }
-            $reports = $this->_buildReports($budget);
-            Log::info(__CLASS__ . '@' . __FUNCTION__ . ' built reports', ['budget_id' => $id]);
-            return view(ViewsConstants::BDG . '.' . __FUNCTION__, array_merge($reports, [
-                'id'             => $id,
-                'budget'         => $budget,
-                'incomeproduct'  => $reports['incomeproduct'],
-                'expenseproduct' => $reports['expenseproduct'],
-            ]));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '@' . __FUNCTION__ . ' error', ['exception' => $e->getMessage()]);
-            return defaultUndefinedException(request(), $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
-    public function edit(string $enc): Response|RedirectResponse
+    public function show(string $enc): View|Response|RedirectResponse
     {
-        Log::info(__CLASS__ . '@' . __FUNCTION__ . ' start', ['enc' => $enc]);
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) {
-            return $u;
-        }
-        $user = $u;
-
-        if ($resp = $this->deny(request(), 'edit budget plan')) {
-            return $resp;
-        }
-
-        try {
-            $id    = Crypt::decryptString($enc);
-            $budget = Budget::findOrFail($id);
-
-            if (!$this->isOwner($budget, $user)) {
-                Log::warning(__CLASS__ . '@' . __FUNCTION__ . ' ownership failed', ['budget_id' => $id]);
-                return defaultPermissionDenial(
-                    request(),
-                    new \Exception('owner'),
-                    __CLASS__ . '::' . __FUNCTION__
-                );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $viewPath = VW::BDG . '.show';
+        return $this->measureProfile($action, function () use ($enc, $action, $method, $class, $base, $viewPath) {
+            Log::info("[{$base}::{$action}] start", ['enc' => $enc, 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+            if (($g = self::guard(request(), 'view budget plan')) !== true) return $g;
+            try {
+                $decStart = microtime(true);
+                $id = Crypt::decryptString($enc);
+                $this->logExecutionTime($decStart, $action, 'decryptId');
+                $findStart = microtime(true);
+                $budget = Budget::findOrFail($id);
+                $this->logExecutionTime($findStart, $action, 'findBudget');
+                if (!$this->isOwner($budget, $user)) {
+                    Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $id, UsersConstants::COL_USER_ID => $user?->id]);
+                    return defaultPermissionDenial(request(), new \Exception('owner'), $class . '::' . $action);
+                }
+                $repStart = microtime(true);
+                $reports = $this->_buildReports($budget);
+                $this->logExecutionTime($repStart, $action, 'buildReports');
+                Log::info("[{$base}::{$action}] reports built", ['budget_id' => $id]);
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                $renderStart = microtime(true);
+                $resp = view($viewPath, array_merge($reports, ['id' => $id, 'budget' => $budget, 'incomeproduct' => $reports['incomeproduct'], 'expenseproduct' => $reports['expenseproduct']]));
+                $this->logExecutionTime($renderStart, $action, 'renderShow');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException(request(), $e, $class . '::' . $action);
             }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'enc' => $enc]);
+    }
 
-            $budget->income_data = json_decode($budget->income_data, true);
-            $budget->expense_data = json_decode($budget->expense_data, true);
-
-            Log::info(__CLASS__ . '@' . __FUNCTION__ . ' rendering form', ['budget_id' => $id]);
-
-            return view(ViewsConstants::BDG . '.edit', [
-                'periods'               => Budget::$period,
-                'budget'                => $budget,
-                'incomeproduct'         => ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get(),
-                'expenseproduct'        => ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get(),
-                'monthList'             => self::_months(),
-                'quarterly_monthlist'   => ['Jan-Mar', 'Apr-Jun', 'Jul-Sep', 'Oct-Dec'],
-                'half_yearly_monthlist' => ['Jan-Jun', 'Jul-Dec'],
-                'yearly_monthlist'      => ['Jan-Dec'],
-                'yearList'              => self::_years(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '@' . __FUNCTION__ . ' error', ['exception' => $e->getMessage()]);
-            return defaultUndefinedException(request(), $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+    public function edit(string $enc): View|Response|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = request();
+        $viewPath = VW::BDG . '.edit';
+        return $this->measureProfile($action, function () use ($enc, $req, $action, $method, $class, $base, $viewPath) {
+            Log::info("[{$base}::{$action}] start", ['enc' => $enc, 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+            if (($g = self::guard($req, 'edit budget plan')) !== true) return $g;
+            try {
+                $decStart = microtime(true);
+                $id = Crypt::decryptString($enc);
+                $this->logExecutionTime($decStart, $action, 'decryptId');
+                $findStart = microtime(true);
+                $budget = Budget::findOrFail($id);
+                $this->logExecutionTime($findStart, $action, 'findBudget');
+                if (!$this->isOwner($budget, $user)) {
+                    Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $id, UsersConstants::COL_USER_ID => $user?->id]);
+                    return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
+                }
+                $decodeStart = microtime(true);
+                $budget->income_data = json_decode($budget->income_data, true);
+                $budget->expense_data = json_decode($budget->expense_data, true);
+                $this->logExecutionTime($decodeStart, $action, 'decodeBudgetData');
+                $incStart = microtime(true);
+                $incomeCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
+                $this->logExecutionTime($incStart, $action, 'fetchIncomeCategories');
+                $expStart = microtime(true);
+                $expenseCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
+                $this->logExecutionTime($expStart, $action, 'fetchExpenseCategories');
+                Log::info("[{$base}::{$action}] rendering form", ['budget_id' => $id, 'income_count' => $incomeCats->count(), 'expense_count' => $expenseCats->count()]);
+                if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                $renderStart = microtime(true);
+                $resp = view($viewPath, [
+                    'periods' => Budget::$period,
+                    'budget' => $budget,
+                    'incomeproduct' => $incomeCats,
+                    'expenseproduct' => $expenseCats,
+                    'monthList' => self::_months(),
+                    'quarterly_monthlist' => ['Jan-Mar', 'Apr-Jun', 'Jul-Sep', 'Oct-Dec'],
+                    'half_yearly_monthlist' => ['Jan-Jun', 'Jul-Dec'],
+                    'yearly_monthlist' => ['Jan-Dec'],
+                    'yearList' => self::_years(),
+                ]);
+                $this->logExecutionTime($renderStart, $action, 'renderEdit');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'enc' => $enc]);
     }
 
     public function update(Request $req, Budget $budget): RedirectResponse|JsonResponse
     {
-        Log::info(__CLASS__ . '@' . __FUNCTION__ . ' start', ['budget_id' => $budget->id]);
-        if (($u = self::_checkLogin()) instanceof RedirectResponse)
-            return $u;
-        $user = $u;
-        if ($resp = $this->deny($req, 'edit budget plan'))
-            return $resp;
-        if (!$this->isOwner($budget, $user)) {
-            Log::warning(__CLASS__ . '@' . __FUNCTION__ . ' ownership failed', ['budget_id' => $budget->id]);
-            return defaultPermissionDenial($req, new \Exception('owner'), __CLASS__ . '::' . __FUNCTION__);
-        }
-        $req->validate([
-            'name'   => 'required',
-            'period' => 'required',
-        ]);
-        try {
-            $budget->update([
-                'name'         => $req->name,
-                'from'         => $req->year,
-                'period'       => $req->period,
-                'income_data'  => json_encode($req->income),
-                'expense_data' => json_encode($req->expense),
-            ]);
-            Log::info(__CLASS__ . '@' . __FUNCTION__ . ' success', ['budget_id' => $budget->id]);
-            return redirect()->route(ViewsConstants::BDG . '.index')
-                ->with('success', __('Budget Plan successfully updated.'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '@' . __FUNCTION__ . ' failed', ['exception' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $budget, $action, $method, $class, $base) {
+            Log::info("[{$base}::{$action}] start", ['budget_id' => $budget->id, 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+            if (($g = self::guard($req, 'edit budget plan')) !== true) return $g;
+            if (!$this->isOwner($budget, $user)) {
+                Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $budget->id, UsersConstants::COL_USER_ID => $user?->id]);
+                return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
+            }
+            $valStart = microtime(true);
+            $req->validate(['name' => 'required', 'period' => 'required']);
+            $this->logExecutionTime($valStart, $action, 'validateInput');
+            try {
+                $updStart = microtime(true);
+                $budget->update([
+                    'name' => $req->name,
+                    'from' => $req->year,
+                    'period' => $req->period,
+                    'income_data' => json_encode(!empty($req->income) ? $req->income : []),
+                    'expense_data' => json_encode(!empty($req->expense) ? $req->expense : []),
+                ]);
+                $this->logExecutionTime($updStart, $action, 'updateBudget');
+                Log::info("[{$base}::{$action}] success", ['budget_id' => $budget->id]);
+                return redirect()->route(VW::BDG . '.index')->with('success', __('Budget Plan successfully updated.'));
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'budget_id' => $budget->id]);
     }
 
     public function destroy(Budget $budget): RedirectResponse|JsonResponse
     {
-        Log::info(__CLASS__ . '@' . __FUNCTION__ . ' start', ['budget_id' => $budget->id]);
-        if (($u = self::_checkLogin()) instanceof RedirectResponse)
-            return $u;
-        $req = request();
-        $user = $u;
-        if ($resp = $this->deny($req, 'delete budget plan'))
-            return $resp;
-        if (!$this->isOwner($budget, $user)) {
-            Log::warning(__CLASS__ . '@' . __FUNCTION__ . ' ownership failed', ['budget_id' => $budget->id]);
-            return defaultPermissionDenial($req, new \Exception('owner'), __CLASS__ . '::' . __FUNCTION__);
-        }
-        try {
-            $budget->delete();
-            Log::info(__CLASS__ . '@' . __FUNCTION__ . ' success', ['budget_id' => $budget->id]);
-            return redirect()->route(ViewsConstants::BDG . '.index')
-                ->with('success', __('Budget Plan successfully deleted.'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '@' . __FUNCTION__ . ' failed', ['exception' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = request();
+        return $this->measureProfile($action, function () use ($budget, $req, $action, $method, $class, $base) {
+            Log::info("[{$base}::{$action}] start", ['budget_id' => $budget->id, 'method' => $method]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+            if (($g = self::guard($req, 'delete budget plan')) !== true) return $g;
+            if (!$this->isOwner($budget, $user)) {
+                Log::warning("[{$base}::{$action}] ownership failed", ['budget_id' => $budget->id, UsersConstants::COL_USER_ID => $user?->id]);
+                return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action);
+            }
+            try {
+                $delStart = microtime(true);
+                $budget->delete();
+                $this->logExecutionTime($delStart, $action, 'deleteBudget');
+                Log::info("[{$base}::{$action}] success", ['budget_id' => $budget->id]);
+                return redirect()->route(VW::BDG . '.index')->with('success', __('Budget Plan successfully deleted.'));
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'budget_id' => $budget->id]);
     }
 
+    public const Y_M = 'yearMonth';
     public function yearMonth(Request $request): array
     {
         Log::info(__METHOD__, [UsersConstants::COL_USER_ID => Auth::id()]);
@@ -263,12 +317,22 @@ final class BudgetController extends Controller
             (self::_checkLogin()) instanceof RedirectResponse
         ) return [];
         return [
-            'January', 'February', 'March', 'April',
-            'May', 'June', 'July', 'August',
-            'September', 'October', 'November', 'December'
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December'
         ];
     }
 
+    public const Y_L = 'yearList';
     public function yearList(Request $request): array
     {
         Log::info(__METHOD__, [UsersConstants::COL_USER_ID => Auth::id()]);
@@ -308,8 +372,18 @@ final class BudgetController extends Controller
     private static function _months(): array
     {
         return [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December',
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
         ];
     }
 
@@ -389,7 +463,7 @@ final class BudgetController extends Controller
                     ->whereMonth('send_date', '>=', $start)
                     ->whereMonth('send_date', '<=', $end)
                     ->get()
-                    ->each(fn ($inv) => $invTotal += $inv->getTotal());
+                    ->each(fn($inv) => $invTotal += $inv->getTotal());
 
                 $val = $rev + $invTotal;
                 $row[$label] = $val;
@@ -422,7 +496,7 @@ final class BudgetController extends Controller
                     ->whereMonth('send_date', '>=', $start)
                     ->whereMonth('send_date', '<=', $end)
                     ->get()
-                    ->each(fn ($b) => $billTotal += $b->getTotal());
+                    ->each(fn($b) => $billTotal += $b->getTotal());
                 $val = $pay + $billTotal;
                 $row[$label] = $val;
                 $expenseTotalArr[$label] = ($expenseTotalArr[$label] ?? 0) + $val;

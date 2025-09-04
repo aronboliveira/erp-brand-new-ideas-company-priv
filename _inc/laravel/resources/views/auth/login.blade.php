@@ -97,75 +97,79 @@
     <div class="{{ VC::LNG_DD_DSK }}">
         <li class="{{ VC::LNG_DD_IT }}">
             <a class="{{ VC::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="drp-text"> {{ $languages[$lang] }}
+                <span class="drp-text"> {{ !empty($languages) && !empty($languages[$lang]) ? $languages[$lang] : __(DatabaseConstants::DEFAULT_LANG) }}
                 </span>
             </a>
             <div class="{{ VC::DRP_MN_DSH_END }}">
-                @foreach($languages as $code => $language)
-                    @php
-                        $loginBase = 'login';
-                        $loginKebab = Str::kebab($loginBase);
-                        $loginResolved = Route::has($loginBase) ? $loginBase : (Route::has($loginKebab) ? $loginKebab : null);
-                        $loginUrl = $loginResolved ? route($loginResolved, $code) : '#';
-                        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                        $loginGuardMsg = Utility::fetchLinkMessage($langValue, 'auth', 'login_lang_route_unavailable') ?? 'Login language route is unavailable. Please contact technical support or your domain administrator.';
-                        $anchorId = 'login-lang-'.Str::slug((string)$code,'-');
-                        $label = Str::upper($language);
-                    @endphp
-                    <a id="{{ $anchorId }}"
-                    href="{{ $loginUrl }}"
-                    tabindex="0"
-                    class="dropdown-item"
-                    data-url="{{ $loginUrl }}"
-                    data-guard-msg="{{ $loginGuardMsg }}"
-                    data-sv-localized="true">
-                        <span>{{ $label }}</span>
-                    </a>
-                    @push(StacksConstants::AUTH_CST_SCR)
-                        <script defer>
-                            (() => {
-                                try {
-                                    const el = document.getElementById('{{ $anchorId }}');
-                                    if (!el) { return; }
-                                    if (el.getAttribute('data-listener-active') === 'true') { return; }
-                                    el.setAttribute('data-listener-active','true');
-                                    el.addEventListener('click',(e) => {
-                                        try {
-                                            const href = el.getAttribute('href') ?? '#';
-                                            const url = el.getAttribute('data-url') ?? href ?? '#';
-                                            if (url !== '#' && href !== '#') { return; }
-                                            e.preventDefault();
-                                            const msg = el.getAttribute('data-guard-msg') ?? 'Login route is unavailable. Please contact technical support or your domain administrator.';
-                                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                            let container = document.getElementById('toast-container');
-                                            if (!container) {
-                                                container = document.createElement('div');
-                                                container.id = 'toast-container';
-                                                document.body.appendChild(container);
-                                            }
-                                            if (hasBootstrap) {
-                                                const toast = document.createElement('div');
-                                                toast.className = 'toast';
-                                                toast.setAttribute('role','alert');
-                                                toast.setAttribute('aria-live','assertive');
-                                                toast.setAttribute('aria-atomic','true');
-                                                const body = document.createElement('div');
-                                                body.className = 'toast-body';
-                                                body.textContent = msg;
-                                                toast.appendChild(body);
-                                                container.appendChild(toast);
-                                                bootstrap.Toast.getOrCreateInstance(toast).show();
-                                            } else {
-                                                alert(msg);
-                                            }
-                                            el.setAttribute('data-failed-route','true');
-                                        } catch (err) {}
-                                    });
-                                } catch (err) {}
-                            })();
-                        </script>
-                    @endpush
-                @endforeach
+                @if(is_array($languages) && count($languages) || $languages instanceof Collection && $languages->isNotEmpty())
+                    @foreach($languages as $code => $language)
+                        @php
+                            $loginBase = 'login';
+                            $loginKebab = Str::kebab($loginBase);
+                            $loginResolved = Route::has($loginBase) ? $loginBase : (Route::has($loginKebab) ? $loginKebab : null);
+                            $loginUrl = $loginResolved ? route($loginResolved, $code) : '#';
+                            $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+                            $loginGuardMsg = Utility::fetchLinkMessage($langValue, 'auth', 'login_lang_route_unavailable') ?? 'Login language route is unavailable. Please contact technical support or your domain administrator.';
+                            $anchorId = 'login-lang-'.Str::slug((string)$code,'-');
+                            $label = Str::upper($language);
+                        @endphp
+                        <a id="{{ $anchorId }}"
+                        href="{{ $loginUrl }}"
+                        tabindex="0"
+                        class="dropdown-item"
+                        data-url="{{ $loginUrl }}"
+                        data-guard-msg="{{ $loginGuardMsg }}"
+                        data-sv-localized="true">
+                            <span>{{ $label }}</span>
+                        </a>
+                        @push(StacksConstants::AUTH_CST_SCR)
+                            <script defer>
+                                (() => {
+                                    try {
+                                        const el = document.getElementById('{{ $anchorId }}');
+                                        if (!el) { return; }
+                                        if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                        el.setAttribute('data-listener-active','true');
+                                        el.addEventListener('click',(e) => {
+                                            try {
+                                                const href = el.getAttribute('href') ?? '#';
+                                                const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                if (url !== '#' && href !== '#') { return; }
+                                                e.preventDefault();
+                                                const msg = el.getAttribute('data-guard-msg') ?? 'Login route is unavailable. Please contact technical support or your domain administrator.';
+                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                let container = document.getElementById('toast-container');
+                                                if (!container) {
+                                                    container = document.createElement('div');
+                                                    container.id = 'toast-container';
+                                                    document.body.appendChild(container);
+                                                }
+                                                if (hasBootstrap) {
+                                                    const toast = document.createElement('div');
+                                                    toast.className = 'toast';
+                                                    toast.setAttribute('role','alert');
+                                                    toast.setAttribute('aria-live','assertive');
+                                                    toast.setAttribute('aria-atomic','true');
+                                                    const body = document.createElement('div');
+                                                    body.className = 'toast-body';
+                                                    body.textContent = msg;
+                                                    toast.appendChild(body);
+                                                    container.appendChild(toast);
+                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                } else {
+                                                    alert(msg);
+                                                }
+                                                el.setAttribute('data-failed-route','true');
+                                            } catch (err) {}
+                                        });
+                                    } catch (err) {}
+                                })();
+                            </script>
+                        @endpush
+                    @endforeach
+                @else
+                    <span class="drp-text"> {{ __(DatabaseConstants::DEFAULT_LANG) }}</span>
+                @endif
             </div>
         </li>
     </div>

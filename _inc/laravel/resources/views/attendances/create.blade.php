@@ -107,5 +107,5 @@
 		<button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ $cancelLabel }}</button>
 		{{ Form::submit($createLabel, ['class' => VC::BT_PRM]) }}
 	</div>
+	<script defer src="{{ asset('assets/js/routes/attendances/store.js') }}"></script>
 {{ Form::close() }}
-<script defer src="{{ asset('assets/js/routes/attendances/store.js') }}"></script>

@@ -29,7 +29,9 @@ use Illuminate\Support\Facades\{
   Crypt,
   DB,
   Log,
-  Validator
+  Route,
+  Validator,
+  View as ViewFacade
 };
 use Illuminate\View\View;
 
@@ -44,313 +46,372 @@ final class BankTransferPaymentController extends Controller
 
   private const DIR = 'uploads/order';
 
+  public const PL_PAY_BNK = 'planPayWithBank';
   public function planPayWithBank(Request $request): RedirectResponse|null
   {
-    // login / user resolution
-    if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
-      Log::info(__FUNCTION__ . ': redirecting to login');
-      return $userOrRedirect;
-    }
-    $user = $userOrRedirect;
-    if ($resp = self::validateReceipt($request))
-      return $resp;
-    Log::info(__FUNCTION__ . ': start', [
-      UsersConstants::COL_USER_ID    => $user?->id,
-      'plan_id_enc' => $request->input(UsersConstants::COL_PLAN_ID),
-      'coupon'     => $request->input('coupon'),
-    ]);
-    try {
-      return DB::transaction(function () use ($request, $user) {
-        // decrypt plan
-        $planId = Crypt::decryptString($request->input(UsersConstants::COL_PLAN_ID));
-        $plan  = Plan::find($planId);
-        if (!$plan) {
-          Log::warning(__FUNCTION__ . ': plan not found', [UsersConstants::COL_PLAN_ID => $planId]);
-          return redirect()->route(ViewsConstants::PLN . '.index')
-            ->with('error', __('Plan is deleted.'));
-        }
-        // coupon logic
-        $price   = $plan->price;
-        $couponId = null;
-        if ($code = strtoupper($request->input('coupon', ''))) {
-          Log::info(__FUNCTION__ . ': applying coupon', ['code' => $code]);
-          $coupon = Coupon::where('is_active', 1)
-            ->where('code', $code)
-            ->first();
-          if (!$coupon) {
-            Log::warning(__FUNCTION__ . ': invalid coupon', ['code' => $code]);
-            return redirect()->back()
-              ->with('error', __('This coupon code is invalid or has expired.'));
+    $action = __FUNCTION__;
+    $method = __METHOD__;
+    $class  = static::class;
+    $base   = class_basename($class);
+    $req    = $request;
+    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+      if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
+        Log::info("[{$base}::{$action}] redirecting to login", ['method' => $method]);
+        return $userOrRedirect;
+      }
+      $user = $userOrRedirect;
+      $valStart = microtime(true);
+      if ($resp = self::validateReceipt($req)) {
+        $this->logExecutionTime($valStart, $action, 'validateReceipt');
+        return $resp;
+      }
+      $this->logExecutionTime($valStart, $action, 'validateReceipt');
+      Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'plan_id_enc' => $req->input(UsersConstants::COL_PLAN_ID), 'coupon' => $req->input('coupon'), 'method' => $method]);
+      try {
+        $txnStart = microtime(true);
+        $resp = DB::transaction(function () use ($req, $user, $action, $base) {
+          $decStart = microtime(true);
+          $planId = Crypt::decryptString($req->input(UsersConstants::COL_PLAN_ID));
+          $this->logExecutionTime($decStart, $action, 'decryptPlanId');
+          $plan = Plan::find($planId);
+          if (!$plan) {
+            Log::warning("[{$base}::{$action}] plan not found", [UsersConstants::COL_PLAN_ID => $planId]);
+            return redirect()->route(ViewsConstants::PLN . '.index')->with('error', __('Plan is deleted.'));
           }
-          if ($coupon->limit <= $coupon->used_coupon()) {
-            Log::warning(__FUNCTION__ . ': coupon expired', ['coupon_id' => $coupon->id]);
-            return redirect()->back()
-              ->with('error', __('This coupon code has expired.'));
+          $price = $plan->price;
+          $couponId = null;
+          if ($code = strtoupper($req->input('coupon', ''))) {
+            Log::info("[{$base}::{$action}] applying coupon", ['code' => $code]);
+            $cStart = microtime(true);
+            $coupon = Coupon::where('is_active', 1)->where('code', $code)->first();
+            $this->logExecutionTime($cStart, $action, 'fetchCoupon');
+            if (!$coupon) {
+              Log::warning("[{$base}::{$action}] invalid coupon", ['code' => $code]);
+              return redirect()->back()->with('error', __('This coupon code is invalid or has expired.'));
+            }
+            if ($coupon->limit <= $coupon->used_coupon()) {
+              Log::warning("[{$base}::{$action}] coupon expired", ['coupon_id' => $coupon->id]);
+              return redirect()->back()->with('error', __('This coupon code has expired.'));
+            }
+            $applyStart = microtime(true);
+            $discountAmount = $plan->price * ($coupon->discount / 100);
+            $price -= $discountAmount;
+            $couponId = $coupon->id;
+            $this->logExecutionTime($applyStart, $action, 'applyCoupon');
+            Log::info("[{$base}::{$action}] coupon applied", ['coupon_id' => $couponId, 'discount_amount' => $discountAmount, 'new_price' => $price]);
           }
-          $discountAmount = $plan->price * ($coupon->discount / 100);
-          $price -= $discountAmount;
-          $couponId = $coupon->id;
-          Log::info(__FUNCTION__ . ': coupon applied', [
-            'coupon_id'       => $couponId,
-            'discount_amount' => $discountAmount,
-            'new_price'       => $price,
+          $uploadStart = microtime(true);
+          $upload = self::uploadReceipt($req);
+          $this->logExecutionTime($uploadStart, $action, 'uploadReceipt');
+          $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
+          $createStart = microtime(true);
+          Order::create([
+            'order_id' => $orderId,
+            UsersConstants::COL_PLAN_NM => $plan->name,
+            UsersConstants::COL_PLAN_ID => $plan->id,
+            'price' => $price,
+            'price_currency' => $req->input('currency', 'USD'),
+            'payment_type' => 'Bank Transfer',
+            'payment_status' => 'Pending',
+            'receipt' => $upload['file'] ?? null,
+            UsersConstants::COL_USER_ID => $user?->id,
           ]);
-        }
-        // upload receipt
-        $upload = self::uploadReceipt($request);
-        // create order
-        $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
-        Order::create([
-          'order_id'       => $orderId,
-          UsersConstants::COL_PLAN_NM      => $plan->name,
-          UsersConstants::COL_PLAN_ID        => $plan->id,
-          'price'          => $price,
-          'price_currency' => $request->input('currency', 'USD'),
-          'payment_type'   => 'Bank Transfer',
-          'payment_status' => 'Pending',
-          'receipt'        => $upload['file'] ?? null,
-          UsersConstants::COL_USER_ID        => $user?->id,
-        ]);
-        Log::info(__FUNCTION__ . ': order created', [
-          'order_id' => $orderId,
-          UsersConstants::COL_USER_ID  => $user?->id,
-          UsersConstants::COL_PLAN_ID  => $plan->id,
-        ]);
-        // record coupon usage
-        if (isset($coupon)) {
-          UserCoupon::create([
-            'user'   => $user?->id,
-            'coupon' => $coupon->id,
-            'order'  => $orderId,
-          ]);
-          Log::info(__FUNCTION__ . ': user coupon recorded', [
-            'coupon_id' => $coupon->id,
-            'order_id'  => $orderId,
-          ]);
-          if ($coupon->limit <= $coupon->used_coupon()) {
-            $coupon->is_active = 0;
-            $coupon->save();
-            Log::info(__FUNCTION__ . ': coupon deactivated', ['coupon_id' => $coupon->id]);
+          $this->logExecutionTime($createStart, $action, 'createOrder');
+          Log::info("[{$base}::{$action}] order created", ['order_id' => $orderId, UsersConstants::COL_USER_ID => $user?->id, UsersConstants::COL_PLAN_ID => $plan->id]);
+          if (isset($coupon)) {
+            $ucStart = microtime(true);
+            UserCoupon::create(['user' => $user?->id, 'coupon' => $coupon->id, 'order' => $orderId]);
+            $this->logExecutionTime($ucStart, $action, 'recordCouponUsage');
+            Log::info("[{$base}::{$action}] user coupon recorded", ['coupon_id' => $coupon->id, 'order_id' => $orderId]);
+            if ($coupon->limit <= $coupon->used_coupon()) {
+              $deactStart = microtime(true);
+              $coupon->is_active = 0;
+              $coupon->save();
+              $this->logExecutionTime($deactStart, $action, 'deactivateCoupon');
+              Log::info("[{$base}::{$action}] coupon deactivated", ['coupon_id' => $coupon->id]);
+            }
           }
-        }
-        Log::info(__FUNCTION__ . ': completed successfully', ['order_id' => $orderId]);
-        return redirect()->route(ViewsConstants::PLN . '.index')
-          ->with('success', __('Plan payment request sent successfully.'));
-      });
-    } catch (\Throwable $e) {
-      Log::error(__FUNCTION__ . ' failed', [
-        'exception' => $e,
-        UsersConstants::COL_USER_ID   => $user?->id,
-      ]);
-      return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-    }
+          Log::info("[{$base}::{$action}] completed successfully", ['order_id' => $orderId]);
+          return redirect()->route(ViewsConstants::PLN . '.index')->with('success', __('Plan payment request sent successfully.'));
+        });
+        $this->logExecutionTime($txnStart, $action, 'transaction');
+        return $resp;
+      } catch (\Throwable $e) {
+        Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), UsersConstants::COL_USER_ID => $user?->id]);
+        Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+        return defaultUndefinedException($req, $e, $class . '::' . $action);
+      }
+    }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
   }
 
+  public const OD_DST = 'orderDestroy';
   public function orderDestroy(int|string $id): RedirectResponse|null
   {
-    if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
-      Log::info(__FUNCTION__ . ': redirecting to login');
-      return $userOrRedirect;
-    }
-    Log::info(__FUNCTION__ . ': start', ['order_id' => $id]);
-    try {
-      Order::whereKey($id)->delete();
-      Log::info(__FUNCTION__ . ': deleted', ['order_id' => $id]);
-      return redirect()->back()
-        ->with('success', __('Order successfully deleted.'));
-    } catch (\Throwable $e) {
-      Log::error(__FUNCTION__ . ' failed', [
-        'exception' => $e,
-        'order_id'  => $id,
-      ]);
-      return defaultUndefinedException(request(), $e, __CLASS__ . '::' . __FUNCTION__);
-    }
+    $action = __FUNCTION__;
+    $method = __METHOD__;
+    $class  = static::class;
+    $base   = class_basename($class);
+    return $this->measureProfile($action, function () use ($id, $action, $method, $class, $base) {
+      if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
+        Log::info("[{$base}::{$action}] redirecting to login", ['method' => $method]);
+        return $userOrRedirect;
+      }
+      Log::info("[{$base}::{$action}] start", ['order_id' => $id, 'method' => $method]);
+      try {
+        $delStart = microtime(true);
+        Order::whereKey($id)->delete();
+        $this->logExecutionTime($delStart, $action, 'deleteOrder');
+        Log::info("[{$base}::{$action}] deleted", ['order_id' => $id]);
+        return redirect()->back()->with('success', __('Order successfully deleted.'));
+      } catch (\Throwable $e) {
+        Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'order_id' => $id]);
+        Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+        return defaultUndefinedException(request(), $e, $class . '::' . $action);
+      }
+    }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'order_id' => $id]);
   }
 
   public function action(int|string $id): Response|RedirectResponse|null
   {
-    if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-      return $userOrRedirect;
-    Log::info('action: rendering payment action form', ['order_id' => $id]);
-    $order              = Order::findOrFail($id);
-    $adminPaymentSetting = Utility::getAdminPaymentSetting();
-    return response()->view(ViewsConstants::OD . '.' . __FUNCTION__, compact('order', 'adminPaymentSetting'));
+    $action = __FUNCTION__;
+    $method = __METHOD__;
+    $class  = static::class;
+    $base   = class_basename($class);
+    $viewPath = ViewsConstants::OD . '.action';
+    return $this->measureProfile($action, function () use ($id, $action, $method, $class, $base, $viewPath) {
+      if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+      Log::info("[{$base}::{$action}] rendering payment action form", ['order_id' => $id, 'method' => $method]);
+      try {
+        $fetchStart = microtime(true);
+        $order = Order::findOrFail($id);
+        $this->logExecutionTime($fetchStart, $action, 'fetchOrder');
+        $cfgStart = microtime(true);
+        $adminPaymentSetting = Utility::getAdminPaymentSetting();
+        $this->logExecutionTime($cfgStart, $action, 'getAdminPaymentSetting');
+        if (!ViewFacade::exists($viewPath)) {
+          Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath, 'order_id' => $id]);
+          Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['order', 'adminPaymentSetting']]);
+          return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        }
+        $renderStart = microtime(true);
+        $resp = response()->view($viewPath, compact('order', 'adminPaymentSetting'));
+        $this->logExecutionTime($renderStart, $action, 'renderAction');
+        return $resp;
+      } catch (\Throwable $e) {
+        Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'order_id' => $id]);
+        Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+        return defaultUndefinedException(request(), $e, $class . '::' . $action);
+      }
+    }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'order_id' => $id]);
   }
 
+  public const CHG_STT = 'changeStatus';
   public function changeStatus(Request $request, int|string $orderId): RedirectResponse|null
   {
-    if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-      return $userOrRedirect;
+    $action = __FUNCTION__;
+    $method = __METHOD__;
+    $class  = static::class;
+    $base   = class_basename($class);
+    $req    = $request;
     $status = $request->input('status');
-    Log::info(__FUNCTION__ . ': start', ['order_id' => $orderId, 'new_status' => $status]);
-    try {
-      DB::transaction(function () use ($request) {
-        $order = Order::findOrFail($request->input('order_id'));
-        Log::info(__FUNCTION__ . ': found order', ['order_id' => $order->order_id]);
-        if ($request->input('status') === 'Approval') {
-          $plan = Plan::findOrFail($order->plan_id);
-          $user = User::findOrFail($order->user_id);
-          if ($user instanceof User) {
-            $user->plan = $plan->id;
-            $user?->assignPlan($plan->id, $user?->id);
-            $order->payment_status = 'Approved';
-            Log::info(__FUNCTION__ . ': approved', ['order_id' => $order->order_id]);
+    return $this->measureProfile($action, function () use ($req, $orderId, $status, $action, $method, $class, $base) {
+      if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+      Log::info("[{$base}::{$action}] start", ['order_id_param' => $orderId, 'order_id_input' => $req->input('order_id'), 'new_status' => $status, 'method' => $method]);
+      try {
+        $txnStart = microtime(true);
+        DB::transaction(function () use ($req, $action, $base) {
+          $findStart = microtime(true);
+          $order = Order::findOrFail($req->input('order_id'));
+          $this->logExecutionTime($findStart, $action, 'findOrder');
+          Log::info("[{$base}::{$action}] found order", ['order_id' => $order->order_id]);
+          if ($req->input('status') === 'Approval') {
+            $planStart = microtime(true);
+            $plan = Plan::findOrFail($order->plan_id);
+            $user = User::findOrFail($order->user_id);
+            $this->logExecutionTime($planStart, $action, 'fetchPlanUser');
+            if ($user instanceof User) {
+              $applyStart = microtime(true);
+              $user->plan = $plan->id;
+              $user?->assignPlan($plan->id, $user?->id);
+              $order->payment_status = 'Approved';
+              $this->logExecutionTime($applyStart, $action, 'applyApproval');
+              Log::info("[{$base}::{$action}] approved", ['order_id' => $order->order_id, 'plan_id' => $plan->id, 'user_id' => $user->id]);
+            }
+          } else {
+            $rejStart = microtime(true);
+            $order->payment_status = 'Rejected';
+            $this->logExecutionTime($rejStart, $action, 'applyRejection');
+            Log::info("[{$base}::{$action}] rejected", ['order_id' => $order->order_id]);
           }
-        } else {
-          $order->payment_status = 'Rejected';
-          Log::info(__FUNCTION__ . ': rejected', ['order_id' => $order->order_id]);
-        }
-        $order->save();
-      });
-      return redirect()->route(ViewsConstants::OD . '.index')
-        ->with('success', __('Plan payment status updated successfully.'));
-    } catch (\Throwable $e) {
-      Log::error(__FUNCTION__ . ' failed', [
-        'exception' => $e,
-        'order_id'  => $orderId,
-      ]);
-      return defaultUndefinedException($request, $e, __CLASS__ . '::changeStatus');
-    }
+          $saveStart = microtime(true);
+          $order->save();
+          $this->logExecutionTime($saveStart, $action, 'saveOrder');
+        });
+        $this->logExecutionTime($txnStart, $action, 'transaction');
+        return redirect()->route(ViewsConstants::OD . '.index')->with('success', __('Plan payment status updated successfully.'));
+      } catch (\Throwable $e) {
+        Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'order_id' => $orderId, 'status' => $status]);
+        Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+        return defaultUndefinedException($req, $e, $class . '::changeStatus');
+      }
+    }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'order_id' => $orderId, 'status' => $status]);
   }
 
   public const CST_PAY_BNK = 'customerPayWithBank';
   public function customerPayWithBank(Request $request): RedirectResponse|null
   {
-    if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-      return $userOrRedirect;
-    if ($resp = self::validateReceipt($request))
-      return $resp;
-    Log::info('customerPayWithBank: start', [
-      'invoice_id_enc' => $request->input('invoice_id'),
-      'amount'         => $request->input('amount'),
-      UsersConstants::COL_USER_ID        => $request->user()->id,
-    ]);
-    try {
-      return DB::transaction(function () use ($request) {
-        $invoiceId = Crypt::decryptString($request->input('invoice_id'));
-        $invoice  = Invoice::find($invoiceId);
-        if (!$invoice) {
-          Log::warning('customerPayWithBank: invoice not found', ['invoice_id' => $invoiceId]);
-          return redirect()->back()
-            ->with('error', __('Invoice not found.'));
-        }
-        $upload = self::uploadReceipt($request);
-        $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
-        InvoiceBankTransfer::create([
-          'invoice_id' => $invoice->id,
-          'order_id'   => $orderId,
-          'amount'     => $request->input('amount'),
-          'status'     => 'Pending',
-          'date'       => now()->toDateString(),
-          'receipt'    => $upload['file'] ?? null,
-          'created_by' => $invoice->created_by,
-        ]);
-        Log::info('customerPayWithBank: created bank transfer record', [
-          'order_id'   => $orderId,
-          'invoice_id' => $invoice->id,
-        ]);
-        return redirect()->back()
-          ->with('success', __('Invoice payment request sent successfully.'));
-      });
-    } catch (\Throwable $e) {
-      Log::error('customerPayWithBank failed', [
-        'exception' => $e,
-        UsersConstants::COL_USER_ID   => $request->user()->id,
-      ]);
-      return defaultUndefinedException($request, $e, __CLASS__ . '::customerPayWithBank');
-    }
+    $action = __FUNCTION__;
+    $method = __METHOD__;
+    $class  = static::class;
+    $base   = class_basename($class);
+    $req    = $request;
+    return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+      if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+      $valStart = microtime(true);
+      if ($resp = self::validateReceipt($req)) {
+        $this->logExecutionTime($valStart, $action, 'validateReceipt');
+        return $resp;
+      }
+      $this->logExecutionTime($valStart, $action, 'validateReceipt');
+      Log::info("[{$base}::{$action}] start", ['invoice_id_enc' => $req->input('invoice_id'), 'amount' => $req->input('amount'), UsersConstants::COL_USER_ID => $req->user()->id, 'method' => $method]);
+      try {
+        $txnStart = microtime(true);
+        $resp = DB::transaction(function () use ($req, $action, $base) {
+          $decStart = microtime(true);
+          $invoiceId = Crypt::decryptString($req->input('invoice_id'));
+          $this->logExecutionTime($decStart, $action, 'decryptInvoiceId');
+          $findStart = microtime(true);
+          $invoice = Invoice::find($invoiceId);
+          $this->logExecutionTime($findStart, $action, 'findInvoice');
+          if (!$invoice) {
+            Log::warning("[{$base}::{$action}] invoice not found", ['invoice_id' => $invoiceId]);
+            return back()->with('error', __('Invoice not found.'));
+          }
+          $uploadStart = microtime(true);
+          $upload = self::uploadReceipt($req);
+          $this->logExecutionTime($uploadStart, $action, 'uploadReceipt');
+          $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
+          $createStart = microtime(true);
+          InvoiceBankTransfer::create([
+            'invoice_id' => $invoice->id,
+            'order_id' => $orderId,
+            'amount' => $req->input('amount'),
+            'status' => 'Pending',
+            'date' => now()->toDateString(),
+            'receipt' => $upload['file'] ?? null,
+            'created_by' => $invoice->created_by,
+          ]);
+          $this->logExecutionTime($createStart, $action, 'createBankTransfer');
+          Log::info("[{$base}::{$action}] created bank transfer record", ['order_id' => $orderId, 'invoice_id' => $invoice->id]);
+          return back()->with('success', __('Invoice payment request sent successfully.'));
+        });
+        $this->logExecutionTime($txnStart, $action, 'transaction');
+        return $resp;
+      } catch (\Throwable $e) {
+        Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), UsersConstants::COL_USER_ID => $req->user()->id]);
+        Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+        return defaultUndefinedException($req, $e, $class . '::' . $action);
+      }
+    }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
   }
 
   public const INV_ACT = 'invoiceAction';
   public function invoiceAction(int|string $id): Response|RedirectResponse|null
   {
-    if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-      return $userOrRedirect;
-    Log::info('invoiceAction: rendering invoice bank-transfer action', ['transfer_id' => $id]);
-    $transfer             = InvoiceBankTransfer::findOrFail($id);
-    $invoice              = Invoice::findOrFail($transfer->invoice_id);
-    $companyPaymentSetting = Utility::getCompanyPaymentSetting($transfer->created_by);
-    return response()->view(
-      ViewsConstants::INV . '.action',
-      compact('transfer', 'companyPaymentSetting', 'invoice')
-    );
+    $action = __FUNCTION__;
+    $method = __METHOD__;
+    $class  = static::class;
+    $base   = class_basename($class);
+    $viewPath = ViewsConstants::INV . '.action';
+    return $this->measureProfile($action, function () use ($id, $action, $method, $class, $base, $viewPath) {
+      if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+      Log::info("[{$base}::{$action}] rendering invoice bank-transfer action", ['transfer_id' => $id, 'method' => $method]);
+      try {
+        $trStart = microtime(true);
+        $transfer = InvoiceBankTransfer::findOrFail($id);
+        $this->logExecutionTime($trStart, $action, 'findTransfer');
+        $invStart = microtime(true);
+        $invoice = Invoice::findOrFail($transfer->invoice_id);
+        $this->logExecutionTime($invStart, $action, 'findInvoice');
+        $cfgStart = microtime(true);
+        $companyPaymentSetting = Utility::getCompanyPaymentSetting($transfer->created_by);
+        $this->logExecutionTime($cfgStart, $action, 'getCompanyPaymentSetting');
+        if (!ViewFacade::exists($viewPath)) {
+          Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath, 'transfer_id' => $id]);
+          Log::debug("[{$base}::{$action}] view missing context", ['route' => Route::getCurrentRoute()?->getName(), 'compact_vars' => ['transfer', 'companyPaymentSetting', 'invoice']]);
+          return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+        }
+        $renderStart = microtime(true);
+        $resp = response()->view($viewPath, compact('transfer', 'companyPaymentSetting', 'invoice'));
+        $this->logExecutionTime($renderStart, $action, 'renderInvoiceAction');
+        return $resp;
+      } catch (\Throwable $e) {
+        Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'transfer_id' => $id]);
+        Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+        return defaultUndefinedException(request(), $e, $class . '::' . $action);
+      }
+    }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'transfer_id' => $id]);
   }
 
   public const INV_CG_STT = 'invoiceChangeStatus';
-  public function invoiceChangeStatus(Request $request, string $invoiceId): RedirectResponse|null
+  public function invoiceChangeStatus(Request $request, int|string $invoiceId): RedirectResponse|null
   {
-    if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-      return $userOrRedirect;
-    $orderId = $request->input('order_id');
-    $status = $request->input('status');
-    Log::info('invoiceChangeStatus: start', [
-      'invoice_id' => $invoiceId,
-      'order_id'   => $orderId,
-      'status'     => $status,
-      UsersConstants::COL_USER_ID    => $request->user()->id,
-    ]);
-
-    try {
-      return DB::transaction(function () use ($request, $invoiceId, $orderId, $status) {
-        // only pick the transfer that matches both invoice_id and order_id
-        $transfer = InvoiceBankTransfer::where('invoice_id', $invoiceId)
-          ->where('order_id', $orderId)
-          ->firstOrFail();
-
-        Log::info('invoiceChangeStatus: transfer found', [
-          'transfer_id' => $transfer->id,
-          'invoice_id'  => $transfer->invoice_id,
-          'order_id'    => $transfer->order_id,
-        ]);
-
-        if ($status === 'Approval') {
-          // record payment
-          InvoicePayment::create([
-            'invoice_id'     => $transfer->invoice_id,
-            'date'           => now()->toDateString(),
-            'amount'         => $transfer->amount,
-            'payment_method' => 1,
-            'order_id'       => $transfer->order_id,
-            'payment_type'   => __('Bank Transfer'),
-            'receipt'        => $transfer->receipt,
-            'description'    => __('Invoice') . ' ' . Utility::invoiceNumberFormat(
-              DB::table('settings')
-                ->where('created_by', $transfer->created_by)
-                ->pluck('value', 'name'),
-              Invoice::findOrFail($transfer->invoice_id)->invoice_id
-            ),
-          ]);
-
-          // then delete the pending transfer
-          $transfer->delete();
-          Log::info('invoiceChangeStatus: approved and transfer deleted', [
-            'transfer_id' => $transfer->id,
-          ]);
-        } else {
-          // simply mark as rejected
-          $transfer->status = 'Rejected';
-          $transfer->save();
-          Log::info('invoiceChangeStatus: rejected', [
-            'transfer_id' => $transfer->id,
-          ]);
-        }
-
-        return redirect()->back()
-          ->with('success', __('Invoice payment request status updated successfully.'));
-      });
-    } catch (\Throwable $e) {
-      Log::error('invoiceChangeStatus failed', [
-        'exception'  => $e,
-        'invoice_id' => $invoiceId,
-        'order_id'   => $orderId,
-        UsersConstants::COL_USER_ID    => $request->user()->id,
-      ]);
-      return defaultUndefinedException(
-        $request,
-        $e,
-        __CLASS__ . '::invoiceChangeStatus'
-      );
-    }
+    $action = __FUNCTION__;
+    $method = __METHOD__;
+    $class  = static::class;
+    $base   = class_basename($class);
+    $req    = $request;
+    return $this->measureProfile($action, function () use ($req, $invoiceId, $action, $method, $class, $base) {
+      if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+      $orderId = $req->input('order_id');
+      $status  = $req->input('status');
+      Log::info("[{$base}::{$action}] start", ['invoice_id' => $invoiceId, 'order_id' => $orderId, 'status' => $status, UsersConstants::COL_USER_ID => $req->user()->id, 'method' => $method]);
+      try {
+        $txnStart = microtime(true);
+        $resp = DB::transaction(function () use ($req, $invoiceId, $orderId, $status, $action, $base) {
+          $findStart = microtime(true);
+          $transfer = InvoiceBankTransfer::where('invoice_id', $invoiceId)->where('order_id', $orderId)->firstOrFail();
+          $this->logExecutionTime($findStart, $action, 'findTransfer');
+          Log::info("[{$base}::{$action}] transfer found", ['transfer_id' => $transfer->id, 'invoice_id' => $transfer->invoice_id, 'order_id' => $transfer->order_id]);
+          if ($status === 'Approval') {
+            $prepStart = microtime(true);
+            $settings = DB::table('settings')->where('created_by', $transfer->created_by)->pluck('value', 'name');
+            $invoice = Invoice::findOrFail($transfer->invoice_id);
+            $desc = __('Invoice') . ' ' . Utility::invoiceNumberFormat($settings, $invoice->invoice_id);
+            $this->logExecutionTime($prepStart, $action, 'preparePayment');
+            $createStart = microtime(true);
+            InvoicePayment::create([
+              'invoice_id' => $transfer->invoice_id,
+              'date' => now()->toDateString(),
+              'amount' => $transfer->amount,
+              'payment_method' => 1,
+              'order_id' => $transfer->order_id,
+              'payment_type' => __('Bank Transfer'),
+              'receipt' => $transfer->receipt,
+              'description' => $desc,
+            ]);
+            $this->logExecutionTime($createStart, $action, 'createPayment');
+            $delStart = microtime(true);
+            $transfer->delete();
+            $this->logExecutionTime($delStart, $action, 'deleteTransfer');
+            Log::info("[{$base}::{$action}] approved and transfer deleted", ['transfer_id' => $transfer->id]);
+          } else {
+            $rejStart = microtime(true);
+            $transfer->status = 'Rejected';
+            $transfer->save();
+            $this->logExecutionTime($rejStart, $action, 'markRejected');
+            Log::info("[{$base}::{$action}] rejected", ['transfer_id' => $transfer->id]);
+          }
+          return back()->with('success', __('Invoice payment request status updated successfully.'));
+        });
+        $this->logExecutionTime($txnStart, $action, 'transaction');
+        return $resp;
+      } catch (\Throwable $e) {
+        Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'invoice_id' => $invoiceId, 'order_id' => $req->input('order_id')]);
+        Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+        return defaultUndefinedException($req, $e, $class . '::invoiceChangeStatus');
+      }
+    }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'invoice_id' => $invoiceId, 'order_id' => $request->input('order_id'), 'status' => $request->input('status')]);
   }
 
   private static function validateReceipt(Request $request): ?RedirectResponse

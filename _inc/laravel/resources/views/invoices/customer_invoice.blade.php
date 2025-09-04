@@ -403,19 +403,19 @@
                                                         $totalDiscount = 0;
                                                         $taxesData     = [];
                                                     @endphp
-                                                    @foreach ($iteams as $key => $iteam)
-                                                        @if (!empty($iteam->tax))
+                                                    @foreach ($items as $key => $item)
+                                                        @if (!empty($item->tax))
                                                             @php
-                                                                $taxes          = Utility::tax($iteam->tax);
-                                                                $totalQuantity += $iteam->quantity;
-                                                                $totalRate     += $iteam->price;
-                                                                $totalDiscount += $iteam->discount;
+                                                                $taxes          = Utility::tax($item->tax);
+                                                                $totalQuantity += $item->quantity;
+                                                                $totalRate     += $item->price;
+                                                                $totalDiscount += $item->discount;
                                                                 foreach ($taxes as $taxe) {
                                                                     $taxDataPrice = Utility::taxRate(
                                                                         $taxe->rate,
-                                                                        $iteam->price,
-                                                                        $iteam->quantity,
-                                                                        $iteam->discount
+                                                                        $item->price,
+                                                                        $item->quantity,
+                                                                        $item->discount
                                                                     );
                                                                     $taxesData[$taxe->name] = ($taxesData[$taxe->name] ?? 0) + $taxDataPrice;
                                                                 }
@@ -423,12 +423,12 @@
                                                         @endif
                                                         <tr>
                                                             <td>{{ $key + 1 }}</td>
-                                                            <td>{{ $iteam->product->name ?? '' }}</td>
-                                                            <td>{{ $iteam->quantity }}</td>
-                                                            <td>{{ Utility::priceFormat($settings, $iteam->price) }}</td>
-                                                            <td>{{ Utility::priceFormat($settings, $iteam->discount) }}</td>
+                                                            <td>{{ $item->product->name ?? '' }}</td>
+                                                            <td>{{ $item->quantity }}</td>
+                                                            <td>{{ Utility::priceFormat($settings, $item->price) }}</td>
+                                                            <td>{{ Utility::priceFormat($settings, $item->discount) }}</td>
                                                             <td>
-                                                                @if (!empty($iteam->tax))
+                                                                @if (!empty($item->tax))
                                                                     <table>
                                                                         @php
                                                                             $totalTaxPrice = 0;
@@ -437,9 +437,9 @@
                                                                             @php
                                                                                 $taxPrice       = Utility::taxRate(
                                                                                     $tax->rate,
-                                                                                    $iteam->price,
-                                                                                    $iteam->quantity,
-                                                                                    $iteam->discount
+                                                                                    $item->price,
+                                                                                    $item->quantity,
+                                                                                    $item->discount
                                                                                 );
                                                                                 $totalTaxPrice += $taxPrice;
                                                                             @endphp
@@ -453,12 +453,12 @@
                                                                     -
                                                                 @endif
                                                             </td>
-                                                            <td>{{ $iteam->description ?: '-' }}</td>
+                                                            <td>{{ $item->description ?: '-' }}</td>
                                                             <td class="text-end">
                                                                 {{ Utility::priceFormat(
                                                                     $settings,
-                                                                    $iteam->price * $iteam->quantity
-                                                                      - $iteam->discount
+                                                                    $item->price * $item->quantity
+                                                                      - $item->discount
                                                                       + $totalTaxPrice
                                                                 ) }}
                                                             </td>

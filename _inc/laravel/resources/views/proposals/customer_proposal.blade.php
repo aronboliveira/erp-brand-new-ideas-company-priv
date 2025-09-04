@@ -350,7 +350,7 @@
                                                                 $totalTaxPrice = 0;
                                                                 $totalDiscount = 0;
                                                                 $taxesData = [];
-                                                                $items = isset($iteams) && !empty($iteams) ? $iteams : [];
+                                                                $items = isset($items) && !empty($items) ? $items : [];
                                                             @endphp
                                                             @if(!empty($items))
                                                                 @foreach($items as $key => $item)

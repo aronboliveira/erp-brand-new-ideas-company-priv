@@ -26,111 +26,8 @@
     {{__('Manage Bills')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:  { copy_link_unavailable: "نسخ الرابط غير متاح" },
-            da:  { copy_link_unavailable: "Kopiering af link ikke tilgængelig" },
-            de:  { copy_link_unavailable: "Link kopieren nicht verfügbar" },
-            en:  { copy_link_unavailable: "Copy link unavailable" },
-            es:  { copy_link_unavailable: "Copia de enlace no disponible" },
-            fr:  { copy_link_unavailable: "Copie du lien non disponible" },
-            he:  { copy_link_unavailable: "העתקת הקישור אינה זמינה" },
-            it:  { copy_link_unavailable: "Copia del link non disponibile" },
-            ja:  { copy_link_unavailable: "リンクのコピーは利用できません" },
-            nl:  { copy_link_unavailable: "Kopiëren van de link niet beschikbaar" },
-            pl:  { copy_link_unavailable: "Kopiowanie linku niedostępne" },
-            pt:  { copy_link_unavailable: "Cópia do link indisponível" },
-            "pt-br": { copy_link_unavailable: "Cópia do link indisponível" },
-            ru:  { copy_link_unavailable: "Копирование ссылки недоступно" },
-            tr:  { copy_link_unavailable: "Bağlantı kopyalama kullanılamıyor" },
-            zh:  { copy_link_unavailable: "无法复制链接" }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (() => {
-        const BS_LINK = 'link[href*="bootstrap"]';
-        const toastContainer = (() => {
-            const c = document.createElement('div');
-            c.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-            document.body.append(c);
-            return c;
-        })();
-
-        const showError = key => {
-            const errFb = '# ERROR';
-            let lang = (window.sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en')
-            .toLowerCase().replace(/_/g,'-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-            const msg = window.translations?.[lang]?.[key]
-            || window.translations?.['en']?.[key]
-            || errFb;
-            if (toastContainer.querySelector(`.toast[data-error-key="${key}"]`)) return;
-            if (document.querySelector(BS_LINK) && window.bootstrap?.Toast) {
-            const toast = document.createElement('div');
-            toast.className = 'toast align-items-center text-bg-danger border-0';
-            toast.dataset.errorKey = key;
-            toast.setAttribute('role','alert');
-            toast.setAttribute('aria-live','assertive');
-            toast.setAttribute('aria-atomic','true');
-            toast.innerHTML = `
-                <div class="d-flex">
-                <div class="toast-body">${msg}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>`;
-            toastContainer.append(toast);
-            new window.bootstrap.Toast(toast).show();
-            } else {
-            alert(msg);
-            }
-        };
-
-        try {
-            document.querySelectorAll('.copy_link').forEach(el => {
-            if (el.dataset.copyListener) return;
-            el.dataset.copyListener = 'true';
-            el.addEventListener('click', e => {
-                e.preventDefault();
-                const href = el.getAttribute('href') ?? '';
-                if (!href) {
-                console.error('No href to copy');
-                showError('copy_link_unavailable');
-                return;
-                }
-                try {
-                const onCopy = evt => {
-                    evt.clipboardData.setData('text/plain', href);
-                    evt.preventDefault();
-                };
-                document.addEventListener('copy', onCopy, true);
-                const success = document.execCommand('copy');
-                document.removeEventListener('copy', onCopy, true);
-                if (!success) throw new Error('execCommand returned false');
-                show_toastr('success', window.translations?.['en']?.copy_link_success || 'Link copied', 'success');
-                } catch (err) {
-                console.error('Copy command failed:', err);
-                showError('copy_link_unavailable');
-                }
-            });
-            });
-        } catch (err) {
-            console.error('Failed to bind copy_link handlers:', err);
-        }
-        })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/bills/lang/copy.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/bills/copy.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
@@ -157,45 +54,7 @@ Object.keys(t).forEach(
             <i class="{{ VC::TI_EXP }}"></i>
         </a>
         @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    const btn = document.getElementById('{{ $exportBtnId }}');
-                    if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                    btn.setAttribute('data-listener-active', 'true');
-                    btn.addEventListener('click', event => {
-                        try {
-                            const href = btn.getAttribute('href');
-                            const url  = btn.getAttribute('data-url');
-                            if ((href && href !== '#') || (url && url !== '#')) return;
-                            event.preventDefault();
-                            const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                            let container       = document.getElementById('toast-container');
-                            if (!container) {
-                                container       = document.createElement('div');
-                                container.id    = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (bootstrapLink && window.bootstrap) {
-                                const toastEl      = document.createElement('div');
-                                toastEl.className  = 'toast';
-                                toastEl.setAttribute('role', 'alert');
-                                toastEl.setAttribute('aria-live', 'assertive');
-                                toastEl.setAttribute('aria-atomic', 'true');
-                                const body         = document.createElement('div');
-                                body.className     = 'toast-body';
-                                body.textContent   = msg;
-                                toastEl.appendChild(body);
-                                container.appendChild(toastEl);
-                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                            } else {
-                                alert(msg);
-                            }
-                            btn.setAttribute('data-failed-route', 'true');
-                        } catch (e) {}
-                    });
-                })();
-            </script>
+            <script defer src="{{ asset('assets/js/routes/bills/export.js') }}"></script>
         @endpush
         @can('create bill')
             @php
@@ -221,183 +80,71 @@ Object.keys(t).forEach(
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        const btn = document.getElementById('{{ $billCreateBtnId }}');
-                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                        btn.setAttribute('data-listener-active', 'true');
-                        btn.addEventListener('click', event => {
-                            try {
-                                const href = btn.getAttribute('href');
-                                const url  = btn.getAttribute('data-url');
-                                if ((href && href !== '#') || (url && url !== '#')) return;
-                                event.preventDefault();
-                                const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                let container       = document.getElementById('toast-container');
-                                if (!container) {
-                                    container       = document.createElement('div');
-                                    container.id    = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (bootstrapLink && window.bootstrap) {
-                                    const toastEl      = document.createElement('div');
-                                    toastEl.className  = 'toast';
-                                    toastEl.setAttribute('role', 'alert');
-                                    toastEl.setAttribute('aria-live', 'assertive');
-                                    toastEl.setAttribute('aria-atomic', 'true');
-                                    const body         = document.createElement('div');
-                                    body.className     = 'toast-body';
-                                    body.textContent   = msg;
-                                    toastEl.appendChild(body);
-                                    container.appendChild(toastEl);
-                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                } else {
-                                    alert(msg);
-                                }
-                                btn.setAttribute('data-failed-route', 'true');
-                            } catch (e) {}
-                        });
-                    })();
-                </script>
+                <script defer src="{{ asset('assets/js/routes/bills/create.js') }}"></script>
             @endpush
         @endcan
     </div>
 @endsection
 
-@section('content')
+@section(YieldingConstants::ADM_CTT)
     <div class="row">
         <div class="col-sm-12">
             <div class="mt-2" id="multiCollapseExample1">
                 <div class="card">
                     <div class="card-body">
                         @php
-                            $frmSubmitRoute   = Route::has(ViewsConstants::BIL . '.index')
-                                ? route(ViewsConstants::BIL . '.index')
-                                : '#';
-                            $frmSubmitFormId  = 'frm_submit';
-                            $frmSubmitMsg     = Utility::fetchLinkMessage(
-                                $lang,
-                                ViewsConstants::BIL,
-                                'bill_index_route_unavailable'
-                            ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+                            $resolvedIndexName = Route::has(ViewsConstants::BIL . '.index') ? (ViewsConstants::BIL . '.index') : (Route::has(Str::kebab(ViewsConstants::BIL . '.index')) ? Str::kebab(ViewsConstants::BIL . '.index') : null);
+                            $frmSubmitUrl = $resolvedIndexName ? route($resolvedIndexName) : '#';
+                            $frmSubmitFormId = 'frm_submit';
+                            $frmSubmitMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_index_route_unavailable') ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+                            $statusArray = (is_array($status ?? null)) ? $status : ((($status ?? null) instanceof \Illuminate\Support\Collection && ($status ?? collect())->isNotEmpty()) ? ($status ?? collect())->toArray() : []);
+                            $statusOptions = ['' => __('Select Status')] + $statusArray;
                         @endphp
                         {{ Form::open([
-                            'route'            => $frmSubmitRoute,
+                            'url'            => $frmSubmitUrl,
                             'method'         => 'GET',
                             'id'             => $frmSubmitFormId,
-                            'data-url'       => $frmSubmitRoute,
+                            'data-url'       => $frmSubmitUrl,
                             'data-guard-msg' => $frmSubmitMsg,
                         ]) }}
-                            <div class="{{ ViewClassNamesConstants::R_ALC_JCE }}">
+                            <div class="{{ VC::R_ALC_JCE }}">
                                 <div class="col-xl-10">
-                                    <div class="{{ ViewClassNamesConstants::RW }}">
+                                    <div class="{{ VC::RW }}">
                                         <div class="col-3"></div>
                                         <div class="col-3"></div>
-                                        <div class="{{ ViewClassNamesConstants::CL_XLG4 }} month">
+                                        <div class="{{ VC::CL_XLG4 }} month">
                                             <div class="btn-box">
-                                                {{ Form::label('bill_date', __('Bill Date'), ['class' => ViewClassNamesConstants::FM_LB]) }}
-                                                {{ Form::text(
-                                                    'bill_date',
-                                                    request('bill_date'),
-                                                    [
-                                                        'class'    => ViewClassNamesConstants::FM_CT . ' month-btn',
-                                                        'id'       => 'pc-daterangepicker-1',
-                                                        'readonly' => true,
-                                                    ]
-                                                ) }}
+                                                {{ Form::label('bill_date', __('Bill Date'), ['class' => VC::FM_LB]) }}
+                                                {{ Form::text('bill_date', request('bill_date'), ['class' => VC::FM_CT . ' month-btn', 'id' => 'pc-daterangepicker-1', 'readonly' => true]) }}
                                             </div>
                                         </div>
-                                        <div class="{{ ViewClassNamesConstants::CL_XLG4 }}">
+                                        <div class="{{ VC::CL_XLG4 }}">
                                             <div class="btn-box">
-                                                {{ Form::label('status', __('Status'), ['class' => ViewClassNamesConstants::FM_LB]) }}
-                                                {{ Form::select(
-                                                    'status',
-                                                    ['' => __('Select Status')] + $status,
-                                                    request('status'),
-                                                    ['class' => ViewClassNamesConstants::FM_CT_SL]
-                                                ) }}
+                                                {{ Form::label('status', __('Status'), ['class' => VC::FM_LB]) }}
+                                                {{ Form::select('status', $statusOptions, request('status'), ['class' => VC::FM_CT_SL]) }}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="{{ ViewClassNamesConstants::C_AT_FEND }}">
-                                    <div class="{{ ViewClassNamesConstants::DFL_JCB }}">
-                                        <a
-                                            href="#"
-                                            class="{{ ViewClassNamesConstants::BT_SM_PM }}"
-                                            onclick="document.getElementById('frm_submit').submit(); return false;"
-                                            data-bs-toggle="tooltip"
-                                            title="{{ __('Apply') }}"
-                                        >
+                                <div class="{{ VC::C_AT_FEND }}">
+                                    <div class="{{ VC::DFL_JCB }}">
+                                        <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('frm_submit').submit(); return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
                                             <span class="btn-inner--icon">
-                                                <i class="{{ ViewClassNamesConstants::TI_SRC }}"></i>
+                                                <i class="{{ VC::TI_SRC }}"></i>
                                             </span>
                                         </a>
                                         @php
-                                            $resetRoute    = Route::has(ViewsConstants::BIL . '.index')
-                                                ? route(ViewsConstants::BIL . '.index')
-                                                : '#';
-                                            $resetBtnId    = 'bill-reset-btn';
-                                            $resetGuardMsg = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::BIL,
-                                                'bill_index_route_unavailable'
-                                            ) ?? 'Bill index route is unavailable. Please contact technical support or your domain administrator.';
+                                            $resetUrl = $frmSubmitUrl;
+                                            $resetBtnId = 'bill-reset-btn';
+                                            $resetGuardMsg = $frmSubmitMsg;
                                         @endphp
-                                        <a
-                                            id="{{ $resetBtnId }}"
-                                            href="{{ $resetRoute }}"
-                                            data-url="{{ $resetRoute }}"
-                                            data-guard-msg="{{ $resetGuardMsg }}"
-                                            class="{{ VC::BT_SM_DG }}"
-                                            data-bs-toggle="tooltip"
-                                            title="{{ __('Reset') }}"
-                                        >
+                                        <a id="{{ $resetBtnId }}" href="{{ $resetUrl }}" data-url="{{ $resetUrl }}" data-guard-msg="{{ $resetGuardMsg }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}">
                                             <span class="btn-inner--icon">
                                                 <i class="{{ VC::TI_TRS_OFF }}"></i>
                                             </span>
                                         </a>
                                         @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                    const btn = document.getElementById('{{ $resetBtnId }}');
-                                                    if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                    btn.setAttribute('data-listener-active', 'true');
-                                                    btn.addEventListener('click', event => {
-                                                        try {
-                                                            const href = btn.getAttribute('href');
-                                                            const url  = btn.getAttribute('data-url');
-                                                            if ((href && href !== '#') || (url && url !== '#')) return;
-                                                            event.preventDefault();
-                                                            const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container       = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container    = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl      = document.createElement('div');
-                                                                toastEl.className  = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body         = document.createElement('div');
-                                                                body.className     = 'toast-body';
-                                                                body.textContent   = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            btn.setAttribute('data-failed-route', 'true');
-                                                        } catch (e) {}
-                                                    });
-                                                })();
-                                            </script>
+                                            <script defer src="{{ asset('assets/js/routes/bills/resetBtn.js') }}"></script>
                                         @endpush
                                     </div>
                                 </div>
@@ -408,12 +155,19 @@ Object.keys(t).forEach(
             </div>
         </div>
     </div>
+
+    @php
+        $billList = (is_array($bills ?? null) && count($bills ?? [])) || (($bills ?? null) instanceof \Illuminate\Support\Collection && ($bills ?? collect())->isNotEmpty()) ? $bills : [];
+        $hasActionCol = Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill');
+        $statusClasses = [0 => 'bg-secondary', 1 => 'bg-warning', 2 => 'bg-danger', 3 => 'bg-info', 4 => 'bg-primary'];
+    @endphp
+
     <div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="{{ ViewClassNamesConstants::TB }} datatable">
+                        <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
                                     <th>{{ __('Bill') }}</th>
@@ -421,127 +175,103 @@ Object.keys(t).forEach(
                                     <th>{{ __('Bill Date') }}</th>
                                     <th>{{ __('Due Date') }}</th>
                                     <th>{{ __('Status') }}</th>
-                                    @if(Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill'))
+                                    @if($hasActionCol)
                                         <th width="10%">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($bills as $bill)
+                                @forelse($billList as $bill)
+                                    @php
+                                        $resolvedShowName = Route::has(ViewsConstants::BIL . '.show') ? (ViewsConstants::BIL . '.show') : (Route::has(Str::kebab(ViewsConstants::BIL . '.show')) ? Str::kebab(ViewsConstants::BIL . '.show') : null);
+                                        $billShowRoute = $resolvedShowName ? route($resolvedShowName, Crypt::encrypt($bill->id)) : '#';
+                                        $billShowLinkId = 'bill-show-' . ($bill->id ?? 'unknown');
+                                        $billShowMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_show_route_unavailable') ?? 'Bill view route is unavailable. Please contact technical support or your domain administrator.';
+                                        $billNumberText = (is_object($user ?? null) && method_exists($user, 'billNumberFormat')) ? (string) ($user->billNumberFormat($bill->bill_id ?? null) ?? '') : (string) ($bill->bill_id ?? '');
+                                        $billNumberText = $billNumberText !== '' ? $billNumberText : __('No bill number available');
+                                        $billDateText = (is_object($user ?? null) && method_exists($user, 'dateFormat')) ? (string) ($user->dateFormat($bill->bill_date ?? null) ?? '') : (string) ($bill->bill_date ?? '');
+                                        $billDateText = $billDateText !== '' ? $billDateText : __('No bill date available');
+                                        $dueDateText = (is_object($user ?? null) && method_exists($user, 'dateFormat')) ? (string) ($user->dateFormat($bill->due_date ?? null) ?? '') : (string) ($bill->due_date ?? '');
+                                        $dueDateText = $dueDateText !== '' ? $dueDateText : __('No due date available');
+                                        $statusIndex = is_numeric($bill->status ?? null) ? (int) $bill->status : -1;
+                                        $statusMap = [];
+                                        if (class_exists('\App\Models\Bill') && property_exists('\App\Models\Bill', 'statuses')) {
+                                            $statusMap = \App\Models\Bill::$statuses;
+                                        } elseif (class_exists('\App\Models\Invoice') && property_exists('\App\Models\Invoice', 'statuses')) {
+                                            $statusMap = \App\Models\Invoice::$statuses;
+                                        }
+                                        $statusLabel = $statusMap[$statusIndex] ?? __('Unknown');
+                                        $badgeClass = $statusClasses[$statusIndex] ?? 'bg-secondary';
+                                    @endphp
                                     <tr>
                                         <td class="Id">
-                                            @php
-                                                $billShowRoute    = Route::has(ViewsConstants::BIL . '.show')
-                                                    ? route(ViewsConstants::BIL . '.show', Crypt::encrypt($bill->id))
-                                                    : '#';
-                                                $billShowLinkId   = 'bill-show-' . $bill->id;
-                                                $billShowMsg      = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::BIL,
-                                                    'bill_show_route_unavailable'
-                                                ) ?? 'Bill view route is unavailable. Please contact technical support or your domain administrator.';
-                                            @endphp
-                                            <a
-                                                id="{{ $billShowLinkId }}"
-                                                href="{{ $billShowRoute }}"
-                                                class="{{ VC::BT_OUTPM }}"
-                                                data-url="{{ $billShowRoute }}"
-                                                data-guard-msg="{{ $billShowMsg }}"
-                                            >
-                                                {{ $user?->billNumberFormat($bill->bill_id) }}
+                                            <a id="{{ $billShowLinkId }}" href="{{ $billShowRoute }}" class="{{ VC::BT_OUTPM }}" data-url="{{ $billShowRoute }}" data-guard-msg="{{ $billShowMsg }}">
+                                                {{ $billNumberText }}
                                             </a>
                                             @push(StacksConstants::ADM_SCR_PG)
                                                 <script defer>
                                                     (() => {
-                                                        const link = document.getElementById('{{ $billShowLinkId }}');
-                                                        if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                                                        link.setAttribute('data-listener-active', 'true');
-                                                        link.addEventListener('click', event => {
+                                                        const link = document.getElementById("{{ $billShowLinkId }}");
+                                                        if (!link || link.getAttribute("data-listener-active") === "true") return;
+                                                        link.setAttribute("data-listener-active", "true");
+                                                        link.addEventListener("click", event => {
                                                             try {
-                                                                const href = link.getAttribute('href');
-                                                                const url  = link.getAttribute('data-url');
-                                                                if ((href && href !== '#') || (url && url !== '#')) return;
-                                                                event.preventDefault();
-                                                                const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                let container       = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container       = document.createElement('div');
-                                                                    container.id    = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bootstrapLink && window.bootstrap) {
-                                                                    const toastEl      = document.createElement('div');
-                                                                    toastEl.className  = 'toast';
-                                                                    toastEl.setAttribute('role', 'alert');
-                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                    const body         = document.createElement('div');
-                                                                    body.className     = 'toast-body';
-                                                                    body.textContent   = msg;
-                                                                    toastEl.appendChild(body);
-                                                                    container.appendChild(toastEl);
-                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                link.setAttribute('data-failed-route', 'true');
+                                                            const href = link.getAttribute("href");
+                                                            const url = link.getAttribute("data-url");
+                                                            if ((href && href !== "#") || (url && url !== "#")) return;
+                                                            event.preventDefault();
+                                                            const msg = link.getAttribute("data-guard-msg") ?? "# ERROR";
+                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                            let container = document.getElementById("toast-container");
+                                                            if (!container) {
+                                                                container = document.createElement("div");
+                                                                container.id = "toast-container";
+                                                                document.body.appendChild(container);
+                                                            }
+                                                            if (bootstrapLink && window.bootstrap) {
+                                                                const toastEl = document.createElement("div");
+                                                                toastEl.className = "toast";
+                                                                toastEl.setAttribute("role", "alert");
+                                                                toastEl.setAttribute("aria-live", "assertive");
+                                                                toastEl.setAttribute("aria-atomic", "true");
+                                                                const body = document.createElement("div");
+                                                                body.className = "toast-body";
+                                                                body.textContent = msg;
+                                                                toastEl.appendChild(body);
+                                                                container.appendChild(toastEl);
+                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                            } else {
+                                                                alert(msg);
+                                                            }
+                                                            link.setAttribute("data-failed-route", "true");
                                                             } catch (e) {}
                                                         });
                                                     })();
                                                 </script>
                                             @endpush
                                         </td>
-                                        <td>{{ $bill->category->name ?? '-' }}</td>
-                                        <td>{{ $user?->dateFormat($bill->bill_date) }}</td>
-                                        <td>{{ $user?->dateFormat($bill->due_date) }}</td>
-                                        @php
-                                            $statusClasses = [
-                                                0 => 'bg-secondary',
-                                                1 => 'bg-warning',
-                                                2 => 'bg-danger',
-                                                3 => 'bg-info',
-                                                4 => 'bg-primary',
-                                            ];
-                                            $statusLabel = \App\Models\Invoice::$statuses[$bill->status] ?? '';
-                                            $badgeClass  = $statusClasses[$bill->status] ?? 'bg-secondary';
-                                        @endphp
+                                        <td>{{ $bill->category->name ?? __('No category available') }}</td>
+                                        <td>{{ $billDateText }}</td>
+                                        <td>{{ $dueDateText }}</td>
                                         <td>
-                                            <span class="status_badge {{ ViewClassNamesConstants::BDG }} {{ $badgeClass }} p-2 {{ ViewClassNamesConstants::PX3 }} rounded">
-                                                {{ __($statusLabel) }}
+                                            <span class="status_badge {{ VC::BDG }} {{ $badgeClass }} p-2 {{ VC::PX3 }} rounded">
+                                                {{ $statusLabel }}
                                             </span>
                                         </td>
-                                        @if(Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill'))
+                                        @if($hasActionCol)
                                             <td class="Action">
                                                 <span>
                                                     @can('duplicate bill')
                                                         @php
-                                                            $duplicateRoute       = Route::has(ViewsConstants::BIL . '.duplicate')
-                                                                ? route(ViewsConstants::BIL . '.duplicate', $bill->id)
-                                                                : '#';
-                                                            $duplicateBtnId       = 'duplicate-btn-' . $bill->id;
-                                                            $duplicateFormId      = 'duplicate-form-' . $bill->id;
-                                                            $duplicateGuardMsg    = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::BIL,
-                                                                'bill_duplicate_route_unavailable'
-                                                            ) ?? 'Bill duplicate route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $resolvedDuplicateName = Route::has(ViewsConstants::BIL . '.duplicate') ? (ViewsConstants::BIL . '.duplicate') : (Route::has(Str::kebab(ViewsConstants::BIL . '.duplicate')) ? Str::kebab(ViewsConstants::BIL . '.duplicate') : null);
+                                                            $duplicateUrl = $resolvedDuplicateName ? route($resolvedDuplicateName, $bill->id) : '#';
+                                                            $duplicateBtnId = 'duplicate-btn-' . ($bill->id ?? 'unknown');
+                                                            $duplicateFormId = 'duplicate-form-' . ($bill->id ?? 'unknown');
+                                                            $duplicateGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_duplicate_route_unavailable') ?? 'Bill duplicate route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                            {!! Form::open([
-                                                                'route'            => $duplicateRoute,
-                                                                'method'         => 'get',
-                                                                'id'             => $duplicateFormId,
-                                                                'data-url'       => $duplicateRoute,
-                                                                'data-guard-msg' => $duplicateGuardMsg,
-                                                            ]) !!}
-                                                                <a
-                                                                    id="{{ $duplicateBtnId }}"
-                                                                    href="#"
-                                                                    class="{{ VC::BT_SM_CT_PR }}"
-                                                                    data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                                    data-confirm-yes="document.getElementById('{{ $duplicateFormId }}').submit();"
-                                                                >
+                                                            {!! Form::open(['url' => $duplicateUrl, 'method' => 'get', 'id' => $duplicateFormId, 'data-url' => $duplicateUrl, 'data-guard-msg' => $duplicateGuardMsg]) !!}
+                                                                <a id="{{ $duplicateBtnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $duplicateFormId }}').submit();">
                                                                     <i class="{{ VC::TI_COPY ?? 'ti ti-copy text-white' }}"></i>
                                                                 </a>
                                                             {!! Form::close() !!}
@@ -549,39 +279,39 @@ Object.keys(t).forEach(
                                                         @push(StacksConstants::ADM_SCR_PG)
                                                             <script defer>
                                                                 (() => {
-                                                                    const btn = document.getElementById('{{ $duplicateBtnId }}');
-                                                                    if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                                    btn.setAttribute('data-listener-active', 'true');
-                                                                    btn.addEventListener('click', event => {
+                                                                    const btn = document.getElementById("{{ $duplicateBtnId }}");
+                                                                    if (!btn || btn.getAttribute("data-listener-active") === "true") return;
+                                                                    btn.setAttribute("data-listener-active", "true");
+                                                                    btn.addEventListener("click", event => {
                                                                         try {
-                                                                            const href = btn.getAttribute('href');
-                                                                            const url  = btn.getAttribute('data-url');
-                                                                            if ((href && href !== '#') || (url && url !== '#')) return;
-                                                                            event.preventDefault();
-                                                                            const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            btn.setAttribute('data-failed-route', 'true');
+                                                                        const href = btn.getAttribute("href");
+                                                                        const url = btn.getAttribute("data-url");
+                                                                        if ((href && href !== "#") || (url && url !== "#")) return;
+                                                                        event.preventDefault();
+                                                                        const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
+                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                                        let container = document.getElementById("toast-container");
+                                                                        if (!container) {
+                                                                            container = document.createElement("div");
+                                                                            container.id = "toast-container";
+                                                                            document.body.appendChild(container);
+                                                                        }
+                                                                        if (bootstrapLink && window.bootstrap) {
+                                                                            const toastEl = document.createElement("div");
+                                                                            toastEl.className = "toast";
+                                                                            toastEl.setAttribute("role", "alert");
+                                                                            toastEl.setAttribute("aria-live", "assertive");
+                                                                            toastEl.setAttribute("aria-atomic", "true");
+                                                                            const body = document.createElement("div");
+                                                                            body.className = "toast-body";
+                                                                            body.textContent = msg;
+                                                                            toastEl.appendChild(body);
+                                                                            container.appendChild(toastEl);
+                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                                        } else {
+                                                                            alert(msg);
+                                                                        }
+                                                                        btn.setAttribute("data-failed-route", "true");
                                                                         } catch (e) {}
                                                                     });
                                                                 })();
@@ -589,66 +319,47 @@ Object.keys(t).forEach(
                                                         @endpush
                                                     @endcan
                                                     @can('show bill')
-                                                        @php
-                                                            $showRoute        = Route::has(ViewsConstants::BIL . '.show')
-                                                                ? route(ViewsConstants::BIL . '.show', Crypt::encrypt($bill->id))
-                                                                : '#';
-                                                            $showBtnId        = 'bill-show-btn-' . $bill->id;
-                                                            $showGuardMsg     = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::BIL,
-                                                                'bill_show_route_unavailable'
-                                                            ) ?? 'Bill view route is unavailable. Please contact technical support or your domain administrator.';
-                                                        @endphp
                                                         <div class="{{ VC::ACT_BTN_INF }}">
-                                                            <a
-                                                                id="{{ $showBtnId }}"
-                                                                href="{{ $showRoute }}"
-                                                                data-url="{{ $showRoute }}"
-                                                                data-guard-msg="{{ $showGuardMsg }}"
-                                                                class="{{ VC::BT_SM_CT }}"
-                                                                data-bs-toggle="tooltip"
-                                                                title="{{ __('Show') }}"
-                                                            >
+                                                            <a id="{{ $billShowLinkId }}" href="{{ $billShowRoute }}" data-url="{{ $billShowRoute }}" data-guard-msg="{{ $billShowMsg }}" class="{{ VC::BT_SM_CT }}" data-bs-toggle="tooltip" title="{{ __('Show') }}">
                                                                 <i class="{{ VC::TI_EYE_WT }}"></i>
                                                             </a>
                                                         </div>
                                                         @push(StacksConstants::ADM_SCR_PG)
                                                             <script defer>
                                                                 (() => {
-                                                                    const btn = document.getElementById('{{ $showBtnId }}');
-                                                                    if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                                    btn.setAttribute('data-listener-active', 'true');
-                                                                    btn.addEventListener('click', event => {
+                                                                    const btn = document.getElementById("{{ $billShowLinkId }}");
+                                                                    if (!btn || btn.getAttribute("data-listener-active") === "true") return;
+                                                                    btn.setAttribute("data-listener-active", "true");
+                                                                    btn.addEventListener("click", event => {
                                                                         try {
-                                                                            const href = btn.getAttribute('href');
-                                                                            const url  = btn.getAttribute('data-url');
-                                                                            if ((href && href !== '#') || (url && url !== '#')) return;
-                                                                            event.preventDefault();
-                                                                            const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container    = document.createElement('div');
-                                                                                container.id = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            btn.setAttribute('data-failed-route', 'true');
+                                                                        const href = btn.getAttribute("href");
+                                                                        const url = btn.getAttribute("data-url");
+                                                                        if ((href && href !== "#") || (url && url !== "#")) return;
+                                                                        event.preventDefault();
+                                                                        const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
+                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                                        let container = document.getElementById("toast-container");
+                                                                        if (!container) {
+                                                                            container = document.createElement("div");
+                                                                            container.id = "toast-container";
+                                                                            document.body.appendChild(container);
+                                                                        }
+                                                                        if (bootstrapLink && window.bootstrap) {
+                                                                            const toastEl = document.createElement("div");
+                                                                            toastEl.className = "toast";
+                                                                            toastEl.setAttribute("role", "alert");
+                                                                            toastEl.setAttribute("aria-live", "assertive");
+                                                                            toastEl.setAttribute("aria-atomic", "true");
+                                                                            const body = document.createElement("div");
+                                                                            body.className = "toast-body";
+                                                                            body.textContent = msg;
+                                                                            toastEl.appendChild(body);
+                                                                            container.appendChild(toastEl);
+                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                                        } else {
+                                                                            alert(msg);
+                                                                        }
+                                                                        btn.setAttribute("data-failed-route", "true");
                                                                         } catch (e) {}
                                                                     });
                                                                 })();
@@ -657,65 +368,52 @@ Object.keys(t).forEach(
                                                     @endcan
                                                     @can('edit bill')
                                                         @php
-                                                            $billEditRoute    = Route::has(ViewsConstants::BIL . '.edit')
-                                                                ? route(ViewsConstants::BIL . '.edit', Crypt::encrypt($bill->id))
-                                                                : '#';
-                                                            $billEditBtnId    = 'bill-edit-btn-' . $bill->id;
-                                                            $billEditGuardMsg = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::BIL,
-                                                                'bill_edit_route_unavailable'
-                                                            ) ?? 'Bill edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $resolvedEditName = Route::has(ViewsConstants::BIL . '.edit') ? (ViewsConstants::BIL . '.edit') : (Route::has(Str::kebab(ViewsConstants::BIL . '.edit')) ? Str::kebab(ViewsConstants::BIL . '.edit') : null);
+                                                            $billEditRoute = $resolvedEditName ? route($resolvedEditName, Crypt::encrypt($bill->id)) : '#';
+                                                            $billEditBtnId = 'bill-edit-btn-' . ($bill->id ?? 'unknown');
+                                                            $billEditGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_edit_route_unavailable') ?? 'Bill edit route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                            <a
-                                                                id="{{ $billEditBtnId }}"
-                                                                href="{{ $billEditRoute }}"
-                                                                data-url="{{ $billEditRoute }}"
-                                                                data-guard-msg="{{ $billEditGuardMsg }}"
-                                                                class="{{ VC::BT_SM_CT }}"
-                                                                data-bs-toggle="tooltip"
-                                                                title="{{ __('Edit') }}"
-                                                            >
+                                                            <a id="{{ $billEditBtnId }}" href="{{ $billEditRoute }}" data-url="{{ $billEditRoute }}" data-guard-msg="{{ $billEditGuardMsg }}" class="{{ VC::BT_SM_CT }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}">
                                                                 <i class="{{ VC::TI_PC_WT }}"></i>
                                                             </a>
                                                         </div>
                                                         @push(StacksConstants::ADM_SCR_PG)
                                                             <script defer>
                                                                 (() => {
-                                                                    const btn = document.getElementById('{{ $billEditBtnId }}');
-                                                                    if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                                    btn.setAttribute('data-listener-active', 'true');
-                                                                    btn.addEventListener('click', event => {
+                                                                    const btn = document.getElementById("{{ $billEditBtnId }}");
+                                                                    if (!btn || btn.getAttribute("data-listener-active") === "true") return;
+                                                                    btn.setAttribute("data-listener-active", "true");
+                                                                    btn.addEventListener("click", event => {
                                                                         try {
-                                                                            const href = btn.getAttribute('href');
-                                                                            const url  = btn.getAttribute('data-url');
-                                                                            if ((href && href !== '#') || (url && url !== '#')) return;
-                                                                            event.preventDefault();
-                                                                            const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            btn.setAttribute('data-failed-route', 'true');
+                                                                        const href = btn.getAttribute("href");
+                                                                        const url = btn.getAttribute("data-url");
+                                                                        if ((href && href !== "#") || (url && url !== "#")) return;
+                                                                        event.preventDefault();
+                                                                        const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
+                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                                        let container = document.getElementById("toast-container");
+                                                                        if (!container) {
+                                                                            container = document.createElement("div");
+                                                                            container.id = "toast-container";
+                                                                            document.body.appendChild(container);
+                                                                        }
+                                                                        if (bootstrapLink && window.bootstrap) {
+                                                                            const toastEl = document.createElement("div");
+                                                                            toastEl.className = "toast";
+                                                                            toastEl.setAttribute("role", "alert");
+                                                                            toastEl.setAttribute("aria-live", "assertive");
+                                                                            toastEl.setAttribute("aria-atomic", "true");
+                                                                            const body = document.createElement("div");
+                                                                            body.className = "toast-body";
+                                                                            body.textContent = msg;
+                                                                            toastEl.appendChild(body);
+                                                                            container.appendChild(toastEl);
+                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                                        } else {
+                                                                            alert(msg);
+                                                                        }
+                                                                        btn.setAttribute("data-failed-route", "true");
                                                                         } catch (e) {}
                                                                     });
                                                                 })();
@@ -724,32 +422,15 @@ Object.keys(t).forEach(
                                                     @endcan
                                                     @can('delete bill')
                                                         @php
-                                                            $destroyRoute     = Route::has(ViewsConstants::BIL . '.destroy')
-                                                                ? route(ViewsConstants::BIL . '.destroy', $bill->id)
-                                                                : '#';
-                                                            $destroyBtnId     = 'bill-delete-btn-' . $bill->id;
-                                                            $destroyFormId    = 'delete-form-' . $bill->id;
-                                                            $destroyGuardMsg  = Utility::fetchLinkMessage(
-                                                                $lang,
-                                                                ViewsConstants::BIL,
-                                                                'bill_destroy_route_unavailable'
-                                                            ) ?? 'Bill destroy route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $resolvedDestroyName = Route::has(ViewsConstants::BIL . '.destroy') ? (ViewsConstants::BIL . '.destroy') : (Route::has(Str::kebab(ViewsConstants::BIL . '.destroy')) ? Str::kebab(ViewsConstants::BIL . '.destroy') : null);
+                                                            $destroyUrl = $resolvedDestroyName ? route($resolvedDestroyName, $bill->id) : '#';
+                                                            $destroyBtnId = 'bill-delete-btn-' . ($bill->id ?? 'unknown');
+                                                            $destroyFormId = 'delete-form-' . ($bill->id ?? 'unknown');
+                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_destroy_route_unavailable') ?? 'Bill destroy route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                            {!! Form::open([
-                                                                'route'            => $destroyRoute,
-                                                                'method'         => 'DELETE',
-                                                                'id'             => $destroyFormId,
-                                                            ]) !!}
-                                                                <a
-                                                                    id="{{ $destroyBtnId }}"
-                                                                    href="#"
-                                                                    class="{{ VC::BT_SM_CT_PR }}"
-                                                                    data-url="{{ $destroyRoute }}"
-                                                                    data-guard-msg="{{ $destroyGuardMsg }}"
-                                                                    data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                                    data-confirm-yes="document.getElementById('{{ $destroyFormId }}').submit();"
-                                                                >
+                                                            {!! Form::open(['url' => $destroyUrl, 'method' => 'DELETE', 'id' => $destroyFormId]) !!}
+                                                                <a id="{{ $destroyBtnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-url="{{ $destroyUrl }}" data-guard-msg="{{ $destroyGuardMsg }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $destroyFormId }}').submit();">
                                                                     <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                 </a>
                                                             {!! Form::close() !!}
@@ -757,39 +438,39 @@ Object.keys(t).forEach(
                                                         @push(StacksConstants::ADM_SCR_PG)
                                                             <script defer>
                                                                 (() => {
-                                                                    const btn = document.getElementById('{{ $destroyBtnId }}');
-                                                                    if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                                    btn.setAttribute('data-listener-active', 'true');
-                                                                    btn.addEventListener('click', event => {
+                                                                    const btn = document.getElementById("{{ $destroyBtnId }}");
+                                                                    if (!btn || btn.getAttribute("data-listener-active") === "true") return;
+                                                                    btn.setAttribute("data-listener-active", "true");
+                                                                    btn.addEventListener("click", event => {
                                                                         try {
-                                                                            const href = btn.getAttribute('href');
-                                                                            const url  = btn.getAttribute('data-url');
-                                                                            if ((href && href !== '#') || (url && url !== '#')) return;
-                                                                            event.preventDefault();
-                                                                            const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            let container       = document.getElementById('toast-container');
-                                                                            if (!container) {
-                                                                                container       = document.createElement('div');
-                                                                                container.id    = 'toast-container';
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl      = document.createElement('div');
-                                                                                toastEl.className  = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body         = document.createElement('div');
-                                                                                body.className     = 'toast-body';
-                                                                                body.textContent   = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            btn.setAttribute('data-failed-route', 'true');
+                                                                        const href = btn.getAttribute("href");
+                                                                        const url = btn.getAttribute("data-url");
+                                                                        if ((href && href !== "#") || (url && url !== "#")) return;
+                                                                        event.preventDefault();
+                                                                        const msg = btn.getAttribute("data-guard-msg") ?? "# ERROR";
+                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                                        let container = document.getElementById("toast-container");
+                                                                        if (!container) {
+                                                                            container = document.createElement("div");
+                                                                            container.id = "toast-container";
+                                                                            document.body.appendChild(container);
+                                                                        }
+                                                                        if (bootstrapLink && window.bootstrap) {
+                                                                            const toastEl = document.createElement("div");
+                                                                            toastEl.className = "toast";
+                                                                            toastEl.setAttribute("role", "alert");
+                                                                            toastEl.setAttribute("aria-live", "assertive");
+                                                                            toastEl.setAttribute("aria-atomic", "true");
+                                                                            const body = document.createElement("div");
+                                                                            body.className = "toast-body";
+                                                                            body.textContent = msg;
+                                                                            toastEl.appendChild(body);
+                                                                            container.appendChild(toastEl);
+                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                                        } else {
+                                                                            alert(msg);
+                                                                        }
+                                                                        btn.setAttribute("data-failed-route", "true");
                                                                         } catch (e) {}
                                                                     });
                                                                 })();
@@ -800,7 +481,14 @@ Object.keys(t).forEach(
                                             </td>
                                         @endif
                                     </tr>
-                                @endforeach
+                                @empty
+                                    @php
+                                        $colspan = $hasActionCol ? 6 : 5;
+                                    @endphp
+                                    <tr class="text-center">
+                                        <td colspan="{{ $colspan }}">{{ __('No Data Found') }}</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -809,4 +497,5 @@ Object.keys(t).forEach(
         </div>
     </div>
 @endsection
+
 

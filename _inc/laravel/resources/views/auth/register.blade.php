@@ -102,78 +102,82 @@
     <div class="{{ ViewClassNamesConstants::LNG_DD_DSK }}">
         <li class="{{ ViewClassNamesConstants::LNG_DD_IT }}">
             <a class="{{ ViewClassNamesConstants::DRP_BTN }}" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="drp-text"> {{ $languages[$lang] }}
+                <span class="drp-text"> {{ !empty($languages) && !empty($languages[$lang]) ? $languages[$lang] : __(DatabaseConstants::DEFAULT_LANG) }}
                 </span>
             </a>
             <div class="{{ ViewClassNamesConstants::DRP_MN_DSH_END }}">
-                @foreach($languages as $code => $language)
-                    @php
-                        $registerUrl   = Route::has('register')
-                            ? route('register', $code)
-                            : '#';
-                        $registerLinkId = 'register-link-' . $code;
-                        $registerMsg   = Utility::fetchLinkMessage(
-                            app()->getLocale(),
-                            ViewsConstants::AUT,
-                            'localized_register_unavailable'
-                        ) ?? 'Translated registration route is unavailable. Please contact technical support or your domain administrator.';
-                    @endphp
-                    <a
-                        id="{{ $registerLinkId }}"
-                        href="{{ $registerUrl }}"
-                        tabindex="0"
-                        class="dropdown-item"
-                        data-url="{{ $registerUrl }}"
-                        data-guard-msg="{{ $registerMsg }}"
-                        data-event-alias="false"
-                    >
-                        <span>{{ Str::ucfirst($language) }}</span>
-                    </a>
-                    @push(StacksConstants::AUTH_CST_SCR)
-                        <script defer>
-                            (() => {
-                                const el = document.getElementById('{{ $registerLinkId }}');
-                                if (!el || el.getAttribute('data-event-alias') === 'true') return;
-                                el.setAttribute('data-event-alias', 'true');
-                                const url = el.getAttribute('data-url');
-                                const msg = el.getAttribute('data-guard-msg');
-                                if (!url || url === '#') {
-                                    const alertMsg = msg ?? '# ERROR';
-                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                    let container = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container = document.createElement('div');
-                                        container.id = 'toast-container';
-                                        document.body.appendChild(container);
+                @if(is_array($languages) && count($languages) || $languages instanceof Collection && $languages->isNotEmpty())
+                    @foreach($languages as $code => $language)
+                        @php
+                            $registerUrl   = Route::has('register')
+                                ? route('register', $code)
+                                : '#';
+                            $registerLinkId = 'register-link-' . $code;
+                            $registerMsg   = Utility::fetchLinkMessage(
+                                app()->getLocale(),
+                                ViewsConstants::AUT,
+                                'localized_register_unavailable'
+                            ) ?? 'Translated registration route is unavailable. Please contact technical support or your domain administrator.';
+                        @endphp
+                        <a
+                            id="{{ $registerLinkId }}"
+                            href="{{ $registerUrl }}"
+                            tabindex="0"
+                            class="dropdown-item"
+                            data-url="{{ $registerUrl }}"
+                            data-guard-msg="{{ $registerMsg }}"
+                            data-event-alias="false"
+                        >
+                            <span>{{ Str::ucfirst($language) }}</span>
+                        </a>
+                        @push(StacksConstants::AUTH_CST_SCR)
+                            <script defer>
+                                (() => {
+                                    const el = document.getElementById('{{ $registerLinkId }}');
+                                    if (!el || el.getAttribute('data-event-alias') === 'true') return;
+                                    el.setAttribute('data-event-alias', 'true');
+                                    const url = el.getAttribute('data-url');
+                                    const msg = el.getAttribute('data-guard-msg');
+                                    if (!url || url === '#') {
+                                        const alertMsg = msg ?? '# ERROR';
+                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                        let container = document.getElementById('toast-container');
+                                        if (!container) {
+                                            container = document.createElement('div');
+                                            container.id = 'toast-container';
+                                            document.body.appendChild(container);
+                                        }
+                                        if (bootstrapLink && window.bootstrap) {
+                                            const toastEl = document.createElement('div');
+                                            toastEl.className = 'toast';
+                                            toastEl.setAttribute('role', 'alert');
+                                            toastEl.setAttribute('aria-live', 'assertive');
+                                            toastEl.setAttribute('aria-atomic', 'true');
+                                            const body = document.createElement('div');
+                                            body.className = 'toast-body';
+                                            body.textContent = alertMsg;
+                                            toastEl.appendChild(body);
+                                            container.appendChild(toastEl);
+                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                        } else {
+                                            alert(alertMsg);
+                                        }
+                                        el.setAttribute('data-failed-route', 'true');
+                                        return;
                                     }
-                                    if (bootstrapLink && window.bootstrap) {
-                                        const toastEl = document.createElement('div');
-                                        toastEl.className = 'toast';
-                                        toastEl.setAttribute('role', 'alert');
-                                        toastEl.setAttribute('aria-live', 'assertive');
-                                        toastEl.setAttribute('aria-atomic', 'true');
-                                        const body = document.createElement('div');
-                                        body.className = 'toast-body';
-                                        body.textContent = alertMsg;
-                                        toastEl.appendChild(body);
-                                        container.appendChild(toastEl);
-                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                    } else {
-                                        alert(alertMsg);
-                                    }
-                                    el.setAttribute('data-failed-route', 'true');
-                                    return;
-                                }
-                                el.addEventListener('click', event => {
-                                    try {
-                                        event.preventDefault();
-                                        window.location.href = url;
-                                    } catch (e) {}
-                                });
-                            })();
-                        </script>
-                    @endpush
-                @endforeach
+                                    el.addEventListener('click', event => {
+                                        try {
+                                            event.preventDefault();
+                                            window.location.href = url;
+                                        } catch (e) {}
+                                    });
+                                })();
+                            </script>
+                        @endpush
+                    @endforeach
+                @else
+                    <span class="drp-text"> {{ __(DatabaseConstants::DEFAULT_LANG) }}</span>
+                @endif
             </div>
         </li>
     </div>
@@ -291,90 +295,12 @@
                     {{ __('Login') }}
                 </a>
                 @push(StacksConstants::AUTH_CST_SCR)
-                    <script defer>
-                        (() => {
-                            const el = document.getElementById('{{ $loginFormId }}');
-                            if (!el || el.getAttribute('data-event-alias') === 'true') return;
-                            el.setAttribute('data-event-alias', 'true');
-                            const url = el.getAttribute('data-url');
-                            const msg = el.getAttribute('data-guard-msg');
-                            if (!url || url === '#') {
-                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (bootstrapLink && window.bootstrap) {
-                                    const toastEl = document.createElement('div');
-                                    toastEl.className = 'toast';
-                                    toastEl.setAttribute('role', 'alert');
-                                    toastEl.setAttribute('aria-live', 'assertive');
-                                    toastEl.setAttribute('aria-atomic', 'true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toastEl.appendChild(body);
-                                    container.appendChild(toastEl);
-                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                } else {
-                                    alert(msg);
-                                }
-                                el.setAttribute('data-failed-route', 'true');
-                                return;
-                            }
-                            el.addEventListener('click', event => {
-                                event.preventDefault();
-                                try {
-                                    window.location.href = url;
-                                } catch (e) {}
-                            });
-                        })();
-                    </script>
+                    <script defer src="{{ asset('assets/js/routes/auth/login/link.js') }}"></script>
                 @endpush
             </p>
         </form>
         @push(StacksConstants::AUTH_CST_SCR)
-            <script defer>
-                (() => {
-                    const form = document.getElementById('{{ $registerFormId }}');
-                    if (!form || form.getAttribute('data-listener-active') === 'true') return;
-                    form.setAttribute('data-listener-active', 'true');
-                    form.addEventListener('submit', event => {
-                        try {
-                            const action = form.getAttribute('action');
-                            const url    = form.getAttribute('data-url');
-                            if ((action && action !== '#') || (url && url !== '#')) return;
-                            event.preventDefault();
-                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                            let container       = document.getElementById('toast-container');
-                            if (!container) {
-                                container       = document.createElement('div');
-                                container.id    = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (bootstrapLink && window.bootstrap) {
-                                const toastEl      = document.createElement('div');
-                                toastEl.className  = 'toast';
-                                toastEl.setAttribute('role', 'alert');
-                                toastEl.setAttribute('aria-live', 'assertive');
-                                toastEl.setAttribute('aria-atomic', 'true');
-                                const body         = document.createElement('div');
-                                body.className     = 'toast-body';
-                                body.textContent   = msg;
-                                toastEl.appendChild(body);
-                                container.appendChild(toastEl);
-                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                            } else {
-                                alert(msg);
-                            }
-                            form.setAttribute('data-failed-route', 'true');
-                        } catch (e) {}
-                    });
-                })();
-            </script>
+            <script defer src="{{ asset('assets/js/routes/auth/register/form.js') }}"></script>
         @endpush
     </div>
 @endsection

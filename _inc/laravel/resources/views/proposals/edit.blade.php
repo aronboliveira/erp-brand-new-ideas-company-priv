@@ -223,12 +223,12 @@ Object.keys(t).forEach(
                 const $el=$(element);
                 try{
                 if(routeGuard($el.get(0))){ guardError($el.get(0),'item_unavailable'); return; }
-                const iteams_id=$el.val(), url=$el.data('url');
+                const items_id=$el.val(), url=$el.data('url');
                 $.ajax({
                     url:String(url||''),
                     type:'POST',
                     headers:{ 'X-CSRF-TOKEN': $('#token').val() },
-                    data:{ product_id: iteams_id },
+                    data:{ product_id: items_id },
                     cache:false,
                     success:(raw)=>{
                     try{
@@ -237,7 +237,7 @@ Object.keys(t).forEach(
                         url:'{{route(ViewsConstants::PPS . '.items')}}',
                         type:'GET',
                         headers:{ 'X-CSRF-TOKEN': $('#token').val() },
-                        data:{ proposal_id, product_id: iteams_id },
+                        data:{ proposal_id, product_id: items_id },
                         cache:false,
                         success:(res)=>{
                             try{

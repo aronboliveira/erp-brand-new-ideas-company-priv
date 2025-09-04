@@ -1,6 +1,7 @@
 @php
     use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as C, StacksConstants};
     use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\Str;
 
@@ -17,75 +18,42 @@
         'award_type_update_route_unavailable'
     ) ?? 'Award Type update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-
-{{ Collective\Html\FormFacade::model($awardtype, [
-    'route'             => [ViewsConstants::AWD_TP.'.update', $awardtype->id],
-    'method'            => 'PUT',
-    'id'                => $formId,
-    'data-url'          => $updateRoute,
-    'data-sv-localized' => 'true',
-    'data-guard-msg'    => $updateMsg,
-]) }}
+@if(!empty($awardtype) && isset($awardtype?->id))
+    {{ Form::model($awardtype, [
+        'route'             => [$updateRoute],
+        'method'            => 'PUT',
+        'id'                => $formId,
+        'data-url'          => $updateRoute,
+        'data-sv-localized' => 'true',
+        'data-guard-msg'    => $updateMsg,
+    ]) }}
+        <div class="modal-body">
+            <div class="{{ C::RW }}">
+                <div class="col-md-12">
+                    <div class="{{ C::FM_GB3 }}">
+                        {{ Form::label('name', __('Name'), ['class'=>C::FM_LB]) }}<span class="text-danger">*</span>
+                        {{ Form::text('name', null, ['class'=>C::FM_CT,'placeholder'=>__('Enter Award Type Name'),'required'=>'required']) }}
+                        @error('name')<span class="text-danger">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="{{ C::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+            <button type="submit" class="{{ C::BT_PRM }}">{{ __('Update') }}</button>
+        </div>
+        <script defer src="{{ asset('assets/js/routes/awardTypes/edit.js') }}"></script>
+    {{ Form::close() }}
+@else
     <div class="modal-body">
-        <div class="{{ C::RW }}">
+        <div class="row">
             <div class="col-md-12">
-                <div class="{{ C::FM_GB3 }}">
-                    {{ Collective\Html\FormFacade::label('name', __('Name'), ['class'=>C::FM_LB]) }}<span class="text-danger">*</span>
-                    {{ Collective\Html\FormFacade::text('name', null, ['class'=>C::FM_CT,'placeholder'=>__('Enter Award Type Name'),'required'=>'required']) }}
-                    @error('name')<span class="text-danger">{{ $message }}</span>@enderror
+                <div class="{{ C::ALERT }} {{ C::ALERT_DANGER }}">
+                    <h4 class="text-danger">{{ __('No Award Type found') }}</h4>
+                    <p>{{ __('The award type data is invalid or not found. Please refresh the page and try again.') }}</p>
                 </div>
             </div>
         </div>
     </div>
-    <div class="modal-footer">
-        <button type="button" class="{{ C::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-        <button type="submit" class="{{ C::BT_PRM }}">{{ __('Update') }}</button>
-    </div>
-{{ Collective\Html\FormFacade::close() }}
+@endif
 
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $formId }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', event => {
-                try {
-                    const action = form.getAttribute('action');
-                    const url    = form.getAttribute('data-url');
-                    if ((!action || action === '#') && (!url || url === '#')) {
-                        event.preventDefault();
-                        const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl = document.createElement('div');
-                            toastEl.className = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        form.setAttribute('data-failed-route', 'true');
-                    }
-                } catch {}
-            });
-            const observer = new MutationObserver(() => {
-                if (!document.getElementById('{{ $formId }}')) observer.disconnect();
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-        })();
-    </script>
-@endpush

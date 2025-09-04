@@ -242,7 +242,7 @@
     title="{{ __('Back') }}">
         <i class="ti ti-arrow-left text-white"></i>
     </a>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/pos/barcode.js') }}"></script>
     @endpush
 @endsection

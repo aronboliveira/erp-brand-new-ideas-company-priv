@@ -1,12 +1,13 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
     use App\Models\Utility;
     use App\Config\Constants\{
         StacksConstants,
         ViewsConstants,
         ViewClassNamesConstants as VC
     };
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
 
     $lang                   = Utility::fetchUserLang();
     $routeName              = ViewsConstants::BUG_STT;
@@ -23,7 +24,7 @@
     ) ?? 'Bug Status store route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
-{{ Collective\Html\FormFacade::open([
+{{ Form::open([
     'url'            => $bugstatusStoreRoute,
     'method'         => 'post',
     'id'             => $formId,
@@ -33,8 +34,8 @@
     <div class="modal-body">
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
-                {{ Collective\Html\FormFacade::label('title', __('Bug Status Title'), ['class' => VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::text('title', '', [
+                {{ Form::label('title', __('Bug Status Title'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('title', '', [
                     'class'    => VC::FM_CT,
                     'required' => 'required',
                 ]) }}
@@ -54,46 +55,5 @@
             class="{{ VC::BT_PRM }}"
         >
     </div>
-{{ Collective\Html\FormFacade::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $formId }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', event => {
-                try {
-                    const action = form.getAttribute('action');
-                    const url    = form.getAttribute('data-url');
-                    if ((action && action !== '#') || (url && url !== '#')) return;
-                    event.preventDefault();
-                    const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                    let container       = document.getElementById('toast-container');
-                    if (!container) {
-                        container       = document.createElement('div');
-                        container.id    = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bootstrapLink && window.bootstrap) {
-                        const toastEl      = document.createElement('div');
-                        toastEl.className  = 'toast';
-                        toastEl.setAttribute('role', 'alert');
-                        toastEl.setAttribute('aria-live', 'assertive');
-                        toastEl.setAttribute('aria-atomic', 'true');
-                        const body         = document.createElement('div');
-                        body.className     = 'toast-body';
-                        body.textContent   = msg;
-                        toastEl.appendChild(body);
-                        container.appendChild(toastEl);
-                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch (e) {}
-            });
-        })();
-    </script>
-@endpush
+    <script defer src="{{ asset('assets/js/routes/bugStatus/store.js') }}"></script>
+{{ Form::close() }}

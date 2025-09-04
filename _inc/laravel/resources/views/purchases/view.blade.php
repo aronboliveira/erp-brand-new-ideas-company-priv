@@ -495,7 +495,7 @@
                                                     </tr>
                                                 </thead>
                                                 @php
-                                                    $items = is_iterable($iteams ?? null) ? $iteams : [];
+                                                    $items = is_iterable($items ?? null) ? $items : [];
                                                     $totalQuantity=0; $totalRate=0; $totalTaxPrice=0; $totalDiscount=0; $taxesData=[];
                                                 @endphp
                                                 @foreach($items as $key => $item)

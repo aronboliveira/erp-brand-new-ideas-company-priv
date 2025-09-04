@@ -124,7 +124,7 @@
         var purchase_id = '{{$purchase->id}}';
 
         function changeItem(element) {
-            var iteams_id = element.val();
+            var items_id = element.val();
 
             var url = element.data('url');
             var el = element;
@@ -135,7 +135,7 @@
                     'X-CSRF-TOKEN': jQuery('#token').val()
                 },
                 data: {
-                    'product_id': iteams_id
+                    'product_id': items_id
                 },
                 cache: false,
                 success: function (data) {
@@ -149,7 +149,7 @@
                         },
                         data: {
                             'purchase_id': purchase_id,
-                            'product_id': iteams_id,
+                            'product_id': items_id,
                         },
                         cache: false,
                         success: function (data) {

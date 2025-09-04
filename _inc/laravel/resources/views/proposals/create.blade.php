@@ -239,12 +239,12 @@ Object.keys(t).forEach(
                 try{
                     const el=this;
                     if(routeGuard(el)){ guardOnce(el,'item_unavailable','pointerup'); return; }
-                    const iteams_id=$(this).val(); const url=$(this).data('url'); const $el=$(this);
+                    const items_id=$(this).val(); const url=$(this).data('url'); const $el=$(this);
                     $.ajax({
                     url:String(url||''),
                     type:'POST',
                     headers:{ 'X-CSRF-TOKEN': $('#token').val() },
-                    data:{ product_id: iteams_id },
+                    data:{ product_id: items_id },
                     cache:false,
                     success:(data)=>{
                         try{

@@ -2,8 +2,8 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use Illuminate\Support\Facades\Route;
@@ -11,15 +11,15 @@
     use App\Models\Utility;
 
     $lang = Utility::fetchUserLang();
-    $createRoute = Route::has(ViewsConstants::AWD_TP.'.create')
-        ? route(ViewsConstants::AWD_TP.'.create')
-        : Route::has(Str::kebab(ViewsConstants::AWD_TP.'.create'))
-            ? route(Str::kebab(ViewsConstants::AWD_TP.'.create'))
+    $createRoute = Route::has(VW::AWD_TP.'.create')
+        ? route(VW::AWD_TP.'.create')
+        : Route::has(Str::kebab(VW::AWD_TP.'.create'))
+            ? route(Str::kebab(VW::AWD_TP.'.create'))
             : '#';
     $createId = 'awardtype-create-link';
     $createMsg = Utility::fetchLinkMessage(
         $lang,
-        ViewsConstants::AWD_TP,
+        VW::AWD_TP,
         'award_type_create_route_unavailable'
     ) ?? 'Create Award Type route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
@@ -38,7 +38,7 @@
 @endsection
 
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="{{ ViewClassNamesConstants::FEND }}">
+    <div class="{{ VC::FEND }}">
         @can('create award type')
             <a
                 id="{{ $createId }}"
@@ -50,24 +50,24 @@
                 data-title="{{ __('Create New Award Type') }}"
                 data-bs-toggle="tooltip"
                 title="{{ __('Create') }}"
-                class="{{ ViewClassNamesConstants::BT_SM_PM }}"
+                class="{{ VC::BT_SM_PM }}"
             >
-                <i class="{{ ViewClassNamesConstants::TI_PLS }}"></i>
+                <i class="{{ VC::TI_PLS }}"></i>
             </a>
         @endcan
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    <div class="{{ ViewClassNamesConstants::RW }}">
-        <div class="{{ ViewClassNamesConstants::CL3 }}">
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CL3 }}">
             @include('layouts.hrm_setup')
         </div>
-        <div class="{{ ViewClassNamesConstants::CL9 }}">
-            <div class="{{ ViewClassNamesConstants::CD }}">
-                <div class="{{ ViewClassNamesConstants::CD }}-body table-border-style">
+        <div class="{{ VC::CL9 }}">
+            <div class="{{ VC::CD }}">
+                <div class="{{ VC::CD }}-body table-border-style">
                     <div class="table-responsive">
-                        <table class="{{ ViewClassNamesConstants::TB }} datatable">
+                        <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
                                     <th>{{ __('Award Type') }}</th>
@@ -75,37 +75,37 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @foreach($awardtypes as $awardtype)
+                                @foreach($awardTypes as $at)
                                     @php
-                                        $editRoute = Route::has(ViewsConstants::AWD_TP.'.edit')
-                                            ? route(ViewsConstants::AWD_TP.'.edit', $awardtype->id)
-                                            : Route::has(Str::kebab(ViewsConstants::AWD_TP.'.edit'))
-                                                ? route(Str::kebab(ViewsConstants::AWD_TP.'.edit'), $awardtype->id)
+                                        $editRoute = Route::has(VW::AWD_TP.'.edit')
+                                            ? route(VW::AWD_TP.'.edit', $at->id)
+                                            : Route::has(Str::kebab(VW::AWD_TP.'.edit'))
+                                                ? route(Str::kebab(VW::AWD_TP.'.edit'), $at->id)
                                                 : '#';
-                                        $editId = 'awardtype-edit-' . $awardtype->id . '-link';
+                                        $editId = 'awardtype-edit-' . $at->id . '-link';
                                         $editMsg = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::AWD_TP,
+                                            VW::AWD_TP,
                                             'award_type_edit_route_unavailable'
                                         ) ?? 'award_type_edit_route_unavailable';
 
-                                        $deleteRoute = Route::has(ViewsConstants::AWD_TP.'.destroy')
-                                            ? route(ViewsConstants::AWD_TP.'.destroy', $awardtype->id)
-                                            : Route::has(Str::kebab(ViewsConstants::AWD_TP.'.destroy'))
-                                                ? route(Str::kebab(ViewsConstants::AWD_TP.'.destroy'), $awardtype->id)
+                                        $deleteRoute = Route::has(VW::AWD_TP.'.destroy')
+                                            ? route(VW::AWD_TP.'.destroy', $at->id)
+                                            : Route::has(Str::kebab(VW::AWD_TP.'.destroy'))
+                                                ? route(Str::kebab(VW::AWD_TP.'.destroy'), $at->id)
                                                 : '#';
-                                        $deleteId = 'awardtype-delete-' . $awardtype->id . '-link';
+                                        $deleteId = 'awardtype-delete-' . $at->id . '-link';
                                         $deleteMsg = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::AWD_TP,
+                                            VW::AWD_TP,
                                             'award_type_destroy_route_unavailable'
                                         ) ?? 'Delete Award Type route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
                                     <tr>
-                                        <td>{{ $awardtype->name }}</td>
+                                        <td>{{ $at->name ?? __('Could not retrieve name for award type') }}</td>
                                         <td>
                                             @can('edit award type')
-                                                <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
+                                                <div class="{{ VC::ACT_BTN_PRIM }}">
                                                     <a
                                                         id="{{ $editId }}"
                                                         href="#"
@@ -116,32 +116,32 @@
                                                         data-title="{{ __('Edit Award Type') }}"
                                                         data-bs-toggle="tooltip"
                                                         title="{{ __('Edit') }}"
-                                                        class="{{ ViewClassNamesConstants::BT_SM_CT }}"
+                                                        class="{{ VC::BT_SM_CT }}"
                                                     >
-                                                        <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
+                                                        <i class="{{ VC::TI_PC_WT }}"></i>
                                                     </a>
                                                 </div>
                                             @endcan
                                             @can('delete award type')
-                                                <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
+                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                     {!! Collective\Html\FormFacade::open([
                                                         'method'=>'DELETE',
-                                                        'route'=>[ViewsConstants::AWD_TP.'.destroy',$awardtype->id],
-                                                        'id'=>'delete-form-'.$awardtype->id
+                                                        'route'=>[VW::AWD_TP.'.destroy',$at->id],
+                                                        'id'=>'delete-form-'.$at->id
                                                     ]) !!}
                                                         <a
                                                             id="{{ $deleteId }}"
                                                             href="#"
-                                                            class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
+                                                            class="{{ VC::BT_SM_CT_PR }}"
                                                             data-url="{{ $deleteRoute }}"
                                                             data-sv-localized="true"
                                                             data-guard-msg="{{ $deleteMsg }}"
                                                             data-bs-toggle="tooltip"
                                                             title="{{ __('Delete') }}"
                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                            data-confirm-yes="document.getElementById('delete-form-{{$awardtype->id}}').submit();"
+                                                            data-confirm-yes="document.getElementById('delete-form-{{$at->id}}').submit();"
                                                         >
-                                                            <i class="ti ti-trash {{ ViewClassNamesConstants::TXT_WT }}"></i>
+                                                            <i class="ti ti-trash {{ VC::TXT_WT }}"></i>
                                                         </a>
                                                     {!! Collective\Html\FormFacade::close() !!}
                                                 </div>
@@ -163,9 +163,9 @@
         (() => {
             const ids = [
                 '{{ $createId ?? '' }}',
-                @foreach($awardtypes as $awardtype)
-                    'awardtype-edit-{{ $awardtype->id }}-link',
-                    'awardtype-delete-{{ $awardtype->id }}-link',
+                @foreach($awardTypes as $at)
+                    'awardtype-edit-{{ $at->id }}-link',
+                    'awardtype-delete-{{ $at->id }}-link',
                 @endforeach
             ].filter(Boolean);
             const flagAttr = 'data-listener-active';

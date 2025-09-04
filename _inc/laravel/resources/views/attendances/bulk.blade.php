@@ -139,112 +139,122 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($employees as $employee)
-                                        @php
-                                            $attendance = $employee->presentStatus($employee->id, request('date', date('Y-m-d')));
-                                            $empShowBase = ViewsConstants::EMP.'.show';
-                                            $empShowKebab = Str::kebab($empShowBase);
-                                            $empShowResolved = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
-                                            $empIdVal = isset($employee->id) ? (int)$employee->id : 0;
-                                            $empEncryptedId = $empIdVal ? encrypt($empIdVal) : null;
-                                            $empShowUrl = ($empShowResolved && $empEncryptedId) ? route($empShowResolved, $empEncryptedId) : '#';
-                                            $langLocal = $langValue;
-                                            $empShowGuardMsg = Utility::fetchLinkMessage($langLocal, ViewsConstants::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
-                                            $empAnchorId = 'employee-show-link-'.$empIdVal;
-                                        @endphp
+                                    @if(is_array($employees) && count($employees) || ($employees instanceof Collection && $employees->isNotEmpty()))
+                                        @foreach($employees as $employee)
+                                            @php
+                                                $attendance = $employee->presentStatus($employee->id, request('date', date('Y-m-d')));
+                                                $empShowBase = ViewsConstants::EMP.'.show';
+                                                $empShowKebab = Str::kebab($empShowBase);
+                                                $empShowResolved = Route::has($empShowBase) ? $empShowBase : (Route::has($empShowKebab) ? $empShowKebab : null);
+                                                $empIdVal = isset($employee->id) ? (int)$employee->id : 0;
+                                                $empEncryptedId = $empIdVal ? encrypt($empIdVal) : null;
+                                                $empShowUrl = ($empShowResolved && $empEncryptedId) ? route($empShowResolved, $empEncryptedId) : '#';
+                                                $langLocal = $langValue;
+                                                $empShowGuardMsg = Utility::fetchLinkMessage($langLocal, ViewsConstants::EMP, 'show_employee_route_unavailable') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
+                                                $empAnchorId = 'employee-show-link-'.$empIdVal;
+                                            @endphp
+                                            <tr>
+                                                <td>
+                                                    <input type="hidden" name="employee_id[]" value="{{ $employee->id }}">
+                                                    <a id="{{ $empAnchorId }}"
+                                                    href="{{ $empShowUrl }}"
+                                                    class="btn btn-outline-primary"
+                                                    data-url="{{ $empShowUrl }}"
+                                                    data-guard-msg="{{ $empShowGuardMsg }}"
+                                                    data-sv-localized="true">
+                                                        {{ !empty($employee->employee_id) ? $user->employeeIdFormat($employee->employee_id) : __('Failed to get employee id') }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ $employee->name ?? __('Failed to get employee name') }}</td>
+                                                <td>{{ $employee->branch->name ?? __('Failed to get branch name') }}</td>
+                                                <td>{{ $employee->department->name ?? __('Failed to get department name') }}</td>
+                                                <td>
+                                                    <div class="{{ VC::RW }}">
+                                                        <div class="{{ VC::CM3 }}">
+                                                            <div class="{{ VC::CST_CTL }} {{ VC::CST_CB }}">
+                                                                <input type="checkbox"
+                                                                    class="form-check-input present"
+                                                                    name="present-{{ $employee->id }}"
+                                                                    id="present{{ $employee->id }}"
+                                                                    {{ optional($attendance)->status=='Present'?'checked':'' }}>
+                                                                <label class="{{ VC::CST_LB }}" for="present{{ $employee->id }}"></label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-8 {{ $attendance?'':'d-none' }}">
+                                                            <div class="{{ VC::RW }}">
+                                                                <label class="{{ VC::CM3 }} {{ VC::FM_LB }}">{{ __('In') }}</label>
+                                                                <div class="{{ VC::CM4 }}">
+                                                                    <input type="time"
+                                                                        class="{{ VC::FM_CT }}"
+                                                                        name="in-{{ $employee->id }}"
+                                                                        value="{{ $attendance->clock_in!='00:00:00'?$attendance->clock_in:Utility::getValByName('company_start_time') }}">
+                                                                </div>
+                                                                <label class="{{ VC::CM2 }} {{ VC::FM_LB }}">{{ __('Out') }}</label>
+                                                                <div class="{{ VC::CM4 }}">
+                                                                    <input type="time"
+                                                                        class="{{ VC::FM_CT }}"
+                                                                        name="out-{{ $employee->id }}"
+                                                                        value="{{ $attendance->clock_out!='00:00:00'?$attendance->clock_out:Utility::getValByName('company_end_time') }}">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            @push(StacksConstants::ADM_SCR_PG)
+                                                <script defer>
+                                                    (() => {
+                                                        try {
+                                                            const el = document.getElementById('{{ $empAnchorId }}');
+                                                            if (!el) { return; }
+                                                            if (el.getAttribute('data-listener-active') === 'true') { return; }
+                                                            el.setAttribute('data-listener-active', 'true');
+                                                            el.addEventListener('click', (e) => {
+                                                                try {
+                                                                    const href = el.getAttribute('href') ?? '#';
+                                                                    const url = el.getAttribute('data-url') ?? href ?? '#';
+                                                                    if (url !== '#' && href !== '#') { return; }
+                                                                    e.preventDefault();
+                                                                    const msg = el.getAttribute('data-guard-msg') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+                                                                    let container = document.getElementById('toast-container');
+                                                                    if (!container) {
+                                                                        container = document.createElement('div');
+                                                                        container.id = 'toast-container';
+                                                                        document.body.appendChild(container);
+                                                                    }
+                                                                    if (hasBootstrap) {
+                                                                        const toast = document.createElement('div');
+                                                                        toast.className = 'toast';
+                                                                        toast.setAttribute('role', 'alert');
+                                                                        toast.setAttribute('aria-live', 'assertive');
+                                                                        toast.setAttribute('aria-atomic', 'true');
+                                                                        const body = document.createElement('div');
+                                                                        body.className = 'toast-body';
+                                                                        body.textContent = msg;
+                                                                        toast.appendChild(body);
+                                                                        container.appendChild(toast);
+                                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                    } else {
+                                                                        alert(msg);
+                                                                    }
+                                                                    el.setAttribute('data-failed-route', 'true');
+                                                                } catch (err) {}
+                                                            });
+                                                        } catch (err) {}
+                                                    })();
+                                                </script>
+                                            @endpush
+                                        @endforeach
+                                    @else
                                         <tr>
-                                            <td>
-                                                <input type="hidden" name="employee_id[]" value="{{ $employee->id }}">
-                                                <a id="{{ $empAnchorId }}"
-                                                href="{{ $empShowUrl }}"
-                                                class="btn btn-outline-primary"
-                                                data-url="{{ $empShowUrl }}"
-                                                data-guard-msg="{{ $empShowGuardMsg }}"
-                                                data-sv-localized="true">
-                                                    {{ !empty($employee->employee_id) ? $user->employeeIdFormat($employee->employee_id) : __('Failed to get employee id') }}
-                                                </a>
-                                            </td>
-                                            <td>{{ $employee->name ?? __('Failed to get employee name') }}</td>
-                                            <td>{{ $employee->branch->name ?? __('Failed to get branch name') }}</td>
-                                            <td>{{ $employee->department->name ?? __('Failed to get department name') }}</td>
-                                            <td>
-                                                <div class="{{ VC::RW }}">
-                                                    <div class="{{ VC::CM3 }}">
-                                                        <div class="{{ VC::CST_CTL }} {{ VC::CST_CB }}">
-                                                            <input type="checkbox"
-                                                                class="form-check-input present"
-                                                                name="present-{{ $employee->id }}"
-                                                                id="present{{ $employee->id }}"
-                                                                {{ optional($attendance)->status=='Present'?'checked':'' }}>
-                                                            <label class="{{ VC::CST_LB }}" for="present{{ $employee->id }}"></label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-8 {{ $attendance?'':'d-none' }}">
-                                                        <div class="{{ VC::RW }}">
-                                                            <label class="{{ VC::CM3 }} {{ VC::FM_LB }}">{{ __('In') }}</label>
-                                                            <div class="{{ VC::CM4 }}">
-                                                                <input type="time"
-                                                                    class="{{ VC::FM_CT }}"
-                                                                    name="in-{{ $employee->id }}"
-                                                                    value="{{ $attendance->clock_in!='00:00:00'?$attendance->clock_in:Utility::getValByName('company_start_time') }}">
-                                                            </div>
-                                                            <label class="{{ VC::CM2 }} {{ VC::FM_LB }}">{{ __('Out') }}</label>
-                                                            <div class="{{ VC::CM4 }}">
-                                                                <input type="time"
-                                                                    class="{{ VC::FM_CT }}"
-                                                                    name="out-{{ $employee->id }}"
-                                                                    value="{{ $attendance->clock_out!='00:00:00'?$attendance->clock_out:Utility::getValByName('company_end_time') }}">
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                            <td colspan="5">
+                                                <div class="text-center">
+                                                    {{ __('No employees found for the selected criteria.') }}
                                                 </div>
                                             </td>
                                         </tr>
-                                        @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                    try {
-                                                        const el = document.getElementById('{{ $empAnchorId }}');
-                                                        if (!el) { return; }
-                                                        if (el.getAttribute('data-listener-active') === 'true') { return; }
-                                                        el.setAttribute('data-listener-active', 'true');
-                                                        el.addEventListener('click', (e) => {
-                                                            try {
-                                                                const href = el.getAttribute('href') ?? '#';
-                                                                const url = el.getAttribute('data-url') ?? href ?? '#';
-                                                                if (url !== '#' && href !== '#') { return; }
-                                                                e.preventDefault();
-                                                                const msg = el.getAttribute('data-guard-msg') ?? 'Show employee route is unavailable. Please contact technical support or your domain administrator.';
-                                                                const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
-                                                                let container = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (hasBootstrap) {
-                                                                    const toast = document.createElement('div');
-                                                                    toast.className = 'toast';
-                                                                    toast.setAttribute('role', 'alert');
-                                                                    toast.setAttribute('aria-live', 'assertive');
-                                                                    toast.setAttribute('aria-atomic', 'true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toast.appendChild(body);
-                                                                    container.appendChild(toast);
-                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                el.setAttribute('data-failed-route', 'true');
-                                                            } catch (err) {}
-                                                        });
-                                                    } catch (err) {}
-                                                })();
-                                            </script>
-                                        @endpush
-                                    @endforeach
+                                    @endif
                                 </tbody>
                             </table>
                         </div>

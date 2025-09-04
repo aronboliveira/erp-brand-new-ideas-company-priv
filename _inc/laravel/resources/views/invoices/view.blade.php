@@ -1113,15 +1113,15 @@ Object.keys(t).forEach(
                                                 $totalDiscount=0;
                                                 $taxesData=[];
                                             @endphp
-                                            @foreach($iteams as $key =>$iteam)
-                                                @if(!empty($iteam->tax))
+                                            @foreach($items as $key =>$item)
+                                                @if(!empty($item->tax))
                                                     @php
-                                                        $taxes=Utility::tax($iteam->tax);
-                                                        $totalQuantity+=$iteam->quantity;
-                                                        $totalRate+=$iteam->price;
-                                                        $totalDiscount+=$iteam->discount;
+                                                        $taxes=Utility::tax($item->tax);
+                                                        $totalQuantity+=$item->quantity;
+                                                        $totalRate+=$item->price;
+                                                        $totalDiscount+=$item->discount;
                                                         foreach($taxes as $taxe){
-                                                            $taxDataPrice=Utility::taxRate($taxe->rate,$iteam->price,$iteam->quantity,$iteam->discount);
+                                                            $taxDataPrice=Utility::taxRate($taxe->rate,$item->price,$item->quantity,$item->discount);
                                                             if (array_key_exists($taxe->name,$taxesData))
                                                             {
                                                                 $taxesData[$taxe->name] = $taxesData[$taxe->name]+$taxDataPrice;
@@ -1136,24 +1136,24 @@ Object.keys(t).forEach(
                                                 <tr>
                                                     <td>{{$key+1}}</td>
                                                     @php
-                                                        $productName = $iteam->product;
+                                                        $productName = $item->product;
                                                         $unit = $productName->unit_id;
                                                         $unitName = App\Models\ProductServiceUnit::find($unit);
                                                     @endphp
                                                     <td>{{!empty($productName)?$productName->name:''}}</td>
-                                                    <td>{{$iteam->quantity . ' (' . $unitName->name . ')'}}</td>
-                                                    <td>{{$user?->priceFormat($iteam->price)}}</td>
-                                                    <td>{{$user?->priceFormat($iteam->discount)}}</td>
+                                                    <td>{{$item->quantity . ' (' . $unitName->name . ')'}}</td>
+                                                    <td>{{$user?->priceFormat($item->price)}}</td>
+                                                    <td>{{$user?->priceFormat($item->discount)}}</td>
     
                                                     <td>
-                                                        @if(!empty($iteam->tax))
+                                                        @if(!empty($item->tax))
                                                             <table>
                                                                 @php
                                                                     $totalTaxRate = 0;
                                                                 @endphp
                                                                 @foreach($taxes as $tax)
                                                                     @php
-                                                                        $taxPrice=Utility::taxRate($tax->rate,$iteam->price,$iteam->quantity,$iteam->discount) ;
+                                                                        $taxPrice=Utility::taxRate($tax->rate,$item->price,$item->quantity,$item->discount) ;
                                                                         $totalTaxPrice+=$taxPrice;
                                                                     @endphp
                                                                     <tr>
@@ -1167,8 +1167,8 @@ Object.keys(t).forEach(
                                                         @endif
                                                     </td>
     
-                                                    <td>{{!empty($iteam->description)?$iteam->description:'-'}}</td>
-                                                    <td class="{{ VC::TXT_END }}">{{$user?->priceFormat(($iteam->price * $iteam->quantity - $iteam->discount) + $totalTaxPrice)}}</td>
+                                                    <td>{{!empty($item->description)?$item->description:'-'}}</td>
+                                                    <td class="{{ VC::TXT_END }}">{{$user?->priceFormat(($item->price * $item->quantity - $item->discount) + $totalTaxPrice)}}</td>
                                                 </tr>
                                             @endforeach
                                             <tfoot>

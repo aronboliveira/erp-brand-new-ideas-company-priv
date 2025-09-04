@@ -527,7 +527,7 @@ final class InvoiceController extends Controller
             $viewData = [
                 self::SINGULAR       => $invoice,
                 PermissionsConstants::CT      => $invoice->customer,
-                'iteams'        => $invoice->items,
+                'items'        => $invoice->items,
                 'invoicePayment' => $invoicePayment,
                 DatabaseConstants::TABLE_CUSTOM_FIELDS  => CustomField::where(
                     DatabaseConstants::TABLE_CREATOR,
@@ -606,7 +606,7 @@ final class InvoiceController extends Controller
         return response()->view($view, [
             self::SINGULAR => $invoice,
             PermissionsConstants::CT => $invoice->customer,
-            'iteams' => $invoice->items,
+            'items' => $invoice->items,
             'user' => $owner,
         ]);
     }
@@ -928,7 +928,7 @@ final class InvoiceController extends Controller
             DatabaseConstants::TABLE_SETTINGS               => $settings,
             self::SINGULAR                => $invoice,
             PermissionsConstants::CT               => $invoice->customer,
-            'iteams'                 => $invoice->items,
+            'items'                 => $invoice->items,
             'invoicePayment'         => InvoicePayment::where('invoice_id', $id)->get(),
             DatabaseConstants::TABLE_CUSTOM_FIELDS           => CustomField::where('module', self::SINGULAR)->get(),
             'user'                   => User::find($invoice->created_by),
