@@ -1,6 +1,7 @@
 @php
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\Str;
+    use Collective\Html\FormFacade as Form;
     use App\Models\Utility;
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
@@ -65,77 +66,42 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($types as $type)
-                                    @php
-                                        $editName     = ViewsConstants::COA_TP . '.edit';
-                                        $editRoute    = Route::has($editName)
-                                            ? route($editName, $type->id)
-                                            : (Route::has(Str::kebab($editName))
-                                                ? route(Str::kebab($editName), $type->id)
-                                                : '#');
-                                        $editGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::COA_TP,
-                                            'chart_of_account_type_edit_route_unavailable'
-                                        ) ?? 'Edit Chart of Account Type route is unavailable. Please contact technical support or your domain administrator.';
-                                        $destroyName     = ViewsConstants::COA_TP . '.destroy';
-                                        $destroyRoute    = Route::has($destroyName)
-                                            ? route($destroyName, $type->id)
-                                            : (Route::has(Str::kebab($destroyName))
-                                                ? route(Str::kebab($destroyName), $type->id)
-                                                : '#');
-                                        $destroyGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::COA_TP,
-                                            'chart_of_account_type_destroy_route_unavailable'
-                                        ) ?? 'Delete Chart of Account Type route is unavailable. Please contact technical support or your domain administrator.';
-                                        $deleteFormId    = 'delete-form-' . $type->id;
-                                    @endphp
-                                    <tr>
-                                        <td>{{ $type->name }}</td>
-                                        <td class="Action">
-                                            <span>
-                                                @can('edit constant chart of account type')
-                                                    <a
-                                                        href="#"
-                                                        class="edit-icon"
-                                                        data-url="{{ $editRoute }}"
-                                                        data-guard-msg="{{ $editGuardMsg }}"
-                                                        data-listener-alias="edit-type"
-                                                        data-ajax-popup="true"
-                                                        data-title="{{ __('Edit Unit') }}"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ __('Edit') }}"
-                                                    >
-                                                        <i class="{{ VC::TI_PC_WT }}"></i>
-                                                    </a>
-                                                @endcan
-
-                                                @can('delete constant chart of account type')
-                                                    {!! Collective\Html\FormFacade::open([
-                                                        'method'         => 'DELETE',
-                                                        'route'          => [ViewsConstants::COA_TP . '.destroy', $type->id],
-                                                        'id'             => $deleteFormId,
-                                                        'data-url'       => $destroyRoute,
-                                                        'data-guard-msg' => $destroyGuardMsg,
-                                                    ]) !!}
-                                                    <a
-                                                        href="#"
-                                                        class="delete-icon"
-                                                        data-listener-alias="delete-type"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ __('Delete') }}"
-                                                        data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                        data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
-                                                    >
-                                                        <i class="ti ti-trash"></i>
-                                                    </a>
-                                                    {!! Collective\Html\FormFacade::close() !!}
-                                                @endcan
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
+                                @php
+                                    $typesIterable = (is_array($types ?? null) && count($types ?? [])) || (($types ?? null) instanceof Collection && ($types)->isNotEmpty());
+                                @endphp
+                                @if($typesIterable)
+                                    @foreach($types as $type)
+                                        @php
+                                            $typeId = data_get($type, 'id');
+                                        @endphp
+                                        <tr>
+                                            <td>{{ !empty(data_get($type, 'name')) ? data_get($type, 'name') : __('No chart of account type name available') }}</td>
+                                            <td class="Action">
+                                                <span>
+                                                    @can('edit constant chart of account type')
+                                                        @php
+                                                            $editRoute = !empty($typeId) && Route::has(ViewsConstants::COA_TP . '.edit') ? route(ViewsConstants::COA_TP . '.edit', $typeId) : '#';
+                                                            $editGuardMsg = Utility::fetchLinkMessage($lang ?? null, ViewsConstants::COA_TP, 'chart_of_account_type_edit_route_unavailable') ?? __('Failed to open chart of account type editor');
+                                                        @endphp
+                                                        <a href="{{ $editRoute }}" class="edit-icon{{ $editRoute === '#' ? ' disabled' : '' }}" data-url="{{ $editRoute }}" data-guard-msg="{{ $editGuardMsg }}" data-listener-alias="edit-type" data-ajax-popup="true" data-title="{{ __('Edit Unit') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
+                                                    @endcan
+                                                    @can('delete constant chart of account type')
+                                                        @php
+                                                            $destroyRoute = !empty($typeId) && Route::has(ViewsConstants::COA_TP . '.destroy') ? route(ViewsConstants::COA_TP . '.destroy', $typeId) : '#';
+                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang ?? null, ViewsConstants::COA_TP, 'chart_of_account_type_destroy_route_unavailable') ?? __('Failed to open chart of account type deletion');
+                                                            $deleteFormId = 'delete-form-' . ($typeId ?? 'x');
+                                                        @endphp
+                                                        {!! Form::open(['method' => 'DELETE', 'url' => $destroyRoute, 'id' => $deleteFormId, 'data-url' => $destroyRoute, 'data-guard-msg' => $destroyGuardMsg]) !!}
+                                                            <a href="#" class="delete-icon{{ $destroyRoute === '#' ? ' disabled' : '' }}" data-listener-alias="delete-type" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang ?? null, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang ?? null, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"><i class="ti ti-trash"></i></a>
+                                                        {!! Form::close() !!}
+                                                    @endcan
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr><td colspan="2" class="text-center text-dark">{{ __('No chart of account types available') }}</td></tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -146,46 +112,5 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const bindGuard = (el, event, urlAttr='data-url', msgAttr='data-guard-msg') => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(event, e => {
-                    try {
-                        const url = el.getAttribute(urlAttr) ?? '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg           = el.getAttribute(msgAttr) ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch {}
-                });
-            };
-            bindGuard(document.getElementById('createTypeBtn'), 'click');
-            document.querySelectorAll('[data-listener-alias="edit-type"]').forEach(el => bindGuard(el, 'click'));
-            document.querySelectorAll('[data-listener-alias="delete-type"]').forEach(el => bindGuard(el, 'click'));
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/chartOfAccounts/store.js') }}"></script>
 @endpush

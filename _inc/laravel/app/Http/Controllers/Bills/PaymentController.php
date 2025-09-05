@@ -8,7 +8,7 @@ use App\Config\Constants\{
     PermissionsConstants,
     SettingsConstants,
     UsersConstants,
-    ViewsConstants
+    ViewsConstants as VW
 };
 use App\Models\{
     BankAccount,
@@ -21,12 +21,16 @@ use App\Models\{
     Utility,
     Vendor
 };
+use App\Traits\ChecksLogin;
+use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Validator};
 
 final class PaymentController extends Controller
 {
+    use ChecksLogin, ChecksPermissions;
+
     private const PERM_MANAGE = PermissionsConstants::MNG_PMT;
     private const PERM_CREATE = 'create payment';
     private const PERM_EDIT  = 'edit payment';
@@ -39,331 +43,358 @@ final class PaymentController extends Controller
 
     public function index(Request $req)
     {
-        $action = 'index';
-        Log::info(__CLASS__ . "::{$action} start", [
-            UsersConstants::COL_USER_ID => $req->user()->id,
-            'filters' => $req->only('date', 'vendor', 'account', 'category'),
-        ]);
-        if ($deny = $this->deny($req, self::PERM_MANAGE, $action))
-            return $deny;
-        $uid = $req->user()->creatorId();
-        $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)
-            ->pluck(UsersConstants::COL_NM, 'id')
-            ->prepend('Select Vendor', '');
-        $accounts = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $uid)
-            ->pluck('holder_name', 'id')
-            ->prepend('Select Account', '');
-        $cats    = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)
-            ->where('type', 'expense')
-            ->pluck('name', 'id')
-            ->prepend('Select Category', '');
-        $q = Payment::where(DatabaseConstants::TABLE_CREATOR, $uid);
-        if ($req->filled('date')) {
-            $range = preg_split('/\s+to\s+/i', $req->date);
-            $q->whereBetween('date', count($range) > 1 ? $range : [$req->date, $req->date]);
-        }
-        if ($req->filled('vendor'))   $q->where('vendor_id',  $req->vendor);
-        if ($req->filled('account'))  $q->where('account_id', $req->account);
-        if ($req->filled('category')) $q->where('category_id', $req->category);
-        $payments = $q->get();
-        Log::info(__CLASS__ . "::{$action} loaded", ['count' => $payments->count()]);
-        return view(ViewsConstants::PAY . '.index', compact('payments', 'vendors', 'accounts', 'cats'));
+        $action = __METHOD__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($req, $action, $cls) {
+            Log::debug($action . ' start', [
+                UsersConstants::COL_USER_ID => $req->user()?->id ?? null,
+                'filters' => $req->only('date', 'vendor', 'account', 'category'),
+            ]);
+
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($deny = self::guard($req, self::PERM_MANAGE, VW::PAY . '.index')) !== true) return $deny;
+
+            $uid = $req->user()?->creatorId() ?? null;
+
+            $t = microtime(true);
+            $vendors  = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->pluck(UsersConstants::COL_NM, 'id')
+                ->prepend('Select Vendor', '');
+            $accounts = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->pluck('holder_name', 'id')
+                ->prepend('Select Account', '');
+            $cats     = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->where('type', 'expense')
+                ->pluck('name', 'id')
+                ->prepend('Select Category', '');
+            $this->logExecutionTime($t, $action, 'loadFilters');
+
+            $t2 = microtime(true);
+            $payments = Payment::where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->when($req->filled('date'), function ($q) use ($req) {
+                    $range = preg_split('/\s+to\s+/i', $req->date);
+                    $q->whereBetween('date', count($range) > 1 ? $range : [$req->date, $req->date]);
+                })
+                ->when($req->filled('vendor'), fn($q) => $q->where('vendor_id', $req->vendor))
+                ->when($req->filled('account'), fn($q) => $q->where('account_id', $req->account))
+                ->when($req->filled('category'), fn($q) => $q->where('category_id', $req->category))
+                ->get();
+            $this->logExecutionTime($t2, $action, 'loadPayments');
+
+            Log::info($cls . '::index loaded', ['count' => $payments->count()]);
+            return view(VW::PAY . '.index', compact('payments', 'vendors', 'accounts', 'cats'));
+        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
-    /**
-     * GET /payments/create
-     */
     public function create(Request $req)
     {
-        $action = 'create';
-        Log::info(__CLASS__ . "::{$action} start", [UsersConstants::COL_USER_ID => $req->user()->id]);
-        if ($deny = $this->deny($req, self::PERM_CREATE, $action))
-            return response()->json(['error' => __('Permission denied.')], 401);
-        $uid = $req->user()->creatorId();
-        $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
-        $cats    = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)
-            ->whereNotIn('type', ['product & service', 'income'])
-            ->pluck('name', 'id')
-            ->prepend('Select Category', '');
-        $accounts = BankAccount::selectRaw("id, CONCAT(bank_name,' ',holder_name) as name")
-            ->where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id');
-        $chartAcc = ChartOfAccount::selectRaw("id, CONCAT(code,' - ',name) as code_name")
-            ->where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
-        return view(ViewsConstants::PAY . '.create', compact('vendors', 'cats', 'accounts', 'chartAcc'));
+        $action = __METHOD__;
+        return $this->measureProfile($action, function () use ($req, $action) {
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($deny = self::guard($req, self::PERM_CREATE, VW::PAY . '.index')) !== true) return $deny;
+
+            $uid = $req->user()?->creatorId() ?? null;
+
+            $t = microtime(true);
+            $vendors  = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
+            $cats     = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->whereNotIn('type', ['product & service', 'income'])
+                ->pluck('name', 'id')
+                ->prepend('Select Category', '');
+            $accounts = BankAccount::selectRaw("id, CONCAT(bank_name,' ',holder_name) as name")
+                ->where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->pluck('name', 'id');
+            $chartAcc = ChartOfAccount::selectRaw("id, CONCAT(code,' - ',name) as code_name")
+                ->where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->pluck('code_name', 'id')
+                ->prepend('Select Account', '');
+            $this->logExecutionTime($t, $action, 'loadCreateFormData');
+
+            return view(VW::PAY . '.create', compact('vendors', 'cats', 'accounts', 'chartAcc'));
+        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
-    /**
-     * POST /payments
-     */
     public function store(Request $req): RedirectResponse
     {
-        $action = 'store';
-        Log::info(__CLASS__ . "::{$action} start", [
-            UsersConstants::COL_USER_ID => $req->user()->id, 'input' => $req->all()
-        ]);
-        if ($deny = $this->deny($req, self::PERM_CREATE, $action)) {
-            return $deny;
-        }
-        if ($resp = $this->validateInput($req, [
-            'date'       => 'required|date',
-            'amount'     => 'required|numeric|min:0.01',
-            'account_id' => 'required|exists:bank_accounts,id',
-            'category_id' => 'required|exists:product_service_categories,id',
-        ], $action)) {
-            return $resp;
-        }
+        $action = __METHOD__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($req, $action, $cls) {
+            Log::debug($action . ' start', [
+                UsersConstants::COL_USER_ID => $req->user()?->id ?? null,
+                'input' => $req->all()
+            ]);
 
-        try {
-            $payment = DB::transaction(function () use ($req, $action) {
-                // create payment
-                $p = new Payment([
-                    'date'           => $req->date,
-                    'amount'         => $req->amount,
-                    'account_id'     => $req->account_id,
-                    'vendor_id'      => $req->input('vendor_id', 0),
-                    'category_id'    => $req->category_id,
-                    'payment_method' => 0,
-                    'reference'      => $req->reference,
-                    'description'    => $req->description,
-                    DatabaseConstants::TABLE_CREATOR     => $req->user()->creatorId(),
-                ]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($deny = self::guard($req, self::PERM_CREATE, VW::PAY . '.index')) !== true) return $deny;
+            if ($resp = $this->validateInput($req, [
+                'date'         => 'required|date',
+                'amount'       => 'required|numeric|min:0.01',
+                'account_id'   => 'required|exists:bank_accounts,id',
+                'category_id'  => 'required|exists:product_service_categories,id',
+            ], 'store')) return $resp;
 
-                // handle receipt
-                if ($req->hasFile('add_receipt')) {
-                    $file = $req->file('add_receipt');
-                    $safe = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                    $name = time() . '_' . $safe;
-                    $upload = Utility::uploadFile($req, 'add_receipt', $name, 'uploads/payment', []);
-                    if (!$upload['flag']) {
-                        throw new \RuntimeException($upload['msg']);
+            try {
+                $t = microtime(true);
+                DB::transaction(function () use ($req, $cls) {
+                    $p = new Payment([
+                        'date'           => $req->date,
+                        'amount'         => $req->amount,
+                        'account_id'     => $req->account_id,
+                        'vendor_id'      => $req->input('vendor_id') ?? 0,
+                        'category_id'    => $req->category_id,
+                        'payment_method' => 0,
+                        'reference'      => $req->reference,
+                        'description'    => $req->description,
+                        DatabaseConstants::TABLE_CREATOR => $req->user()?->creatorId() ?? null,
+                    ]);
+
+                    if ($req->hasFile('add_receipt')) {
+                        $file = $req->file('add_receipt');
+                        $safe = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+                        $name = time() . '_' . $safe;
+                        $upload = Utility::uploadFile($req, 'add_receipt', $name, 'uploads/payment', []);
+                        if (!($upload['flag'] ?? false)) {
+                            throw new \RuntimeException($upload['msg'] ?? 'Upload failed');
+                        }
+                        $p->add_receipt = $name;
                     }
-                    $p->add_receipt = $name;
-                }
 
-                $p->save();
-                Log::info(__CLASS__ . "::{$action} payment saved", ['payment_id' => $p->id]);
+                    $p->save();
+                    Log::info($cls . '::store payment saved', ['payment_id' => $p->id]);
 
-                // ledger
-                BillAccount::create([
-                    'chart_account_id' => $req->account_id,
-                    'price'           => $p->amount,
-                    'description'     => $p->description,
-                    'type'            => 'Payment',
-                    'ref_id'          => $p->id,
+                    BillAccount::create([
+                        'chart_account_id' => $req->account_id,
+                        'price'            => $p->amount,
+                        'description'      => $p->description,
+                        'type'             => 'Payment',
+                        'ref_id'           => $p->id,
+                    ]);
+
+                    $cat = ProductServiceCategory::find($p->category_id);
+                    $p->fill([
+                        'payment_id' => $p->id,
+                        'type'       => 'Payment',
+                        'category'   => $cat?->name ?? null,
+                        UsersConstants::COL_USER_ID => $p->vendor_id,
+                        'user_type'  => 'Vendor',
+                        'account'    => $p->account_id,
+                    ]);
+                    Transaction::addTransaction($p);
+
+                    if ($p->vendor_id) {
+                        Utility::updateUserBalance('vendor', $p->vendor_id, $p->amount, 'debit');
+                    }
+                    Utility::bankAccountBalance($p->account_id, $p->amount, 'debit');
+
+                    $settings = Utility::settings($req->user()?->creatorId() ?? null);
+                    if (!empty($settings['twilio_payment_notification'] ?? null) && $p->vendor_id) {
+                        Utility::sendTwilioMsg(
+                            Vendor::find($p->vendor_id)?->contact ?? '',
+                            'bill_payment',
+                            [
+                                'payment_amount' => $req->user()?->priceFormat($p->amount) ?? (string) $p->amount,
+                                'vendor_name'    => Vendor::find($p->vendor_id)?->name ?? '',
+                                'payment_type'   => 'Payment',
+                            ]
+                        );
+                    }
+                });
+                $this->logExecutionTime($t, $action, 'storeTransaction');
+
+                return redirect()->route(VW::PAY . '.index')
+                    ->with('success', __('Payment successfully created'));
+            } catch (\Throwable $e) {
+                Log::error($cls . '::store failed', [
+                    'error' => $e->getMessage(),
+                    'input' => $req->all(),
                 ]);
-
-                // transaction
-                $cat = ProductServiceCategory::find($p->category_id);
-                $p->fill([
-                    'payment_id' => $p->id,
-                    'type'      => 'Payment',
-                    'category'  => $cat?->name,
-                    UsersConstants::COL_USER_ID   => $p->vendor_id,
-                    'user_type' => 'Vendor',
-                    'account'   => $p->account_id,
+                Log::channel(SettingsConstants::ERR_TRACE)->debug($cls . '::store failed', [
+                    'error' => $e->getMessage(),
+                    'stack' => $e->getTraceAsString(),
+                    'input' => $req->all(),
                 ]);
-                Transaction::addTransaction($p);
-
-                // balances
-                if ($p->vendor_id) {
-                    Utility::userBalance('vendor', $p->vendor_id, $p->amount, 'debit');
-                }
-                Utility::bankAccountBalance($p->account_id, $p->amount, 'debit');
-
-                // twilio notification
-                $settings = Utility::settings($req->user()->creatorId());
-                if (!empty($settings['twilio_payment_notification']) && $p->vendor_id) {
-                    Utility::sendTwilioMsg(
-                        $req->contact,
-                        'bill_payment',
-                        [
-                            'payment_amount' => $req->user()->priceFormat($p->amount),
-                            'vendor_name'   => Vendor::find($p->vendor_id)?->name,
-                            'payment_type'  => 'Payment',
-                        ]
-                    );
-                }
-
-                return $p;
-            });
-            return redirect()->route(ViewsConstants::PAY . '.index')
-                ->with('success', __('Payment successfully created'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} failed", [
-                'error'      => $e->getMessage(),
-                'input'      => $req->all(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug(__CLASS__ . "::{$action} failed", [
-                'error'      => $e->getMessage(),
-                'stack'      => $e->getTraceAsString(),
-                'input'      => $req->all(),
-            ]);
-            return defaultUndefinedException($req, $e, __CLASS__ . "::{$action}");
-        }
+                return defaultUndefinedException($req, $e, $cls . '::store');
+            }
+        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
-    /**
-     * GET /payments/{payment}/edit
-     */
     public function edit(Request $req, Payment $payment)
     {
-        $action = 'edit';
-        Log::info(__CLASS__ . "::{$action} start", ['payment_id' => $payment->id]);
-        if ($deny = $this->deny($req, self::PERM_EDIT, $action)) {
-            return response()->json(['error' => __('Permission denied.')], 401);
-        }
+        $action = __METHOD__;
+        return $this->measureProfile($action, function () use ($req, $payment, $action) {
+            Log::debug($action . ' start', ['payment_id' => $payment->id ?? null]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($deny = self::guard($req, self::PERM_EDIT, VW::PAY . '.index')) !== true) return $deny;
 
-        $uid = $req->user()->creatorId();
-        $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
-        $cats    = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)
-            ->whereNotIn('type', ['product & service', 'income'])
-            ->pluck('name', 'id')->prepend('Select Category', '');
-        $accounts = BankAccount::selectRaw("id, CONCAT(bank_name,' ',holder_name) AS name")
-            ->where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id');
-        $chartAcc = ChartOfAccount::selectRaw("id, CONCAT(code,' - ',name) AS code_name")
-            ->where(DatabaseConstants::TABLE_CREATOR, $uid)
-            ->pluck('code_name', 'id')
-            ->prepend('Select Account', '');
+            $uid = $req->user()?->creatorId() ?? null;
 
-        return view(ViewsConstants::PAY . '.edit', compact('payment', 'vendors', 'cats', 'accounts', 'chartAcc'));
+            $t = microtime(true);
+            $vendors  = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('--', 0);
+            $cats     = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->whereNotIn('type', ['product & service', 'income'])
+                ->pluck('name', 'id')
+                ->prepend('Select Category', '');
+            $accounts = BankAccount::selectRaw("id, CONCAT(bank_name,' ',holder_name) AS name")
+                ->where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->pluck('name', 'id');
+            $chartAcc = ChartOfAccount::selectRaw("id, CONCAT(code,' - ',name) AS code_name")
+                ->where(DatabaseConstants::TABLE_CREATOR, $uid)
+                ->pluck('code_name', 'id')
+                ->prepend('Select Account', '');
+            $this->logExecutionTime($t, $action, 'loadEditFormData');
+
+            return view(VW::PAY . '.edit', compact('payment', 'vendors', 'cats', 'accounts', 'chartAcc'));
+        }, ['payment_id' => $payment->id ?? null]);
     }
 
-    /**
-     * PUT /payments/{payment}
-     */
     public function update(Request $req, Payment $payment): RedirectResponse
     {
-        $action = 'update';
-        Log::info(__CLASS__ . "::{$action} start", [
-            'payment_id' => $payment->id, 'input' => $req->all()
-        ]);
-        if ($deny = $this->deny($req, self::PERM_EDIT, $action)) {
-            return $deny;
-        }
-        if ($resp = $this->validateInput($req, [
-            'date'        => 'required|date',
-            'amount'      => 'required|numeric|min:0.01',
-            'account_id'  => 'required|exists:bank_accounts,id',
-            'vendor_id'   => 'required|exists:vendors,id',
-            'category_id' => 'required|exists:product_service_categories,id',
-        ], $action)) {
-            return $resp;
-        }
+        $action = __METHOD__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($req, $payment, $action, $cls) {
+            Log::debug($action . ' start', [
+                'payment_id' => $payment->id ?? null,
+                'input' => $req->all()
+            ]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($deny = self::guard($req, self::PERM_EDIT, VW::PAY . '.index')) !== true) return $deny;
+            if ($resp = $this->validateInput($req, [
+                'date'        => 'required|date',
+                'amount'      => 'required|numeric|min:0.01',
+                'account_id'  => 'required|exists:bank_accounts,id',
+                'vendor_id'   => 'required|exists:vendors,id',
+                'category_id' => 'required|exists:product_service_categories,id',
+            ], 'update')) return $resp;
 
-        try {
-            DB::transaction(function () use ($req, $payment, $action) {
-                // rollback old
-                if ($payment->vendor_id) {
-                    Utility::userBalance('vendor', $payment->vendor_id, $payment->amount, 'credit');
-                }
-                Utility::bankAccountBalance($payment->account_id, $payment->amount, 'credit');
+            try {
+                $t = microtime(true);
+                DB::transaction(function () use ($req, $payment, $cls) {
+                    if ($payment->vendor_id) {
+                        Utility::updateUserBalance('vendor', $payment->vendor_id, $payment->amount, 'credit');
+                    }
+                    Utility::bankAccountBalance($payment->account_id, $payment->amount, 'credit');
 
-                // update fields
-                $payment->fill($req->only(
-                    'date',
-                    'amount',
-                    'account_id',
-                    'vendor_id',
-                    'category_id',
-                    'reference',
-                    'description'
-                ));
+                    $payment->fill($req->only(
+                        'date',
+                        'amount',
+                        'account_id',
+                        'vendor_id',
+                        'category_id',
+                        'reference',
+                        'description'
+                    ));
 
-                // replace receipt
-                if ($req->hasFile('add_receipt')) {
+                    if ($req->hasFile('add_receipt')) {
+                        if ($payment->add_receipt) {
+                            Utility::changeStorageLimit(
+                                $req->user()?->creatorId() ?? null,
+                                "/uploads/payment/{$payment->add_receipt}"
+                            );
+                        }
+                        $file = $req->file('add_receipt');
+                        $safe = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
+                        $name = time() . '_' . $safe;
+                        $upload = Utility::uploadFile($req, 'add_receipt', $name, 'uploads/payment', []);
+                        if (!($upload['flag'] ?? false)) {
+                            throw new \RuntimeException($upload['msg'] ?? 'Upload failed');
+                        }
+                        $payment->add_receipt = $name;
+                    }
+
+                    $payment->save();
+                    Log::info($cls . '::update saved', ['payment_id' => $payment->id ?? null]);
+
+                    $cat = ProductServiceCategory::find($payment->category_id);
+                    $payment->fill([
+                        'category' => $cat?->name ?? null,
+                        'account'  => $payment->account_id,
+                    ]);
+                    Transaction::editTransaction($payment);
+
+                    if ($payment->vendor_id) {
+                        Utility::updateUserBalance('vendor', $payment->vendor_id, $payment->amount, 'debit');
+                    }
+                    Utility::bankAccountBalance($payment->account_id, $payment->amount, 'debit');
+                });
+                $this->logExecutionTime($t, $action, 'updateTransaction');
+
+                return redirect()->route(VW::PAY . '.index')
+                    ->with('success', __('Payment Updated Successfully'));
+            } catch (\Throwable $e) {
+                Log::error($cls . '::update failed', [
+                    'payment_id' => $payment->id ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug($cls . '::update failed', [
+                    'payment_id' => $payment->id ?? null,
+                    'error' => $e->getMessage(),
+                    'stack' => $e->getTraceAsString(),
+                ]);
+                return defaultUndefinedException($req, $e, $cls . '::update');
+            }
+        }, ['payment_id' => $payment->id ?? null]);
+    }
+
+    public function destroy(Request $req, Payment $payment): RedirectResponse
+    {
+        $action = __METHOD__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($req, $payment, $action, $cls) {
+            Log::debug($action . ' start', ['payment_id' => $payment->id ?? null]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($deny = self::guard($req, self::PERM_DELETE, VW::PAY . '.index')) !== true) return $deny;
+
+            if (($payment[DatabaseConstants::TABLE_CREATOR] ?? null) !== ($req->user()?->creatorId() ?? null)) {
+                Log::warning($cls . '::destroy forbidden owner mismatch', [
+                    'payment_id' => $payment->id ?? null,
+                    UsersConstants::COL_USER_ID => $req->user()?->id ?? null
+                ]);
+                return redirect()->back()->with('error', __('Permission denied.'));
+            }
+
+            try {
+                $t = microtime(true);
+                DB::transaction(function () use ($req, $payment, $cls) {
                     if ($payment->add_receipt) {
                         Utility::changeStorageLimit(
-                            $req->user()->creatorId(),
+                            $req->user()?->creatorId() ?? null,
                             "/uploads/payment/{$payment->add_receipt}"
                         );
                     }
-                    $file = $req->file('add_receipt');
-                    $safe = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-                    $name = time() . '_' . $safe;
-                    $upload = Utility::uploadFile($req, 'add_receipt', $name, 'uploads/payment', []);
-                    if (!$upload['flag']) {
-                        throw new \RuntimeException($upload['msg']);
+
+                    $pid = $payment->id;
+                    $vid = $payment->vendor_id;
+                    $amt = $payment->amount;
+                    $aid = $payment->account_id;
+
+                    $payment->delete();
+                    Transaction::destroyTransaction($pid, 'Payment', 'Vendor');
+
+                    if ($vid) {
+                        Utility::updateUserBalance('vendor', $vid, $amt, 'credit');
                     }
-                    $payment->add_receipt = $name;
-                }
+                    Utility::bankAccountBalance($aid, $amt, 'credit');
 
-                $payment->save();
-                Log::info(__CLASS__ . "::{$action} saved", ['payment_id' => $payment->id]);
+                    Log::info($cls . '::destroy completed', ['payment_id' => $pid]);
+                });
+                $this->logExecutionTime($t, $action, 'destroyTransaction');
 
-                // update transaction
-                $cat = ProductServiceCategory::find($payment->category_id);
-                $payment->fill([
-                    'category' => $cat?->name,
-                    'account' => $payment->account_id,
+                return redirect()->route(VW::PAY . '.index')
+                    ->with('success', __('Payment successfully deleted.'));
+            } catch (\Throwable $e) {
+                Log::error($cls . '::destroy failed', [
+                    'payment_id' => $payment->id ?? null,
+                    'error' => $e->getMessage(),
                 ]);
-                Transaction::editTransaction($payment);
-                if ($payment->vendor_id) {
-                    Utility::userBalance('vendor', $payment->vendor_id, $payment->amount, 'debit');
-                }
-                Utility::bankAccountBalance($payment->account_id, $payment->amount, 'debit');
-            });
-            return redirect()->route(ViewsConstants::PAY . '.index')
-                ->with('success', __('Payment Updated Successfully'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} failed", [
-                'payment_id' => $payment->id,
-                'error'     => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug(__CLASS__ . "::{$action} failed", [
-                'payment_id' => $payment->id,
-                'error'     => $e->getMessage(),
-                'stack'     => $e->getTraceAsString(),
-            ]);
-            return defaultUndefinedException($req, $e, __CLASS__ . "::{$action}");
-        }
-    }
-
-    /**
-     * DELETE /payments/{payment}
-     */
-    public function destroy(Request $req, Payment $payment): RedirectResponse
-    {
-        $action = 'destroy';
-        Log::info(__CLASS__ . "::{$action} start", ['payment_id' => $payment->id]);
-        if ($deny = $this->deny($req, self::PERM_DELETE, $action))
-            return $deny;
-        if ($payment->created_by !== $req->user()->creatorId()) {
-            Log::warning(__CLASS__ . "::{$action} forbidden owner mismatch", [
-                'payment_id' => $payment->id, UsersConstants::COL_USER_ID => $req->user()->id
-            ]);
-            return redirect()->back()->with('error', __('Permission denied.'));
-        }
-        try {
-            DB::transaction(function () use ($req, $payment, $action) {
-                if ($payment->add_receipt)
-                    Utility::changeStorageLimit(
-                        $req->user()->creatorId(),
-                        "/uploads/payment/{$payment->add_receipt}"
-                    );
-                $pid = $payment->id;
-                $vid = $payment->vendor_id;
-                $amt = $payment->amount;
-                $aid = $payment->account_id;
-                $payment->delete();
-                Transaction::destroyTransaction($pid, 'Payment', 'Vendor');
-                if ($vid) Utility::userBalance('vendor', $vid, $amt, 'credit');
-                Utility::bankAccountBalance($aid, $amt, 'credit');
-                Log::info(__CLASS__ . "::{$action} completed", ['payment_id' => $pid]);
-            });
-            return redirect()->route(ViewsConstants::PAY . '.index')
-                ->with('success', __('Payment successfully deleted.'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} failed", [
-                'payment_id' => $payment->id,
-                'error'     => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug(__CLASS__ . "::{$action} failed", [
-                'payment_id' => $payment->id,
-                'error'     => $e->getMessage(),
-                'stack'     => $e->getTraceAsString(),
-            ]);
-            return defaultUndefinedException($req, $e, __CLASS__ . "::{$action}");
-        }
+                Log::channel(SettingsConstants::ERR_TRACE)->debug($cls . '::destroy failed', [
+                    'payment_id' => $payment->id ?? null,
+                    'error' => $e->getMessage(),
+                    'stack' => $e->getTraceAsString(),
+                ]);
+                return defaultUndefinedException($req, $e, $cls . '::destroy');
+            }
+        }, ['payment_id' => $payment->id ?? null]);
     }
 
     /**
@@ -372,15 +403,16 @@ final class PaymentController extends Controller
      */
     private function deny(Request $req, string $permission, string $action): ?RedirectResponse
     {
+        $cls = __CLASS__;
         if (!$req->user()->can($permission)) {
-            Log::warning(__CLASS__ . "::{$action} — permission denied", [
+            Log::warning($cls . "::{$action} — permission denied", [
                 UsersConstants::COL_USER_ID    => $req->user()->id,
                 'permission' => $permission,
             ]);
             return defaultPermissionDenial(
                 $req,
                 new AuthorizationException($permission),
-                __CLASS__ . '::' . $action
+                $cls . '::' . $action
             );
         }
         return null;
@@ -391,10 +423,11 @@ final class PaymentController extends Controller
      */
     private function validateInput(Request $req, array $rules, string $action): ?RedirectResponse
     {
+        $cls = __CLASS__;
         $v = Validator::make($req->all(), $rules);
         if ($v->fails()) {
             $msg = $v->errors()->first();
-            Log::warning(__CLASS__ . "::{$action} — validation failed", [
+            Log::warning($cls . "::{$action} — validation failed", [
                 'errors' => $msg,
                 'input'  => $req->all(),
             ]);

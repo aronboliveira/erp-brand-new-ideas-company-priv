@@ -6,19 +6,21 @@ use App\Config\Constants\{
     DatabaseConstants,
     MiddlewaresConstants,
     UsersConstants,
-    ViewsConstants
+    ViewsConstants as VW
 };
 use App\Models\{Employee, OtherPayment};
 use App\Traits\ChecksLogin;
+use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
-use Illuminate\Support\Facades\{Auth, DB, Log, Validator};
+use Illuminate\Support\Facades\{Auth, DB, Log, Route, Validator, View as ViewFacade};
+use Illuminate\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 final class OtherPaymentController extends Controller
 {
 
-    use ChecksLogin;
+    use ChecksLogin, ChecksPermissions;
 
     public function __construct()
     {
@@ -26,207 +28,224 @@ final class OtherPaymentController extends Controller
     }
 
     public const OT_PAY_CR = 'otherPaymentCreate';
+
     public function otherPaymentCreate(Request $req, int|string $employeeId): Response|RedirectResponse|JsonResponse|null
     {
-        Log::info(__METHOD__ . ' start', [
-            UsersConstants::COL_USER_ID     => Auth::id(),
-            UsersConstants::COL_EMP_ID => $employeeId
-        ]);
-        if ($r = self::authorizePerm($req, 'create other payment'))
-            return $r;
-        try {
-            $employee = Employee::findOrFail($employeeId);
-            Log::info(__METHOD__ . ' employee loaded', [UsersConstants::COL_EMP_ID => $employeeId]);
-            return response()->view(ViewsConstants::OT_PAY . '.create', [
-                'employee'     => $employee,
-                'otherpaytype' => OtherPayment::$otherPaymentType,
-            ]);
-        } catch (ModelNotFoundException $e) {
-            Log::error(__METHOD__ . ' employee not found', [
-                UsersConstants::COL_EMP_ID => $employeeId,
-                'error'       => $e->getMessage()
-            ]);
-            return defaultUndefinedException($req, $e, __METHOD__);
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' unexpected error', [
-                'error' => $e->getMessage()
-            ]);
-            return defaultUndefinedException($req, $e, __METHOD__);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $employeeId, $action, $method, $class, $base) {
+            Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, UsersConstants::COL_EMP_ID => $employeeId]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($req, 'create other payment', VW::OT_PAY . '.index')) !== true) return $r;
+            try {
+                $qStart = microtime(true);
+                $employee = Employee::findOrFail($employeeId);
+                $this->logExecutionTime($qStart, $action, 'findEmployee');
+                Log::info($method . ' employee loaded', [UsersConstants::COL_EMP_ID => $employeeId]);
+                $viewPath = VW::OT_PAY . '.create';
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error($method . ' missing view', ['view_path' => $viewPath]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, ['employee' => $employee, 'otherpaytype' => OtherPayment::$otherPaymentType]);
+                $this->logExecutionTime($renderStart, $action, 'renderView');
+                return $resp;
+            } catch (ModelNotFoundException $e) {
+                Log::error($method . ' employee not found', [UsersConstants::COL_EMP_ID => $employeeId, 'error' => $e->getMessage()]);
+                return redirect()->back()->with('error', __('Employee not found.'));
+            } catch (\Throwable $e) {
+                Log::error($method . ' unexpected error', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, $method);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, UsersConstants::COL_EMP_ID => $employeeId]);
     }
 
-    public function show(Request $request, int|string $id): \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse|null
+    public function show(Request $request, int|string $id): View|RedirectResponse|JsonResponse|null
     {
-        Log::info(__CLASS__ . '::' . __FUNCTION__ . ' start', [
-            UsersConstants::COL_USER_ID => $request->user()->id,
-            'id'       => $id,
-        ]);
-        try {
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($resp = self::authorizePerm($request, 'show other payment')) return $resp;
-            $otherPayment = OtherPayment::findOrFail($id);
-            if ($otherPayment->created_by !== $request->user()->creatorId()) {
-                Log::warning(__CLASS__ . '::' . __FUNCTION__ . ' forbidden', [
-                    UsersConstants::COL_USER_ID          => $request->user()->id,
-                    'otherpayment_id'  => $id,
-                    'owner_id'         => $otherPayment->created_by,
-                ]);
-                return defaultPermissionDenial(
-                    $request,
-                    new AuthorizationException(),
-                    __CLASS__ . '::' . __FUNCTION__
-                );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $base) {
+            Log::debug($class . '::' . $action . ' start', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'id' => $id]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($request, 'show other payment', VW::OT_PAY . '.index')) !== true) return $r;
+            try {
+                $qStart = microtime(true);
+                $otherPayment = OtherPayment::findOrFail($id);
+                $this->logExecutionTime($qStart, $action, 'findOtherPayment');
+                if ($otherPayment->created_by !== ($request->user()?->creatorId() ?? null)) {
+                    Log::warning($class . '::' . $action . ' forbidden', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'otherpayment_id' => $id, 'owner_id' => $otherPayment->created_by]);
+                    return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
+                }
+                Log::info($class . '::' . $action . ' loaded', ['otherpayment_id' => $id]);
+                $viewPath = VW::OT_PAY . '.show';
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error($class . '::' . $action . ' missing view', ['view_path' => $viewPath]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, ['otherpayment' => $otherPayment]);
+                $this->logExecutionTime($renderStart, $action, 'renderView');
+                return $resp;
+            } catch (ModelNotFoundException $e) {
+                Log::warning($class . '::' . $action . ' not found', ['id' => $id, 'error' => $e->getMessage()]);
+                return redirect()->back()->with('error', __('Other payment not found.'));
+            } catch (\Throwable $e) {
+                Log::error($class . '::' . $action . ' error', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $class . '::' . $action);
             }
-            Log::info(__CLASS__ . '::' . __FUNCTION__ . ' loaded', ['otherpayment_id' => $id]);
-            return view(ViewsConstants::OT_PAY . '.show', ['otherpayment' => $otherPayment]);
-        } catch (ModelNotFoundException $e) {
-            Log::warning(__CLASS__ . '::' . __FUNCTION__ . ' not found', [
-                'id'    => $id,
-                'error' => $e->getMessage(),
-            ]);
-            return redirect()->back()->with('error', __('Other payment not found.'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::' . __FUNCTION__ . ' error', ['error' => $e->getMessage()]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'otherpayment_id' => $id]);
     }
 
     public function store(Request $req): RedirectResponse|JsonResponse|null
     {
-        Log::info(__METHOD__ . ' start', [
-            UsersConstants::COL_USER_ID => Auth::id(),
-            'input'   => $req->all()
-        ]);
-        if ($r = self::authorizePerm($req, 'create other payment'))
-            return $r;
-        if ($r = self::validateInput($req))
-            return $r;
-        DB::beginTransaction();
-        try {
-            $data = $req->only([UsersConstants::COL_EMP_ID, 'title', 'type', 'amount']);
-            $data[DatabaseConstants::TABLE_CREATOR] = $req->user()->creatorId();
-            Log::info(__METHOD__ . ' creating OtherPayment', ['data' => $data]);
-            $op = OtherPayment::create($data);
-            DB::commit();
-            Log::info(__METHOD__ . ' created', ['id' => $op->id]);
-            return back()->with('success', 'Other payment successfully created.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error(__METHOD__ . ' creation failed', [
-                'error' => $e->getMessage()
-            ]);
-            return defaultUndefinedException($req, $e, __METHOD__);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'input' => $req->all()]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($req, 'create other payment', VW::OT_PAY . '.index')) !== true) return $r;
+            if ($r = self::validateInput($req)) return $r;
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($req, $method) {
+                    $data = $req->only([UsersConstants::COL_EMP_ID, 'title', 'type', 'amount']);
+                    $data[DatabaseConstants::TABLE_CREATOR] = $req->user()?->creatorId() ?? null;
+                    Log::info($method . ' creating OtherPayment', ['data' => $data]);
+                    $crtStart = microtime(true);
+                    $op = OtherPayment::create($data);
+                    $this->logExecutionTime($crtStart, 'store', 'createOtherPayment');
+                    Log::info($method . ' created', ['id' => $op->id ?? null]);
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                return back()->with('success', __('Other payment successfully created.'));
+            } catch (\Throwable $e) {
+                Log::error($method . ' creation failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, $method);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function edit(Request $req, int|string $id): Response|RedirectResponse|JsonResponse|null
     {
-        Log::info(__METHOD__ . ' start', [
-            UsersConstants::COL_USER_ID => Auth::id(),
-            'id'      => $id
-        ]);
-        if ($r = self::authorizePerm($req, 'edit other payment')) {
-            return $r;
-        }
-        try {
-            $op = OtherPayment::findOrFail($id);
-            if ($op->created_by !== $req->user()->creatorId()) {
-                Log::warning(__METHOD__ . ' unauthorized access', [
-                    UsersConstants::COL_USER_ID => $req->user()->id,
-                    'op_id'   => $id
-                ]);
-                return defaultPermissionDenial($req, new AuthorizationException, __METHOD__);
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+            Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'id' => $id]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($req, 'edit other payment', VW::OT_PAY . '.index')) !== true) return $r;
+            try {
+                $qStart = microtime(true);
+                $op = OtherPayment::findOrFail($id);
+                $this->logExecutionTime($qStart, $action, 'findOtherPayment');
+                if ($op->created_by !== ($req->user()?->creatorId() ?? null)) {
+                    Log::warning($method . ' unauthorized access', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'op_id' => $id]);
+                    return defaultPermissionDenial($req, new \Exception('owner'), $method);
+                }
+                Log::info($method . ' loaded for edit', ['id' => $id]);
+                $viewPath = VW::OT_PAY . '.' . $action;
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error($method . ' missing view', ['view_path' => $viewPath]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, ['otherpayment' => $op, 'otherpaytypes' => OtherPayment::$otherPaymentType]);
+                $this->logExecutionTime($renderStart, $action, 'renderView');
+                return $resp;
+            } catch (ModelNotFoundException $e) {
+                Log::error($method . ' record not found', ['id' => $id, 'error' => $e->getMessage()]);
+                return redirect()->back()->with('error', __('Other payment not found.'));
+            } catch (\Throwable $e) {
+                Log::error($method . ' unexpected error', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, $method);
             }
-            Log::info(__METHOD__ . ' loaded for edit', ['id' => $id]);
-            return response()->view(ViewsConstants::OT_PAY . '.' . __FUNCTION__, [
-                'otherpayment' => $op,
-                'otherpaytypes' => OtherPayment::$otherPaymentType,
-            ]);
-        } catch (ModelNotFoundException $e) {
-            Log::error(__METHOD__ . ' record not found', [
-                'id'    => $id,
-                'error' => $e->getMessage()
-            ]);
-            return defaultUndefinedException($req, $e, __METHOD__);
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' unexpected error', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __METHOD__);
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'otherpayment_id' => $id]);
     }
 
     public function update(Request $req, int|string $id): RedirectResponse|JsonResponse|null
     {
-        Log::info(__METHOD__ . ' start', [
-            UsersConstants::COL_USER_ID => Auth::id(),
-            'id'      => $id,
-            'input'   => $req->all()
-        ]);
-        if ($r = self::authorizePerm($req, 'edit other payment'))
-            return $r;
-        if ($r = self::validateInput($req))
-            return $r;
-        DB::beginTransaction();
-        try {
-            $op = OtherPayment::findOrFail($id);
-            if ($op->created_by !== $req->user()->creatorId()) {
-                Log::warning(__METHOD__ . ' unauthorized update', [
-                    UsersConstants::COL_USER_ID => $req->user()->id,
-                    'op_id'   => $id
-                ]);
-                throw new AuthorizationException;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+            Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'id' => $id, 'input' => $req->all()]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($req, 'edit other payment', VW::OT_PAY . '.index')) !== true) return $r;
+            if ($r = self::validateInput($req)) return $r;
+            try {
+                $findStart = microtime(true);
+                $op = OtherPayment::findOrFail($id);
+                $this->logExecutionTime($findStart, $action, 'findOtherPayment');
+                if ($op->created_by !== ($req->user()?->creatorId() ?? null)) {
+                    Log::warning($method . ' unauthorized update', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'op_id' => $id]);
+                    return defaultPermissionDenial($req, new \Exception('owner'), $method);
+                }
+                $updates = $req->only(['title', 'type', 'amount']);
+                Log::info($method . ' updating', ['id' => $id, 'updates' => $updates]);
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($op, $updates, $method) {
+                    $updStart = microtime(true);
+                    $op->update($updates);
+                    $this->logExecutionTime($updStart, 'update', 'updateOtherPayment');
+                    Log::info($method . ' updated', ['id' => $op->id ?? null]);
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                return back()->with('success', __('Other payment successfully updated.'));
+            } catch (ModelNotFoundException $e) {
+                return redirect()->back()->with('error', __('Other payment not found.'));
+            } catch (\Throwable $e) {
+                Log::error($method . ' update failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, $method);
             }
-            $updates = $req->only(['title', 'type', 'amount']);
-            Log::info(__METHOD__ . ' updating', ['id' => $id, 'updates' => $updates]);
-            $op->update($updates);
-            DB::commit();
-            Log::info(__METHOD__ . ' updated', ['id' => $id]);
-            return back()->with('success', 'Other payment successfully updated.');
-        } catch (AuthorizationException $e) {
-            DB::rollBack();
-            return defaultPermissionDenial($req, $e, __METHOD__);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error(__METHOD__ . ' update failed', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __METHOD__);
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'otherpayment_id' => $id]);
     }
 
     public function destroy(Request $req, int|string $id): RedirectResponse
     {
-        Log::info(__METHOD__ . ' start', [
-            UsersConstants::COL_USER_ID => Auth::id(),
-            'id'      => $id
-        ]);
-        if ($r = self::authorizePerm($req, 'delete other payment'))
-            return $r;
-        DB::beginTransaction();
-        try {
-            $op = OtherPayment::findOrFail($id);
-            if ($op->created_by !== $req->user()->creatorId()) {
-                Log::warning(__METHOD__ . ' unauthorized delete', [
-                    UsersConstants::COL_USER_ID => $req->user()->id,
-                    'op_id'   => $id
-                ]);
-                throw new AuthorizationException;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
+            Log::debug($method . ' start', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'id' => $id]);
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($req, 'delete other payment', VW::OT_PAY . '.index')) !== true) return $r;
+            try {
+                $findStart = microtime(true);
+                $op = OtherPayment::findOrFail($id);
+                $this->logExecutionTime($findStart, $action, 'findOtherPayment');
+                if ($op->created_by !== ($req->user()?->creatorId() ?? null)) {
+                    Log::warning($method . ' unauthorized delete', [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'op_id' => $id]);
+                    return defaultPermissionDenial($req, new \Exception('owner'), $method);
+                }
+                Log::info($method . ' deleting', ['id' => $id]);
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($op, $method) {
+                    $delStart = microtime(true);
+                    $op->delete();
+                    $this->logExecutionTime($delStart, 'destroy', 'deleteOtherPayment');
+                    Log::info($method . ' deleted', ['id' => $op->id ?? null]);
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                return back()->with('success', __('Other payment successfully deleted.'));
+            } catch (ModelNotFoundException $e) {
+                return redirect()->back()->with('error', __('Other payment not found.'));
+            } catch (\Throwable $e) {
+                Log::error($method . ' delete failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($req, $e, $method);
             }
-            Log::info(__METHOD__ . ' deleting', ['id' => $id]);
-            $op->delete();
-            DB::commit();
-            Log::info(__METHOD__ . ' deleted', ['id' => $id]);
-            return back()->with('success', 'Other payment successfully deleted.');
-        } catch (AuthorizationException $e) {
-            DB::rollBack();
-            return defaultPermissionDenial($req, $e, __METHOD__);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error(__METHOD__ . ' delete failed', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($req, $e, __METHOD__);
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'otherpayment_id' => $id]);
     }
+
 
     private static function authorizePerm(Request $req, string $perm): RedirectResponse|JsonResponse|null
     {

@@ -7,207 +7,236 @@ use App\Config\Constants\{
     MiddlewaresConstants,
     SettingsConstants,
     UsersConstants,
-    ViewsConstants
+    ViewsConstants as VW,
 };
 use App\Models\{Employee, Loan, LoanOption, Utility};
+use App\Traits\ChecksLogin;
+use App\Traits\ChecksPermissions;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\{DB, Log, Route, View as ViewFacade};
 
 final class LoanController extends Controller
 {
+    use ChecksLogin, ChecksPermissions;
+
     public function __construct()
     {
         $this->middleware(MiddlewaresConstants::AUTH);
     }
 
     /** Show the form to create a loan */
+    public const LN_CRT = 'loanCreate';
     public function loanCreate(string|int $employeeId, Request $request): mixed
     {
-        $action = 'loanCreate';
-        Log::info(__CLASS__ . "::{$action} start", [UsersConstants::COL_EMP_ID => $employeeId]);
-        if ($deny = $this->deny($request, 'create loan', $action))
-            return $deny;
-        try {
-            $employee  = Employee::findOrFail($employeeId);
-            $creatorId = $request->user()->creatorId();
-            $options   = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-                ->pluck('name', 'id');
-            $types     = self::loanTypes();
-            Log::info(__CLASS__ . "::{$action} ready form", [
-                UsersConstants::COL_EMP_ID => $employeeId,
-                'option_count' => $options->count(),
-                'type_count'  => count($types),
-            ]);
-            return view(ViewsConstants::LN . '.create', compact('employee', 'options', 'types'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} error", [
-                UsersConstants::COL_EMP_ID => $employeeId,
-                'exception'   => $e->getMessage(),
-            ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug(__CLASS__ . "::{$action} error", [
-                UsersConstants::COL_EMP_ID => $employeeId,
-                'exception'   => $e->getMessage(),
-                'stack'       => $e->getTraceAsString(),
-            ]);
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . $action);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($request, $employeeId, $action, $method, $class, $base) {
+            Log::debug("{$class}::{$action} start", [UsersConstants::COL_EMP_ID => $employeeId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($deny = self::guard($request, 'create loan', VW::LN . '.index')) !== true) return $deny;
+            try {
+                $empStart = microtime(true);
+                $employee = Employee::findOrFail($employeeId);
+                $this->logExecutionTime($empStart, $action, 'findEmployee');
+                $optStart = microtime(true);
+                $creatorId = $request->user()?->creatorId() ?? null;
+                $options = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+                $this->logExecutionTime($optStart, $action, 'loadOptions');
+                $typeStart = microtime(true);
+                $types = self::loanTypes();
+                $this->logExecutionTime($typeStart, $action, 'loadTypes');
+                Log::debug("{$class}::{$action} ready form", [UsersConstants::COL_EMP_ID => $employeeId ?? null, 'option_count' => $options->count(), 'type_count' => count($types)]);
+                $viewPath = VW::LN . '.create';
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error("{$class}::{$action} missing view", ['view_path' => $viewPath]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, compact('employee', 'options', 'types'));
+                $this->logExecutionTime($renderStart, $action, 'renderView');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("{$class}::{$action} error", [UsersConstants::COL_EMP_ID => $employeeId ?? null, 'exception' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("{$class}::{$action} error", [UsersConstants::COL_EMP_ID => $employeeId ?? null, 'exception' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($request, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, UsersConstants::COL_EMP_ID => $employeeId]);
     }
 
     /** Persist a new loan */
     public function store(Request $request): RedirectResponse
     {
-        $action = 'store';
-        Log::info(__CLASS__ . "::{$action} start", ['input' => $request->all()]);
-        if ($deny = $this->deny($request, 'create loan', $action))
-            return $deny;
-        $request->validate([
-            UsersConstants::COL_EMP_ID => 'required|exists:employees,id',
-            'loan_option' => 'required|exists:loan_options,id',
-            'title'       => 'required|string|max:191',
-            'amount'      => 'required|numeric|min:0.01',
-            'reason'      => 'required|string',
-            'type'        => 'nullable|string',
-        ]);
-        try {
-            $loan = DB::transaction(function () use ($request, $action) {
-                $data = [
-                    UsersConstants::COL_EMP_ID => $request->employee_id,
-                    'loan_option' => $request->loan_option,
-                    'title'       => $request->title,
-                    'amount'      => (float) $request->amount,
-                    'reason'      => $request->reason,
-                    'type'        => $request->type,
-                    DatabaseConstants::TABLE_CREATOR  => $request->user()->creatorId(),
-                ];
-                $new = Loan::create($data);
-                Log::info(__CLASS__ . "::{$action} created", [
-                    'loan_id'     => $new->id,
-                    UsersConstants::COL_EMP_ID => $new->employee_id,
-                    'amount'      => $new->amount,
-                ]);
-                return $new;
-            });
-
-            return back()->with('success', __('Loan successfully created.'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} failed", [
-                'exception' => $e->getMessage(),
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+            Log::debug("{$class}::{$action} start", ['input' => $request->all(), UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($deny = self::guard($request, 'create loan', VW::LN . '.index')) !== true) return $deny;
+            $valStart = microtime(true);
+            $request->validate([
+                UsersConstants::COL_EMP_ID => 'required|exists:employees,id',
+                'loan_option'              => 'required|exists:loan_options,id',
+                'title'                    => 'required|string|max:191',
+                'amount'                   => 'required|numeric|min:0.01',
+                'reason'                   => 'required|string',
+                'type'                     => 'nullable|string',
             ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug(__CLASS__ . "::{$action} failed", [
-                'exception' => $e->getMessage(),
-                'stack'     => $e->getTraceAsString(),
-            ]);
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . $action);
-        }
+            $this->logExecutionTime($valStart, $action, 'validateRequest');
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($request, $action, $class) {
+                    $data = [
+                        UsersConstants::COL_EMP_ID       => $request->employee_id,
+                        'loan_option'                    => $request->loan_option,
+                        'title'                          => $request->title,
+                        'amount'                         => (float) $request->amount,
+                        'reason'                         => $request->reason,
+                        'type'                           => $request->type ?? null,
+                        DatabaseConstants::TABLE_CREATOR => $request->user()?->creatorId() ?? null,
+                    ];
+                    $createStart = microtime(true);
+                    $new = Loan::create($data);
+                    $this->logExecutionTime($createStart, $action, 'createLoan');
+                    Log::info("{$class}::{$action} created", ['loan_id' => $new->id ?? null, UsersConstants::COL_EMP_ID => $new->employee_id ?? null, 'amount' => $new->amount ?? null]);
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                return back()->with('success', __('Loan successfully created.'));
+            } catch (\Throwable $e) {
+                Log::error("{$class}::{$action} failed", ['exception' => $e->getMessage()]);
+                Log::channel(SettingsConstants::ERR_TRACE)->debug("{$class}::{$action} failed", ['exception' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
+                return defaultUndefinedException($request, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     /** Show the form to edit a loan */
     public function edit(string|int $loanId, Request $request): mixed
     {
-        $action = 'edit';
-        Log::info(__CLASS__ . "::{$action} start", ['loan_id' => $loanId]);
-        if ($deny = $this->deny($request, 'edit loan', $action))
-            return $deny;
-        try {
-            $loan = Loan::findOrFail($loanId);
-            if ($loan->created_by !== $request->user()->creatorId()) {
-                Log::warning(__CLASS__ . "::{$action} forbidden", ['loan_id' => $loanId, 'user_id' => $request->user()->id]);
-                return defaultPermissionDenial($request, new \Exception('owner'), __CLASS__ . "::{$action}");
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($request, $loanId, $action, $method, $class, $base) {
+            Log::debug("{$class}::{$action} start", ['loan_id' => $loanId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($deny = self::guard($request, 'edit loan', VW::LN . '.index')) !== true) return $deny;
+            try {
+                $findStart = microtime(true);
+                $loan = Loan::findOrFail($loanId);
+                $this->logExecutionTime($findStart, $action, 'findLoan');
+                if (($loan->created_by ?? null) !== ($request->user()?->creatorId() ?? null)) {
+                    Log::warning("{$class}::{$action} forbidden", ['loan_id' => $loanId ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+                    return defaultPermissionDenial($request, new \Exception('owner'), "{$class}::{$action}");
+                }
+                $optStart = microtime(true);
+                $options = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $request->user()?->creatorId() ?? null)->pluck('name', 'id');
+                $this->logExecutionTime($optStart, $action, 'loadOptions');
+                $typeStart = microtime(true);
+                $types = self::loanTypes();
+                $this->logExecutionTime($typeStart, $action, 'loadTypes');
+                Log::debug("{$class}::{$action} ready form", ['loan_id' => $loanId ?? null]);
+                $viewPath = VW::LN . '.edit';
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error("{$class}::{$action} missing view", ['view_path' => $viewPath]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, compact('loan', 'options', 'types'));
+                $this->logExecutionTime($renderStart, $action, 'renderView');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("{$class}::{$action} error", ['loan_id' => $loanId ?? null, 'exception' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, "{$class}::{$action}");
             }
-
-            $options = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
-                ->pluck('name', 'id');
-            $types  = self::loanTypes();
-
-            Log::info(__CLASS__ . "::{$action} ready form", ['loan_id' => $loanId]);
-            return view(ViewsConstants::LN . '.edit', compact('loan', 'options', 'types'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} error", [
-                'loan_id' => $loanId,
-                'exception' => $e->getMessage(),
-            ]);
-            return defaultUndefinedException($request, $e, __CLASS__ . "::{$action}");
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'loan_id' => $loanId]);
     }
 
     /** Persist updates to a loan */
     public function update(Request $request, Loan $loan): RedirectResponse
     {
-        $action = 'update';
-        Log::info(__CLASS__ . "::{$action} start", ['loan_id' => $loan->id, 'input' => $request->all()]);
-
-        if ($deny = $this->deny($request, 'edit loan', $action)) {
-            return $deny;
-        }
-        if ($loan->created_by !== $request->user()->creatorId()) {
-            Log::warning(__CLASS__ . "::{$action} forbidden owner-mismatch", ['loan_id' => $loan->id]);
-            return defaultPermissionDenial($request, new \Exception('owner'), __CLASS__ . "::{$action}");
-        }
-
-        $request->validate([
-            'loan_option' => 'required|exists:loan_options,id',
-            'title'       => 'required|string|max:191',
-            'amount'      => 'required|numeric|min:0.01',
-            'reason'      => 'required|string',
-            'type'        => 'nullable|string',
-        ]);
-
-        try {
-            DB::transaction(function () use ($loan, $request, $action) {
-                $old = $loan->replicate();
-                $loan->update($request->only(['loan_option', 'title', 'amount', 'reason', 'type']));
-                Log::info(__CLASS__ . "::{$action} updated", [
-                    'loan_id'   => $loan->id,
-                    'before'    => $old->toArray(),
-                    'after'     => $loan->toArray(),
-                ]);
-            });
-
-            return back()->with('success', __('Loan successfully updated.'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} failed", [
-                'loan_id'   => $loan->id,
-                'exception' => $e->getMessage(),
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($request, $loan, $action, $method, $class, $base) {
+            Log::debug("{$class}::{$action} start", ['loan_id' => $loan->id ?? null, 'input' => $request->all(), UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($deny = self::guard($request, 'edit loan', VW::LN . '.index')) !== true) return $deny;
+            if (($loan->created_by ?? null) !== ($request->user()?->creatorId() ?? null)) {
+                Log::warning("{$class}::{$action} forbidden owner-mismatch", ['loan_id' => $loan->id ?? null]);
+                return defaultPermissionDenial($request, new \Exception('owner'), "{$class}::{$action}");
+            }
+            $valStart = microtime(true);
+            $request->validate([
+                'loan_option' => 'required|exists:loan_options,id',
+                'title'       => 'required|string|max:191',
+                'amount'      => 'required|numeric|min:0.01',
+                'reason'      => 'required|string',
+                'type'        => 'nullable|string',
             ]);
-            return defaultUndefinedException($request, $e, __CLASS__ . "::{$action}");
-        }
+            $this->logExecutionTime($valStart, $action, 'validateRequest');
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($loan, $request, $action, $class) {
+                    $repStart = microtime(true);
+                    $old = $loan->replicate();
+                    $this->logExecutionTime($repStart, $action, 'replicateLoan');
+                    $updStart = microtime(true);
+                    $loan->update($request->only(['loan_option', 'title', 'amount', 'reason', 'type']));
+                    $this->logExecutionTime($updStart, $action, 'updateLoan');
+                    Log::info("{$class}::{$action} updated", ['loan_id' => $loan->id ?? null, 'before' => $old->toArray(), 'after' => $loan->toArray()]);
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                return back()->with('success', __('Loan successfully updated.'));
+            } catch (\Throwable $e) {
+                Log::error("{$class}::{$action} failed", ['loan_id' => $loan->id ?? null, 'exception' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, "{$class}::{$action}");
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'loan_id' => $loan->id ?? null]);
     }
 
     /** Delete a loan */
     public function destroy(Request $request, Loan $loan): RedirectResponse
     {
-        $action = 'destroy';
-        Log::info(__CLASS__ . "::{$action} start", ['loan_id' => $loan->id]);
-
-        if ($deny = $this->deny($request, 'delete loan', $action)) {
-            return $deny;
-        }
-        if ($loan->created_by !== $request->user()->creatorId()) {
-            Log::warning(__CLASS__ . "::{$action} forbidden owner-mismatch", ['loan_id' => $loan->id]);
-            return defaultPermissionDenial($request, new \Exception('owner'), __CLASS__ . "::{$action}");
-        }
-
-        try {
-            DB::transaction(function () use ($loan, $action) {
-                $loan->delete();
-                Log::info(__CLASS__ . "::{$action} deleted", ['loan_id' => $loan->id]);
-            });
-
-            return back()->with('success', __('Loan successfully deleted.'));
-        } catch (\Throwable $e) {
-            Log::error(__CLASS__ . "::{$action} failed", [
-                'loan_id'   => $loan->id,
-                'exception' => $e->getMessage(),
-            ]);
-            return defaultUndefinedException($request, $e, __CLASS__ . "::{$action}");
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($request, $loan, $action, $method, $class, $base) {
+            Log::debug("{$class}::{$action} start", ['loan_id' => $loan->id ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($deny = self::guard($request, 'delete loan', VW::LN . '.index')) !== true) return $deny;
+            if (($loan->created_by ?? null) !== ($request->user()?->creatorId() ?? null)) {
+                Log::warning("{$class}::{$action} forbidden owner-mismatch", ['loan_id' => $loan->id ?? null]);
+                return defaultPermissionDenial($request, new \Exception('owner'), "{$class}::{$action}");
+            }
+            try {
+                $txnStart = microtime(true);
+                DB::transaction(function () use ($loan, $action, $class) {
+                    $delStart = microtime(true);
+                    $loan->delete();
+                    $this->logExecutionTime($delStart, $action, 'deleteLoan');
+                    Log::info("{$class}::{$action} deleted", ['loan_id' => $loan->id ?? null]);
+                });
+                $this->logExecutionTime($txnStart, $action, 'transaction');
+                return back()->with('success', __('Loan successfully deleted.'));
+            } catch (\Throwable $e) {
+                Log::error("{$class}::{$action} failed", ['loan_id' => $loan->id ?? null, 'exception' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, "{$class}::{$action}");
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'loan_id' => $loan->id ?? null]);
     }
 
     /** Stub for compatibility */
     public function show(): RedirectResponse
     {
-        return redirect()->route(ViewsConstants::LN . '.index');
+        return redirect()->route(VW::LN . '.index');
     }
+
 
     /** Centralized permission check with logging */
     private function deny(Request $request, string $permission, string $action): ?RedirectResponse

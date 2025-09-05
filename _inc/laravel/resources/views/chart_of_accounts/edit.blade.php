@@ -15,7 +15,7 @@
         : (Route::has(Str::kebab($routeName))
             ? route(Str::kebab($routeName), $chartOfAccount->id)
             : '#');
-    $formId       = 'chartOfAccountsUpdateForm_' . $chartOfAccount->id;
+    $formId       = 'chart_of_accounts_update_form_' . $chartOfAccount->id;
     $guardMsg     = Utility::fetchLinkMessage(
         $lang,
         ViewsConstants::COA,
@@ -94,9 +94,6 @@
             class="{{ VC::BT_PRM }}"
         >
     </div>
-{{ Form::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('{{ $formId }}');
@@ -136,4 +133,4 @@
             });
         })();
     </script>
-@endpush
+{{ Form::close() }}

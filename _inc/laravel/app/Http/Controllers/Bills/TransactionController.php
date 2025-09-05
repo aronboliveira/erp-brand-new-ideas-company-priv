@@ -12,15 +12,17 @@ use App\Models\{BankAccount, ProductServiceCategory, Transaction};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class TransactionController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const ROUTE_INDEX = DatabaseConstants::TABLE_TRS . '.index';
+    private const ROUTE_INDEX = ViewsConstants::TST . '.index';
 
-    public function index(Request $request): \Illuminate\View\View|RedirectResponse
+    public function index(Request $request): View|RedirectResponse
     {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         try {
@@ -39,10 +41,10 @@ class TransactionController extends Controller
             $categoryList->prepend('Bill', 'Bill');
             $categoryList->prepend(__('Select Category'), '');
             $transactions = Transaction::orderByDesc('id');
-            $accountSums = Transaction::leftJoin(DatabaseConstants::TABLE_BANK_ACC, DatabaseConstants::TABLE_TRS . '.account', '=', DatabaseConstants::TABLE_BANK_ACC . '.id')
-                ->select(DatabaseConstants::TABLE_TRS . '.account')
+            $accountSums = Transaction::leftJoin(DatabaseConstants::TABLE_BANK_ACC, ViewsConstants::TST . '.account', '=', DatabaseConstants::TABLE_BANK_ACC . '.id')
+                ->select(ViewsConstants::TST . '.account')
                 ->selectRaw('sum(amount) as total')
-                ->groupBy(DatabaseConstants::TABLE_TRS . '.account');
+                ->groupBy(ViewsConstants::TST . '.account');
 
             $startMonth = $request->startMonth
                 ? strtotime($request->startMonth)
@@ -55,12 +57,12 @@ class TransactionController extends Controller
             while ($currentDate <= $endMonth) {
                 $m = date('m', $currentDate);
                 $y = date('Y', $currentDate);
-                $transactions->orWhere(fn ($q) => $q->whereMonth('date', $m)
+                $transactions->orWhere(fn($q) => $q->whereMonth('date', $m)
                     ->whereYear('date', $y)
                     ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId()));
-                $accountSums->orWhere(fn ($q) => $q->whereMonth('date', $m)
+                $accountSums->orWhere(fn($q) => $q->whereMonth('date', $m)
                     ->whereYear('date', $y)
-                    ->where(DatabaseConstants::TABLE_TRS . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId()));
+                    ->where(ViewsConstants::TST . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId()));
                 $currentDate = strtotime('+1 month', $currentDate);
             }
 
@@ -70,7 +72,7 @@ class TransactionController extends Controller
             if ($request->account) {
                 $transactions->where('account', $request->account);
                 $accountSums->where(
-                    DatabaseConstants::TABLE_TRS . '.account',
+                    ViewsConstants::TST . '.account',
                     $request->account === 'stripe-paypal' ? 0 : $request->account
                 );
                 $acc = $request->account === 'stripe-paypal'
@@ -96,7 +98,7 @@ class TransactionController extends Controller
                 'accountCount' => $accountSums->count(),
             ]);
 
-            return view(DatabaseConstants::TABLE_TRS . '.' . __FUNCTION__, [
+            return view(ViewsConstants::TST . '.' . __FUNCTION__, [
                 'transactions' => $transactions,
                 'account'      => $accountList,
                 'category'     => $categoryList,
@@ -114,7 +116,7 @@ class TransactionController extends Controller
         }
     }
 
-    public function export(Request $request): \Symfony\Component\HttpFoundation\BinaryFileResponse|RedirectResponse
+    public function export(Request $request): BinaryFileResponse|RedirectResponse
     {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         try {

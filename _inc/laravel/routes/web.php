@@ -915,42 +915,38 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     Route::get(VW::ALW . '/create/{eid}', [AllowanceController::class, AllowanceController::ALW_CR])->name(VW::ALW . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::COM . '/create/{eid}', [CommissionController::class, CommissionController::COM_CR])->name(VW::COM . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('loans/create/{eid}', [LoanController::class, 'loanCreate'])->name('loans.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::LN . '/create/{eid}', [LoanController::class, LoanController::LN_CRT])->name(VW::LN . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::STR_DD . '/create/{eid}', [SaturationDeductionController::class, SaturationDeductionController::STR_DD_CR])->name(VW::STR_DD . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::OT_PAY . '/create/{eid}', [OtherPaymentController::class, OtherPaymentController::OT_PAY_CR])->name(VW::OT_PAY . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('overtimes/create/{eid}', [OvertimeController::class, 'overtimeCreate'])->name('overtimes.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(VW::PY_SLP . '/paysalary/{id}/{date}', [PayslipController::class, 'paysalary'])->name(VW::PY_SLP . '.paysalary')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(VW::PY_SLP . '/bulk_pay_create/{date}', [PayslipController::class, 'bulkPayCreate'])->name(VW::PY_SLP . '.bulk_pay_create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::PY_SLP . '/bulk_payment/{date}', [PayslipController::class, 'bulkPayment'])->name(VW::PY_SLP . '.bulkpayment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::PY_SLP . '/search_json', [PayslipController::class, 'searchJson'])->name(VW::PY_SLP . '.search_json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(VW::PY_SLP . '/employeepayslip', [PayslipController::class, 'employeePayslip'])->name(VW::PY_SLP . '.employeepayslip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(VW::PY_SLP . '/show/{id}', [PayslipController::class, 'showEmployee'])->name(VW::PY_SLP . '.showemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(VW::PY_SLP . '/edit/{id}', [PayslipController::class, 'editEmployee'])->name(VW::PY_SLP . '.editemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::PY_SLP . '/employee/update/{id}', [PayslipController::class, 'updateEmployee'])->name(VW::PY_SLP . '.updateEmployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::OVT . '/create/{eid}', [OvertimeController::class, 'overtimeCreate'])->name(VW::OVT . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Payslips Controller ====================================//
+    #region
+    Route::get(VW::PY_SLP . '/paysalary/{id}/{date}', [PayslipController::class, PayslipController::PAY_SLR])->name(VW::PY_SLP . '.paysalary')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PY_SLP . '/bulk_pay_create/{date}', [PayslipController::class, PayslipController::BLK_PAY_CRT])->name(VW::PY_SLP . '.bulk_pay_create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::PY_SLP . '/bulk_payment/{date}', [PayslipController::class, PayslipController::BLK_PAY])->name(VW::PY_SLP . '.bulkpayment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::PY_SLP . '/search_json', [PayslipController::class, PayslipController::SRC_JSN])->name(VW::PY_SLP . '.search_json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PY_SLP . '/employeepayslip', [PayslipController::class, PayslipController::EMP_PAY_SLP])->name(VW::PY_SLP . '.employeepayslip')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PY_SLP . '/show/{id}', [PayslipController::class, PayslipController::SHW_EMP])->name(VW::PY_SLP . '.showemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PY_SLP . '/edit/{id}', [PayslipController::class, PayslipController::EDT_EMP])->name(VW::PY_SLP . '.editemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::PY_SLP . '/employee/update/{id}', [PayslipController::class, PayslipController::UPD_EMP])->name(VW::PY_SLP . '.updateEmployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/pdf/{id}/{m}', [PayslipController::class, 'pdf'])->name(VW::PY_SLP . '.pdf')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(VW::PY_SLP . '/payslipPdf/{id}', [PayslipController::class, 'payslipPdf'])->name(VW::PY_SLP . '.payslipPdf')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PY_SLP . '/payslipPdf/{id}', [PayslipController::class, PayslipController::PAY_SLP_PDF])->name(VW::PY_SLP . '.payslipPdf')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/send/{id}/{m}', [PayslipController::class, 'send'])->name(VW::PY_SLP . '.send')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::PY_SLP . '/delete/{id}', [PayslipController::class, 'destroy'])->name(VW::PY_SLP . '.delete')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::PY_SLP, PayslipController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
+    #endregion
     Route::resource(VW::CPN_PL, CompanyPolicyController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::IND, IndicatorController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::APR, AppraisalController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, 'employeeJson'])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::resource(VW::GL_TP, GoalTypeController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::GL_TRC, GoalTrackingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::ACC_AST, AssetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::post(VW::EVT . '/get-department', [EventController::class, EventController::GET_DPT])->name(VW::EVT . '.getdepartment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::EVT . '/get-employee', [EventController::class, EventController::GET_EMP])->name(VW::EVT . '.getemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::resource(VW::EVT, EventController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::post(VW::MT . '/get-department', [MeetingController::class, MeetingController::GET_DPT])->name(VW::MT . '.getdepartment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::MT . '/get-employee', [MeetingController::class, MeetingController::GET_EMP])->name(VW::MT . '.getemployee')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::resource(VW::MT, MeetingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::TNG_TP, TrainingTypeController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::TNR, TrainerController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1716,7 +1712,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::post('expense/vendor', [ExpenseController::class, 'vendor'])->name(VW::EXP . '.vendor');
             Route::post('expense/employee', [ExpenseController::class, 'employee'])->name(VW::EXP . '.employee');
 
-            Route::post('expense/product/destroy', [ExpenseController::class, 'productDestroy'])->name(VW::EXP . '.product.destroy');
+            Route::post('expense/product/destroy', [ExpenseController::class, ExpenseController::PRD_DST])->name(VW::EXP . '.product.destroy');
 
             Route::post('expense/product', [ExpenseController::class, 'product'])->name(VW::EXP . '.product');
             Route::get('expense/{id}/payment', [ExpenseController::class, 'payment'])->name(VW::EXP . '.payment');

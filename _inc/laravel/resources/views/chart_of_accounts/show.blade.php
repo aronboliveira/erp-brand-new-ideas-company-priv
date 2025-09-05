@@ -1,28 +1,19 @@
 @php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-        YieldingConstants,
-    };
-    use App\Models\{Bill,Invoice,Utility,Vendor};
+    use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewsConstants,ViewClassNamesConstants as VC,YieldingConstants};
+    use App\Models\{Bill,BillPayment,Invoice,Utility,Vendor,ChartOfAccount};
     use Illuminate\Support\Facades\{Auth,Route};
     use Illuminate\Support\Str;
+    use Illuminate\Support\Collection;
     $user = Auth::user();
     $lang = Utility::fetchUserLang();
-    $showName    = ViewsConstants::COA . '.show';
-    $showRoute   = Route::has($showName)
-        ? route($showName, $account->id)
-        : (Route::has(Str::kebab($showName))
-            ? route(Str::kebab($showName), $account->id)
-            : '#');
-    $formId      = 'report_drilldown';
-    $guardMsg    = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::COA,
-        'chart_of_account_show_route_unavailable'
-    ) ?? 'Chart of Account show route is unavailable. Please contact technical support or your domain administrator.';
+    $accountId = data_get($account ?? null,'id');
+    $showName = ViewsConstants::COA . '.show';
+    $showRoute = ($accountId && Route::has($showName)) ? route($showName,$accountId) : (Route::has(Str::kebab($showName)) ? route(Str::kebab($showName),$accountId) : '#');
+    $formId = 'report_drilldown';
+    $guardMsg = Utility::fetchLinkMessage($lang,ViewsConstants::COA,'chart_of_account_show_route_unavailable') ?? __('Failed to open account drilldown');
+    $startRange = data_get($filter ?? [],'startDateRange');
+    $endRange = data_get($filter ?? [],'endDateRange');
+    $accountsOptions = ((is_array($accounts ?? null) && count($accounts ?? [])) || (($accounts ?? null) instanceof Collection && ($accounts)->isNotEmpty())) ? $accounts : [];
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -30,365 +21,325 @@
 @endsection
 @section(YieldingConstants::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{ route(ViewsConstants::COA.'.index') }}">{{ __('Chart of Account') }}</a></li>
+    @php
+        $coaIndexBase = ViewsConstants::COA.'.index';
+        $coaIndexKebab = Str::kebab($coaIndexBase);
+        $coaIndexResolved = Route::has($coaIndexBase) ? $coaIndexBase : (Route::has($coaIndexKebab) ? $coaIndexKebab : null);
+        $coaIndexUrl = $coaIndexResolved ? route($coaIndexResolved) : '#';
+        $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
+        $coaIndexGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::COA, 'index_chart_of_account_route_unavailable') ?? 'Chart of account index route is unavailable. Please contact technical support or your domain administrator.';
+        $breadcrumbCoaIndexLinkId = 'breadcrumb-coa-index-link';
+    @endphp
+    </li>
+    <li class="breadcrumb-item">
+        <a id="{{ $breadcrumbCoaIndexLinkId }}"
+        href="{{ $coaIndexUrl }}"
+        data-url="{{ $coaIndexUrl }}"
+        data-guard-msg="{{ $coaIndexGuardMsg }}"
+        data-sv-localized="true">
+            {{ __('Chart of Account') }}
+        </a>
+    </li>
+    @push(StacksConstants::ADM_SCRP_PG)
+        <script defer src="{{ asset('assets/js/routes/chartOfAccounts/index.js') }}"></script>
+    @endpush
     <li class="breadcrumb-item">{{ __('Account Drilldown Report') }}</li>
-    <li class="breadcrumb-item">{{ ucwords($account->code . ' - ' . $account->name) }}</li>
+    <li class="breadcrumb-item">{{ (data_get($account,'code') || data_get($account,'name')) ? ucwords((string) data_get($account,'code','') . ' - ' . (string) data_get($account,'name','')) : __('No account code/name available') }}</li>
 @endsection
-@section('content')
-    <div class="row">
-        <div class="col-sm-12">
+@section(YieldingConstants::ADM_CTT)
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CS12 }}">
             <div class="mt-2" id="multiCollapseExample1">
-                <div class="card">
+                <div class="{{ VC::CD }}">
                     <div class="card-body">
-                        {{ Collective\Html\FormFacade::open([
-                            'route'          => $showRoute,
-                            'method'         => 'GET',
-                            'id'             => $formId,
-                            'data-url'       => $showRoute,
-                            'data-guard-msg' => $guardMsg,
-                        ]) }}
-                        <div class="row align-items-center justify-content-end">
-                            <div class="col-xl-10">
-                                <div class="row">
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box"></div>
-                                    </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('start_date', __('Start Date'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::date('start_date', $filter['startDateRange'], ['class' => 'month-btn form-control']) }}
+                        {{ Form::open(['url'=>$showRoute,'method'=>'GET','id'=>$formId,'data-url'=>$showRoute,'data-guard-msg'=>$guardMsg]) }}
+                            <div class="{{ VC::R_ALC_JCE }}">
+                                <div class="col-xl-10">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12"><div class="btn-box"></div></div>
+                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                            <div class="btn-box">
+                                                {{ Form::label('start_date', __('Start Date'), ['class'=>VC::FM_LB]) }}
+                                                {{ Form::date('start_date', $startRange ?? null, ['class'=>VC::FM_CT.' month-btn']) }}
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                            <div class="btn-box">
+                                                {{ Form::label('end_date', __('End Date'), ['class'=>VC::FM_LB]) }}
+                                                {{ Form::date('end_date', $endRange ?? null, ['class'=>VC::FM_CT.' month-btn']) }}
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                            <div class="btn-box">
+                                                {{ Form::label('account', __('Account'), ['class'=>VC::FM_LB]) }}
+                                                {{ Form::select('account', $accountsOptions, $_GET['account'] ?? '', ['class'=>VC::FM_CT_SL]) }}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('end_date', __('End Date'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::date('end_date', $filter['endDateRange'], ['class' => 'month-btn form-control']) }}
-                                        </div>
-                                    </div>
-                                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
-                                        <div class="btn-box">
-                                            {{ Collective\Html\FormFacade::label('account', __('Account'), ['class' => 'form-label']) }}
-                                            {{ Collective\Html\FormFacade::select('account', $accounts, $_GET['account'] ?? '', ['class' => 'form-control select']) }}
+                                </div>
+                                <div class="{{ VC::C_AT }}">
+                                    <div class="{{ VC::RW }}">
+                                        <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
+                                            <a href="#" class="{{ VC::BT_SM_PM }}" id="applyDrilldown" data-listener-alias="drilldown-apply" data-bs-toggle="tooltip" title="{{ __('Apply') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
+                                            <a href="{{ $showRoute }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span></a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-auto">
-                                <div class="row">
-                                    <div class="col-auto mt-4">
-                                        <a
-                                            href="#"
-                                            class="btn btn-sm btn-primary"
-                                            id="applyDrilldown"
-                                            data-listener-alias="drilldown-apply"
-                                            data-bs-toggle="tooltip"
-                                            title="{{ __('Apply') }}"
-                                        >
-                                            <span class="btn-inner--icon"><i class="ti ti-search"></i></span>
-                                        </a>
-                                        <a
-                                            href="{{ $showRoute }}"
-                                            class="btn btn-sm btn-danger"
-                                            data-bs-toggle="tooltip"
-                                            title="{{ __('Reset') }}"
-                                        >
-                                            <span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {{ Collective\Html\FormFacade::close() }}
+                        {{ Form::close() }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                const bindGuard = (el, event, urlAttr='data-url', msgAttr='data-guard-msg') => {
-                    if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                    el.setAttribute('data-listener-active', 'true');
-                    el.addEventListener(event, e => {
-                        try {
-                            const url = el.getAttribute(urlAttr) ?? '#';
-                            if (url !== '#') return;
-                            e.preventDefault();
-                            const msg = el.getAttribute(msgAttr) ?? '# ERROR';
-                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                            let container = document.getElementById('toast-container');
-                            if (!container) {
-                                container = document.createElement('div');
-                                container.id = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (bootstrapLink && window.bootstrap) {
-                                const toastEl = document.createElement('div');
-                                toastEl.className = 'toast';
-                                toastEl.setAttribute('role', 'alert');
-                                toastEl.setAttribute('aria-live', 'assertive');
-                                toastEl.setAttribute('aria-atomic', 'true');
-                                const body = document.createElement('div');
-                                body.className = 'toast-body';
-                                body.textContent = msg;
-                                toastEl.appendChild(body);
-                                container.appendChild(toastEl);
-                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                            } else {
-                                alert(msg);
-                            }
-                            el.setAttribute('data-failed-route', 'true');
-                        } catch (err) {}
-                    });
-                };
-
-                const form = document.getElementById('report_drilldown');
-                bindGuard(form, 'submit');
-
-                const applyBtn = document.getElementById('applyDrilldown');
-                bindGuard(applyBtn, 'click');
-            })();
-        </script>
-    @endpush
     <div id="printableArea">
-        <div class="row mt-2">
+        <div class="{{ VC::RW }} mt-2">
             <div class="col-3">
-                {{--                <input type="hidden" value="{{__('Ledger').' '.'Report of'.' '.$filter['startDateRange'].' to '.$filter['endDateRange']}}" id="filename"> --}}
-                <div class="card p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Report') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ __('Account Drilldown') }}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Report') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Account Drilldown') }}</h7>
                 </div>
             </div>
-
-            @if (!empty($account))
-                <div class="col-3">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Account Name') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $account->name }}</h7>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="card p-4 mb-4">
-                        <h6 class="mb-0">{{ __('Account Code') }} :</h6>
-                        <h7 class="text-sm mb-0">{{ $account->code }}</h7>
-                    </div>
-                </div>
-            @endif
-
             <div class="col-3">
-                <div class="card p-4 mb-4">
-                    <h6 class="mb-0">{{ __('Duration') }} :</h6>
-                    <h7 class="text-sm mb-0">{{ $filter['startDateRange'] . ' to ' . $filter['endDateRange'] }}</h7>
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Account Name') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ data_get($account,'name') ?: __('No account name available') }}</h7>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Account Code') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ data_get($account,'code') ?: __('No account code available') }}</h7>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="{{ VC::CD_POS }}">
+                    <h6 class="{{ VC::MB0 }}">{{ __('Duration') }} :</h6>
+                    <h7 class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ ($startRange && $endRange) ? ($startRange.' '.__('to').' '.$endRange) : __('No date range available') }}</h7>
                 </div>
             </div>
         </div>
-
-        <div class="row mb-4">
-            <div class="col-12 mb-4">
-                <div class="card">
+        @php
+            $isPriceFormatAvailable = ($user ?? null) && method_exists($user,'priceFormat');
+            $isInvoiceNumberFormatAvailable = ($user ?? null) && method_exists($user,'invoiceNumberFormat');
+            $isBillNumberFormatAvailable = ($user ?? null) && method_exists($user,'billNumberFormat');
+            $isJournalNumberFormatAvailable = ($user ?? null) && method_exists($user,'journalNumberFormat');
+        @endphp
+        <div class="{{ VC::RW }} {{ VC::MB4 }}">
+            <div class="{{ VC::C12 }} {{ VC::MB4 }}">
+                <div class="{{ VC::CD }}">
                     <div class="card-body table-border-style">
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="{{ VC::TB }}">
                                 <thead>
                                     <tr>
-                                        <th> {{ __('Account Name') }}</th>
-                                        <th> {{ __('Name') }}</th>
-                                        <th> {{ __('Transaction Type') }}</th>
-                                        <th> {{ __('Transaction Date') }}</th>
-                                        <th> {{ __('Debit') }}</th>
-                                        <th> {{ __('Credit') }}</th>
-                                        <th> {{ __('Balance') }}</th>
+                                        <th>{{ __('Account Name') }}</th>
+                                        <th>{{ __('Name') }}</th>
+                                        <th>{{ __('Transaction Type') }}</th>
+                                        <th>{{ __('Transaction Date') }}</th>
+                                        <th>{{ __('Debit') }}</th>
+                                        <th>{{ __('Credit') }}</th>
+                                        <th>{{ __('Balance') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @php
-                                        $balance = 0;
-                                        $totalDebit = 0;
-                                        $totalCredit = 0;
-                                        $chartDatas = Utility::getAccountData($account->id, $filter['startDateRange'], $filter['endDateRange']);
-                                        
-                                        $accountName = \App\Models\ChartOfAccount::find($account->id);
+                                        $balance = 0.0;
+                                        $totalDebit = 0.0;
+                                        $totalCredit = 0.0;
+                                        $chartDatasRaw = ($accountId && $startRange && $endRange) ? Utility::getAccountData($accountId,$startRange,$endRange) : [];
+                                        $chartDatas = is_array($chartDatasRaw) ? $chartDatasRaw : [];
+                                        $accountModel = $accountId ? ChartOfAccount::find($accountId) : null;
+                                        $accountLabel = data_get($accountModel,'name') ?: __('No account name available');
+                                        $invRows = ((is_array(data_get($chartDatas,'invoice')) && count(data_get($chartDatas,'invoice'))) || (data_get($chartDatas,'invoice') instanceof Collection && data_get($chartDatas,'invoice')->isNotEmpty())) ? data_get($chartDatas,'invoice') : [];
+                                        $invPayRows = ((is_array(data_get($chartDatas,'invoicepayment')) && count(data_get($chartDatas,'invoicepayment'))) || (data_get($chartDatas,'invoicepayment') instanceof Collection && data_get($chartDatas,'invoicepayment')->isNotEmpty())) ? data_get($chartDatas,'invoicepayment') : [];
+                                        $revRows = ((is_array(data_get($chartDatas,'revenue')) && count(data_get($chartDatas,'revenue'))) || (data_get($chartDatas,'revenue') instanceof Collection && data_get($chartDatas,'revenue')->isNotEmpty())) ? data_get($chartDatas,'revenue') : [];
+                                        $billRows = ((is_array(data_get($chartDatas,'bill')) && count(data_get($chartDatas,'bill'))) || (data_get($chartDatas,'bill') instanceof Collection && data_get($chartDatas,'bill')->isNotEmpty())) ? data_get($chartDatas,'bill') : [];
+                                        $billDataRows = ((is_array(data_get($chartDatas,'billdata')) && count(data_get($chartDatas,'billdata'))) || (data_get($chartDatas,'billdata') instanceof Collection && data_get($chartDatas,'billdata')->isNotEmpty())) ? data_get($chartDatas,'billdata') : [];
+                                        $billPayRows = ((is_array(data_get($chartDatas,'billpayment')) && count(data_get($chartDatas,'billpayment'))) || (data_get($chartDatas,'billpayment') instanceof Collection && data_get($chartDatas,'billpayment')->isNotEmpty())) ? data_get($chartDatas,'billpayment') : [];
+                                        $payRows = ((is_array(data_get($chartDatas,'payment')) && count(data_get($chartDatas,'payment'))) || (data_get($chartDatas,'payment') instanceof Collection && data_get($chartDatas,'payment')->isNotEmpty())) ? data_get($chartDatas,'payment') : [];
+                                        $jrRows = ((is_array(data_get($chartDatas,'journalItem')) && count(data_get($chartDatas,'journalItem'))) || (data_get($chartDatas,'journalItem') instanceof Collection && data_get($chartDatas,'journalItem')->isNotEmpty())) ? data_get($chartDatas,'journalItem') : [];
                                     @endphp
-
-                                    @foreach ($chartDatas['invoice'] as $invoiceData)
-                                        <tr>
-                                            <td>{{ $accountName->name }}</td>
+                                    @if(!empty($invRows))
+                                        @foreach($invRows as $invoiceData)
                                             @php
-                                                $invoice = Invoice::where('id', $invoiceData->invoice_id)->first();
-                                            @endphp
-                                            <td>{{ !empty($invoice->customer) ? $invoice->customer->name : '-' }}</td>
-                                            <td>{{ $user?->invoiceNumberFormat($invoice->invoice_id) }}</td>
-                                            <td>{{ $invoiceData->created_at->format('d-m-Y') }}</td>
-                                            <td>-</td>
-
-                                            @php
-                                                $total = $invoiceData->price * $invoiceData->quantity;
+                                                $invId = data_get($invoiceData,'invoice_id');
+                                                $invoice = $invId ? Invoice::find($invId) : null;
+                                                $price = (float) (data_get($invoiceData,'price',0) ?? 0);
+                                                $qty = (float) (data_get($invoiceData,'quantity',0) ?? 0);
+                                                $total = $price * $qty;
                                                 $balance += $total;
                                                 $totalCredit += $total;
                                             @endphp
-                                            <td>{{ $user?->priceFormat($total) }}</td>
-                                            <td>{{ $user?->priceFormat($balance) }}</td>
-                                        </tr>
-                                    @endforeach
-
-                                    @foreach ($chartDatas['invoicepayment'] as $invoicePaymentData)
-                                        <tr>
-                                            <td>{{ $accountName->name }}</td>
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ data_get($invoice,'customer.name') ?: __('No customer name available') }}</td>
+                                                <td>{{ ($num = data_get($invoice,'invoice_id')) ? ($isInvoiceNumberFormatAvailable ? $user?->invoiceNumberFormat($num) : __('No invoice number available')) : __('Failed to format invoice number') }}</td>
+                                                <td>{{ ($d = data_get($invoiceData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>-</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($total) : __('Failed to format total') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($balance) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for invoices') }}</p></div></div></td></tr>
+                                    @endif
+                                    @if(!empty($invPayRows))
+                                        @foreach($invPayRows as $invoicePaymentData)
                                             @php
-                                                $invoice = Invoice::where('id', $invoicePaymentData->invoice_id)->first();
+                                                $invId = data_get($invoicePaymentData,'invoice_id');
+                                                $invoice = $invId ? Invoice::find($invId) : null;
+                                                $amt = (float) (data_get($invoicePaymentData,'amount',0) ?? 0);
+                                                $balance += $amt;
+                                                $totalCredit += $amt;
                                             @endphp
-                                            <td>{{ !empty($invoice->customer) ? $invoice->customer->name : '-' }}</td>
-                                            <td>{{ $user?->invoiceNumberFormat($invoice->invoice_id) }}
-                                                {{ __(' Manually Payment') }}</td>
-                                            <td>{{ $invoicePaymentData->created_at->format('d-m-Y') }}</td>
-                                            <td>-</td>
-                                            <td>{{ $user?->priceFormat($invoicePaymentData->amount) }}</td>
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ data_get($invoice,'customer.name') ?: __('No customer name available') }}</td>
+                                                <td>{{ ($num = data_get($invoice,'invoice_id')) ? ($isInvoiceNumberFormatAvailable ? ($user?->invoiceNumberFormat($num).' '.__('Manually Payment')) : __('No invoice number available')) : __('Failed to format invoice number') }}</td>
+                                                <td>{{ ($d = data_get($invoicePaymentData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>-</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($amt) : __('Failed to format amount') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($balance) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for invoice payments') }}</p></div></div></td></tr>
+                                    @endif
+                                    @if(!empty($revRows))
+                                        @foreach($revRows as $revenueData)
                                             @php
-                                                $balance += $invoicePaymentData->amount;
-                                                $totalCredit += $invoicePaymentData->amount;
+                                                $amt = (float) (data_get($revenueData,'amount',0) ?? 0);
+                                                $balance += $amt;
+                                                $totalCredit += $amt;
                                             @endphp
-                                            <td>{{ $user?->priceFormat($balance) }}</td>
-                                        </tr>
-                                    @endforeach
-
-                                    @foreach ($chartDatas['revenue'] as $revenueData)
-                                        <tr>
-                                            <td>{{ $accountName->name }}</td>
-                                            <td>{{ !empty($revenueData->customer) ? $revenueData->customer->name : '-' }}
-                                            </td>
-                                            <td>{{ __('Revenue') }}</td>
-                                            <td>{{ $revenueData->created_at->format('d-m-Y') }}</td>
-                                            <td>-</td>
-                                            <td>{{ $user?->priceFormat($revenueData->amount) }}</td>
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ data_get($revenueData,'customer.name') ?: __('No customer name available') }}</td>
+                                                <td>{{ __('Revenue') }}</td>
+                                                <td>{{ ($d = data_get($revenueData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>-</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($amt) : __('Failed to format amount') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($balance) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for revenues') }}</p></div></div></td></tr>
+                                    @endif
+                                    @if(!empty($billRows))
+                                        @foreach($billRows as $billProduct)
                                             @php
-                                                $balance += $revenueData->amount;
-                                                $totalCredit += $revenueData->amount;
-                                            @endphp
-                                            <td>{{ $user?->priceFormat($balance) }}</td>
-                                        </tr>
-                                    @endforeach
-
-
-                                    @foreach ($chartDatas['bill'] as $billProduct)
-                                        <tr>
-                                            <td>{{ $accountName->name }}</td>
-                                            @php
-                                                
-                                                $bill = Bill::find($billProduct->bill_id);
-                                                $vendor = Vendor::find(!empty($bill) ? $bill->vendor_id : '');
-                                            @endphp
-                                            <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
-                                            <td>{{ $user?->billNumberFormat($bill->bill_id) }}</td>
-                                            <td>{{ $billProduct->created_at->format('d-m-Y') }}</td>
-
-                                            @php
-                                                $total = $billProduct->price * $billProduct->quantity;
+                                                $bill = ($bid = data_get($billProduct,'bill_id')) ? Bill::find($bid) : null;
+                                                $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
+                                                $price = (float) (data_get($billProduct,'price',0) ?? 0);
+                                                $qty = (float) (data_get($billProduct,'quantity',0) ?? 0);
+                                                $total = $price * $qty;
                                                 $balance -= $total;
                                                 $totalCredit -= $total;
                                             @endphp
-                                            <td>{{ $user?->priceFormat($total) }}</td>
-                                            <td>-</td>
-                                            <td>{{ $user?->priceFormat($balance) }}</td>
-                                        </tr>
-                                    @endforeach
-
-                                    @foreach ($chartDatas['billdata'] as $billData)
-                                        @php
-                                            $bill = Bill::find($billData->ref_id);
-                                            $vendor = Vendor::find(!empty($bill) ? $bill->vendor_id : '');
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $accountName->name }}</td>
-                                            <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
-                                            @if (!empty($bill->bill_id))
-                                                <td>{{ $user?->billNumberFormat($bill->bill_id) }}</td>
-                                            @else
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
+                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? $user?->billNumberFormat($num) : __('No bill number available')) : __('Failed to format bill number') }}</td>
+                                                <td>{{ ($d = data_get($billProduct,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($total) : __('Failed to format total') }}</td>
                                                 <td>-</td>
-                                            @endif
-
-                                            <td>{{ $billData->created_at->format('d-m-Y') }}</td>
-                                            <td>{{ $user?->priceFormat($billData->price) }}</td>
-                                            <td>-</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($balance) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for bills') }}</p></div></div></td></tr>
+                                    @endif
+                                    @if(!empty($billDataRows))
+                                        @foreach($billDataRows as $billData)
                                             @php
-                                                $balance -= $billData->price;
-                                                $totalDebit -= $billData->price;
+                                                $bill = ($ref = data_get($billData,'ref_id')) ? Bill::find($ref) : null;
+                                                $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
+                                                $price = (float) (data_get($billData,'price',0) ?? 0);
+                                                $balance -= $price;
+                                                $totalDebit -= $price;
                                             @endphp
-                                            <td>{{ $user?->priceFormat($balance) }}</td>
-                                        </tr>
-                                    @endforeach
-
-                                    @foreach ($chartDatas['billpayment'] as $billPaymentData)
-                                        @php
-                                            $bill = BillPayment::where('bill_id', $billPaymentData->bill_id)->first();
-                                            $billId = Bill::find($billPaymentData->bill_id);
-                                            $vendor = Vendor::find($billId->vendor_id);
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $accountName->name }}</td>
-                                            <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
-                                            <td>{{ $user?->billNumberFormat($billId->bill_id) }}{{ __(' Manually Payment') }}
-                                            </td>
-                                            <td>{{ $billPaymentData->created_at->format('d-m-Y') }}</td>
-                                            <td>{{ $user?->priceFormat($billPaymentData->amount) }}</td>
-                                            <td>-</td>
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
+                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? $user?->billNumberFormat($num) : __('No bill number available')) : __('Failed to format bill number') }}</td>
+                                                <td>{{ ($d = data_get($billData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($price) : __('Failed to format amount') }}</td>
+                                                <td>-</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($balance) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for bill data') }}</p></div></div></td></tr>
+                                    @endif
+                                    @if(!empty($billPayRows))
+                                        @foreach($billPayRows as $billPaymentData)
                                             @php
-                                                $balance += $billPaymentData->amount;
-                                                $totalDebit += $billPaymentData->amount;
+                                                $bid = data_get($billPaymentData,'bill_id');
+                                                $bill = $bid ? Bill::find($bid) : null;
+                                                $vendor = ($vid = data_get($bill,'vendor_id')) ? Vendor::find($vid) : null;
+                                                $amt = (float) (data_get($billPaymentData,'amount',0) ?? 0);
+                                                $balance += $amt;
+                                                $totalDebit += $amt;
                                             @endphp
-                                            <td>{{ $user?->priceFormat($totalCredit - $totalDebit) }}</td>
-                                        </tr>
-                                    @endforeach
-
-                                    @foreach ($chartDatas['payment'] as $paymentData)
-                                        @php
-                                            $vendor = Vendor::find($paymentData->vendor_id);
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $accountName->name }}</td>
-                                            <td>{{ !empty($vendor) ? $vendor->name : '-' }}</td>
-                                            <td>{{ __('Payment') }}</td>
-                                            <td>{{ $paymentData->created_at->format('d-m-Y') }}</td>
-
-                                            <td>{{ $user?->priceFormat($paymentData->amount) }}</td>
-                                            <td>-</td>
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
+                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? ($user?->billNumberFormat($num).' '.__('Manually Payment')) : __('No bill number available')) : __('Failed to format bill number') }}</td>
+                                                <td>{{ ($d = data_get($billPaymentData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($amt) : __('Failed to format amount') }}</td>
+                                                <td>-</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($totalCredit - $totalDebit) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for bill payments') }}</p></div></div></td></tr>
+                                    @endif
+                                    @if(!empty($payRows))
+                                        @foreach($payRows as $paymentData)
                                             @php
-                                                $balance += $paymentData->amount;
-                                                $totalDebit += $paymentData->amount;
+                                                $vendor = ($vid = data_get($paymentData,'vendor_id')) ? Vendor::find($vid) : null;
+                                                $amt = (float) (data_get($paymentData,'amount',0) ?? 0);
+                                                $balance += $amt;
+                                                $totalDebit += $amt;
                                             @endphp
-                                            <td>{{ $user?->priceFormat($totalCredit - $totalDebit) }}</td>
-                                        </tr>
-                                    @endforeach
-
-                                    @php
-                                    $debit = 0;
-                                    $credit = 0;
-                                @endphp
-
-                                @foreach ($chartDatas['journalItem'] as $journalItemData)
-                                    <tr>
-                                        <td>{{ $accountName->name }}</td>
-                                        <td>{{ '-' }}</td>
-                                        <td>{{ $user?->journalNumberFormat($journalItemData->journal_id) }}
-                                        </td>
-                                        <td>{{ $journalItemData->created_at->format('d-m-Y') }}</td>
-                                        <td>{{ $user?->priceFormat($journalItemData->debit) }}</td>
-                                        <td>{{ $user?->priceFormat($journalItemData->credit) }}</td>
-                                        <td>
-                                            @if ($journalItemData->debit)
-                                                @php $balance-= $journalItemData->debit @endphp
-                                            @else
-                                                @php $balance+= $journalItemData->credit @endphp
-                                            @endif
-                                            {{ $user?->priceFormat($balance) }}
-                                        </td>
-                                    </tr>
-                                @endforeach
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
+                                                <td>{{ __('Payment') }}</td>
+                                                <td>{{ ($d = data_get($paymentData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($amt) : __('Failed to format amount') }}</td>
+                                                <td>-</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($totalCredit - $totalDebit) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for payments') }}</p></div></div></td></tr>
+                                    @endif
+                                    @if(!empty($jrRows))
+                                        @foreach($jrRows as $journalItemData)
+                                            @php
+                                                $debit = (float) (data_get($journalItemData,'debit',0) ?? 0);
+                                                $credit = (float) (data_get($journalItemData,'credit',0) ?? 0);
+                                                $balance = $debit ? ($balance - $debit) : ($balance + $credit);
+                                            @endphp
+                                            <tr>
+                                                <td>{{ $accountLabel }}</td>
+                                                <td>{{ __('No name available') }}</td>
+                                                <td>{{ ($num = data_get($journalItemData,'journal_id')) ? ($isJournalNumberFormatAvailable ? $user?->journalNumberFormat($num) : __('No journal number available')) : __('Failed to format journal number') }}</td>
+                                                <td>{{ ($d = data_get($journalItemData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($debit) : __('Failed to format debit') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($credit) : __('Failed to format credit') }}</td>
+                                                <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($balance) : __('Failed to format balance') }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr><td colspan="7"><div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}"><div class="{{ VC::C6 }} {{ VC::TXCT }}"><p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No data available for journal items') }}</p></div></div></td></tr>
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
@@ -398,3 +349,6 @@
         </div>
     </div>
 @endsection
+@push(StacksConstants::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/chartOfAccounts/show.js') }}"></script>
+@endpush

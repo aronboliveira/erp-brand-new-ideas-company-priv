@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Config\Constants\{
     DatabaseConstants,
     PermissionsConstants,
+    UsersConstants,
     ViewsConstants
 };
 use App\Models\{BillProduct, InvoiceProduct, ProposalProduct, Tax};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\{Auth, DB, Log, Validator};
+use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};
+use Illuminate\View\View;
 
 class TaxController extends Controller
 {
@@ -18,156 +20,197 @@ class TaxController extends Controller
 
     private const INDEX_ROUTE = ViewsConstants::TX . '.index';
 
-    public function index(Request $request)
+    public function index(Request $request): View|RedirectResponse
     {
-        $function = __FUNCTION__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse)
-            return $user;
-        Log::info('Entering ' . __METHOD__, ['user' => $user?->id]);
-        if ($denial = $this->guard($request, PermissionsConstants::MNG_CT_TX, self::INDEX_ROUTE))
-            return $denial;
-        $taxes = Tax::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-        return view(ViewsConstants::TX . '.' . $function, compact('taxes'));
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
+            if (($denial = self::guard($request, PermissionsConstants::MNG_CT_TX, self::INDEX_ROUTE)) !== true) return $denial;
+
+            $taxes = Tax::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+
+            $view = ViewsConstants::TX . '.' . $func;
+            if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
+
+            return ViewFacade::make($view, compact('taxes'));
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
     }
 
-    public function create(Request $request)
+    public function create(Request $request): View|RedirectResponse
     {
-        $function = __FUNCTION__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse)
-            return $user;
-        Log::info('Entering ' . __METHOD__, ['user' => $user?->id]);
-        if ($denial = $this->guard($request, 'create constant tax', self::INDEX_ROUTE))
-            return $denial;
-        return view(ViewsConstants::TX . '.' . $function);
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
+            if (($denial = self::guard($request, 'create constant tax', self::INDEX_ROUTE)) !== true) return $denial;
+
+            $view = ViewsConstants::TX . '.' . $func;
+            if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
+
+            return ViewFacade::make($view);
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
     }
 
-    public function show(Request $request, Tax $tax)
+    public function show(Request $request, Tax $tax): View|RedirectResponse
     {
-        if (($user = self::_checkLogin()) instanceof RedirectResponse)
-            return $user;
-        Log::info('Entering ' . __METHOD__, ['user' => $user?->id, 'tax' => $tax->id]);
-        if ($denial = $this->guard($request, 'view constant tax', self::INDEX_ROUTE))
-            return $denial;
-        if ($tax->created_by !== $user?->creatorId())
-            return defaultPermissionDenial(
-                $request,
-                new \Exception('owner'),
-                __CLASS__ . '::' . __FUNCTION__,
-                route(self::INDEX_ROUTE),
-                false
-            );
-        return view(ViewsConstants::TX . '.show', compact('tax'));
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
+            if (($denial = self::guard($request, 'view constant tax', self::INDEX_ROUTE)) !== true) return $denial;
+            if ($tax->created_by !== $user?->creatorId()) {
+                return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);
+            }
+
+            $view = ViewsConstants::TX . '.show';
+            if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
+
+            return ViewFacade::make($view, compact('tax'));
+        }, ['tax_id' => $tax->id]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        if (($user = self::_checkLogin()) instanceof RedirectResponse)
-            return $user;
-        Log::info('Entering ' . __METHOD__, ['user' => $user?->id, 'input' => $request->all()]);
-        if ($denial = $this->guard($request, 'create constant tax', self::INDEX_ROUTE))
-            return $denial;
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
 
-        $v = Validator::make($request->all(), [
-            'name' => 'required|string|max:20',
-            'rate' => 'required|numeric'
-        ]);
-        if ($v->fails()) {
-            Log::warning('Validation failed in store', ['errors' => $v->errors()->all()]);
-            return redirect()->back()->with('error', $v->errors()->first());
-        }
+        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'input' => $request->only('name', 'rate')]);
+            if (($denial = self::guard($request, 'create constant tax', self::INDEX_ROUTE)) !== true) return $denial;
 
-        try {
-            DB::transaction(function () use ($request, $user) {
-                $tax = new Tax([
-                    'name'       => $request->name,
-                    'rate'       => $request->rate,
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
-                ]);
-                $tax->save();
-                Log::info('Tax created', ['id' => $tax->id]);
-            });
-            return redirect()->route(self::INDEX_ROUTE)
-                ->with('success', __('Tax rate successfully created.'));
-        } catch (\Throwable $e) {
-            Log::error('Tax store failed', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, __CLASS__ . '::store');
-        }
+            $v = Validator::make($request->all(), ['name' => 'required|string|max:20', 'rate' => 'required|numeric']);
+            if ($v->fails()) {
+                Log::debug($action . ' validation failed', ['errors' => $v->errors()->all()]);
+                return redirect()->back()->with('error', $v->errors()->first());
+            }
+
+            try {
+                DB::transaction(function () use ($request, $user, $action) {
+                    $tax = Tax::create([
+                        'name' => $request->name,
+                        'rate' => $request->rate,
+                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                    ]);
+                    Log::info($action . ' created', ['tax_id' => $tax->id]);
+                });
+
+                return redirect()->route(self::INDEX_ROUTE)->with('success', __('Tax rate successfully created.'));
+            } catch (\Throwable $e) {
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::INDEX_ROUTE));
+            }
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'input' => $request->only('name', 'rate')]);
     }
 
-    public function edit(Request $request, Tax $tax)
+    public function edit(Request $request, Tax $tax): View|RedirectResponse
     {
-        if (($user = self::_checkLogin()) instanceof RedirectResponse)
-            return $user;
-        Log::info('Entering ' . __METHOD__, ['user' => $user?->id, 'tax' => $tax->id]);
-        if ($denial = $this->guard($request, 'edit constant tax', self::INDEX_ROUTE))
-            return $denial;
-        if ($tax->created_by !== $user?->creatorId())
-            return defaultPermissionDenial($request, new \Exception('owner'), __CLASS__ . '::edit', route(self::INDEX_ROUTE), false);
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
 
-        return view(ViewsConstants::TX . '.edit', compact('tax'));
+        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
+            if (($denial = self::guard($request, 'edit constant tax', self::INDEX_ROUTE)) !== true) return $denial;
+            if ($tax->created_by !== $user?->creatorId()) {
+                return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);
+            }
+
+            $view = ViewsConstants::TX . '.edit';
+            if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
+
+            return ViewFacade::make($view, compact('tax'));
+        }, ['tax_id' => $tax->id]);
     }
 
     public function update(Request $request, Tax $tax): RedirectResponse
     {
-        if (($user = self::_checkLogin()) instanceof RedirectResponse)
-            return $user;
-        Log::info('Entering ' . __METHOD__, ['user' => $user?->id, 'tax' => $tax->id, 'input' => $request->all()]);
-        if ($denial = $this->guard($request, 'edit constant tax', self::INDEX_ROUTE))
-            return $denial;
-        if ($tax->created_by !== $user?->creatorId())
-            return defaultPermissionDenial($request, new \Exception('owner'), __CLASS__ . '::update', route(self::INDEX_ROUTE), false);
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
 
-        $v = Validator::make($request->all(), [
-            'name' => 'required|string|max:20',
-            'rate' => 'required|numeric'
-        ]);
-        if ($v->fails()) {
-            Log::warning('Validation failed in update', ['errors' => $v->errors()->all()]);
-            return redirect()->back()->with('error', $v->errors()->first());
-        }
+        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id, 'input' => $request->only('name', 'rate')]);
+            if (($denial = self::guard($request, 'edit constant tax', self::INDEX_ROUTE)) !== true) return $denial;
+            if ($tax->created_by !== $user?->creatorId()) {
+                return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);
+            }
 
-        try {
-            DB::transaction(function () use ($request, $tax) {
-                $tax->update($request->only('name', 'rate'));
-                Log::info('Tax updated', ['id' => $tax->id]);
-            });
-            return redirect()->route(self::INDEX_ROUTE)
-                ->with('success', __('Tax rate successfully updated.'));
-        } catch (\Throwable $e) {
-            Log::error('Tax update failed', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, __CLASS__ . '::update');
-        }
+            $v = Validator::make($request->all(), ['name' => 'required|string|max:20', 'rate' => 'required|numeric']);
+            if ($v->fails()) {
+                Log::debug($action . ' validation failed', ['errors' => $v->errors()->all()]);
+                return redirect()->back()->with('error', $v->errors()->first());
+            }
+
+            try {
+                DB::transaction(function () use ($request, $tax, $action) {
+                    $tax->update($request->only('name', 'rate'));
+                    Log::info($action . ' updated', ['tax_id' => $tax->id]);
+                });
+
+                return redirect()->route(self::INDEX_ROUTE)->with('success', __('Tax rate successfully updated.'));
+            } catch (\Throwable $e) {
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::INDEX_ROUTE));
+            }
+        }, ['tax_id' => $tax->id, 'input' => $request->only('name', 'rate')]);
     }
 
     public function destroy(Request $request, Tax $tax): RedirectResponse
     {
-        if (($user = self::_checkLogin()) instanceof RedirectResponse)
-            return $user;
-        Log::info('Entering ' . __METHOD__, ['user' => $user?->id, 'tax' => $tax->id]);
-        if ($denial = $this->guard($request, 'delete constant tax', self::INDEX_ROUTE))
-            return $denial;
-        if ($tax->created_by !== $user?->creatorId())
-            return defaultPermissionDenial($request, new \Exception('owner'), __CLASS__ . '::destroy', route(self::INDEX_ROUTE), false);
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
 
-        try {
-            $inUse = ProposalProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists()
-                || BillProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists()
-                || InvoiceProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists();
-            if ($inUse) {
-                Log::warning('Attempt to delete tax in use', ['tax' => $tax->id]);
-                return redirect()->back()
-                    ->with('error', __('This tax is already assigned; remove associated records first.'));
+        return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
+            if (($denial = self::guard($request, 'delete constant tax', self::INDEX_ROUTE)) !== true) return $denial;
+            if ($tax->created_by !== $user?->creatorId()) {
+                return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);
             }
 
-            DB::transaction(function () use ($tax) {
-                $tax->delete();
-                Log::info('Tax deleted', ['id' => $tax->id]);
-            });
-            return redirect()->route(self::INDEX_ROUTE)
-                ->with('success', __('Tax rate successfully deleted.'));
-        } catch (\Throwable $e) {
-            Log::error('Tax destroy failed', ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, __CLASS__ . '::destroy');
-        }
+            try {
+                $inUse = ProposalProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists()
+                    || BillProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists()
+                    || InvoiceProduct::whereRaw("find_in_set('{$tax->id}',tax)")->exists();
+
+                if ($inUse) {
+                    Log::debug($action . ' tax in use', ['tax_id' => $tax->id]);
+                    return redirect()->back()->with('error', __('This tax is already assigned; remove associated records first.'));
+                }
+
+                DB::transaction(function () use ($tax, $action) {
+                    $id = $tax->id;
+                    $tax->delete();
+                    Log::info($action . ' deleted', ['tax_id' => $id]);
+                });
+
+                return redirect()->route(self::INDEX_ROUTE)->with('success', __('Tax rate successfully deleted.'));
+            } catch (\Throwable $e) {
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::INDEX_ROUTE));
+            }
+        }, ['tax_id' => $tax->id]);
     }
 }

@@ -1,6 +1,7 @@
 @php
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\Str;
+    use Collective\Html\FormFacade as Form;
     use App\Models\Utility;
     use App\Config\Constants\{
         ViewsConstants,
@@ -24,41 +25,38 @@
 @endphp
 
 <div class="{{ VC::CD }} bg-none card-box">
-    {{ Collective\Html\FormFacade::model($chartOfAccountType, [
-        'route'          => [ViewsConstants::COA_TP . '.update', $chartOfAccountType->id],
+    {{ Form::model($chartOfAccountType, [
+        'route'          => [$updateRoute],
         'method'         => 'PUT',
         'id'             => $formId,
         'data-url'       => $updateRoute,
         'data-guard-msg' => $guardMsg,
     ]) }}
-    <div class="{{ VC::RW }}">
-        <div class="{{ VC::FM_G }} {{ VC::C12 }}">
-            {{ Collective\Html\FormFacade::label('name', __('Name'), ['class' => VC::FM_LB]) }}
-            {{ Collective\Html\FormFacade::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
-            @error('name')
-                <small class="invalid-name" role="alert">
-                    <strong class="text-danger">{{ $message }}</strong>
-                </small>
-            @enderror
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::FM_G }} {{ VC::C12 }}">
+                {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                @error('name')
+                    <small class="invalid-name" role="alert">
+                        <strong class="text-danger">{{ $message }}</strong>
+                    </small>
+                @enderror
+            </div>
         </div>
-    </div>
-</div>
-<div class="modal-footer">
-    <input
-        type="button"
-        value="{{ __('Cancel') }}"
-        class="{{ VC::BT_LG }}"
-        data-bs-dismiss="modal"
-    >
-    <input
-        type="submit"
-        value="{{ __('Update') }}"
-        class="{{ VC::BT_PRM }}"
-    >
-</div>
-{{ Collective\Html\FormFacade::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
+        <div class="modal-footer">
+            <input
+                type="button"
+                value="{{ __('Cancel') }}"
+                class="{{ VC::BT_LG }}"
+                data-bs-dismiss="modal"
+            >
+            <input
+                type="submit"
+                value="{{ __('Update') }}"
+                class="{{ VC::BT_PRM }}"
+            >
+        </div>
+    {{ Form::close() }}
     <script defer>
         (() => {
             const form = document.getElementById('{{ $formId }}');
@@ -98,4 +96,4 @@
             });
         })();
     </script>
-@endpush
+</div>
