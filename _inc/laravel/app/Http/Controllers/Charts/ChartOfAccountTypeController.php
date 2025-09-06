@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Config\Constants\{
     ChartsConstants,
     DatabaseConstants,
-    PermissionsConstants
+    PermissionsConstants,
+    UsersConstants,
 };
 use App\Models\ChartOfAccountType;
 use App\Traits\{ChecksLogin, ChecksPermissions};
@@ -17,121 +18,168 @@ use Illuminate\Http\{
 };
 use Illuminate\Support\Facades\{
     Auth,
-    Validator
+    Validator,
+    View as ViewFacade
 };
+use Illuminate\View\View;
 
 final class ChartOfAccountTypeController extends Controller
 {
 
     use ChecksLogin, ChecksPermissions;
 
-    private const SINGULAR = 'chart-of-account-type';
-    private const REDIRECT_INDEX = self::SINGULAR . '.index';
+    private const SINGULAR = 'chart-of-account-type'; // ! ALERT
+    private const REDIRECT_INDEX = self::SINGULAR . '.index'; // ! ALERT
 
-    public function index(Request $req): \Illuminate\View\View|RedirectResponse
+    public function index(Request $req): View|RedirectResponse
     {
-        if (
-            ($uor = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
-            return $uor;
-        $user = $uor;
-        if ($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) return $c;
-        try {
-            $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-            return view(self::SINGULAR . __FUNCTION__, compact('types'));
-        } catch (\Throwable $e) {
-            return defaultUndefinedException(
-                $req,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
+            if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
+            if ($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+
+            try {
+                $t = microtime(true);
+                $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $req->user()?->creatorId())->get();
+                $this->logExecutionTime($t, $action, 'fetchTypes');
+
+                $view = self::SINGULAR . '.' . $func;
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
+                return ViewFacade::make($view, compact('types'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($req, $e, $action);
+            }
+        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
-    public function create(Request $req): \Illuminate\View\View|RedirectResponse
+    public function create(Request $req): View|RedirectResponse
     {
-        if ($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) return $c;
-        return view(self::SINGULAR . '.' . __FUNCTION__);
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
+            if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
+            if ($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+
+            $view = self::SINGULAR . '.' . $func;
+            if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
+            return ViewFacade::make($view);
+        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null]);
     }
 
     public function store(Request $req): RedirectResponse|JsonResponse
     {
-        if ($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) return $c;
-        if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
-        try {
-            if (
-                ($uor = self::_checkLogin())
-                instanceof \Illuminate\Http\RedirectResponse
-            )
-                return $uor;
-            $user = $uor;
-            ChartOfAccountType::create([
-                ChartsConstants::COL_NM       => $req->name,
-                DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
-            ]);
-            return redirect()->route(self::SINGULAR . '.index')
-                ->with('success', __('Chart of account type successfully created.'));
-        } catch (\Throwable $e) {
-            return defaultUndefinedException(
-                $req,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
+            if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
+            if ($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+            if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
+
+            try {
+                $t = microtime(true);
+                ChartOfAccountType::create([
+                    ChartsConstants::COL_NM          => $req->name,
+                    DatabaseConstants::TABLE_CREATOR => $req->user()?->creatorId(),
+                ]);
+                $this->logExecutionTime($t, $action, 'createType');
+
+                return redirect()->route(self::SINGULAR . '.index')
+                    ->with('success', __('Chart of account type successfully created.'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($req, $e, $action);
+            }
+        }, [UsersConstants::COL_USER_ID => $req->user()?->id ?? null, 'name' => $req->input('name')]);
     }
 
-    public function show(
-        Request $req,
-        ChartOfAccountType $chartOfAccountType
-    ): RedirectResponse {
-        if ($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) return $c;
-        return redirect()->route(self::SINGULAR . '.index');
+    public function show(Request $req, ChartOfAccountType $chartOfAccountType): RedirectResponse
+    {
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
+            if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
+            if ($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+
+            return redirect()->route(self::SINGULAR . '.index');
+        }, ['type_id' => $chartOfAccountType->id ?? null]);
     }
 
-    public function edit(
-        Request $req,
-        ChartOfAccountType $chartOfAccountType
-    ): \Illuminate\View\View|RedirectResponse {
-        if ($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) return $c;
-        return view(self::SINGULAR . '.' . __FUNCTION__, compact('chartOfAccountType'));
+    public function edit(Request $req, ChartOfAccountType $chartOfAccountType): View|RedirectResponse
+    {
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
+            if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
+            if ($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) return $c;
+
+            $view = self::SINGULAR . '.' . $func;
+            if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
+            return ViewFacade::make($view, compact('chartOfAccountType'));
+        }, ['type_id' => $chartOfAccountType->id ?? null]);
     }
 
-    public function update(
-        Request $req,
-        ChartOfAccountType $chartOfAccountType
-    ): RedirectResponse|JsonResponse {
-        if ($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) return $c;
-        if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
-        try {
-            $chartOfAccountType->update([ChartsConstants::COL_NM => $req->name]);
-            return redirect()->route(self::SINGULAR . '.index')
-                ->with('success', __('Chart of account type successfully updated.'));
-        } catch (\Throwable $e) {
-            return defaultUndefinedException(
-                $req,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+    public function update(Request $req, ChartOfAccountType $chartOfAccountType): RedirectResponse|JsonResponse
+    {
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
+            if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
+            if ($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) return $c;
+            if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
+
+            try {
+                $t = microtime(true);
+                $chartOfAccountType->update([ChartsConstants::COL_NM => $req->name]);
+                $this->logExecutionTime($t, $action, 'updateType');
+
+                return redirect()->route(self::SINGULAR . '.index')
+                    ->with('success', __('Chart of account type successfully updated.'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($req, $e, $action);
+            }
+        }, ['type_id' => $chartOfAccountType->id ?? null, 'name' => $req->input('name')]);
     }
 
-    public function destroy(
-        Request $req,
-        ChartOfAccountType $chartOfAccountType
-    ): RedirectResponse|JsonResponse {
-        if ($c = self::guard($req, 'delete constant chart of account type', self::REDIRECT_INDEX)) return $c;
-        try {
-            $chartOfAccountType->delete();
-            return redirect()->route(self::SINGULAR . '.index')
-                ->with('success', __('Chart of account type successfully deleted.'));
-        } catch (\Throwable $e) {
-            return defaultUndefinedException(
-                $req,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+    public function destroy(Request $req, ChartOfAccountType $chartOfAccountType): RedirectResponse|JsonResponse
+    {
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
+            if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
+            if ($c = self::guard($req, 'delete constant chart of account type', self::REDIRECT_INDEX)) return $c;
+
+            try {
+                $t = microtime(true);
+                $chartOfAccountType->delete();
+                $this->logExecutionTime($t, $action, 'deleteType');
+
+                return redirect()->route(self::SINGULAR . '.index')
+                    ->with('success', __('Chart of account type successfully deleted.'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($req, $e, $action);
+            }
+        }, ['type_id' => $chartOfAccountType->id ?? null]);
     }
 
     private static function v(

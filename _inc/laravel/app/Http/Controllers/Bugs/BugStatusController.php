@@ -7,12 +7,14 @@ use App\Config\Constants\{
     DatabaseConstants,
     MiddlewaresConstants,
     PermissionsConstants,
+    UsersConstants,
     ViewsConstants
 };
 use App\{
     Models\BugStatus,
     Traits\ChecksLogin
 };
+use App\Traits\ChecksPermissions;
 use Illuminate\{
     Auth\Access\AuthorizationException,
     Support\Facades\Log,
@@ -28,195 +30,246 @@ use Illuminate\Http\{
     RedirectResponse,
     Request
 };
+use Illuminate\Support\Facades\View as ViewFacade;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class BugStatusController extends Controller
 {
-    use ChecksLogin;
+    use ChecksLogin, ChecksPermissions;
 
     public function __construct()
     {
         $this->middleware(MiddlewaresConstants::AUTH);
     }
 
-    public function index(Request $request): View|JsonResponse
+    public function index(Request $request): View|RedirectResponse|JsonResponse
     {
-        try {
-            if ($denial = self::deny($request, PermissionsConstants::MNG_BUG_STT))
-                return $denial;
-            $creatorId = $request->user()?->creatorId();
-            $bugStatuses = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-                ->orderBy(ActivitiesConstants::COL_OD)
-                ->get();
-            return view(ViewsConstants::BUG_STT . '.' . __FUNCTION__, [
-                'bug_statuses' => $bugStatuses,
-            ]);
-        } catch (AuthorizationException $e) {
-            Log::warning('BugStatusController@index authorization failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
-        } catch (Throwable $e) {
-            Log::critical('BugStatusController@index failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to load bug statuses');
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($denial = self::guard($request, PermissionsConstants::MNG_BUG_STT, ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
+
+            try {
+                $creatorId = $request->user()?->creatorId();
+                $bugStatuses = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                    ->orderBy(ActivitiesConstants::COL_OD)
+                    ->get();
+
+                $view = ViewsConstants::BUG_STT . '.' . $func;
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(ViewsConstants::BUG_STT . '.index'));
+
+                return ViewFacade::make($view, ['bug_statuses' => $bugStatuses]);
+            } catch (AuthorizationException $e) {
+                Log::warning('BugStatusController@index authorization failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
+            } catch (\Throwable $e) {
+                Log::critical('BugStatusController@index failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to load bug statuses');
+            }
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
     }
 
-    public function create(Request $request): View|JsonResponse
+    public function create(Request $request): View|RedirectResponse|JsonResponse
     {
-        try {
-            if ($denial = self::deny($request, 'create bug status'))
-                return $denial;
-            return view(ViewsConstants::BUG_STT . '.' . __FUNCTION__);
-        } catch (AuthorizationException $e) {
-            Log::warning('BugStatusController@create authorization failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
-        } catch (Throwable $e) {
-            Log::critical('BugStatusController@create failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to show creation form');
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($denial = self::guard($request, 'create bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
+
+            try {
+                $view = ViewsConstants::BUG_STT . '.' . $func;
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(ViewsConstants::BUG_STT . '.index'));
+
+                return ViewFacade::make($view);
+            } catch (AuthorizationException $e) {
+                Log::warning('BugStatusController@create authorization failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
+            } catch (\Throwable $e) {
+                Log::critical('BugStatusController@create failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to show creation form');
+            }
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
     }
 
     public function store(Request $request): RedirectResponse|JsonResponse
     {
-        try {
-            if ($denial = self::deny($request, 'create bug status'))
-                return $denial;
-            $data = $request->validate([
-                ActivitiesConstants::COL_TT => 'required|string|max:20',
-            ]);
-            $creatorId = $request->user()->creatorId();
-            $maxOrder = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-                ->max(ActivitiesConstants::COL_OD);
-            BugStatus::create([
-                ActivitiesConstants::COL_TT      => $data[ActivitiesConstants::COL_TT],
-                ActivitiesConstants::COL_OD      => ($maxOrder ?? -1) + 1,
-                DatabaseConstants::TABLE_CREATOR => $creatorId,
-            ]);
-            return redirect()
-                ->route(ViewsConstants::BUG_STT . '.index')
-                ->with('success', __('Bug status successfully created.'));
-        } catch (AuthorizationException $e) {
-            Log::warning('BugStatusController@store authorization failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
-        } catch (ValidationException $e) {
-            Log::warning('BugStatusController@store validation failed', ['errors' => $e->errors()]);
-            return $this->errorResponse(
-                $request,
-                Response::HTTP_UNPROCESSABLE_ENTITY,
-                $e->validator->errors()->first(),
-                $e->errors()
-            );
-        } catch (QueryException $e) {
-            Log::error('BugStatusController@store database error', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Database error');
-        } catch (Throwable $e) {
-            Log::critical('BugStatusController@store failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to create bug status');
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($denial = self::guard($request, 'create bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
+
+            try {
+                $data = $request->validate([
+                    ActivitiesConstants::COL_TT => 'required|string|max:20',
+                ]);
+
+                $creatorId = $request->user()->creatorId();
+                $maxOrder = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->max(ActivitiesConstants::COL_OD);
+
+                BugStatus::create([
+                    ActivitiesConstants::COL_TT      => $data[ActivitiesConstants::COL_TT],
+                    ActivitiesConstants::COL_OD      => ($maxOrder ?? -1) + 1,
+                    DatabaseConstants::TABLE_CREATOR => $creatorId,
+                ]);
+
+                return redirect()->route(ViewsConstants::BUG_STT . '.index')->with('success', __('Bug status successfully created.'));
+            } catch (AuthorizationException $e) {
+                Log::warning('BugStatusController@store authorization failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
+            } catch (ValidationException $e) {
+                Log::warning('BugStatusController@store validation failed', ['errors' => $e->errors()]);
+                return $this->errorResponse($request, Response::HTTP_UNPROCESSABLE_ENTITY, $e->validator->errors()->first(), $e->errors());
+            } catch (QueryException $e) {
+                Log::error('BugStatusController@store database error', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Database error');
+            } catch (\Throwable $e) {
+                Log::critical('BugStatusController@store failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to create bug status');
+            }
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'input' => $request->only(ActivitiesConstants::COL_TT)]);
     }
 
-    public function edit(Request $request, int|string $id): View|JsonResponse
+    public function edit(Request $request, int|string $id): View|RedirectResponse|JsonResponse
     {
-        try {
-            if ($denial = self::deny($request, 'edit bug status'))
-                return $denial;
-            $bugStatus = BugStatus::findOrFail($id);
-            if (!self::isOwner($bugStatus))
-                throw new AuthorizationException('You do not own this resource');
-            return view(ViewsConstants::BUG_STT . '.' . __FUNCTION__, [
-                'bug_status' => $bugStatus,
-            ]);
-        } catch (ModelNotFoundException $e) {
-            Log::warning('BugStatusController@edit not found', ['id' => $id]);
-            return $this->errorResponse($request, Response::HTTP_NOT_FOUND, 'Bug status not found');
-        } catch (AuthorizationException $e) {
-            Log::warning('BugStatusController@edit authorization failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
-        } catch (Throwable $e) {
-            Log::critical('BugStatusController@edit failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to load edit form');
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $id, $cls, $meth, $func, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($denial = self::guard($request, 'edit bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
+
+            try {
+                $bugStatus = BugStatus::findOrFail($id);
+                if (!self::isOwner($bugStatus)) throw new AuthorizationException('You do not own this resource');
+
+                $view = ViewsConstants::BUG_STT . '.' . $func;
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(ViewsConstants::BUG_STT . '.index'));
+
+                return ViewFacade::make($view, ['bug_status' => $bugStatus]);
+            } catch (ModelNotFoundException $e) {
+                Log::warning('BugStatusController@edit not found', ['id' => $id]);
+                return $this->errorResponse($request, Response::HTTP_NOT_FOUND, 'Bug status not found');
+            } catch (AuthorizationException $e) {
+                Log::warning('BugStatusController@edit authorization failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
+            } catch (\Throwable $e) {
+                Log::critical('BugStatusController@edit failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to load edit form');
+            }
+        }, ['id' => $id]);
     }
 
     public function update(Request $request, int|string $id): RedirectResponse|JsonResponse
     {
-        try {
-            if ($denial = self::deny($request, 'edit bug status'))
-                return $denial;
-            $bugStatus = BugStatus::findOrFail($id);
-            if (!self::isOwner($bugStatus))
-                throw new AuthorizationException('You do not own this resource');
-            $data = $request->validate([
-                ActivitiesConstants::COL_TT => 'required|string|max:20',
-            ]);
-            $bugStatus->update([
-                ActivitiesConstants::COL_TT => $data[ActivitiesConstants::COL_TT],
-            ]);
-            return redirect()
-                ->route(ViewsConstants::BUG_STT . '.index')
-                ->with('success', __('Bug status successfully updated.'));
-        } catch (ModelNotFoundException $e) {
-            Log::warning('BugStatusController@update not found', ['id' => $id]);
-            return $this->errorResponse($request, Response::HTTP_NOT_FOUND, 'Bug status not found');
-        } catch (AuthorizationException $e) {
-            Log::warning('BugStatusController@update authorization failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
-        } catch (ValidationException $e) {
-            Log::warning('BugStatusController@update validation failed', ['errors' => $e->errors()]);
-            return $this->errorResponse(
-                $request,
-                Response::HTTP_UNPROCESSABLE_ENTITY,
-                $e->validator->errors()->first(),
-                $e->errors()
-            );
-        } catch (Throwable $e) {
-            Log::critical('BugStatusController@update failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to update bug status');
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $id, $cls, $meth, $func, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($denial = self::guard($request, 'edit bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
+
+            try {
+                $bugStatus = BugStatus::findOrFail($id);
+                if (!self::isOwner($bugStatus)) throw new AuthorizationException('You do not own this resource');
+
+                $data = $request->validate([
+                    ActivitiesConstants::COL_TT => 'required|string|max:20',
+                ]);
+
+                $bugStatus->update([ActivitiesConstants::COL_TT => $data[ActivitiesConstants::COL_TT]]);
+
+                return redirect()->route(ViewsConstants::BUG_STT . '.index')->with('success', __('Bug status successfully updated.'));
+            } catch (ModelNotFoundException $e) {
+                Log::warning('BugStatusController@update not found', ['id' => $id]);
+                return $this->errorResponse($request, Response::HTTP_NOT_FOUND, 'Bug status not found');
+            } catch (AuthorizationException $e) {
+                Log::warning('BugStatusController@update authorization failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
+            } catch (ValidationException $e) {
+                Log::warning('BugStatusController@update validation failed', ['errors' => $e->errors()]);
+                return $this->errorResponse($request, Response::HTTP_UNPROCESSABLE_ENTITY, $e->validator->errors()->first(), $e->errors());
+            } catch (\Throwable $e) {
+                Log::critical('BugStatusController@update failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to update bug status');
+            }
+        }, ['id' => $id, 'input' => $request->only(ActivitiesConstants::COL_TT)]);
     }
 
     public function destroy(Request $request, int|string $id): RedirectResponse|JsonResponse
     {
-        try {
-            if ($denial = self::deny($request, 'delete bug status'))
-                return $denial;
-            $bugStatus = BugStatus::findOrFail($id);
-            if (!self::isOwner($bugStatus))
-                throw new AuthorizationException('You do not own this resource');
-            $bugStatus->delete();
-            return redirect()
-                ->route(ViewsConstants::BUG_STT . '.index')
-                ->with('success', __('Bug status successfully deleted.'));
-        } catch (ModelNotFoundException $e) {
-            Log::warning('BugStatusController@destroy not found', ['id' => $id]);
-            return $this->errorResponse($request, Response::HTTP_NOT_FOUND, 'Bug status not found');
-        } catch (AuthorizationException $e) {
-            Log::warning('BugStatusController@destroy authorization failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
-        } catch (Throwable $e) {
-            Log::critical('BugStatusController@destroy failed', ['exception' => $e]);
-            return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to delete bug status');
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $id, $cls, $meth, $func, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($denial = self::guard($request, 'delete bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
+
+            try {
+                $bugStatus = BugStatus::findOrFail($id);
+                if (!self::isOwner($bugStatus)) throw new AuthorizationException('You do not own this resource');
+
+                $bugStatus->delete();
+
+                return redirect()->route(ViewsConstants::BUG_STT . '.index')->with('success', __('Bug status successfully deleted.'));
+            } catch (ModelNotFoundException $e) {
+                Log::warning('BugStatusController@destroy not found', ['id' => $id]);
+                return $this->errorResponse($request, Response::HTTP_NOT_FOUND, 'Bug status not found');
+            } catch (AuthorizationException $e) {
+                Log::warning('BugStatusController@destroy authorization failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_FORBIDDEN, 'Forbidden');
+            } catch (\Throwable $e) {
+                Log::critical('BugStatusController@destroy failed', ['exception' => $e]);
+                return $this->errorResponse($request, Response::HTTP_INTERNAL_SERVER_ERROR, 'Unable to delete bug status');
+            }
+        }, ['id' => $id]);
     }
 
-    public function order(Request $request): Response|JsonResponse
+    public function order(Request $request): Response|RedirectResponse|JsonResponse
     {
-        try {
-            if ($denial = self::deny($request, 'edit bug status'))
-                return $denial;
-            $positions = $request->input(ActivitiesConstants::COL_OD, []);
-            foreach ($positions as $index => $id)
-                BugStatus::where('id', $id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
-                    ->update([ActivitiesConstants::COL_OD => $index]);
-            return response()->noContent(Response::HTTP_OK);
-        } catch (AuthorizationException $e) {
-            Log::warning('BugStatusController@order authorization failed', ['exception' => $e]);
-            return response()->json(['error' => 'Forbidden'], Response::HTTP_FORBIDDEN);
-        } catch (Throwable $e) {
-            Log::critical('BugStatusController@order failed', ['exception' => $e]);
-            return response()->json(['error' => 'Unable to reorder statuses'], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            if (($denial = self::guard($request, 'edit bug status', ViewsConstants::BUG_STT . '.index')) !== true) return $denial;
+
+            try {
+                $positions = $request->input(ActivitiesConstants::COL_OD, []);
+                foreach ($positions as $index => $id) {
+                    BugStatus::where('id', $id)
+                        ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                        ->update([ActivitiesConstants::COL_OD => $index]);
+                }
+                return response()->noContent(Response::HTTP_OK);
+            } catch (AuthorizationException $e) {
+                Log::warning('BugStatusController@order authorization failed', ['exception' => $e]);
+                return response()->json(['error' => 'Forbidden'], Response::HTTP_FORBIDDEN);
+            } catch (\Throwable $e) {
+                Log::critical('BugStatusController@order failed', ['exception' => $e]);
+                return response()->json(['error' => 'Unable to reorder statuses'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, ActivitiesConstants::COL_OD => $request->input(ActivitiesConstants::COL_OD, [])]);
     }
 
     public function show(): RedirectResponse

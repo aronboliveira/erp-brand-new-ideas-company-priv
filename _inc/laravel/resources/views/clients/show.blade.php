@@ -1,8 +1,11 @@
 @php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
+        PermissionsConstants,
         StacksConstants,
-        ViewClassNamesConstants,
+        UsersConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use App\Models\Utility;
@@ -26,19 +29,41 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('clients.index')}}">{{__('Client')}}</a></li>
-    <li class="breadcrumb-item">  {{ ucwords($client->name).__("'s Detail") }}</li>
+    @php
+        $clientIndexRouteBase = VW::CLT.'.index';
+        $clientIndexRouteKebab = Str::kebab($clientIndexRouteBase);
+        $clientIndexResolvedName = Route::has($clientIndexRouteBase) ? $clientIndexRouteBase : (Route::has($clientIndexRouteKebab) ? $clientIndexRouteKebab : null);
+        $clientIndexUrl = $clientIndexResolvedName ? route($clientIndexResolvedName) : '#';
+        $clientIndexLang = isset($lang) ? $lang : Utility::fetchUserLang();
+        $clientIndexGuardMsg = Utility::fetchLinkMessage($clientIndexLang, VW::CLT, 'index_client_route_unavailable') ?? 'Client index route is unavailable. Please contact technical support or your domain administrator.';
+        $clientIndexBreadcrumbLinkId = 'breadcrumb-client-index-link';
+    @endphp
+    <li class="breadcrumb-item">
+        <a id="{{ $clientIndexBreadcrumbLinkId }}"
+        href="{{ $clientIndexUrl }}"
+        data-url="{{ $clientIndexUrl }}"
+        data-guard-msg="{{ $clientIndexGuardMsg }}"
+        data-sv-localized="true">{{ __('Client') }}</a>
+    </li>
+    @push(StacksConstants::ADM_SCRP_PG)
+        <script defer src="{{ asset('assets/js/routes/clients/showIndex.js') }}"></script>
+    @endpush
+    <li class="breadcrumb-item">  {{ !empty($client?->name) ? ucwords($client->name).__("'s Detail") : __('No client name available')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
-
 @endsection
-
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="col-xl-12">
             <div class="{{ VC::CD }}">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
+                        @php
+                            $isDateFormatAvailable = method_exists($user,'dateFormat');
+                            $isPriceFormatAvailable = method_exists($user,'priceFormat');
+                            $isEstimateNumberFormatAvailable = method_exists($user,'estimateNumberFormat');
+                            $estimationList = ((is_array($estimations ?? null) && count($estimations ?? [])) || (($estimations ?? null) instanceof Collection && ($estimations)->isNotEmpty())) ? $estimations : [];
+                        @endphp
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -47,139 +72,101 @@
                                     <th>{{ __('Issue Date') }}</th>
                                     <th>{{ __('Value') }}</th>
                                     <th>{{ __('Status') }}</th>
-                                    @if(Auth::user()->type != 'client')
+                                    @if(($user?->{UsersConstants::COL_TP} ?? null) !== PermissionsConstants::CLT)
                                         <th width="250px">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($estimations as $estimate)
+                                @forelse ($estimationList as $estimate)
                                     @php
-                                        $showName     = ViewsConstants::EST . '.show';
-                                        $showRoute    = Route::has($showName)
-                                            ? route($showName, $estimate->id)
-                                            : '#';
-                                        $showGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::EST,
-                                            'estimation_show_route_unavailable'
-                                        ) ?? 'Estimate view route is unavailable. Please contact technical support or your domain administrator.';
-                                        $editName     = ViewsConstants::EST . '.edit';
-                                        $editRoute    = Route::has($editName)
-                                            ? route($editName, $estimate->id)
-                                            : '#';
-                                        $editGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::EST,
-                                            'estimation_edit_route_unavailable'
-                                        ) ?? 'Estimate edit route is unavailable. Please contact technical support or your domain administrator.';
-                                        $destroyName     = ViewsConstants::EST . '.destroy';
-                                        $destroyRoute    = Route::has($destroyName)
-                                            ? route($destroyName, $estimate->id)
-                                            : '#';
-                                        $destroyGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::EST,
-                                            'estimation_destroy_route_unavailable'
-                                        ) ?? 'Estimate delete route is unavailable. Please contact technical support or your domain administrator.';
-                                        $deleteFormId    = 'delete-form-' . $estimate->id;
+                                        $estId = data_get($estimate,'id');
+                                        $estiNo = data_get($estimate,'estimation_id');
+                                        $clientName = data_get($estimate,'client.name') ?: __('No client name available');
+                                        $issueAt = data_get($estimate,'issue_date');
+                                        $statusIdx = (int) (data_get($estimate,'status') ?? -1);
+                                        $statusClasses = [0 => VC::BDG.' bg-primary', 1 => VC::BDG.' bg-danger', 2 => VC::BDG.' bg-warning', 3 => VC::BDG.' bg-success', 4 => VC::BDG.' bg-info'];
+                                        $label = data_get(Estimation::$statuses ?? [],$statusIdx) ?: __('No status available');
+                                        $valueTotal = (float) (method_exists($estimate,'getTotal') ? $estimate->getTotal() : 0);
                                     @endphp
                                     <tr>
                                         <td class="Id">
                                             @can('View Estimation')
-                                                <a
-                                                    href="#"
-                                                    class="{{ VC::BT_OUTPM }}"
-                                                    data-url="{{ $showRoute }}"
-                                                    data-guard-msg="{{ $showGuardMsg }}"
-                                                    data-listener-alias="view-estimate"
-                                                >
+                                                @php
+                                                    $showName = ViewsConstants::EST . '.show';
+                                                    $showUrl = ($estId && Route::has($showName)) ? route($showName, $estId) : '#';
+                                                    $showGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::EST, 'estimation_show_route_unavailable') ?: __('Failed to get estimation show route');
+                                                @endphp
+                                                <a href="#" class="{{ VC::BT_OUTPM }}" data-url="{{ $showUrl }}" data-guard-msg="{{ $showGuardMsg }}" data-listener-alias="view-estimate">
                                                     <i class="{{ VC::TI_CC_PLS }}"></i>
-                                                    {{$user?->estimateNumberFormat($estimate->estimation_id) }}
+                                                    {{ $estiNo ? ($isEstimateNumberFormatAvailable ? $user?->estimateNumberFormat($estiNo) : __('Failed to format estimate number')) : __('No estimate number available') }}
                                                 </a>
                                             @else
-                                                {{$user?->estimateNumberFormat($estimate->estimation_id) }}
+                                                {{ $estiNo ? ($isEstimateNumberFormatAvailable ? $user?->estimateNumberFormat($estiNo) : __('Failed to format estimate number')) : __('No estimate number available') }}
                                             @endcan
                                         </td>
-                                        <td>{{ $estimate->client->name }}</td>
-                                        <td>{{$user?->dateFormat($estimate->issue_date) }}</td>
-                                        <td>{{$user?->priceFormat($estimate->getTotal()) }}</td>
+                                        <td>{{ $clientName }}</td>
+                                        <td>{{ $issueAt ? ($isDateFormatAvailable ? $user?->dateFormat($issueAt) : (string) $issueAt) : __('No issue date available') }}</td>
+                                        <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($valueTotal) : (string) $valueTotal }}</td>
                                         <td>
-                                            @php
-                                                $statusClasses = [
-                                                    0 => VC::BDG.' bg-primary',
-                                                    1 => VC::BDG.' bg-danger',
-                                                    2 => VC::BDG.' bg-warning',
-                                                    3 => VC::BDG.' bg-success',
-                                                    4 => VC::BDG.' bg-info',
-                                                ];
-                                                $label = \App\Models\Estimation::$statuses[$estimate->status] ?? '';
-                                            @endphp
-                                            <span class="{{ $statusClasses[$estimate->status] ?? (VC::BDG.' bg-secondary') }} p-2 px-3 rounded">
-                                                {{ __($label) }}
-                                            </span>
+                                            @php($badgeClass = $statusClasses[$statusIdx] ?? (VC::BDG.' bg-secondary'))
+                                            <span class="{{ $badgeClass }} p-2 px-3 rounded">{{ __($label) }}</span>
                                         </td>
-                                        @if(Auth::user()->type != 'client')
+                                        @if(($user?->{UsersConstants::COL_TP} ?? null) !== PermissionsConstants::CLT)
                                             <td class="Action">
                                                 @can('View Estimation')
+                                                    @php
+                                                        $showName = ViewsConstants::EST . '.show';
+                                                        $showUrl = ($estId && Route::has($showName)) ? route($showName, $estId) : '#';
+                                                        $showGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::EST, 'estimation_show_route_unavailable') ?: __('Failed to get estimation show route');
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_WRN }}">
-                                                        <a
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT }}"
-                                                            data-url="{{ $showRoute }}"
-                                                            data-guard-msg="{{ $showGuardMsg }}"
-                                                            data-listener-alias="view-estimate"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('View') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_EYE_WT }}"></i>
-                                                        </a>
+                                                        <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $showUrl }}" data-guard-msg="{{ $showGuardMsg }}" data-listener-alias="view-estimate" data-bs-toggle="tooltip" title="{{ __('View') }}"><i class="{{ VC::TI_EYE_WT }}"></i></a>
                                                     </div>
                                                 @endcan
                                                 @can('Edit Estimation')
+                                                    @php
+                                                        $editName = ViewsConstants::EST . '.edit';
+                                                        $editUrl = ($estId && Route::has($editName)) ? route($editName, $estId) : '#';
+                                                        $editGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::EST, 'estimation_edit_route_unavailable') ?: __('Failed to get estimation edit route');
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                        <a
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT }}"
-                                                            data-url="{{ $editRoute }}"
-                                                            data-guard-msg="{{ $editGuardMsg }}"
-                                                            data-listener-alias="edit-estimate"
-                                                            data-ajax-popup="true"
-                                                            data-title="{{ __('Edit Estimation') }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Edit') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_PC_WT }}"></i>
-                                                        </a>
+                                                        <a href="#" class="{{ VC::BT_SM_CT }}" data-url="{{ $editUrl }}" data-guard-msg="{{ $editGuardMsg }}" data-listener-alias="edit-estimate" data-ajax-popup="true" data-title="{{ __('Edit Estimation') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
                                                     </div>
                                                 @endcan
                                                 @can('Delete Estimation')
+                                                    @php
+                                                        $destroyName = ViewsConstants::EST . '.destroy';
+                                                        $destroyUrl = ($estId && Route::has($destroyName)) ? route($destroyName, $estId) : '#';
+                                                        $destroyGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::EST, 'estimation_destroy_route_unavailable') ?: __('Failed to get estimation delete route');
+                                                        $deleteFormId = 'delete-form-' . $estId;
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                         {!! Collective\Html\FormFacade::open([
                                                             'method'         => 'DELETE',
-                                                            'route'          => [ViewsConstants::EST . '.destroy', $estimate->id],
+                                                            'url'            => $destroyUrl,
                                                             'id'             => $deleteFormId,
-                                                            'data-url'       => $destroyRoute,
+                                                            'data-url'       => $destroyUrl,
                                                             'data-guard-msg' => $destroyGuardMsg,
                                                         ]) !!}
-                                                        <a
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT_PR }}"
-                                                            data-listener-alias="delete-estimate"
-                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                            data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Delete') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                        </a>
+                                                        <a href="#" class="{{ VC::BT_SM_CT_PR }}" data-listener-alias="delete-estimate" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();" data-bs-toggle="tooltip" title="{{ __('Delete') }}"><i class="{{ VC::TI_TRS_WT }}"></i></a>
                                                         {!! Collective\Html\FormFacade::close() !!}
                                                     </div>
                                                 @endcan
                                             </td>
                                         @endif
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}">
+                                                <div class="{{ VC::C6 }} {{ VC::TXCT }}">
+                                                    <p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No estimations available') }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -190,47 +177,6 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const bindGuard = (el, event, urlAttr='data-url', msgAttr='data-guard-msg') => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(event, e => {
-                    try {
-                        const url = el.getAttribute(urlAttr) ?? '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg           = el.getAttribute(msgAttr) ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            document.querySelectorAll('[data-listener-alias="view-estimate"]').forEach(el => bindGuard(el, 'click'));
-            document.querySelectorAll('[data-listener-alias="edit-estimate"]').forEach(el => bindGuard(el, 'click'));
-            document.querySelectorAll('[data-listener-alias="delete-estimate"]').forEach(el => bindGuard(el, 'click'));
-        })();
+    <script defer src="{{ asset('assets/js/routes/clients/show.js') }}">
     </script>
 @endpush

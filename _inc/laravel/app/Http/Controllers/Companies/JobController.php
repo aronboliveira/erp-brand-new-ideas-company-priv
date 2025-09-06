@@ -7,6 +7,7 @@ use App\Config\Constants\{
     DatabaseConstants,
     PermissionsConstants,
     SettingsConstants,
+    UsersConstants,
     ViewsConstants
 };
 use App\Models\{
@@ -34,7 +35,9 @@ use Illuminate\Support\Facades\{
     DB,
     File,
     Log,
-    Validator
+    Route,
+    Validator,
+    View as ViewFacade,
 };
 use Illuminate\View\View;
 
@@ -62,313 +65,329 @@ final class JobController extends Controller
 
     public function index(Request $req): RedirectResponse|View
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        if ($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $c;
-        $jobs = Job::with([DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_CREATOR])
-            ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
-            ->get();
-        $data = [
-            'active'  => Job::where('status', 'active')
-                ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->count(),
-            'inActive' => Job::where('status', 'in_active')
-                ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->count(),
-            'total'   => Job::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->count()
-        ];
-        return view(self::SINGULAR . '.' . __FUNCTION__, compact('data', DatabaseConstants::TABLE_JOBS));
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if ($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $c;
+            Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
+            $qStart = microtime(true);
+            $jobs = Job::with([DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_CREATOR])
+                ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                ->get();
+            $this->logExecutionTime($qStart, $action, 'fetchJobs');
+            $cStart = microtime(true);
+            $data = [
+                'active'   => Job::where('status', 'active')->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->count(),
+                'inActive' => Job::where('status', 'in_active')->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->count(),
+                'total'    => Job::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->count(),
+            ];
+            $this->logExecutionTime($cStart, $action, 'aggregateCounts');
+            $viewPath = self::SINGULAR . '.' . $action;
+            if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact('data', DatabaseConstants::TABLE_JOBS));
+            $this->logExecutionTime($renderStart, $action, 'renderView');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function create(Request $req): RedirectResponse|View
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        if ($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $c;
-        $categories    = JobCategory::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
-            ->pluck('title', 'id')->prepend('--', '');
-        $branches      = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
-            ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
-        $status        = Job::$status;
-        $customQuestion = CustomQuestion::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
-        return view(
-            self::SINGULAR . '.' . __FUNCTION__,
-            compact(
-                DatabaseConstants::TABLE_BRANCHES,
-                DatabaseConstants::TABLE_JOB_CATS,
-                'custom_question',
-                'status'
-            )
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if ($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $c;
+            Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
+            ${DatabaseConstants::TABLE_JOB_CATS} = JobCategory::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
+            ${DatabaseConstants::TABLE_BRANCHES} = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
+            $status = Job::$status;
+            $custom_question = CustomQuestion::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
+            $viewPath = self::SINGULAR . '.' . $action;
+            if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact(DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_JOB_CATS, 'custom_question', 'status'));
+            $this->logExecutionTime($renderStart, $action, 'renderView');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 
     public function store(Request $req): RedirectResponse
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        if ($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $c;
-        $v = Validator::make($req->all(), self::$jobRules);
-        if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
-        try {
-            Job::create($this->buildJobPayload($req, $u->creatorId()));
-            return redirect()->route(self::SINGULAR . '.index')->with('success', __('Job successfully created.'));
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if ($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $c;
+            $v = Validator::make($req->all(), self::$jobRules);
+            if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
+            try {
+                $crtStart = microtime(true);
+                Job::create($this->buildJobPayload($req, $u->creatorId()));
+                $this->logExecutionTime($crtStart, $action, 'createJob');
+                Log::info("[$base::$action] created");
+                return redirect()->route(self::SINGULAR . '.index') // ! ALERT
+                    ->with('success', __('Job successfully created.'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
+
     public function show(Request $req, Job $job): RedirectResponse|View
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        if ($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $c;
-        $job->applicant      = explode(',', $job->applicant);
-        $job->customQuestion = explode(',', $job->custom_question);
-        $job->skill          = explode(',', $job->skill);
-        $job->visibility     = explode(',', $job->visibility);
-        $status              = Job::$status;
-        return view(self::SINGULAR . '.' . __FUNCTION__, compact(self::SINGULAR, 'status'));
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if ($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $c;
+            Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'job_id' => $job->id, 'method' => $method]);
+            $job->applicant = explode(',', (string) $job->applicant);
+            $job->customQuestion = explode(',', (string) $job->custom_question);
+            $job->skill = explode(',', (string) $job->skill);
+            $job->visibility = explode(',', (string) $job->visibility);
+            $status = Job::$status;
+            $viewPath = self::SINGULAR . '.' . $action;
+            if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact(self::SINGULAR, 'status'));
+            $this->logExecutionTime($renderStart, $action, 'renderView');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'job_id' => $job->id]);
     }
 
     public function edit(Request $req, Job $job): RedirectResponse|View
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        if ($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $c;
-        if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial(
-            $req,
-            new AuthorizationException(),
-            __CLASS__ . '::' . __FUNCTION__,
-            route(self::SINGULAR . '.index')
-        );
-        $branches      = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
-            ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
-        $categories    = JobCategory::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
-            ->pluck('title', 'id')->prepend('--', '');
-        $customQuestion = CustomQuestion::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
-        $status        = Job::$status;
-        $job->applicant      = explode(',', $job->applicant);
-        $job->customQuestion = explode(',', $job->custom_question);
-        $job->skill          = explode(',', $job->skill);
-        $job->visibility     = explode(',', $job->visibility);
-        return view(
-            self::SINGULAR . '.' . __FUNCTION__,
-            compact(
-                DatabaseConstants::TABLE_BRANCHES,
-                DatabaseConstants::TABLE_JOB_CATS,
-                'custom_question',
-                self::SINGULAR,
-                'status'
-            )
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if ($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $c;
+            if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
+            ${DatabaseConstants::TABLE_BRANCHES} = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
+            ${DatabaseConstants::TABLE_JOB_CATS} = JobCategory::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
+            $custom_question = CustomQuestion::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
+            $status = Job::$status;
+            $job->applicant = explode(',', (string) $job->applicant);
+            $job->customQuestion = explode(',', (string) $job->custom_question);
+            $job->skill = explode(',', (string) $job->skill);
+            $job->visibility = explode(',', (string) $job->visibility);
+            $viewPath = self::SINGULAR . '.' . $action;
+            if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact(DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_JOB_CATS, 'custom_question', self::SINGULAR, 'status'));
+            $this->logExecutionTime($renderStart, $action, 'renderView');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'job_id' => $job->id]);
     }
 
     public function update(Request $req, Job $job): RedirectResponse
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        if ($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $c;
-        if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial(
-            $req,
-            new AuthorizationException(),
-            __CLASS__ . '::' . __FUNCTION__,
-            route(self::SINGULAR . '.index')
-        );
-        $v = Validator::make($req->all(), self::$jobRules);
-        if ($v->fails()) return redirect()->back()
-            ->with('error', $v->errors()->first());
-        try {
-            $job->update($this->buildJobAttributes($req));
-            return redirect()->route(self::SINGULAR . '.index')
-                ->with('success', __('Job successfully updated.'));
-        } catch (\Throwable $e) {
-            return defaultUndefinedException(
-                $req,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if ($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $c;
+            if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
+            $v = Validator::make($req->all(), self::$jobRules);
+            if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
+            try {
+                $updStart = microtime(true);
+                $job->update($this->buildJobAttributes($req));
+                $this->logExecutionTime($updStart, $action, 'updateJob');
+                Log::info("[$base::$action] updated", ['job_id' => $job->id]);
+                return redirect()->route(self::SINGULAR . '.index') // ! ALERT
+                    ->with('success', __('Job successfully updated.'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'job_id' => $job->id]);
     }
 
     public function destroy(Request $req, Job $job): RedirectResponse
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        if ($c = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) return $c;
-        if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial(
-            $req,
-            new AuthorizationException(),
-            __CLASS__ . '::' . __FUNCTION__,
-            route(self::SINGULAR . '.index')
-        );
-        try {
-            JobApplicationNote::whereIn(
-                'application_id',
-                JobApplication::where(self::SINGULAR, $job->id)->pluck('id')
-            )->delete();
-            JobApplication::where(self::SINGULAR, $job->id)->delete();
-            $job->delete();
-            return redirect()->route(self::SINGULAR . '.index')
-                ->with('success', __('Job successfully deleted.'));
-        } catch (\Throwable $e) {
-            return defaultUndefinedException(
-                $req,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if ($c = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) return $c;
+            if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
+            try {
+                $delStart = microtime(true);
+                JobApplicationNote::whereIn('application_id', JobApplication::where(self::SINGULAR, $job->id)->pluck('id'))->delete();
+                JobApplication::where(self::SINGULAR, $job->id)->delete();
+                $job->delete();
+                $this->logExecutionTime($delStart, $action, 'deleteJob');
+                Log::info("[$base::$action] deleted", ['job_id' => $job->id]);
+                return redirect()->route(self::SINGULAR . '.index') // ! ALERT
+                    ->with('success', __('Job successfully deleted.'));
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($req, $e, $class . '::' . $action);
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'job_id' => $job->id]);
     }
 
     public function career(int|string $companyId, string $lang): View
     {
-        $jobs = Job::where(DatabaseConstants::TABLE_CREATOR, $companyId)
-            ->with([DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_CREATOR])->get();
-        App::setLocale($lang);
-        session(['lang' => $lang]);
-        $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
-            ->where(DatabaseConstants::TABLE_CREATOR, $companyId)
-            ->whereIn('name', [
-                SettingsConstants::CPN_FAVICON_K,
-                SettingsConstants::CPN_LG,
-                SettingsConstants::FT_TXT,
-                'title_text'
-            ])->pluck('value', 'name')->toArray();
-        $languages = Utility::languages();
-        $currLang = session('lang') ?? User::find($companyId)->lang ?? DatabaseConstants::DEFAULT_LANG;
-        return view(
-            self::SINGULAR . '.' . __FUNCTION__,
-            compact(
-                'companyId',
-                'currLang',
-                DatabaseConstants::TABLE_JOBS,
-                DatabaseConstants::TABLE_LANGS,
-                DatabaseConstants::TABLE_SETTINGS
-            )
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($companyId, $lang, $action, $method, $class, $base) {
+            Log::debug("[$base::$action] start", ['companyId' => $companyId, 'lang' => $lang, 'method' => $method]);
+            $qStart = microtime(true);
+            $jobs = Job::where(DatabaseConstants::TABLE_CREATOR, $companyId)->with([DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_CREATOR])->get();
+            $this->logExecutionTime($qStart, $action, 'fetchJobs');
+            App::setLocale($lang);
+            session(['lang' => $lang]);
+            $sStart = microtime(true);
+            $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
+                ->where(DatabaseConstants::TABLE_CREATOR, $companyId)
+                ->whereIn('name', [SettingsConstants::CPN_FAVICON_K, SettingsConstants::CPN_LG, SettingsConstants::FT_TXT, 'title_text'])
+                ->pluck('value', 'name')
+                ->toArray();
+            $this->logExecutionTime($sStart, $action, 'loadSettings');
+            $languages = Utility::languages();
+            $currLang = session('lang') ?? User::find($companyId)->lang ?? DatabaseConstants::DEFAULT_LANG;
+            $viewPath = self::SINGULAR . '.' . $action;
+            if (!ViewFacade::exists($viewPath)) abort(404, "Page {$viewPath} not found");
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact('companyId', 'currLang', DatabaseConstants::TABLE_JOBS, DatabaseConstants::TABLE_LANGS, DatabaseConstants::TABLE_SETTINGS));
+            $this->logExecutionTime($renderStart, $action, 'renderView');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'companyId' => $companyId, 'lang' => $lang]);
     }
 
     public const JB_RQ = 'jobRequirement';
     public function jobRequirement(string $code, string $lang): RedirectResponse|View
     {
-        $job = Job::where('code', $code)->firstOrFail();
-        if ($job->status === 'in_active') return redirect()->back()
-            ->with('error', __('Permission denied.'));
-        App::setLocale($lang);
-        session(['lang' => $lang]);
-        $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
-            ->where(DatabaseConstants::TABLE_CREATOR, $job->created_by)
-            ->whereIn('name', [
-                SettingsConstants::CPN_FAVICON_K,
-                SettingsConstants::CPN_LG,
-                SettingsConstants::FT_TXT,
-                'title_text'
-            ])->pluck('value', 'name')->toArray();
-        $languages = Utility::languages();
-        $currLang = session('lang') ?? $job->createdBy->lang ?? DatabaseConstants::DEFAULT_LANG;
-        return view(
-            self::SINGULAR . '.requirement',
-            compact(
-                'currLang',
-                self::SINGULAR,
-                DatabaseConstants::TABLE_LANGS,
-                DatabaseConstants::TABLE_SETTINGS
-            )
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($code, $lang, $action, $method, $class, $base) {
+            Log::debug("[$base::$action] start", ['code' => $code, 'lang' => $lang, 'method' => $method]);
+            $qStart = microtime(true);
+            $job = Job::where('code', $code)->firstOrFail();
+            $this->logExecutionTime($qStart, $action, 'fetchJob');
+            if ($job->status === 'in_active') return back()->with('error', __('This job is not active.'));
+            App::setLocale($lang);
+            session(['lang' => $lang]);
+            $sStart = microtime(true);
+            $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
+                ->where(DatabaseConstants::TABLE_CREATOR, $job->created_by)
+                ->whereIn('name', [SettingsConstants::CPN_FAVICON_K, SettingsConstants::CPN_LG, SettingsConstants::FT_TXT, 'title_text'])
+                ->pluck('value', 'name')
+                ->toArray();
+            $this->logExecutionTime($sStart, $action, 'loadSettings');
+            $languages = Utility::languages();
+            $currLang = session('lang') ?? $job->createdBy->lang ?? DatabaseConstants::DEFAULT_LANG;
+            $viewPath = self::SINGULAR . '.requirement';
+            if (!ViewFacade::exists($viewPath)) abort(404, "Page {$viewPath} not found");
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact('currLang', self::SINGULAR, DatabaseConstants::TABLE_LANGS, DatabaseConstants::TABLE_SETTINGS));
+            $this->logExecutionTime($renderStart, $action, 'renderView');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'code' => $code, 'lang' => $lang]);
     }
 
     public const JB_AP = 'jobApply';
     public function jobApply(string $code, string $lang): View
     {
-        $job = Job::where('code', $code)->firstOrFail();
-        App::setLocale($lang);
-        session(['lang' => $lang]);
-        $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
-            ->where(DatabaseConstants::TABLE_CREATOR, $job->created_by)
-            ->whereIn('name', [
-                SettingsConstants::CPN_FAVICON_K,
-                SettingsConstants::CPN_LG,
-                SettingsConstants::FT_TXT,
-                'title_text'
-            ])->pluck('value', 'name')->toArray();
-        $questions = CustomQuestion::where(
-            DatabaseConstants::TABLE_CREATOR,
-            $job->created_by
-        )->get();
-        $languages = Utility::languages();
-        $currLang = session('lang') ?? $job->createdBy->lang ?? DatabaseConstants::DEFAULT_LANG;
-        return view(
-            self::SINGULAR . '.apply',
-            compact('currLang', self::SINGULAR, DatabaseConstants::TABLE_LANGS, 'questions', DatabaseConstants::TABLE_SETTINGS)
-        );
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($code, $lang, $action, $method, $class, $base) {
+            Log::debug("[$base::$action] start", ['code' => $code, 'lang' => $lang, 'method' => $method]);
+            $qStart = microtime(true);
+            $job = Job::where('code', $code)->firstOrFail();
+            $this->logExecutionTime($qStart, $action, 'fetchJob');
+            App::setLocale($lang);
+            session(['lang' => $lang]);
+            $sStart = microtime(true);
+            $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
+                ->where(DatabaseConstants::TABLE_CREATOR, $job->created_by)
+                ->whereIn('name', [SettingsConstants::CPN_FAVICON_K, SettingsConstants::CPN_LG, SettingsConstants::FT_TXT, 'title_text'])
+                ->pluck('value', 'name')
+                ->toArray();
+            $this->logExecutionTime($sStart, $action, 'loadSettings');
+            $qsStart = microtime(true);
+            $questions = CustomQuestion::where(DatabaseConstants::TABLE_CREATOR, $job->created_by)->get();
+            $this->logExecutionTime($qsStart, $action, 'loadQuestions');
+            $languages = Utility::languages();
+            $currLang = session('lang') ?? $job->createdBy->lang ?? DatabaseConstants::DEFAULT_LANG;
+            $viewPath = self::SINGULAR . '.apply';
+            if (!ViewFacade::exists($viewPath)) abort(404, "Page {$viewPath} not found");
+            $renderStart = microtime(true);
+            $resp = view($viewPath, compact('currLang', self::SINGULAR, DatabaseConstants::TABLE_LANGS, 'questions', DatabaseConstants::TABLE_SETTINGS));
+            $this->logExecutionTime($renderStart, $action, 'renderView');
+            return $resp;
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'code' => $code, 'lang' => $lang]);
     }
 
     public const JB_AP_DT = 'jobApplyData';
     public function jobApplyData(Request $req, string $code): RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        $v = Validator::make($req->all(), [
-            'name'  => 'required',
-            'email' => 'required|email',
-            'phone' => 'required'
-        ]);
-        if ($v->fails()) return redirect()->back()
-            ->with('error', $v->errors()->first());
-        $job = Job::where('code', $code)->firstOrFail();
-        try {
-            $files = [];
-            foreach (['profile', 'resume'] as $f) {
-                if ($req->hasFile($f)) {
-                    $size  = $req->file($f)->getSize();
-                    $limit = Utility::updateStorageLimit(
-                        $user?->creatorId(),
-                        $size
-                    );
-                    if ($limit !== 1) continue;
-                    $orig  = $req->file($f)->getClientOriginalName();
-                    $stored = pathinfo($orig, PATHINFO_FILENAME)
-                        . '_' . time() . '.' . $req->file($f)->getClientOriginalExtension();
-                    Utility::uploadFile(
-                        $req,
-                        $f,
-                        $stored,
-                        "uploads/job/$f",
-                        []
-                    );
-                    $files[$f] = $stored;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class = static::class;
+        $base = class_basename($class);
+        return $this->measureProfile($action, function () use ($req, $code, $action, $method, $class, $base) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            $v = Validator::make($req->all(), ['name' => 'required', 'email' => 'required|email', 'phone' => 'required']);
+            if ($v->fails()) return back()->with('error', $v->errors()->first());
+            $job = Job::where('code', $code)->firstOrFail();
+            try {
+                $files = [];
+                foreach (['profile', 'resume'] as $f) {
+                    if ($req->hasFile($f)) {
+                        $size = $req->file($f)->getSize();
+                        $limStart = microtime(true);
+                        $limit = Utility::updateStorageLimit($user?->creatorId(), $size);
+                        $this->logExecutionTime($limStart, $action, "checkStorage:$f");
+                        if ($limit !== 1) continue;
+                        $orig = $req->file($f)->getClientOriginalName();
+                        $stored = pathinfo($orig, PATHINFO_FILENAME) . '_' . time() . '.' . $req->file($f)->getClientOriginalExtension();
+                        $upStart = microtime(true);
+                        Utility::uploadFile($req, $f, $stored, "uploads/job/$f", []);
+                        $this->logExecutionTime($upStart, $action, "upload:$f");
+                        $files[$f] = $stored;
+                    }
                 }
+                $stage = JobStage::where(DatabaseConstants::TABLE_CREATOR, $job->created_by)->first()?->id;
+                $appData = [self::SINGULAR => $job->id];
+                foreach (['name', 'email', 'phone', 'cover_letter', 'dob', 'gender', 'country', 'state', 'city'] as $field) $appData[$field] = $req->input($field, '');
+                $appData['custom_question'] = json_encode($req->input('question', []));
+                foreach (['profile', 'resume'] as $f) $appData[$f] = $files[$f] ?? '';
+                $appData['stage'] = $stage;
+                $appData[DatabaseConstants::TABLE_CREATOR] = $job->created_by;
+                $crtStart = microtime(true);
+                JobApplication::create($appData);
+                $this->logExecutionTime($crtStart, $action, 'createApplication');
+                Log::info("[$base::$action] application created", ['job_id' => $job->id]);
+                return back()->with('success', __('Job application successfully sent.'));
+            } catch (\Throwable $e) {
+                Log::error("[$base::$action] failed", ['error' => $e->getMessage(), 'job_code' => $code]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::SINGULAR . '.apply', ['code' => $code, 'lang' => session('lang')])); // ! ALERT
             }
-            $stage = JobStage::where(
-                DatabaseConstants::TABLE_CREATOR,
-                $job->created_by
-            )->first()->id ?? null;
-            $appData = [self::SINGULAR => $job->id];
-            foreach (
-                [
-                    'name',
-                    'email',
-                    'phone',
-                    'cover_letter',
-                    'dob',
-                    'gender',
-                    'country',
-                    'state',
-                    'city'
-                ] as $field
-            )
-                $appData[$field] = $req->input($field, '');
-            $appData['custom_question'] = json_encode($req->input('question', []));
-            foreach (['profile', 'resume'] as $f)
-                $appData[$f] = $files[$f] ?? '';
-            $appData['stage']     = $stage;
-            $appData[DatabaseConstants::TABLE_CREATOR] = $job->created_by;
-            JobApplication::create($appData);
-            return redirect()->back()->with(
-                'success',
-                __('Job application successfully sent.')
-            );
-        } catch (\Throwable $e) {
-            Log::error('JobApplyData failed: ' . $e->getMessage());
-            return defaultUndefinedException(
-                $req,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__,
-                route(self::SINGULAR . '.apply', ['code' => $code, 'lang' => session('lang')])
-            );
-        }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'code' => $code]);
     }
 
     private function buildJobAttributes(Request $req, int|string|null $userId = null, bool $includeMeta = false): array

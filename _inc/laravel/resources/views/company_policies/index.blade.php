@@ -67,6 +67,10 @@
             <div class="{{ VC::CD }}">
                 <div class="{{ VC::CD }}-body table-border-style">
                     <div class="table-responsive">
+                        @php
+                            $policies = ((is_array($companyPolicy ?? null) && count($companyPolicy ?? [])) || (($companyPolicy ?? null) instanceof Collection && ($companyPolicy)->isNotEmpty())) ? $companyPolicy : [];
+                            $basePath = Utility::getFile('uploads/companyPolicy') ?: '';
+                        @endphp
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -80,107 +84,70 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @foreach($companyPolicy as $policy)
+                                @forelse($policies as $policy)
                                     @php
-                                        $editName     = ViewsConstants::CPN_PL . '.edit';
-                                        $editRoute    = Route::has($editName)
-                                            ? route($editName, $policy->id)
-                                            : (Route::has(Str::kebab($editName))
-                                                ? route(Str::kebab($editName), $policy->id)
-                                                : '#');
-                                        $editGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::CPN_PL,
-                                            'company_policy_edit_route_unavailable'
-                                        ) ?? 'Edit Company Policy route is unavailable. Please contact technical support or your domain administrator.';
-
-                                        $destroyName     = ViewsConstants::CPN_PL . '.destroy';
-                                        $destroyRoute    = Route::has($destroyName)
-                                            ? route($destroyName, $policy->id)
-                                            : (Route::has(Str::kebab($destroyName))
-                                                ? route(Str::kebab($destroyName), $policy->id)
-                                                : '#');
-                                        $destroyGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::CPN_PL,
-                                            'company_policy_destroy_route_unavailable'
-                                        ) ?? 'Delete Company Policy route is unavailable. Please contact technical support or your domain administrator.';
-                                        $deleteFormId    = 'delete-form-' . $policy->id;
-                                        $policyPath      = Utility::getFile('uploads/companyPolicy');
+                                        $pid = data_get($policy,'id');
+                                        $branchName = data_get($policy,'branches.name') ?: __('No branch name available');
+                                        $title = data_get($policy,'title') ?: __('No title available');
+                                        $desc = data_get($policy,'description') ?: __('No description available');
+                                        $attachment = data_get($policy,'attachment');
+                                        $fileUrl = ($attachment && $basePath) ? ($basePath.'/'.$attachment) : null;
                                     @endphp
                                     <tr>
-                                        <td>{{ optional($policy->branches)->name }}</td>
-                                        <td>{{ $policy->title }}</td>
-                                        <td>{{ $policy->description }}</td>
+                                        <td>{{ $branchName }}</td>
+                                        <td>{{ $title }}</td>
+                                        <td>{{ $desc }}</td>
                                         <td>
-                                            @if($policy->attachment)
+                                            @if($fileUrl)
                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                    <a href="{{ $policyPath . '/' . $policy->attachment }}"
-                                                       download=""
-                                                       class="{{ VC::BT_SM }} {{ VC::AL_IT_CT }}">
-                                                        <i class="ti ti-download {{ VC::TXT_WT }}"></i>
-                                                    </a>
+                                                    <a href="{{ $fileUrl }}" download class="{{ VC::BT_SM }} {{ VC::AL_IT_CT }}"><i class="ti ti-download {{ VC::TXT_WT }}"></i></a>
                                                 </div>
                                                 <div class="{{ VC::ACT_BTN }} bg-secondary ms-2">
-                                                    <a href="{{ $policyPath . '/' . $policy->attachment }}"
-                                                       target="_blank"
-                                                       class="{{ VC::BT_SM }} {{ VC::AL_IT_CT }}"
-                                                       data-bs-toggle="tooltip"
-                                                       title="{{ __('Preview') }}">
-                                                        <i class="ti ti-crosshair {{ VC::TXT_WT }}"></i>
-                                                    </a>
+                                                    <a href="{{ $fileUrl }}" target="_blank" class="{{ VC::BT_SM }} {{ VC::AL_IT_CT }}" data-bs-toggle="tooltip" title="{{ __('Preview') }}"><i class="ti ti-crosshair {{ VC::TXT_WT }}"></i></a>
                                                 </div>
                                             @else
-                                                <p>-</p>
+                                                <p>{{ __('No attachment available') }}</p>
                                             @endif
                                         </td>
                                         @if(Gate::check('edit company policy') || Gate::check('delete company policy'))
                                             <td>
                                                 @can('edit company policy')
+                                                    @php
+                                                        $editName = ViewsConstants::CPN_PL.'.edit';
+                                                        $editRoute = (Route::has($editName) ? route($editName, $pid) : (Route::has(Str::kebab($editName)) ? route(Str::kebab($editName), $pid) : '#'));
+                                                        $editGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CPN_PL, 'company_policy_edit_route_unavailable') ?: __('Failed to get company policy edit route');
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                        <a
-                                                            href="#"
-                                                            class="{{ VC::BT_SM }} {{ VC::AL_IT_CT }}"
-                                                            id="editPolicyBtn_{{ $policy->id }}"
-                                                            data-url="{{ $editRoute }}"
-                                                            data-guard-msg="{{ $editGuardMsg }}"
-                                                            data-listener-alias="edit-policy"
-                                                            data-ajax-popup="true"
-                                                            data-title="{{ __('Edit Company Policy') }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Edit') }}"
-                                                        >
-                                                            <i class="ti ti-pencil {{ VC::TXT_WT }}"></i>
-                                                        </a>
+                                                        <a href="#" class="{{ VC::BT_SM }} {{ VC::AL_IT_CT }}" id="editPolicyBtn_{{ $pid }}" data-url="{{ $editRoute }}" data-guard-msg="{{ $editGuardMsg }}" data-listener-alias="edit-policy" data-ajax-popup="true" data-title="{{ __('Edit Company Policy') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}"><i class="ti ti-pencil {{ VC::TXT_WT }}"></i></a>
                                                     </div>
                                                 @endcan
                                                 @can('delete company policy')
+                                                    @php
+                                                        $destroyName = ViewsConstants::CPN_PL.'.destroy';
+                                                        $destroyRoute = (Route::has($destroyName) ? route($destroyName, $pid) : (Route::has(Str::kebab($destroyName)) ? route(Str::kebab($destroyName), $pid) : '#'));
+                                                        $destroyGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CPN_PL, 'company_policy_destroy_route_unavailable') ?: __('Failed to get company policy delete route');
+                                                        $deleteFormId = 'delete-form-'.$pid;
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                        {!! Form::open([
-                                                            'method'         => 'DELETE',
-                                                            'route'          => [ViewsConstants::CPN_PL . '.destroy', $policy->id],
-                                                            'id'             => $deleteFormId,
-                                                            'data-url'       => $destroyRoute,
-                                                            'data-guard-msg' => $destroyGuardMsg,
-                                                        ]) !!}
-                                                        <a
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT_PR }}"
-                                                            data-listener-alias="delete-policy"
-                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                            data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Delete') }}"
-                                                        >
-                                                            <i class="ti ti-trash {{ VC::TXT_WT }}"></i>
-                                                        </a>
+                                                        {!! Form::open(['method' => 'DELETE','url' => $destroyRoute,'id' => $deleteFormId,'data-url' => $destroyRoute,'data-guard-msg' => $destroyGuardMsg]) !!}
+                                                        <a href="#" class="{{ VC::BT_SM_CT_PR }}" data-listener-alias="delete-policy" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();" data-bs-toggle="tooltip" title="{{ __('Delete') }}"><i class="ti ti-trash {{ VC::TXT_WT }}"></i></a>
                                                         {!! Form::close() !!}
                                                     </div>
                                                 @endcan
                                             </td>
                                         @endif
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="{{ (Gate::check('edit company policy') || Gate::check('delete company policy')) ? 5 : 4 }}">
+                                            <div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}">
+                                                <div class="{{ VC::C6 }} {{ VC::TXCT }}">
+                                                    <p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No company policies available') }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -191,47 +158,5 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const bindGuard = (el, event, urlAttr = 'data-url', msgAttr = 'data-guard-msg') => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(event, e => {
-                    try {
-                        const url = el.getAttribute(urlAttr) ?? '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg           = el.getAttribute(msgAttr) ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            bindGuard(document.getElementById('createPolicyBtn'), 'click');
-            document.querySelectorAll('[data-listener-alias="edit-policy"]').forEach(el => bindGuard(el, 'click'));
-            document.querySelectorAll('[data-listener-alias="delete-policy"]').forEach(el => bindGuard(el, 'click'));
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/companyPolicies/index.js') }}"></script>
 @endpush

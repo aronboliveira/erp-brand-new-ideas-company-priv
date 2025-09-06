@@ -23,97 +23,100 @@
     ) ?? 'Client password update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
-{{ Collective\Html\FormFacade::model($user, [
-    'route'          => ['client.password.update', $user->id],
-    'method'         => 'post',
-    'id'             => $formId,
-    'data-url'       => $updateRoute,
-    'data-guard-msg' => $guardMsg,
-]) }}
-    <div class="modal-body">
-        <div class="{{ VC::RW }}">
-            <div class="{{ VC::FM_G }}">
-                {{ Collective\Html\FormFacade::label('password', __('Password'), ['class' => VC::FM_LB]) }}
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    autocomplete="new-password"
-                    class="{{ VC::FM_CT }} @error('password') is-invalid @enderror"
-                >
-                @error('password')
-                    <span class="invalid-feedback" role="alert">
-                        <strong>{{ $message }}</strong>
-                    </span>
-                @enderror
-            </div>
-            <div class="{{ VC::FM_G }}">
-                {{ Collective\Html\FormFacade::label('password_confirmation', __('Confirm Password'), ['class' => VC::FM_LB]) }}
-                <input
-                    id="password-confirm"
-                    type="password"
-                    name="password_confirmation"
-                    required
-                    autocomplete="new-password"
-                    class="{{ VC::FM_CT }}"
-                >
+@if (!empty($user) && isset($user->id))
+    {{ Form::model($user, [
+        'route'          => [$updateRoute],
+        'method'         => 'post',
+        'id'             => $formId,
+        'data-url'       => $updateRoute,
+        'data-guard-msg' => $guardMsg,
+    ]) }}
+        <div class="modal-body">
+            <div class="{{ VC::RW }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('password', __('Password'), ['class' => VC::FM_LB]) }}
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="new-password"
+                        class="{{ VC::FM_CT }} @error('password') is-invalid @enderror"
+                    >
+                    @error('password')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+                </div>
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('password_confirmation', __('Confirm Password'), ['class' => VC::FM_LB]) }}
+                    <input
+                        id="password-confirm"
+                        type="password"
+                        name="password_confirmation"
+                        required
+                        autocomplete="new-password"
+                        class="{{ VC::FM_CT }}"
+                    >
+                </div>
             </div>
         </div>
+        <div class="modal-footer">
+            <input
+                type="button"
+                value="{{ __('Cancel') }}"
+                data-bs-dismiss="modal"
+                class="{{ VC::BT_LG }}"
+            >
+            <input
+                type="submit"
+                value="{{ __('Update') }}"
+                class="{{ VC::BT_PRM }}"
+            >
+        </div>
+        <script defer>
+            (() => {
+                const form = document.getElementById('{{ $formId }}');
+                if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                form.setAttribute('data-listener-active', 'true');
+                form.addEventListener('submit', event => {
+                    try {
+                        const action = form.getAttribute('action');
+                        const url    = form.getAttribute('data-url');
+                        if ((action && action !== '#') || (url && url !== '#')) return;
+                        event.preventDefault();
+                        const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
+                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                        let container       = document.getElementById('toast-container');
+                        if (!container) {
+                            container       = document.createElement('div');
+                            container.id    = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (bootstrapLink && window.bootstrap) {
+                            const toastEl      = document.createElement('div');
+                            toastEl.className  = 'toast';
+                            toastEl.setAttribute('role', 'alert');
+                            toastEl.setAttribute('aria-live', 'assertive');
+                            toastEl.setAttribute('aria-atomic', 'true');
+                            const body         = document.createElement('div');
+                            body.className     = 'toast-body';
+                            body.textContent   = msg;
+                            toastEl.appendChild(body);
+                            container.appendChild(toastEl);
+                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                        } else {
+                            alert(msg);
+                        }
+                        form.setAttribute('data-failed-route', 'true');
+                    } catch (e) {}
+                });
+            })();
+        </script>
+    {{ Form::close() }}
+@else
+    <div class="{{ VC::ALERT }} {{ VC::ALERT_DANGER }} {{ VC::MG_B0 }}" role="alert">
+        {{ __('User information is unavailable. Please contact technical support or your domain administrator.') }}
     </div>
-    <div class="modal-footer">
-        <input
-            type="button"
-            value="{{ __('Cancel') }}"
-            data-bs-dismiss="modal"
-            class="{{ VC::BT_LG }}"
-        >
-        <input
-            type="submit"
-            value="{{ __('Update') }}"
-            class="{{ VC::BT_PRM }}"
-        >
-    </div>
-{{ Collective\Html\FormFacade::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $formId }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', event => {
-                try {
-                    const action = form.getAttribute('action');
-                    const url    = form.getAttribute('data-url');
-                    if ((action && action !== '#') || (url && url !== '#')) return;
-                    event.preventDefault();
-                    const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                    let container       = document.getElementById('toast-container');
-                    if (!container) {
-                        container       = document.createElement('div');
-                        container.id    = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bootstrapLink && window.bootstrap) {
-                        const toastEl      = document.createElement('div');
-                        toastEl.className  = 'toast';
-                        toastEl.setAttribute('role', 'alert');
-                        toastEl.setAttribute('aria-live', 'assertive');
-                        toastEl.setAttribute('aria-atomic', 'true');
-                        const body         = document.createElement('div');
-                        body.className     = 'toast-body';
-                        body.textContent   = msg;
-                        toastEl.appendChild(body);
-                        container.appendChild(toastEl);
-                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch (e) {}
-            });
-        })();
-    </script>
-@endpush
+@endif

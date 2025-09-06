@@ -712,7 +712,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     #region
     Route::resource(VW::ACC_AST, AssetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     Route::resource(VW::CST_FD, CustomFieldController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-    Route::post(VW::COA . '/subtype', [ChartOfAccountController::class, 'getSubType'])->name(VW::COA . '.sub_type')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    Route::post(VW::COA . '/subtype', [ChartOfAccountController::class, ChartOfAccountController::GET_SBT])->name(VW::COA . '.sub_type')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
 
     Route::group(
         [
@@ -985,7 +985,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::resource('job-stage', JobStageController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('job-stage/order', [JobStageController::class, 'order'])->name(VW::JB . '.stage.order');
 
-    Route::resource('job', JobController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::JB, JobController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::get('candidates-job-applications', [JobApplicationController::class, 'candidate'])->name(VW::JB . '.application.candidate')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
@@ -1419,7 +1419,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::CST . '/import/file', [CustomerController::class, 'importFile'])->name(VW::CST . '.file.import');
     Route::post(VW::CST . '/import/index', [CustomerController::class, 'import'])->name(VW::CST . '.import');
     Route::get(VW::VND . '/export', [VendorController::class, 'export'])->name(VW::VND . '.export');
-    Route::get(VW::VND . '/import/file', [VendorController::class, 'importFile'])->name(VW::VND . '.file.import');
+    Route::get(VW::VND . '/import/file', [VendorController::class, VendorController::IMP_F])->name(VW::VND . '.file.import');
     Route::post(VW::VND . '/import/index', [VendorController::class, 'import'])->name(VW::VND . '.import');
     Route::get(VW::INV . '/export', [InvoiceController::class, 'export'])->name(VW::INV . '.export');
     Route::get(VW::PPS . '/export', [ProposalController::class, 'export'])->name(VW::PPS . '.export');

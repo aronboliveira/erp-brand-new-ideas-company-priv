@@ -14,7 +14,7 @@
     $storeRoute = Route::has($routeName)
         ? route($routeName)
         : '#';
-    $formId     = 'commissionCreateForm_' . $employee->id;
+    $formId     = 'commission_create_form_' . $employee->id;
     $guardMsg   = Utility::fetchLinkMessage(
         $lang,
         ViewsConstants::COM,
@@ -23,7 +23,7 @@
 @endphp
 
 {{ Form::open([
-    'route'          => [ViewsConstants::COM . '.store'],
+    'route'          => [$storeRoute],
     'method'         => 'post',
     'id'             => $formId,
     'data-url'       => $storeRoute,
@@ -37,7 +37,11 @@
             </div>
             <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('type', __('Type'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('type', $commissions, null, ['class' => VC::FM_CT . ' select amount_type', 'required' => 'required']) }}
+                @if(is_array($commissions) && count($commissions) || $commissions instanceof \Illuminate\Support\Collection && !$commissions->isEmpty())
+                    {{ Form::select('type', $commissions, null, ['class' => VC::FM_CT . ' select amount_type', 'required' => 'required']) }}
+                @else
+                    {{ Form::select('type', ['' => __('No commission types available')], null, ['class' => VC::FM_CT . ' select amount_type', 'disabled' => 'disabled']) }}
+                @endif
             </div>
             <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('amount', __('Amount'), ['class' => VC::FM_LB . ' amount_label']) }}
@@ -58,9 +62,6 @@
             class="{{ VC::BT_PRM }}"
         >
     </div>
-{{ Form::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('{{ $formId }}');
@@ -100,4 +101,4 @@
             });
         })();
     </script>
-@endpush
+{{ Form::close() }}
