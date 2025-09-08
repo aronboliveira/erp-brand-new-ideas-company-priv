@@ -24,6 +24,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Log, Validator};
 use Symfony\Component\Console\Output\ConsoleOutput;
+use function App\Http\Controllers\defaultUndefinedException;
 
 class ApiController extends Controller
 {
@@ -36,7 +37,7 @@ class ApiController extends Controller
       $output = new ConsoleOutput();
       $output->writeln("{$action} Starting login");
       try {
-        Log::info("{$action} start", [
+        Log::debug("{$action} start", [
           'uri'    => $request->getRequestUri(),
           'method' => $request->getMethod(),
           'email'  => $request->input(UsersConstants::COL_EM, 'n/a'),
@@ -95,9 +96,9 @@ class ApiController extends Controller
           'uri'       => $request->getRequestUri(),
         ]);
         $output->writeln("{$action} Error: {$e->getMessage()}");
-        return response()->json(['message' => $message], $status);
+        return $this->error($message, $status);
       }
-    });
+    }, ['uri' => $request->getRequestUri(), 'method' => $request->getMethod(), 'ip' => $request->ip()]);
   }
 
   public function logout(Request $request): JsonResponse
@@ -105,11 +106,11 @@ class ApiController extends Controller
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($action, $request) {
       $output = new ConsoleOutput;
-      $startMsg = 'Starting ' . __FUNCTION__;
+      $startMsg = 'Starting ' . $action;
       app()->runningInConsole()
         ? $output->writeln('<info> ' . $startMsg . ' </info>')
         : $output->writeln("## {$action}: {$startMsg}");
-      Log::info("[$action] start", ['uri' => $request->getRequestUri(), 'method' => $request->getMethod(), 'ip' => $request->ip()]);
+      Log::debug("[$action] start", ['uri' => $request->getRequestUri(), 'method' => $request->getMethod(), 'ip' => $request->ip()]);
       try {
         $checkStart = microtime(true);
         $userOrRedirect = self::_checkLogin();
@@ -188,7 +189,7 @@ class ApiController extends Controller
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($request, $action) {
       $output = new ConsoleOutput();
-      Log::info("{$action} start", [
+      Log::debug("{$action} start", [
         'uri'    => $request->getRequestUri(),
         'method' => $request->getMethod(),
         'ip'     => $request->ip(),
@@ -268,7 +269,7 @@ class ApiController extends Controller
         $output->writeln("{$action} Unexpected error: {$e->getMessage()}");
         return defaultUndefinedException($request, $e, $action);
       }
-    });
+    }, ['uri' => $request->getRequestUri(), 'method' => $request->getMethod(), 'ip' => $request->ip()]);
   }
 
   public const UP_IMG = 'uploadImage';
@@ -280,7 +281,7 @@ class ApiController extends Controller
       app()->runningInConsole()
         ? $output->writeln('<info> Uploading image </info>')
         : $output->writeln("## {$action}: Uploading image");
-      Log::info("[$action] start", ['uri' => $request->getRequestUri(), 'method' => $request->getMethod(), 'ip' => $request->ip()]);
+      Log::debug("[$action] start", ['uri' => $request->getRequestUri(), 'method' => $request->getMethod(), 'ip' => $request->ip()]);
       try {
         $checkStart = microtime(true);
         $userOrRedirect = self::_checkLogin();
@@ -291,14 +292,13 @@ class ApiController extends Controller
           return $this->error('Not authenticated', 401);
         }
         $user = $userOrRedirect;
-        $fileName = $request->input('imgName', 'image.png');
+        $fileName  = $request->input('imgName', 'image.png');
         $trackerId = $request->input('trackerId', '');
         $dir = storage_path("uploads/trackerImages/{$trackerId}/");
         $dirStart = microtime(true);
         if (!is_dir($dir)) {
           mkdir($dir, 0777, true);
-          Log::info("[$action] directory created", ['dir' => $dir]);
-          Log::debug("[$action] debug directory creation", ['dir' => $dir]);
+          Log::debug("[$action] directory created", ['dir' => $dir]);
         }
         $this->logExecutionTime($dirStart, $action . '::mkdir', 'completed');
         $fileStart = microtime(true);
@@ -306,9 +306,15 @@ class ApiController extends Controller
         file_put_contents($filePath, base64_decode($request->input('img')));
         $this->logExecutionTime($fileStart, $action . '::fileSave', 'completed');
         Log::info("[$action] file saved", ['path' => $filePath, 'user_id' => $user?->id]);
-        Log::debug("[$action] debug file save", ['size' => filesize($filePath)]);
+        Log::debug("[$action] saved size", ['size' => @filesize($filePath) ?: 0]);
         $createStart = microtime(true);
-        $photo = TrackPhoto::create(['track_id' => $trackerId, UsersConstants::COL_USER_ID => $user?->id, 'img_path' => "uploads/trackerImages/{$trackerId}/{$fileName}", ActivitiesConstants::COL_TSK_TIME => $request->input(ActivitiesConstants::COL_TSK_TIME), 'status' => 1]);
+        $photo = TrackPhoto::create([
+          'track_id'                         => $trackerId,
+          UsersConstants::COL_USER_ID        => $user?->id,
+          'img_path'                         => "uploads/trackerImages/{$trackerId}/{$fileName}",
+          ActivitiesConstants::COL_TSK_TIME  => $request->input(ActivitiesConstants::COL_TSK_TIME),
+          'status'                           => 1
+        ]);
         $this->logExecutionTime($createStart, $action . '::recordCreate', 'completed');
         Log::info("[$action] record created", ['photo_id' => $photo->id]);
         return $this->success($photo, 'Image uploaded.');

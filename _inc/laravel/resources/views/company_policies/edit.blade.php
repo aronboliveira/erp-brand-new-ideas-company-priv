@@ -44,7 +44,7 @@
                     $aiGenerateTopic               = 'company policy';
                     $aiGenerateUrl                 = $aiGenerateResolvedName ? route($aiGenerateResolvedName, [$aiGenerateTopic]) : '#';
                     $aiGenerateLang                = isset($lang) ? $lang : Utility::fetchUserLang();
-                    $aiGenerateGuardMsg            = Utility::fetchLinkMessage($aiGenerateLang, 'generics', 'generate_ai_company_policy_route_unavailable') ?? 'Generate AI company policy route is unavailable. Please contact technical support or your domain administrator.';
+                    $aiGenerateGuardMsg            = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPN_PL, 'generate_ai_company_policy_route_unavailable') ?? 'Generate AI company policy route is unavailable. Please contact technical support or your domain administrator.';
                     $aiGenerateCompanyPolicyLinkId = 'ai-generate-company-policy-link';
                 @endphp
                 <div class="{{ VC::FEND }}">
@@ -68,7 +68,7 @@
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                     {{ Form::label('branch', __('Branch'), ['class' => VC::FM_LB]) }}
-                    @if(is_array($branch) && count($branch) || $branch instanceof \Illuminate\Support\Collection && !$branch->isEmpty())
+                    @if((is_array($branch) && count($branch)) || ($branch instanceof \Illuminate\Support\Collection && !$branch->isEmpty()))
                         {{ Form::select('branch', $branch, null, ['class' => VC::FM_CT . ' select', 'required' => 'required']) }}
                     @else
                         {{ Form::select('branch', ['' => __('No branches available')], null, ['class' => VC::FM_CT . ' select', 'disabled' => 'disabled']) }}

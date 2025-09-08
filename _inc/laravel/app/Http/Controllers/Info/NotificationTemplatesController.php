@@ -14,14 +14,17 @@ use App\Models\{
     Utility
 };
 use App\Traits\ChecksLogin;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{
     RedirectResponse,
     Request
 };
 use Illuminate\Support\Facades\{
     Log,
-    Validator
+    Validator,
+    View as ViewFacade
 };
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
 class NotificationTemplatesController extends Controller
@@ -33,92 +36,109 @@ class NotificationTemplatesController extends Controller
         $this->middleware([MiddlewaresConstants::XSS]);
     }
 
-    public function index(Request $request, ?int $id = null, string $lang = 'en'): Response
+    public function index(Request $request, int|string $id, string $lang = DatabaseConstants::DEFAULT_LANG): View|Response
     {
-        try {
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $this->_authorize($request, 'manage notification template');
+        $cls    = __CLASS__;
+        $action = __FUNCTION__;
+        $view   = ViewsConstants::NTF_TMP . '.index';
 
-            $template = $id
-                ? NotificationTemplates::find($id)
-                : NotificationTemplates::first();
-            if (!$template)
-                return redirect()->back()->with('error', __('Not exists in notification template.'));
+        return $this->measureProfile("$cls::$action", function () use ($request, $id, $lang, $cls, $action, $view) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                if (($resp = $this->_authorize($request, 'manage notification template')) !== true) return $resp;
 
-            $languages    = Utility::languages();
-            $langName     = Language::where('code', $lang)->first();
-            $translation = NotificationTemplateLangs::where('parent_id', $template->id)
-                ->where('lang', $lang)
-                ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
-                ->first()
-                ?: NotificationTemplateLangs::where('parent_id', $template->id)
-                ->where('lang', $lang)
-                ->first()
-                ?: tap(
-                    NotificationTemplateLangs::where('parent_id', $template->id)
-                        ->where('lang', DatabaseConstants::DEFAULT_LANG)
-                        ->first(),
-                    function ($t) use ($lang) {
-                        if ($t) $t->lang = $lang;
-                    }
-                );
-            $allTemplates = NotificationTemplates::all();
-            return view(ViewsConstants::NTF_TMP . '.' . __FUNCTION__, [
-                'notificationTemplate'      => $template,
-                'notificationTemplates'     => $allTemplates,
-                'currentTemplateLang'       => $translation,
-                DatabaseConstants::TABLE_LANGS                 => $languages,
-                'langName'                  => $langName,
-            ]);
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+                $template = $id ? NotificationTemplates::find($id) : NotificationTemplates::first();
+                if (!$template) return redirect()->back()->with('error', __('Not exists in notification template.'));
+
+                $languages  = Utility::languages();
+                $langName   = Language::where('code', $lang)->first();
+
+                $translation = NotificationTemplateLangs::where('parent_id', $template->id)
+                    ->where('lang', $lang)
+                    ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                    ->first()
+                    ?: NotificationTemplateLangs::where('parent_id', $template->id)
+                    ->where('lang', $lang)
+                    ->first()
+                    ?: tap(
+                        NotificationTemplateLangs::where('parent_id', $template->id)
+                            ->where('lang', DatabaseConstants::DEFAULT_LANG)
+                            ->first(),
+                        function ($t) use ($lang) {
+                            if ($t) $t->lang = $lang;
+                        }
+                    );
+
+                $allTemplates = NotificationTemplates::all();
+
+                if (!ViewFacade::exists($view))
+                    return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
+
+                return view($view, [
+                    'notificationTemplate'  => $template,
+                    'notificationTemplates' => $allTemplates,
+                    'currentTemplateLang'   => $translation,
+                    DatabaseConstants::TABLE_LANGS => $languages,
+                    'langName'              => $langName,
+                ]);
+            } catch (AuthorizationException $e) {
+                return defaultPermissionDenial($request, $e, "$cls::$action");
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($request, $e, "$cls::$action");
+            }
+        });
     }
 
     /**
      * Update or create a translation for a notification template.
      */
-    public function update(Request $request, int $id): RedirectResponse
+    public function update(Request $request, int|string $id): RedirectResponse
     {
-        try {
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $this->_authorize($request, 'edit notification template');
+        $cls    = __CLASS__;
+        $action = __FUNCTION__;
+        $route  = ViewsConstants::NTF_TMP . '.index';
 
-            $validator = Validator::make($request->all(), ['content' => 'required']);
-            if ($validator->fails())
-                return redirect()->back()->with('error', $validator->errors()->first());
+        return $this->measureProfile("$cls::$action", function () use ($request, $id, $cls, $action, $route) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                if (($resp = $this->_authorize($request, 'edit notification template')) !== true) return $resp;
 
-            $lang     = $request->input('lang');
-            $content  = $request->input('content');
-            $creatorId = $request->user()->creatorId();
+                $v = Validator::make($request->all(), ['content' => 'required']);
+                if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
 
-            $record = NotificationTemplateLangs::where('parent_id', $id)
-                ->where('lang', $lang)
-                ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-                ->first();
-            if (!$record) {
-                $variables = NotificationTemplateLangs::where('parent_id', $id)
+                $lang      = $request->input('lang');
+                $content   = $request->input('content');
+                $creatorId = $request->user()->creatorId();
+
+                $record = NotificationTemplateLangs::where('parent_id', $id)
                     ->where('lang', $lang)
-                    ->first()
-                    ?->variables;
-                $record = new NotificationTemplateLangs();
-                $record->parent_id = $id;
-                $record->lang      = $lang;
-                $record->variables = $variables;
-                $record->created_by = $creatorId;
-            }
-            $record->content = $content;
-            $record->save();
-            Log::info('Notification template lang saved', ['id' => $record->id]);
+                    ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                    ->first();
 
-            return redirect()->route('notification-templates.index', [$id, $lang])
-                ->with('success', __('Notification Template successfully updated.'));
-        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+                if (!$record) {
+                    $variables = NotificationTemplateLangs::where('parent_id', $id)
+                        ->where('lang', $lang)
+                        ->first()
+                        ?->variables;
+
+                    $record = new NotificationTemplateLangs();
+                    $record->parent_id  = $id;
+                    $record->lang       = $lang;
+                    $record->variables  = $variables;
+                    $record->created_by = $creatorId;
+                }
+
+                $record->content = $content;
+                $record->save();
+                Log::info('Notification template lang saved', ['id' => $record->id]);
+
+                return redirect()->route($route, [$id, $lang])
+                    ->with('success', __('Notification Template successfully updated.'));
+            } catch (AuthorizationException $e) {
+                return defaultPermissionDenial($request, $e, "$cls::$action");
+            } catch (\Throwable $e) {
+                return defaultUndefinedException($request, $e, "$cls::$action");
+            }
+        });
     }
 }

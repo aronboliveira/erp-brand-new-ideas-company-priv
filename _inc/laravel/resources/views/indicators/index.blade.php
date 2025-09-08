@@ -287,7 +287,7 @@ Object.keys(t).forEach(
         
           function getDesignation(did) {
             try {
-              const url = '{{ route('employee.json') }}';
+              const url = '{{ route("employees.json") }}';
               if (!url) throw new Error();
               $.ajax({
                 url,

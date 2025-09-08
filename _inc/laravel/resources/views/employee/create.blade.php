@@ -337,7 +337,7 @@ Object.keys(t).forEach(
         const loadDesig = id => {
             try {
             $.ajax({
-                url: '{{ route('employee.json') }}',
+                url: '{{ route("employees.json") }}',
                 type: 'POST',
                 data: { department_id: id ?? '', _token: csrf },
                 success: data => {

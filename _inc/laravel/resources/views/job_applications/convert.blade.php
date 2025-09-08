@@ -288,7 +288,7 @@ Object.keys(t).forEach(
 
                 const loadDesignations = (did) => {
                     if (did == null) return;
-                    const url = '{{ route("employee.json") }}' ?? '';
+                    const url = '{{ route("employees.json") }}' ?? '';
                     if (!url) return;
                     try {
                         $.ajax({

@@ -121,7 +121,7 @@ Object.keys(t).forEach(
         const errKey      = 'employee_fetch_unavailable';
         const toastBoxId  = 'toast-box';
         const csrfToken   = '{{ csrf_token() }}';
-        const routeUrl    = '{{ route("employee.json") }}';
+        const routeUrl    = '{{ route("employees.json") }}';
         
         const lang = (() => {
             const l = (sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en')

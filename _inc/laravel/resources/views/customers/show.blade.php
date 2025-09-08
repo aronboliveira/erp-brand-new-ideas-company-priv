@@ -6,15 +6,13 @@
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use App\Models\{Proposal,Utility};
+    use App\Models\{Invoice, Proposal, Utility};
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth, Crypt, Route};
     use Illuminate\Support\Str;
     $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
-@push(StacksConstants::ADM_SCR_PG)
-@endpush
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Customer-Detail')}}
 @endsection
@@ -46,220 +44,17 @@
         </a>
     </li>
     @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                const el = document.getElementById('customer-index-breadcrumb');
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener('click', e => {
-                    try {
-                        const url = el.getAttribute('data-url') ?? '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bs) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route','true');
-                    } catch {}
-                });
-            })();
-        </script>
+        <script defer src="{{ asset('assets/js/routes/customers/showIndex.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item">{{$customer['name']}}</li>
+    <li class="breadcrumb-item">{{!empty($customer['name']) ? $customer['name'] : 'Undefined Customer' }}</li>
 @endsection
+@if(!empty($customer) && isset($customer->id))
+@else
+    <div class="text-muted">{{ __('Customer not found') }}</div>
+@endif
 @push(StacksConstants::ADM_SCR_PG)
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar: {
-                url_copy_success: 'تم نسخ الرابط إلى الحافظة.',
-                url_copy_failed: 'فشل نسخ الرابط.'
-            },
-            da: {
-                url_copy_success: 'URL kopieret til udklipsholder.',
-                url_copy_failed: 'Kunne ikke kopiere URL.'
-            },
-            de: {
-                url_copy_success: 'URL in die Zwischenablage kopiert.',
-                url_copy_failed: 'Konnte URL nicht kopieren.'
-            },
-            en: {
-                url_copy_success: 'URL copied to clipboard.',
-                url_copy_failed: 'Failed to copy URL.'
-            },
-            es: {
-                url_copy_success: 'URL copiada al portapapeles.',
-                url_copy_failed: 'Error al copiar la URL.'
-            },
-            fr: {
-                url_copy_success: 'URL copiée dans le presse-papier.',
-                url_copy_failed: 'Échec de la copie de l’URL.'
-            },
-            he: {
-                url_copy_success: 'הכתובת הועתקה ללוח.',
-                url_copy_failed: 'העתקת הכתובת נכשלה.'
-            },
-            it: {
-                url_copy_success: 'URL copiata negli appunti.',
-                url_copy_failed: 'Impossibile copiare l’URL.'
-            },
-            ja: {
-                url_copy_success: 'URL をクリップボードにコピーしました。',
-                url_copy_failed: 'URL のコピーに失敗しました。'
-            },
-            nl: {
-                url_copy_success: 'URL gekopieerd naar klembord.',
-                url_copy_failed: 'Kon URL niet kopiëren.'
-            },
-            pl: {
-                url_copy_success: 'URL skopiowany do schowka.',
-                url_copy_failed: 'Nie udało się skopiować URL.'
-            },
-            pt: {
-                url_copy_success: 'URL copiada para a área de transferência.',
-                url_copy_failed: 'Falha ao copiar a URL.'
-            },
-            'pt-br': {
-                url_copy_success: 'URL copiada para a área de transferência.',
-                url_copy_failed: 'Falha ao copiar a URL.'
-            },
-            ru: {
-                url_copy_success: 'URL скопирован в буфер обмена.',
-                url_copy_failed: 'Не удалось скопировать URL.'
-            },
-            tr: {
-                url_copy_success: 'URL panoya kopyalandı.',
-                url_copy_failed: 'URL kopyalanamadı.'
-            },
-            zh: {
-                url_copy_success: 'URL 已复制到剪贴板。',
-                url_copy_failed: '无法复制 URL。'
-            }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (() => {
-        const ERR_FB = '# ERROR';
-        const CLIENT_FLAG = 'data-client-localized';
-        const GUARD_MSG = 'data-guard-msg';
-        const LANG_KEY = 'erp-np-lang';
-        
-        function getLocalizedMessage(key, el) {
-            let msg = ERR_FB;
-            if (el.getAttribute(CLIENT_FLAG) === 'true') {
-            msg = el.getAttribute(GUARD_MSG) || msg;
-            } else {
-            let lang = (sessionStorage.getItem(LANG_KEY) || document.documentElement.lang || 'en')
-                .toLowerCase().replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-            msg = window.translations?.[lang]?.[key] ||
-                    el.getAttribute(GUARD_MSG) ||
-                    window.translations?.['en']?.[key] ||
-                    msg;
-            if (msg !== ERR_FB) {
-                el.setAttribute(GUARD_MSG, msg);
-                el.setAttribute(CLIENT_FLAG, 'true');
-            }
-            }
-            return msg;
-        }
-        
-        function showToast(message, isError = false) {
-            try {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-            }
-            const hasBs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-            if (hasBs) {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role','alert');
-                toast.setAttribute('aria-live','assertive');
-                toast.setAttribute('aria-atomic','true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                body.textContent = message;
-                toast.appendChild(body);
-                container.appendChild(toast);
-                bootstrap.Toast.getOrCreateInstance(toast).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        }
-        
-        let errorMessage = '';
-        const onPointerUp = () => {
-            if (errorMessage) {
-            showToast(errorMessage, true);
-            errorMessage = '';
-            }
-        };
-        document.addEventListener('pointerup', onPointerUp);
-        new MutationObserver((m, obs) => {
-            m.forEach(mut => Array.from(mut.removedNodes).forEach(node => {
-            if (node === document.documentElement) {
-                document.removeEventListener('pointerup', onPointerUp);
-                obs.disconnect();
-            }
-            }));
-        }).observe(document.body, { childList:true, subtree:true });
-        
-        window.copyToClipboard = (element) => {
-            try {
-            const text = element?.id ?? '';
-            if (!navigator.clipboard) throw new Error('url_copy_failed');
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                const msg = getLocalizedMessage('url_copy_success', element);
-                showToast(msg);
-                })
-                .catch(() => {
-                throw new Error('url_copy_failed');
-                });
-            } catch (e) {
-            errorMessage = getLocalizedMessage(e.message, element || document.body);
-            }
-        };
-        })();
-    </script>    
+    <script async src="{{ asset('assets/js/routes/customers/lang/url.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/customers/url.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
@@ -531,16 +326,23 @@ Object.keys(t).forEach(
 @endsection
 @section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
-        @foreach($customerInfoSections as $section)
+        @php
+            $secList = ((is_array($customerInfoSections ?? null) && count($customerInfoSections)) || ($customerInfoSections instanceof Collection && $customerInfoSections->isNotEmpty())) ? $customerInfoSections : [];
+        @endphp
+        @foreach($secList as $section)
+            @php
+                $title  = isset($section['title']) && $section['title'] !== '' ? __($section['title']) : __('No section title available');
+                $fields = ((isset($section['fields']) && is_array($section['fields']) && count($section['fields'])) || (isset($section['fields']) && $section['fields'] instanceof Collection && $section['fields']->isNotEmpty())) ? $section['fields'] : [];
+            @endphp
             <div class="{{ VC::CL4 }} {{ VC::MB4 }}">
                 <div class="{{ VC::CD }}">
                     <div class="card-body">
-                        <h5 class="card-title">{{ __($section['title']) }}</h5>
-                        @foreach($section['fields'] as $field)
-                            @if($field)
-                                <p class="{{ VC::MB0 }}">{{ $field }}</p>
-                            @endif
-                        @endforeach
+                        <h5 class="card-title">{{ $title }}</h5>
+                        @forelse($fields as $field)
+                            <p class="{{ VC::MB0 }}">{{ (isset($field) && $field !== '') ? $field : __('No value available') }}</p>
+                        @empty
+                            <p class="{{ VC::MB0 }}">{{ __('No details available') }}</p>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -552,18 +354,30 @@ Object.keys(t).forEach(
                 <div class="card-body">
                     <h5 class="card-title">{{ __('Company Info') }}</h5>
                     <div class="{{ VC::RW }}">
-                        @foreach($companyInfoStats as $stat)
+                        @php
+                            $stats = ((is_array($companyInfoStats ?? null) && count($companyInfoStats)) || ($companyInfoStats instanceof Collection && $companyInfoStats->isNotEmpty())) ? $companyInfoStats : [];
+                        @endphp
+                        @foreach($stats as $stat)
+                            @php
+                                $label       = isset($stat['label']) && $stat['label'] !== '' ? __($stat['label']) : __('No label available');
+                                $value       = isset($stat['value']) && $stat['value'] !== '' ? $stat['value'] : __('No value available');
+                                $secondLabel = isset($stat['secondLabel']) && $stat['secondLabel'] !== '' ? __($stat['secondLabel']) : null;
+                                $secondValue = isset($stat['secondValue']) && $stat['secondValue'] !== '' ? $stat['secondValue'] : __('No value available');
+                            @endphp
                             <div class="{{ VC::CL3 }} {{ VC::CS6 }}">
                                 <div class="{{ VC::P4 }}">
-                                    <p class="{{ VC::MB0 }}">{{ __($stat['label']) }}</p>
-                                    <h6 class="report-text {{ VC::MB3 }}">{{ $stat['value'] }}</h6>
-                                    @if($stat['secondLabel'])
-                                        <p class="{{ VC::MB0 }}">{{ __($stat['secondLabel']) }}</p>
-                                        <h6 class="report-text {{ VC::MB0 }}">{{ $stat['secondValue'] }}</h6>
+                                    <p class="{{ VC::MB0 }}">{{ $label }}</p>
+                                    <h6 class="report-text {{ VC::MB3 }}">{{ $value }}</h6>
+                                    @if($secondLabel)
+                                        <p class="{{ VC::MB0 }}">{{ $secondLabel }}</p>
+                                        <h6 class="report-text {{ VC::MB0 }}">{{ $secondValue }}</h6>
                                     @endif
                                 </div>
                             </div>
                         @endforeach
+                        @if(empty($stats))
+                            <div class="{{ VC::CL12 }}"><p class="{{ VC::TX_MUTED }}">{{ __('No company info available') }}</p></div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -588,46 +402,43 @@ Object.keys(t).forEach(
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($customer->customerProposal($customer->id) as $proposal)
+                                @php
+                                    $hasDateFormat = method_exists($user,'dateFormat');
+                                    $hasPriceFormat = method_exists($user,'priceFormat');
+                                    $hasProposalNumber = method_exists($user,'proposalNumberFormat');
+                                    $propRaw = (isset($customer) && method_exists($customer,'customerProposal')) ? $customer->customerProposal($customer->id) : [];
+                                    $proposals = ((is_array($propRaw) && count($propRaw)) || ($propRaw instanceof Collection && $propRaw->isNotEmpty())) ? $propRaw : [];
+                                    $statusBadgeClasses = [0=>'bg-primary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-primary'];
+                                @endphp
+                                @forelse($proposals as $proposal)
+                                    @php
+                                        $pid = isset($proposal->id) ? $proposal->id : null;
+                                        $showUrl = $pid ? route(ViewsConstants::PPS . '.show', Crypt::encrypt($pid)) : '#';
+                                        $pnum = isset($proposal->proposal_id) ? $proposal->proposal_id : null;
+                                        $issue = isset($proposal->issue_date) ? $proposal->issue_date : null;
+                                        $amt = (isset($proposal) && method_exists($proposal,'getTotal')) ? $proposal->getTotal() : null;
+                                        $pstatus = isset($proposal->status) ? $proposal->status : null;
+                                    @endphp
                                     <tr>
                                         <td>
-                                            <a href="{{ route(ViewsConstants::PPS . '.show', Crypt::encrypt($proposal->id)) }}"
-                                               class="{{ VC::BT_OUTPM }}">
-                                                {{ $user?->proposalNumberFormat($proposal->proposal_id) }}
-                                            </a>
+                                            <a href="{{ $showUrl }}" class="{{ VC::BT_OUTPM }}">{{ $pnum ? ($hasProposalNumber ? $user?->proposalNumberFormat($pnum) : __('Failed to format proposal number')) : __('No proposal number available') }}</a>
                                         </td>
-                                        <td>{{ $user?->dateFormat($proposal->issue_date) }}</td>
-                                        <td>{{ $user?->priceFormat($proposal->getTotal()) }}</td>
-                                        @php
-                                            $statusBadgeClasses = match(true) {
-                                                $proposal->status === 0 => 'bg-primary',
-                                                $proposal->status === 1 => 'bg-warning',
-                                                $proposal->status === 2 => 'bg-danger',
-                                                $proposal->status === 3 => 'bg-info',
-                                                $proposal->status === 4 => 'bg-primary',
-                                                default => 'bg-secondary'
-                                            };
-                                        @endphp
+                                        <td>{{ $issue ? ($hasDateFormat ? $user?->dateFormat($issue) : __('Failed to format date')) : __('No issue date available') }}</td>
+                                        <td>{{ is_numeric($amt) ? ($hasPriceFormat ? $user?->priceFormat($amt) : __('Failed to format amount')) : __('No amount available') }}</td>
                                         <td>
-                                            @if(!empty($proposal->status) && is_numeric($proposal->status) && $proposal->status >= 0 && $proposal->status < 4)
-                                                <span class="badge {{ $statusBadgeClasses }} p-2 px-3 rounded">
-                                                    {{ __(Proposal::$statuses[$proposal->status]) }}
-                                                </span>
+                                            @if(isset($pstatus) && is_numeric($pstatus) && $pstatus >= 0 && $pstatus <= 4 && isset(Proposal::$statuses[$pstatus]))
+                                                <span class="badge {{ $statusBadgeClasses[$pstatus] ?? 'bg-secondary' }} p-2 px-3 rounded">{{ __(Proposal::$statuses[$pstatus]) }}</span>
                                             @else
-                                                <span class="badge bg-secondary p-2 px-3 rounded">
-                                                    {{ __('Unknown status') }}
-                                                </span>
+                                                <span class="badge bg-secondary p-2 px-3 rounded">{{ __('Unknown status') }}</span>
                                             @endif
                                         </td>
                                         @if(Gate::check('edit proposal') || Gate::check('delete proposal') || Gate::check('show proposal'))
-                                            <td class="action">
-                                                <span>
-                                                    @include('partials.proposal_actions', compact('proposal'))
-                                                </span>
-                                            </td>
+                                            <td class="action"><span>@include('partials.proposal_actions', compact('proposal'))</span></td>
                                         @endif
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr><td colspan="5"><div class="{{ VC::TXCT }} {{ VC::TX_MUTED }}">{{ __('No proposals available') }}</div></td></tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -655,93 +466,48 @@ Object.keys(t).forEach(
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($customer->customerInvoice($customer->id) as $invoice)
+                                @php
+                                    $hasInvoiceNumber = method_exists($user,'invoiceNumberFormat');
+                                    $invRaw = (isset($customer) && method_exists($customer,'customerInvoice')) ? $customer->customerInvoice($customer->id) : [];
+                                    $invoices = ((is_array($invRaw) && count($invRaw)) || ($invRaw instanceof Collection && $invRaw->isNotEmpty())) ? $invRaw : [];
+                                    $statusBadgeClasses = [0=>'bg-primary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-primary'];
+                                @endphp
+                                @forelse($invoices as $invoice)
+                                    @php
+                                        $iid = isset($invoice->id) ? $invoice->id : null;
+                                        $showUrl = $iid ? route(ViewsConstants::INV . '.show', Crypt::encrypt($iid)) : '#';
+                                        $guardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'invoice_show_route_unavailable') ?? 'Invoice show route is unavailable. Please contact technical support or your domain administrator.';
+                                        $inum = isset($invoice->invoice_id) ? $invoice->invoice_id : null;
+                                        $issue = isset($invoice->issue_date) ? $invoice->issue_date : null;
+                                        $due = isset($invoice->due_date) ? $invoice->due_date : null;
+                                        $dueAmt = (isset($invoice) && method_exists($invoice,'getDue')) ? $invoice->getDue() : null;
+                                        $istatus = isset($invoice->status) ? $invoice->status : null;
+                                    @endphp
                                     <tr>
                                         <td>
-                                            @php
-                                                $showRoute = Route::has(ViewsConstants::INV . '.show')
-                                                    ? route(ViewsConstants::INV . '.show', Crypt::encrypt($invoice->id))
-                                                    : '#';
-                                                $showGuardMsg = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::INV,
-                                                    'invoice_show_route_unavailable'
-                                                ) ?? 'Invoice show route is unavailable. Please contact technical support or your domain administrator.';
-                                            @endphp
-                                            <a
-                                                id="invoice-show-btn-{{ $invoice->id }}"
-                                                href="{{ $showRoute }}"
-                                                data-url="{{ $showRoute }}"
-                                                data-guard-msg="{{ $showGuardMsg }}"
-                                                class="{{ VC::BT_OUTPM }}"
-                                            >
-                                                {{ $user?->invoiceNumberFormat($invoice->invoice_id) }}
-                                            </a>
+                                            <a id="invoice-show-btn-{{ $iid ?? 'x' }}" href="{{ $showUrl }}" data-url="{{ $showUrl }}" data-guard-msg="{{ $guardMsg }}" class="{{ VC::BT_OUTPM }}">{{ $inum ? ($hasInvoiceNumber ? $user?->invoiceNumberFormat($inum) : __('Failed to format invoice number')) : __('No invoice number available') }}</a>
                                             @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                document.querySelectorAll('[id^="invoice-show-btn-"]').forEach(btn => {
-                                                    if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                    btn.setAttribute('data-listener-active', 'true');
-                                                    btn.addEventListener('click', e => {
-                                                    try {
-                                                        const url = btn.getAttribute('data-url') ?? '#';
-                                                        if (url !== '#') return;
-                                                        e.preventDefault();
-                                                        const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                        let container = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                        }
-                                                        if (bs) {
-                                                        const toast = document.createElement('div');
-                                                        toast.className = 'toast';
-                                                        toast.setAttribute('role','alert');
-                                                        toast.setAttribute('aria-live','assertive');
-                                                        toast.setAttribute('aria-atomic','true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toast.appendChild(body);
-                                                        container.appendChild(toast);
-                                                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                        } else {
-                                                        alert(msg);
-                                                        }
-                                                        btn.setAttribute('data-failed-route','true');
-                                                    } catch {}
-                                                    });
-                                                });
-                                                })();
-                                            </script>
+                                                <script defer src="{{ asset('assets/js/routes/customers/invoice.js') }}"></script>
                                             @endpush
                                         </td>
-                                        <td>{{ $user?->dateFormat($invoice->issue_date) }}</td>
+                                        <td>{{ $issue ? ($hasDateFormat ? $user?->dateFormat($issue) : __('Failed to format date')) : __('No issue date available') }}</td>
                                         <td>
-                                            @if($invoice->due_date < date('Y-m-d'))
-                                                <span class="text-danger">{{ $user?->dateFormat($invoice->due_date) }}</span>
+                                            @if($due)
+                                                @php $dueStr = $hasDateFormat ? $user?->dateFormat($due) : __('Failed to format date'); @endphp
+                                                @if($due < date('Y-m-d')) <span class="text-danger">{{ $dueStr }}</span> @else {{ $dueStr }} @endif
                                             @else
-                                                {{ $user?->dateFormat($invoice->due_date) }}
+                                                {{ __('No due date available') }}
                                             @endif
                                         </td>
-                                        <td>{{ $user?->priceFormat($invoice->getDue()) }}</td>
-                                        <td>
-                                            <span class="badge {{ $statusBadgeClasses[$invoice->status] ?? 'bg-secondary' }} p-2 px-3 rounded">
-                                                {{ __(\App\Models\Invoice::$statuses[$invoice->status]) }}
-                                            </span>
-                                        </td>
+                                        <td>{{ is_numeric($dueAmt) ? ($hasPriceFormat ? $user?->priceFormat($dueAmt) : __('Failed to format amount')) : __('No due amount available') }}</td>
+                                        <td><span class="badge {{ (isset($istatus) && isset(Invoice::$statuses[$istatus])) ? ($statusBadgeClasses[$istatus] ?? 'bg-secondary') : 'bg-secondary' }} p-2 px-3 rounded">{{ (isset($istatus) && isset(Invoice::$statuses[$istatus])) ? __(Invoice::$statuses[$istatus]) : __('Unknown status') }}</span></td>
                                         @if(Gate::check('edit invoice') || Gate::check('delete invoice') || Gate::check('show invoice'))
-                                            <td class="action">
-                                                <span>
-                                                    @include('partials.invoice_actions', compact('invoice'))
-                                                </span>
-                                            </td>
+                                            <td class="action"><span>@include('partials.invoice_actions', compact('invoice'))</span></td>
                                         @endif
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr><td colspan="6"><div class="{{ VC::TXCT }} {{ VC::TX_MUTED }}">{{ __('No invoices available') }}</div></td></tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

@@ -32,6 +32,7 @@ Route::group([
         Route::get('get-projects', [ApiController::class, ApiController::GET_PRJ])->name(ViewsConstants::PRJ . '.index');
         Route::post('upload-photos', [ApiController::class, ApiController::UP_IMG])->name('photos.upload');
         Route::post('add-tracker', [ApiController::class, ApiController::ADD_TRK])->name('trackers.store');
+        // TODO THIS METHOD DOESN'T EXIST
         Route::post('stop-tracker', [ApiController::class, 'stopTracker'])->name('trackers.stop');
     });
 });

@@ -24,7 +24,7 @@
     ) ?? 'Competency update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
-@if(is_array($competencies) && count($competencies) || $competencies instanceof Collection && $competencies->isNotEmpty())
+@if((is_array($competencies) && count($competencies)) || ($competencies instanceof Collection && $competencies->isNotEmpty()))
     {{ Form::model($competencies, [
         'route'          => [$updateRoute],
         'method'         => 'PUT',

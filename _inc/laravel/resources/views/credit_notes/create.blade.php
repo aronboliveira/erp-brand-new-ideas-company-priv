@@ -19,9 +19,8 @@
         'credit_note_route_unavailable'
     ) ?? 'Add credit note route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-
 {{ Form::open([
-    'route'          => [ViewsConstants::INV . '.credit.note', $invoice_id],
+    'route'          => [$creditRoute],
     'method'         => 'post',
     'id'             => $formId,
     'data-url'       => $creditRoute,
@@ -46,9 +45,6 @@
         <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
         <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Add') }}</button>
     </div>
-{{ Form::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('{{ $formId }}');
@@ -87,4 +83,4 @@
             });
         })();
     </script>
-@endpush
+{{ Form::close() }}

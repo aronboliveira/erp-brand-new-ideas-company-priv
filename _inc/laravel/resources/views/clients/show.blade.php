@@ -45,7 +45,7 @@
         data-guard-msg="{{ $clientIndexGuardMsg }}"
         data-sv-localized="true">{{ __('Client') }}</a>
     </li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/clients/showIndex.js') }}"></script>
     @endpush
     <li class="breadcrumb-item">  {{ !empty($client?->name) ? ucwords($client->name).__("'s Detail") : __('No client name available')}}</li>

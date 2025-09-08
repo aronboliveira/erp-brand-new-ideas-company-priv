@@ -152,6 +152,7 @@ use App\Config\Constants\{
     ViewsConstants as VW
 };
 use App\Models\Coupon;
+use Google\Service\OracleDatabase\CustomerContact;
 use Modules\LandingPage\{
     Config\Constants\RoutesResourcesConstants,
     Http\Controllers\HomeController
@@ -864,8 +865,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     Route::get(VW::USR . '/{id}/plan', [UserController::class, UserController::UPG_PLN])->name(VW::PLN . '.upgrade')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::USR . '/{id}/plan/{pid}', [UserController::class, UserController::ACT_PLN])->name(VW::PLN . '.active')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENTED
     Route::get('/{uid}/notifications/seen', [UserController::class, 'notificationSeen'])->name('notifications.seen');
-
     // Email Templates
     Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 'manageEmailLang'])->name('manage.email.language')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::any('email_template_store', [EmailTemplateController::class, 'updateStatus'])->name(VW::EMLS . '.status.language')->middleware([MiddlewaresConstants::AUTH]);
@@ -876,15 +877,15 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     // HRM
     Route::resource(VW::USR, UserController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::EMP . '/json', [EmployeeController::class, 'json'])->name(VW::EMP . '.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, 'employeeJson'])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, EmployeeController::EMP_JSON])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('employee-profile', [EmployeeController::class, 'profile'])->name(VW::EMP . '.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('show-employee-profile/{id}', [EmployeeController::class, 'profileShow'])->name('show.employee.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('show-employee-profile/{id}', [EmployeeController::class, EmployeeController::PRF_SHW])->name('show.employee.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::get('last-login', [EmployeeController::class, 'lastLogin'])->name('last_login')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('last-login', [EmployeeController::class, EmployeeController::LST_LGN])->name('last_login')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::resource(VW::EMP, EmployeeController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::post(VW::EMP . '/getdepartment', [EmployeeController::class, 'getDepartment'])->name(VW::EMP . '.getdepartment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::EMP . '/getdepartment', [EmployeeController::class, EmployeeController::GET_DPT])->name(VW::EMP . '.getdepartment')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::resource(VW::DPT, DepartmentController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::DSG, DesignationController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -938,7 +939,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::resource(VW::CPN_PL, CompanyPolicyController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::IND, IndicatorController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::APR, AppraisalController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, 'employeeJson'])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, EmployeeController::EMP_JSON])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::GL_TP, GoalTypeController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::GL_TRC, GoalTrackingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::ACC_AST, AssetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1057,11 +1058,16 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     // User Module
 
     Route::get('users/{view?}', [UserController::class, 'index'])->name(VW::USR)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENTED
     Route::get('users-view', [UserController::class, 'filterUserView'])->name('filter.user.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENETED
     Route::get('checkuserexists', [UserController::class, 'checkUserExists'])->name(VW::USR . '.exists')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('profile', [UserController::class, 'profile'])->name('profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENETED
     Route::post('/profile', [UserController::class, 'updateProfile'])->name('update.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENETED
     Route::get(VW::USR . '/info/{id}', [UserController::class, 'userInfo'])->name(VW::USR . '.info')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENETED
     Route::get(VW::USR . '/{id}/info/{type}', [UserController::class, 'getProjectTask'])->name(VW::USR . '.info.popup')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::delete('users/{id}', [UserController::class, 'destroy'])->name(VW::USR . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     // End User Module
@@ -1286,8 +1292,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get('/form_field/{id}', [FormBuilderController::class, 'formFieldBind'])->name('form.field.bind')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('/form_field_store/{id}}', [FormBuilderController::class, 'bindStore'])->name('form.bind.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    // contract
-
+    //================================= Contracts ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -1297,39 +1303,35 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             ],
         ],
         function () {
-            Route::get('contract/{id}/description', [ContractController::class, 'description'])->name(VW::CTC . '.description');
-            Route::get('contract/grid', [ContractController::class, 'grid'])->name(VW::CTC . '.grid');
+            Route::get(VW::CTC . '/{id}/description', [ContractController::class, 'description'])->name(VW::CTC . '.description');
+            Route::get(VW::CTC . '/grid', [ContractController::class, 'grid'])->name(VW::CTC . '.grid');
             Route::resource('contract', ContractController::class);
         }
     );
-    Route::post('/contract/{id}/file', [ContractController::class, 'fileUpload'])->name(VW::CTC . '.file.upload')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('contract/pdf/{id}', [ContractController::class, 'pdfFromContract'])->name(VW::CTC . '.download.pdf')->middleware([MiddlewaresConstants::AUTH]);
-    Route::get('contract/{id}/get_contract', [ContractController::class, 'printContract'])->name(VW::CTC . '.get')->middleware([MiddlewaresConstants::AUTH]);
-    Route::post('/contract_status_edit/{id}', [ContractController::class, 'contractStatusEdit'])->name(VW::CTC . '.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('contract/{id}/contract_description', [ContractController::class, 'contractDescriptionStore'])->name(VW::CTC . '.contract_description.store')->middleware([MiddlewaresConstants::AUTH]);
-    Route::get('/contract/{id}/file/{fid}', [ContractController::class, 'fileDownload'])->name(VW::CTC . '.file.download')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/contract/{id}/file/delete/{fid}', [ContractController::class, 'fileDelete'])->name(VW::CTC . '.file.delete')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/contract/copy/{id}', [ContractController::class, 'copyContract'])->name(VW::CTC . '.copy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/contract/copy/store', [ContractController::class, 'copyContractStore'])->name(VW::CTC . '.copy.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/contract/{id}/mail', [ContractController::class, 'sendmailContract'])->name(VW::CTC . '.send.mail');
+    Route::post(VW::CTC . '/{id}/file', [ContractController::class, 'fileUpload'])->name(VW::CTC . '.file.upload')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::CTC . '/pdf/{id}', [ContractController::class, 'pdfFromContract'])->name(VW::CTC . '.download.pdf')->middleware([MiddlewaresConstants::AUTH]);
+    Route::get(VW::CTC . '/{id}/get_contract', [ContractController::class, 'printContract'])->name(VW::CTC . '.get')->middleware([MiddlewaresConstants::AUTH]);
+    Route::post(VW::CTC . '/contract_status_edit/{id}', [ContractController::class, 'contractStatusEdit'])->name(VW::CTC . '.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::CTC . '/{id}/contract_description', [ContractController::class, 'contractDescriptionStore'])->name(VW::CTC . '.contract_description.store')->middleware([MiddlewaresConstants::AUTH]);
+    Route::get(VW::CTC . '/{id}/file/{fid}', [ContractController::class, 'fileDownload'])->name(VW::CTC . '.file.download')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(VW::CTC . '/{id}/file/delete/{fid}', [ContractController::class, 'fileDelete'])->name(VW::CTC . '.file.delete')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::CTC . '/copy/{id}', [ContractController::class, 'copyContract'])->name(VW::CTC . '.copy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::CTC . '/copy/store', [ContractController::class, 'copyContractStore'])->name(VW::CTC . '.copy.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::CTC . '/{id}/mail', [ContractController::class, 'sendmailContract'])->name(VW::CTC . '.send.mail');
     Route::get('/signature/{id}', [ContractController::class, 'signature'])->name(VW::CTC . '.signature')->middleware([MiddlewaresConstants::AUTH]);
     Route::post('/signature-store', [ContractController::class, 'signatureStore'])->name(VW::CTC . '.signature.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/contract/{id}/comment', [ContractController::class, 'commentStore'])->name(VW::CTC . '.comment.store');
-    Route::post('/contract/{id}/notes', [ContractController::class, 'noteStore'])->name(VW::CTC . '.note.store')->middleware([MiddlewaresConstants::AUTH]);
-    Route::delete('/contract/{id}/notes', [ContractController::class, 'noteDestroy'])->name(VW::CTC . '.note.destroy')->middleware([MiddlewaresConstants::AUTH]);
-    Route::delete('/contract/{id}/comment', [ContractController::class, 'commentDestroy'])->name(VW::CTC . '.comment.destroy');
+    Route::post(VW::CTC . '/{id}/comment', [ContractController::class, 'commentStore'])->name(VW::CTC . '.comment.store');
+    Route::post(VW::CTC . '/{id}/notes', [ContractController::class, 'noteStore'])->name(VW::CTC . '.note.store')->middleware([MiddlewaresConstants::AUTH]);
+    Route::delete(VW::CTC . '/{id}/notes', [ContractController::class, 'noteDestroy'])->name(VW::CTC . '.note.destroy')->middleware([MiddlewaresConstants::AUTH]);
+    Route::delete(VW::CTC . '/{id}/comment', [ContractController::class, 'commentDestroy'])->name(VW::CTC . '.comment.destroy');
     Route::get('get-projects/{client_id}', [ContractController::class, 'clientByProject'])->name(VW::PRJ . '.by.user.id')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::any(VW::CTC . '/clients/select/{bid}', [ContractController::class, 'clientwiseproject'])->name(VW::CTC . '.clients.select');
+    Route::get(VW::CTC . '/copy/{id}', [ContractController::class, 'copycontract'])->name(VW::CTC . '.copy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::CTC . '/copy/store', [ContractController::class, 'copycontractstore'])->name(VW::CTC . '.copy.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
-    // client wise project show in modal
-
-    Route::any('/contract/clients/select/{bid}', [ContractController::class, 'clientwiseproject'])->name(VW::CTC . '.clients.select');
-
-    // copy contract
-
-    Route::get('/contract/copy/{id}', [ContractController::class, 'copycontract'])->name(VW::CTC . '.copy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('contract/copy/store', [ContractController::class, 'copycontractstore'])->name(VW::CTC . '.copy.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
-    // Custom Landing Page
+    //================================= Contracts ====================================//
+    #region
 
     //    Route::get('/landingpage', [LandingPageSectionController::class, 'index'])->name('custom_landing_page.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     //    Route::get('/LandingPage/show/{id}', [LandingPageSectionController::class, 'show']);
@@ -1348,6 +1350,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //    Route::post('/LandingPage/removeSection/{id}', [LandingPageSectionController::class, 'removeSection'])->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     //    Route::post('/LandingPage/setOrder', [LandingPageSectionController::class, 'setOrder'])->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     //    Route::post('/LandingPage/copySection', [LandingPageSectionController::class, 'copySection'])->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //================================= Benefits for Gateways ====================================//
     #region
@@ -1416,7 +1419,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     // Route::get('import'.VW::PRD_SV.//file', [ProductServiceController::class, 'importFile'])->name(VW::PRD_SV . '.file.import');
     Route::post(VW::PRD_SV . '/import', [ProductServiceController::class, 'import'])->name(VW::PRD_SV . '.import');
     Route::get(VW::CST . '/export', [CustomerController::class, 'export'])->name(VW::CST . '.export');
-    Route::get(VW::CST . '/import/file', [CustomerController::class, 'importFile'])->name(VW::CST . '.file.import');
+    Route::get(VW::CST . '/import/file', [CustomerController::class, CustomerController::IMP_F])->name(VW::CST . '.file.import');
     Route::post(VW::CST . '/import/index', [CustomerController::class, 'import'])->name(VW::CST . '.import');
     Route::get(VW::VND . '/export', [VendorController::class, 'export'])->name(VW::VND . '.export');
     Route::get(VW::VND . '/import/file', [VendorController::class, VendorController::IMP_F])->name(VW::VND . '.file.import');
@@ -1426,13 +1429,13 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::BIL . '/export', [BillController::class, 'export'])->name(VW::BIL . '.export');
 
     Route::get(VW::EMP . '/export', [EmployeeController::class, 'export'])->name(VW::EMP . '.export');
-    Route::get(VW::EMP . '/import/file', [EmployeeController::class, 'importFile'])->name(VW::EMP . '.file.import');
+    Route::get(VW::EMP . '/import/file', [EmployeeController::class, EmployeeController::IMP_FL])->name(VW::EMP . '.file.import');
     Route::post(VW::EMP . '/import/index', [EmployeeController::class, 'import'])->name(VW::EMP . '.import');
 
     Route::get('attendance/import/file', [EmployeeAttendanceController::class, 'importFile'])->name('attendance.file.import');
     Route::post('attendance/import/index', [EmployeeAttendanceController::class, 'import'])->name('attendance.import');
 
-    Route::get('transactions/export', [TransactionController::class, 'export'])->name('transactions.export');
+    Route::get(VW::TST . '/export', [TransactionController::class, 'export'])->name(VW::TST . '.export');
     Route::get(VW::ACC_STT . '/export', [ReportController::class, 'export'])->name(VW::ACC_STT . '.export');
     Route::get(VW::PRD_STK . '/export', [ReportController::class, 'stock_export'])->name(VW::PRD_STK . '.export');
     Route::get(VW::RPT . '/payrolls/export', [ReportController::class, 'PayrollReportExport'])->name(VW::RPT . '.payroll.export');
@@ -1448,9 +1451,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::PRJ . '/time-tracker/{id}', [ProjectController::class, 'tracker'])->name(VW::PRJ . '.time.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Zoom Meeting
-    Route::resource('zoom-meeting', ZoomMeetingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::any('/zoom-meeting/projects/select/{bid}', [ZoomMeetingController::class, 'projectwiseuser'])->name('zoom-meeting.projects.select');
-    Route::get('zoom-meeting-calendar', [ZoomMeetingController::class, 'calendar'])->name('zoom-meeting.calendar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::ZMM, ZoomMeetingController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::any(VW::ZMM . '/projects/select/{bid}', [ZoomMeetingController::class, ZoomMeetingController::PRJ_W_USR])->name(VW::ZMM . '.projects.select');
+    Route::get('zoom-meeting-calendar', [ZoomMeetingController::class, 'calendar'])->name(VW::ZMM . '.calendar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     //POS System
 
@@ -1506,7 +1509,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     Route::post(VW::PRC . '/templates/settings', [PurchaseController::class, PurchaseController::SV_PCR_TMP_STG])
         ->name(VW::PRC_TMP . 'settings');
-    Route::post('/pos/template/setting', [PosController::class, PosController::SV_POS_TMP])
+    Route::post(VW::POS . '/template/setting', [PosController::class, PosController::SV_POS_TMP])
         ->name(VW::PRC_TMP . 'settings');
 
     Route::get(DatabaseConstants::TABLE_PURCHASES . '/pdf/{id}', [PurchaseController::class, 'purchase'])
@@ -1532,29 +1535,33 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         MiddlewaresConstants::REV
     ]);
 
-    Route::get('product-categories', [ProductServiceCategoryController::class, 'getProductCategories'])
-        ->name('product.categories')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('add-to-cart/{id}/{session}', [ProductServiceController::class, 'addToCart'])->middleware([
-        MiddlewaresConstants::AUTH,
-        MiddlewaresConstants::XSS
-    ]);
-    Route::patch('update-cart', [ProductServiceController::class, 'updateCart'])->middleware([
-        MiddlewaresConstants::AUTH,
-        MiddlewaresConstants::XSS
-    ]);
-    Route::delete('remove-from-cart', [ProductServiceController::class, 'removeFromCart'])->middleware([
-        MiddlewaresConstants::AUTH,
-        MiddlewaresConstants::XSS
-    ]);
-
-    Route::get('name-search-products', [ProductServiceCategoryController::class, 'searchProductsByName'])->name('name.search.products')
+    Route::get('product-categories', [ProductServiceCategoryController::class, ProductServiceCategoryController::GET_PRD_CAT])
+        ->name(VW::PRD_SV_CAT . '.categories')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENTED
+    Route::get('name-search-products', [ProductServiceController::class, 'searchProductsByName'])->name('name.search.products')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('search-products', [ProductServiceController::class, 'searchProducts'])->name('search.products')
+    Route::get('search-products', [ProductServiceController::class, ProductServiceController::SRC_PRD])->name('search.products')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::any(VW::RPT . '/pos', [PosController::class, 'report'])->name(VW::POS . '.report')->middleware([
         MiddlewaresConstants::AUTH,
         MiddlewaresConstants::XSS
     ]);
+    //================================= Cart ====================================//
+    #region
+    Route::get('add-to-cart/{id}/{session}', [ProductServiceController::class, ProductServiceController::ADD_CRT])->middleware([
+        MiddlewaresConstants::AUTH,
+        MiddlewaresConstants::XSS
+    ]);
+    Route::patch('update-cart', [ProductServiceController::class, ProductServiceController::UPD_CRT])->middleware([
+        MiddlewaresConstants::AUTH,
+        MiddlewaresConstants::XSS
+    ]);
+    Route::delete('remove-from-cart', [ProductServiceController::class, ProductServiceController::RM_CRT])->middleware([
+        MiddlewaresConstants::AUTH,
+        MiddlewaresConstants::XSS
+    ]);
+    #endregion
+    #endregion
 
     //================================= Warehouse Transfers ====================================//
     #region
@@ -1644,7 +1651,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::any('holiday/get_holiday_data', [HolidayController::class, 'get_holiday_data'])->name(VW::HLD . '.get_holiday_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::any('interview-schedule/get_interview_data', [InterviewScheduleController::class, 'get_interview_data'])->name(VW::HLD . '.get_interview_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('calendar/get_task_data', [ProjectTaskController::class, ProjectTaskController::GET_TSK_D])->name(VW::PRJ_TSK_C . '.calendar.get_task_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::any('zoom-meeting/get_zoom_meeting_data', [ZoomMeetingController::class, 'get_zoom_meeting_data'])->name('zoom-meeting.get_zoom_meeting_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::any('zoom-meeting/get_zoom_meeting_data', [ZoomMeetingController::class, ZoomMeetingController::GET_ZMM_D])->name(VW::ZMM . '.get_zoom_meeting_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::any(VW::MT . '/get_meeting_data', [MeetingController::class, MeetingController::GET_MT_D])->name(VW::MT . '.get_meeting_data')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1664,25 +1671,29 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     // TODO missing method
     Route::get('share-project/{lang?}', [ProjectController::class, 'shareProject'])->name('share.project');
 
-    //User Log
-    Route::get('/userlogs', [UserController::class, 'userLog'])->name(VW::USR . '.' . VW::USR . 'log')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('userlogs/{id}', [UserController::class, 'userLogView'])->name(VW::USR . '.' . VW::USR . 'logview')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('userlogs/{id}', [UserController::class, 'userLogDestroy'])->name(VW::USR . '.' . VW::USR . 'logdestroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= User Logs ====================================//
+    #region
+    Route::get(VW::USR . '/logs', [UserController::class, UserController::USR_LOG])->name(VW::USR . '.log')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::USR . '/logs/{id}', [UserController::class, UserController::USR_LOG_VIEW])->name(VW::USR . '.log.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(VW::USR . '/logs/{id}', [UserController::class, UserController::USR_LOG_DSTR])->name(VW::USR . '.log.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //notification Template
     Route::get('notification_templates/{id?}/{lang?}', [NotificationTemplatesController::class, 'index'])->name('notification_templates.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource('notification-templates', NotificationTemplatesController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     //Proposal/Invoice/'.VW::BIL.'Purchase/POS - footer notes
-    Route::post('system-settings/note', [SystemController::class, 'footerNoteStore'])->name(VW::SYS . '.settings.footernote')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('system-settings/note', [SystemController::class, SystemController::FT_NT_STR])->name(VW::SYS . '.settings.footernote')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    //AI module
-    Route::post('chatgpt-settings', [SystemController::class, 'chatgptSetting'])->name(VW::SET . '.chatgpt.settings');
+    //================================= AI ====================================//
+    #region
+    Route::post('chatgpt-settings', [SystemController::class, SystemController::CGPT_ST])->name(VW::SET . '.chatgpt.settings');
     Route::get('generate/{template_name}', [AiTemplateController::class, 'create'])->name('generate');
-    Route::post('generate/keywords/{id}', [AiTemplateController::class, 'getKeywords'])->name('generate.keywords');
-    Route::post('generate/response', [AiTemplateController::class, 'AiGenerate'])->name('generate.response');
+    Route::post('generate/keywords/{id}', [AiTemplateController::class, AiTemplateController::GET_KW])->name('generate.keywords');
+    Route::post('generate/response', [AiTemplateController::class, AiTemplateController::AIG])->name('generate.response');
     Route::get('grammar/{template}', [AiTemplateController::class, 'grammar'])->name('grammar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('grammar/response', [AiTemplateController::class, 'grammarProcess'])->name('grammar.response')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('grammar/response', [AiTemplateController::class, AiTemplateController::GM_P])->name('grammar.response')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //================================= IP Controls ====================================//
     #region
@@ -1696,8 +1707,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //lang enable / disable
     Route::post('disable-language', [LanguageController::class, LanguageController::DSB_LNG])->name('language.disable')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    //Expense Module
-    Route::get('expense/pdf/{id}', [ExpenseController::class, 'expense'])->name(VW::EXP . '.pdf')->middleware([MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+    //================================= Expenses ====================================//
+    #region
+    Route::get(VW::EXP . '/pdf/{id}', [ExpenseController::class, 'expense'])->name(VW::EXP . '.pdf')->middleware([MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     Route::group(
         [
             'middleware' => [
@@ -1707,24 +1719,25 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             ],
         ],
         function () {
-            Route::get('expense/index', [ExpenseController::class, 'index'])->name(VW::EXP . '.index');
-            Route::any('expense/customer', [ExpenseController::class, 'customer'])->name(VW::EXP . '.customer');
-            Route::post('expense/vendor', [ExpenseController::class, 'vendor'])->name(VW::EXP . '.vendor');
-            Route::post('expense/employee', [ExpenseController::class, 'employee'])->name(VW::EXP . '.employee');
+            Route::get(VW::EXP . '/index', [ExpenseController::class, 'index'])->name(VW::EXP . '.index');
+            Route::any(VW::EXP . '/customer', [ExpenseController::class, 'customer'])->name(VW::EXP . '.customer');
+            Route::post(VW::EXP . '/vendor', [ExpenseController::class, 'vendor'])->name(VW::EXP . '.vendor');
+            Route::post(VW::EXP . '/employee', [ExpenseController::class, 'employee'])->name(VW::EXP . '.employee');
 
-            Route::post('expense/product/destroy', [ExpenseController::class, ExpenseController::PRD_DST])->name(VW::EXP . '.product.destroy');
+            Route::post(VW::EXP . '/product/destroy', [ExpenseController::class, ExpenseController::PRD_DST])->name(VW::EXP . '.product.destroy');
 
-            Route::post('expense/product', [ExpenseController::class, 'product'])->name(VW::EXP . '.product');
-            Route::get('expense/{id}/payment', [ExpenseController::class, 'payment'])->name(VW::EXP . '.payment');
-            Route::get('expense/items', [ExpenseController::class, 'items'])->name(VW::EXP . '.items');
+            Route::post(VW::EXP . '/product', [ExpenseController::class, 'product'])->name(VW::EXP . '.product');
+            Route::get(VW::EXP . '/{id}/payment', [ExpenseController::class, 'payment'])->name(VW::EXP . '.payment');
+            Route::get(VW::EXP . '/items', [ExpenseController::class, 'items'])->name(VW::EXP . '.items');
 
             Route::resource(VW::EXP, ExpenseController::class);
-            Route::get('expense/create/{cid}', [ExpenseController::class, 'create'])->name(VW::EXP . '.create');
+            Route::get(VW::EXP . '/create/{cid}', [ExpenseController::class, 'create'])->name(VW::EXP . '.create');
         }
     );
+    #endregion
 });
 
-Route::any('/cookie-consent', [SystemController::class, 'CookieConsent'])->name('cookie-consent');
+Route::any('/cookie-consent', [SystemController::class, SystemController::CK_CST])->name('cookie-consent');
 
 
     // Route::post('{id}/pay-with-paypal', [PaypalController::class, 'customerPayWithPaypal'])->name(VW::CST.'.pay.with.paypal');

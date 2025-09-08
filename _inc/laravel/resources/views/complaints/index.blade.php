@@ -1,5 +1,5 @@
 @php
-    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Facades\{Auth, Route};
     use Illuminate\Support\Str;
     use App\Models\Utility;
     use App\Config\Constants\{
@@ -10,7 +10,8 @@
         StacksConstants
     };
 
-    $lang = Utility::fetchUserLang();
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
     $createName     = ViewsConstants::CPL . '.create';
     $createRoute    = Route::has($createName)
         ? route($createName)
@@ -66,6 +67,10 @@
             <div class="{{ VC::CD }}">
                 <div class="{{ VC::CD }}-body table-border-style">
                     <div class="table-responsive">
+                        @php
+                            $isDateFormatAvailable = method_exists($user,'dateFormat');
+                            $rows = ((is_array($complaints ?? null) && count($complaints ?? [])) || (($complaints ?? null) instanceof Collection && ($complaints)->isNotEmpty())) ? $complaints : [];
+                        @endphp
                         <table class="{{ VC::TB }} datatable">
                             <thead>
                                 <tr>
@@ -80,82 +85,61 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @foreach ($complaints as $complaint)
+                                @forelse ($rows as $complaint)
                                     @php
-                                        $editName     = ViewsConstants::CPL . '.edit';
-                                        $editRoute    = Route::has($editName)
-                                            ? route($editName, $complaint->id)
-                                            : '#';
-                                        $editGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::CPL,
-                                            'complaint_edit_route_unavailable'
-                                        ) ?? 'Edit Complaint route is unavailable. Please contact technical support or your domain administrator.';
-                                        $destroyName     = ViewsConstants::CPL . '.destroy';
-                                        $destroyRoute    = Route::has($destroyName)
-                                            ? route($destroyName, $complaint->id)
-                                            : '#';
-                                        $destroyGuardMsg = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::CPL,
-                                            'complaint_destroy_route_unavailable'
-                                        ) ?? 'Delete Complaint route is unavailable. Please contact technical support or your domain administrator.';
-                                        $deleteFormId    = 'delete-form-' . $complaint->id;
+                                        $cid = data_get($complaint,'id');
+                                        $fromName = data_get($complaint,'complaintFrom.name') ?: __('No complainant available');
+                                        $againstName = data_get($complaint,'complaintAgainst.name') ?: __('No respondent available');
+                                        $title = data_get($complaint,'title') ?: __('No title available');
+                                        $desc = data_get($complaint,'description') ?: __('No description available');
+                                        $rawDate = data_get($complaint,'complaint_date');
+                                        $dateOut = $rawDate ? ($isDateFormatAvailable ? $user?->dateFormat($rawDate) : (string)$rawDate) : __('No complaint date available');
                                     @endphp
                                     <tr>
-                                        <td>{{ $complaint->complaintFrom?->name ?? '' }}</td>
-                                        <td>{{ $complaint->complaintAgainst?->name ?? '' }}</td>
-                                        <td>{{ $complaint->title }}</td>
-                                        <td>{{ \Auth::user()->dateFormat($complaint->complaint_date) }}</td>
-                                        <td>{{ $complaint->description }}</td>
+                                        <td>{{ $fromName }}</td>
+                                        <td>{{ $againstName }}</td>
+                                        <td>{{ $title }}</td>
+                                        <td>{{ $dateOut }}</td>
+                                        <td>{{ $desc }}</td>
                                         @if(Gate::check('edit complaint') || Gate::check('delete complaint'))
                                             <td>
                                                 @can('edit complaint')
+                                                    @php
+                                                        $editName = ViewsConstants::CPL.'.edit';
+                                                        $editRoute = (Route::has($editName) ? route($editName, $cid) : (Route::has(Str::kebab($editName)) ? route(Str::kebab($editName), $cid) : '#'));
+                                                        $editGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CPL, 'complaint_edit_route_unavailable') ?: __('Failed to get complaint edit route');
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                        <a
-                                                            href="#"
-                                                            id="editComplaintBtn_{{ $complaint->id }}"
-                                                            data-url="{{ $editRoute }}"
-                                                            data-guard-msg="{{ $editGuardMsg }}"
-                                                            data-listener-alias="edit-complaint"
-                                                            data-ajax-popup="true"
-                                                            data-title="{{ __('Edit Complaint') }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Edit') }}"
-                                                            class="{{ VC::DFL_IL_VC }}"
-                                                        >
-                                                            <i class="{{ VC::TI_PC_WT }}"></i>
-                                                        </a>
+                                                        <a href="#" id="editComplaintBtn_{{ $cid ?: 'na' }}" data-url="{{ $editRoute }}" data-guard-msg="{{ $editGuardMsg }}" data-listener-alias="edit-complaint" data-ajax-popup="true" data-title="{{ __('Edit Complaint') }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}" class="{{ VC::DFL_IL_VC }}"><i class="{{ VC::TI_PC_WT }}"></i></a>
                                                     </div>
                                                 @endcan
-
                                                 @can('delete complaint')
+                                                    @php
+                                                        $destroyName = ViewsConstants::CPL.'.destroy';
+                                                        $destroyRoute = (Route::has($destroyName) ? route($destroyName, $cid) : (Route::has(Str::kebab($destroyName)) ? route(Str::kebab($destroyName), $cid) : '#'));
+                                                        $destroyGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CPL, 'complaint_destroy_route_unavailable') ?: __('Failed to get complaint delete route');
+                                                        $deleteFormId = 'delete-form-'.($cid ?: 'na');
+                                                    @endphp
                                                     <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                        {!! Collective\Html\FormFacade::open([
-                                                            'method'         => 'DELETE',
-                                                            'route'          => [ViewsConstants::CPL . '.destroy', $complaint->id],
-                                                            'id'             => $deleteFormId,
-                                                            'data-url'       => $destroyRoute,
-                                                            'data-guard-msg' => $destroyGuardMsg,
-                                                        ]) !!}
-                                                            <a
-                                                                href="#"
-                                                                class="{{ VC::BT_SM_CT_PR }}"
-                                                                data-listener-alias="delete-complaint"
-                                                                data-bs-toggle="tooltip"
-                                                                title="{{ __('Delete') }}"
-                                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                                data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
-                                                            >
-                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                            </a>
+                                                        {!! Collective\Html\FormFacade::open(['method' => 'DELETE','url' => $destroyRoute,'id' => $deleteFormId,'data-url' => $destroyRoute,'data-guard-msg' => $destroyGuardMsg]) !!}
+                                                            <a href="#" class="{{ VC::BT_SM_CT_PR }}" data-listener-alias="delete-complaint" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?: __('Are You Sure?')) }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?: __('This action can not be undone. Do you want to continue?')) }}" data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"><i class="{{ VC::TI_TRS_WT }}"></i></a>
                                                         {!! Collective\Html\FormFacade::close() !!}
                                                     </div>
                                                 @endcan
                                             </td>
                                         @endif
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="{{ Gate::check('edit complaint') || Gate::check('delete complaint') ? 6 : 5 }}">
+                                            <div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}">
+                                                <div class="{{ VC::C6 }} {{ VC::TXCT }}">
+                                                    <p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No complaints available') }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -166,47 +150,5 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const bindGuard = (el, event, urlAttr = 'data-url', msgAttr = 'data-guard-msg') => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(event, e => {
-                    try {
-                        const url = el.getAttribute(urlAttr) ?? '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg           = el.getAttribute(msgAttr) ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            };
-
-            bindGuard(document.getElementById('createComplaintBtn'), 'click');
-            document.querySelectorAll('[data-listener-alias="edit-complaint"]').forEach(el => bindGuard(el, 'click'));
-            document.querySelectorAll('[data-listener-alias="delete-complaint"]').forEach(el => bindGuard(el, 'click'));
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/complaints/index.js') }}"></script>
 @endpush

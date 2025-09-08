@@ -44,7 +44,7 @@
             {{ __('Chart of Account') }}
         </a>
     </li>
-    @push(StacksConstants::ADM_SCRP_PG)
+    @push(StacksConstants::ADM_SCR_PG)
         <script defer src="{{ asset('assets/js/routes/chartOfAccounts/index.js') }}"></script>
     @endpush
     <li class="breadcrumb-item">{{ __('Account Drilldown Report') }}</li>

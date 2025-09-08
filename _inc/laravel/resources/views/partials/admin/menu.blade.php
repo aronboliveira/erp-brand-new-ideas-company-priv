@@ -6932,7 +6932,7 @@
                                         'user_index_route_unavailable'
                                     ) ?? __('User route is unavailable. Please contact technical support or your domain administrator.');
                                 @endphp
-                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::USR.'.index' || RF::route()->getName() == ViewsConstants::USR.'.create' || RF::route()->getName() == ViewsConstants::USR.'.edit' || RF::route()->getName() == ViewsConstants::USR.'.userlog' ? 'active' : '' }}">
+                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::USR.'.index' || RF::route()->getName() == ViewsConstants::USR.'.create' || RF::route()->getName() == ViewsConstants::USR.'.edit' || RF::route()->getName() == ViewsConstants::USR.'.log' ? 'active' : '' }}">
                                     <a
                                         id="{{ $linkId }}"
                                         class="dash-link"

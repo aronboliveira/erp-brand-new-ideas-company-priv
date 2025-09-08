@@ -604,7 +604,7 @@
 
         function getDesignation(did) {
             $.ajax({
-                url: '{{route(ViewsConstants::EMP.'.json')}}',
+                url: '{{route(ViewsConstants::EMP.".json")}}',
                 type: 'POST',
                 data: {
                     "department_id": did, "_token": "{{ csrf_token() }}",

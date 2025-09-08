@@ -1,6 +1,7 @@
 @php
     use Collective\Html\FormFacade as Form;
     use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
+    use App\Models\Utility;
     $basicFields = [
         ['name'=>'name','type'=>'text','label'=>__('Name'),'cols'=>4,'attrs'=>['required'=>'required']],
         ['name'=>'contact','type'=>'number','label'=>__('Contact'),'cols'=>4,'attrs'=>['required'=>'required']],
@@ -25,58 +26,61 @@
         ['name'=>'shipping_country','type'=>'text','label'=>__('Country'),'cols'=>6],
         ['name'=>'shipping_zip','type'=>'text','label'=>__('Zip Code'),'cols'=>6],
     ];
+    $customersUpdateBaseRouteName   = ViewsConstants::CST.'.update';
+    $customersUpdateKebabRouteName  = Str::kebab($customersUpdateBaseRouteName);
+    $customerIdValue                = (string) data_get($customer, 'id', '');
+    $customersUpdateResolvedName    = Route::has($customersUpdateBaseRouteName)
+        ? $customersUpdateBaseRouteName
+        : (Route::has($customersUpdateKebabRouteName) ? $customersUpdateKebabRouteName : null);
+    $customersUpdateUrl             = ($customersUpdateResolvedName && $customerIdValue !== '')
+        ? route($customersUpdateResolvedName, $customerIdValue)
+        : '#';
+    $customersUpdateFormId          = 'customers-update-form-'.($customerIdValue === '' ? 'x' : $customerIdValue);
+    $userLang                       = Utility::fetchUserLang();
+    $customersUpdateGuardMessage    = Utility::fetchLinkMessage($userLang, ViewsConstants::CST, 'update_customer_route_unavailable')
+        ?? 'Update customer route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-{{ Form::model($customer,['route'=>[ViewsConstants::CST.'.update',$customer->id],'method'=>'PUT']) }}
-    <div class="modal-body">
-        <h6 class="sub-title">{{ __('Basic Info') }}</h6>
-        <div class="{{ VC::RW }}">
-            @foreach($basicFields as $f)
-                <div class="{{ VC::CLMS4 }}">
-                    <div class="{{ VC::FM_G }}">
-                        {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
-                        @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
-                        @if($f['type'] === 'textarea')
-                            {{ Form::textarea($f['name'], null, $attrs) }}
-                        @else
-                            {{ Form::{$f['type']}($f['name'], null, $attrs) }}
-                        @endif
+@if(empty($customer) || !isset($customer->id))
+    <div class="alert alert-danger">
+        {{ __('Customer data is not available. Please contact technical support or your domain administrator.') }}
+    </div>
+@else
+    {{ Form::model($customer, [
+        'method'            => 'PUT',
+        'url'               => $customersUpdateUrl,
+        'id'                => $customersUpdateFormId,
+        'data-url'          => $customersUpdateUrl,
+        'data-guard-msg'    => $customersUpdateGuardMessage,
+        'data-sv-localized' => 'true',
+    ]) }}
+        <div class="modal-body">
+            <h6 class="sub-title">{{ __('Basic Info') }}</h6>
+            <div class="{{ VC::RW }}">
+                @foreach($basicFields as $f)
+                    <div class="{{ VC::CLMS4 }}">
+                        <div class="{{ VC::FM_G }}">
+                            {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
+                            @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
+                            @if($f['type'] === 'textarea')
+                                {{ Form::textarea($f['name'], null, $attrs) }}
+                            @else
+                                {{ Form::{$f['type']}($f['name'], null, $attrs) }}
+                            @endif
+                        </div>
                     </div>
-                </div>
-            @endforeach
-            @if(!$customFields->isEmpty())
-                <div class="{{ VC::CLMS4 }}">
-                    <div class="tab-pane fade show" id="tab-2" role="tabpanel">
-                        @include(ViewsConstants::CST_FD . '.formBuilder')
+                @endforeach
+                @if(!$customFields->isEmpty())
+                    <div class="{{ VC::CLMS4 }}">
+                        <div class="tab-pane fade show" id="tab-2" role="tabpanel">
+                            @include(ViewsConstants::CST_FD . '.formBuilder')
+                        </div>
                     </div>
-                </div>
-            @endif
-        </div>
-
-        <h6 class="sub-title">{{ __('Billing Address') }}</h6>
-        <div class="{{ VC::RW }}">
-            @foreach($billingFields as $f)
-                <div class="{{ VC::CLM6 }}">
-                    <div class="{{ VC::FM_G }}">
-                        {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
-                        @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
-                        @if($f['type'] === 'textarea')
-                            {{ Form::textarea($f['name'], null, $attrs) }}
-                        @else
-                            {{ Form::{$f['type']}($f['name'], null, $attrs) }}
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        @if(\App\Models\Utility::getValByName('shipping_display') === 'on')
-            <div class="{{ VC::C12 }} text-end">
-                <button type="button" id="billing_data" class="{{ VC::BT_PRM }}">{{ __('Shipping Same As Billing') }}</button>
+                @endif
             </div>
 
-            <h6 class="sub-title">{{ __('Shipping Address') }}</h6>
+            <h6 class="sub-title">{{ __('Billing Address') }}</h6>
             <div class="{{ VC::RW }}">
-                @foreach($shippingFields as $f)
+                @foreach($billingFields as $f)
                     <div class="{{ VC::CLM6 }}">
                         <div class="{{ VC::FM_G }}">
                             {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
@@ -90,10 +94,82 @@
                     </div>
                 @endforeach
             </div>
-        @endif
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-        <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Update') }}</button>
-    </div>
-{{ Form::close() }}
+
+            @if(\App\Models\Utility::getValByName('shipping_display') === 'on')
+                <div class="{{ VC::C12 }} text-end">
+                    <button type="button" id="billing_data" class="{{ VC::BT_PRM }}">{{ __('Shipping Same As Billing') }}</button>
+                </div>
+
+                <h6 class="sub-title">{{ __('Shipping Address') }}</h6>
+                <div class="{{ VC::RW }}">
+                    @foreach($shippingFields as $f)
+                        <div class="{{ VC::CLM6 }}">
+                            <div class="{{ VC::FM_G }}">
+                                {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
+                                @php $attrs = array_merge(['class' => VC::FM_CT], $f['attrs'] ?? []) @endphp
+                                @if($f['type'] === 'textarea')
+                                    {{ Form::textarea($f['name'], null, $attrs) }}
+                                @else
+                                    {{ Form::{$f['type']}($f['name'], null, $attrs) }}
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+            <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Update') }}</button>
+        </div>
+        <script defer>
+            (() => {
+                try {
+                    const formEl = document.getElementById('{{ $customersUpdateFormId }}');
+                    if (!formEl) { return; }
+                    if (formEl.getAttribute('data-listener-active') === 'true') { return; }
+                    formEl.setAttribute('data-listener-active','true');
+
+                    formEl.addEventListener('submit', (e) => {
+                        try {
+                            const action = formEl.getAttribute('action') ?? '#';
+                            const url    = formEl.getAttribute('data-url') ?? action ?? '#';
+                            if (url !== '#' && action !== '#') { return; }
+                            e.preventDefault();
+
+                            const msg = formEl.getAttribute('data-guard-msg') ?? 'Update customer route is unavailable. Please contact technical support or your domain administrator.';
+                            const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+
+                            let container = document.getElementById('toast-container');
+                            if (!container) {
+                                container = document.createElement('div');
+                                container.id = 'toast-container';
+                                document.body.appendChild(container);
+                            }
+
+                            if (hasBootstrap) {
+                                const toast = document.createElement('div');
+                                toast.className = 'toast';
+                                toast.setAttribute('role','alert');
+                                toast.setAttribute('aria-live','assertive');
+                                toast.setAttribute('aria-atomic','true');
+
+                                const body = document.createElement('div');
+                                body.className = 'toast-body';
+                                body.textContent = msg;
+
+                                toast.appendChild(body);
+                                container.appendChild(toast);
+                                bootstrap.Toast.getOrCreateInstance(toast).show();
+                            } else {
+                                alert(msg);
+                            }
+
+                            formEl.setAttribute('data-failed-route','true');
+                        } catch (err) {}
+                    });
+                } catch (err) {}
+            })();
+        </script>
+    {{ Form::close() }}
+@endif

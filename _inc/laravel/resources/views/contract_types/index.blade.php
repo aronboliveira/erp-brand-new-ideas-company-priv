@@ -3,17 +3,19 @@
     use App\Models\Utility;
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
+        PermissionsConstants,
         StacksConstants,
+        UsersConstants,
         ViewsConstants,
         YieldingConstants,
         ViewClassNamesConstants as VC
     };
     use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Str;
+    use Illuminate\Support\{Collection, Str};
     use Illuminate\Support\Facades\Auth;
 
     $user              = Auth::user();
-    $lang              = Utility::fetchUserLang();
+    $lang              = Utility::fetchUserLang(user: $user);
     $createRoute       = Route::has(ViewsConstants::CTC_TP . '.create')
         ? route(ViewsConstants::CTC_TP . '.create')
         : (Route::has(Str::kebab(ViewsConstants::CTC_TP . '.create'))
@@ -74,81 +76,63 @@
                             <thead>
                                 <tr>
                                     <th>{{ __('Name') }}</th>
-                                    @if($user?->type == 'company')
+                                    @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
                                         <th class="text-end">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($types as $type)
-                                    @php
-                                        $editRoute    = Route::has(ViewsConstants::CTC_TP . '.edit')
-                                            ? route(ViewsConstants::CTC_TP . '.edit', $type->id)
-                                            : (Route::has(Str::kebab(ViewsConstants::CTC_TP . '.edit'))
-                                                ? route(Str::kebab(ViewsConstants::CTC_TP . '.edit'), $contractType->id)
-                                                : '#');
-                                        $editBtnId    = 'contract-type-edit-btn-' . $type->id;
-                                        $editMsg      = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::CTC_TP,
-                                            'contract_type_edit_route_unavailable'
-                                        ) ?? 'Contract Type edit route is unavailable. Please contact technical support or your domain administrator.';
-                                        $delRoute     = Route::has(ViewsConstants::CTC_TP . '.destroy')
-                                            ? route(ViewsConstants::CTC_TP . '.destroy', $type->id)
-                                            : (Route::has(Str::kebab(ViewsConstants::CTC_TP . '.destroy'))
-                                                ? route(Str::kebab(ViewsConstants::CTC_TP . '.destroy'), $contractType->id)
-                                                : '#');
-                                        $delFormId    = 'contract-type-delete-form-' . $type->id;
-                                        $delBtnId     = 'contract-type-delete-btn-' . $type->id;
-                                        $delMsg       = Utility::fetchLinkMessage(
-                                            $lang,
-                                            ViewsConstants::CTC_TP,
-                                            'contract_type_destroy_route_unavailable'
-                                        ) ?? 'Contract Type delete route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
-                                    <tr class="font-style">
-                                        <td>{{ $type->name }}</td>
-                                        @if($user?->type == 'company')
-                                            <td class="action text-end">
-                                                <div class="{{ VC::ACT_BTN_INF }}">
-                                                    <a
-                                                        id="{{ $editBtnId }}"
-                                                        href="#"
-                                                        data-url="{{ $editRoute }}"
-                                                        data-guard-msg="{{ $editMsg }}"
-                                                        data-ajax-popup="true"
-                                                        data-size="md"
-                                                        class="{{ VC::BT_SM_FL_CT }}"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ __('Edit') }}"
-                                                        data-title="{{ __('Edit Type') }}"
-                                                    >
-                                                        <i class="{{ VC::TI_PC_WT }}"></i>
-                                                    </a>
-                                                </div>
-                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                    {!! Form::open([
-                                                        'url'            => $delRoute,
-                                                        'method'         => 'DELETE',
-                                                        'id'             => $delFormId,
-                                                        'data-url'       => $delRoute,
-                                                        'data-guard-msg' => $delMsg,
-                                                    ]) !!}
-                                                        <a
-                                                            id="{{ $delBtnId }}"
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT_PR }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Delete') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
+                                @if((is_array($types) && count($types) > 0) || ($types instanceof Collection && $types->isNotEmpty()))
+                                    @foreach($types as $type)
+                                        @php
+                                            $typeId     = $type->id ?? null;
+                                            $typeName   = !empty($type->name) ? $type->name : __('No contract type name available');
+                                        @endphp
+                                        <tr class="font-style">
+                                            <td>{{ $typeName }}</td>
+                                            @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
+                                                @php
+                                                    $editUrl   = $typeId ? route(ViewsConstants::CTC_TP . '.edit', $typeId) : '#';
+                                                    $editBtnId = 'contract-type-edit-btn-' . ($typeId ?? 'x');
+                                                    $editMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::CTC_TP, 'contract_type_edit_route_unavailable') ?: __('Contract Type edit route is unavailable. Please contact technical support or your domain administrator.');
+                                                    $delUrl    = $typeId ? route(ViewsConstants::CTC_TP . '.destroy', $typeId) : '#';
+                                                    $delFormId = 'contract-type-delete-form-' . ($typeId ?? 'x');
+                                                    $delBtnId  = 'contract-type-delete-btn-' . ($typeId ?? 'x');
+                                                    $delMsg    = Utility::fetchLinkMessage($lang, ViewsConstants::CTC_TP, 'contract_type_destroy_route_unavailable') ?: __('Contract Type delete route is unavailable. Please contact technical support or your domain administrator.');
+                                                @endphp
+                                                <td class="action text-end">
+                                                    <div class="{{ VC::ACT_BTN_INF }}">
+                                                        <a id="{{ $editBtnId }}" href="#" data-url="{{ $editUrl }}" data-guard-msg="{{ $editMsg }}" data-ajax-popup="true" data-size="md" class="{{ VC::BT_SM_FL_CT }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}" data-title="{{ __('Edit Type') }}">
+                                                            <i class="{{ VC::TI_PC_WT }}"></i>
                                                         </a>
-                                                    {!! Form::close() !!}
-                                                </div>
-                                            </td>
-                                        @endif
+                                                    </div>
+                                                    <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                        {!! Form::open([
+                                                            'url'            => $delUrl,
+                                                            'method'         => 'DELETE',
+                                                            'id'             => $delFormId,
+                                                            'data-url'       => $delUrl,
+                                                            'data-guard-msg' => $delMsg,
+                                                        ]) !!}
+                                                            <a id="{{ $delBtnId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}">
+                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                            </a>
+                                                        {!! Form::close() !!}
+                                                    </div>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="text-center">
+                                                <i class="{{ VC::TI_INB }} {{ VC::FS_3X }} {{ VC::TX_MUTED }}"></i>
+                                                <p class="{{ VC::TX_MUTED }} mt-2">{{ __('No Contract Types Found') }}</p>
+                                            </div>
+                                        </td>
                                     </tr>
-                                @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -198,12 +182,13 @@
                     } catch (e) {}
                 });
             };
-
             guardClick('{{ $createBtnId }}');
-            @foreach($types as $type)
-                guardClick('contract-type-edit-btn-{{ $type->id }}');
-                guardClick('contract-type-delete-btn-{{ $type->id }}');
-            @endforeach
+            @if((is_array($types) && count($types) > 0) || ($types instanceof Collection && $types->isNotEmpty()))
+                @foreach($types as $type)
+                    guardClick('contract-type-edit-btn-{{ $type->id }}');
+                    guardClick('contract-type-delete-btn-{{ $type->id }}');
+                @endforeach
+            @endif
         })();
     </script>
 @endpush

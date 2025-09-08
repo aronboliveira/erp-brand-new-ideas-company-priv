@@ -502,7 +502,7 @@ Object.keys(t).forEach(
         const getDesignation = deptId => {
             try {
             $.ajax({
-                url: '{{ route("employee.json") }}',
+                url: '{{ route("employees.json") }}',
                 type: 'POST',
                 data: { department_id: deptId ?? '', _token: csrfToken },
                 success: data => {

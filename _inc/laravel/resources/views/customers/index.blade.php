@@ -15,118 +15,7 @@
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-        const ERR_FB = '# ERROR';
-        const CLIENT_FLAG = 'data-client-localized';
-        const GUARD_MSG = 'data-guard-msg';
-        const LANG_KEY = 'erp-np-lang';
-        let errorMessage = '';
-        
-        function getLocalizedMessage(key, el) {
-            let msg = ERR_FB;
-            if (el.getAttribute(CLIENT_FLAG) === 'true') {
-            msg = el.getAttribute(GUARD_MSG) || msg;
-            } else {
-            let lang = (
-                sessionStorage.getItem(LANG_KEY) ||
-                document.documentElement.lang ||
-                'en'
-            ).toLowerCase().replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-            msg =
-                translations?.[lang]?.[key] ||
-                el.getAttribute(GUARD_MSG) ||
-                translations?.['en']?.[key] ||
-                msg;
-            if (msg !== ERR_FB) {
-                el.setAttribute(GUARD_MSG, msg);
-                el.setAttribute(CLIENT_FLAG, 'true');
-            }
-            }
-            return msg;
-        }
-        
-        function showError(message) {
-            try {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-            }
-            const hasBs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-            if (hasBs) {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role','alert');
-                toast.setAttribute('aria-live','assertive');
-                toast.setAttribute('aria-atomic','true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                body.textContent = message;
-                toast.appendChild(body);
-                container.appendChild(toast);
-                bootstrap.Toast.getOrCreateInstance(toast).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        }
-        
-        const onPointerUp = () => {
-            if (errorMessage) {
-            showError(errorMessage);
-            errorMessage = '';
-            }
-        };
-        document.addEventListener('pointerup', onPointerUp);
-        new MutationObserver((muts, obs) => {
-            muts.forEach(m => Array.from(m.removedNodes).forEach(n => {
-            if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onPointerUp);
-                obs.disconnect();
-            }
-            }));
-        }).observe(document.body, { childList:true, subtree:true });
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementById('billing_data');
-            if (!btn || btn.dataset.listenerAttached === 'true') return;
-            btn.dataset.listenerAttached = 'true';
-        
-            const handler = () => {
-            try {
-                const fields = [
-                'name','country','state','city','phone','zip','address'
-                ];
-                fields.forEach(key => {
-                const bill = $(`[name='billing_${key}']`);
-                const ship = $(`[name='shipping_${key}']`);
-                if (!bill.length || !ship.length) {
-                    throw new Error('shipping_copy_failed');
-                }
-                ship.val(bill.val());
-                });
-            } catch (e) {
-                errorMessage = getLocalizedMessage(e.message, btn);
-            }
-            };
-        
-            btn.addEventListener('click', handler);
-            new MutationObserver((muts, obs) => {
-            muts.forEach(m => Array.from(m.removedNodes).forEach(n => {
-                if (n === btn) {
-                btn.removeEventListener('click', handler);
-                obs.disconnect();
-                }
-            }));
-            }).observe(document.body, { childList:true, subtree:true });
-        });
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/customers/index.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Manage Customers')}}
@@ -150,7 +39,6 @@
             ViewsConstants::CST,
             'customers_import_route_unavailable'
         ) ?? 'Customer CSV import route is unavailable. Please contact technical support or your domain administrator.';
-
         $exportRoute = Route::has(ViewsConstants::CST . '.export')
             ? route(ViewsConstants::CST . '.export')
             : '#';
@@ -159,7 +47,6 @@
             ViewsConstants::CST,
             'customers_export_route_unavailable'
         ) ?? 'Customer export route is unavailable. Please contact technical support or your domain administrator.';
-
         $createRoute = Route::has(ViewsConstants::CST . '.create')
             ? route(ViewsConstants::CST . '.create')
             : '#';
@@ -347,233 +234,131 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($customers as $customer)
-                                    @php
-                                        $namespace = ViewsConstants::CST;
-                                        $showRoute = Route::has("{$namespace}.show")
-                                            ? route("{$namespace}.show", $customer['id'])
-                                            : '#';
-                                        $showEncryptedRoute = Route::has("{$namespace}.show")
-                                            ? route("{$namespace}.show", Crypt::encrypt($customer['id']))
-                                            : '#';
-                                        $showGuardMsg = Utility::fetchLinkMessage($lang, $namespace, 'customers_show_route_unavailable')
-                                            ?? 'Customer show route is unavailable. Please contact technical support or your domain administrator.';
-                                        $editRoute = Route::has("{$namespace}.edit")
-                                            ? route("{$namespace}.edit", $customer['id'])
-                                            : '#';
-                                        $editGuardMsg = Utility::fetchLinkMessage($lang, $namespace, 'customers_edit_route_unavailable')
-                                            ?? 'Customer edit route is unavailable. Please contact technical support or your domain administrator.';
-                                        $destroyRoute = Route::has("{$namespace}.destroy")
-                                            ? route("{$namespace}.destroy", $customer['id'])
-                                            : '#';
-                                        $destroyGuardMsg = Utility::fetchLinkMessage($lang, $namespace, 'customers_destroy_route_unavailable')
-                                            ?? 'Customer delete route is unavailable. Please contact technical support or your domain administrator.';
-                                    @endphp
-                                    <tr class="cust_tr" data-url="{{ $showRoute }}" data-id="{{ $customer['id'] }}">
-                                        <td>
-                                            @can('show customer')
-                                                <a
-                                                    id="customer-show-btn-{{ $customer['id'] }}"
-                                                    href="{{ $showEncryptedRoute }}"
-                                                    data-url="{{ $showEncryptedRoute }}"
-                                                    data-guard-msg="{{ $showGuardMsg }}"
-                                                    class="{{ VC::BT_OUTPM }}"
-                                                >
-                                                    {{ $user?->customerNumberFormat($customer['customer_id']) }}
-                                                </a>
-                                            @else
-                                                <a
-                                                    id="customer-show-btn-{{ $customer['id'] }}"
-                                                    href="#"
-                                                    data-url="#"
-                                                    data-guard-msg="{{ $showGuardMsg }}"
-                                                    class="{{ VC::BT_OUTPM }}"
-                                                >
-                                                    {{ $user?->customerNumberFormat($customer['customer_id']) }}
-                                                </a>
-                                            @endcan
-                                        </td>
-                                        <td class="font-style">{{ $customer['name'] }}</td>
-                                        <td>{{ $customer['contact'] }}</td>
-                                        <td>{{ $customer['email'] }}</td>
-                                        <td>{{ $user?->priceFormat($customer['balance']) }}</td>
-                                        <td class="action">
-                                            @if($customer['is_active'])
+                                @if((is_array($customers) && count($customers)) || ($customers instanceof Collection && $customers->isNotEmpty()))
+                                    @foreach($customers as $customer)
+                                        @php
+                                            $ns = ViewsConstants::CST;
+                                            $cid = isset($customer['id']) ? (string) $customer['id'] : '';
+                                            $encId = $cid !== '' ? Crypt::encrypt($cid) : '';
+                                            $showHref = $encId !== '' ? route("{$ns}.show", $encId) : '#';
+                                            $showGuardMsg = Utility::fetchLinkMessage($lang, $ns, 'customers_show_route_unavailable') ?? __('Customer show route is unavailable. Please contact technical support or your domain administrator.');
+                                            $isCustomerNumberFormatAvailable = method_exists($user, 'customerNumberFormat');
+                                            $isPriceFormatAvailable = method_exists($user, 'priceFormat');
+                                            $num = $customer['customer_id'] ?? null;
+                                            $name = isset($customer['name']) && $customer['name'] !== '' ? $customer['name'] : __('No customer name available');
+                                            $contact = isset($customer['contact']) && $customer['contact'] !== '' ? $customer['contact'] : __('No contact available');
+                                            $email = isset($customer['email']) && $customer['email'] !== '' ? $customer['email'] : __('No email available');
+                                            $balance = isset($customer['balance']) ? $customer['balance'] : null;
+                                            $isActive = !empty($customer['is_active']);
+                                        @endphp
+                                        <tr class="cust_tr" data-url="{{ $showHref }}" data-id="{{ $cid }}">
+                                            <td>
                                                 @can('show customer')
-                                                    <div class="{{ VC::ACT_BTN_INF }}">
-                                                        <a
-                                                            id="customer-view-btn-{{ $customer['id'] }}"
-                                                            href="{{ $showEncryptedRoute }}"
-                                                            data-url="{{ $showEncryptedRoute }}"
-                                                            data-guard-msg="{{ $showGuardMsg }}"
-                                                            class="{{ VC::BT_SM_FL_CT }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('View') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_EYE_WT }}"></i>
-                                                        </a>
-                                                    </div>
+                                                    <a id="customer-show-btn-{{ $cid }}" href="{{ $showHref }}" data-url="{{ $showHref }}" data-guard-msg="{{ $showGuardMsg }}" class="{{ VC::BT_OUTPM }}">
+                                                        {{ $num !== null ? ($isCustomerNumberFormatAvailable ? $user?->customerNumberFormat($num) : __('Failed to format customer number')) : __('No customer number available') }}
+                                                    </a>
+                                                @else
+                                                    <a id="customer-show-btn-{{ $cid }}" href="#" data-url="#" data-guard-msg="{{ $showGuardMsg }}" class="{{ VC::BT_OUTPM }}">
+                                                        {{ $num !== null ? ($isCustomerNumberFormatAvailable ? $user?->customerNumberFormat($num) : __('Failed to format customer number')) : __('No customer number available') }}
+                                                    </a>
                                                 @endcan
-                                                @can('edit customer')
-                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                        <a
-                                                            id="customer-edit-btn-{{ $customer['id'] }}"
-                                                            href="{{ $editRoute }}"
-                                                            data-url="{{ $editRoute }}"
-                                                            data-guard-msg="{{ $editGuardMsg }}"
-                                                            data-ajax-popup="true"
-                                                            data-size="lg"
-                                                            class="{{ VC::BT_SM_FL_CT }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Edit') }}"
-                                                            data-title="{{ __('Edit Customer') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_PC_WT }}"></i>
-                                                        </a>
-                                                    </div>
-                                                @endcan
-                                                @can('delete customer')
-                                                    <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                        {!! Form::open(['method' => 'DELETE', 'url' => $destroyRoute, 'id' => 'delete-form-' . $customer['id']]) !!}
-                                                            <a
-                                                                id="customer-delete-btn-{{ $customer['id'] }}"
-                                                                href="#"
-                                                                data-url="{{ $destroyRoute }}"
-                                                                data-guard-msg="{{ $destroyGuardMsg }}"
-                                                                class="{{ VC::BT_SM_CT_PR }}"
-                                                                data-bs-toggle="tooltip"
-                                                                title="{{ __('Delete') }}"
-                                                            >
-                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                            </td>
+                                            <td class="font-style">{{ $name }}</td>
+                                            <td>{{ $contact }}</td>
+                                            <td>{{ $email }}</td>
+                                            <td>{{ is_numeric($balance) ? ($isPriceFormatAvailable ? $user?->priceFormat($balance) : __('Failed to format balance')) : __('No balance available') }}</td>
+                                            <td class="action">
+                                                @if($isActive)
+                                                    @can('show customer')
+                                                        <div class="{{ VC::ACT_BTN_INF }}">
+                                                            <a id="customer-view-btn-{{ $cid }}" href="{{ $showHref }}" data-url="{{ $showHref }}" data-guard-msg="{{ $showGuardMsg }}" class="{{ VC::BT_SM_FL_CT }}" data-bs-toggle="tooltip" title="{{ __('View') }}">
+                                                                <i class="{{ VC::TI_EYE_WT }}"></i>
                                                             </a>
-                                                        {!! Form::close() !!}
-                                                    </div>
-                                                @endcan
-                                            @else
-                                                <i class="ti ti-lock" title="Inactive"></i>
-                                            @endif
+                                                        </div>
+                                                    @endcan
+                                                    @can('edit customer')
+                                                        @php
+                                                            $editHref = $cid !== '' ? route("{$ns}.edit", $cid) : '#';
+                                                            $editGuardMsg = Utility::fetchLinkMessage($lang, $ns, 'customers_edit_route_unavailable') ?? __('Customer edit route is unavailable. Please contact technical support or your domain administrator.');
+                                                        @endphp
+                                                        <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                            <a id="customer-edit-btn-{{ $cid }}" href="{{ $editHref }}" data-url="{{ $editHref }}" data-guard-msg="{{ $editGuardMsg }}" data-ajax-popup="true" data-size="lg" class="{{ VC::BT_SM_FL_CT }}" data-bs-toggle="tooltip" title="{{ __('Edit') }}" data-title="{{ __('Edit Customer') }}">
+                                                                <i class="{{ VC::TI_PC_WT }}"></i>
+                                                            </a>
+                                                        </div>
+                                                    @endcan
+                                                    @can('delete customer')
+                                                        @php
+                                                            $destroyHref = $cid !== '' ? route("{$ns}.destroy", $cid) : '#';
+                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang, $ns, 'customers_destroy_route_unavailable') ?? __('Customer delete route is unavailable. Please contact technical support or your domain administrator.');
+                                                            $delFormId = 'delete-form-' . $cid;
+                                                        @endphp
+                                                        <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                            {!! Form::open(['method' => 'DELETE', 'url' => $destroyHref, 'id' => $delFormId]) !!}
+                                                                <a id="customer-delete-btn-{{ $cid }}" href="#" data-url="{{ $destroyHref }}" data-guard-msg="{{ $destroyGuardMsg }}" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}">
+                                                                    <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                </a>
+                                                            {!! Form::close() !!}
+                                                        </div>
+                                                    @endcan
+                                                @else
+                                                    <i class="ti ti-lock" title="{{ __('Inactive') }}"></i>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer>
+                                                (()=>{try{
+                                                    function guardClick(anchor){
+                                                        if(!anchor||anchor.getAttribute('data-listener-active')==='true')return;
+                                                        anchor.setAttribute('data-listener-active','true');
+                                                        anchor.addEventListener('click',e=>{
+                                                            const url=(anchor.getAttribute('data-url')||'').trim();
+                                                            if(url && url!=='#')return;
+                                                            e.preventDefault();
+                                                            const msg=anchor.getAttribute('data-guard-msg')||'#';
+                                                            try{
+                                                                if(window.bootstrap&&window.bootstrap.Toast){
+                                                                    let t=document.getElementById('route-guard-toast');
+                                                                    if(!t){
+                                                                        t=document.createElement('div');
+                                                                        t.id='route-guard-toast';
+                                                                        t.className='toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3';
+                                                                        t.setAttribute('role','alert');t.setAttribute('aria-live','assertive');t.setAttribute('aria-atomic','true');
+                                                                        t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                                                                        document.body.appendChild(t);
+                                                                    }
+                                                                    t.querySelector('.toast-body').textContent=msg;
+                                                                    new bootstrap.Toast(t,{delay:4000}).show();
+                                                                }else{ alert(msg); }
+                                                            }catch(_){ alert(msg); }
+                                                        });
+                                                    }
+                                                    ['customer-show-btn-{{ $cid }}','customer-view-btn-{{ $cid }}','customer-edit-btn-{{ $cid }}','customer-delete-btn-{{ $cid }}'].forEach(id=>guardClick(document.getElementById(id)));
+                                                }catch(_){}})();
+                                            </script>
+                                        @endpush
+                                    @endforeach
+                                    @push(StacksConstants::ADM_SCR_PG)
+                                        @can('show customer')
+                                            <script defer src="{{ asset('assets/js/routes/customers/show.js') }}"></script>
+                                        @endcan
+                                        @can('edit customer')
+                                            <script defer src="{{ asset('assets/js/routes/customers/edit.js') }}"></script>
+                                        @endcan
+                                        @can('delete customer')
+                                            <script defer src="{{ asset('assets/js/routes/customers/delete.js') }}"></script>
+                                        @endcan
+                                    @endpush
+                                @else
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="text-center">
+                                                {{ __('No customers found.') }}
+                                            </div>
                                         </td>
                                     </tr>
-                                @endforeach
-                                @push(StacksConstants::ADM_SCR_PG)
-                                    <script defer>
-                                        (() => {
-                                            document.querySelectorAll('[id^="customer-show-btn-"]').forEach(btn => {
-                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                btn.setAttribute('data-listener-active', 'true');
-                                                btn.addEventListener('click', e => {
-                                                    try {
-                                                        const url = btn.getAttribute('data-url') ?? '#';
-                                                        if (url !== '#') return;
-                                                        e.preventDefault();
-                                                        const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                        let container = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container = document.createElement('div');
-                                                            container.id = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bs) {
-                                                            const toast = document.createElement('div');
-                                                            toast.className = 'toast';
-                                                            toast.setAttribute('role','alert');
-                                                            toast.setAttribute('aria-live','assertive');
-                                                            toast.setAttribute('aria-atomic','true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toast.appendChild(body);
-                                                            container.appendChild(toast);
-                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        btn.setAttribute('data-failed-route','true');
-                                                    } catch {}
-                                                });
-                                            });
-                                        })();
-                                    </script>
-                                    <script defer>
-                                        (() => {
-                                            document.querySelectorAll('[id^="customer-edit-btn-"]').forEach(btn => {
-                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                btn.setAttribute('data-listener-active', 'true');
-                                                btn.addEventListener('click', e => {
-                                                    try {
-                                                        const url = btn.getAttribute('data-url') ?? '#';
-                                                        if (url !== '#') return;
-                                                        e.preventDefault();
-                                                        const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                        let container = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container = document.createElement('div');
-                                                            container.id = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bs) {
-                                                            const toast = document.createElement('div');
-                                                            toast.className = 'toast';
-                                                            toast.setAttribute('role','alert');
-                                                            toast.setAttribute('aria-live','assertive');
-                                                            toast.setAttribute('aria-atomic','true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toast.appendChild(body);
-                                                            container.appendChild(toast);
-                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        btn.setAttribute('data-failed-route','true');
-                                                    } catch {}
-                                                });
-                                            });
-                                        })();
-                                    </script>
-                                    <script defer>
-                                        (() => {
-                                            document.querySelectorAll('[id^="customer-delete-btn-"]').forEach(btn => {
-                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                btn.setAttribute('data-listener-active', 'true');
-                                                btn.addEventListener('click', e => {
-                                                    try {
-                                                        const url = btn.getAttribute('data-url') ?? '#';
-                                                        if (url !== '#') return;
-                                                        e.preventDefault();
-                                                        const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                        let container = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container = document.createElement('div');
-                                                            container.id = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bs) {
-                                                            const toast = document.createElement('div');
-                                                            toast.className = 'toast';
-                                                            toast.setAttribute('role','alert');
-                                                            toast.setAttribute('aria-live','assertive');
-                                                            toast.setAttribute('aria-atomic','true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toast.appendChild(body);
-                                                            container.appendChild(toast);
-                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        btn.setAttribute('data-failed-route','true');
-                                                    } catch {}
-                                                });
-                                            });
-                                        })();
-                                    </script>
-                                @endpush
+                                @endif
                             </tbody>
                         </table>
                     </div>

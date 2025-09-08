@@ -216,7 +216,7 @@ Object.keys(t).forEach(
       const fetchDesignation = did => {
         try {
           if (!did) throw new Error('designation_fetch_unavailable');
-          const url = '{{ route('employee.json') }}';
+          const url = '{{ route("employees.json") }}';
           if (!url || url === '#') throw new Error('designation_fetch_unavailable');
           $.ajax({
             url,

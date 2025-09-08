@@ -1082,7 +1082,7 @@
 
         async function loadDesignations(deptId) {
             try {
-            const url = '{{ route(ViewsConstants::EMP.'.json') }}';
+            const url = '{{ route(ViewsConstants::EMP.".json") }}';
             if (!url || url === '#') throw new Error();
             const data = await $.ajax({
                 url,

@@ -193,7 +193,7 @@ Object.keys(t).forEach(
       }
 
       const stageId = '{{$lead->stage_id}}';
-      const leadsUrl = '{{ route('leads.json') }}';
+      const leadsUrl = '{{ route("leads.json") }}';
 
       const fillStages = (data) => {
         const $sel = $("#stage_id");

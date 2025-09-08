@@ -43,7 +43,7 @@
                 $aiGenerateTopic                 = 'complaint';
                 $aiGenerateComplaintUrl          = $aiGenerateResolvedName ? route($aiGenerateResolvedName, [$aiGenerateTopic]) : '#';
                 $aiGenerateLang                  = isset($lang) ? $lang : Utility::fetchUserLang();
-                $aiGenerateComplaintGuardMsg     = Utility::fetchLinkMessage($aiGenerateLang, 'generics', 'generate_ai_complaint_route_unavailable') ?? 'Generate AI complaint route is unavailable. Please contact technical support or your domain administrator.';
+                $aiGenerateComplaintGuardMsg     = Utility::fetchLinkMessage($aiGenerateLang, ViewsConstants::CPL, 'generate_ai_complaint_route_unavailable') ?? 'Generate AI complaint route is unavailable. Please contact technical support or your domain administrator.';
                 $aiGenerateComplaintLinkId       = 'ai-generate-complaint-link';
             @endphp
             <div class="{{ VC::FEND }}">
@@ -71,9 +71,9 @@
                 <div class="{{ VC::FM_G }} col-md-6 col-lg-6">
                     {{ Form::label('complaint_from', __('Complaint From'), ['class' => VC::FM_LB]) }}
                     @if($isEmployeesEmpty)
-                        {{ Form::select('complaint_against', $employees, null, ['class' => VC::FM_CT_SL]) }}
+                        {{ Form::select('complaint_from', $employees, null, ['class' => VC::FM_CT_SL]) }}
                     @else
-                        {{ Form::select('complaint_against', [__('No employees available')], null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
+                        {{ Form::select('complaint_from', [__('No employees available')], null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
                     @endif
                 </div>
             @endif

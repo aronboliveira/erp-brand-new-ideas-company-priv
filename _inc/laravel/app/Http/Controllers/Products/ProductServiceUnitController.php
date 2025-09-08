@@ -31,86 +31,125 @@ class ProductServiceUnitController extends Controller
 
     public function index(Request $req)
     {
-        $function = __FUNCTION__;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if ($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $resp;
         try {
-            $units = ProductServiceUnit::where(DatabaseConstants::TABLE_CREATOR, $userOrRedirect->creatorId())->get();
-            return view(ViewsConstants::PRD_SV_UNT . '.' . $function, compact('units'));
+            return $this->measureProfile($action, function () use ($userOrRedirect, $view) {
+                $units = ProductServiceUnit::where(DatabaseConstants::TABLE_CREATOR, $userOrRedirect->creatorId())->get();
+                return view($view, compact('units'));
+            });
         } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::' . $function . ' failed: ' . $e->getMessage());
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . $function);
+            Log::error($action . ' failed: ' . $e->getMessage());
+            return defaultUndefinedException($req, $e, $action);
         }
     }
 
     public function create(Request $req)
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if ($resp = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $resp;
-        return view(ViewsConstants::PRD_SV_UNT . '.' . __FUNCTION__);
+        return $this->measureProfile($action, fn() => view($view));
     }
 
     public function store(Request $req): RedirectResponse
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if ($resp = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $resp;
         $v = Validator::make($req->all(), ['name' => 'required|max:20']);
         if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
         try {
-            ProductServiceUnit::create([
-                'name'       => $req->input('name'),
-                DatabaseConstants::TABLE_CREATOR => $userOrRedirect->creatorId()
-            ]);
-            return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully created.'));
+            return $this->measureProfile($action, function () use ($req, $userOrRedirect) {
+                ProductServiceUnit::create([
+                    'name'       => $req->input('name'),
+                    DatabaseConstants::TABLE_CREATOR => $userOrRedirect->creatorId()
+                ]);
+                return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully created.'));
+            });
         } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::store failed: ' . $e->getMessage());
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
+            Log::error($action . ' failed: ' . $e->getMessage());
+            return defaultUndefinedException($req, $e, $action);
         }
     }
 
     public function show(Request $req, ProductServiceUnit $unit)
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if ($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $resp;
-        return view(ViewsConstants::PRD_SV_UNT . '.' . __FUNCTION__, compact('unit'));
+        return $this->measureProfile($action, fn() => view($view, compact('unit')));
     }
 
     public function edit(Request $req, ProductServiceUnit $unit)
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
+
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if ($resp = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $resp;
-        return view(ViewsConstants::PRD_SV_UNT . '.' . __FUNCTION__, compact('unit'));
+        return $this->measureProfile($action, fn() => view($view, compact('unit')));
     }
 
     public function update(Request $req, ProductServiceUnit $unit): RedirectResponse
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if ($resp = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $resp;
         $v = Validator::make($req->all(), ['name' => 'required|max:20']);
         if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
         try {
-            $unit->update(['name' => $req->input('name')]);
-            return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully updated.'));
+            return $this->measureProfile($action, function () use ($req, $unit) {
+                $unit->update(['name' => $req->input('name')]);
+                return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully updated.'));
+            });
         } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::' . __FUNCTION__ . ' failed: ' . $e->getMessage());
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
+            Log::error($action . ' failed: ' . $e->getMessage());
+            return defaultUndefinedException($req, $e, $action);
         }
     }
 
     public function destroy(Request $req, ProductServiceUnit $unit): RedirectResponse
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         if ($resp = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) return $resp;
         if ($unit->created_by !== $userOrRedirect->creatorId())
-            return defaultPermissionDenial($req, new AuthorizationException(), __CLASS__ . '::' . __FUNCTION__);
+            return defaultPermissionDenial($req, new AuthorizationException(), $action);
         try {
-            if (ProductService::where('unit_id', $unit->id)->exists())
-                return redirect()->back()->with('error', __('This unit is already assigned; please reassign or remove related data.'));
-            $unit->delete();
-            return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully deleted.'));
+            return $this->measureProfile($action, function () use ($unit) {
+                if (ProductService::where('unit_id', $unit->id)->exists())
+                    return redirect()->back()->with('error', __('This unit is already assigned; please reassign or remove related data.'));
+                $unit->delete();
+                return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully deleted.'));
+            });
         } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::' . __FUNCTION__ . ' failed: ' . $e->getMessage());
-            return defaultUndefinedException($req, $e, __CLASS__ . '::' . __FUNCTION__);
+            Log::error($action . ' failed: ' . $e->getMessage());
+            return defaultUndefinedException($req, $e, $action);
         }
     }
 }

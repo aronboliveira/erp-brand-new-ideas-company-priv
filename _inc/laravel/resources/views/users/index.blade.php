@@ -42,7 +42,7 @@
     <div class="{{ VC::FEND }}">
         @if ($user?->{UC::COL_TP} == PC::CPN || strtolower((string)($user?->{UC::COL_TP} ?? '')) == PC::HR || $user?->{UC::COL_TP} == PC::SA)
             @php
-                $logsBase  = VW::USR . '.userlog';
+                $logsBase  = VW::USR . '.log';
                 $logsKebab = Str::kebab($logsBase);
                 $logsName  = Route::has($logsBase) ? $logsBase : (Route::has($logsKebab) ? $logsKebab : null);
                 $logsUrl   = $logsName ? route($logsName, []) : '#';

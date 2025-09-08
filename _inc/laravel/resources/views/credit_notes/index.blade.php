@@ -1,7 +1,7 @@
 @php
     use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth,Crypt,Route};
-    use Illuminate\Support\Str;
+    use Illuminate\Support\{Collection, Str};
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         ViewsConstants,
@@ -28,70 +28,7 @@
     {{__('Manage Credit Notes')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-        ar: {
-            invoice_fetch_unavailable: 'فشل جلب بيانات الفاتورة.'
-        },
-        da: {
-            invoice_fetch_unavailable: 'Kunne ikke hente fakturadata.'
-        },
-        de: {
-            invoice_fetch_unavailable: 'Abruf der Rechnungsdaten fehlgeschlagen.'
-        },
-        en: {
-            invoice_fetch_unavailable: 'Failed to fetch invoice data.'
-        },
-        es: {
-            invoice_fetch_unavailable: 'Error al obtener los datos de la factura.'
-        },
-        fr: {
-            invoice_fetch_unavailable: 'Échec de la récupération des données de la facture.'
-        },
-        he: {
-            invoice_fetch_unavailable: 'הנתונים של החשבונית לא נטענו.'
-        },
-        it: {
-            invoice_fetch_unavailable: 'Impossibile recuperare i dati della fattura.'
-        },
-        ja: {
-            invoice_fetch_unavailable: '請求書データの取得に失敗しました。'
-        },
-        nl: {
-            invoice_fetch_unavailable: 'Kon factuurgegevens niet ophalen.'
-        },
-        pl: {
-            invoice_fetch_unavailable: 'Nie udało się pobrać danych faktury.'
-        },
-        pt: {
-            invoice_fetch_unavailable: 'Falha ao obter dados da fatura.'
-        },
-        'pt-br': {
-            invoice_fetch_unavailable: 'Falha ao obter dados da fatura.'
-        },
-        ru: {
-            invoice_fetch_unavailable: 'Не удалось получить данные счета.'
-        },
-        tr: {
-            invoice_fetch_unavailable: 'Fatura verileri alınamadı.'
-        },
-        zh: {
-            invoice_fetch_unavailable: '获取发票数据失败。'
-        }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
+    <script async src="{{ asset('asset/js/routes/creditNotes/lang/index.js') }}">
     </script>
     <script defer>
         (() => {
@@ -224,7 +161,7 @@ Object.keys(t).forEach(
         @can('create credit note')
             <a
                 href="#"
-                id="createCreditNoteBtn"
+                id="create_credit_note_btn"
                 data-url="{{ $createRoute }}"
                 data-guard-msg="{{ $createGuardMsg }}"
                 data-listener-alias="create-credit-note"
@@ -259,89 +196,168 @@ Object.keys(t).forEach(
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($invoices as $invoice)
-                                    @if(!empty($invoice->creditNote))
-                                        @foreach($invoice->creditNote as $creditNote)
-                                            @php
-                                                $editName     = ViewsConstants::INV . '.edit.credit.note';
-                                                $editRoute    = Route::has($editName)
-                                                    ? route($editName, [$creditNote->invoice, $creditNote->id])
-                                                    : '#';
-                                                $editGuardMsg = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::INV,
-                                                    'edit_credit_note_route_unavailable'
-                                                ) ?? 'Edit credit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                $editBtnId    = 'edit-cn-' . $creditNote->id;
-                                                $delName      = ViewsConstants::INV . '.delete.credit.note';
-                                                $delRoute     = Route::has($delName)
-                                                    ? route($delName, [$creditNote->invoice, $creditNote->id])
-                                                    : '#';
-                                                $delGuardMsg  = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    ViewsConstants::INV,
-                                                    'delete_credit_note_route_unavailable'
-                                                ) ?? 'Delete credit note route is unavailable. Please contact technical support or your domain administrator.';
-                                                $deleteFormId = 'delete-cn-' . $creditNote->id;
-                                            @endphp
-                                            <tr>
-                                                <td>
-                                                    <a href="{{ route(ViewsConstants::INV . '.show', Crypt::encrypt($creditNote->invoice)) }}"
-                                                       class="{{ VC::BT_OUTPM }}">
-                                                        {{ $user?->invoiceNumberFormat($invoice->invoice_id) }}
-                                                    </a>
-                                                </td>
-                                                <td>{{ $invoice->customer->name ?? '-' }}</td>
-                                                <td>{{ $user?->dateFormat($creditNote->date) }}</td>
-                                                <td>{{ $user?->priceFormat($creditNote->amount) }}</td>
-                                                <td>{{ $creditNote->description ?? '-' }}</td>
-                                                <td class="text-end">
-                                                    @can('edit credit note')
-                                                        <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                            <a
-                                                                href="#"
+                                @if((is_array($invoices) && count($invoices)) || ($invoices instanceof Collection && $invoices->isNotEmpty()))
+                                    @php
+                                        $hasPriceFormat = $user && method_exists($user,'priceFormat');
+                                        $hasDateFormat = $user && method_exists($user,'dateFormat');
+                                        $hasInvoiceNumberFormat = $user && method_exists($user,'invoiceNumberFormat');
+                                    @endphp
+                                    @foreach($invoices as $invoice)
+                                        @php
+                                            $cnRaw = $invoice->creditNote ?? null;
+                                            $creditNotes = (is_array($cnRaw) && count($cnRaw)) || ($cnRaw instanceof Collection && $cnRaw->isNotEmpty()) ? $cnRaw : [];
+                                        @endphp
+                                        @if(!empty($creditNotes))
+                                            @foreach($creditNotes as $creditNote)
+                                                @php
+                                                    $showHref = route(ViewsConstants::INV . '.show', Crypt::encrypt($creditNote->invoice));
+                                                @endphp
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ $showHref }}" class="{{ VC::BT_OUTPM }}">
+                                                            {{ !empty($invoice->invoice_id) ? ($hasInvoiceNumberFormat ? $user?->invoiceNumberFormat($invoice->invoice_id) : __('Failed to format invoice number')) : __('No invoice number available') }}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{ data_get($invoice,'customer.name') ?: __('No customer name available') }}</td>
+                                                    <td>
+                                                        @php($d = $creditNote->date ?? null)
+                                                        {{ $d ? ($hasDateFormat ? $user?->dateFormat($d) : __('Failed to format date')) : __('No credit note date available') }}
+                                                    </td>
+                                                    <td>
+                                                        @php($amt = $creditNote->amount ?? null)
+                                                        {{ is_numeric($amt) ? ($hasPriceFormat ? $user?->priceFormat($amt) : __('Failed to format amount')) : __('No amount available') }}
+                                                    </td>
+                                                    <td>{{ isset($creditNote->description) && $creditNote->description !== '' ? $creditNote->description : __('No description available') }}</td>
+                                                    <td class="text-end">
+                                                        @can('edit credit note')
+                                                            @php
+                                                                $editName  = ViewsConstants::INV . '.edit.credit.note';
+                                                                $editRoute = route($editName, [$creditNote->invoice, $creditNote->id]);
+                                                                $editBtnId = 'edit-cn-' . $creditNote->id;
+                                                                $editGuard = Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'edit_credit_note_route_unavailable') ?? 'Edit credit note route is unavailable. Please contact technical support or your domain administrator.';
+                                                            @endphp
+                                                            <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                                <a href="#"
                                                                 id="{{ $editBtnId }}"
                                                                 data-url="{{ $editRoute }}"
-                                                                data-guard-msg="{{ $editGuardMsg }}"
+                                                                data-guard-msg="{{ $editGuard }}"
                                                                 data-listener-alias="edit-credit-note"
                                                                 data-ajax-popup="true"
                                                                 data-size="md"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Edit') }}"
-                                                                class="{{ VC::BT_SM_FL_CT }}"
-                                                            >
-                                                                <i class="{{ VC::TI_PC_WT }}"></i>
-                                                            </a>
-                                                        </div>
-                                                    @endcan
-                                                    @can('delete credit note')
-                                                        {!! Collective\Html\FormFacade::open([
-                                                            'method'         => 'DELETE',
-                                                            'route'          => [ViewsConstants::INV . '.delete.credit.note', $creditNote->invoice, $creditNote->id],
-                                                            'id'             => $deleteFormId,
-                                                            'data-url'       => $delRoute,
-                                                            'data-guard-msg' => $delGuardMsg,
-                                                        ]) !!}
-                                                        <div class="{{ VC::ACT_BTN_DNG_2 }}">
-                                                            <a
-                                                                href="#"
-                                                                data-listener-alias="delete-credit-note"
-                                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                                data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();"
-                                                                data-bs-toggle="tooltip"
-                                                                title="{{ __('Delete') }}"
-                                                                class="{{ VC::BT_SM_CT_PR }}"
-                                                            >
-                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                            </a>
-                                                        </div>
-                                                        {!! Collective\Html\FormFacade::close() !!}
-                                                    @endcan
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @endif
-                                @endforeach
+                                                                class="{{ VC::BT_SM_FL_CT }}">
+                                                                    <i class="{{ VC::TI_PC_WT }}"></i>
+                                                                </a>
+                                                            </div>
+                                                            @push(StacksConstants::ADM_SCR_PG)
+                                                                <script defer>
+                                                                    (function(){
+                                                                        try{
+                                                                            function toastOrAlert(msg){
+                                                                                try{
+                                                                                    if(window.bootstrap && window.bootstrap.Toast){
+                                                                                        var t=document.getElementById('route-guard-toast');
+                                                                                        if(!t){
+                                                                                            t=document.createElement('div');
+                                                                                            t.id='route-guard-toast';
+                                                                                            t.className='toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3';
+                                                                                            t.setAttribute('role','alert');t.setAttribute('aria-live','assertive');t.setAttribute('aria-atomic','true');
+                                                                                            t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                                                                                            document.body.appendChild(t);
+                                                                                        }
+                                                                                        t.querySelector('.toast-body').textContent=msg;
+                                                                                        new bootstrap.Toast(t,{delay:4000}).show();
+                                                                                    } else { alert(msg); }
+                                                                                }catch(e){ alert(msg); }
+                                                                            }
+                                                                            var btn=document.getElementById('{{ $editBtnId }}');
+                                                                            if(btn && btn.getAttribute('data-listener-active')!=='true'){
+                                                                                btn.setAttribute('data-listener-active','true');
+                                                                                btn.addEventListener('click',function(e){
+                                                                                    var url=(btn.getAttribute('data-url')||'').trim();
+                                                                                    if(!url || url==='#'){ e.preventDefault(); toastOrAlert(btn.getAttribute('data-guard-msg')||'#'); }
+                                                                                });
+                                                                            }
+                                                                        }catch(_){}
+                                                                    })();
+                                                                </script>
+                                                            @endpush
+                                                        @endcan
+                                                        @can('delete credit note')
+                                                            @php
+                                                                $delName   = ViewsConstants::INV . '.delete.credit.note';
+                                                                $delRoute  = route($delName, [$creditNote->invoice, $creditNote->id]);
+                                                                $delGuard  = Utility::fetchLinkMessage($lang, ViewsConstants::INV, 'delete_credit_note_route_unavailable') ?? 'Delete credit note route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $delFormId = 'delete-cn-' . $creditNote->id;
+                                                                $delBtnId  = 'del-cn-' . $creditNote->id;
+                                                            @endphp
+                                                            {!! Collective\Html\FormFacade::open([
+                                                                'method'         => 'DELETE',
+                                                                'route'          => [$delName, $creditNote->invoice, $creditNote->id],
+                                                                'id'             => $delFormId,
+                                                                'data-url'       => $delRoute,
+                                                                'data-guard-msg' => $delGuard,
+                                                            ]) !!}
+                                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                                    <a href="#"
+                                                                    id="{{ $delBtnId }}"
+                                                                    data-listener-alias="delete-credit-note"
+                                                                    data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                    data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();"
+                                                                    data-bs-toggle="tooltip"
+                                                                    title="{{ __('Delete') }}"
+                                                                    class="{{ VC::BT_SM_CT_PR }}"
+                                                                    data-url="{{ $delRoute }}"
+                                                                    data-guard-msg="{{ $delGuard }}">
+                                                                        <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                    </a>
+                                                                </div>
+                                                            {!! Collective\Html\FormFacade::close() !!}
+                                                            @push(StacksConstants::ADM_SCR_PG)
+                                                                <script defer>
+                                                                    (function(){
+                                                                        try{
+                                                                            function toastOrAlert(msg){
+                                                                                try{
+                                                                                    if(window.bootstrap && window.bootstrap.Toast){
+                                                                                        var t=document.getElementById('route-guard-toast');
+                                                                                        if(!t){
+                                                                                            t=document.createElement('div');
+                                                                                            t.id='route-guard-toast';
+                                                                                            t.className='toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3';
+                                                                                            t.setAttribute('role','alert');t.setAttribute('aria-live','assertive');t.setAttribute('aria-atomic','true');
+                                                                                            t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                                                                                            document.body.appendChild(t);
+                                                                                        }
+                                                                                        t.querySelector('.toast-body').textContent=msg;
+                                                                                        new bootstrap.Toast(t,{delay:4000}).show();
+                                                                                    } else { alert(msg); }
+                                                                                }catch(e){ alert(msg); }
+                                                                            }
+                                                                            var btn=document.getElementById('{{ $delBtnId }}');
+                                                                            if(btn && btn.getAttribute('data-listener-active')!=='true'){
+                                                                                btn.setAttribute('data-listener-active','true');
+                                                                                btn.addEventListener('click',function(e){
+                                                                                    var url=(btn.getAttribute('data-url')||'').trim();
+                                                                                    if(!url || url==='#'){ e.preventDefault(); toastOrAlert(btn.getAttribute('data-guard-msg')||'#'); }
+                                                                                });
+                                                                            }
+                                                                        }catch(_){}
+                                                                    })();
+                                                                </script>
+                                                            @endpush
+                                                        @endcan
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        @endif
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="6" class="text-center">{{ __('No invoices available') }}</td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -352,47 +368,5 @@ Object.keys(t).forEach(
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const bindGuard = (el, event, urlAttr='data-url', msgAttr='data-guard-msg') => {
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener(event, e => {
-                    try {
-                        const url = el.getAttribute(urlAttr) ?? '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg           = el.getAttribute(msgAttr) ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch {}
-                });
-            };
-
-            bindGuard(document.getElementById('createCreditNoteBtn'), 'click');
-            document.querySelectorAll('[data-listener-alias="edit-credit-note"]').forEach(el => bindGuard(el, 'click'));
-            document.querySelectorAll('[data-listener-alias="delete-credit-note"]').forEach(el => bindGuard(el, 'click'));
-        })();
-    </script>
+    <script defer src="{{ asset('asset/js/routes/creditNotes/index.js') }}"></script>
 @endpush

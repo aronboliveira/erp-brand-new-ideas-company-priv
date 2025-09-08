@@ -46,7 +46,7 @@
                 <div class="{{ VC::CD }}">
                     <div class="card-body">
                         @php
-                            $logBase   = ViewsConstants::USR . '.userlog';
+                            $logBase   = ViewsConstants::USR . '.log';
                             $logName   = Route::has($logBase) ? $logBase : (Route::has(Str::kebab($logBase)) ? Str::kebab($logBase) : null);
                             $logUrl    = $logName ? route($logName) : '#';
                             $logGuard  = Utility::fetchLinkMessage($lang, ViewsConstants::USR, 'view_user_log_unavailable') ?? 'User logs route is unavailable. Please contact technical support or your domain administrator.';
@@ -147,7 +147,7 @@
                                         $userId     = (string) data_get($ud, 'user_id', '');
                                         $detail     = (string) data_get($ud, 'Details', '');
                                         $userDetail = $detail !== '' ? (json_decode($detail) ?: (object)[]) : (object)[];
-                                        $viewBase  = VW::USR . '.userlogview';
+                                        $viewBase  = VW::USR . '.log.view';
                                         $viewName  = Route::has($viewBase) ? $viewBase : (Route::has(Str::kebab($viewBase)) ? Str::kebab($viewBase) : null);
                                         $viewUrl   = ($viewName && $rowId) ? route($viewName, [$rowId]) : '#';
                                         $viewGuard = Utility::fetchLinkMessage($lang, VW::USR, 'view_user_log_detail_unavailable') ?? 'View user log route is unavailable. Please contact technical support or your domain administrator.';
@@ -218,7 +218,7 @@
                                             @endpush
                                             @can(PC::DEL_USER)
                                                 @php
-                                                    $delBase   = VW::USR . '.userlogdestroy';
+                                                    $delBase   = VW::USR . '.log.destroy';
                                                     $delName   = Route::has($delBase) ? $delBase : (Route::has(Str::kebab($delBase)) ? Str::kebab($delBase) : null);
                                                     $delUrl    = ($delName && $userId) ? route($delName, [$userId]) : '#';
                                                     $delGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'delete_user_log_route_unavailable') ?? 'Delete user log route is unavailable. Please contact technical support or your domain administrator.';

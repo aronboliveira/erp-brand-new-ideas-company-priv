@@ -12,7 +12,7 @@ use App\Models\{Department, Designation};
 use App\Traits\ChecksLogin;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\{Log, Validator};
+use Illuminate\Support\Facades\{Log, Validator, View as ViewFacade};
 use Illuminate\View\View;
 
 class DesignationController extends Controller
@@ -21,120 +21,253 @@ class DesignationController extends Controller
 
     public function index(Request $request): View|RedirectResponse
     {
-        try {
+        $action = 'DesignationController@index';
+        $view   = ViewsConstants::DSG . '.index';
+
+        return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            $this->_authorize($request, 'manage designation');
+
+            // authorize
+            $t = microtime(true);
+            try {
+                $this->_authorize($request, 'manage designation');
+                $this->logExecutionTime($t, $action . '::authorize', 'ok');
+            } catch (AuthorizationException $e) {
+                $this->logExecutionTime($t, $action . '::authorize', 'denied');
+                return defaultPermissionDenial($request, $e, $action);
+            }
+
+            // query
+            $t = microtime(true);
             $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-            return view(ViewsConstants::DSG . '.' . __FUNCTION__, compact('designations'));
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+            $this->logExecutionTime($t, $action . '::query', 'rows: ' . $designations->count());
+
+            // view check
+            $t = microtime(true);
+            if (!ViewFacade::exists($view)) {
+                $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
+                return defaultUndefinedException($request, new \RuntimeException("View not found: $view"), $action);
+            }
+            $this->logExecutionTime($t, $action . '::viewCheck', 'exists');
+
+            return view($view, compact('designations'));
+        }, ['uri' => $request->getRequestUri()]);
     }
 
     public function create(Request $request): View|RedirectResponse
     {
-        try {
+        $action = 'DesignationController@create';
+        $view   = ViewsConstants::DSG . '.create';
+
+        return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $this->_authorize($request, 'create designation');
+
+            // authorize
+            $t = microtime(true);
+            try {
+                $this->_authorize($request, 'create designation');
+                $this->logExecutionTime($t, $action . '::authorize', 'ok');
+            } catch (AuthorizationException $e) {
+                $this->logExecutionTime($t, $action . '::authorize', 'denied');
+                return defaultPermissionDenial($request, $e, $action);
+            }
+
+            // load form data
+            $t = microtime(true);
             $departmentList = Department::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
                 ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-            return view(ViewsConstants::DSG . '.' . __FUNCTION__, compact('departmentList'));
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+            $this->logExecutionTime($t, $action . '::loadFormData', 'deps: ' . $departmentList->count());
+
+            // view check
+            $t = microtime(true);
+            if (!ViewFacade::exists($view)) {
+                $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
+                return defaultUndefinedException($request, new \RuntimeException("View not found: $view"), $action);
+            }
+            $this->logExecutionTime($t, $action . '::viewCheck', 'exists');
+
+            return view($view, compact('departmentList'));
+        }, ['uri' => $request->getRequestUri()]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        try {
+        $action = 'DesignationController@store';
+
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $this->_authorize($request, 'create designation');
+
+            // authorize
+            $t = microtime(true);
+            try {
+                $this->_authorize($request, 'create designation');
+                $this->logExecutionTime($t, $action . '::authorize', 'ok');
+            } catch (AuthorizationException $e) {
+                $this->logExecutionTime($t, $action . '::authorize', 'denied');
+                return defaultPermissionDenial($request, $e, $action);
+            }
+
+            // validate (use 'name' from request body; dep id from constant)
+            $t = microtime(true);
             $validator = Validator::make($request->all(), [
                 CompaniesConstants::COL_DEP_ID => 'required',
-                CompaniesConstants::COL_DEP_NM => 'required|max:20'
+                'name'                         => 'required|max:20',
             ]);
-            if ($validator->fails()) return redirect()->back()
-                ->with('error', $validator->getMessageBag()->first());
+            if ($validator->fails()) {
+                $this->logExecutionTime($t, $action . '::validate', 'failed');
+                return redirect()->back()->with('error', $validator->getMessageBag()->first());
+            }
+            $this->logExecutionTime($t, $action . '::validate', 'ok');
+
+            // persist
+            $t = microtime(true);
             $user = $request->user();
             $designation = Designation::create([
-                CompaniesConstants::COL_DEP_ID => $request->input(CompaniesConstants::COL_DEP_ID),
-                CompaniesConstants::COL_DEP_NM => $request->input('name'),
+                CompaniesConstants::COL_DEP_ID   => $request->input(CompaniesConstants::COL_DEP_ID),
+                'name'                           => $request->input('name'),
                 DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
             ]);
-            Log::info('Designation created', $designation->id);
+            $this->logExecutionTime($t, $action . '::persist', 'id: ' . $designation->id);
+            Log::info('Designation created', ['id' => $designation->id]);
+
             return redirect()->route(ViewsConstants::DSG . '.index')
                 ->with('success', __('Designation successfully created.'));
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        }, ['uri' => $request->getRequestUri()]);
     }
 
     public function show(): RedirectResponse
     {
+        // simple redirect; profiling not necessary
         return redirect()->route(ViewsConstants::DSG . '.index');
     }
 
     public function edit(Request $request, Designation $designation): View|RedirectResponse
     {
-        try {
+        $action = 'DesignationController@edit';
+        $view   = ViewsConstants::DSG . '.edit';
+
+        return $this->measureProfile($action, function () use ($request, $designation, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $this->_authorize($request, 'edit designation');
-            if ($designation->created_by !== $request->user()->creatorId()) throw new AuthorizationException;
+
+            // authorize
+            $t = microtime(true);
+            try {
+                $this->_authorize($request, 'edit designation');
+                $this->logExecutionTime($t, $action . '::authorize', 'ok');
+            } catch (AuthorizationException $e) {
+                $this->logExecutionTime($t, $action . '::authorize', 'denied');
+                return defaultPermissionDenial($request, $e, $action);
+            }
+
+            // ownership check
+            $t = microtime(true);
+            if ($designation->created_by !== $request->user()->creatorId()) {
+                $this->logExecutionTime($t, $action . '::owner', 'denied');
+                return defaultPermissionDenial($request, new AuthorizationException(), $action);
+            }
+            $this->logExecutionTime($t, $action . '::owner', 'ok');
+
+            // load data
+            $t = microtime(true);
             $departmentList = Department::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
                 ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-            return view(ViewsConstants::DSG . '.' . __FUNCTION__, compact('designation', 'departmentList'));
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+            $this->logExecutionTime($t, $action . '::loadFormData', 'deps: ' . $departmentList->count());
+
+            // view check
+            $t = microtime(true);
+            if (!ViewFacade::exists($view)) {
+                $this->logExecutionTime($t, $action . '::viewCheck', 'missing');
+                return defaultUndefinedException($request, new \RuntimeException("View not found: $view"), $action);
+            }
+            $this->logExecutionTime($t, $action . '::viewCheck', 'exists');
+
+            return view($view, compact('designation', 'departmentList'));
+        }, ['uri' => $request->getRequestUri(), 'id' => $designation->id]);
     }
 
     public function update(Request $request, Designation $designation): RedirectResponse
     {
-        try {
+        $action = 'DesignationController@update';
+
+        return $this->measureProfile($action, function () use ($request, $designation, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $this->_authorize($request, 'edit designation');
-            if ($designation->created_by !== $request->user()->creatorId()) throw new AuthorizationException;
+
+            // authorize
+            $t = microtime(true);
+            try {
+                $this->_authorize($request, 'edit designation');
+                $this->logExecutionTime($t, $action . '::authorize', 'ok');
+            } catch (AuthorizationException $e) {
+                $this->logExecutionTime($t, $action . '::authorize', 'denied');
+                return defaultPermissionDenial($request, $e, $action);
+            }
+
+            // ownership check
+            $t = microtime(true);
+            if ($designation->created_by !== $request->user()->creatorId()) {
+                $this->logExecutionTime($t, $action . '::owner', 'denied');
+                return defaultPermissionDenial($request, new AuthorizationException(), $action);
+            }
+            $this->logExecutionTime($t, $action . '::owner', 'ok');
+
+            // validate
+            $t = microtime(true);
             $validator = Validator::make($request->all(), [
                 CompaniesConstants::COL_DEP_ID => 'required',
-                'name' => 'required|max:20'
+                'name'                         => 'required|max:20'
             ]);
-            if ($validator->fails()) return redirect()->back()
-                ->with('error', $validator->getMessageBag()->first());
+            if ($validator->fails()) {
+                $this->logExecutionTime($t, $action . '::validate', 'failed');
+                return redirect()->back()->with('error', $validator->getMessageBag()->first());
+            }
+            $this->logExecutionTime($t, $action . '::validate', 'ok');
+
+            // persist
+            $t = microtime(true);
             $designation->update([
                 CompaniesConstants::COL_DEP_ID => $request->input(CompaniesConstants::COL_DEP_ID),
-                'name' => $request->input('name')
+                'name'                         => $request->input('name')
             ]);
+            $this->logExecutionTime($t, $action . '::persist', 'id: ' . $designation->id);
+
             return redirect()->route(ViewsConstants::DSG . '.index')
                 ->with('success', __('Designation successfully updated.'));
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        }, ['uri' => $request->getRequestUri(), 'id' => $designation->id]);
     }
 
     public function destroy(Request $request, Designation $designation): RedirectResponse
     {
-        try {
+        $action = 'DesignationController@destroy';
+
+        return $this->measureProfile($action, function () use ($request, $designation, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $this->_authorize($request, 'delete designation');
-            if ($designation->created_by !== $request->user()->creatorId()) throw new AuthorizationException;
+
+            // authorize
+            $t = microtime(true);
+            try {
+                $this->_authorize($request, 'delete designation');
+                $this->logExecutionTime($t, $action . '::authorize', 'ok');
+            } catch (AuthorizationException $e) {
+                $this->logExecutionTime($t, $action . '::authorize', 'denied');
+                return defaultPermissionDenial($request, $e, $action);
+            }
+
+            // ownership check
+            $t = microtime(true);
+            if ($designation->created_by !== $request->user()->creatorId()) {
+                $this->logExecutionTime($t, $action . '::owner', 'denied');
+                return defaultPermissionDenial($request, new AuthorizationException(), $action);
+            }
+            $this->logExecutionTime($t, $action . '::owner', 'ok');
+
+            // delete
+            $t = microtime(true);
             $designation->delete();
+            $this->logExecutionTime($t, $action . '::delete', 'id: ' . $designation->id);
+
             return redirect()->route(ViewsConstants::DSG . '.index')
                 ->with('success', __('Designation successfully deleted.'));
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        } catch (\Throwable $e) {
-            return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
-        }
+        }, ['uri' => $request->getRequestUri(), 'id' => $designation->id]);
     }
 }

@@ -399,7 +399,7 @@
                 function getProductCategories() {
                     $.ajax({
                         type: 'GET',
-                        url: '{{ route('product.categories') }}',
+                        url: '{{ route(VW::PRD_SV_CAT . ".categories") }}',
                         success: function (data) {
                             // console.log(data);
                             $('#categories-listing').html(data);

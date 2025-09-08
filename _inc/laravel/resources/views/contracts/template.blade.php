@@ -8,69 +8,97 @@
         ViewClassNamesConstants as VC
     };
     use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth,Route};
     $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    $lang = Utility::fetchUserLang(user: $user);
     $logo = Utility::getFile('uploads/logo/');
     $dark_logo   = Utility::getValByName('dark_logo');
     $img = asset($logo . '/' . (isset($dark_logo) && !empty($dark_logo) ? $dark_logo : SettingsConstants::CPN_LG_DK_DEF));
     $settings = Utility::settings();
 @endphp
 @extends(ExtendingLayoutsConstants::CTC)
-@section(YieldingConstants::CTC_PG_TTL)
-@endsection
-@section('title')
-@endsection
-@section(YieldingConstants::CTC_CTT)
-    <div class="{{ VC::RW }}">
-        <div class="{{ VC::CL10 }}">
-            <div class="{{ VC::CT }}">
-                <div>
-                    <div class="{{ VC::CD }} mt-5" id="printTable" style="margin-left:180px;margin-right:-57px;">
-                        <div class="card-body" id="boxes">
-                            <div class="{{ VC::RW }} invoice-title mt-2">
-                                <div class="{{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL6 }}">
-                                    <img src="{{ $img }}" style="max-width:150px;">
-                                </div>
-                                <div class="{{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL6 }} text-end">
-                                    <h3 class="invoice-number">{{ $user?->contractNumberFormat($contract->id) }}</h3>
-                                </div>
-                            </div>
-
-                            <div class="{{ VC::R_ALC_M4 }}">
-                                <div class="{{ VC::CS12 }} {{ VC::CM6 }} mt-3">
-                                    <div class="{{ VC::C12 }} mb-3">
-                                        <h6 class="d-inline-block m-0 d-print-none">{{ __('Contract Type  :') }}</h6>
-                                        <span class="text-md">{{ $contract->types->name }}</span>
+@if(!empty($contract) && isset($contract->id))
+    @section(YieldingConstants::CTC_CTT)
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CL10 }}">
+                <div class="{{ VC::CT }}">
+                    <div>
+                        <div class="{{ VC::CD }} mt-5" id="printTable" style="margin-left: 180px;margin-right: -57px;">
+                            <div class="card-body" id="boxes">
+                                @php
+                                    $hasPriceFormat = method_exists($user,'priceFormat');
+                                    $hasDateFormat = method_exists($user,'dateFormat');
+                                    $hasContractNumberFormat = method_exists($user,'contractNumberFormat');
+                                    $contractNumber = (isset($contract->id) && $hasContractNumberFormat) ? ($user?->contractNumberFormat($contract->id) ?? __('Failed to format contract number')) : __('No contract number available');
+                                    $typeName = data_get($contract,'types.name') ?: __('No contract type available');
+                                    $valueText = isset($contract->value) && is_numeric($contract->value) ? ($hasPriceFormat ? ($user?->priceFormat($contract->value) ?? __('Failed to format contract value')) : __('Failed to format contract value')) : __('No contract value available');
+                                    $startDateText = isset($contract->start_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->start_date) ?? __('Failed to format start date')) : __('Failed to format start date')) : __('No start date available');
+                                    $endDateText = isset($contract->end_date) ? ($hasDateFormat ? ($user?->dateFormat($contract->end_date) ?? __('Failed to format end date')) : __('Failed to format end date')) : __('No end date available');
+                                    $logoSrc = !empty($img) ? $img : '';
+                                    $descHtml = !empty($contract->description) ? $contract->description : e(__('No description available'));
+                                    $contractDescHtml = !empty($contract->contract_description) ? $contract->contract_description : e(__('No contract description available'));
+                                    $companySig = !empty($contract->company_signature) ? $contract->company_signature : null;
+                                    $clientSig = !empty($contract->client_signature) ? $contract->client_signature : null;
+                                @endphp
+                                <div class="{{ VC::RW }} invoice-title mt-2">
+                                    <div class="{{ VC::CXS12 }} {{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL6 }} {{ VC::C12 }}">
+                                        <img src="{{ $logoSrc }}" alt="{{ $logoSrc ? __('Company Logo') : __('No logo available') }}" style="max-width: 150px;"/>
                                     </div>
-                                    <div class="{{ VC::C12 }}">
-                                        <h6 class="d-inline-block m-0 d-print-none">{{ __('Contract Value   :') }}</h6>
-                                        <span class="text-md">{{ $user?->priceFormat($contract->value) }}</span>
+                                    <div class="{{ VC::CXS12 }} {{ VC::CS12 }} {{ VC::CM6 }} {{ VC::CL6 }} {{ VC::C12 }} text-end">
+                                        <h3 class="invoice-number">{{ $contractNumber }}</h3>
                                     </div>
                                 </div>
-                                <div class="{{ VC::CS12 }} {{ VC::CM6 }} text-sm-end">
-                                    <div class="float-end">
-                                        <h6 class="d-inline-block m-0 d-print-none">{{ __('Start Date   :') }}</h6>
-                                        <span class="text-md">{{ $user?->dateFormat($contract->start_date) }}</span>
-                                        <div class="mt-3">
-                                            <h6 class="d-inline-block m-0 d-print-none">{{ __('End Date   :') }}</h6>
-                                            <span class="text-md">{{ $user?->dateFormat($contract->end_date) }}</span>
+                                <div class="{{ VC::R_ALC_M4 }}">
+                                    <div class="col-sm-6 mb-3 mb-sm-0 {{ VC::MT3 }}">
+                                        <div class="col-lg-12 col-md-8 {{ VC::MB3 }}">
+                                            <h6 class="d-inline-block m-0 d-print-none">{{ __('Contract Type  :') }}</h6>
+                                            <span class="col-md-8"><span class="text-md">{{ $typeName }}</span></span>
+                                        </div>
+                                        <div class="col-lg-6 col-md-8">
+                                            <h6 class="d-inline-block m-0 d-print-none">{{ __('Contract Value   :') }}</h6>
+                                            <span class="col-md-8"><span class="text-md">{{ $valueText }}</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 text-sm-end">
+                                        <div>
+                                            <div class="{{ VC::FEND }}">
+                                                <div>
+                                                    <h6 class="d-inline-block m-0 d-print-none">{{ __('Start Date   :') }}</h6>
+                                                    <span class="col-md-8"><span class="text-md">{{ $startDateText }}</span></span>
+                                                </div>
+                                                <div class="{{ VC::MT3 }}">
+                                                    <h6 class="d-inline-block m-0 d-print-none">{{ __('End Date   :') }}</h6>
+                                                    <span class="col-md-8"><span class="text-md">{{ $endDateText }}</span></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div>{!! $contract->description !!}</div><br>
-                            <div>{!! $contract->contract_description !!}</div>
-
-                            <div class="{{ VC::RW }}">
-                                <div class="{{ VC::CS6 }}">
-                                    <img width="200px" src="{{ $contract->company_signature }}">
-                                    <h5 class="mt-auto">{{ __('Company Signature') }}</h5>
-                                </div>
-                                <div class="{{ VC::CS6 }} text-end">
-                                    <img width="150px" src="{{ $contract->client_signature }}">
-                                    <h5 class="mt-auto">{{ __('Client Signature') }}</h5>
+                                <p data-v-f2a183a6="">
+                                    <div>{!! $descHtml !!}</div>
+                                    <br>
+                                    <div>{!! $contractDescHtml !!}</div>
+                                </p>
+                                <div class="{{ VC::RW }}">
+                                    <div class="col-6">
+                                        <div>
+                                            @if($companySig)
+                                                <img width="200px" src="{{ $companySig }}" alt="{{ __('Company Signature') }}">
+                                            @else
+                                                <span class="text-muted">{{ __('No company signature available') }}</span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <h5 class="mt-auto">{{ __('Company Signature') }}</h5>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        @if($clientSig)
+                                            <img width="150px" src="{{ $clientSig }}" alt="{{ __('Client Signature') }}">
+                                        @else
+                                            <span class="text-muted">{{ __('No client signature available') }}</span>
+                                        @endif
+                                        <h5 class="mt-auto">{{ __('Client Signature') }}</h5>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -78,211 +106,198 @@
                 </div>
             </div>
         </div>
-    </div>
-@endsection
-
-@push(StacksConstants::CTC_SCR_PG)
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-          ar: {
-            pdf_generation_failed: 'فشل إنشاء PDF.',
-            window_close_failed: 'فشل إغلاق النافذة.'
-          },
-          da: {
-            pdf_generation_failed: 'Kunne ikke generere PDF.',
-            window_close_failed: 'Kunne ikke lukke vindue.'
-          },
-          de: {
-            pdf_generation_failed: 'PDF-Erstellung fehlgeschlagen.',
-            window_close_failed: 'Fenster konnte nicht geschlossen werden.'
-          },
-          en: {
-            pdf_generation_failed: 'Failed to generate PDF.',
-            window_close_failed: 'Failed to close window.'
-          },
-          es: {
-            pdf_generation_failed: 'Error al generar PDF.',
-            window_close_failed: 'Error al cerrar la ventana.'
-          },
-          fr: {
-            pdf_generation_failed: 'Échec de la génération du PDF.',
-            window_close_failed: 'Échec de la fermeture de la fenêtre.'
-          },
-          he: {
-            pdf_generation_failed: 'יצירת PDF נכשלה.',
-            window_close_failed: 'נכשל סגירת החלון.'
-          },
-          it: {
-            pdf_generation_failed: 'Creazione PDF non riuscita.',
-            window_close_failed: 'Chiusura finestra non riuscita.'
-          },
-          ja: {
-            pdf_generation_failed: 'PDF の生成に失敗しました。',
-            window_close_failed: 'ウィンドウを閉じることに失敗しました。'
-          },
-          nl: {
-            pdf_generation_failed: 'Genereren van PDF mislukt.',
-            window_close_failed: 'Venster kon niet worden gesloten.'
-          },
-          pl: {
-            pdf_generation_failed: 'Nie udało się wygenerować pliku PDF.',
-            window_close_failed: 'Nie udało się zamknąć okna.'
-          },
-          pt: {
-            pdf_generation_failed: 'Falha ao gerar PDF.',
-            window_close_failed: 'Falha ao fechar a janela.'
-          },
-          'pt-br': {
-            pdf_generation_failed: 'Falha ao gerar PDF.',
-            window_close_failed: 'Falha ao fechar a janela.'
-          },
-          ru: {
-            pdf_generation_failed: 'Не удалось создать PDF.',
-            window_close_failed: 'Не удалось закрыть окно.'
-          },
-          tr: {
-            pdf_generation_failed: 'PDF oluşturma başarısız.',
-            window_close_failed: 'Pencere kapatılamadı.'
-          },
-          zh: {
-            pdf_generation_failed: '生成 PDF 失败。',
-            window_close_failed: '关闭窗口失败。'
-          }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script>
-        (() => {
-        const errFb = '# ERROR';
-        const dataClientLocalized = 'data-client-localized';
-        const dataGuardMsg = 'data-guard-msg';
-        const langSessionKey = 'erp-np-lang';
-        let errorMessage = '';
-        
-        const getLocalizedMessage = (msgKey, el) => {
-            let msg = errFb;
-            if (el.getAttribute(dataClientLocalized) === 'true') {
-            msg = el.getAttribute(dataGuardMsg) ?? errFb;
-            } else {
-            let lang = (
-                sessionStorage.getItem(langSessionKey) ??
-                document.documentElement.lang ??
-                'en'
-            ).toLowerCase().replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-            msg = translations?.[lang]?.[msgKey] ??
-                    el.getAttribute(dataGuardMsg) ??
-                    translations?.['en']?.[msgKey] ??
-                    errFb;
-            if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, 'true');
-            }
-            }
-            return msg;
-        };
-        
-        const showError = message => {
-            try {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-            }
-            const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-            if (bs) {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role', 'alert');
-                toast.setAttribute('aria-live', 'assertive');
-                toast.setAttribute('aria-atomic', 'true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                toast.appendChild(body);
-                container.appendChild(toast);
-                if (toast.getAttribute('data-click-listener') !== 'true') {
-                toast.addEventListener('click', () => body.textContent = message);
-                toast.setAttribute('data-click-listener', 'true');
-                }
-                body.textContent = message;
-                new bootstrap.Toast(toast).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        };
-        
-        const onPointerUp = () => {
-            if (errorMessage) {
-            showError(errorMessage);
-            errorMessage = '';
-            }
-        };
-        document.addEventListener('pointerup', onPointerUp);
-        new MutationObserver((muts, obs) => {
-            muts.forEach(m =>
-            Array.from(m.removedNodes).forEach(n => {
-                if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onPointerUp);
-                obs.disconnect();
-                }
-            })
-            );
-        }).observe(document.body, { childList: true, subtree: true });
-        
-        const closeScript = () => {
-            setTimeout(() => {
-            try {
-                window.open(window.location, '_self').close();
-            } catch {
-                errorMessage = getLocalizedMessage('window_close_failed', document.body);
-            }
-            }, 1000);
-        };
-        
-        window.addEventListener('load', () => {
-            try {
-            if (typeof html2pdf !== 'function') {
-                console.log('html2pdf library not loaded');
-                throw new Error('pdf_generation_failed');
-            }
-            const element = document.getElementById('boxes');
-            if (!element) throw new Error('pdf_generation_failed');
-            const opt = {
-                filename: '{{ App\Models\Utility::contractNumberFormat($contract->id) }}',
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 4, dpi: 72, letterRendering: true },
-                jsPDF: { unit: 'in', format: 'A4' }
+    @endsection
+    @push(StacksConstants::CTC_SCR_PG)
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
+        <script async src="{{ asset('assets/js/routes/contracts/lang/pdf.js') }}"></script>
+        <script defer>
+            (function () {
+            const $ = window.jQuery;
+            const errFb = "# ERROR";
+            const dataClientLocalized = "data-client-localized";
+            const dataGuardMsg = "data-guard-msg";
+            const dataSvLocalized = "data-sv-localized";
+            const dataErrArmed = "data-pdf-error-armed";
+            const dataPdfBound = "data-pdf-bound";
+            const qs = (s, r = document) => r.querySelector(s);
+            const hasBS = () =>
+                !!(
+                qs('link[rel="stylesheet"][href*="bootstrap"]') ||
+                qs('link[href*="bootstrap"]')
+                ) && !!(window.bootstrap && window.bootstrap.Toast);
+            const ensureToastContainer = () => {
+                let c = qs("#np-toast-container");
+                if (c) return c;
+                c = document.createElement("div");
+                c.id = "np-toast-container";
+                c.setAttribute("aria-live", "polite");
+                c.setAttribute("aria-atomic", "true");
+                c.style.position = "fixed";
+                c.style.top = "1rem";
+                c.style.right = "1rem";
+                document.body.appendChild(c);
+                return c;
             };
-            html2pdf()
-                .set(opt)
-                .from(element)
-                .save()
-                .then(closeScript)
-                .catch(() => {
-                throw new Error('pdf_generation_failed');
+            const showErrorNow = message => {
+                if (hasBS()) {
+                const container = ensureToastContainer();
+                let t = qs("#np-toast", container);
+                if (!t) {
+                    t = document.createElement("div");
+                    t.id = "np-toast";
+                    t.className = "toast";
+                    t.setAttribute("role", "alert");
+                    t.setAttribute("aria-live", "assertive");
+                    t.setAttribute("aria-atomic", "true");
+                    t.innerHTML =
+                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                    container.appendChild(t);
+                }
+                const body = t.querySelector(".toast-body");
+                if (body) body.textContent = message ?? errFb;
+                try {
+                    new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+                } catch (_) {
+                    alert(message ?? errFb);
+                }
+                } else {
+                alert(message ?? errFb);
+                }
+            };
+            const schedulePointerupError = msg => {
+                const host = document.body;
+                if (!host || host.getAttribute(dataErrArmed) === "true") return;
+                host.setAttribute(dataErrArmed, "true");
+                const once = () => {
+                try {
+                    showErrorNow(msg);
+                } finally {
+                    host.removeAttribute(dataErrArmed);
+                }
+                };
+                document.addEventListener("pointerup", once, { once: true });
+                const mo = new MutationObserver((m, o) => {
+                if (!document.body.contains(host)) {
+                    document.removeEventListener("pointerup", once);
+                    o.disconnect();
+                }
                 });
-            } catch (e) {
-            errorMessage = getLocalizedMessage('pdf_generation_failed', document.body);
+                mo.observe(document.documentElement, { childList: true, subtree: true });
+            };
+            const localize = (el, key) => {
+                let msg = errFb;
+                if (
+                el?.getAttribute?.(dataSvLocalized) === "true" ||
+                el?.getAttribute?.(dataClientLocalized) === "true"
+                ) {
+                msg = el.getAttribute(dataGuardMsg) || errFb;
+                } else {
+                let lang = (
+                    window.sessionStorage.getItem("erp-np-lang") ||
+                    document.documentElement.lang ||
+                    "en"
+                )
+                    .toLowerCase()
+                    .replace(/_/g, "-");
+                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                const msgKey = key;
+                msg =
+                    window.translations?.[lang]?.[msgKey] ||
+                    el?.getAttribute?.(dataGuardMsg) ||
+                    window.translations?.["en"]?.[msgKey] ||
+                    errFb;
+                if (msg !== errFb && el) {
+                    el.setAttribute(dataGuardMsg, msg);
+                    el.setAttribute(dataClientLocalized, "true");
+                }
+                }
+                return msg;
+            };
+            const closeScript = () => {
+                try {
+                setTimeout(function () {
+                    try {
+                    window.open(window.location, "_self").close();
+                    } catch (_) {
+                    schedulePointerupError(localize(document.body, "close_unavailable"));
+                    }
+                }, 1000);
+                } catch (_) {
+                schedulePointerupError(localize(document.body, "close_unavailable"));
+                }
+            };
+            const bind = () => {
+                const body = document.body;
+                if (body.getAttribute(dataPdfBound) === "true") return;
+                body.setAttribute(dataPdfBound, "true");
+                const run = () => {
+                try {
+                    const element = document.getElementById("boxes");
+                    if (!element) {
+                    schedulePointerupError(localize(body, "pdf_unavailable"));
+                    return;
+                    }
+                    if (
+                    typeof window.html2pdf !== "function" &&
+                    typeof window.html2pdf !== "object"
+                    ) {
+                    try {
+                        console.error("html2pdf unavailable");
+                    } catch (_) {}
+                    schedulePointerupError(localize(body, "pdf_unavailable"));
+                    return;
+                    }
+                    const opt = {
+                    filename: "{{Utility::contractNumberFormat($contract->id)}}",
+                    image: { type: "jpeg", quality: 1 },
+                    html2canvas: { scale: 4, dpi: 72, letterRendering: true },
+                    jsPDF: { unit: "in", format: "A4" },
+                    };
+                    try {
+                    window
+                        .html2pdf()
+                        .set(opt)
+                        .from(element)
+                        .save()
+                        .then(closeScript)
+                        .catch(function () {
+                        schedulePointerupError(localize(body, "pdf_unavailable"));
+                        });
+                    } catch (_) {
+                    schedulePointerupError(localize(body, "pdf_unavailable"));
+                    }
+                } catch (_) {
+                    schedulePointerupError(localize(body, "pdf_unavailable"));
+                }
+                };
+                if ($ && $.fn && $(window)?.on) {
+                $(window).on("load", run);
+                } else {
+                try {
+                    console.error("jQuery unavailable");
+                } catch (_) {}
+                if (document.readyState === "complete") {
+                    run();
+                } else {
+                    window.addEventListener("load", run, { once: true });
+                }
+                }
+                const mo = new MutationObserver(function () {
+                if (!qs("#boxes")) {
+                    body.removeAttribute(dataPdfBound);
+                }
+                });
+                mo.observe(document.documentElement, { childList: true, subtree: true });
+            };
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", bind, { once: true });
+            } else {
+                bind();
             }
-        });
-        })();
-    </script>
-@endpush
+            })();
+        </script>
+    @endpush
+@else
+    <div class="alert alert-danger">{{ __('No contract found') }}</div>
+@endif

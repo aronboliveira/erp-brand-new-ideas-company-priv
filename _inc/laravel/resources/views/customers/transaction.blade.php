@@ -75,57 +75,8 @@
                         </div>
                     {{ Form::close() }}
                     @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                const applyBtn = document.getElementById('transaction-apply-btn');
-                                if (!applyBtn || applyBtn.getAttribute('data-listener-active') === 'true') return;
-                                applyBtn.setAttribute('data-listener-active', 'true');
-                                applyBtn.addEventListener('click', e => {
-                                    try {
-                                        e.preventDefault();
-                                        document.getElementById('frm_submit').submit();
-                                    } catch {}
-                                });
-                            })();
-                        </script>
-                        <script defer>
-                            (() => {
-                                const resetBtn = document.getElementById('transaction-reset-btn');
-                                if (!resetBtn || resetBtn.getAttribute('data-listener-active') === 'true') return;
-                                resetBtn.setAttribute('data-listener-active', 'true');
-                                resetBtn.addEventListener('click', e => {
-                                    try {
-                                        const url = resetBtn.getAttribute('data-url') ?? '#';
-                                        if (url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = resetBtn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (bs) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        resetBtn.setAttribute('data-failed-route','true');
-                                    } catch {}
-                                });
-                            })();
-                        </script>
+                        <script defer src="{{ asset('assets/js/routes/customers/transactions/apply.js') }}"></script>
+                        <script defer src="{{ asset('assets/js/routes/customers/transactions/reset.js') }}"></script>
                     @endpush
                     <div class="table-responsive">
                         <table class="{{ VC::TB }} dataTable">
@@ -140,16 +91,43 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($transactions as $transaction)
+                                @php
+                                    $txns = ((is_array($transactions ?? null) && count($transactions ?? [])) || (($transactions ?? null) instanceof Collection && $transactions->isNotEmpty())) ? $transactions : [];
+                                    $isDateFormatAvailable  = method_exists($user,'dateFormat');
+                                    $isPriceFormatAvailable = method_exists($user,'priceFormat');
+                                @endphp
+                                @if(!empty($txns))
+                                    @foreach($txns as $transaction)
+                                        @php
+                                            $date        = $transaction->date ?? null;
+                                            $amount      = $transaction->amount ?? null;
+                                            $bankName    = data_get($transaction,'bankAccount.bank_name');
+                                            $holderName  = data_get($transaction,'bankAccount.holder_name');
+                                            $bankLabel   = trim(($bankName ?: '').' '.($holderName ?: ''));
+                                            $type        = $transaction->type ?? null;
+                                            $category    = $transaction->category ?? null;
+                                            $description = $transaction->description ?? null;
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $date ? ($isDateFormatAvailable ? $user?->dateFormat($date) : __('Failed to format date')) : __('No transaction date available') }}</td>
+                                            <td>{{ is_numeric($amount) ? ($isPriceFormatAvailable ? $user?->priceFormat($amount) : __('Failed to format amount')) : __('No amount available') }}</td>
+                                            <td>{{ $bankLabel !== '' ? $bankLabel : __('No bank account available') }}</td>
+                                            <td>{{ $type ?: __('No type available') }}</td>
+                                            <td>{{ $category ?: __('No category available') }}</td>
+                                            <td>{{ $description ?: __('No description available') }}</td>
+                                        </tr>
+                                    @endforeach
+                                @else
                                     <tr>
-                                        <td>{{ $user?->dateFormat($transaction->date) }}</td>
-                                        <td>{{ $user?->priceFormat($transaction->amount) }}</td>
-                                        <td>{{ optional($transaction->bankAccount())->bank_name . ' ' . optional($transaction->bankAccount())->holder_name }}</td>
-                                        <td>{{ $transaction->type }}</td>
-                                        <td>{{ $transaction->category }}</td>
-                                        <td>{{ $transaction->description }}</td>
+                                        <td colspan="6">
+                                            <div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}">
+                                                <div class="{{ VC::C6 }} {{ VC::TXCT }}">
+                                                    <p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No transactions available') }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
-                                @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>

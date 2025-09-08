@@ -553,11 +553,11 @@ final class ExpenseController extends Controller
 
     public function product(Request $request): JsonResponse|RedirectResponse
     {
-        $action = __METHOD__;
+        $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);
-        return $this->measureProfile($action, function () use ($request, $action, $method, $class, $base) {
+        return $this->measureProfile($action, function () use ($request, $action, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $valStart = microtime(true);
             $request->validate(['product_id' => 'required|integer|exists:product_services,id']);
@@ -692,7 +692,7 @@ final class ExpenseController extends Controller
 
     public function expense(Request $request, string $encId): View|RedirectResponse|JsonResponse
     {
-        $action = __METHOD__;
+        $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
         $base = class_basename($class);

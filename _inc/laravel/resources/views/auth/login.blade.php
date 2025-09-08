@@ -101,7 +101,7 @@
                 </span>
             </a>
             <div class="{{ VC::DRP_MN_DSH_END }}">
-                @if(is_array($languages) && count($languages) || $languages instanceof Collection && $languages->isNotEmpty())
+                @if((is_array($languages) && count($languages)) || ($languages instanceof Collection && $languages->isNotEmpty()))
                     @foreach($languages as $code => $language)
                         @php
                             $loginBase = 'login';

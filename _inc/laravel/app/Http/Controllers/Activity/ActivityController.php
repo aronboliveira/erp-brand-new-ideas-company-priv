@@ -74,7 +74,7 @@ class ActivityController extends Controller
             ->orderBy('id', 'desc')
             ->get();
           Log::debug("{$action} fetched items", ['alias' => $alias, 'count' => $items->count()]);
-          $allResults[$alias] = $items->map(fn ($item) => $this->formatActivity($alias, $item))->all();
+          $allResults[$alias] = $items->map(fn($item) => $this->formatActivity($alias, $item))->all();
         }
         Log::info("{$action} succeeded", ['sections' => array_keys($models)]);
         return view(ServicesConstants::CRM . '.' . self::ENTITY . '.view', [
@@ -341,12 +341,14 @@ class ActivityController extends Controller
             $schedule[ActivitiesConstants::COL_MT],
             $schedule[ActivitiesConstants::COL_MI]
           );
-          foreach ([
-            ActivitiesConstants::COL_NT,
-            ProjectsConstants::COL_S_DT,
-            ActivitiesConstants::COL_TSK_TIME,
-            ActivitiesConstants::COL_TP
-          ] as $key) {
+          foreach (
+            [
+              ActivitiesConstants::COL_NT,
+              ProjectsConstants::COL_S_DT,
+              ActivitiesConstants::COL_TSK_TIME,
+              ActivitiesConstants::COL_TP
+            ] as $key
+          ) {
             $item[$key] = $schedule->$key;
           }
           $item[DatabaseConstants::COL_C_AT] = $schedule[DatabaseConstants::COL_C_AT]

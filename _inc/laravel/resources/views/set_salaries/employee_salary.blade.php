@@ -2253,7 +2253,7 @@ Object.keys(t).forEach(
                 const el = document.getElementById('designation_id');
                 if (!el) return;
                 $.ajax({
-                url: '{{ route(ViewsConstants::EMP.'.json') }}',
+                url: '{{ route(ViewsConstants::EMP.".json") }}',
                 type: 'POST',
                 dataType: 'json',
                 data: {

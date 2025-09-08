@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\{
 };
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 final class ProductServiceController extends Controller
@@ -48,73 +49,71 @@ final class ProductServiceController extends Controller
 
     public function index(Request $req)
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV . '.' . $fn;
+
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX))
-            return $c;
-        return self::safe($req, 'index', function () use ($req, $user) {
+        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+
+        return $this->measureProfile($action, function () use ($req, $user, $view) {
             $category = ProductServiceCategory::whereCreatedBy($user?->creatorId())
                 ->whereType('product & service')
                 ->pluck('name', 'id')
                 ->prepend('Select Category', '');
             $products = ProductService::whereCreatedBy($user?->creatorId())
-                ->when(
-                    $req->filled('category'),
-                    fn($q) => $q->whereCategoryId($req->category)
-                )
+                ->when($req->filled('category'), fn($q) => $q->whereCategoryId($req->category))
                 ->with(['category', 'unit'])
                 ->get();
-            return view(ViewsConstants::PRD_SV . '.' . __FUNCTION__, [
-                'productServices' => $products,
-                'category'        => $category
-            ]);
+            return view($view, ['productServices' => $products, 'category' => $category]);
         });
     }
 
     public function create(Request $req)
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        if ($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX))
-            return $c;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV . '.' . $fn;
 
-        return self::safe($req, 'create', function () use ($user) {
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+        $user = $userOrRedirect;
+        if ($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX)) return $c;
+
+        return $this->measureProfile($action, function () use ($user, $view) {
             $collections = self::formCollections($user?->creatorId());
-            $custom     = CustomField::whereCreatedBy($user?->creatorId())
-                ->whereModule('product')
-                ->get();
-            return view(
-                'product_services.create',
-                array_merge($collections, ['customFields' => $custom])
-            );
+            $custom = CustomField::whereCreatedBy($user?->creatorId())->whereModule('product')->get();
+            return view($view, array_merge($collections, ['customFields' => $custom]));
         });
     }
 
     public function store(Request $req)
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX))
-            return $c;
+        if ($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX)) return $c;
 
         $rules = [
-            'name'           => 'required',
-            'sku'            => 'required|unique:product_services,sku,NULL,id,created_by,' . $user?->id,
-            'sale_price'     => 'required|numeric',
+            'name' => 'required',
+            'sku' => 'required|unique:product_services,sku,NULL,id,created_by,' . $user?->id,
+            'sale_price' => 'required|numeric',
             'purchase_price' => 'required|numeric',
-            'category_id'    => 'required',
-            'unit_id'        => 'required',
-            'type'           => 'required'
+            'category_id' => 'required',
+            'unit_id' => 'required',
+            'type' => 'required'
         ];
         if ($c = self::v($req, $rules)) return $c;
 
-        return self::safe($req, 'store', function () use ($req, $user) {
+        return $this->measureProfile($action, function () use ($req, $user) {
             $imageName = '';
             if ($req->hasFile('pro_image')) {
-                $size  = $req->file('pro_image')->getSize();
+                $size = $req->file('pro_image')->getSize();
                 $result = Utility::updateStorageLimit($user?->creatorId(), $size);
                 if ($result === 1) {
                     $imageName = $req->pro_image->getClientOriginalName();
@@ -134,69 +133,63 @@ final class ProductServiceController extends Controller
                 'sale_chartaccount_id',
                 'expense_chartaccount_id',
                 'category_id'
-            ]))
-                ->merge([
-                    'tax_id'     => $req->filled('tax_id') ? implode(',', $req->tax_id) : '',
-                    'quantity'   => $req->filled('quantity') ? $req->quantity : 0,
-                    'pro_image'  => $imageName,
-                    'created_by' => $user?->creatorId()
-                ])
-                ->all();
+            ]))->merge([
+                'tax_id' => $req->filled('tax_id') ? implode(',', $req->tax_id) : '',
+                'quantity' => $req->filled('quantity') ? $req->quantity : 0,
+                'pro_image' => $imageName,
+                'created_by' => $user?->creatorId()
+            ])->all();
 
             $product = ProductService::create($data);
             CustomField::saveData($product, $req->customField);
 
-            return redirect()->route(self::REDIRECT_INDEX)
-                ->with('success', __('Product successfully created.'));
+            return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Product successfully created.'));
         });
     }
 
     public function edit(Request $req, string|int $id)
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        if ($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX))
-            return $c;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV . '.' . $fn;
 
-        return self::safe($req, 'edit', function () use ($id, $user) {
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+        $user = $userOrRedirect;
+        if ($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX)) return $c;
+
+        return $this->measureProfile($action, function () use ($id, $user, $view) {
             $product = ProductService::whereCreatedBy($user?->creatorId())->findOrFail($id);
             $collections = self::formCollections($user?->creatorId());
             $product->customField = CustomField::getData($product, 'product');
-            $product->tax_id     = explode(',', $product->tax_id);
-            $custom              = CustomField::whereCreatedBy($user?->creatorId())
-                ->whereModule('product')
-                ->get();
-            return view(
-                'product_services.edit',
-                array_merge(
-                    $collections,
-                    ['productService' => $product, 'customFields' => $custom]
-                )
-            );
+            $product->tax_id = explode(',', $product->tax_id);
+            $custom = CustomField::whereCreatedBy($user?->creatorId())->whereModule('product')->get();
+            return view($view, array_merge($collections, ['productService' => $product, 'customFields' => $custom]));
         });
     }
 
     public function update(Request $req, string|int $id)
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX))
-            return $c;
+        if ($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX)) return $c;
 
         $rules = [
-            'name'           => 'required',
-            'sku'            => 'required|unique:product_services,sku,' . $id,
-            'sale_price'     => 'required|numeric',
+            'name' => 'required',
+            'sku' => 'required|unique:product_services,sku,' . $id,
+            'sale_price' => 'required|numeric',
             'purchase_price' => 'required|numeric',
-            'category_id'    => 'required',
-            'unit_id'        => 'required',
-            'type'           => 'required'
+            'category_id' => 'required',
+            'unit_id' => 'required',
+            'type' => 'required'
         ];
         if ($c = self::v($req, $rules)) return $c;
 
-        return self::safe($req, 'update', function () use ($req, $id, $user) {
+        return $this->measureProfile($action, function () use ($req, $id, $user) {
             $product = ProductService::whereCreatedBy($user?->creatorId())->findOrFail($id);
 
             $imageName = $product->pro_image;
@@ -204,19 +197,10 @@ final class ProductServiceController extends Controller
                 $size = $req->file('pro_image')->getSize();
                 if (Utility::updateStorageLimit($user?->creatorId(), $size) === 1) {
                     if ($imageName) {
-                        Utility::changeStorageLimit(
-                            $user?->creatorId(),
-                            '/uploads/pro_image/' . $imageName
-                        );
+                        Utility::changeStorageLimit($user?->creatorId(), '/uploads/pro_image/' . $imageName);
                     }
                     $imageName = $req->pro_image->getClientOriginalName();
-                    Utility::uploadFile(
-                        $req,
-                        'pro_image',
-                        $imageName,
-                        'uploads/pro_image',
-                        []
-                    );
+                    Utility::uploadFile($req, 'pro_image', $imageName, 'uploads/pro_image', []);
                 }
             }
 
@@ -232,85 +216,77 @@ final class ProductServiceController extends Controller
                 'sale_chartaccount_id',
                 'expense_chartaccount_id',
                 'category_id'
-            ]))
-                ->merge([
-                    'tax_id'    => $req->filled('tax_id') ? implode(',', $req->tax_id) : '',
-                    'quantity'  => $req->filled('quantity') ? $req->quantity : 0,
-                    'pro_image' => $imageName
-                ])
-                ->all();
+            ]))->merge([
+                'tax_id' => $req->filled('tax_id') ? implode(',', $req->tax_id) : '',
+                'quantity' => $req->filled('quantity') ? $req->quantity : 0,
+                'pro_image' => $imageName
+            ])->all();
 
             $product->update($data);
             CustomField::saveData($product, $req->customField);
 
-            return redirect()->route(self::REDIRECT_INDEX)
-                ->with('success', __('Product successfully updated.'));
+            return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Product successfully updated.'));
         });
     }
 
     public function destroy(Request $req, string|int $id)
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-            return $userOrRedirect;
-        $user = $userOrRedirect;
-        if ($c = self::guard($req, 'delete product & service', self::REDIRECT_INDEX))
-            return $c;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
 
-        return self::safe($req, 'destroy', function () use ($id, $user) {
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+        $user = $userOrRedirect;
+        if ($c = self::guard($req, 'delete product & service', self::REDIRECT_INDEX)) return $c;
+
+        return $this->measureProfile($action, function () use ($id, $user) {
             $product = ProductService::whereCreatedBy($user?->creatorId())->findOrFail($id);
             if ($product->pro_image) {
-                Utility::changeStorageLimit(
-                    $user?->creatorId(),
-                    '/uploads/pro_image/' . $product->pro_image
-                );
+                Utility::changeStorageLimit($user?->creatorId(), '/uploads/pro_image/' . $product->pro_image);
             }
             $product->delete();
-            return redirect()->route(self::REDIRECT_INDEX)
-                ->with('success', __('Product successfully deleted.'));
+            return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Product successfully deleted.'));
         });
     }
 
-    public function export(): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function export(): BinaryFileResponse
     {
-        return Excel::download(
-            new ProductServiceExport(),
-            'product_service_' . now()->format('Y-m-d_His') . '.xlsx'
-        );
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
+        return $this->measureProfile($action, function () {
+            return Excel::download(new ProductServiceExport(), 'product_service_' . now()->format('Y-m-d_His') . '.xlsx');
+        });
     }
 
     public const IMP_FL = 'importFile';
-    public function importFile(): \Illuminate\Contracts\View\View
+    public function importFile(): View
     {
-        return view(ViewsConstants::PRD_SV . '.import');
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV . '.import';
+
+        return $this->measureProfile($action, fn() => view($view));
     }
 
     public function import(Request $req): RedirectResponse
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if ($c = self::v($req, ['file' => 'required|file'])) return $c;
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
         $user = $u;
 
-        return self::safe($req, 'import', function () use ($req, $user) {
-            $sheet  = (new ProductServiceImport)->toArray($req->file('file'))[0];
+        return $this->measureProfile($action, function () use ($req, $user) {
+            $sheet = (new ProductServiceImport)->toArray($req->file('file'))[0];
             $header = array_map('strtolower', array_shift($sheet));
-            $needed = [
-                'name',
-                'sku',
-                'sale_price',
-                'purchase_price',
-                'quantity',
-                'tax_id',
-                'category_id',
-                'unit_id',
-                'type',
-                'description'
-            ];
+            $needed = ['name', 'sku', 'sale_price', 'purchase_price', 'quantity', 'tax_id', 'category_id', 'unit_id', 'type', 'description'];
             $missing = array_diff($needed, $header);
-            if ($missing)
-                return back()->with(
-                    'error',
-                    __('Missing columns: :cols', ['cols' => implode(', ', $missing)])
-                );
+            if ($missing) return back()->with('error', __('Missing columns: :cols', ['cols' => implode(', ', $missing)]));
 
             $rowsSkipped = 0;
             DB::transaction(function () use ($sheet, $header, $user, &$rowsSkipped) {
@@ -352,84 +328,74 @@ final class ProductServiceController extends Controller
     public const WRH_DTL = 'warehouseDetail';
     public function warehouseDetail(Request $req, int|string $id): View|RedirectResponse
     {
-        Log::info(__METHOD__ . ' start', ['user_id' => Auth::id(), 'id' => $id]);
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV . '.detail';
+
+        Log::info($action . ' start', ['user_id' => Auth::id(), 'id' => $id]);
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
         $user = $u;
         if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
-        return self::safe($req, 'warehouseDetail', function () use ($id, $user) {
-            Log::info(__METHOD__ . ' loading warehouse products', ['id' => $id]);
-            $products = WarehouseProduct::whereProductId($id)
-                ->whereCreatedBy($user?->creatorId())->get();
-            return view(ViewsConstants::PRD_SV . '.detail', compact('products'));
+
+        return $this->measureProfile($action, function () use ($id, $user, $view, $action) {
+            Log::info($action . ' loading warehouse products', ['id' => $id]);
+            $products = WarehouseProduct::whereProductId($id)->whereCreatedBy($user?->creatorId())->get();
+            return view($view, compact('products'));
         });
     }
 
     public const SRC_PRD = 'searchProducts';
     public function searchProducts(Request $req)
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
         if ($c = self::guard($req, PermissionsConstants::MNG_POS, self::REDIRECT_INDEX)) return $c;
 
-        return self::safe($req, 'searchProducts', function () use ($req) {
+        return $this->measureProfile($action, function () use ($req) {
             $key = $req->session_key;
             if (!$req->ajax() || !$key) return response()->json();
 
             $warehouseId = $req->war_id;
-            $catId      = $req->cat_id;
-            $search     = $req->search;
-            $ids        = WarehouseProduct::whereWarehouseId(
-                $warehouseId ?: 1
-            )->pluck('product_id');
+            $catId = $req->cat_id;
+            $search = $req->search;
+            $ids = WarehouseProduct::whereWarehouseId($warehouseId ?: 1)->pluck('product_id');
 
             $q = ProductService::getAllProducts()
                 ->when($warehouseId, fn($q) => $q->whereIn('product_services.id', $ids))
-                ->when(
-                    $catId !== '0',
-                    fn($q) => $q->whereCategoryId($catId)
-                )
-                ->when(
-                    $search !== '',
-                    fn($q) => $q->where('product_services.name', 'LIKE', "%$search%")
-                );
+                ->when($catId !== '0', fn($q) => $q->whereCategoryId($catId))
+                ->when($search !== '', fn($q) => $q->where('product_services.name', 'LIKE', "%$search%"));
 
             $products = $q->with('unit')->get();
             if ($products->isEmpty())
-                return response('<div class="' . ViewClassNamesConstants::CD . ' card-body col-12 text-center"><h5>'
-                    . __('No Product Available') . '</h5></div>');
+                return response('<div class="' . ViewClassNamesConstants::CD . ' card-body col-12 text-center"><h5>' . __('No Product Available') . '</h5></div>');
 
-            if (
-                ($userOrRedirect = self::_checkLogin())
-                instanceof \Illuminate\Http\RedirectResponse
-            ) return $userOrRedirect;
+            if (($userOrRedirect = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
+
             $html = $products->reduce(function ($carry, $p) use ($req, $key, $user) {
-                $qty  = $p->warehouseProduct($p->id, $req->war_id ?: 7);
+                $qty = $p->warehouseProduct($p->id, $req->war_id ?: 7);
                 $unit = optional($p->unit)->name ?: '';
-                $img  = $p->pro_image ? "uploads/pro_image/$p->pro_image"
-                    : 'uploads/pro_image/default.png';
-                $price = $key === 'purchases'
-                    ? $p->purchase_price
-                    : ($key === 'pos' ? $p->sale_price : ($p->sale_price ?: $p->purchase_price));
+                $img = $p->pro_image ? "uploads/pro_image/$p->pro_image" : 'uploads/pro_image/default.png';
+                $price = $key === 'purchases' ? $p->purchase_price : ($key === 'pos' ? $p->sale_price : ($p->sale_price ?: $p->purchase_price));
                 return $carry . '
-            <div class="col-lg-2 col-md-2 col-sm-3 col-xs-4 col-12">
-              <div class="tab-pane fade show active toacart w-100"
-                data-url="' . url("add-to-cart/$p->id/$key") . '">
-                <div class="position-relative ' . ViewClassNamesConstants::CD . '">
-                  <img src="' . asset(Storage::url($img)) . '"
-                    class="card-image avatar shadow hover-shadow-lg"
-                    style="height:6rem;width:100%;" alt="img">
-                  <div class="p-0 custom-card-body card-body d-flex">
-                    <div class="card-body my-2 p-2 text-left card-bottom-content">
-                      <h6 class="mb-2 text-dark product-title-name">' . $p->name . '</h6>
-                      <small class="badge badge-primary mb-0">'
-                    . $user?->priceFormat($price) . '</small>
-                      <small class="top-badge badge badge-danger mb-0">'
-                    . $qty . ' ' . $unit . '</small>
-                    </div>
-                  </div>
+        <div class="col-lg-2 col-md-2 col-sm-3 col-xs-4 col-12">
+          <div class="tab-pane fade show active toacart w-100" data-url="' . url("add-to-cart/$p->id/$key") . '">
+            <div class="position-relative ' . ViewClassNamesConstants::CD . '">
+              <img src="' . asset(Storage::url($img)) . '" class="card-image avatar shadow hover-shadow-lg" style="height:6rem;width:100%;" alt="img">
+              <div class="p-0 custom-card-body card-body d-flex">
+                <div class="card-body my-2 p-2 text-left card-bottom-content">
+                  <h6 class="mb-2 text-dark product-title-name">' . $p->name . '</h6>
+                  <small class="badge badge-primary mb-0">' . $user?->priceFormat($price) . '</small>
+                  <small class="top-badge badge badge-danger mb-0">' . $qty . ' ' . $unit . '</small>
                 </div>
               </div>
-            </div>';
+            </div>
+          </div>
+        </div>';
             }, '');
 
             return response($html);
@@ -439,61 +405,58 @@ final class ProductServiceController extends Controller
     public const ADD_CRT = 'addToCart';
     public function addToCart(Request $req, string|int $id, string $key)
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
         if (!$req->ajax()) return response()->json(['code' => 404], 404);
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX))
-            return $c;
+        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
 
-        return self::safe($req, 'addToCart', function () use ($id, $key) {
+        return $this->measureProfile($action, function () use ($id, $key) {
             $product = ProductService::find($id);
             if (!$product) return response()->json(['code' => 404], 404);
             $stock = $product->getTotalProductQuantity();
-            if ($key === 'pos' && $stock === 0)
-                return response()->json(['code' => 404, 'error' => __('Out of stock')], 404);
+            if ($key === 'pos' && $stock === 0) return response()->json(['code' => 404, 'error' => __('Out of stock')], 404);
             $price = match ($key) {
                 'purchases' => $product->purchase_price ?: 0,
-                'pos'       => $product->sale_price     ?: 0,
-                default     => $product->sale_price     ?: $product->purchase_price
+                'pos' => $product->sale_price ?: 0,
+                default => $product->sale_price ?: $product->purchase_price
             };
-            $taxRate  = Utility::totalTaxRate($product->tax_id);
-            $subtotal = ($price + ($price * $taxRate / 100));
-            $session  = session()->get($key, []);
-            $item     = $session[$id] ?? [
-                'name'             => $product->name,
-                'price'            => $price,
-                'tax'              => $taxRate,
-                'quantity'         => 0,
-                'product_tax'      => collect(Utility::tax($product->tax_id))->pluck('name')->implode(', '),
-                'product_tax_id'   => $product->tax_id,
+            $taxRate = Utility::totalTaxRate($product->tax_id);
+            $session = session()->get($key, []);
+            $item = $session[$id] ?? [
+                'name' => $product->name,
+                'price' => $price,
+                'tax' => $taxRate,
+                'quantity' => 0,
+                'product_tax' => collect(Utility::tax($product->tax_id))->pluck('name')->implode(', '),
+                'product_tax_id' => $product->tax_id,
                 'originalquantity' => $stock,
-                'id'               => $id
+                'id' => $id
             ];
             $item['quantity']++;
-            if ($item['quantity'] > $stock && $key === 'pos')
-                return response()->json(['code' => 404, 'error' => __('Out of stock')], 404);
-            $item['subtotal'] = ($item['price'] * $item['quantity'])
-                + (($item['price'] * $item['quantity'] * $item['tax']) / 100);
+            if ($item['quantity'] > $stock && $key === 'pos') return response()->json(['code' => 404, 'error' => __('Out of stock')], 404);
+            $item['subtotal'] = ($item['price'] * $item['quantity']) + (($item['price'] * $item['quantity'] * $item['tax']) / 100);
             $session[$id] = $item;
             session()->put($key, $session);
-            return response()->json([
-                'code'      => 200,
-                'product'   => $item,
-                'carttotal' => $session
-            ]);
+            return response()->json(['code' => 200, 'product' => $item, 'carttotal' => $session]);
         });
     }
 
     public const UPD_CRT = 'updateCart';
     public function updateCart(Request $req)
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
         if (!$req->ajax()) return response()->json(['code' => 404], 404);
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX))
-            return $c;
-        return self::safe($req, 'updateCart', function () use ($req) {
-            ['id' => $id, 'quantity' => $qty, 'discount' => $disc, 'session_key' => $key] = $req->only(
-                ['id', 'quantity', 'discount', 'session_key']
-            );
+        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+
+        return $this->measureProfile($action, function () use ($req) {
+            ['id' => $id, 'quantity' => $qty, 'discount' => $disc, 'session_key' => $key] = $req->only(['id', 'quantity', 'discount', 'session_key']);
             $cart = session()->get($key, []);
             if (!isset($cart[$id])) return response()->json(['code' => 404], 404);
             if ($qty == 0) unset($cart[$id]);
@@ -501,8 +464,7 @@ final class ProductServiceController extends Controller
                 $cart[$id]['quantity'] = $qty;
                 $sub = $cart[$id]['price'] * $qty;
                 $cart[$id]['subtotal'] = $sub + ($sub * $cart[$id]['tax'] / 100);
-                if ($cart[$id]['quantity'] > $cart[$id]['originalquantity'] && $key === 'pos')
-                    return response()->json(['code' => 404, 'error' => __('Out of stock')], 404);
+                if ($cart[$id]['quantity'] > $cart[$id]['originalquantity'] && $key === 'pos') return response()->json(['code' => 404, 'error' => __('Out of stock')], 404);
             }
             session()->put($key, $cart);
             $total = array_sum(array_column($cart, 'subtotal')) - ($disc ?: 0);
@@ -513,10 +475,14 @@ final class ProductServiceController extends Controller
     public const EMP_CRT = 'emptyCart';
     public function emptyCart(Request $req)
     {
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX))
-            return $c;
-        return self::safe($req, 'emptyCart', function () use ($req) {
+        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+
+        return $this->measureProfile($action, function () use ($req) {
             $key = $req->session_key;
             session()->forget($key);
             return back()->with('error', __('Cart is empty!'));
@@ -526,18 +492,27 @@ final class ProductServiceController extends Controller
     public const WRH_EMP_CRT = 'warehouseEmptyCart';
     public function warehouseEmptyCart(Request $req): JsonResponse
     {
-        session()->forget($req->session_key);
-        return response()->json();
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+
+        return $this->measureProfile($action, function () use ($req) {
+            session()->forget($req->session_key);
+            return response()->json();
+        });
     }
 
     public const RM_CRT = 'removeFromCart';
     public function removeFromCart(Request $req)
     {
-        if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX))
-            return $c;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
 
-        return self::safe($req, 'removeFromCart', function () use ($req) {
+        if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
+        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+
+        return $this->measureProfile($action, function () use ($req) {
             $key = $req->session_key;
             $id = $req->id;
             $cart = session()->get($key, []);
@@ -549,32 +524,30 @@ final class ProductServiceController extends Controller
 
     public function show(Request $req, ProductService $productService)
     {
-        Log::info(__METHOD__, [
-            'user_id'            => Auth::id(),
-            'product_service_id' => $productService->id
-        ]);
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PRD_SV . '.show';
+
+        Log::info($action, ['user_id' => Auth::id(), 'product_service_id' => $productService->id]);
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
         $user = $ur;
         if ($c = self::guard($req, 'view product & service', self::REDIRECT_INDEX)) return $c;
-        return self::safe($req, 'show', function () use ($productService, $user) {
+
+        return $this->measureProfile($action, function () use ($productService, $user, $view) {
             $collections = self::formCollections($user?->creatorId());
-            $productService->tax_id    = explode(',', $productService->tax_id);
+            $productService->tax_id = explode(',', $productService->tax_id);
             $productService->customField = CustomField::getData($productService, 'product')->toArray();
-            return view(ViewsConstants::PRD_SV . '.show', array_merge(
-                $collections,
-                [
-                    'productService' => $productService,
-                    'customFields'   => $productService->customField
-                ]
-            ));
+            return view($view, array_merge($collections, ['productService' => $productService, 'customFields' => $productService->customField]));
         });
     }
+
 
     private static function safe(
         Request  $req,
         string   $ref,
         \Closure $fn
-    ): RedirectResponse|JsonResponse|\Illuminate\Contracts\View\View {
+    ): RedirectResponse|JsonResponse|View {
         try {
             return $fn();
         } catch (Throwable $e) {

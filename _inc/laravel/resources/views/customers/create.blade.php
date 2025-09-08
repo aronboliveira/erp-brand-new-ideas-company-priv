@@ -1,5 +1,6 @@
 @php
     use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
+    use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
     $basicFields = [
         ['name'=>'name',         'type'=>'text',     'label'=>__('Name'),        'cols'=>4, 'attrs'=>['required'=>'required']],
@@ -25,8 +26,25 @@
         ['name'=>'shipping_country', 'type'=>'text',     'label'=>__('Country'),     'cols'=>6],
         ['name'=>'shipping_zip',     'type'=>'text',     'label'=>__('Zip Code'),    'cols'=>6],
     ];
+    $customersStoreBaseRouteName  = ViewsConstants::CST.'.store';
+    $customersStoreKebabRouteName = Str::kebab($customersStoreBaseRouteName);
+    $customersStoreResolvedName   = Route::has($customersStoreBaseRouteName)
+        ? $customersStoreBaseRouteName
+        : (Route::has($customersStoreKebabRouteName) ? $customersStoreKebabRouteName : null);
+    $customersStoreUrl            = $customersStoreResolvedName ? route($customersStoreResolvedName) : '#';
+    $customersCreateFormId        = 'customers-store-form';
+    $userLang                     = Utility::fetchUserLang();
+    $customersCreateGuardMessage  = Utility::fetchLinkMessage($userLang, ViewsConstants::CST, 'store_customer_route_unavailable') ?? 'Store customer route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-{{ Form::open(['url' => ViewsConstants::CST, 'method' => 'post']) }}
+
+{{ Form::open([
+    'method'            => 'POST',
+    'url'               => $customersStoreUrl,
+    'id'                => $customersCreateFormId,
+    'data-url'          => $customersStoreUrl,
+    'data-guard-msg'    => $customersCreateGuardMessage,
+    'data-sv-localized' => 'true',
+]) }}
     <div class="modal-body">
         <h6 class="sub-title">{{ __('Basic Info') }}</h6>
         <div class="{{ VC::RW }}">
@@ -74,13 +92,12 @@
             @endforeach
         </div>
 
-        @if(\App\Models\Utility::getValByName('shipping_display') === 'on')
+        @if(Utility::getValByName('shipping_display') === 'on')
             <div class="{{ VC::C12 }} {{ VC::JCE }} mt-3">
                 <button type="button" id="billing_data" class="{{ VC::BT_PRM }}">
                     {{ __('Shipping Same As Billing') }}
                 </button>
             </div>
-            
             <h6 class="sub-title">{{ __('Shipping Address') }}</h6>
             <div class="{{ VC::RW }}">
                 @foreach($shippingFields as $f)
@@ -105,4 +122,5 @@
         <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
         <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Create') }}</button>
     </div>
+    <script src="{{ asset('assets/js/routes/customers/store.js') }}"></script>
 {{ Form::close() }}

@@ -1,384 +1,112 @@
 @php
-    use Illuminate\Support\Facades\Route;
-    use App\Models\Utility;
-    use Collective\Html\FormFacade as Form;
     use App\Config\Constants\{
         PlansConstants,
         ViewsConstants,
-        ViewClassNamesConstants as VC
+        ViewClassNamesConstants as VC,
         StacksConstants
     };
-    $lang          = Utility::fetchUserLang();
-    $ctcCreateRoute = Route::has(ViewsConstants::CTC)
-        ? route(ViewsConstants::CTC)
-        : '#';
-    $ctcFormId     = 'ctc-create-form';
-    $ctcGuardMsg   = Utility::fetchLinkMessage(
-        $lang,
-        ViewsConstants::CTC,
-        'create_contract_route_unavailable'
-    ) ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
-    $plan= Utility::getChatGPTSettings();
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\{Collection, Str};
+
+    $lang = Utility::fetchUserLang();
 @endphp
-{!! Form::open([
-'url'            => $ctcCreateRoute,
-'id'             => $ctcFormId,
-'data-url'       => $ctcCreateRoute,
-'data-guard-msg' => $ctcGuardMsg,
-]) !!}
-    <div class="modal-body">
-        @if($plan?->{PlansConstants::COL_GPT} == 1)
-            <div class="{{ VC::FEND }}">
-                @php
-                    $generateRoute        = Route::has('generate')
-                        ? route('generate', ['contract'])
-                        : '#';
-                    $generateBtnId        = 'generate-contract-btn';
-                    $generateGuardMsg     = Utility::fetchLinkMessage(
-                        $lang,
-                        ViewsConstants::CTC,
-                        'contract_generate_route_unavailable'
-                    ) ?? 'Generate with AI route is unavailable. Please contact technical support or your domain administrator.';
-                @endphp
-                <a
-                    id="{{ $generateBtnId }}"
-                    href="#"
-                    data-size="md"
-                    class="{{ VC::BT_SM_PM }} btn-icon"
-                    data-ajax-popup-over="true"
-                    data-url="{{ $generateRoute }}"
-                    data-guard-msg="{{ $generateGuardMsg }}"
-                    data-bs-placement="top"
-                    data-title="{{ __('Generate content with AI') }}"
-                >
-                    <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
-                </a>
-                @push(StacksConstants::ADM_SCR_PG)
-                    <script defer>
-                        (() => {
-                            const btn = document.getElementById('{{ $generateBtnId }}');
-                            if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                            btn.setAttribute('data-listener-active', 'true');
-                            btn.addEventListener('click', event => {
-                                try {
-                                    const url = btn.getAttribute('data-url');
-                                    if (!url || url === '#') {
-                                        event.preventDefault();
-                                        const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                        let container       = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container       = document.createElement('div');
-                                            container.id    = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (bootstrapLink && window.bootstrap) {
-                                            const toastEl      = document.createElement('div');
-                                            toastEl.className  = 'toast';
-                                            toastEl.setAttribute('role', 'alert');
-                                            toastEl.setAttribute('aria-live', 'assertive');
-                                            toastEl.setAttribute('aria-atomic', 'true');
-                                            const body         = document.createElement('div');
-                                            body.className     = 'toast-body';
-                                            body.textContent   = msg;
-                                            toastEl.appendChild(body);
-                                            container.appendChild(toastEl);
-                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        btn.setAttribute('data-failed-route', 'true');
-                                    }
-                                } catch (e) {}
-                            });
-                        })();
-                    </script>
-                @endpush
-            </div>
-        @endif
-        <div class="{{ VC::RW }}">
-            <div class="{{ VC::FM_G }} {{ VC::C12 }}">
-                {{ Collective\Html\FormFacade::label('subject', __('Subject'), ['class'=>VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::text('subject', null, ['class'=>VC::FM_CT,'required'=>'required']) }}
-            </div>
-            <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('client_name', __('Client'), ['class'=>VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::select('client_name', $clients, null, ['class'=>VC::FM_CT_SL.' client_select','id'=>'client_select']) }}
-            </div>
-            <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('project', __('Project'), ['class'=>VC::FM_LB]) }}
-                <div class="project-div">
-                    {{ Collective\Html\FormFacade::select('project', $project, null, ['class'=>VC::FM_CT.' project_select','id'=>'project_id','name'=>'project_id']) }}
-                </div>
-            </div>
-            <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('type', __('Contract Type'), ['class'=>VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::select('type', $contractTypes, null, ['class'=>VC::FM_CT,'data-toggle'=>'select','required'=>'required']) }}
-            </div>
-            <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('value', __('Contract Value'), ['class'=>VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::number('value', null, ['class'=>VC::FM_CT,'required'=>'required','step'=>'0.01']) }}
-            </div>
-            <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('start_date', __('Start Date'), ['class'=>VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::date('start_date', null, ['class'=>VC::FM_CT,'required'=>'required']) }}
-            </div>
-            <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                {{ Collective\Html\FormFacade::label('end_date', __('End Date'), ['class'=>VC::FM_LB]) }}
-                {{ Collective\Html\FormFacade::date('end_date', null, ['class'=>VC::FM_CT,'required'=>'required']) }}
-            </div>
-        </div>
-        <div class="{{ VC::RW }}">
-            <div class="{{ VC::FM_G }} {{ VC::C12 }}">
-                {{ Collective\Html\FormFacade::label('description', __('Description'), ['class'=>VC::FM_LB]) }}
-                {!! Collective\Html\FormFacade::textarea('description', null, ['class'=>VC::FM_CT,'rows'=>'3']) !!}
-            </div>
-        </div>
-    </div>
-    <div class="modal-footer">
-        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
-        <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
-    </div>
-{{ Collective\Html\FormFacade::close() }}
-    <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-      ar: {
-        choices_init_failed: 'فشل تهيئة قائمة التحديد المتعدد.',
-        project_fetch_failed: 'فشل جلب المشاريع.'
-      },
-      da: {
-        choices_init_failed: 'Kan ikke initialisere multi-select.',
-        project_fetch_failed: 'Kunne ikke hente projekter.'
-      },
-      de: {
-        choices_init_failed: 'Initialisierung der Mehrfachauswahl fehlgeschlagen.',
-        project_fetch_failed: 'Projekte konnten nicht abgerufen werden.'
-      },
-      en: {
-        choices_init_failed: 'Failed to initialize multi-select.',
-        project_fetch_failed: 'Failed to fetch projects.'
-      },
-      es: {
-        choices_init_failed: 'Error al inicializar multi-select.',
-        project_fetch_failed: 'Error al obtener proyectos.'
-      },
-      fr: {
-        choices_init_failed: 'Échec de l’initialisation du multi-select.',
-        project_fetch_failed: 'Échec de la récupération des projets.'
-      },
-      he: {
-        choices_init_failed: 'לא ניתן לאתחל בחירה מרובה.',
-        project_fetch_failed: 'לא ניתן להביא את הפרויקטים.'
-      },
-      it: {
-        choices_init_failed: 'Impossibile inizializzare il multi-select.',
-        project_fetch_failed: 'Recupero dei progetti non riuscito.'
-      },
-      ja: {
-        choices_init_failed: 'マルチセレクトの初期化に失敗しました。',
-        project_fetch_failed: 'プロジェクトの取得に失敗しました。'
-      },
-      nl: {
-        choices_init_failed: 'Initialisatie van multi-select mislukt.',
-        project_fetch_failed: 'Ophalen van projecten mislukt.'
-      },
-      pl: {
-        choices_init_failed: 'Nie można zainicjalizować multi-select.',
-        project_fetch_failed: 'Nie udało się pobrać projektów.'
-      },
-      pt: {
-        choices_init_failed: 'Falha ao inicializar multi-select.',
-        project_fetch_failed: 'Falha ao buscar projetos.'
-      },
-      'pt-br': {
-        choices_init_failed: 'Falha ao inicializar multi-select.',
-        project_fetch_failed: 'Falha ao buscar projetos.'
-      },
-      ru: {
-        choices_init_failed: 'Не удалось инициализировать мультивыбор.',
-        project_fetch_failed: 'Не удалось получить проекты.'
-      },
-      tr: {
-        choices_init_failed: 'Çoklu seçim başlatılamadı.',
-        project_fetch_failed: 'Projeler alınamadı.'
-      },
-      zh: {
-        choices_init_failed: '初始化多选失败。',
-        project_fetch_failed: '获取项目失败。'
-      }
-    };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
- 
-          })();
-    </script>
-<script defer src="{{asset('assets/js/plugins/choices.min.js')}}"></script>
-<script defer>
-    (() => {
-      const ERR_FB = '# ERROR';
-      const CLIENT_FLAG = 'data-client-localized';
-      const GUARD_MSG = 'data-guard-msg';
-      const LANG_KEY = 'erp-np-lang';
-      let errorMessage = '';
-      const getLocalizedMessage = (key, el) => {
-        let msg = ERR_FB;
-        if (el.getAttribute(CLIENT_FLAG) === 'true') {
-          msg = el.getAttribute(GUARD_MSG) || msg;
-        } else {
-          let lang = (
-            window.sessionStorage.getItem(LANG_KEY) ||
-            document.documentElement.lang ||
-            'en'
-          ).toLowerCase().replace(/_/g, '-');
-          lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-          msg = translations?.[lang]?.[key] ||
-                el.getAttribute(GUARD_MSG) ||
-                translations?.['en']?.[key] ||
-                msg;
-          if (msg !== ERR_FB) {
-            el.setAttribute(GUARD_MSG, msg);
-            el.setAttribute(CLIENT_FLAG, 'true');
-          }
-        }
-        return msg;
-      };
-      const showError = message => {
-        try {
-          let container = document.getElementById('toast-container');
-          if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            document.body.appendChild(container);
-          }
-          const hasBs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-          if (hasBs) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.setAttribute('role', 'alert');
-            toast.setAttribute('aria-live', 'assertive');
-            toast.setAttribute('aria-atomic', 'true');
-            const body = document.createElement('div');
-            body.className = 'toast-body';
-            body.textContent = message;
-            toast.appendChild(body);
-            container.appendChild(toast);
-            bootstrap.Toast.getOrCreateInstance(toast).show();
-          } else {
-            alert(message);
-          }
-        } catch {
-          alert(message);
-        }
-      };
-      const onPointerUp = () => {
-        if (errorMessage) {
-          showError(errorMessage);
-          errorMessage = '';
-        }
-      };
-      document.addEventListener('pointerup', onPointerUp);
-      new MutationObserver((muts, obs) => {
-        muts.forEach(m => m.removedNodes.forEach(n => {
-          if (n === document.documentElement) {
-            document.removeEventListener('pointerup', onPointerUp);
-            obs.disconnect();
-          }
-        }));
-      }).observe(document.body, { childList: true, subtree: true });
-      document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.multi-select').forEach(el => {
-          if (el.dataset.choicesInit === 'true') return;
-          el.dataset.choicesInit = 'true';
-          try {
-            new Choices(`#${el.id}`, { removeItemButton: true });
-          } catch {
-            errorMessage = getLocalizedMessage('choices_init_failed', el);
-          }
-        });
-    
-        // Client → Project cascade
-        const clientEls = document.querySelectorAll('.client_select');
-        clientEls.forEach(el => {
-          if (el.dataset.listenerAttached === 'true') return;
-          el.dataset.listenerAttached = 'true';
-          const onClientChange = async () => {
-            try {
-              const clientId = el.value ?? '';
-              const url = `{{ url('contract/clients/select') }}/${clientId}`;
-              if (!url) throw new Error('project_fetch_failed');
-              const data = await $.ajax({ url, type: 'GET', dataType: 'json' });
-              const proj = document.getElementById('project_id');
-              if (!proj) return;
-              proj.innerHTML = '';
-              data.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.id;
-                opt.textContent = item.name;
-                proj.appendChild(opt);
-              });
-            } catch (e) {
-              errorMessage = getLocalizedMessage(e.message, el);
-            }
-          };
-          el.addEventListener('change', onClientChange);
-          new MutationObserver((m, obs) => {
-            m.forEach(mut => mut.removedNodes.forEach(node => {
-              if (node === el) {
-                el.removeEventListener('change', onClientChange);
-                obs.disconnect();
-              }
-            }));
-          }).observe(document.body, { childList: true, subtree: true });
-          onClientChange();
-        });
-      });
-    })();
-</script>
-<script defer>
-    (() => {
-        const form = document.getElementById('{{ $ctcFormId }}');
-        if (!form || form.getAttribute('data-listener-active') === 'true') return;
-        form.setAttribute('data-listener-active', 'true');
-        form.addEventListener('submit', event => {
-            try {
-                const action = form.getAttribute('action');
-                const url    = form.getAttribute('data-url');
-                if ((action && action !== '#') || (url && url !== '#')) return;
-                event.preventDefault();
-                const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                let container       = document.getElementById('toast-container');
-                if (!container) {
-                    container       = document.createElement('div');
-                    container.id    = 'toast-container';
-                    document.body.appendChild(container);
-                }
-                if (bootstrapLink && window.bootstrap) {
-                    const toastEl      = document.createElement('div');
-                    toastEl.className  = 'toast';
-                    toastEl.setAttribute('role', 'alert');
-                    toastEl.setAttribute('aria-live', 'assertive');
-                    toastEl.setAttribute('aria-atomic', 'true');
-                    const body         = document.createElement('div');
-                    body.className     = 'toast-body';
-                    body.textContent   = msg;
-                    toastEl.appendChild(body);
-                    container.appendChild(toastEl);
-                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                } else {
-                    alert(msg);
-                }
-                form.setAttribute('data-failed-route', 'true');
-            } catch (e) {}
-        });
-    })();
-</script>
+
+{{ Form::open(['url' => ViewsConstants::CTC]) }}
+  <div class="modal-body">
+      {{-- start for ai module --}}
+      @php $plan = Utility::getChatGPTSettings(); @endphp
+      @if($plan?->{PlansConstants::COL_GPT} == 1)
+      <div class="text-end">
+        @php
+            $aiGenerateContractRouteBase    = 'generate';
+            $aiGenerateContractRouteKebab   = Str::kebab($aiGenerateContractRouteBase);
+            $aiGenerateContractResolvedName = Route::has($aiGenerateContractRouteBase)
+                ? $aiGenerateContractRouteBase
+                : (Route::has($aiGenerateContractRouteKebab) ? $aiGenerateContractRouteKebab : null);
+            $aiGenerateContractTopic        = 'contract';
+            $aiGenerateContractUrl          = $aiGenerateContractResolvedName ? route($aiGenerateContractResolvedName, [$aiGenerateContractTopic]) : '#';
+            $aiGenerateContractLang         = $lang ?? Utility::fetchUserLang();
+            $aiGenerateContractGuardMsg     = Utility::fetchLinkMessage($aiGenerateContractLang, ViewsConstants::CTC, 'generate_ai_contract_route_unavailable') ?? 'Generate AI contract route is unavailable. Please contact technical support or your domain administrator.';
+            $aiGenerateContractLinkId       = 'ai-generate-contract-link';
+        @endphp
+        <a href="{{ $aiGenerateContractUrl }}"
+           id="{{ $aiGenerateContractLinkId }}"
+           data-size="md"
+           class="{{ VC::BT_SM_PM }} btn-icon"
+           data-ajax-popup-over="true"
+           data-url="{{ $aiGenerateContractUrl }}"
+           data-bs-placement="top"
+           data-title="{{ __('Generate content with AI') }}"
+           data-guard-msg="{{ $aiGenerateContractGuardMsg }}"
+           data-sv-localized="true">
+            <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
+        </a>
+        <script defer src="{{ asset('assets/js/routes/contracts/generate.js') }}"></script>
+      </div>
+      @endif
+      {{-- end for ai module --}}
+      <div class="{{ VC::RW }}">
+          <div class="{{ VC::FM_GCB12 }}">
+              {{ Form::label('subject', __('Subject'), ['class' => VC::FM_LB]) }}
+              {{ Form::text('subject', '', ['class' => VC::FM_CT, 'required' => 'required']) }}
+          </div>
+
+          <div class="{{ VC::FM_GCB6 }}">
+              {{ Form::label('client_name', __('Client'), ['class' => VC::FM_LB]) }}
+              @if((is_array($clients) && count($clients)) || ($clients instanceof Collection && $clients->isNotEmpty()))
+                  {{ Form::select('client_name', $clients, null, ['class' => VC::FM_CT_SL . ' client_select', 'id' => 'client_select']) }}
+              @else
+                  {{ Form::select('client_name', [__('No clients available')], null, ['class' => VC::FM_CT_SL . ' client_select', 'id' => 'client_select']) }}
+              @endif
+          </div>
+
+          <div class="{{ VC::FM_GCB6 }}">
+              {{ Form::label('projects', __('Projects'), ['class' => VC::FM_LB]) }}
+              <select class="{{ VC::FM_CT_SL }} project_select" id="project_id" name="project_id">
+                  <option value="">{{ __('Select Project') }}</option>
+              </select>
+          </div>
+
+          <div class="{{ VC::FM_GCB6 }}">
+              {{ Form::label('type', __('Contract Type'), ['class' => VC::FM_LB]) }}
+              @if((is_array($contractTypes) && count($contractTypes)) || ($contractTypes instanceof Collection && $contractTypes->isNotEmpty()))
+                  {{ Form::select('type', $contractTypes, null, ['class' => VC::FM_CT, 'data-toggle' => 'select', 'required' => 'required']) }}
+              @else
+                  {{ Form::select('type', [__('No contract types available')], null, ['class' => VC::FM_CT, 'data-toggle' => 'select', 'required' => 'required']) }}
+              @endif
+          </div>
+
+          <div class="{{ VC::FM_GCB6 }}">
+              {{ Form::label('value', __('Contract Value'), ['class' => VC::FM_LB]) }}
+              {{ Form::number('value', '', ['class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01']) }}
+          </div>
+
+          <div class="{{ VC::FM_GCB6 }}">
+              {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
+              {{ Form::date('start_date', '', ['class' => VC::FM_CT, 'required' => 'required']) }}
+          </div>
+
+          <div class="{{ VC::FM_GCB6 }}">
+              {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
+              {{ Form::date('end_date', '', ['class' => VC::FM_CT, 'required' => 'required']) }}
+          </div>
+      </div>
+
+      <div class="{{ VC::RW }}">
+          <div class="{{ VC::FM_GCB12 }}">
+              {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+              {!! Form::textarea('description', null, ['class' => VC::FM_CT, 'rows' => '3']) !!}
+          </div>
+      </div>
+  </div>
+
+  <div class="modal-footer">
+      <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+      <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+  </div>
+    <script src="{{ asset('assets/js/plugins/choices.min.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/contracts/lang/list.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/contracts/list.js') }}"></script>
+{{ Form::close() }}

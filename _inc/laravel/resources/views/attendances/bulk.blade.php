@@ -139,7 +139,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if(is_array($employees) && count($employees) || ($employees instanceof Collection && $employees->isNotEmpty()))
+                                    @if((is_array($employees) && count($employees)) || ($employees instanceof Collection && $employees->isNotEmpty()))
                                         @foreach($employees as $employee)
                                             @php
                                                 $attendance = $employee->presentStatus($employee->id, request('date', date('Y-m-d')));

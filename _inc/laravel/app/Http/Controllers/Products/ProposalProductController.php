@@ -9,6 +9,7 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class ProposalProductController extends Controller
 {
@@ -17,165 +18,186 @@ class ProposalProductController extends Controller
 
     private const REDIRECT_INDEX = ViewsConstants::PPS_PRD . '.index';
 
-    /**
-     * @return \Illuminate\View\View|RedirectResponse|null
-     */
-    public function index(Request $request): \Illuminate\View\View|RedirectResponse|null
+    public function index(Request $request): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-        if (($redirect = self::guard($request, 'manage proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
-        try {
-            $products = ProposalProduct::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-            return view(ViewsConstants::PPS_PRD . '.index', compact('products'));
-        } catch (\Throwable $e) {
-            Log::error("$action error", ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
-        }
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PPS_PRD . '.index';
+
+        return $this->measureProfile($action, function () use ($request, $action, $view) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            if (($redirect = self::guard($request, 'manage proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+            try {
+                $products = ProposalProduct::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                return view($view, compact('products'));
+            } catch (\Throwable $e) {
+                Log::error("$action error", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
+            }
+        });
     }
 
-    /**
-     * @return \Illuminate\View\View|RedirectResponse|null
-     */
-    public function create(Request $request): \Illuminate\View\View|RedirectResponse|null
+    public function create(Request $request): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-        if (($redirect = self::guard($request, 'create proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PPS_PRD . '.create';
 
-        try {
-            return view(ViewsConstants::PPS_PRD . '.create');
-        } catch (\Throwable $e) {
-            Log::error("$action error", ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
-        }
+        return $this->measureProfile($action, function () use ($request, $action, $view) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            if (($redirect = self::guard($request, 'create proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+            try {
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error("$action error", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
+            }
+        });
     }
 
-    public function show(Request $request, ProposalProduct $proposalProduct): \Illuminate\View\View|RedirectResponse|null
+    public function show(Request $request, ProposalProduct $proposalProduct): View|RedirectResponse|null
     {
-        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        $user = $userOrRedirect;
-        if (($redirect = self::guard($request, 'view proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
-        Log::info(__METHOD__ . ' started', ['user_id' => $user?->id, 'productId' => $proposalProduct->id]);
-        try {
-            if ($proposalProduct->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new \Exception('owner'), __METHOD__, route(self::REDIRECT_INDEX));
-            Log::info(__METHOD__ . ' authorized', ['user_id' => $user?->id, 'productId' => $proposalProduct->id]);
-            return view(ViewsConstants::PPS_PRD . '.show', ['product' => $proposalProduct]);
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' failed', ['user_id' => $user?->id, 'error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, __METHOD__, route(self::REDIRECT_INDEX));
-        }
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PPS_PRD . '.show';
+
+        return $this->measureProfile($action, function () use ($request, $proposalProduct, $action, $view) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($request, 'view proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+            Log::info($action . ' started', ['user_id' => $user?->id, 'productId' => $proposalProduct->id]);
+            try {
+                if ($proposalProduct->created_by !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+                Log::info($action . ' authorized', ['user_id' => $user?->id, 'productId' => $proposalProduct->id]);
+                return view($view, ['product' => $proposalProduct]);
+            } catch (\Throwable $e) {
+                Log::error($action . ' failed', ['user_id' => $user?->id, 'error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
+            }
+        });
     }
 
-    /**
-     * @return RedirectResponse|null
-     */
     public function store(Request $request): RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-        if (($redirect = self::guard($request, 'create proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
 
-        $request->validate([
-            'name'        => 'required|string',
-            'description' => 'nullable|string',
-            'price'       => 'required|numeric',
-        ]);
+        return $this->measureProfile($action, function () use ($request, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            if (($redirect = self::guard($request, 'create proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
 
-        DB::beginTransaction();
-        try {
-            ProposalProduct::create([
-                'name'        => $request->input('name'),
-                'description' => $request->input('description'),
-                'price'       => $request->input('price'),
-                DatabaseConstants::TABLE_CREATOR  => $user?->creatorId(),
+            $request->validate([
+                'name'        => 'required|string',
+                'description' => 'nullable|string',
+                'price'       => 'required|numeric',
             ]);
-            DB::commit();
-            return redirect()->route(self::REDIRECT_INDEX)
-                ->with('success', __('Proposal Product created.'));
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error("$action error", ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
-        }
+
+            DB::beginTransaction();
+            try {
+                ProposalProduct::create([
+                    'name'        => $request->input('name'),
+                    'description' => $request->input('description'),
+                    'price'       => $request->input('price'),
+                    DatabaseConstants::TABLE_CREATOR  => $user?->creatorId(),
+                ]);
+                DB::commit();
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Proposal Product created.'));
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error("$action error", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
+            }
+        });
     }
 
-    /**
-     * @return \Illuminate\View\View|RedirectResponse|null
-     */
-    public function edit(Request $request, string|int $id): \Illuminate\View\View|RedirectResponse|null
+    public function edit(Request $request, string|int $id): View|RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-        if (($redirect = self::guard($request, 'edit proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
+        $view = ViewsConstants::PPS_PRD . '.edit';
 
-        try {
-            $product = ProposalProduct::findOrFail($id);
-            if ($product->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
-            return view(ViewsConstants::PPS_PRD . '.edit', compact('product'));
-        } catch (\Throwable $e) {
-            Log::error("$action error", ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
-        }
+        return $this->measureProfile($action, function () use ($request, $id, $action, $view) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            if (($redirect = self::guard($request, 'edit proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+
+            try {
+                $product = ProposalProduct::findOrFail($id);
+                if ($product->created_by !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+                return view($view, compact('product'));
+            } catch (\Throwable $e) {
+                Log::error("$action error", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
+            }
+        });
     }
 
-    /**
-     * @return RedirectResponse|null
-     */
     public function update(Request $request, string|int $id): RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-        if (($redirect = self::guard($request, 'edit proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
 
-        $request->validate([
-            'name'        => 'required|string',
-            'description' => 'nullable|string',
-            'price'       => 'required|numeric',
-        ]);
+        return $this->measureProfile($action, function () use ($request, $id, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            if (($redirect = self::guard($request, 'edit proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
 
-        DB::beginTransaction();
-        try {
-            $product = ProposalProduct::findOrFail($id);
-            if ($product->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+            $request->validate([
+                'name'        => 'required|string',
+                'description' => 'nullable|string',
+                'price'       => 'required|numeric',
+            ]);
 
-            $product->update($request->only(['name', 'description', 'price']));
-            DB::commit();
-            return redirect()->route(self::REDIRECT_INDEX)
-                ->with('success', __('Proposal Product updated.'));
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error("$action error", ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
-        }
+            DB::beginTransaction();
+            try {
+                $product = ProposalProduct::findOrFail($id);
+                if ($product->created_by !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+
+                $product->update($request->only(['name', 'description', 'price']));
+                DB::commit();
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Proposal Product updated.'));
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error("$action error", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
+            }
+        });
     }
 
-    /**
-     * @return RedirectResponse|null
-     */
     public function destroy(Request $request, string|int $id): RedirectResponse|null
     {
-        $action = __METHOD__;
-        if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-        if (($redirect = self::guard($request, 'delete proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
+        $cls = __CLASS__;
+        $fn = __FUNCTION__;
+        $action = "$cls::$fn";
 
-        DB::beginTransaction();
-        try {
-            $product = ProposalProduct::findOrFail($id);
-            if ($product->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+        return $this->measureProfile($action, function () use ($request, $id, $action) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
+            if (($redirect = self::guard($request, 'delete proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
 
-            $product->delete();
-            DB::commit();
-            return redirect()->route(self::REDIRECT_INDEX)
-                ->with('success', __('Proposal Product deleted.'));
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error("$action error", ['error' => $e->getMessage()]);
-            return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
-        }
+            DB::beginTransaction();
+            try {
+                $product = ProposalProduct::findOrFail($id);
+                if ($product->created_by !== $user?->creatorId())
+                    return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+
+                $product->delete();
+                DB::commit();
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Proposal Product deleted.'));
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error("$action error", ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
+            }
+        });
     }
 }

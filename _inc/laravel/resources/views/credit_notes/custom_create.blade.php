@@ -10,12 +10,11 @@
     use Illuminate\Support\Facades\Auth;
 
     $user           = Auth::user();
-    $lang           = Utility::fetchUserLang();
+    $lang           = Utility::fetchUserLang(user: $user);
     $invoiceOptions = ['' => __('Select Invoice')] +
         collect($invoices)
             ->mapWithKeys(fn($inv, $key) => [$key => $user?->invoiceNumberFormat($inv) ?? ''])
             ->toArray();
-
     $fields = [
         [
             'name'    => 'invoice',
@@ -52,7 +51,7 @@
     $customRoute  = Route::has($routeName)
         ? route($routeName)
         : '#';
-    $formId       = 'invoiceCustomCreditNoteForm';
+    $formId       = 'invoice_custom_credit_note_form';
     $guardMsg     = Utility::fetchLinkMessage(
         $lang,
         ViewsConstants::INV,
@@ -61,7 +60,7 @@
 @endphp
 
 {{ Form::open([
-    'route'          => [ViewsConstants::INV . '.custom.credit.note'],
+    'route'          => [$customRoute],
     'method'         => 'post',
     'id'             => $formId,
     'data-url'       => $customRoute,
@@ -88,45 +87,6 @@
         <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
         <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Create') }}</button>
     </div>
+    <script defer src="{{ asset('assets/js/routes/creditNotes/customCreate.js') }}"></script>
 {{ Form::close() }}
 
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('{{ $formId }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', e => {
-                try {
-                    const url = form.getAttribute('data-url') ?? '#';
-                    if (url !== '#') return;
-                    e.preventDefault();
-                    const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                    let container       = document.getElementById('toast-container');
-                    if (!container) {
-                        container       = document.createElement('div');
-                        container.id    = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bootstrapLink && window.bootstrap) {
-                        const toastEl      = document.createElement('div');
-                        toastEl.className  = 'toast';
-                        toastEl.setAttribute('role', 'alert');
-                        toastEl.setAttribute('aria-live', 'assertive');
-                        toastEl.setAttribute('aria-atomic', 'true');
-                        const body         = document.createElement('div');
-                        body.className     = 'toast-body';
-                        body.textContent   = msg;
-                        toastEl.appendChild(body);
-                        container.appendChild(toastEl);
-                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch {}
-            });
-        })();
-    </script>
-@endpush

@@ -78,29 +78,25 @@
                             </tr>
                             </thead>
                             <tbody>
-                            @foreach ($custom_fields as $field)
-                                <tr>
-                                    <td>{{ $field->name}}</td>
-                                    <td>{{ $field->type}}</td>
-                                    <td>{{ $field->module}}</td>
-                                    @if(Gate::check('edit constant custom field') || Gate::check('delete constant custom field'))
-                                        <td class="Action">
-                                            <span>
-                                                @can('edit constant custom field')
-                                                    @php
-                                                        $linkId  = 'edit-custom-field-link-'.$field->id;
-                                                        $editUrl = Route::has(ViewsConstants::CST_FD.'.edit')
-                                                            ? route(ViewsConstants::CST_FD.'.edit', $field->id)
-                                                            : '#';
-                                                        $editCustomFieldMsg = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::CST_FD,
-                                                            'custom_field_edit_route_unavailable'
-                                                        ) ?? 'Edit Custom Field route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
-                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                        <a
-                                                            href="{{ $editUrl }}"
+                                @php
+                                    $list = ((is_array($custom_fields ?? null) && count($custom_fields ?? [])) || (($custom_fields ?? null) instanceof Collection && ($custom_fields)->isNotEmpty())) ? $custom_fields : [];
+                                @endphp
+                                @forelse($list as $field)
+                                    <tr>
+                                        <td>{{ isset($field->name) && $field->name !== '' ? $field->name : __('No name available') }}</td>
+                                        <td>{{ isset($field->type) && $field->type !== '' ? $field->type : __('No type available') }}</td>
+                                        <td>{{ isset($field->module) && $field->module !== '' ? $field->module : __('No module available') }}</td>
+                                        @if(Gate::check('edit constant custom field') || Gate::check('delete constant custom field'))
+                                            <td class="Action">
+                                                <span>
+                                                    @can('edit constant custom field')
+                                                        @php
+                                                            $linkId = 'edit-custom-field-link-'.($field->id ?? '0');
+                                                            $editUrl = route(ViewsConstants::CST_FD.'.edit', $field->id);
+                                                            $editCustomFieldMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CST_FD, 'custom_field_edit_route_unavailable') ?? 'Edit Custom Field route is unavailable. Please contact technical support or your domain administrator.';
+                                                        @endphp
+                                                        <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                            <a href="#"
                                                             id="{{ $linkId }}"
                                                             class="{{ VC::BT_SM_CT }} edit-custom-field-link"
                                                             data-route-guard
@@ -110,35 +106,22 @@
                                                             data-ajax-popup="true"
                                                             data-title="{{ __('Edit Custom Field') }}"
                                                             data-bs-toggle="tooltip"
-                                                            title="{{ __('Edit') }}"
-                                                            data-original-title="{{ __('Edit') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_PC_WT }}"></i>
-                                                        </a>
-                                                    </div>
-                                                @endcan
-                                                @can('delete constant custom field')
-                                                    @php
-                                                        $linkId     = 'delete-custom-field-link-'.$field->id;
-                                                        $formId     = 'delete-custom-field-form-'.$field->id;
-                                                        $destroyUrl = Route::has(ViewsConstants::CST_FD.'.destroy')
-                                                            ? route(ViewsConstants::CST_FD.'.destroy', $field->id)
-                                                            : '#';
-                                                        $deleteCustomFieldMsg = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::CST_FD,
-                                                            'custom_field_delete_unavailable'
-                                                        ) ?? 'Delete Custom Field route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
-                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                        {!! Collective\Html\FormFacade::open([
-                                                            'method' => 'DELETE',
-                                                            'url'    => $destroyUrl,
-                                                            'id'     => $formId
-                                                        ]) !!}
-                                                            <a
-                                                                href="{{ $destroyUrl }}"
-                                                                id="{{ $linkId }}"
+                                                            title="{{ __('Edit') }}">
+                                                                <i class="{{ VC::TI_PC_WT }}"></i>
+                                                            </a>
+                                                        </div>
+                                                    @endcan
+                                                    @can('delete constant custom field')
+                                                        @php
+                                                            $delLinkId = 'delete-custom-field-link-'.($field->id ?? '0');
+                                                            $delFormId = 'delete-custom-field-form-'.($field->id ?? '0');
+                                                            $destroyUrl = route(ViewsConstants::CST_FD.'.destroy', $field->id);
+                                                            $deleteCustomFieldMsg = Utility::fetchLinkMessage($lang, ViewsConstants::CST_FD, 'custom_field_delete_unavailable') ?? 'Delete Custom Field route is unavailable. Please contact technical support or your domain administrator.';
+                                                        @endphp
+                                                        <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                            {!! Form::open(['method' => 'DELETE','url' => $destroyUrl,'id' => $delFormId]) !!}
+                                                                <a href="#"
+                                                                id="{{ $delLinkId }}"
                                                                 class="{{ VC::BT_SM_CT_PR }} delete-custom-field-link"
                                                                 data-route-guard
                                                                 data-url="{{ $destroyUrl }}"
@@ -146,18 +129,27 @@
                                                                 data-guard-msg="{{ $deleteCustomFieldMsg }}"
                                                                 data-bs-toggle="tooltip"
                                                                 title="{{ __('Delete') }}"
-                                                                data-original-title="{{ __('Delete') }}"
-                                                            >
-                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                            </a>
-                                                        {!! Collective\Html\FormFacade::close() !!}
-                                                    </div>
-                                                @endcan
-                                            </span>
+                                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang,'generics','are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang,'generics','irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();">
+                                                                    <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                </a>
+                                                            {!! Form::close() !!}
+                                                        </div>
+                                                    @endcan
+                                                </span>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4">
+                                            <div class="text-center">
+                                                <i class="{{ VC::TI_INB }} {{ VC::FS_3X }} {{ VC::TX_MUTED }}"></i>
+                                                <p class="{{ VC::TX_MUTED }} mt-2">{{ __('No custom fields found') }}</p>
+                                            </div>
                                         </td>
-                                    @endif
-                                </tr>
-                            @endforeach
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -169,148 +161,11 @@
 
 @push(StacksConstants::ADM_SCR_PG)
     @can('create constant custom field')
-        <script defer>
-            (() => {
-                const link = document.getElementById("create-custom-field-link");
-                const alias = "data-listening-createclick";
-                if (link.hasAttribute(alias)) return;
-                link.addEventListener("click", event => {
-                    if (link.getAttribute(alias) !== "true") return;
-                    const url = link.getAttribute("data-url");
-                    if (url !== "#" || link.href !== "#") return;
-                    const hasBS = Array.from(document.scripts).some(
-                        s =>
-                            s.src &&
-                            s.src.includes("bootstrap.min.js") &&
-                            window.bootstrap &&
-                            typeof window.bootstrap.Modal === "function"
-                    );
-                    const msg = "{{ $createCustomFieldMsg }}";
-                    if (hasBS) {
-                        const wrapper = document.createElement("div");
-                        wrapper.innerHTML = `
-                            <div class="modal fade" tabindex="-1">
-                                <div class="modal-dialog modal-sm">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Error</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body"><p>${msg}</p></div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
-                        document.body.appendChild(wrapper);
-                        new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
-                    } else {
-                        alert(msg);
-                    }
-                    event.preventDefault();
-                });
-                link.setAttribute(alias, "true");
-            })();
-        </script>
+        <script defer src="{{ asset('assets/js/routes/customFields/create.js') }}"></script>
     @endcan
     @can('edit constant custom field')
-        <script defer>
-            (() => {
-                const selector = ".edit-custom-field-link[data-ajax-popup][data-url]";
-                const alias = "data-listening-customfieldseditclick";
-                document.querySelectorAll(selector).forEach(el => {
-                    if (!el.hasAttribute(alias)) {
-                        el.addEventListener("click", event => {
-                            if (el.getAttribute(alias) !== "true") return;
-                            const url = el.getAttribute("data-url");
-                            if (url === "#" && el.href === "#") {
-                                event.preventDefault();
-                                const hasBS = Array.from(document.scripts).some(
-                                    s =>
-                                        s.src &&
-                                        s.src.includes("bootstrap.min.js") &&
-                                        window.bootstrap &&
-                                        typeof window.bootstrap.Modal === "function"
-                                );
-                                const msg = "{{ $editCustomFieldMsg }}";
-                                if (hasBS) {
-                                    const wrapper = document.createElement("div");
-                                    wrapper.innerHTML = `
-                                        <div class="modal fade" tabindex="-1">
-                                            <div class="modal-dialog modal-sm">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Error</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body"><p>${msg}</p></div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`;
-                                    document.body.appendChild(wrapper);
-                                    new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
-                                } else {
-                                    alert(msg);
-                                }
-                            }
-                        });
-                        el.setAttribute(alias, "true");
-                    }
-                });
-            })();
-        </script>
-        <script defer>
-            (() => {
-                const selector = ".delete-custom-field-link[data-route-guard][data-url]";
-                const alias = "data-listening-customfieldsdeleteclick";
-                document.querySelectorAll(selector).forEach(el => {
-                    if (!el.hasAttribute(alias)) {
-                        el.setAttribute(alias, "true");
-                        el.addEventListener("click", event => {
-                            if (el.getAttribute(alias) !== "true") return;
-                            const url = el.getAttribute("data-url");
-                            if (url === "#" && el.href === "#") {
-                                event.preventDefault();
-                                const hasBS = Array.from(document.scripts).some(
-                                    s =>
-                                        s.src &&
-                                        s.src.includes("bootstrap.min.js") &&
-                                        window.bootstrap &&
-                                        typeof window.bootstrap.Modal === "function"
-                                );
-                                const msg = "{{ $deleteCustomFieldMsg }}";
-                                if (hasBS) {
-                                    const wrapper = document.createElement("div");
-                                    wrapper.innerHTML = `
-                                        <div class="modal fade" tabindex="-1">
-                                            <div class="modal-dialog modal-sm">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Error</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body"><p>${msg}</p></div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`;
-                                    document.body.appendChild(wrapper);
-                                    new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
-                                } else {
-                                    alert(msg);
-                                }
-                            }
-                        });
-                    }
-                });
-            })();
-        </script>
+        <script defer src="{{ asset('assets/js/routes/customFields/edit.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/customFields/delete.js') }}"></script>
     @endcan
 @endpush
 

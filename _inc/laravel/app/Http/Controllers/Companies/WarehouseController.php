@@ -8,6 +8,7 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
+use Illuminate\Validation\ValidationException;
 use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
 class WarehouseController extends Controller
@@ -44,7 +45,7 @@ class WarehouseController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 if ($c = self::guard($request, 'create warehouse', self::ROUTE_INDEX)) return $c;
@@ -65,12 +66,12 @@ class WarehouseController extends Controller
                 });
 
                 return redirect()->route(self::ROUTE_INDEX)->with('success', __('Warehouse successfully created.'));
-            } catch (\Illuminate\Validation\ValidationException $ve) {
+            } catch (ValidationException $ve) {
                 Log::debug(__METHOD__ . ' validation failed', ['errors' => $ve->errors()]);
                 return redirect()->back()->with('error', array_values($ve->errors())[0][0]);
             } catch (\Throwable $e) {
                 Log::error(__METHOD__ . ' failed', ['exception' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, $action, route(self::ROUTE_INDEX));
             }
         }, ['method' => $method, 'class' => class_basename(static::class)]);
     }
@@ -79,7 +80,7 @@ class WarehouseController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $warehouse) {
+        return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 if ($c = self::guard($request, 'show warehouse', self::ROUTE_INDEX)) return $c;
@@ -95,7 +96,7 @@ class WarehouseController extends Controller
                 return ViewFacade::make(ViewsConstants::WRH . '.show', ['warehouse' => $warehouse, 'products' => $products]);
             } catch (\Throwable $e) {
                 Log::error(__METHOD__ . ' failed', ['exception' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, $action, route(self::ROUTE_INDEX));
             }
         }, ['method' => $method, 'class' => class_basename(static::class)]);
     }
@@ -104,7 +105,7 @@ class WarehouseController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $warehouse) {
+        return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 if ($c = self::guard($request, 'edit warehouse', self::ROUTE_INDEX)) return $c;
@@ -113,7 +114,7 @@ class WarehouseController extends Controller
                 return ViewFacade::make(ViewsConstants::WRH . '.edit', compact('warehouse'));
             } catch (\Throwable $e) {
                 Log::error(__METHOD__ . ' failed', ['exception' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, $action, route(self::ROUTE_INDEX));
             }
         }, ['method' => $method, 'class' => class_basename(static::class)]);
     }
@@ -122,7 +123,7 @@ class WarehouseController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $warehouse) {
+        return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 if ($c = self::guard($request, 'edit warehouse', self::ROUTE_INDEX)) return $c;
@@ -141,12 +142,12 @@ class WarehouseController extends Controller
                 });
 
                 return redirect()->route(self::ROUTE_INDEX)->with('success', __('Warehouse successfully updated.'));
-            } catch (\Illuminate\Validation\ValidationException $ve) {
+            } catch (ValidationException $ve) {
                 Log::debug(__METHOD__ . ' validation failed', ['errors' => $ve->errors()]);
                 return redirect()->back()->with('error', array_values($ve->errors())[0][0]);
             } catch (\Throwable $e) {
                 Log::error(__METHOD__ . ' failed', ['exception' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, $action, route(self::ROUTE_INDEX));
             }
         }, ['method' => $method, 'class' => class_basename(static::class)]);
     }
@@ -155,7 +156,7 @@ class WarehouseController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $warehouse) {
+        return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 if ($c = self::guard($request, 'delete warehouse', self::ROUTE_INDEX)) return $c;
@@ -169,7 +170,7 @@ class WarehouseController extends Controller
                 return redirect()->route(self::ROUTE_INDEX)->with('success', __('Warehouse successfully deleted.'));
             } catch (\Throwable $e) {
                 Log::error(__METHOD__ . ' failed', ['exception' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, $action, route(self::ROUTE_INDEX));
             }
         }, ['method' => $method, 'class' => class_basename(static::class)]);
     }

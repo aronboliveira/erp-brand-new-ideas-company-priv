@@ -81,85 +81,8 @@
                         </div>
                     {{ Form::close() }}
                     @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                const btn = document.getElementById('filter-apply-btn');
-                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                btn.setAttribute('data-listener-active', 'true');
-                                btn.addEventListener('click', e => {
-                                    try {
-                                        const url = btn.getAttribute('data-url') || '#';
-                                        if (url !== '#') {
-                                            document.getElementById('frm_submit').submit();
-                                            return;
-                                        }
-                                        e.preventDefault();
-                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (bs) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        btn.setAttribute('data-failed-route', 'true');
-                                    } catch (error) {}
-                                });
-                            })();
-                        </script>
-                        <script defer>
-                            (() => {
-                                const btn = document.getElementById('filter-reset-btn');
-                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                btn.setAttribute('data-listener-active', 'true');
-                                btn.addEventListener('click', e => {
-                                    try {
-                                        const url = btn.getAttribute('data-url') || '#';
-                                        if (url !== '#') return;
-                                        e.preventDefault();
-                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                        let container = document.getElementById('toast-container');
-                                        if (!container) {
-                                            container = document.createElement('div');
-                                            container.id = 'toast-container';
-                                            document.body.appendChild(container);
-                                        }
-                                        if (bs) {
-                                            const toast = document.createElement('div');
-                                            toast.className = 'toast';
-                                            toast.setAttribute('role','alert');
-                                            toast.setAttribute('aria-live','assertive');
-                                            toast.setAttribute('aria-atomic','true');
-                                            const body = document.createElement('div');
-                                            body.className = 'toast-body';
-                                            body.textContent = msg;
-                                            toast.appendChild(body);
-                                            container.appendChild(toast);
-                                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                                        } else {
-                                            alert(msg);
-                                        }
-                                        btn.setAttribute('data-failed-route', 'true');
-                                    } catch (error) {}
-                                });
-                            })();
-                        </script>
+                        <script defer src="{{ asset('assets/js/routes/customers/payments/apply.js') }}"></script>
+                        <script defer src="{{ asset('assets/js/routes/customers/payments/reset.js') }}"></script>
                     @endpush
                     <div class="table-responsive">
                         <table class="{{ VC::TB }} dataTable">
@@ -172,14 +95,31 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($payments as $payment)
+                                @php
+                                    $rows = ((is_array($payments ?? null) && count($payments)) || ($payments instanceof Collection && $payments->isNotEmpty())) ? $payments : [];
+                                    $hasDateFormat = method_exists($user, 'dateFormat');
+                                    $hasPriceFormat = method_exists($user, 'priceFormat');
+                                @endphp
+                                @if(!empty($rows))
+                                    @foreach($rows as $payment)
+                                        <tr>
+                                            <td>{{ (!empty($payment->date)) ? ($hasDateFormat ? $user?->dateFormat($payment->date) : __('Failed to format date')) : __('No date available') }}</td>
+                                            <td>{{ (isset($payment->amount) && is_numeric($payment->amount)) ? ($hasPriceFormat ? $user?->priceFormat($payment->amount) : __('Failed to format amount')) : __('No amount available') }}</td>
+                                            <td>{{ (!empty($payment->category)) ? $payment->category : __('No category available') }}</td>
+                                            <td>{{ (isset($payment->description) && $payment->description !== '') ? $payment->description : __('No description available') }}</td>
+                                        </tr>
+                                    @endforeach
+                                @else
                                     <tr>
-                                        <td>{{ $user?->dateFormat($payment->date) }}</td>
-                                        <td>{{ $user?->priceFormat($payment->amount) }}</td>
-                                        <td>{{ $payment->category }}</td>
-                                        <td>{{ $payment->description }}</td>
+                                        <td colspan="4">
+                                            <div class="{{ VC::RW }} {{ VC::JCC }} {{ VC::ALC }}">
+                                                <div class="{{ VC::C6 }} {{ VC::TXCT }}">
+                                                    <p class="{{ VC::TXSM }} {{ VC::TX_MUTED }}">{{ __('No payments available') }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
                                     </tr>
-                                @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>

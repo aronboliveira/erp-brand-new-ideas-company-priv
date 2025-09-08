@@ -1,418 +1,351 @@
 @php
-    use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants,ViewsConstants};
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        PermissionsConstants,
+        StacksConstants,
+        UsersConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants,
+    };
     use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Gate, Route, URL};
+    use Illuminate\Support\{Collection, Str};
+
     $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
+
 @extends(ExtendingLayoutsConstants::ADM)
+
 @section(YieldingConstants::ADM_PG_TTL)
     {{ __('Manage Contract') }}
 @endsection
+
 @push(StacksConstants::ADM_SCR_PG)
 @endpush
+
 @section(YieldingConstants::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"{{ Route::has('dashboard') ? '' : ' aria-disabled="true"' }}>
+        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
+           {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
     <li class="breadcrumb-item">{{ __('Contract') }}</li>
 @endsection
+
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="{{ VC::FEND }}">
+    <div class="float-end">
         @php
-            $ctcIndexRoute      = Route::has(ViewsConstants::CTC . '.index')
-                ? route(ViewsConstants::CTC . '.index')
-                : '#';
-            $ctcIndexLinkId     = 'ctc-index-link';
-            $ctcIndexGuardMsg   = Utility::fetchLinkMessage(
-                $lang,
-                ViewsConstants::CTC,
-                'contract_index_route_unavailable'
-            ) ?? 'List view route for Contracts is unavailable. Please contact technical support or your domain administrator.';
+            $contractsIndexBaseRouteName = VW::CTC.'.index';
+            $contractsIndexKebabRouteName = Str::kebab($contractsIndexBaseRouteName);
+            $contractsIndexResolvedRouteName = Route::has($contractsIndexBaseRouteName)
+                ? $contractsIndexBaseRouteName
+                : (Route::has($contractsIndexKebabRouteName) ? $contractsIndexKebabRouteName : null);
+            $contractsIndexUrl = $contractsIndexResolvedRouteName ? route($contractsIndexResolvedRouteName) : '#';
+            $contractsLangValue = isset($lang) ? $lang : Utility::fetchUserLang();
+            $contractsIndexGuardMessage = Utility::fetchLinkMessage($contractsLangValue, VW::CTC, 'index_route_unavailable')
+                ?? 'Contracts index route is unavailable. Please contact technical support or your domain administrator.';
+            $contractsIndexLinkId = 'contracts-index-list-link';
         @endphp
-        <a
-            id="{{ $ctcIndexLinkId }}"
-            href="{{ $ctcIndexRoute }}"
-            data-url="{{ $ctcIndexRoute }}"
-            data-guard-msg="{{ $ctcIndexGuardMsg }}"
-            data-bs-toggle="tooltip"
-            title="{{ __('List View') }}"
-            class="{{ VC::BT_SM_PM }}"
-        >
-            <i class="{{ VC::TI_LT }}"></i>
+        <a id="{{ $contractsIndexLinkId }}"
+        href="{{ $contractsIndexUrl }}"
+        class="{{ VC::BT_SM_PM }}"
+        data-sv-localized="true"
+        data-url="{{ $contractsIndexUrl }}"
+        data-guard-msg="{{ $contractsIndexGuardMessage }}"
+        data-bs-toggle="tooltip"
+        title="{{ __('List View') }}">
+            <i class="ti ti-list"></i>
         </a>
         @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    const link = document.getElementById('{{ $ctcIndexLinkId }}');
-                    if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                    link.setAttribute('data-listener-active', 'true');
-                    link.addEventListener('click', event => {
-                        try {
-                            const href = link.getAttribute('href');
-                            const url  = link.getAttribute('data-url');
-                            if ((href && href !== '#') || (url && url !== '#')) return;
-                            event.preventDefault();
-                            const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                            let container       = document.getElementById('toast-container');
-                            if (!container) {
-                                container       = document.createElement('div');
-                                container.id    = 'toast-container';
-                                document.body.appendChild(container);
-                            }
-                            if (bootstrapLink && window.bootstrap) {
-                                const toastEl      = document.createElement('div');
-                                toastEl.className  = 'toast';
-                                toastEl.setAttribute('role', 'alert');
-                                toastEl.setAttribute('aria-live', 'assertive');
-                                toastEl.setAttribute('aria-atomic', 'true');
-                                const body         = document.createElement('div');
-                                body.className     = 'toast-body';
-                                body.textContent   = msg;
-                                toastEl.appendChild(body);
-                                container.appendChild(toastEl);
-                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                            } else {
-                                alert(msg);
-                            }
-                            link.setAttribute('data-failed-route', 'true');
-                        } catch (e) {}
-                    });
-                })();
-            </script>
+            <script defer src="{{ asset('assets/js/routes/contracts/index.js') }}"></script>
         @endpush
-        @if($user?->type == 'company')
+        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
             @php
-                $contractCreateRoute   = Route::has(ViewsConstants::CTC . '.create')
-                    ? route(ViewsConstants::CTC . '.create')
-                    : '#';
-                $contractCreateBtnId   = 'contract-create-btn';
-                $contractCreateGuardMsg = Utility::fetchLinkMessage(
-                    $lang,
-                    ViewsConstants::CTC,
-                    'create_contract_route_unavailable'
-                ) ?? 'Create new contract route is unavailable. Please contact technical support or your domain administrator.';
+                $createRoute = VW::CTC . '.create';
+                $createHref  = Route::has($createRoute) ? route($createRoute) : '#';
+                $createGuard = Utility::fetchLinkMessage($lang, VW::CTC, 'create_route_unavailable')
+                                ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
             @endphp
-            <a
-                id="{{ $contractCreateBtnId }}"
-                href="#"
-                data-url="{{ $contractCreateRoute }}"
-                data-guard-msg="{{ $contractCreateGuardMsg }}"
-                data-size="md"
-                data-ajax-popup="true"
-                data-bs-toggle="tooltip"
-                title="{{ __('Create New Contract') }}"
-                class="{{ VC::BT_SM_PM }}"
-            >
+            <a href="#"
+               data-size="md"
+               data-url="{{ $createHref }}"
+               data-ajax-popup="true"
+               data-sv-localized="true"
+               data-guard-msg="{{ $createGuard }}"
+               data-bs-toggle="tooltip"
+               title="{{ __('Create New Contract') }}"
+               class="{{ VC::BT_SM_PM }}">
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
                 <script defer>
-                    (() => {
-                        const btn = document.getElementById('{{ $contractCreateBtnId }}');
-                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                        btn.setAttribute('data-listener-active', 'true');
-                        btn.addEventListener('click', event => {
-                            try {
-                                const url = btn.getAttribute('data-url');
-                                if (!url || url === '#') {
-                                    event.preventDefault();
-                                    const msg           = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                    let container       = document.getElementById('toast-container');
-                                    if (!container) {
-                                        container       = document.createElement('div');
-                                        container.id    = 'toast-container';
-                                        document.body.appendChild(container);
-                                    }
-                                    if (bootstrapLink && window.bootstrap) {
-                                        const toastEl      = document.createElement('div');
-                                        toastEl.className  = 'toast';
-                                        toastEl.setAttribute('role', 'alert');
-                                        toastEl.setAttribute('aria-live', 'assertive');
-                                        toastEl.setAttribute('aria-atomic', 'true');
-                                        const body         = document.createElement('div');
-                                        body.className     = 'toast-body';
-                                        body.textContent   = msg;
-                                        toastEl.appendChild(body);
-                                        container.appendChild(toastEl);
-                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                    } else {
-                                        alert(msg);
-                                    }
-                                    btn.setAttribute('data-failed-route', 'true');
-                                    return;
-                                }
-                            } catch (e) {}
-                        });
+                    (function () {
+                        try {
+                            if (!window.svToastOrAlert) {
+                                window.svToastOrAlert = function (msg) {
+                                    try {
+                                        var hasBootstrap = !!(window.bootstrap && window.bootstrap.Toast);
+                                        if (!hasBootstrap) { alert(msg); return; }
+                                        var t = document.getElementById('route-guard-toast');
+                                        if (!t) {
+                                            t = document.createElement('div');
+                                            t.id = 'route-guard-toast';
+                                            t.className = 'toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3';
+                                            t.setAttribute('role','alert');
+                                            t.setAttribute('aria-live','assertive');
+                                            t.setAttribute('aria-atomic','true');
+                                            t.innerHTML = '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                                            document.body.appendChild(t);
+                                        }
+                                        var body = t.querySelector('.toast-body');
+                                        if (body) body.textContent = msg;
+                                        new window.bootstrap.Toast(t, { delay: 4000 }).show();
+                                    } catch (e) { alert(msg); }
+                                };
+                            }
+
+                            var idxA = document.querySelector('a.btn.btn-sm.btn-primary[href="{{ $idxHref }}"]');
+                            if (idxA && "{{ $idxHref }}" === "#") {
+                                idxA.addEventListener('click', function (e) {
+                                    e.preventDefault();
+                                    window.svToastOrAlert(idxA.getAttribute('data-guard-msg'));
+                                });
+                            }
+
+                            var createA = document.querySelector('a[data-url="{{ $createHref }}"]');
+                            if (createA && "{{ $createHref }}" === "#") {
+                                createA.addEventListener('click', function (e) {
+                                    e.preventDefault();
+                                    window.svToastOrAlert(createA.getAttribute('data-guard-msg'));
+                                });
+                            }
+                        } catch (_) {}
                     })();
                 </script>
             @endpush
         @endif
     </div>
 @endsection
+
 @section(YieldingConstants::ADM_CTT)
-    <div class="{{ VC::RW }}">
-        @foreach($contracts as $contract)
-            <div class="{{ VC::CM3 }}">
-                <div class="{{ VC::CD }}">
+    <div class="row">
+        @php
+            $list = (($contracts ?? null) instanceof Collection || is_array($contracts ?? null)) ? $contracts : [];
+        @endphp
+        @forelse($list as $contract)
+            @php
+                $cid = isset($contract->id) ? (string)$contract->id : '';
+                $subject = (isset($contract->subject) && $contract->subject !== '') ? (string)$contract->subject : __('No subject available');
+                $desc = (isset($contract->description) && $contract->description !== '') ? (string)$contract->description : __('No description available');
+                $typeName = (string)(data_get($contract,'types.name') ?: __('No type available'));
+                $clientName = (string)(data_get($contract,'clients.name') ?: __('No client available'));
+                $valueRaw = isset($contract->value) ? $contract->value : null;
+                $startRaw = isset($contract->start_date) ? $contract->start_date : null;
+                $endRaw = isset($contract->end_date) ? $contract->end_date : null;
+                $showRoute   = VW::CTC . '.show';
+                $showHref    = Route::has($showRoute) && $cid !== '' ? route($showRoute, $cid) : '#';
+                $showGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'show_route_unavailable')
+                               ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
+            @endphp
+            <div class="col-md-3">
+                <div class="card">
                     <div class="card-header">
-                        @php
-                            $showRoute      = Route::has(ViewsConstants::CTC . '.show')
-                                ? route(ViewsConstants::CTC . '.show', $contract->id)
-                                : '#';
-                            $showLinkId     = 'contract-show-link-' . $contract->id;
-                            $showGuardMsg   = Utility::fetchLinkMessage(
-                                $lang,
-                                ViewsConstants::CTC,
-                                'contract_show_route_unavailable'
-                            ) ?? 'Contract view route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
-                        <a
-                            id="{{ $showLinkId }}"
-                            href="{{ $showRoute }}"
-                            data-url="{{ $showRoute }}"
-                            data-guard-msg="{{ $showGuardMsg }}"
-                            class="mb-0"
-                        >
-                            {{ $contract->subject }}
+                        <a href="{{ $showHref }}"
+                           class="mb-0"
+                           data-sv-localized="true"
+                           data-guard-msg="{{ $showGuard }}">
+                            {{ $subject }}
                         </a>
-                        @push(StacksConstants::ADM_SCR_PG)
-                            <script defer>
-                                (() => {
-                                    const link = document.getElementById('{{ $showLinkId }}');
-                                    if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                                    link.setAttribute('data-listener-active', 'true');
-                                    link.addEventListener('click', event => {
-                                        try {
-                                            const href = link.getAttribute('href');
-                                            const url  = link.getAttribute('data-url');
-                                            if ((href && href !== '#') || (url && url !== '#')) return;
-                                            event.preventDefault();
-                                            const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                            let container       = document.getElementById('toast-container');
-                                            if (!container) {
-                                                container       = document.createElement('div');
-                                                container.id    = 'toast-container';
-                                                document.body.appendChild(container);
-                                            }
-                                            if (bootstrapLink && window.bootstrap) {
-                                                const toastEl      = document.createElement('div');
-                                                toastEl.className  = 'toast';
-                                                toastEl.setAttribute('role', 'alert');
-                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                const body         = document.createElement('div');
-                                                body.className     = 'toast-body';
-                                                body.textContent   = msg;
-                                                toastEl.appendChild(body);
-                                                container.appendChild(toastEl);
-                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                            } else {
-                                                alert(msg);
-                                            }
-                                            link.setAttribute('data-failed-route', 'true');
-                                        } catch (e) {}
-                                    });
-                                })();
-                            </script>
-                        @endpush
-                        @if($user?->type == 'company')
+                        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
+                            @php
+                                $editRoute   = VW::CTC . '.edit';
+                                $editHref    = (Route::has($editRoute) && $cid !== '') ? route($editRoute, $cid) : '#';
+                                $editGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'edit_route_unavailable')
+                                               ?? 'Edit route is unavailable. Please contact technical support or your domain administrator.';
+                                $destroyRoute = VW::CTC . '.destroy';
+                                $deleteGuard  = Utility::fetchLinkMessage($lang, VW::CTC, 'delete_route_unavailable')
+                                                ?? 'Delete route is unavailable. Please contact technical support or your domain administrator.';
+                                $confirmMsg   = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?')
+                                                .'|'.
+                                                __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
+                                $deleteFormId = 'delete-form-' . $cid;
+                                $openParams   = ['method' => 'DELETE', 'id' => $deleteFormId, 'data-sv-localized' => 'true', 'data-guard-msg' => $deleteGuard];
+                                if (Route::has($destroyRoute) && $cid !== '') {
+                                    $openParams['route'] = [$destroyRoute, $cid];
+                                } else {
+                                    $openParams['url'] = '#';
+                                }
+                            @endphp
                             <div class="card-header-right">
                                 <div class="btn-group card-option">
-                                    <button type="button" class="{{ VC::BT }} dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="{{ VC::TD_DOTV }}"></i>
+                                    <button type="button" class="btn dropdown-toggle"
+                                            data-bs-toggle="dropdown" aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <i class="ti ti-dots-vertical"></i>
                                     </button>
                                     <div class="{{ VC::DRP_MN_EM }}">
-                                        @php
-                                            $editRoute    = Route::has(ViewsConstants::CTC . '.edit')
-                                                ? route(ViewsConstants::CTC . '.edit', $contract->id)
-                                                : '#';
-                                            $editLinkId   = 'contract-edit-link-' . $contract->id;
-                                            $editGuardMsg = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::CTC,
-                                                'contract_edit_route_unavailable'
-                                            ) ?? 'Edit route for Contracts is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
-                                        <a
-                                            id="{{ $editLinkId }}"
-                                            href="{{ $editRoute }}"
-                                            data-url="{{ $editRoute }}"
-                                            data-guard-msg="{{ $editGuardMsg }}"
-                                            data-size="md"
-                                            data-ajax-popup="true"
-                                            class="dropdown-item"
-                                        >
-                                            <i class="{{ VC::TI_PC }}"></i><span>{{ __('Edit') }}</span>
+                                        <a href="#!"
+                                           data-size="md"
+                                           data-url="{{ $editHref }}"
+                                           data-ajax-popup="true"
+                                           class="dropdown-item"
+                                           data-sv-localized="true"
+                                           data-guard-msg="{{ $editGuard }}"
+                                           data-bs-original-title="{{ __('Edit User') }}">
+                                            <i class="ti ti-pencil"></i>
+                                            <span>{{ __('Edit') }}</span>
                                         </a>
-                                        @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                    const link = document.getElementById('{{ $editLinkId }}');
-                                                    if (!link || link.getAttribute('data-event-alias') === 'true') return;
-                                                    link.setAttribute('data-event-alias', 'true');
-                                                    link.addEventListener('click', event => {
-                                                        try {
-                                                            const url = link.getAttribute('data-url');
-                                                            if (!url || url === '#') {
-                                                                event.preventDefault();
-                                                                const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                let container       = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container       = document.createElement('div');
-                                                                    container.id    = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bootstrapLink && window.bootstrap) {
-                                                                    const toastEl      = document.createElement('div');
-                                                                    toastEl.className  = 'toast';
-                                                                    toastEl.setAttribute('role', 'alert');
-                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                    const body         = document.createElement('div');
-                                                                    body.className     = 'toast-body';
-                                                                    body.textContent   = msg;
-                                                                    toastEl.appendChild(body);
-                                                                    container.appendChild(toastEl);
-                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                link.setAttribute('data-failed-route', 'true');
-                                                            }
-                                                        } catch (e) {}
-                                                    });
-                                                })();
-                                            </script>
-                                        @endpush
-                                        @php
-                                            $destroyRoute     = Route::has(ViewsConstants::CTC . '.destroy')
-                                                ? route(ViewsConstants::CTC . '.destroy', $contract->id)
-                                                : '#';
-                                            $destroyLinkId    = 'contract-destroy-link-' . $contract->id;
-                                            $destroyFormId    = 'delete-form-' . $contract->id;
-                                            $destroyGuardMsg  = Utility::fetchLinkMessage(
-                                                $lang,
-                                                ViewsConstants::CTC,
-                                                'contract_destroy_route_unavailable'
-                                            ) ?? 'Delete route for Contracts is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
-                                        {!! Collective\Html\FormFacade::open([
-                                            'method' => 'DELETE',
-                                            'route'  => [ViewsConstants::CTC . '.destroy', $contract->id],
-                                            'id'     => $destroyFormId,
-                                            'data-url'       => $destroyRoute,
-                                            'data-guard-msg' => $destroyGuardMsg,
-                                        ]) !!}
-                                            <a
-                                                id="{{ $destroyLinkId }}"
-                                                href="#!"
-                                                class="dropdown-item bs-pass-para"
-                                                data-url="{{ $destroyRoute }}"
-                                                data-guard-msg="{{ $destroyGuardMsg }}"
-                                                data-event-alias="false"
-                                            >
-                                                <i class="{{ VC::TI_ARC }}"></i><span>{{ __('Delete') }}</span>
+
+                                        {!! Form::open($openParams) !!}
+                                            <a href="#!"
+                                               class="dropdown-item bs-pass-para"
+                                               data-sv-localized="true"
+                                               data-guard-msg="{{ $deleteGuard }}"
+                                               data-confirm="{{ $confirmMsg }}"
+                                               data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();">
+                                                <i class="ti ti-archive"></i>
+                                                <span>{{ __('Delete') }}</span>
                                             </a>
-                                        {!! Collective\Html\FormFacade::close() !!}
-                                        @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                    const link = document.getElementById('{{ $destroyLinkId }}');
-                                                    if (!link || link.getAttribute('data-event-alias') === 'true') return;
-                                                    link.setAttribute('data-event-alias', 'true');
-                                                    link.addEventListener('click', event => {
-                                                        try {
-                                                            const url = link.getAttribute('data-url');
-                                                            if (!url || url === '#') {
-                                                                event.preventDefault();
-                                                                const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                let container       = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container       = document.createElement('div');
-                                                                    container.id    = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bootstrapLink && window.bootstrap) {
-                                                                    const toastEl      = document.createElement('div');
-                                                                    toastEl.className  = 'toast';
-                                                                    toastEl.setAttribute('role', 'alert');
-                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                    const body         = document.createElement('div');
-                                                                    body.className     = 'toast-body';
-                                                                    body.textContent   = msg;
-                                                                    toastEl.appendChild(body);
-                                                                    container.appendChild(toastEl);
-                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                link.setAttribute('data-failed-route', 'true');
-                                                                return;
-                                                            }
-                                                        } catch (e) {}
-                                                    });
-                                                })();
-                                            </script>
-                                        @endpush
+                                        {!! Form::close() !!}
                                     </div>
                                 </div>
                             </div>
+                            <script defer>
+                                (function () {
+                                    try {
+                                        var root = document.currentScript && document.currentScript.parentElement ? document.currentScript.parentElement : document;
+                                        if (!window.svToastOrAlert) {
+                                            window.svToastOrAlert = function (msg) {
+                                                try {
+                                                    var hasBootstrap = !!(window.bootstrap && window.bootstrap.Toast);
+                                                    if (!hasBootstrap) { alert(msg); return; }
+                                                    var t = document.getElementById('route-guard-toast');
+                                                    if (!t) {
+                                                        t = document.createElement('div');
+                                                        t.id = 'route-guard-toast';
+                                                        t.className = 'toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3';
+                                                        t.setAttribute('role','alert');
+                                                        t.setAttribute('aria-live','assertive');
+                                                        t.setAttribute('aria-atomic','true');
+                                                        t.innerHTML = '<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                                                        document.body.appendChild(t);
+                                                    }
+                                                    var body = t.querySelector('.toast-body');
+                                                    if (body) body.textContent = msg;
+                                                    new window.bootstrap.Toast(t, { delay: 4000 }).show();
+                                                } catch (e) { alert(msg); }
+                                            };
+                                        }
+
+                                        var box = document.querySelector('.card a.mb-0[href="{{ $showHref }}"]');
+                                        if (box && "{{ $showHref }}" === "#") {
+                                            box.addEventListener('click', function (e) {
+                                                e.preventDefault();
+                                                window.svToastOrAlert(box.getAttribute('data-guard-msg'));
+                                            });
+                                        }
+
+                                        var editA = document.querySelector('a.dropdown-item[data-url="{{ $editHref }}"]');
+                                        if (editA && "{{ $editHref }}" === "#") {
+                                            editA.addEventListener('click', function (e) {
+                                                e.preventDefault();
+                                                window.svToastOrAlert(editA.getAttribute('data-guard-msg'));
+                                            });
+                                        }
+
+                                        var delForm = document.getElementById('{{ $deleteFormId }}');
+                                        if (delForm) {
+                                            var hasAction = (delForm.getAttribute('action') || '').trim() !== '';
+                                            var actionIsHash = (delForm.getAttribute('action') || '#') === '#';
+                                            if (!hasAction || actionIsHash) {
+                                                var delA = delForm.parentElement && delForm.parentElement.querySelector('a.dropdown-item.bs-pass-para');
+                                                if (delA) {
+                                                    delA.addEventListener('click', function (e) {
+                                                        e.preventDefault();
+                                                        window.svToastOrAlert(delA.getAttribute('data-guard-msg'));
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    } catch (_) {}
+                                })();
+                            </script>
                         @endif
                     </div>
                     <div class="card-body py-3 flex-grow-1">
-                        <p class="{{ VC::TXSM }} {{ VC::MB0 }}">{{ $contract->description }}</p>
+                        <p class="text-sm mb-0">{{ $desc }}</p>
                     </div>
                     <div class="card-footer py-0">
                         <ul class="{{ VC::LG_FLSH }}">
-                            <li class="{{ VC::LGI }} px-0">
-                                <div class="{{ VC::R_ALC }}">
-                                    <div class="col-6"><span class="{{ VC::FM_LB }}">{{ __('Contract Type') }}:</span></div>
+                            <li class="list-group-item px-0">
+                                <div class="row align-items-center">
+                                    <div class="col-6">
+                                        <span class="form-label">{{ __('Contract Type') }}:</span>
+                                    </div>
                                     <div class="col-6 text-end">
-                                        <span class="{{ VC::BDG }} bg-secondary p-2 px-3 rounded">{{ $contract->types->name ?? '' }}</span>
+                                        <span class="badge bg-secondary p-2 px-3 rounded">{{ $typeName }}</span>
                                     </div>
                                 </div>
                             </li>
-                            <li class="{{ VC::LGI }} px-0">
-                                <div class="{{ VC::R_ALC }}">
-                                    <div class="col-6"><span class="{{ VC::FM_LB }}">{{ __('Contract Value') }}:</span></div>
+                            <li class="list-group-item px-0">
+                                <div class="row align-items-center">
+                                    <div class="col-6">
+                                        <span class="form-label">{{ __('Contract Value') }}:</span>
+                                    </div>
                                     <div class="col-6 text-end">
-                                        <span class="{{ VC::BDG }} bg-secondary p-2 px-3 rounded">{{ $user?->priceFormat($contract->value) }}</span>
+                                        <span class="badge bg-secondary p-2 px-3 rounded">
+                                            {{ is_numeric($valueRaw) && method_exists($user, 'priceFormat') ? ($user?->priceFormat($valueRaw) ?? __('Failed to format value')) : __('No value available') }}
+                                        </span>
                                     </div>
                                 </div>
                             </li>
-                            @if($user?->type != 'client')
-                                <li class="{{ VC::LGI }} px-0">
-                                    <div class="{{ VC::R_ALC }}">
-                                        <div class="col-6"><span class="{{ VC::FM_LB }}">{{ __('Client') }}:</span></div>
-                                        <div class="col-6 text-end">{{ $contract->clients->name ?? '' }}</div>
+
+                            @if($user?->{UsersConstants::COL_TP} != PermissionsConstants::CL)
+                                <li class="list-group-item px-0">
+                                    <div class="row align-items-center">
+                                        <div class="col-6">
+                                            <span class="form-label">{{ __('Client') }}:</span>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            {{ $clientName }}
+                                        </div>
                                     </div>
                                 </li>
                             @endif
-                            <li class="{{ VC::LGI }} px-0">
-                                <div class="{{ VC::R_ALC }}">
+
+                            <li class="list-group-item px-0">
+                                <div class="row align-items-center">
                                     <div class="col-6">
                                         <small>{{ __('Start Date') }}:</small>
-                                        <div class="{{ VC::H6 }} {{ VC::MB0 }}">{{ $user?->dateFormat($contract->start_date) }}</div>
+                                        <div class="h6 mb-0">
+                                            {{ $startRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($startRaw) ?? __('Failed to format date')) : __('No start date available') }}
+                                        </div>
                                     </div>
                                     <div class="col-6">
                                         <small>{{ __('End Date') }}:</small>
-                                        <div class="{{ VC::H6 }} {{ VC::MB0 }}">{{ $user?->dateFormat($contract->end_date) }}</div>
+                                        <div class="h6 mb-0">
+                                            {{ $endRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($endRaw) ?? __('Failed to format date')) : __('No end date available') }}
+                                        </div>
                                     </div>
                                 </div>
                             </li>
                         </ul>
                     </div>
+
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center text-muted">
+                        {{ __('No contracts available') }}
+                    </div>
+                </div>
+            </div>
+        @endforelse
     </div>
 @endsection

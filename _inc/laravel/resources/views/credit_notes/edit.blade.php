@@ -13,7 +13,7 @@
     $editRoute      = Route::has($routeName)
         ? route($routeName, [$creditNote->invoice, $creditNote->id])
         : '#';
-    $formId         = 'creditNoteEditForm_' . $creditNote->id;
+    $formId         = 'credit_note_edit_form_' . $creditNote->id;
     $guardMsg       = Utility::fetchLinkMessage(
         $lang,
         ViewsConstants::INV,
@@ -22,7 +22,7 @@
 @endphp
 
 {{ Form::model($creditNote, [
-    'route'          => [ViewsConstants::INV . '.edit.credit.note', $creditNote->invoice, $creditNote->id],
+    'route'          => [$editRoute],
     'method'         => 'post',
     'id'             => $formId,
     'data-url'       => $editRoute,
@@ -47,9 +47,6 @@
         <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
         <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Update') }}</button>
     </div>
-{{ Form::close() }}
-
-@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('{{ $formId }}');
@@ -88,4 +85,4 @@
             });
         })();
     </script>
-@endpush
+{{ Form::close() }}

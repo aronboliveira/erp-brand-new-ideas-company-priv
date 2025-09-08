@@ -6,10 +6,11 @@
         YieldingConstants,
         ViewsConstants
     };
-    use App\Models\Utility;
+    use App\Models\{CustomQuestion, Utility};
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\Str;
+    $lang                    = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -30,16 +31,6 @@
     <div class="{{ VC::FEND }}">
         @can('create custom question')
             @php
-                use Illuminate\Support\Facades\Route;
-                use Illuminate\Support\Str;
-                use App\Models\Utility;
-                use App\Config\Constants\{
-                    ViewsConstants,
-                    StacksConstants,
-                    ViewClassNamesConstants as VC
-                };
-            
-                $lang                    = Utility::fetchUserLang();
                 $createRouteName         = ViewsConstants::CST_QT . '.create';
                 $createUrl               = Route::has($createRouteName)
                     ? route($createRouteName)
@@ -69,46 +60,7 @@
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        const btn = document.getElementById('{{ $linkId }}');
-                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                        btn.setAttribute('data-listener-active', 'true');
-            
-                        btn.addEventListener('click', e => {
-                            try {
-                                const url = btn.getAttribute('data-url') || '#';
-                                if (url !== '#') return; // valid route, proceed with AJAX popup
-            
-                                e.preventDefault();
-                                const msg           = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                const bsLink        = document.querySelector('link[href*="bootstrap"]');
-                                let container       = document.getElementById('toast-container');
-                                if (!container) {
-                                    container       = document.createElement('div');
-                                    container.id    = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (bsLink && window.bootstrap) {
-                                    const toastEl      = document.createElement('div');
-                                    toastEl.className  = 'toast';
-                                    toastEl.setAttribute('role','alert');
-                                    toastEl.setAttribute('aria-live','assertive');
-                                    toastEl.setAttribute('aria-atomic','true');
-                                    const body         = document.createElement('div');
-                                    body.className     = 'toast-body';
-                                    body.textContent   = msg;
-                                    toastEl.appendChild(body);
-                                    container.appendChild(toastEl);
-                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                } else {
-                                    alert(msg);
-                                }
-                                btn.setAttribute('data-failed-route', 'true');
-                            } catch (err) {}
-                        });
-                    })();
-                </script>
+                <script defer src="{{ asset('assets/js/routes/customQuestions/create.js') }}"></script>
             @endpush
         @endcan
     </div>
@@ -129,171 +81,70 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @foreach($questions as $question)
-                                    <tr>
-                                        <td>{{ $question->question }}</td>
-                                        <td>
-                                            @if($question->is_required == 'yes')
-                                                <span class="{{ VC::BDG }} bg-primary p-2 px-3 rounded">{{ \App\Models\CustomQuestion::$is_required[$question->is_required] }}</span>
-                                            @else
-                                                <span class="{{ VC::BDG }} bg-danger p-2 px-3 rounded">{{ \App\Models\CustomQuestion::$is_required[$question->is_required] }}</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @can('edit custom question')
-                                                <div class="{{ VC::ACT_BTN_PRIM }}">
-                                                    @php
-                                                        $editRouteName      = ViewsConstants::CST_QT . '.edit';
-                                                        $editUrl            = Route::has($editRouteName)
-                                                            ? route($editRouteName, $question->id)
-                                                            : (Route::has(Str::kebab($editRouteName))
-                                                                ? route(Str::kebab($editRouteName), $question->id)
-                                                                : '#');
-                                                        $linkId             = 'custom-question-edit-link-' . $question->id;
-                                                        $guardMsg           = Utility::fetchLinkMessage(
-                                                            $lang,
-                                                            ViewsConstants::CST_QT,
-                                                            'custom_question_edit_route_unavailable'
-                                                        ) ?? 'Edit Custom Question route is unavailable. Please contact technical support or your domain administrator.';
-                                                    @endphp
-                                                    <a
-                                                        id="{{ $linkId }}"
-                                                        href="{{ $editUrl }}"
-                                                        data-url="{{ $editUrl }}"
-                                                        data-size="lg"
-                                                        data-ajax-popup="true"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ __('Edit') }}"
-                                                        data-title="{{ __('Edit Custom Question') }}"
-                                                        data-guard-msg="{{ $guardMsg }}"
-                                                        class="{{ VC::BT_SM_FL_CT }}"
-                                                        {{ $editUrl === '#' ? 'aria-disabled="true"' : '' }}
-                                                    >
-                                                        <i class="{{ VC::TI_PC_WT }}"></i>
-                                                    </a>
+                                @php
+                                    $items = ((is_array($questions ?? null) && count($questions ?? [])) || (($questions ?? null) instanceof Collection && ($questions)->isNotEmpty())) ? $questions : [];
+                                @endphp
+                                @if(!empty($items))
+                                    @foreach($items as $question)
+                                        @php
+                                            $qText = isset($question->question) && $question->question !== '' ? $question->question : __('No question text available');
+                                            $reqKey = isset($question->is_required) ? $question->is_required : null;
+                                            $isYes = $reqKey === 'yes';
+                                            $reqLabel = isset(CustomQuestion::$is_required[$reqKey]) ? CustomQuestion::$is_required[$reqKey] : __('No requirement info available');
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $qText }}</td>
+                                            <td><span class="{{ VC::BDG }} {{ $isYes ? 'bg-primary' : 'bg-danger' }} p-2 px-3 rounded">{{ __($reqLabel) }}</span></td>
+                                            <td>
+                                                @can('edit custom question')
+                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                        @php
+                                                            $editName = ViewsConstants::CST_QT . '.edit';
+                                                            $editUrl = Route::has($editName) ? route($editName, $question->id) : (Route::has(Str::kebab($editName)) ? route(Str::kebab($editName), $question->id) : '#');
+                                                            $editLinkId = 'custom-question-edit-link-' . $question->id;
+                                                            $editGuard = Utility::fetchLinkMessage($lang, ViewsConstants::CST_QT, 'custom_question_edit_route_unavailable') ?? 'Edit Custom Question route is unavailable. Please contact technical support or your domain administrator.';
+                                                        @endphp
+                                                        <a id="{{ $editLinkId }}" href="{{ $editUrl }}" data-url="{{ $editUrl }}" data-size="lg" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{ __('Edit') }}" data-title="{{ __('Edit Custom Question') }}" data-guard-msg="{{ $editGuard }}" class="{{ VC::BT_SM_FL_CT }}" {{ $editUrl === '#' ? 'aria-disabled=true' : '' }}>
+                                                            <i class="{{ VC::TI_PC_WT }}"></i>
+                                                        </a>
+                                                    </div>
                                                     @push(StacksConstants::ADM_SCR_PG)
                                                         <script defer>
-                                                            (() => {
-                                                                const link = document.getElementById('{{ $linkId }}');
-                                                                if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                                                                link.setAttribute('data-listener-active', 'true');
-                                                                link.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = link.getAttribute('data-url') ?? '#';
-                                                                        if (url !== '#') return;
-                                                                        event.preventDefault();
-                                                                        const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                        let container       = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container       = document.createElement('div');
-                                                                            container.id    = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                            const toastEl      = document.createElement('div');
-                                                                            toastEl.className  = 'toast';
-                                                                            toastEl.setAttribute('role', 'alert');
-                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                            const body         = document.createElement('div');
-                                                                            body.className     = 'toast-body';
-                                                                            body.textContent   = msg;
-                                                                            toastEl.appendChild(body);
-                                                                            container.appendChild(toastEl);
-                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
-                                                                        link.setAttribute('data-failed-route', 'true');
-                                                                    } catch (e) {}
-                                                                });
-                                                            })();
+                                                            (()=>{try{const a=document.getElementById('{{ $editLinkId }}');if(!a||a.getAttribute('data-listener-active')==='true')return;a.setAttribute('data-listener-active','true');a.addEventListener('click',e=>{const u=(a.getAttribute('data-url')||'#').trim();if(u&&u!=='#')return;e.preventDefault();const m=a.getAttribute('data-guard-msg')||'#';if(window.bootstrap&&window.bootstrap.Toast){let t=document.getElementById('route-guard-toast');if(!t){t=document.createElement('div');t.id='route-guard-toast';t.className='toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3';t.setAttribute('role','alert');t.setAttribute('aria-live','assertive');t.setAttribute('aria-atomic','true');t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';document.body.appendChild(t);}t.querySelector('.toast-body').textContent=m;new bootstrap.Toast(t,{delay:4000}).show();}else{alert(m);}});}catch(_){}})();
                                                         </script>
                                                     @endpush
-                                                </div>
-                                            @endcan
-                                            @can('delete custom question')
-                                                @php
-                                                    $destroyRouteName        = ViewsConstants::CST_QT . '.destroy';
-                                                    $destroyRouteKebab       = Str::kebab(ViewsConstants::CST_QT) . '.destroy';
-                                                    $destroyUrl              = Route::has($destroyRouteName)
-                                                        ? route($destroyRouteName, $question->id)
-                                                        : (Route::has($destroyRouteKebab)
-                                                            ? route($destroyRouteKebab, $question->id)
-                                                            : '#');
-                                                    $formId                  = 'delete-form-' . $question->id;
-                                                    $linkId                  = 'delete-custom-question-link-' . $question->id;
-                                                    $guardMsg                = Utility::fetchLinkMessage(
-                                                        $lang,
-                                                        ViewsConstants::CST_QT,
-                                                        'custom_question_destroy_route_unavailable'
-                                                    ) ?? 'Delete Custom Question route is unavailable. Please contact technical support or your domain administrator.';
-                                                @endphp
-                                                <div class="{{ VC::ACT_BTN_DNG_2 }} {{ VC::MS2 }}">
-                                                    {!! Form::open([
-                                                        'method' => 'DELETE',
-                                                        'route'  => [ViewsConstants::CST_QT . '.destroy', $question->id],
-                                                        'id'     => $formId,
-                                                    ]) !!}
-                                                        <a
-                                                            id="{{ $linkId }}"
-                                                            href="#"
-                                                            class="{{ VC::BT_SM_CT_PR }}"
-                                                            data-url="{{ $destroyUrl }}"
-                                                            data-guard-msg="{{ $guardMsg }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Delete') }}"
-                                                        >
-                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                        </a>
-                                                    {!! Form::close() !!}
-                                                </div>
-                                                @push(StacksConstants::ADM_SCR_PG)
-                                                    <script defer>
-                                                        (() => {
-                                                            const link = document.getElementById('{{ $linkId }}');
-                                                            if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                                                            link.setAttribute('data-listener-active', 'true');
-                                                
-                                                            link.addEventListener('click', event => {
-                                                                try {
-                                                                    const url = link.getAttribute('data-url') || '#';
-                                                                    if (url !== '#') return;
-                                                                    event.preventDefault();
-                                                                    const msg           = link.getAttribute('data-guard-msg') || '# ERROR';
-                                                                    const bsLink        = document.querySelector('link[href*="bootstrap"]');
-                                                                    let container       = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container       = document.createElement('div');
-                                                                        container.id    = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bsLink && window.bootstrap) {
-                                                                        const toastEl      = document.createElement('div');
-                                                                        toastEl.className  = 'toast';
-                                                                        toastEl.setAttribute('role','alert');
-                                                                        toastEl.setAttribute('aria-live','assertive');
-                                                                        toastEl.setAttribute('aria-atomic','true');
-                                                                        const body         = document.createElement('div');
-                                                                        body.className     = 'toast-body';
-                                                                        body.textContent   = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    link.setAttribute('data-failed-route', 'true');
-                                                                } catch (e) {}
-                                                            });
-                                                        })();
-                                                    </script>
-                                                @endpush
-                                            @endcan
+                                                @endcan
+                                                @can('delete custom question')
+                                                    @php
+                                                        $destroyName = ViewsConstants::CST_QT . '.destroy';
+                                                        $destroyUrl = Route::has($destroyName) ? route($destroyName, $question->id) : (Route::has(Str::kebab($destroyName)) ? route(Str::kebab($destroyName), $question->id) : '#');
+                                                        $delFormId = 'delete-form-' . $question->id;
+                                                        $delLinkId = 'delete-custom-question-link-' . $question->id;
+                                                        $delGuard = Utility::fetchLinkMessage($lang, ViewsConstants::CST_QT, 'custom_question_destroy_route_unavailable') ?? 'Delete Custom Question route is unavailable. Please contact technical support or your domain administrator.';
+                                                    @endphp
+                                                    <div class="{{ VC::ACT_BTN_DNG_2 }} {{ VC::MS2 }}">
+                                                        {!! Collective\Html\FormFacade::open(['method'=>'DELETE','url'=>$destroyUrl,'id'=>$delFormId]) !!}
+                                                            <a id="{{ $delLinkId }}" href="#" class="{{ VC::BT_SM_CT_PR }}" data-url="{{ $destroyUrl }}" data-guard-msg="{{ $delGuard }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}">
+                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                            </a>
+                                                        {!! Collective\Html\FormFacade::close() !!}
+                                                    </div>
+                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                        <script defer>
+                                                            (()=>{try{const a=document.getElementById('{{ $delLinkId }}');if(!a||a.getAttribute('data-listener-active')==='true')return;a.setAttribute('data-listener-active','true');a.addEventListener('click',e=>{const u=(a.getAttribute('data-url')||'#').trim();if(u&&u!=='#')return;e.preventDefault();const m=a.getAttribute('data-guard-msg')||'#';if(window.bootstrap&&window.bootstrap.Toast){let t=document.getElementById('route-guard-toast');if(!t){t=document.createElement('div');t.id='route-guard-toast';t.className='toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3';t.setAttribute('role','alert');t.setAttribute('aria-live','assertive');t.setAttribute('aria-atomic','true');t.innerHTML='<div class="d-flex"><div class="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';document.body.appendChild(t);}t.querySelector('.toast-body').textContent=m;new bootstrap.Toast(t,{delay:4000}).show();}else{alert(m);}});}catch(_){}})();
+                                                        </script>
+                                                    @endpush
+                                                @endcan
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="3">
+                                            <div class="{{ VC::TXCT }} {{ VC::TX_MUTED }}">{{ __('No custom questions available') }}</div>
                                         </td>
                                     </tr>
-                                @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>
