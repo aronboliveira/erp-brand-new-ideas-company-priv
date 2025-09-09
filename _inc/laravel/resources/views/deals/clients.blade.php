@@ -1,9 +1,9 @@
 @php
     use Collective\Html\FormFacade as Form;
-    use App\MOdels\Utility;
+    use App\Models\Utility;
     use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants as VC};
     use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    use Illuminate\Support\{Collection, Str};
     $lang = Utility::fetchUserLang();
     $routeKey       = ViewsConstants::DL . '.clients.update';
     $kebabRouteKey  = Str::kebab($routeKey);
@@ -34,17 +34,18 @@
         <div class="{{ VC::RW }}">
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('clients', __('Clients'), ['class' => VC::FM_LB]) }}
-                {{ Form::select(
-                    'clients[]',
-                    $clients,
-                    false,
-                    [
-                        'class'    => VC::FM_CT . ' select2',
-                        'id'       => 'choices-multiple1',
-                        'multiple' => '',
-                        'required' => 'required'
-                    ]
-                ) }}
+                    {{ Form::select(
+                        'clients[' . $client->id . ']',
+                        @if((is_array($clients) && count($clients)) || $clients instanceof Collection && $clients->isNotEmpty()) $clients @else [__('No clients available.')] @endif,
+                        false,
+                        [
+                            'class'    => VC::FM_CT . ' select2',
+                            'id'       => 'choices-multiple1',
+                            'multiple' => '',
+                            'required' => 'required'
+                        ]
+                    ) }}
+                @else
             </div>
         </div>
     </div>
@@ -56,8 +57,6 @@
             {{ __('Create') }}
         </button>
     </div>
-{{ Form::close() }}
-@push(StacksConstants::ADM_SCR_PG)
     <script defer>
         (() => {
             const form = document.getElementById('update-clients-form-{{ $deal->id }}');
@@ -96,4 +95,4 @@
             });
         })();
     </script>
-@endpush
+{{ Form::close() }}

@@ -3,6 +3,7 @@
         ExtendingLayoutsConstants,
         PermissionsConstants,
         StacksConstants,
+        ViewsConstants as VW,
         ViewClassNamesConstants,
         YieldingConstants,
     };
@@ -246,7 +247,7 @@ Object.keys(t).forEach(
                     if (!urlBase) return;
 
                     const events = await $.ajax({
-                        url: `${urlBase}/interview-schedule/get_interview_data`,
+                        url: `${urlBase}/{{ VW::ITV_SCD }}/data`,
                         method: 'POST',
                         data: {
                             _token: '{{ csrf_token() }}',

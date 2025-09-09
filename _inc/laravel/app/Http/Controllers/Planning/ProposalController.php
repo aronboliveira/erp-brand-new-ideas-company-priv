@@ -32,7 +32,8 @@ use Illuminate\Support\Facades\{
     Auth,
     Crypt,
     DB,
-    Log
+    Log,
+    View as ViewFacade
 };
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
@@ -46,6 +47,7 @@ class ProposalController extends Controller
 
     use ChecksLogin, ChecksPermissions;
 
+
     private const INDEX_ROUTE = ViewsConstants::PPS . '.index';
 
     public function index(Request $request): View|RedirectResponse
@@ -53,33 +55,43 @@ class ProposalController extends Controller
         $class = static::class;
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
+
         return $this->measureProfile($action, function () use ($request, $action) {
             Log::info("$action start", ['user' => Auth::id()]);
             $stepStart = microtime(true);
+
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
+
                 if ($c = $this->guard($request, PermissionsConstants::MNG_PPS, self::INDEX_ROUTE)) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
+
                 $creatorId = $user?->creatorId();
                 $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id')->prepend('All', '');
                 $status = Proposal::$statuses;
+
                 $query = Proposal::where(DatabaseConstants::TABLE_CREATOR, $creatorId);
-                if ($request->filled('customer'))
-                    $query->where('customer_id', $request->customer);
+                if ($request->filled('customer')) $query->where('customer_id', $request->customer);
                 if ($request->filled('issue_date')) {
                     $range = explode(' to ', $request->issue_date);
                     $query->whereBetween('issue_date', $range);
                 }
-                if ($request->filled('status'))
-                    $query->where('status', $request->status);
+                if ($request->filled('status')) $query->where('status', $request->status);
+
                 $proposals = $query->get();
                 Log::info("$action fetched", ['count' => $proposals->count()]);
                 $this->logExecutionTime($stepStart, 'fetch proposals', 'completed');
-                return view(ViewsConstants::PPS . '.index', compact(
+
+                $view = ViewsConstants::PPS . '.index';
+                if (!ViewFacade::exists($view)) {
+                    return defaultUndefinedException($request, new \RuntimeException('View not found: ' . $view), $action);
+                }
+
+                return view($view, compact(
                     DatabaseConstants::TABLE_PROPOSALS,
                     DatabaseConstants::TABLE_CUSTOMERS,
                     'status'
@@ -92,21 +104,25 @@ class ProposalController extends Controller
         });
     }
 
-    public function create(string|int $customer_id): View|JsonResponse
+    public function create(string|int $customer_id): View|JsonResponse|RedirectResponse
     {
         $class = static::class;
         $method = __FUNCTION__;
         $action = "{$class}::{$method}";
+
         return $this->measureProfile($action, function () use ($customer_id, $action) {
             Log::info("$action start", ['user' => Auth::id(), 'customer_id' => $customer_id]);
             $stepStart = microtime(true);
+
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
+
                 if ($c = $this->guard(request(), 'create proposal', self::INDEX_ROUTE)) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
+
                 $creatorId = $user?->creatorId();
                 $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
                     ->where('module', 'proposal')->get();
@@ -117,8 +133,15 @@ class ProposalController extends Controller
                     ->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
                 $productServices = ProductService::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
                     ->pluck('name', 'id')->prepend('--', '');
+
                 $this->logExecutionTime($stepStart, 'fetch proposal data', 'completed');
-                return view(ViewsConstants::PPS . '.create', compact(
+
+                $view = ViewsConstants::PPS . '.create';
+                if (!ViewFacade::exists($view)) {
+                    return defaultUndefinedException(request(), new \RuntimeException('View not found: ' . $view), $action);
+                }
+
+                return view($view, compact(
                     DatabaseConstants::TABLE_CUSTOMERS,
                     'proposalNumber',
                     'productServices',
@@ -134,17 +157,25 @@ class ProposalController extends Controller
         });
     }
 
-    public function customer(Request $request): View
+    public function customer(Request $request): View|RedirectResponse
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
+
         return $this->measureProfile($action, function () use ($action, $request) {
             Log::info("[$action] start", ['id' => $request->id]);
+
             try {
                 $findStart = microtime(true);
                 $customer = Customer::findOrFail($request->id);
                 $this->logExecutionTime($findStart, $action . '::findOrFail', 'completed');
                 Log::info("[$action] customer found", ['id' => $request->id]);
-                return view(ViewsConstants::PPS . '.customer_detail', compact('customer'));
+
+                $view = ViewsConstants::PPS . '.customer_detail';
+                if (!ViewFacade::exists($view)) {
+                    return defaultUndefinedException($request, new \RuntimeException('View not found: ' . $view), $action);
+                }
+
+                return view($view, compact('customer'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage(), 'id' => $request->id]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -156,27 +187,31 @@ class ProposalController extends Controller
     public function product(Request $request): JsonResponse
     {
         $method = __METHOD__;
-        Log::debug($method . ' - start', ['product_id' => $request->product_id]);
+
         return $this->measureProfile($method, function () use ($request, $method) {
-            $stepStart = microtime(true);
             Log::info($method . ' start', ['product_id' => $request->product_id]);
-            $this->logExecutionTime($stepStart, 'logStart', 'completed');
+
             $stepStart = microtime(true);
             $product = ProductService::findOrFail($request->product_id);
             $this->logExecutionTime($stepStart, 'findProduct', 'completed');
+
             $stepStart = microtime(true);
             $unit = $product->unit?->name ?? '';
             $this->logExecutionTime($stepStart, 'fetchUnit', 'completed');
+
             $stepStart = microtime(true);
             $taxRate = $product->tax_id ? $product->taxRate($product->tax_id) : 0;
             $this->logExecutionTime($stepStart, 'fetchTaxRate', 'completed');
+
             $stepStart = microtime(true);
             $taxes = $product->tax_id ? $product->tax($product->tax_id) : 0;
             $this->logExecutionTime($stepStart, 'fetchTaxes', 'completed');
+
             $stepStart = microtime(true);
             $sale = $product->sale_price;
             $total = $sale;
             $this->logExecutionTime($stepStart, 'calculateTotal', 'completed');
+
             return response()->json(compact('product', 'unit', 'taxRate', 'taxes', 'total'));
         }, ['product_id' => $request->product_id]);
     }
@@ -184,9 +219,11 @@ class ProposalController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $function = __FUNCTION__;
+
         return $this->measureProfile($function, function () use ($request, $function) {
             $method = static::class . '::' . $function;
             $startAction = microtime(true);
+
             Log::info($method . ' start', ['user' => Auth::id()]);
             if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) {
                 $this->logExecutionTime($startAction, $function . '::login', 'failed');
@@ -194,57 +231,66 @@ class ProposalController extends Controller
             }
             $user = $userOrRedirect;
             $this->logExecutionTime($startAction, $function . '::login', 'completed');
+
             if ($c = $this->guard($request, 'create proposal', static::INDEX_ROUTE)) {
                 Log::warning($method . ' denied', ['user' => Auth::id()]);
                 return $c;
             }
+
             $startValidation = microtime(true);
             $data = $request->validate([
                 'customer_id' => 'required|exists:customers,id',
-                'issue_date' => 'required|date',
+                'issue_date'  => 'required|date',
                 'category_id' => 'required|exists:product_service_categories,id',
-                'items' => 'required|array',
+                'items'       => 'required|array',
             ]);
             $this->logExecutionTime($startValidation, $function . '::validation', 'completed');
+
             DB::beginTransaction();
             try {
                 $startCreate = microtime(true);
                 $proposal = Proposal::create([
-                    'proposal_id' => $this->proposalNumber(),
-                    'customer_id' => $data['customer_id'],
-                    'status' => 0,
-                    'issue_date' => $data['issue_date'],
-                    'category_id' => $data['category_id'],
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    'proposal_id'                      => $this->proposalNumber(),
+                    'customer_id'                      => $data['customer_id'],
+                    'status'                           => 0,
+                    'issue_date'                       => $data['issue_date'],
+                    'category_id'                      => $data['category_id'],
+                    DatabaseConstants::TABLE_CREATOR   => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($startCreate, $function . '::createProposal', 'completed');
+
                 CustomField::saveData($proposal, $request->customField);
+
                 foreach ($data['items'] as $item) {
                     ProposalProduct::create([
                         'proposal_id' => $proposal->id,
-                        'product_id' => $item['item'],
-                        'quantity' => $item['quantity'],
-                        'tax' => $item['tax'],
-                        'discount' => $item['discount'],
-                        'price' => $item['price'],
+                        'product_id'  => $item['item'],
+                        'quantity'    => $item['quantity'],
+                        'tax'         => $item['tax'],
+                        'discount'    => $item['discount'],
+                        'price'       => $item['price'],
                         'description' => $item['description'],
                     ]);
                 }
+
                 $settings = Utility::settings($user?->creatorId());
                 $customer = Customer::find($proposal->customer_id);
                 $notif = [
-                    'proposal_number' => $user?->proposalNumberFormat($proposal->proposal_id),
-                    'user_name' => $user?->name,
-                    'customer_name' => $customer->name,
+                    'proposal_number'     => $user?->proposalNumberFormat($proposal->proposal_id),
+                    'user_name'           => $user?->name,
+                    'customer_name'       => $customer->name,
                     'proposal_issue_date' => $proposal->issue_date,
                 ];
-                if (!empty($settings['twilio_proposal_notification'] ?? null))
+                if (!empty($settings['twilio_proposal_notification'] ?? null)) {
                     Utility::sendTwilioMsg($request->contact, 'new_proposal', $notif);
+                }
+
                 DB::commit();
                 $this->logExecutionTime($startCreate, $function . '::commit', 'completed');
                 Log::info($method . ' success', ['proposal' => $proposal->id]);
 
-                return redirect()->route(static::INDEX_ROUTE, $proposal->id)
+                // Index route typically doesn’t take an ID
+                return redirect()->route(static::INDEX_ROUTE)
                     ->with('success', __('Proposal successfully created.'));
             } catch (\Throwable $e) {
                 DB::rollBack();
@@ -262,36 +308,54 @@ class ProposalController extends Controller
         $class = static::class;
         $function = __FUNCTION__;
         $action = "{$class}::{$function}";
+
         return $this->measureProfile($action, function () use ($encId, $action, $function) {
             Log::info("$action start", ['user' => Auth::id(), 'encId' => $encId]);
             $stepStart = microtime(true);
+
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
+
                 if ($c = $this->guard(request(), 'edit proposal', self::INDEX_ROUTE)) {
                     Log::warning("$action denied", ['user' => Auth::id()]);
                     return $c;
                 }
+
                 $id = \Illuminate\Support\Facades\Crypt::decrypt($encId);
                 $proposal = Proposal::findOrFail($id);
                 if ($proposal->created_by !== $user?->creatorId())
                     return defaultPermissionDenial(request(), new \Exception('ownership'), $action);
+
                 $proposalNumber = $user?->proposalNumberFormat($proposal->proposal_id);
                 $creatorId = $user?->creatorId();
+
                 $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id');
+
                 $category = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
                     ->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
-                $productServices = ProductService::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+
+                $productServices = ProductService::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                    ->pluck('name', 'id');
+
                 $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
                     ->where('module', 'proposal')->get();
+
                 $items = $proposal->items->map(function ($it) {
                     $it->itemAmount = $it->quantity * $it->price;
                     $it->taxes = Utility::tax($it->tax);
                     return $it;
                 });
+
                 $this->logExecutionTime($stepStart, 'fetch proposal edit data', 'completed');
-                return view(ViewsConstants::PPS . '.' . $function, compact(
+
+                $view = ViewsConstants::PPS . '.' . $function;
+                if (!ViewFacade::exists($view)) {
+                    return defaultUndefinedException(request(), new \RuntimeException('View not found: ' . $view), $action);
+                }
+
+                return view($view, compact(
                     DatabaseConstants::TABLE_CUSTOMERS,
                     'productServices',
                     'proposal',
@@ -307,6 +371,8 @@ class ProposalController extends Controller
             }
         });
     }
+
+    // todo
 
     public function update(Request $request, Proposal $proposal): RedirectResponse
     {
@@ -408,6 +474,7 @@ class ProposalController extends Controller
                 $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
                     ->where('module', 'proposal')->get();
                 $this->logExecutionTime($stepStart, 'fetchCustomFields', 'completed');
+                if (!ViewFacade::exists(ViewsConstants::PPS . '.view')) return defaultUndefinedException(request(), new \RuntimeException('View not found: ' . ViewsConstants::PPS . '.view'), $method);
                 return view(ViewsConstants::PPS . '.view', [
                     'proposal' => $proposal,
                     'customer' => $proposal->customer,
@@ -522,7 +589,9 @@ class ProposalController extends Controller
                 $proposalsStart = microtime(true);
                 $proposals = $query->get();
                 $this->logExecutionTime($proposalsStart, $action . '::getProposals', 'completed');
-
+                if (!ViewFacade::exists(ViewsConstants::PPS . '.index')) {
+                    return defaultUndefinedException($request, new \RuntimeException('View not found: ' . ViewsConstants::PPS . '.index'), $action);
+                }
                 return view(ViewsConstants::PPS . '.index', [
                     DatabaseConstants::TABLE_PROPOSALS => $proposals,
                     'status' => Proposal::$statuses,
@@ -561,6 +630,7 @@ class ProposalController extends Controller
                 if ($proposal->created_by !== $user?->creatorId())
                     return defaultPermissionDenial(request(), new \Exception('ownership'), $method);
                 $this->logExecutionTime($stepStart, 'checkOwnership', 'completed');
+                if (!ViewFacade::exists(ViewsConstants::PPS . '.view')) return defaultUndefinedException(request(), new \RuntimeException('View not found: ' . ViewsConstants::PPS . '.view'), $method);
                 return view(ViewsConstants::PPS . '.view', [
                     'proposal' => $proposal,
                     'customer' => $proposal->customer,
@@ -805,6 +875,8 @@ class ProposalController extends Controller
         }, ['id' => $id]);
     }
 
+    // todo
+
     public const STT_CHG = 'statusChange';
     public function statusChange(Request $request, string|int $id): RedirectResponse
     {
@@ -847,7 +919,11 @@ class ProposalController extends Controller
             $proposal->itemData = collect(range(1, 3))->map(function ($i) use (&$totalTaxPrice, &$taxesData) {
                 $item = (object)[
                     'name' => "Item $i",
-                    'quantity' => 1, 'tax' => 5, 'discount' => 50, 'price' => 100, 'unit' => 1
+                    'quantity' => 1,
+                    'tax' => 5,
+                    'discount' => 50,
+                    'price' => 100,
+                    'unit' => 1
                 ];
                 $item->itemTax = collect(['Tax 1', 'Tax 2'])->map(function ($tax, $k) use (&$totalTaxPrice, &$taxesData) {
                     $price = 10;
@@ -870,6 +946,9 @@ class ProposalController extends Controller
             $logoPath = Utility::getFile('proposal_logo/') . ($settings['proposal_logo'] ?? '');
             $img = $logoPath ?: asset('uploads/logo/' . ($settings[SettingsConstants::CPN_LG_DK] ?? SettingsConstants::CPN_LG_DK_DEF));
             $this->logExecutionTime($startAction, $function . '::proposalData', 'completed');
+            if (!ViewFacade::exists(ViewsConstants::PPS . ".templates.$template")) {
+                return defaultUndefinedException(request(), new \RuntimeException('View not found: ' . ViewsConstants::PPS . ".templates.$template"), $method);
+            }
             return view(ViewsConstants::PPS . ".templates.$template", compact(
                 'proposal',
                 'preview',
@@ -902,6 +981,7 @@ class ProposalController extends Controller
                 $logoPath = Utility::getFile('proposal_logo/') . ($settings['proposal_logo'] ?? '');
                 $img = $logoPath ?: asset('uploads/logo/' . ($settings[SettingsConstants::CPN_LG_DK] ?? SettingsConstants::CPN_LG_DK_DEF));
                 $this->logExecutionTime($stepStart, 'view proposal link', 'completed');
+                if (!ViewFacade::exists(ViewsConstants::PPS . '.customer_proposal')) return defaultUndefinedException(request(), new \RuntimeException('View not found: ' . ViewsConstants::PPS . '.customer_proposal'), $action);
                 return view(ViewsConstants::PPS . '.customer_proposal', [
                     'proposal' => $proposal,
                     'customer' => $proposal->customer,
@@ -1046,6 +1126,9 @@ class ProposalController extends Controller
                 $fontColor = Utility::getFontColor($color);
 
                 Log::info("[$action] rendering proposal view", ['proposal_id' => $id]);
+                if (!ViewFacade::exists(ViewsConstants::PPS . ".templates.{$settings[BillsConstants::COL_PPS_TMP]}")) {
+                    return defaultUndefinedException($request, new \RuntimeException('View not found: ' . ViewsConstants::PPS . ".templates.{$settings[BillsConstants::COL_PPS_TMP]}"), $action);
+                }
                 return view(
                     ViewsConstants::PPS . ".templates.{$settings[BillsConstants::COL_PPS_TMP]}",
                     compact('proposal', 'items', 'totals', 'taxesData', 'settings', 'img', 'color', 'fontColor')
@@ -1163,7 +1246,7 @@ class ProposalController extends Controller
         }, func_get_args());
     }
 
-    private function proposalNumber(): int
+    private function proposalNumber(): int|string|RedirectResponse
     {
         Log::debug(__METHOD__ . ' called', ['user' => Auth::id()]);
         if (
@@ -1174,10 +1257,10 @@ class ProposalController extends Controller
         $user = $userOrRedirect;
         $latest = Proposal::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
             ->latest()->first();
-        return $latest ? $latest->proposal_id + 1 : 1;
+        return $latest ? (is_numeric($latest->proposal_id) ? $latest->proposal_id + 1 : $latest->proposal_id) : 0;
     }
 
-    private function invoiceNumber(): int
+    private function invoiceNumber(): int|string|RedirectResponse
     {
         Log::debug(__METHOD__ . ' called', ['user' => Auth::id()]);
         if (
@@ -1188,6 +1271,6 @@ class ProposalController extends Controller
         $user = $userOrRedirect;
         $latest = Invoice::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
             ->latest()->first();
-        return $latest ? $latest->invoice_id + 1 : 1;
+        return $latest ? (is_numeric($latest->invoice_id) ? $latest->invoice_id + 1 : $latest->invoice_id) : 1;
     }
 }

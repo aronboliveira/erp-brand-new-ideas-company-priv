@@ -3,7 +3,7 @@
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    use Illuminate\Support\{Collection, Str};
     $lang = Utility::fetchUserLang();
     $routeKey       = ViewsConstants::DL . '.client.permissions.store';
     $kebabRouteKey  = Str::kebab($routeKey);
@@ -23,81 +23,94 @@
         ViewsConstants::DL,
         'deal_client_permissions_store_route_unavailable'
     ) ?? 'Deal client permissions store route is unavailable. Please contact technical support or your domain administrator.';
+    $selected ??= [];
 @endphp
-{!! Form::model($deal, [
-    'route'          => $storeRouteArr,
-    'method'         => 'PUT',
-    'id'             => 'update-client-permissions-form-' . $deal->id . '-' . $client->id,
-    'data-url'       => $storeRouteUrl,
-    'data-guard-msg' => $storeGuardMsg
-]) !!}
-<div class="modal-body">
-    <ul class="{{ VC::LGRP }}">
-        <div class="{{ VC::RW }}">
-            @foreach($permissions as $key => $permission)
-                <div class="{{ VC::CM6 }} {{ VC::PY2 }} px-2">
-                    <li class="{{ VC::LG_IT }}">
-                        <div class="{{ VC::C12 }} {{ VC::CST_CTL }} {{ VC::CST_CB }} mt-2 mb-2 p-0">
-                            {{ Form::checkbox(
-                                'permissions[]',
-                                $permission,
-                                in_array($permission, $selected),
-                                ['class' => 'custom-control-input', 'id' => 'permissions_' . $key]
-                            ) }}
-                            {{ Form::label(
-                                'permissions_' . $key,
-                                ucfirst($permission),
-                                ['class' => VC::CST_LB . ' ml-4']
-                            ) }}
-                        </div>
-                    </li>
+@if(!empty($deal) && !empty($client) && isset($client->id) && isset($deal->id))
+    {!! Form::model($deal, [
+        'route'          => $storeRouteArr,
+        'method'         => 'PUT',
+        'id'             => 'update-client-permissions-form-' . $deal->id . '-' . $client->id,
+        'data-url'       => $storeRouteUrl,
+        'data-guard-msg' => $storeGuardMsg
+    ]) !!}
+        <div class="modal-body">
+            <ul class="{{ VC::LGRP }}">
+                <div class="{{ VC::RW }}">
+                    @if((is_array($permissions) && count($permissions) > 0) || ($permissions instanceof Collection && $permissions->isNotEmpty()))
+                        @foreach($permissions as $key => $permission)
+                            <div class="{{ VC::CM6 }} {{ VC::PY2 }} px-2">
+                                <li class="{{ VC::LG_IT }}">
+                                    <div class="{{ VC::C12 }} {{ VC::CST_CTL }} {{ VC::CST_CB }} mt-2 mb-2 p-0">
+                                        {{ Form::checkbox(
+                                            'permissions[' . $key . ']',
+                                            $permission,
+                                            in_array($permission, $selected),
+                                            ['class' => 'custom-control-input', 'id' => 'permissions_' . $key]
+                                        ) }}
+                                        {{ Form::label(
+                                            'permissions_' . $key,
+                                            ucfirst($permission),
+                                            ['class' => VC::CST_LB . ' ml-4']
+                                        ) }}
+                                    </div>
+                                </li>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="alert alert-warning">{{ __('No permissions available') }}</div>
+                    @endif
                 </div>
-            @endforeach
+            </ul>
         </div>
-    </ul>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
-    <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
-</div>
-{!! Form::close() !!}
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('update-client-permissions-form-{{ $deal->id }}-{{ $client->id }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', e => {
-                try {
-                    const url = form.getAttribute('data-url') || '#';
-                    if (url !== '#') return;
-                    e.preventDefault();
-                    const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch (error) {}
-            });
-        })();
-    </script>
-@endpush
+        <div class="modal-footer">
+            <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+            <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+        </div>
+        <script defer>
+            (() => {
+                const form = document.getElementById('update-client-permissions-form-{{ $deal->id }}-{{ $client->id }}');
+                if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                form.setAttribute('data-listener-active', 'true');
+                form.addEventListener('submit', e => {
+                    try {
+                        const url = form.getAttribute('data-url') || '#';
+                        if (url !== '#') return;
+                        e.preventDefault();
+                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (bs) {
+                            const toast = document.createElement('div');
+                            toast.className = 'toast';
+                            toast.setAttribute('role','alert');
+                            toast.setAttribute('aria-live','assertive');
+                            toast.setAttribute('aria-atomic','true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        } else {
+                            alert(msg);
+                        }
+                        form.setAttribute('data-failed-route', 'true');
+                    } catch (error) {}
+                });
+            })();
+        </script>
+    {!! Form::close() !!}
+@else
+    @if(empty($deal) || !isset($deal->id))
+        <div class="alert alert-warning">{{ __('Deal information is missing or invalid') }}</div>
+    @elseif (empty($client) || !isset($client->id))
+        <div class="alert alert-warning">{{ __('Client information is missing or invalid') }}</div>
+    @else
+        <div class="alert alert-warning">{{ __('Available data is missing or invalid') }}</div>
+    @endif
+@endif

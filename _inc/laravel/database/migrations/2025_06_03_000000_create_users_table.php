@@ -27,7 +27,7 @@ class CreateUsersTable extends Migration
             $table->integer(UsersConstants::COL_IA)->default(1);
             $table->integer(UsersConstants::COL_IB)->default(0);
             $table->datetime(UsersConstants::COL_LLA)->nullable();
-            $table->uuid(UsersConstants::COL_DPL)->default(DatabaseConstants::DEFAULT_PIPELINE);
+            $table->uuid(UsersConstants::COL_DPL)->default(DatabaseConstants::DEFAULT_PIPELINE); // * TOO ABSTRACT
             $table->uuid(UsersConstants::COL_RP)->default(DatabaseConstants::DEFAULT_PLAN);       // * ADDED
             $table->uuid(UsersConstants::COL_PL)->default(DatabaseConstants::DEFAULT_PLAN);
             $table->date(UsersConstants::COL_PED)->nullable();

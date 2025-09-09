@@ -6,9 +6,11 @@
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
+    $settings = Utility::settings();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -24,14 +26,33 @@
     </li>
     <li class="breadcrumb-item">{{__('Event')}}</li>
 @endsection
-@php
-    $settings = Utility::settings();
-@endphp
+
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+    <div class="{{ VC::FEND }}">
         @can('create event')
-            <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::EVT.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Event')}}" class="btn btn-sm btn-primary">
-                <i class="ti ti-plus"></i>
+            @php
+                $eventsCreateBaseRouteName    = ViewsConstants::EVT.'.create';
+                $eventsCreateKebabRouteName   = Str::kebab($eventsCreateBaseRouteName);
+                $eventsCreateResolvedName     = Route::has($eventsCreateBaseRouteName)
+                    ? $eventsCreateBaseRouteName
+                    : (Route::has($eventsCreateKebabRouteName) ? $eventsCreateKebabRouteName : null);
+                $eventsCreateUrl              = $eventsCreateResolvedName ? route($eventsCreateResolvedName) : '#';
+                $eventsCreateGuardMessage     = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_create_route_unavailable')
+                    ?? 'Create Event route is unavailable. Please contact technical support or your domain administrator.';
+                $eventsCreateLinkId           = 'events-create-link';
+            @endphp
+            <a  id="{{ $eventsCreateLinkId }}"
+                href="{{ $eventsCreateUrl }}"
+                data-url="{{ $eventsCreateUrl }}"
+                data-guard-msg="{{ $eventsCreateGuardMessage }}"
+                data-sv-localized="true"
+                data-size="lg"
+                data-ajax-popup="true"
+                data-bs-toggle="tooltip"
+                title="{{ __('Create') }}"
+                data-title="{{ __('Create New Event') }}"
+                class="{{ VC::BT_SM_PM }}">
+                <i class="{{ VC::TI_PLS }}"></i>
             </a>
         @endcan
     </div>
@@ -40,7 +61,7 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
         <div class="col-lg-8">
-            <div class="card">
+            <div class="{{ VC::CD }}">
                 <div class="card-header">
                     <div class="row">
                         <div class="col-lg-6">
@@ -48,54 +69,116 @@
                         </div>
                         <div class="col-lg-6">
                             @if (isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
-                                <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;" onchange="get_data()">
-                                    <option value="goggle_calendar">{{__('Google calendar')}}</option>
-                                    <option value="local_calendar" selected="true">{{__('Local calendar')}}</option>
+                                <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float:right;width:150px;" onchange="get_data()">
+                                    <option value="google_calendar">{{ __('Google calendar') }}</option>
+                                    <option value="local_calendar" selected="true">{{ __('Local calendar') }}</option>
                                 </select>
                             @endif
-                            <input type="hidden" id="path_admin" value="{{url('/')}}">
+                            <input type="hidden" id="path_admin" value="{{ url('/') }}">
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <div id='calendar' class='calendar'></div>
+                    <div id="calendar" class="calendar"></div>
                 </div>
             </div>
         </div>
+
         <div class="col-lg-4">
-            <div class="card">
+            <div class="{{ VC::CD }}">
                 <div class="card-body">
-                    <h6 class="mb-4">{{__('Upcoming Events')}}</h6>
+                    <h6 class="{{ VC::MB4 }}">{{ __('Upcoming Events') }}</h6>
                     <ul class="{{ VC::LG_FLSH_W }}">
-                        <li class="list-group-item card mb-3">
-                            <div class="row align-items-center justify-content-between">
-                                <div class="align-items-center">
+                        <li class="{{ VC::LGI }} {{ VC::CD }} {{ VC::MB3 }}">
+                            <div class="row {{ VC::ALC }} {{ VC::JCB }}">
+                                <div class="{{ VC::ALC }}">
                                     @if(!$events->isEmpty())
                                         @forelse ($current_month_event as $event)
-                                            <div class="card mb-3 border shadow-none">
-                                                <div class="px-3">
-                                                    <div class="row align-items-center">
+                                            @php
+                                                $eventIdValue                       = (string) ($event->id ?? '');
+                                                $eventsEditBaseRouteName            = ViewsConstants::EVT.'.edit';
+                                                $eventsEditKebabRouteName           = Str::kebab($eventsEditBaseRouteName);
+                                                $eventsEditResolvedName             = Route::has($eventsEditBaseRouteName)
+                                                    ? $eventsEditBaseRouteName
+                                                    : (Route::has($eventsEditKebabRouteName) ? $eventsEditKebabRouteName : null);
+                                                $eventsEditUrl                      = ($eventsEditResolvedName && $eventIdValue !== '') ? route($eventsEditResolvedName, $eventIdValue) : '#';
+                                                $eventsEditGuardMessage             = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_edit_route_unavailable')
+                                                    ?? 'Edit Event route is unavailable. Please contact technical support or your domain administrator.';
+                                                $eventsEditTitleLinkId              = 'events-edit-title-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+                                                $eventsEditIconLinkId               = 'events-edit-icon-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+
+                                                $eventsDestroyBaseRouteName         = ViewsConstants::EVT.'.destroy';
+                                                $eventsDestroyKebabRouteName        = Str::kebab($eventsDestroyBaseRouteName);
+                                                $eventsDestroyResolvedName          = Route::has($eventsDestroyBaseRouteName)
+                                                    ? $eventsDestroyBaseRouteName
+                                                    : (Route::has($eventsDestroyKebabRouteName) ? $eventsDestroyKebabRouteName : null);
+                                                $eventsDestroyUrl                   = ($eventsDestroyResolvedName && $eventIdValue !== '') ? route($eventsDestroyResolvedName, $eventIdValue) : '#';
+                                                $eventsDeleteFormId                 = 'events-delete-form-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+                                                $eventsDeleteLinkId                 = 'events-delete-link-'.($eventIdValue === '' ? 'x' : $eventIdValue);
+                                                $eventsDestroyGuardMessage          = Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), ViewsConstants::EVT, 'event_destroy_route_unavailable')
+                                                    ?? 'Delete Event route is unavailable. Please contact technical support or your domain administrator.';
+                                            @endphp
+
+                                            <div class="{{ VC::CD }} {{ VC::MB3 }} {{ VC::SNN }} {{ VC::BD }}">
+                                                <div class="{{ VC::PX3 }}">
+                                                    <div class="row {{ VC::ALC }}">
                                                         <div class="col ml-n2">
-                                                            <h5 class="text-sm mb-0 fc-event-title-container">
-                                                                <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::EVT.'.edit',$event->id) }}" data-ajax-popup="true" data-title="{{__('Edit Event')}}" class="fc-event-title text-primary">
-                                                                    {{$event->title}}
+                                                            <h5 class="text-sm {{ VC::MB0 }} fc-event-title-container">
+                                                                <a  id="{{ $eventsEditTitleLinkId }}"
+                                                                    href="{{ $eventsEditUrl }}"
+                                                                    data-size="lg"
+                                                                    data-url="{{ $eventsEditUrl }}"
+                                                                    data-guard-msg="{{ $eventsEditGuardMessage }}"
+                                                                    data-sv-localized="true"
+                                                                    data-ajax-popup="true"
+                                                                    data-title="{{ __('Edit Event') }}"
+                                                                    class="fc-event-title text-primary">
+                                                                    {{ $event->title }}
                                                                 </a>
-                                                            </h5><br>
+                                                            </h5>
+                                                            <br>
                                                             <p class="card-text small text-dark mt-0">
-                                                                {{__('Start Date : ')}}
-                                                                {{ $user?->dateFormat($event->start_date)}}<br>
-                                                                {{__('End Date : ')}}
-                                                                {{ $user?->dateFormat($event->end_date) }}
+                                                                {{ __('Start Date : ') }} {{ $user?->dateFormat($event->start_date) }}<br>
+                                                                {{ __('End Date : ') }} {{ $user?->dateFormat($event->end_date) }}
                                                             </p>
                                                         </div>
-                                                        <div class="col-auto text-right">
-                                                            <div class="action-btn bg-primary ms-2">
-                                                                <a href="#" data-url="{{ route(ViewsConstants::EVT.'.edit',$event->id) }}" data-title="{{__('Edit Event')}}" data-ajax-popup="true" class="mx-3 btn btn-sm  align-items-center" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}"><i class="{{ VC::TI_PC_WT }}"></i></a>
+
+                                                        <div class="col-auto text-right {{ VC::DFL }}">
+                                                            <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                                <a  id="{{ $eventsEditIconLinkId }}"
+                                                                    href="{{ $eventsEditUrl }}"
+                                                                    data-url="{{ $eventsEditUrl }}"
+                                                                    data-guard-msg="{{ $eventsEditGuardMessage }}"
+                                                                    data-sv-localized="true"
+                                                                    data-title="{{ __('Edit Event') }}"
+                                                                    data-ajax-popup="true"
+                                                                    class="{{ VC::BT_SM_CT }}"
+                                                                    data-bs-toggle="tooltip"
+                                                                    title="{{ __('Edit') }}"
+                                                                    data-original-title="{{ __('Edit') }}">
+                                                                    <i class="{{ VC::TI_PC_WT }}"></i>
+                                                                </a>
                                                             </div>
 
-                                                            <div class="action-btn bg-danger ms-2">
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::EVT.'.destroy', $event->id],'id'=>'delete-form-'.$event->id]) !!}
-                                                                <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$event->id}}').submit();"><i class="ti ti-trash text-white"></i></a>
+                                                            <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                                {!! Collective\Html\FormFacade::open([
+                                                                    'method'            => 'DELETE',
+                                                                    'url'               => $eventsDestroyUrl,
+                                                                    'id'                => $eventsDeleteFormId,
+                                                                    'data-url'          => $eventsDestroyUrl,
+                                                                    'data-guard-msg'    => $eventsDestroyGuardMessage,
+                                                                    'data-sv-localized' => 'true',
+                                                                ]) !!}
+                                                                    <a  id="{{ $eventsDeleteLinkId }}"
+                                                                        href="#"
+                                                                        class="{{ VC::BT_SM_CT_PR }}"
+                                                                        data-bs-toggle="tooltip"
+                                                                        title="{{ __('Delete') }}"
+                                                                        data-original-title="{{ __('Delete') }}"
+                                                                        data-confirm="{{ __(Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang ?? Utility::fetchUserLang(), 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                        data-confirm-yes="document.getElementById('{{ $eventsDeleteFormId }}').submit();">
+                                                                        <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                    </a>
                                                                 {!! Collective\Html\FormFacade::close() !!}
                                                             </div>
                                                         </div>
@@ -103,17 +186,12 @@
                                                 </div>
                                             </div>
                                         @empty
-                                            <tr>
-                                                <td colspan="4">
-                                                    <div class="text-center">
-                                                        <h6>{{__('There is no event in this month')}}</h6>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            <div class="text-center">
+                                                <h6>{{ __('There is no event in this month') }}</h6>
+                                            </div>
                                         @endforelse
                                     @else
-                                        <div class="text-center">
-                                        </div>
+                                        <div class="text-center"></div>
                                     @endif
                                 </div>
                             </div>
@@ -124,8 +202,8 @@
         </div>
     </div>
 @endsection
-
 @push(StacksConstants::ADM_SCR_PG)
+  <script defer src="{{ asset('assets/js/routes/events/index.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/main.min.js') }}"></script>
     <script async src="{{ asset('assets/js/routes/events/lang/calendar.js') }}"></script>
     <script defer>
@@ -240,7 +318,7 @@
         
           const getDepartment = bid => {
             try {
-              const url = '{{ route("event.getdepartment") }}';
+              const url = '{{ route(VW::EVT .".getdepartment") }}';
               if (!url) throw 0;
               $.ajax({
                 url,

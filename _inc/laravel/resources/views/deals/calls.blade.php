@@ -4,10 +4,10 @@
         ViewsConstants,
         ViewClassNamesConstants as VC,
     };
-    use App\Models\Utility;
+    use App\Models\{User, UserDeal, Utility};
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    use Illuminate\Support\{Collection, Str};
     $lang = Utility::fetchUserLang();
 @endphp
 @push('css-page')
@@ -72,7 +72,7 @@
         </script>
     @endpush
     {!! Form::model($call, [
-        'route'           => $updateCallRoute,
+        'route'         => $updateCallRoute,
         'method'        => 'PUT',
         'id'            => 'update-call-form-' . $call->id,
         'data-url'      => $updateCallRoute,
@@ -90,44 +90,7 @@
         ) ?? 'Call store route is unavailable. Please contact technical support or your domain administrator.';
     @endphp
     @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('deal-call-store-form');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', e => {
-                try {
-                    const action = form.getAttribute('action') ?? '#';
-                    if (action !== '#') return;
-                    e.preventDefault();
-                    const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch {}
-            });
-        })();
-    </script>
+        <script defer src="{{ asset('assets/js/routes/deals/store.js') }}"></script>
     @endpush
     {{ Form::open([
         'route'            => $storeRoute,
@@ -231,12 +194,23 @@
             <div class="col-6 {{ VC::FM_G }}">
                 {{ Form::label('user_id', __('Assignee'), ['class' => VC::FM_LB]) }}
                 <select name="user_id" id="choices-multiple2" class="{{ VC::FM_CT }} select2" required>
-                    @foreach($users as $usr)
-                        <option value="{{ $usr->getDealUser->id }}"
-                            @if(isset($call->user_id) && $call->user_id == $usr->getDealUser->id) selected @endif>
-                            {{ $usr->getDealUser->name }}
-                        </option>
-                    @endforeach
+                    @if((is_array($users) && count($users)) || ($users instanceof Collection && $users->isNotEmpty()))
+                        @foreach($users as $usr)
+                            @php
+                                $isUsrDeal = $usr instanceof UserDeal && method_exists($usr, 'getDealUser');
+                                if ($isUsrDeal) $dealUser = $usr->getDealUser();
+                                else if ($user instanceof User) $dealUser = $usr;
+                                else $dealUser = null;
+                                if (!$dealUser || !isset($dealUser->id)) continue;
+                            @endphp
+                            <option value="{{ $dealUser->id }}"
+                                @if(isset($call->user_id) && $call->user_id == $dealUser->id) selected @endif>
+                                {{ !empty($dealUser->name) ? $dealUser->name : __('User name not found') }}
+                            </option>
+                        @endforeach
+                    @else
+                        <option value="">{{ __('No Users Found') }}</option>
+                    @endif
                 </select>
             </div>
             <div class="col-12 {{ VC::FM_G }}">

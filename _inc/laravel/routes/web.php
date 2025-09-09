@@ -892,9 +892,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::resource(VW::DOC, DocumentController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource(VW::BRC, BranchController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    // Hrm EmployeeController
-
-    Route::get(VW::EMP . '/salary/{eid}', [SetSalaryController::class, 'employeeBasicSalary'])->name(VW::EMP . '.salary.basic')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= HRM For Salary ====================================//
+    #region
+    Route::get(VW::EMP . '/salary/{eid}', [SetSalaryController::class, SetSalaryController::EMP_SL_BASIC])->name(VW::EMP . '.salary.basic')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //================================= Payslips ====================================//
 
@@ -976,9 +977,6 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post(VW::ANC . '/getemployee', [AnnouncementController::class, 'getemployee'])->name(VW::ANC . '.getemployee');
     Route::resource('announcement', AnnouncementController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
-    Route::resource(VW::HLD, HolidayController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('holiday-calendar', [HolidayController::class, 'calendar'])->name(VW::HLD . '.calendar');
-
     // Recruitement
 
     Route::resource('job-category', JobCategoryController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1010,7 +1008,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     Route::resource('custom-question', CustomQuestionController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::resource('interview-schedule', InterviewScheduleController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('interview-schedule/create/{id?}', [InterviewScheduleController::class, 'create'])->name(VW::ITV_SCD . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::ITV_SCD . '/create/{id?}', [InterviewScheduleController::class, 'create'])->name(VW::ITV_SCD . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('task-board/{view?}', [ProjectTaskController::class, ProjectTaskController::TSK_BD])->name(VW::TSKB . '.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('task-board-view', [ProjectTaskController::class, ProjectTaskController::TSK_BD_VW])->name(VW::PRJ . '.taskboard.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
@@ -1025,8 +1023,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::RPT . '/leave', [ReportController::class, 'leave'])->name(VW::RPT . '.leave')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::EMP . '/{id}/leave/{status}/{type}/{month}/{year}', [ReportController::class, 'employeeLeave'])->name(VW::RPT . '.employee.leave')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::LV . '/{id}/action', [LeaveController::class, 'action'])->name(VW::LV . '.action')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::LV . '/changeaction', [LeaveController::class, 'changeaction'])->name(VW::LV . '.change_action')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::LV . '/jsoncount', [LeaveController::class, 'jsoncount'])->name(VW::LV . '.jsoncount')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::LV . '/changeaction', [LeaveController::class, LeaveController::CHG_ACT])->name(VW::LV . '.change_action')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::LV . '/jsoncount', [LeaveController::class, LeaveController::JSON_CT])->name(VW::LV . '.jsoncount')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::resource('leave', LeaveController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
@@ -1444,10 +1442,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     // Time-Tracker
     Route::post('stop-tracker', [DashboardController::class, DashboardController::STP_TRK])->name('stop.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('time-tracker', [TimeTrackerController::class, 'index'])->name('time.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::TMT, [TimeTrackerController::class, 'index'])->name('time.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::delete('tracker/{tid}/destroy', [TimeTrackerController::class, 'destroy'])->name(VW::TMT . '.destroy');
-    Route::post('tracker/image-view', [TimeTrackerController::class, 'getTrackerImages'])->name(VW::TMT . '.image.view');
-    Route::delete('tracker/image-remove', [TimeTrackerController::class, 'removeTrackerImages'])->name(VW::TMT . '.image.remove');
+    Route::post('tracker/image-view', [TimeTrackerController::class, TimeTrackerController::GET_TRT_IMG])->name(VW::TMT . '.image.view');
+    Route::delete('tracker/image-remove', [TimeTrackerController::class, TimeTrackerController::RM_TRT_IMG])->name(VW::TMT . '.image.remove');
     Route::get(VW::PRJ . '/time-tracker/{id}', [ProjectController::class, 'tracker'])->name(VW::PRJ . '.time.tracker')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Zoom Meeting
@@ -1631,8 +1629,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //Project Reports
 
     Route::resource('/project_report', ProjectReportController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENTED
     Route::post('/project_report_data', [ProjectReportController::class, 'ajax_data'])->name(VW::PRJ . '.ajax')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENTED
     Route::post('/project_report/tasks/{id}', [ProjectReportController::class, 'ajax_tasks_report'])->name('tasks.report.ajaxdata')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('export/task_report/{id}', [ProjectReportController::class, 'export'])->name('project_report.export');
@@ -1648,8 +1648,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::post(VW::SET . '/google-calendar', [SystemController::class, 'saveGooglecalendarSettings'])->name(VW::SET . 'google.calendar');
-    Route::any('holiday/get_holiday_data', [HolidayController::class, 'get_holiday_data'])->name(VW::HLD . '.get_holiday_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::any('interview-schedule/get_interview_data', [InterviewScheduleController::class, 'get_interview_data'])->name(VW::HLD . '.get_interview_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::any(VW::HLD . '/data', [HolidayController::class, HolidayController::GET_HL_D])->name(VW::HLD . '.get_holiday_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::HLD, HolidayController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('holiday-calendar', [HolidayController::class, 'calendar'])->name(VW::HLD . '.calendar');
+    Route::any(VW::ITV_SCD . '/data', [InterviewScheduleController::class, InterviewScheduleController::GET_ITV_D])->name(VW::ITV_SCD . '.get_interview_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('calendar/get_task_data', [ProjectTaskController::class, ProjectTaskController::GET_TSK_D])->name(VW::PRJ_TSK_C . '.calendar.get_task_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::any('zoom-meeting/get_zoom_meeting_data', [ZoomMeetingController::class, ZoomMeetingController::GET_ZMM_D])->name(VW::ZMM . '.get_zoom_meeting_data')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 

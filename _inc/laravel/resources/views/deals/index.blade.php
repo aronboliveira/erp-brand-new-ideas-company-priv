@@ -1,18 +1,21 @@
 @php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
+        PermissionsConstants,
         StacksConstants,
+        UsersConstants,
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth,Route};
+    use Illuminate\Support\Collection;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Deals')}} @if($pipeline) - {{$pipeline->name}} @endif
+    {{__('Manage Deals')}} @if($pipeline && $pipeline->name) - {{$pipeline->name}} @else {{ __('No name for pipeline available') }} @endif
 @endsection
 @push(StacksConstants::ADM_CSS)
     <link rel="stylesheet" href="{{ asset('css/summernote/summernote-bs4.css') }}">
@@ -21,208 +24,128 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('css/summernote/summernote-bs4.js') }}"></script>
     <script defer src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-          ar: {
-            deals_order_failed: 'فشل ترتيب الصفقات.',
-            pipeline_change_failed: 'فشل تغيير مسار العملية.'
-          },
-          da: {
-            deals_order_failed: 'Kunne ikke sortere handler.',
-            pipeline_change_failed: 'Kunne ikke ændre pipeline.'
-          },
-          de: {
-            deals_order_failed: 'Reihenfolge der Deals konnte nicht gespeichert werden.',
-            pipeline_change_failed: 'Pipeline konnte nicht gewechselt werden.'
-          },
-          en: {
-            deals_order_failed: 'Failed to reorderViewsConstants::DL. .',
-            pipeline_change_failed: 'Failed to change pipeline.'
-          },
-          es: {
-            deals_order_failed: 'Error al reordenar las ofertas.',
-            pipeline_change_failed: 'Error al cambiar el pipeline.'
-          },
-          fr: {
-            deals_order_failed: 'Échec du réordonnancement des transactions.',
-            pipeline_change_failed: 'Échec du changement de pipeline.'
-          },
-          he: {
-            deals_order_failed: 'עדכון סדר העסקאות נכשל.',
-            pipeline_change_failed: 'שינוי הצנרת נכשל.'
-          },
-          it: {
-            deals_order_failed: 'Ripristino ordine offerte non riuscito.',
-            pipeline_change_failed: 'Impossibile cambiare pipeline.'
-          },
-          ja: {
-            deals_order_failed: '取引の並び替えに失敗しました。',
-            pipeline_change_failed: 'パイプラインの変更に失敗しました。'
-          },
-          nl: {
-            deals_order_failed: 'Kon deals niet opnieuw ordenen.',
-            pipeline_change_failed: 'Kon pipeline niet wijzigen.'
-          },
-          pl: {
-            deals_order_failed: 'Nie udało się zmienić kolejności transakcji.',
-            pipeline_change_failed: 'Nie udało się zmienić pipeline.'
-          },
-          pt: {
-            deals_order_failed: 'Falha ao reordenar negócios.',
-            pipeline_change_failed: 'Falha ao alterar pipeline.'
-          },
-          'pt-br': {
-            deals_order_failed: 'Falha ao reordenar negócios.',
-            pipeline_change_failed: 'Falha ao alterar pipeline.'
-          },
-          ru: {
-            deals_order_failed: 'Не удалось изменить порядок сделок.',
-            pipeline_change_failed: 'Не удалось сменить воронку.'
-          },
-          tr: {
-            deals_order_failed: 'Anlaşmaların sıralaması yapılamadı.',
-            pipeline_change_failed: 'Pipeline değiştirilemedi.'
-          },
-          zh: {
-            deals_order_failed: '重新排序交易失败。',
-            pipeline_change_failed: '更改管道失败。'
-          }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/deals/lang/index.js') }}"></script>
     <script defer>
         (() => {
-        const ERR_FB = '# ERROR';
-        const FL_CLIENT = 'data-client-localized';
-        const FL_GUARD  = 'data-guard-msg';
-        const LANG_KEY  = 'erp-np-lang';
-        let errorMessage = '';
-        
-        const getMsg = (key, el) => {
-            let msg = ERR_FB;
-            if (el.getAttribute(FL_CLIENT) === 'true') {
-            msg = el.getAttribute(FL_GUARD) || msg;
-            } else {
-            let lang = (sessionStorage.getItem(LANG_KEY) || document.documentElement.lang || 'en')
-                .toLowerCase().replace(/_/g,'-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-            msg = translations?.[lang]?.[key]
-                ?? el.getAttribute(FL_GUARD)
-                ?? translations?.['en']?.[key]
-                ?? msg;
-            if (msg !== ERR_FB) {
-                el.setAttribute(FL_GUARD, msg);
-                el.setAttribute(FL_CLIENT, 'true');
-            }
-            }
-            return msg;
-        };
-        
-        const showError = message => {
-            try {
-            let c = document.getElementById('toast-container');
-            if (!c) {
-                c = document.createElement('div');
-                c.id = 'toast-container';
-                document.body.appendChild(c);
-            }
-            const bs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-            if (bs) {
-                const t = document.createElement('div');
-                t.className = 'toast';
-                t.setAttribute('role','alert');
-                t.setAttribute('aria-live','assertive');
-                t.setAttribute('aria-atomic','true');
-                const b = document.createElement('div');
-                b.className = 'toast-body';
-                b.textContent = message;
-                t.appendChild(b);
-                c.appendChild(t);
-                bootstrap.Toast.getOrCreateInstance(t).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        };
-        
-        const onUp = () => {
-            if (errorMessage) {
-            showError(errorMessage);
-            errorMessage = '';
-            }
-        };
-        document.addEventListener('pointerup', onUp);
-        new MutationObserver((m, obs) => {
-            m.forEach(mut => Array.from(mut.removedNodes).forEach(n => {
-            if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onUp);
-                obs.disconnect();
-            }
-            }));
-        }).observe(document.body,{ childList:true, subtree:true });
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-            $('[data-plugin="dragula"]').each(function() {
-                const $el = $(this);
-                const containers = $el.data('containers');
-                const els = containers
-                ? containers.map(id => document.getElementById(id)).filter(Boolean)
-                : [this];
-                const handle = $el.data('handleclass');
-                const drake = handle
-                ? dragula(els, { moves: (el, s, handleEl) => handleEl.classList.contains(handle) })
-                : dragula(els);
-                drake.on('drop', (el, target, source) => {
-                try {
-                    const order = Array.from(target.children).map((d,i) => d.getAttribute('data-id'));
-                    const id = el.getAttribute('data-id');
-                    const old_status = source.dataset.status;
-                    const new_status = target.dataset.status;
-                    const stage_id = target.getAttribute('data-id');
-                    const pipeline_id = '{{ $pipeline->id }}';
-                    $(source).parent().find('.count').text(source.children.length);
-                    $(target).parent().find('.count').text(target.children.length);
-                    $.ajax({
-                    url: '{{ route(ViewsConstants::DL.".order") }}',
-                    type: 'POST',
-                    data: { deal_id:id, stage_id, order, new_status, old_status, pipeline_id,
-                            _token: $('meta[name="csrf-token"]').attr('content') },
-                    })
-                    .fail(() => { throw new Error('deals_order_failed'); });
-                } catch (e) {
-                    errorMessage = getMsg(e.message, document.body);
+            const ERR_FB = '# ERROR';
+            const FL_CLIENT = 'data-client-localized';
+            const FL_GUARD  = 'data-guard-msg';
+            const LANG_KEY  = 'erp-np-lang';
+            let errorMessage = '';
+            
+            const getMsg = (key, el) => {
+                let msg = ERR_FB;
+                if (el.getAttribute(FL_CLIENT) === 'true') {
+                msg = el.getAttribute(FL_GUARD) || msg;
+                } else {
+                let lang = (sessionStorage.getItem(LANG_KEY) || document.documentElement.lang || 'en')
+                    .toLowerCase().replace(/_/g,'-');
+                lang = lang === 'pt-br' ? lang : lang.slice(0,2);
+                msg = translations?.[lang]?.[key]
+                    ?? el.getAttribute(FL_GUARD)
+                    ?? translations?.['en']?.[key]
+                    ?? msg;
+                if (msg !== ERR_FB) {
+                    el.setAttribute(FL_GUARD, msg);
+                    el.setAttribute(FL_CLIENT, 'true');
                 }
-                });
-            });
-            } catch {
-            errorMessage = getMsg('deals_order_failed', document.body);
-            }
-            const pipelineSelect = document.getElementById('default_pipeline_id');
-            if (pipelineSelect) {
-            pipelineSelect.addEventListener('change', () => {
+                }
+                return msg;
+            };
+            
+            const showError = message => {
                 try {
-                document.getElementById('change-pipeline').submit();
+                let c = document.getElementById('toast-container');
+                if (!c) {
+                    c = document.createElement('div');
+                    c.id = 'toast-container';
+                    document.body.appendChild(c);
+                }
+                const bs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
+                if (bs) {
+                    const t = document.createElement('div');
+                    t.className = 'toast';
+                    t.setAttribute('role','alert');
+                    t.setAttribute('aria-live','assertive');
+                    t.setAttribute('aria-atomic','true');
+                    const b = document.createElement('div');
+                    b.className = 'toast-body';
+                    b.textContent = message;
+                    t.appendChild(b);
+                    c.appendChild(t);
+                    bootstrap.Toast.getOrCreateInstance(t).show();
+                } else {
+                    alert(message);
+                }
                 } catch {
-                errorMessage = getMsg('pipeline_change_failed', pipelineSelect);
+                alert(message);
+                }
+            };
+            
+            const onUp = () => {
+                if (errorMessage) {
+                showError(errorMessage);
+                errorMessage = '';
+                }
+            };
+            document.addEventListener('pointerup', onUp);
+            new MutationObserver((m, obs) => {
+                m.forEach(mut => Array.from(mut.removedNodes).forEach(n => {
+                if (n === document.documentElement) {
+                    document.removeEventListener('pointerup', onUp);
+                    obs.disconnect();
+                }
+                }));
+            }).observe(document.body,{ childList:true, subtree:true });
+            
+            document.addEventListener('DOMContentLoaded', () => {
+                try {
+                $('[data-plugin="dragula"]').each(function() {
+                    const $el = $(this);
+                    const containers = $el.data('containers');
+                    const els = containers
+                    ? containers.map(id => document.getElementById(id)).filter(Boolean)
+                    : [this];
+                    const handle = $el.data('handleclass');
+                    const drake = handle
+                    ? dragula(els, { moves: (el, s, handleEl) => handleEl.classList.contains(handle) })
+                    : dragula(els);
+                    drake.on('drop', (el, target, source) => {
+                    try {
+                        const order = Array.from(target.children).map((d,i) => d.getAttribute('data-id'));
+                        const id = el.getAttribute('data-id');
+                        const old_status = source.dataset.status;
+                        const new_status = target.dataset.status;
+                        const stage_id = target.getAttribute('data-id');
+                        const pipeline_id = '{{ $pipeline->id }}';
+                        $(source).parent().find('.count').text(source.children.length);
+                        $(target).parent().find('.count').text(target.children.length);
+                        $.ajax({
+                        url: '{{ route(ViewsConstants::DL.".order") }}',
+                        type: 'POST',
+                        data: { deal_id:id, stage_id, order, new_status, old_status, pipeline_id,
+                                _token: $('meta[name="csrf-token"]').attr('content') },
+                        })
+                        .fail(() => { throw new Error('deals_order_failed'); });
+                    } catch (e) {
+                        errorMessage = getMsg(e.message, document.body);
+                    }
+                    });
+                });
+                } catch {
+                errorMessage = getMsg('deals_order_failed', document.body);
+                }
+                const pipelineSelect = document.getElementById('default_pipeline_id');
+                if (pipelineSelect) {
+                pipelineSelect.addEventListener('change', () => {
+                    try {
+                    document.getElementById('change-pipeline').submit();
+                    } catch {
+                    errorMessage = getMsg('pipeline_change_failed', pipelineSelect);
+                    }
+                });
                 }
             });
-            }
-        });
         })();
     </script>
 @endpush
@@ -276,18 +199,16 @@ Object.keys(t).forEach(
                 'data-guard-msg' => $changeGuardMsg
             ]) }}
         @endif
-
         {{ Form::select(
             'default_pipeline_id',
-            $pipelines,
-            $pipeline->id,
+            @if((is_array($pipelines) && count($pipelines)) || $pipelines instanceof Collection && $pipelines->isNotEmpty()) $pipelines @else [__('No pipelines available')] @endif,
+            @if(!empty($pipeline) && isset($pipeline->id)) $pipeline->id @else '# Unidentified pipeline' @endif,
             [
                 'class' => VC::FM_CT . ' select me-4',
                 'id'    => 'default_pipeline_id'
             ]
         ) }}
         {{ Form::close() }}
-
         <a
             id="deal-list-btn"
             href="{{ $hasList ? route($listName) : '#' }}"
@@ -318,123 +239,19 @@ Object.keys(t).forEach(
     </div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('change-pipeline-form');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', e => {
-                try {
-                    const action = form.getAttribute('action') ?? '#';
-                    if (action !== '#') return;
-                    e.preventDefault();
-                    const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch {}
-            });
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const btn = document.getElementById('deal-list-btn');
-            if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-            btn.setAttribute('data-listener-active', 'true');
-            btn.addEventListener('click', e => {
-                try {
-                    const url = btn.getAttribute('data-url') ?? '#';
-                    if (url !== '#') return;
-                    e.preventDefault();
-                    const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    btn.setAttribute('data-failed-route', 'true');
-                } catch {}
-            });
-        })();
-    </script>
-    <script defer>
-        (() => {
-            const btn = document.getElementById('deal-create-btn');
-            if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-            btn.setAttribute('data-listener-active', 'true');
-            btn.addEventListener('click', e => {
-                try {
-                    const url = btn.getAttribute('data-url') ?? '#';
-                    if (url !== '#') return;
-                    e.preventDefault();
-                    const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    btn.setAttribute('data-failed-route', 'true');
-                } catch {}
-            });
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/deals/pipelines/change.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/deals/list.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/deals/create.js') }}"></script>
 @endpush
-@endsection
 @section(YieldingConstants::ADM_CTT)
+    @php
+        $totals = is_array($cnt_deal ?? null) ? $cnt_deal : [];
+        $isPriceFormatAvailable = method_exists($user, 'priceFormat');
+        $stages = ($pipeline->stages ?? collect());
+        $containers = [];
+        foreach ($stages as $s) { $containers[] = 'task-list-'.$s->id; }
+    @endphp
+
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CS3 }}">
             <div class="{{ VC::CD }}">
@@ -442,7 +259,7 @@ Object.keys(t).forEach(
                     <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB_SM0 }}">
                             <small class="{{ VC::TXT_MT }}">{{ __('Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ $cnt_deal['total'] }}</h4>
+                            <h4 class="{{ VC::MB0 }}">{{ $totals['total'] ?? 0 }}</h4>
                         </div>
                         <div class="{{ VC::C_AT }}">
                             <div class="theme-avatar bg-info">
@@ -453,13 +270,14 @@ Object.keys(t).forEach(
                 </div>
             </div>
         </div>
+
         <div class="{{ VC::CS3 }}">
             <div class="{{ VC::CD }}">
                 <div class="{{ VC::CD }}-body">
                     <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB_SM0 }}">
                             <small class="{{ VC::TXT_MT }}">{{ __('This Month Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ $cnt_deal['this_month'] }}</h4>
+                            <h4 class="{{ VC::MB0 }}">{{ $totals['this_month'] ?? 0 }}</h4>
                         </div>
                         <div class="{{ VC::C_AT }}">
                             <div class="theme-avatar bg-primary">
@@ -470,13 +288,14 @@ Object.keys(t).forEach(
                 </div>
             </div>
         </div>
+
         <div class="{{ VC::CS3 }}">
             <div class="{{ VC::CD }}">
                 <div class="{{ VC::CD }}-body">
                     <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB_SM0 }}">
                             <small class="{{ VC::TXT_MT }}">{{ __('This Week Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ $cnt_deal['this_week'] }}</h4>
+                            <h4 class="{{ VC::MB0 }}">{{ $totals['this_week'] ?? 0 }}</h4>
                         </div>
                         <div class="{{ VC::C_AT }}">
                             <div class="theme-avatar bg-warning">
@@ -487,13 +306,14 @@ Object.keys(t).forEach(
                 </div>
             </div>
         </div>
+
         <div class="{{ VC::CS3 }}">
             <div class="{{ VC::CD }}">
                 <div class="{{ VC::CD }}-body">
                     <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                         <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB_SM0 }}">
                             <small class="{{ VC::TXT_MT }}">{{ __('Last 30 Days Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ $cnt_deal['last_30days'] }}</h4>
+                            <h4 class="{{ VC::MB0 }}">{{ $totals['last_30days'] ?? 0 }}</h4>
                         </div>
                         <div class="{{ VC::C_AT }}">
                             <div class="theme-avatar bg-danger">
@@ -505,344 +325,353 @@ Object.keys(t).forEach(
             </div>
         </div>
     </div>
+
     <div class="{{ VC::RW }}">
-        @php
-            $stages = $pipeline->stages;
-            $json = [];
-            foreach ($stages as $stage){
-                $json[] = 'task-list-'.$stage->id;
-            }
-        @endphp
-        <div class="row kanban-wrapper horizontal-scroll-cards" data-containers='{!! json_encode($json) !!}' data-plugin="dragula">
-            @foreach($stages as $stage)
-                @php($deals = $stage->deals())
-                <div class="{{ VC::C_AT }}">
-                    <div class="{{ VC::CD }}">
-                        <div class="{{ VC::CD }}-header">
-                            <div class="{{ VC::FEND }}">
-                                <span class="{{ VC::BT_SM_PM }} btn-icon count">
-                                    {{ count($deals) }}
-                                </span>
+        <div class="row kanban-wrapper horizontal-scroll-cards"
+             data-containers='@json($containers)'
+             data-plugin="dragula">
+            @if ((is_array($stages) && count($stages)) || ($stages instanceof Collection && $stages->isNotEmpty()))
+                @php
+                    $isPriceFormatAvailable = method_exists($user ?? null, 'priceFormat');
+                @endphp
+                @foreach($stages as $stage)
+                    @php
+                        $stageId   = isset($stage->id) ? $stage->id : uniqid('stage_');
+                        $stageName = !empty($stage->name) ? $stage->name : __('Untitled Stage');
+                        $dealsRaw = method_exists($stage, 'deals') ? ($stage->deals() ?? []) : [];
+                        $deals    = (is_array($dealsRaw) && count($dealsRaw) > 0)
+                                    || ($dealsRaw instanceof Collection && $dealsRaw->isNotEmpty())
+                                    ? $dealsRaw
+                                    : [];
+                    @endphp
+                    <div class="{{ VC::C_AT }}">
+                        <div class="{{ VC::CD }}">
+                            <div class="{{ VC::CD }}-header">
+                                <div class="{{ VC::FEND }}">
+                                    <span class="{{ VC::BT_SM_PM }} btn-icon count">{{ is_countable($deals) ? count($deals) : 0 }}</span>
+                                </div>
+                                <h4 class="{{ VC::MB0 }}">{{ $stageName }}</h4>
                             </div>
-                            <h4 class="{{ VC::MB0 }}">{{ $stage->name }}</h4>
-                        </div>
-                        <div class="{{ VC::CD }}-body kanban-box" id="task-list-{{ $stage->id }}" data-id="{{ $stage->id }}">
-                            @foreach($deals as $deal)
-                                <div class="{{ VC::CD }}" data-id="{{ $deal->id }}">
-                                    <div class="{{ VC::PT3 }} {{ VC::PS3 }}">
-                                        @foreach($deal->labels() as $label)
-                                            <div class="badge-xs badge bg-{{ $label->color }} {{ VC::P4 }} {{ VC::PX3 }} {{ VC::PY2 }}">{{ $label->name }}</div>
-                                        @endforeach
-                                    </div>
-                                    <div class="{{ VC::CD }}-header border-0 pb-0 position-relative">
-                                        <h5>
-                                            @php
-                                                $namespace    = ViewsConstants::DL;
-                                                $routeName    = "{$namespace}.show";
-                                                $showRoute    = Route::has($routeName) && $deal->is_active
-                                                    ? route($routeName, $deal->id)
-                                                    : '#';
-                                                $showGuardMsg = Utility::fetchLinkMessage(
-                                                    $lang,
-                                                    $namespace,
-                                                    'deal_show_route_unavailable'
-                                                ) ?? 'Deal show route is unavailable. Please contact technical support or your domain administrator.';
-                                            @endphp
-                                            <a
-                                                id="deal-show-btn-{{ $deal->id }}"
-                                                href="{{ $showRoute }}"
-                                                data-url="{{ $showRoute }}"
-                                                data-guard-msg="{{ $showGuardMsg }}"
-                                                class="{{ VC::BT_OUTPM }}"
-                                            >
-                                                {{ $deal->name }}
-                                            </a>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const btn = document.getElementById('deal-show-btn-{{ $deal->id }}');
-                                                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                        btn.setAttribute('data-listener-active', 'true');
-                                                        btn.addEventListener('click', e => {
-                                                            try {
-                                                                const url = btn.getAttribute('data-url') ?? '#';
-                                                                if (url !== '#') return;
-                                                                e.preventDefault();
-                                                                const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                let container = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bs) {
-                                                                    const toast = document.createElement('div');
-                                                                    toast.className = 'toast';
-                                                                    toast.setAttribute('role','alert');
-                                                                    toast.setAttribute('aria-live','assertive');
-                                                                    toast.setAttribute('aria-atomic','true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toast.appendChild(body);
-                                                                    container.appendChild(toast);
-                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                btn.setAttribute('data-failed-route', 'true');
-                                                            } catch {}
-                                                        });
-                                                    })();
-                                                </script>
-                                            @endpush
-                                        </h5>
-                                        <div class="{{ VC::CD }}-header-right">
-                                            @if($user?->type != 'client')
-                                                <div class="btn-group card-option">
-                                                    <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                                                        <i class="{{ VC::TD_DOTV }}"></i>
-                                                    </button>
-                                                    <div class="{{ VC::DRP_MN_EM }}">
-                                                        @can('edit deal')
-                                                            @php
-                                                                $ns                = ViewsConstants::DL;
-                                                                $labelsRouteName   = "{$ns}.labels";
-                                                                $labelsRoute       = Route::has($labelsRouteName)
-                                                                    ? route($labelsRouteName, $deal->id)
-                                                                    : '#';
-                                                                $labelsGuardMsg    = Utility::fetchLinkMessage($lang, $ns, 'deals_labels_route_unavailable')
-                                                                    ?? 'Deal labels route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $editRouteName     = "{$ns}.edit";
-                                                                $editRoute         = Route::has($editRouteName)
-                                                                    ? route($editRouteName, $deal->id)
-                                                                    : '#';
-                                                                $editGuardMsg      = Utility::fetchLinkMessage($lang, $ns, 'deals_edit_route_unavailable')
-                                                                    ?? 'Deal edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
-                                                            <a
-                                                                id="deal-labels-btn-{{ $deal->id }}"
-                                                                href="{{ $labelsRoute }}"
-                                                                data-url="{{ $labelsRoute }}"
-                                                                data-guard-msg="{{ $labelsGuardMsg }}"
-                                                                data-size="md"
-                                                                data-ajax-popup="true"
-                                                                class="dropdown-item"
-                                                            >
-                                                                <i class="ti ti-bookmark"></i> <span>{{ __('Labels') }}</span>
-                                                            </a>
-                                                            <a
-                                                                id="deal-edit-btn-{{ $deal->id }}"
-                                                                href="{{ $editRoute }}"
-                                                                data-url="{{ $editRoute }}"
-                                                                data-guard-msg="{{ $editGuardMsg }}"
-                                                                data-size="lg"
-                                                                data-ajax-popup="true"
-                                                                class="dropdown-item"
-                                                            >
-                                                                <i class="{{ VC::TI_PC }}"></i> <span>{{ __('Edit') }}</span>
-                                                            </a>
-                                                            @push(StacksConstants::ADM_SCR_PG)
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const btn = document.getElementById('deal-labels-btn-{{ $deal->id }}');
-                                                                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                                        btn.setAttribute('data-listener-active','true');
-                                                                        btn.addEventListener('click', e => {
-                                                                            try {
-                                                                                const url = btn.getAttribute('data-url') ?? '#';
-                                                                                if (url !== '#') return;
-                                                                                e.preventDefault();
-                                                                                const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bs) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role','alert');
-                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                btn.setAttribute('data-failed-route','true');
-                                                                            } catch {}
-                                                                        });
-                                                                    })();
-                                                                </script>
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const btn = document.getElementById('deal-edit-btn-{{ $deal->id }}');
-                                                                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                                        btn.setAttribute('data-listener-active','true');
-                                                                        btn.addEventListener('click', e => {
-                                                                            try {
-                                                                                const url = btn.getAttribute('data-url') ?? '#';
-                                                                                if (url !== '#') return;
-                                                                                e.preventDefault();
-                                                                                const msg = btn.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bs) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role','alert');
-                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                btn.setAttribute('data-failed-route','true');
-                                                                            } catch {}
-                                                                        });
-                                                                    })();
-                                                                </script>
-                                                            @endpush
-                                                        @endcan
-                                                        @can('delete deal')
-                                                            @php
-                                                                $routeKey           = ViewsConstants::DL . '.destroy';
-                                                                $kebabRouteKey      = Str::kebab($routeKey);
-                                                                $hasRoute           = Route::has($routeKey);
-                                                                $hasKebab           = Route::has($kebabRouteKey);
-                                                                $destroyRouteName   = $hasRoute
-                                                                    ? $routeKey
-                                                                    : ($hasKebab ? $kebabRouteKey : null);
-                                                                $destroyRouteArray  = $destroyRouteName
-                                                                    ? [$destroyRouteName, $deal->id]
-                                                                    : ['#'];
-                                                                $destroyRouteUrl    = $destroyRouteName
-                                                                    ? route($destroyRouteName, $deal->id)
-                                                                    : '#';
-                                                                $destroyGuardMsg    = Utility::fetchLinkMessage(
-                                                                    $lang,
-                                                                    ViewsConstants::DL,
-                                                                    'deal_destroy_route_unavailable'
-                                                                ) ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
-                                                            @endphp
-                                                            {!! Form::open([
-                                                                'route'  => $destroyRouteArray,
-                                                                'method' => 'DELETE',
-                                                                'id'     => 'delete-form-' . $deal->id
-                                                            ]) !!}
-                                                                <a
-                                                                    id="delete-deal-btn-{{ $deal->id }}"
-                                                                    href="{{ $destroyRouteUrl }}"
-                                                                    data-url="{{ $destroyRouteUrl }}"
-                                                                    data-guard-msg="{{ $destroyGuardMsg }}"
-                                                                    class="dropdown-item bs-pass-para"
-                                                                    data-bs-toggle="tooltip"
-                                                                    title="{{ __('Delete') }}"
-                                                                >
-                                                                    <i class="ti ti-archive"></i>
-                                                                    <span>{{ __('Delete') }}</span>
-                                                                </a>
-                                                            {!! Form::close() !!}
-                                                            @push(StacksConstants::ADM_SCR_PG)
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const btn = document.getElementById('delete-deal-btn-{{ $deal->id }}');
-                                                                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                                                                        btn.setAttribute('data-listener-active', 'true');
-                                                                        btn.addEventListener('click', e => {
-                                                                            try {
-                                                                                const url = btn.getAttribute('data-url') || '#';
-                                                                                if (url !== '#') return;
-                                                                                e.preventDefault();
-                                                                                const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                                                                const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                                                                let container = document.getElementById('toast-container');
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = 'toast-container';
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bs) {
-                                                                                    const toast = document.createElement('div');
-                                                                                    toast.className = 'toast';
-                                                                                    toast.setAttribute('role','alert');
-                                                                                    toast.setAttribute('aria-live','assertive');
-                                                                                    toast.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toast.appendChild(body);
-                                                                                    container.appendChild(toast);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                btn.setAttribute('data-failed-route', 'true');
-                                                                            } catch (error) {}
-                                                                        });
-                                                                    })();
-                                                                </script>
-                                                            @endpush
-                                                        @endcan
+                            <div class="{{ VC::CD }}-body kanban-box" id="task-list-{{ $stageId }}" data-id="{{ $stageId }}">
+                                @if(!empty($deals))
+                                    @foreach($deals as $deal)
+                                        @php
+                                            $dealId      = $deal->id ?? uniqid('deal_');
+                                            $dealName    = !empty($deal->name) ? $deal->name : __('(No name)');
+                                            $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
+                                            $labelsRaw   = method_exists($deal, 'labels')   ? ($deal->labels()   ?? []) : ($deal->labels   ?? []);
+                                            $labels   = (is_array($labelsRaw)   && count($labelsRaw))   || ($labelsRaw   instanceof Collection && $labelsRaw->isNotEmpty())   ? $labelsRaw   : [];
+                                            $productsRaw = method_exists($deal, 'products') ? ($deal->products() ?? []) : ($deal->products ?? []);
+                                            $products = (is_array($productsRaw) && count($productsRaw)) || ($productsRaw instanceof Collection && $productsRaw->isNotEmpty()) ? $productsRaw : [];
+                                            $sourcesRaw  = method_exists($deal, 'sources')  ? ($deal->sources()  ?? []) : ($deal->sources  ?? []);
+                                            $sources  = (is_array($sourcesRaw)  && count($sourcesRaw))  || ($sourcesRaw  instanceof Collection && $sourcesRaw->isNotEmpty())  ? $sourcesRaw  : [];
+                                            $dealUsers   = is_array($deal->users ?? null) || ($deal->users ?? null) instanceof \Countable
+                                                            ? ($deal->users ?? [])
+                                                            : [];
+                                            $tasks        = $deal->tasks         ?? [];
+                                            $complete     = $deal->completeTasks ?? [];
+                                            $tasksCount   = is_countable($tasks)   ? count($tasks)   : 0;
+                                            $completeCount= is_countable($complete)? count($complete): 0;
+                                            $namespace   = ViewsConstants::DL;
+                                            $showRoute   = (!empty($deal->is_active) && !empty($dealId)) ? route("{$namespace}.show", $dealId) : '#';
+                                            $showGuardMsg    = Utility::fetchLinkMessage($lang, $namespace, 'deal_show_route_unavailable')    ?? 'Deal show route is unavailable. Please contact technical support or your domain administrator.';
+                                            $labelsRoute = !empty($dealId) ? route("{$namespace}.labels", $dealId) : '#';
+                                            $labelsGuard     = Utility::fetchLinkMessage($lang, $namespace, 'deals_labels_route_unavailable') ?? 'Deal labels route is unavailable. Please contact technical support or your domain administrator.';
+                                        @endphp
+                                        <div class="{{ VC::CD }}" data-id="{{ $dealId }}">
+                                            <div class="{{ VC::PT3 }} {{ VC::PS3 }}">
+                                                @if(!empty($labels))
+                                                    @foreach($labels as $label)
+                                                        @php
+                                                            $lblColor = $label->color ?? 'secondary';
+                                                            $lblName  = $label->name  ?? __('Label');
+                                                        @endphp
+                                                        <div class="badge-xs badge bg-{{ $lblColor }} {{ VC::P4 }} {{ VC::PX3 }} {{ VC::PY2 }}">{{ $lblName }}</div>
+                                                    @endforeach
+                                                @else
+                                                    <div class="badge-xs badge bg-secondary {{ VC::P4 }} {{ VC::PX3 }} {{ VC::PY2 }}">{{ __('No Labels') }}</div>
+                                                @endif
+                                            </div>
+                                            <div class="{{ VC::CD }}-header border-0 pb-0 position-relative">
+                                                <h5>
+                                                    <a
+                                                        id="deal-show-btn-{{ $dealId }}"
+                                                        href="{{ $showRoute }}"
+                                                        data-url="{{ $showRoute }}"
+                                                        data-guard-msg="{{ $showGuardMsg }}"
+                                                        class="{{ VC::BT_OUTPM }}"
+                                                    >
+                                                        {{ $dealName }}
+                                                    </a>
+                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                        <script defer>
+                                                            (() => {
+                                                                const btn = document.getElementById('deal-show-btn-{{ $dealId }}');
+                                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                btn.setAttribute('data-listener-active', 'true');
+                                                                btn.addEventListener('click', e => {
+                                                                    try {
+                                                                        const url = (btn.getAttribute('data-url') || '#').trim();
+                                                                        if (url !== '#') return;
+                                                                        e.preventDefault();
+                                                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                        let container = document.getElementById('toast-container');
+                                                                        if (!container) {
+                                                                            container = document.createElement('div');
+                                                                            container.id = 'toast-container';
+                                                                            document.body.appendChild(container);
+                                                                        }
+                                                                        if (bs) {
+                                                                            const toast = document.createElement('div');
+                                                                            toast.className = 'toast';
+                                                                            toast.setAttribute('role','alert');
+                                                                            toast.setAttribute('aria-live','assertive');
+                                                                            toast.setAttribute('aria-atomic','true');
+                                                                            const body = document.createElement('div');
+                                                                            body.className = 'toast-body';
+                                                                            body.textContent = msg;
+                                                                            toast.appendChild(body);
+                                                                            container.appendChild(toast);
+                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                        } else { alert(msg); }
+                                                                        btn.setAttribute('data-failed-route', 'true');
+                                                                    } catch {}
+                                                                });
+                                                            })();
+                                                        </script>
+                                                    @endpush
+                                                </h5>
+                                                <div class="{{ VC::CD }}-header-right">
+                                                    @if(($user?->{UsersConstants::COL_TP} ?? null) !== PermissionsConstants::CL)
+                                                        <div class="btn-group card-option">
+                                                            <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                                                                <i class="{{ VC::TD_DOTV }}"></i>
+                                                            </button>
+                                                            <div class="{{ VC::DRP_MN_EM }}">
+                                                                @can('edit deal')
+                                                                    @php
+                                                                        $editRoute   = !empty($dealId) ? route("{$namespace}.edit",   $dealId) : '#';
+                                                                        $editGuard       = Utility::fetchLinkMessage($lang, $namespace, 'deals_edit_route_unavailable')   ?? 'Deal edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    @endphp
+                                                                    <a
+                                                                        id="deal-labels-btn-{{ $dealId }}"
+                                                                        href="{{ $labelsRoute }}"
+                                                                        data-url="{{ $labelsRoute }}"
+                                                                        data-guard-msg="{{ $labelsGuard }}"
+                                                                        data-size="md"
+                                                                        data-ajax-popup="true"
+                                                                        class="dropdown-item"
+                                                                    >
+                                                                        <i class="ti ti-bookmark"></i> <span>{{ __('Labels') }}</span>
+                                                                    </a>
+                                                                    <a
+                                                                        id="deal-edit-btn-{{ $dealId }}"
+                                                                        href="{{ $editRoute }}"
+                                                                        data-url="{{ $editRoute }}"
+                                                                        data-guard-msg="{{ $editGuard }}"
+                                                                        data-size="lg"
+                                                                        data-ajax-popup="true"
+                                                                        class="dropdown-item"
+                                                                    >
+                                                                        <i class="{{ VC::TI_PC }}"></i> <span>{{ __('Edit') }}</span>
+                                                                    </a>
+                                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                                        <script defer>
+                                                                            (() => {
+                                                                                const btn = document.getElementById('deal-labels-btn-{{ $dealId }}');
+                                                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                                btn.setAttribute('data-listener-active','true');
+                                                                                btn.addEventListener('click', e => {
+                                                                                    try {
+                                                                                        const url = (btn.getAttribute('data-url') || '#').trim();
+                                                                                        if (url !== '#') return;
+                                                                                        e.preventDefault();
+                                                                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (bs) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else { alert(msg); }
+                                                                                        btn.setAttribute('data-failed-route','true');
+                                                                                    } catch {}
+                                                                                });
+                                                                            })();
+                                                                        </script>
+                                                                        <script defer>
+                                                                            (() => {
+                                                                                const btn = document.getElementById('deal-edit-btn-{{ $dealId }}');
+                                                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                                btn.setAttribute('data-listener-active','true');
+                                                                                btn.addEventListener('click', e => {
+                                                                                    try {
+                                                                                        const url = (btn.getAttribute('data-url') || '#').trim();
+                                                                                        if (url !== '#') return;
+                                                                                        e.preventDefault();
+                                                                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (bs) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else { alert(msg); }
+                                                                                        btn.setAttribute('data-failed-route','true');
+                                                                                    } catch {}
+                                                                                });
+                                                                            })();
+                                                                        </script>
+                                                                    @endpush
+                                                                @endcan
+                                                                @can('delete deal')
+                                                                    @php
+                                                                        $destroyRouteName = ViewsConstants::DL . '.destroy';
+                                                                        $destroyUrl  = !empty($dealId) ? route($destroyRouteName, $dealId) : '#';
+                                                                        $destroyGuard    = Utility::fetchLinkMessage($lang, $namespace, 'deal_destroy_route_unavailable') ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
+                                                                    @endphp
+                                                                    {!! Form::open([
+                                                                        'route'  => [$destroyRouteName, $dealId],
+                                                                        'method' => 'DELETE',
+                                                                        'id'     => 'delete-form-' . $dealId
+                                                                    ]) !!}
+                                                                        <a
+                                                                            id="delete-deal-btn-{{ $dealId }}"
+                                                                            href="{{ $destroyUrl }}"
+                                                                            data-url="{{ $destroyUrl }}"
+                                                                            data-guard-msg="{{ $destroyGuard }}"
+                                                                            class="dropdown-item bs-pass-para"
+                                                                            data-bs-toggle="tooltip"
+                                                                            title="{{ __('Delete') }}"
+                                                                        >
+                                                                            <i class="ti ti-archive"></i>
+                                                                            <span>{{ __('Delete') }}</span>
+                                                                        </a>
+                                                                    {!! Form::close() !!}
+                                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                                        <script defer>
+                                                                            (() => {
+                                                                                const btn = document.getElementById('delete-deal-btn-{{ $dealId }}');
+                                                                                if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
+                                                                                btn.setAttribute('data-listener-active', 'true');
+                                                                                btn.addEventListener('click', e => {
+                                                                                    try {
+                                                                                        const url = (btn.getAttribute('data-url') || '#').trim();
+                                                                                        if (url !== '#') return;
+                                                                                        e.preventDefault();
+                                                                                        const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
+                                                                                        const bs  = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                                                                                        let container = document.getElementById('toast-container');
+                                                                                        if (!container) {
+                                                                                            container = document.createElement('div');
+                                                                                            container.id = 'toast-container';
+                                                                                            document.body.appendChild(container);
+                                                                                        }
+                                                                                        if (bs) {
+                                                                                            const toast = document.createElement('div');
+                                                                                            toast.className = 'toast';
+                                                                                            toast.setAttribute('role','alert');
+                                                                                            toast.setAttribute('aria-live','assertive');
+                                                                                            toast.setAttribute('aria-atomic','true');
+                                                                                            const body = document.createElement('div');
+                                                                                            body.className = 'toast-body';
+                                                                                            body.textContent = msg;
+                                                                                            toast.appendChild(body);
+                                                                                            container.appendChild(toast);
+                                                                                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                                                                                        } else { alert(msg); }
+                                                                                        btn.setAttribute('data-failed-route', 'true');
+                                                                                    } catch {}
+                                                                                });
+                                                                            })();
+                                                                        </script>
+                                                                    @endpush
+                                                                @endcan
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <div class="{{ VC::CD }}-body">
+                                                <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
+                                                    <ul class="list-inline {{ VC::MB0 }}">
+                                                        <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Tasks') }}">
+                                                            <i class="f-16 text-primary ti ti-list"></i>
+                                                            {{ $tasksCount }}/{{ $completeCount }}
+                                                        </li>
+                                                    </ul>
+                                                    <div class="user-group">
+                                                        <i class="text-primary ti ti-report-money"></i>
+                                                        {{ $priceRaw !== null ? ($isPriceFormatAvailable ? ($user?->priceFormat($priceRaw)) : $priceRaw) : '-' }}
                                                     </div>
                                                 </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    @php($products = $deal->products())
-                                    @php($sources  = $deal->sources())
-                                    <div class="{{ VC::CD }}-body">
-                                        <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
-                                            <ul class="list-inline {{ VC::MB0 }}">
-                                                <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Tasks') }}">
-                                                    <i class="f-16 text-primary ti ti-list"></i> {{ count($deal->tasks) }}/{{ count($deal->completeTasks) }}
-                                                </li>
-                                            </ul>
-                                            <div class="user-group">
-                                                <i class="text-primary ti ti-report-money"></i> {{ $user?->priceFormat($deal->price) }}
+
+                                                <div class="{{ VC::DFL_AIC_JCB }}">
+                                                    <ul class="list-inline {{ VC::MB0 }}">
+                                                        <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Product') }}">
+                                                            <i class="f-16 text-primary ti ti-shopping-cart"></i> {{ is_countable($products) ? count($products) : 0 }}
+                                                        </li>
+                                                        <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Source') }}">
+                                                            <i class="f-16 text-primary ti ti-social"></i> {{ is_countable($sources) ? count($sources) : 0 }}
+                                                        </li>
+                                                    </ul>
+                                                    <div class="user-group">
+                                                        @if(!empty($dealUsers))
+                                                            @foreach($dealUsers as $assignee)
+                                                                @php
+                                                                    $avatar = !empty($assignee->avatar)
+                                                                        ? asset('storage/uploads/avatar/'.$assignee->avatar)
+                                                                        : asset('storage/uploads/avatar/avatar.png');
+                                                                    $assigneeName = $assignee->name ?? '';
+                                                                @endphp
+                                                                <img src="{{ $avatar }}" data-bs-toggle="tooltip" title="{{ $assigneeName }}">
+                                                            @endforeach
+                                                        @else
+                                                            <div>{{ __('No deal users available') }}</div>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="{{ VC::DFL_AIC_JCB }}">
-                                            <ul class="list-inline {{ VC::MB0 }}">
-                                                <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Product') }}">
-                                                    <i class="f-16 text-primary ti ti-shopping-cart"></i> {{ count($products) }}
-                                                </li>
-                                                <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Source') }}">
-                                                    <i class="f-16 text-primary ti ti-social"></i> {{ count($sources) }}
-                                                </li>
-                                            </ul>
-                                            <div class="user-group">
-                                                @foreach($deal->users as $user)
-                                                    <img src="@if($user->avatar) {{ asset('storage/uploads/avatar/'.$user->avatar) }} @else {{ asset('storage/uploads/avatar/avatar.png') }} @endif"
-                                                         data-bs-toggle="tooltip" title="{{ $user->name }}">
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+                                    @endforeach
+                                @else
+                                    <div class="{{ VC::P4 }} {{ VC::TXCT }} {{ VC::TXT_MT }}">{{ __('No deals in this stage') }}</div>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            @else
+                <div class="{{ VC::P4 }} {{ VC::TXCT }} {{ VC::TXT_MT }}">{{ __('No stages found') }}</div>
+            @endif
         </div>
     </div>
 @endsection

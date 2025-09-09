@@ -23,10 +23,15 @@ use App\Models\{
     User,
     Utility
 };
-use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
+use Illuminate\Http\{
+    JsonResponse,
+    RedirectResponse,
+    Request
+};
 use Illuminate\Support\Facades\{Auth, Crypt, DB, Hash, Mail, View as ViewFacade};
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Auth\Access\AuthorizationException;
+use illuminate\View\View;
 
 class ClientController extends Controller
 {
@@ -38,7 +43,7 @@ class ClientController extends Controller
         $this->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     }
 
-    public function index(Request $request)
+    public function index(Request $request): View|RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         $function = __FUNCTION__;
@@ -69,7 +74,7 @@ class ClientController extends Controller
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
 
-    public function create(Request $request)
+    public function create(Request $request): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         $function = __FUNCTION__;
@@ -113,7 +118,7 @@ class ClientController extends Controller
         }, ['uri' => $request->getRequestUri()]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $action) {
@@ -200,7 +205,7 @@ class ClientController extends Controller
         }, ['uri' => $request->getRequestUri()]);
     }
 
-    public function show(Request $request, User $client)
+    public function show(Request $request, User $client): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         $function = __FUNCTION__;
@@ -274,7 +279,7 @@ class ClientController extends Controller
         }, ['client_id' => $client->id, 'uri' => $request->getRequestUri()]);
     }
 
-    public function edit(Request $request, User $client)
+    public function edit(Request $request, User $client): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         $function = __FUNCTION__;
@@ -313,7 +318,7 @@ class ClientController extends Controller
         }, ['client_id' => $client->id]);
     }
 
-    public function update(Request $request, User $client)
+    public function update(Request $request, User $client): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $client, $action) {
@@ -360,7 +365,7 @@ class ClientController extends Controller
         }, ['client_id' => $client->id, 'uri' => $request->getRequestUri()]);
     }
 
-    public function destroy(Request $request, User $client)
+    public function destroy(Request $request, User $client): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $client, $action) {
@@ -394,7 +399,7 @@ class ClientController extends Controller
     }
 
     public const CLT_PSW = 'clientPassword';
-    public function clientPassword(string|int $id, Request $request)
+    public function clientPassword(string|int $id, Request $request): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($id, $request, $action) {
@@ -431,7 +436,7 @@ class ClientController extends Controller
     }
 
     public const CLT_PSW_R = 'clientPasswordReset';
-    public function clientPasswordReset(string|int $id, Request $request)
+    public function clientPasswordReset(string|int $id, Request $request): RedirectResponse|null
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($id, $request, $action) {

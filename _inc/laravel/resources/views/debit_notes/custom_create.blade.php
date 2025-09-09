@@ -1,73 +1,51 @@
 @php
-    use Collective\Html\FormFacade as Form;
-    use App\Config\Constants\ViewsConstants;
-
-    $fields = [
-        [
-            'name'     => 'bill',
-            'type'     => 'select',
-            'label'    => __('Bill'),
-            'options'  => ['0' => __('Select Bill')] + $bills,
-            'colClass' => 'col-md-12',
-            'attrs'    => ['class'=>'form-control select','id'=>'bill','required'=>'required'],
-            'format'   => fn($key, $bill) => Auth::user()->billNumberFormat($bill),
-        ],
-        [
-            'name'     => 'amount',
-            'type'     => 'number',
-            'label'    => __('Amount'),
-            'colClass' => 'col-md-6',
-            'attrs'    => ['class'=>'form-control','required'=>'required','step'=>'0.01'],
-        ],
-        [
-            'name'     => 'date',
-            'type'     => 'date',
-            'label'    => __('Date'),
-            'colClass' => 'col-md-6',
-            'attrs'    => ['class'=>'form-control','required'=>'required'],
-        ],
-        [
-            'name'     => 'description',
-            'type'     => 'textarea',
-            'label'    => __('Description'),
-            'colClass' => 'col-md-12',
-            'attrs'    => ['class'=>'form-control','rows'=>2],
-        ],
-    ];
+    $billsCustomDebitNoteBaseRouteName  = ViewsConstants::BIL.'.custom.debit.note';
+    $billsCustomDebitNoteKebabRouteName = Str::kebab($billsCustomDebitNoteBaseRouteName);
+    $billsCustomDebitNoteResolvedName   = Route::has($billsCustomDebitNoteBaseRouteName)
+        ? $billsCustomDebitNoteBaseRouteName
+        : (Route::has($billsCustomDebitNoteKebabRouteName) ? $billsCustomDebitNoteKebabRouteName : null);
+    $billsCustomDebitNoteUrl            = $billsCustomDebitNoteResolvedName ? route($billsCustomDebitNoteResolvedName) : '#';
+    $billsCustomDebitNoteFormId         = 'bills-custom-debit-note-create-form';
+    $billsLangValue                     = isset($lang) ? $lang : Utility::fetchUserLang();
+    $billsCustomDebitNoteGuardMessage   = Utility::fetchLinkMessage($billsLangValue, ViewsConstants::BIL, 'create_custom_debit_note_route_unavailable') ?? 'Create custom debit note route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
 {{ Form::open([
-    'route'  => ViewsConstants::BIL . '.custom.debit.note',
-    'method' => 'post',
+    'method'            => 'POST',
+    'url'               => $billsCustomDebitNoteUrl,
+    'id'                => $billsCustomDebitNoteFormId,
+    'data-url'          => $billsCustomDebitNoteUrl,
+    'data-guard-msg'    => $billsCustomDebitNoteGuardMessage,
+    'data-sv-localized' => 'true',
 ]) }}
-<div class="modal-body">
-    <div class="row">
-        @foreach($fields as $f)
-            <div class="form-group {{ $f['colClass'] }}">
-                {{ Form::label($f['name'], $f['label'], ['class'=>'form-label']) }}
-                @if($f['type'] === 'select')
-                    @php
-                        $opts = collect($f['options'])
-                            ->mapWithKeys(function($val, $key) use ($f) {
-                                $label = is_callable($f['format']) 
-                                    ? $f['format']($key, $val) 
-                                    : $val;
-                                return [$key => $label];
-                            })
-                            ->toArray();
-                    @endphp
-                    {{ Form::select($f['name'], $opts, null, $f['attrs']) }}
-                @elseif($f['type'] === 'textarea')
-                    {{ Form::textarea($f['name'], null, $f['attrs']) }}
-                @else
-                    {{ Form::{ $f['type'] }($f['name'], null, $f['attrs']) }}
-                @endif
-            </div>
-        @endforeach
+    @csrf
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            @if((is_array($fields) && count($fields)) || ($fields instanceof \Illuminate\Support\Collection && $fields->isNotEmpty()))
+                @foreach($fields as $f)
+                    <div class="{{ $f['colClass'] }}">
+                        {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
+                        @if($f['name'] === 'bill')
+                            {{ Form::select('bill', $billOptions, null, $f['attrs']) }}
+                            @if(!$hasBills)
+                                <small class="{{ VC::TXT_MT }}">{{ __('No bills found for this query.') }}</small>
+                            @endif
+                        @else
+                            @php $__method = $f['type'] === 'textarea' ? 'textarea' : $f['type']; @endphp
+                            {!! call_user_func([Form::class, $__method], $f['name'], null, $f['attrs']) !!}
+                        @endif
+                    </div>
+                @endforeach
+            @else
+                <div class="{{ VC::C12 }}">
+                    <p class="{{ VC::TXT_MT }}">{{ __('No fields to display.') }}</p>
+                </div>
+            @endif
+        </div>
     </div>
-</div>
-<div class="modal-footer">
-    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-    <button type="submit" class="btn btn-primary">{{ __('Create') }}</button>
-</div>
+    <div class="modal-footer">
+        <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Create') }}</button>
+    </div>
+    <script defer src="{{ asset('assets/js/routes/bills/debitNotes/customCreate.js') }}"></script>
 {{ Form::close() }}

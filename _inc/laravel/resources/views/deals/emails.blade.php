@@ -5,7 +5,6 @@
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\Str;
     $lang = Utility::fetchUserLang();
-
     $routeKey        = ViewsConstants::DL . '.emails.store';
     $kebabRouteKey   = Str::kebab($routeKey);
     $hasRoute        = Route::has($routeKey);
@@ -31,28 +30,26 @@
     'data-url'       => $storeRouteUrl,
     'data-guard-msg' => $storeGuardMsg
 ]) !!}
-<div class="modal-body">
-    <div class="{{ VC::RW }}">
-        <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
-            {{ Form::label('to', __('Mail To'), ['class' => VC::FM_LB]) }}
-            {{ Form::email('to', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
-        </div>
-        <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
-            {{ Form::label('subject', __('Subject'), ['class' => VC::FM_LB]) }}
-            {{ Form::text('subject', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
-        </div>
-        <div class="{{ VC::C12 }} {{ VC::FM_G }}">
-            {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
-            {{ Form::textarea('description', null, ['class' => 'summernote-simple']) }}
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+                {{ Form::label('to', __('Mail To'), ['class' => VC::FM_LB]) }}
+                {{ Form::email('to', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+            </div>
+            <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+                {{ Form::label('subject', __('Subject'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('subject', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+            </div>
+            <div class="{{ VC::C12 }} {{ VC::FM_G }}">
+                {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                {{ Form::textarea('description', null, ['class' => 'summernote-simple']) }}
+            </div>
         </div>
     </div>
-</div>
-<div class="modal-footer">
-    <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-    <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Create') }}</button>
-</div>
-{!! Form::close() !!}
-@push(StacksConstants::ADM_SCR_PG)
+    <div class="modal-footer">
+        <button type="button" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+        <button type="submit" class="{{ VC::BT_PRM }}">{{ __('Create') }}</button>
+    </div>
     <script defer>
         (() => {
             const form = document.getElementById('create-email-form-{{ $deal->id }}');
@@ -91,4 +88,4 @@
             });
         })();
     </script>
-@endpush
+{!! Form::close() !!}

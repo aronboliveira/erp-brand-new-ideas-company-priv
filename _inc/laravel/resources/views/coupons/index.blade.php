@@ -191,7 +191,7 @@
             >
                 <i class="{{ VC::TI_PLS }}"></i>
             </a>
-            @push(StacksConstants::ADM_SCRP_PG)
+            @push(StacksConstants::ADM_SCR_PG)
                 <script defer src="{{ asset('assets/js/routes/coupons/create.js') }}"></script>
             @endpush
         @endcan

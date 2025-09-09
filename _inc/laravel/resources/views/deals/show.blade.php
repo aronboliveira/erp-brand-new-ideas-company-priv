@@ -9,13 +9,14 @@
     };
     use App\Models\{User,Utility};
     use Illuminate\Support\Facades\{Auth,Route};
+    use Illuminate\Support\{Collection, Str};
     $authUser = Auth::user();
     $user = $authUser ? User::find($authUser->creatorId()) : null;
     $lang = Utility::fetchUserLang(user:$authUser);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
-    {{$deal->name}}
+    {{!empty($deal) && isset($deal->name) ? $deal->name : __('No deal name available')}}
 @endsection
 @push(StacksConstants::ADM_CSS)
     <link rel="stylesheet" href="{{asset('css/summernote/summernote-bs4.css')}}">
@@ -24,118 +25,7 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('css/summernote/summernote-bs4.js')}}"></script>
     <script src="{{asset('assets/js/plugins/dropzone-amd-module.min.js')}}"></script>
-        <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-          ar: {
-            file_upload_failed: 'فشل تحميل الملف.',
-            file_delete_failed: 'فشل حذف الملف.',
-            notes_save_failed: 'فشل حفظ الملاحظات.',
-            task_toggle_failed: 'فشل تحديث حالة المهمة.'
-          },
-          da: {
-            file_upload_failed: 'Kunne ikke uploade fil.',
-            file_delete_failed: 'Kunne ikke slette fil.',
-            notes_save_failed: 'Kunne ikke gemme noter.',
-            task_toggle_failed: 'Kunne ikke ændre opgavestatus.'
-          },
-          de: {
-            file_upload_failed: 'Datei-Upload fehlgeschlagen.',
-            file_delete_failed: 'Datei-Löschung fehlgeschlagen.',
-            notes_save_failed: 'Notizen konnten nicht gespeichert werden.',
-            task_toggle_failed: 'Aufgabenstatus konnte nicht aktualisiert werden.'
-          },
-          en: {
-            file_upload_failed: 'File upload failed.',
-            file_delete_failed: 'File deletion failed.',
-            notes_save_failed: 'Failed to save notes.',
-            task_toggle_failed: 'Failed to toggle task status.'
-          },
-          es: {
-            file_upload_failed: 'Error al subir el archivo.',
-            file_delete_failed: 'Error al eliminar el archivo.',
-            notes_save_failed: 'Error al guardar las notas.',
-            task_toggle_failed: 'Error al actualizar el estado de la tarea.'
-          },
-          fr: {
-            file_upload_failed: 'Échec du téléchargement du fichier.',
-            file_delete_failed: 'Échec de la suppression du fichier.',
-            notes_save_failed: 'Échec de l’enregistrement des notes.',
-            task_toggle_failed: 'Échec de la mise à jour du statut de la tâche.'
-          },
-          he: {
-            file_upload_failed: 'טעינת הקובץ נכשלה.',
-            file_delete_failed: 'מחיקת הקובץ נכשלה.',
-            notes_save_failed: 'שמירת ההערות נכשלה.',
-            task_toggle_failed: 'עדכון מצב המשימה נכשל.'
-          },
-          it: {
-            file_upload_failed: 'Caricamento del file non riuscito.',
-            file_delete_failed: 'Eliminazione del file non riuscita.',
-            notes_save_failed: 'Impossibile salvare le note.',
-            task_toggle_failed: 'Impossibile aggiornare lo stato dell’attività.'
-          },
-          ja: {
-            file_upload_failed: 'ファイルのアップロードに失敗しました。',
-            file_delete_failed: 'ファイルの削除に失敗しました。',
-            notes_save_failed: 'ノートの保存に失敗しました。',
-            task_toggle_failed: 'タスクの状態更新に失敗しました。'
-          },
-          nl: {
-            file_upload_failed: 'Bestand uploaden mislukt.',
-            file_delete_failed: 'Bestand verwijderen mislukt.',
-            notes_save_failed: 'Notities konden niet worden opgeslagen.',
-            task_toggle_failed: 'Kan taakstatus niet bijwerken.'
-          },
-          pl: {
-            file_upload_failed: 'Nie udało się przesłać pliku.',
-            file_delete_failed: 'Nie udało się usunąć pliku.',
-            notes_save_failed: 'Nie udało się zapisać notatek.',
-            task_toggle_failed: 'Nie udało się zaktualizować statusu zadania.'
-          },
-          pt: {
-            file_upload_failed: 'Falha no envio do arquivo.',
-            file_delete_failed: 'Falha na exclusão do arquivo.',
-            notes_save_failed: 'Falha ao salvar notas.',
-            task_toggle_failed: 'Falha ao atualizar o status da tarefa.'
-          },
-          'pt-br': {
-            file_upload_failed: 'Falha no upload do arquivo.',
-            file_delete_failed: 'Falha ao excluir o arquivo.',
-            notes_save_failed: 'Falha ao salvar as anotações.',
-            task_toggle_failed: 'Falha ao atualizar o status da tarefa.'
-          },
-          ru: {
-            file_upload_failed: 'Не удалось загрузить файл.',
-            file_delete_failed: 'Не удалось удалить файл.',
-            notes_save_failed: 'Не удалось сохранить заметки.',
-            task_toggle_failed: 'Не удалось изменить статус задачи.'
-          },
-          tr: {
-            file_upload_failed: 'Dosya yüklenemedi.',
-            file_delete_failed: 'Dosya silinemedi.',
-            notes_save_failed: 'Notlar kaydedilemedi.',
-            task_toggle_failed: 'Görev durumu güncellenemedi.'
-          },
-          zh: {
-            file_upload_failed: '文件上传失败。',
-            file_delete_failed: '文件删除失败。',
-            notes_save_failed: '保存备注失败。',
-            task_toggle_failed: '更新任务状态失败。'
-          }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
+    <script async src="{{ asset('assets/js/routes/deals/lang/show.js') }}"></script>
     </script>
     <script defer>
         (() => {
@@ -359,50 +249,13 @@ Object.keys(t).forEach(
         </a>
     </li>
     @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                const el = document.getElementById('deal-index-breadcrumb');
-                if (!el || el.getAttribute('data-listener-active') === 'true') return;
-                el.setAttribute('data-listener-active', 'true');
-                el.addEventListener('click', e => {
-                    try {
-                        const url = el.getAttribute('data-url') ?? '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (bs) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
-                        el.setAttribute('data-failed-route', 'true');
-                    } catch {}
-                });
-            })();
-        </script>
+        <script defer src="{{ asset('assets/js/routes/deals/lang/indexBreadcrumb.js') }}"></script>
     @endpush
-    <li class="breadcrumb-item"> {{$deal->name}}</li>
+    <li class="breadcrumb-item"> {{ !empty($deal) && isset($deal->name) ? $deal->name : __('No deal name available') }}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
-        @can('convert deal to deal')
+        @can('view deal')
             @if(!empty($deal))
               @php
                 $namespace     = ViewsConstants::DL;
@@ -749,14 +602,34 @@ Object.keys(t).forEach(
                 </div>
                 <div class="col-xl-9">
                     <?php
-                        $tasks = $deal->tasks;
-                        $products = $deal->products();
-                        $sources = $deal->sources();
-                        $calls = $deal->calls;
-                        $emails = $deal->emails;
+                        $tasks = $deal->tasks ?? [];
+                        $products = $deal->products() ?? [];
+                        $sources = $deal->sources() ?? [];
+                        $calls = $deal->calls ?? [];
+                        $emails = $deal->emails ?? [];
                     ?>
                     <div id="general" class="{{ VC::CD }}">
                         <div class="{{ VC::CD }}-body">
+                            @php
+                                $pipelineName             = $deal->pipeline?->name ?? __('-');
+                                $stageName                = $deal->stage?->name ?? __('-');
+                                $isDateFormatAvailable    = isset($authUser) && method_exists($authUser, 'dateFormat');
+                                $isPriceFormatAvailable   = isset($authUser) && method_exists($authUser, 'priceFormat');
+                                $createdAt                = $deal->created_at ?? null;
+                                $priceVal                 = $deal->price ?? null;
+
+                                $tasksCount               = is_countable($tasks ?? []) ? count($tasks ?? []) : 0;
+                                $productsCount            = is_countable($products ?? []) ? count($products ?? []) : 0;
+                                $sourcesCount             = is_countable($sources ?? []) ? count($sources ?? []) : 0;
+                                $filesCount               = is_countable($deal->files ?? []) ? count($deal->files ?? []) : 0;
+
+                                $stats = [
+                                    ['label' => __('Task'),    'count' => $tasksCount,    'icon' => 'ti-subtask',        'bg' => 'bg-danger'],
+                                    ['label' => __('Product'), 'count' => $productsCount, 'icon' => 'ti-shopping-cart', 'bg' => 'bg-info'],
+                                    ['label' => __('Source'),  'count' => $sourcesCount,  'icon' => 'ti-social',        'bg' => 'bg-primary'],
+                                    ['label' => __('Files'),   'count' => $filesCount,    'icon' => 'ti-file',          'bg' => 'bg-warning'],
+                                ];
+                            @endphp
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::CM3 }} col-sm-6">
                                     <div class="{{ VC::DFL }} align-items-start">
@@ -765,7 +638,7 @@ Object.keys(t).forEach(
                                         </div>
                                         <div class="{{ VC::MS2 }}">
                                             <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Pipeline') }}</p>
-                                            <h5 class="mb-0 text-success">{{ $deal->pipeline->name }}</h5>
+                                            <h5 class="mb-0 text-success">{{ $pipelineName }}</h5>
                                         </div>
                                     </div>
                                 </div>
@@ -776,7 +649,7 @@ Object.keys(t).forEach(
                                         </div>
                                         <div class="{{ VC::MS2 }}">
                                             <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Stage') }}</p>
-                                            <h5 class="mb-0 text-primary">{{ $deal->stage->name }}</h5>
+                                            <h5 class="mb-0 text-primary">{{ $stageName }}</h5>
                                         </div>
                                     </div>
                                 </div>
@@ -787,7 +660,9 @@ Object.keys(t).forEach(
                                         </div>
                                         <div class="{{ VC::MS2 }}">
                                             <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Created') }}</p>
-                                            <h5 class="mb-0 text-warning">{{ $authUser?->dateFormat($deal->created_at) }}</h5>
+                                            <h5 class="mb-0 text-warning">
+                                                {{ $createdAt ? ($isDateFormatAvailable ? $authUser?->dateFormat($createdAt) : $createdAt) : '-' }}
+                                            </h5>
                                         </div>
                                     </div>
                                 </div>
@@ -798,7 +673,9 @@ Object.keys(t).forEach(
                                         </div>
                                         <div class="{{ VC::MS2 }}">
                                             <p class="{{ VC::TXT_MT }} {{ VC::TXSM }} {{ VC::MB0 }}">{{ __('Price') }}</p>
-                                            <h5 class="mb-0 text-info">{{ $authUser?->priceFormat($deal->price) }}</h5>
+                                            <h5 class="mb-0 text-info">
+                                                {{ is_numeric($priceVal) ? ($isPriceFormatAvailable ? $authUser?->priceFormat($priceVal) : $priceVal) : '-' }}
+                                            </h5>
                                         </div>
                                     </div>
                                 </div>
@@ -806,30 +683,33 @@ Object.keys(t).forEach(
                         </div>
                     </div>
                     <div class="{{ VC::RW }}">
-                        @foreach([
-                            ['label' => __('Task'),  'count' => count($tasks),    'icon' => 'ti-subtask',    'bg' => 'bg-danger'],
-                            ['label' => __('Product'),'count' => count($products), 'icon' => 'ti-shopping-cart','bg' => 'bg-info'],
-                            ['label' => __('Source'), 'count' => count($sources),  'icon' => 'ti-social',     'bg' => 'bg-primary'],
-                            ['label' => __('Files'),  'count' => count($deal->files),'icon' => 'ti-file',      'bg' => 'bg-warning'],
-                        ] as $stat)
-                            <div class="{{ VC::CM3 }} col-sm-3">
-                                <div class="{{ VC::CD }}">
-                                    <div class="{{ VC::CD }}-body">
-                                        <div class="{{ VC::RW }} align-items-center justify-content-between">
-                                            <div class="col-auto mb-3 mb-sm-0">
-                                                <small class="{{ VC::TXT_MT }}">{{ $stat['label'] }}</small>
-                                                <h3 class="m-0">{{ $stat['count'] }}</h3>
-                                            </div>
-                                            <div class="col-auto">
-                                                <div class="theme-avatar {{ $stat['bg'] }}">
-                                                    <i class="{{ $stat['icon'] }}"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+                        @if((is_array($stats) && count($stats)) || $stats instanceof Collection && $stats->isNotEmpty())
+                          @foreach($stats as $stat)
+                              <div class="{{ VC::CM3 }} col-sm-3">
+                                  <div class="{{ VC::CD }}">
+                                      <div class="{{ VC::CD }}-body">
+                                          <div class="{{ VC::RW }} align-items-center justify-content-between">
+                                              <div class="col-auto mb-3 mb-sm-0">
+                                                  <small class="{{ VC::TXT_MT }}">{{ !empty($stat['label']) ? $stat['label'] : __('No label available for statistic') }}</small>
+                                                  <h3 class="m-0">{{ !empty($stat['count']) ? $stat['count'] : 'null' }}</h3>
+                                              </div>
+                                              <div class="col-auto">
+                                                  <div class="theme-avatar {{ !empty($stat['bg']) ? $stat['bg'] : '' }}">
+                                                      <i class="{{ !empty($stat['icon']) ? $stat['icon'] : '' }}"></i>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                          @endforeach
+                        @else
+                          <div class="col-12">
+                              <div class="{{ VC::ALERT }} {{ VC::ALERT_INFO }} {{ VC::MB0 }}">
+                                  {{ __('No statistics available') }}
+                              </div>
+                          </div>
+                        @endif
                     </div>
                     <div id="users_products">
                         <div class="{{ VC::RW }}">
@@ -2026,36 +1906,51 @@ Object.keys(t).forEach(
                     </div>
                     <div id="activity" class="{{ VC::CD }}">
                         <div class="{{ VC::CD }}-header">
-                          <h5>{{ __('Activity') }}</h5>
+                            <h5>{{ __('Activity') }}</h5>
                         </div>
                         <div class="{{ VC::CD }}-body">
-                          <div class="row leads-scroll">
-                            <ul class="event-cards {{ VC::LG_FLSH }} mt-3 w-100">
-                              @forelse($deal->activities as $activity)
-                                <li class="{{ VC::LGI }} {{ VC::MB3 }}">
-                                  <div class="{{ VC::R_ALC_JCE }}">
-                                    <div class="col-auto">
-                                      <div class="{{ VC::DFL_AIC }}">
-                                        <div class="theme-avatar bg-primary">
-                                          <i class="ti ti-{{ $activity->logIcon() }}"></i>
-                                        </div>
-                                        <div class="ms-3">
-                                          <span class="text-dark text-sm">{{ __($activity->log_type) }}</span>
-                                          <h6 class="m-0">{!! $activity->getRemark() !!}</h6>
-                                          <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div class="col-auto">
-                                      {{-- optional action buttons --}}
-                                    </div>
-                                  </div>
-                                </li>
-                              @empty
-                                <li class="text-center">{{ __('No activity found yet.') }}</li>
-                              @endforelse
-                            </ul>
-                          </div>
+                            <div class="row leads-scroll">
+                                @php
+                                    $rawActivities = $deal->activities ?? [];
+                                    $activities    = ($rawActivities instanceof Collection)
+                                                        ? $rawActivities
+                                                        : (is_array($rawActivities) ? collect($rawActivities) : collect());
+                                @endphp
+                                <ul class="event-cards {{ VC::LG_FLSH }} mt-3 w-100">
+                                    @forelse($activities as $activity)
+                                        @php
+                                            $icon     = method_exists($activity, 'logIcon') ? $activity->logIcon() : 'circle-dashed';
+                                            $remark   = method_exists($activity, 'getRemark') ? $activity->getRemark() : e($activity->remark ?? '');
+                                            $logType  = $activity->log_type ?? '-';
+                                            $when     = $activity->created_at ? $activity->created_at->diffForHumans() : '-';
+                                        @endphp
+                                        <li class="{{ VC::LGI }} {{ VC::MB3 }}">
+                                            <div class="{{ VC::R_ALC_JCE }}">
+                                                <div class="col-auto">
+                                                    <div class="{{ VC::DFL_AIC }}">
+                                                        <div class="theme-avatar bg-primary">
+                                                            <i class="ti ti-{{ $icon }}"></i>
+                                                        </div>
+                                                        <div class="ms-3">
+                                                            <span class="text-dark text-sm">{{ __($logType) }}</span>
+                                                            <h6 class="m-0">{!! $remark !!}</h6>
+                                                            <small class="text-muted">{{ $when }}</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-auto"></div>
+                                            </div>
+                                        </li>
+                                    @empty
+                                        <li class="{{ VC::LGI }} text-center py-4">
+                                            <div class="d-inline-flex align-items-center gap-2">
+                                                <i class="{{ VC::TI_INB }} {{ VC::FS_2X }} {{ VC::TX_MUTED }}"></i>
+                                                <span class="{{ VC::TX_MUTED }}">{{ __('No activity found for this query.') }}</span>
+                                            </div>
+                                        </li>
+                                    @endforelse
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

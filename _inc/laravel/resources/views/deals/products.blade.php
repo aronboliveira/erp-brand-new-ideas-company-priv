@@ -25,75 +25,75 @@
         'deal_products_update_route_unavailable'
     ) ?? 'Deal products update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
-
-{!! Form::model($deal, [
-    'route'          => $updateRouteArr,
-    'method'         => 'PUT',
-    'id'             => 'update-products-form-' . $deal->id,
-    'data-url'       => $updateRouteUrl,
-    'data-guard-msg' => $updateGuardMsg
-]) !!}
-<div class="modal-body">
-    <div class="{{ VC::RW }}">
-        <div class="{{ VC::C12 }} {{ VC::FM_G }}">
-            {{ Form::label('products', __('Products'), ['class' => VC::FM_LB]) }}
-            {{ Form::select(
-                'products[]',
-                $products,
-                false,
-                [
-                    'class'    => VC::FM_CT . ' select2',
-                    'id'       => 'choices-multiple1',
-                    'multiple' => '',
-                    'required' => 'required'
-                ]
-            ) }}
+@if(!empty($deal) && isset($deal->id))
+    {!! Form::model($deal, [
+        'route'          => $updateRouteArr,
+        'method'         => 'PUT',
+        'id'             => 'update-products-form-' . $deal->id,
+        'data-url'       => $updateRouteUrl,
+        'data-guard-msg' => $updateGuardMsg
+    ]) !!}
+        <div class="modal-body">
+            <div class="{{ VC::RW }}">
+                <div class="{{ VC::C12 }} {{ VC::FM_G }}">
+                    {{ Form::label('products', __('Products'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select(
+                        'products',
+                        $products,
+                        false,
+                        [
+                            'class'    => VC::FM_CT . ' select2',
+                            'id'       => 'choices-multiple1',
+                            'multiple' => '',
+                            'required' => 'required'
+                        ]
+                    ) }}
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
-    <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
-</div>
-{!! Form::close() !!}
-
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-            const form = document.getElementById('update-products-form-{{ $deal->id }}');
-            if (!form || form.getAttribute('data-listener-active') === 'true') return;
-            form.setAttribute('data-listener-active', 'true');
-            form.addEventListener('submit', e => {
-                try {
-                    const url = form.getAttribute('data-url') || '#';
-                    if (url !== '#') return;
-                    e.preventDefault();
-                    const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                    let container = document.getElementById('toast-container');
-                    if (!container) {
-                        container = document.createElement('div');
-                        container.id = 'toast-container';
-                        document.body.appendChild(container);
-                    }
-                    if (bs) {
-                        const toast = document.createElement('div');
-                        toast.className = 'toast';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        const body = document.createElement('div');
-                        body.className = 'toast-body';
-                        body.textContent = msg;
-                        toast.appendChild(body);
-                        container.appendChild(toast);
-                        bootstrap.Toast.getOrCreateInstance(toast).show();
-                    } else {
-                        alert(msg);
-                    }
-                    form.setAttribute('data-failed-route', 'true');
-                } catch (error) {}
-            });
-        })();
-    </script>
-@endpush
+        <div class="modal-footer">
+            <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+            <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+        </div>
+        <script defer>
+            (() => {
+                const form = document.getElementById('update-products-form-{{ $deal->id }}');
+                if (!form || form.getAttribute('data-listener-active') === 'true') return;
+                form.setAttribute('data-listener-active', 'true');
+                form.addEventListener('submit', e => {
+                    try {
+                        const url = form.getAttribute('data-url') || '#';
+                        if (url !== '#') return;
+                        e.preventDefault();
+                        const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                        const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                        let container = document.getElementById('toast-container');
+                        if (!container) {
+                            container = document.createElement('div');
+                            container.id = 'toast-container';
+                            document.body.appendChild(container);
+                        }
+                        if (bs) {
+                            const toast = document.createElement('div');
+                            toast.className = 'toast';
+                            toast.setAttribute('role','alert');
+                            toast.setAttribute('aria-live','assertive');
+                            toast.setAttribute('aria-atomic','true');
+                            const body = document.createElement('div');
+                            body.className = 'toast-body';
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        } else {
+                            alert(msg);
+                        }
+                        form.setAttribute('data-failed-route', 'true');
+                    } catch (error) {}
+                });
+            })();
+        </script>
+    {!! Form::close() !!}
+@else
+    <div class="alert alert-warning">{{ __('No deal data available') }}</div>
+@endif

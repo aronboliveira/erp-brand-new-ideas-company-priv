@@ -7,7 +7,8 @@ use App\Config\Constants\{
     DatabaseConstants,
     PermissionsConstants,
     ProjectsConstants,
-    UsersConstants
+    UsersConstants,
+    ViewsConstants as VW
 };
 use App\Models\{
     Milestone,
@@ -25,8 +26,9 @@ use App\Models\{
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{Request, JsonResponse, RedirectResponse};
-use Illuminate\Support\Facades\{Auth, DB, Log};
+use Illuminate\Support\Facades\{Auth, DB, Log, View as ViewFacade};
 use Illuminate\Support\Arr;
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProjectReportController extends Controller
@@ -34,175 +36,201 @@ class ProjectReportController extends Controller
     use ChecksLogin, ChecksPermissions;
 
     private const ENTITY = 'project';
-    private const SINGULAR = 'project_report';
+    private const SINGULAR = VW::PRJ_RPT;
 
-    public function index(Request $request): string|RedirectResponse
+    public function index(Request $request): View|string|RedirectResponse
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        $user = $u;
-        try {
-            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.' . __FUNCTION__))
+        $action = __FUNCTION__;
+
+        return $this->measureProfile($action, function () use ($request, $action) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+
+            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.' . __FUNCTION__)) {
                 return $r;
-            $cid = $user?->creatorId() ?: $user?->id;
-            $projQ = Project::query();
-            $projQ = match ($user[UsersConstants::COL_TP]) {
-                PermissionsConstants::CL   => $projQ->where('client_id', $user?->id),
-                PermissionsConstants::CPN  => $projQ
-                    ->when(
-                        $request->filled('all_users'),
-                        fn ($q) => $q
-                            ->select(DatabaseConstants::TABLE_PROJECTS . '.*')
-                            ->leftJoin(
-                                'project_users',
-                                'project_users.' . ProjectsConstants::COL_PJ_ID,
-                                DatabaseConstants::TABLE_PROJECTS . '.id'
-                            )
-                            ->where('project_users.' . UsersConstants::COL_USER_ID, $request->input('all_users'))
-                    )
-                    ->when(
-                        !$request->filled('all_users'),
-                        fn ($q) => $q->where(DatabaseConstants::TABLE_PROJECTS . '.' .
-                            DatabaseConstants::TABLE_CREATOR, $user?->id)
-                    ),
-                default    => $projQ
-                    ->select(DatabaseConstants::TABLE_PROJECTS . '.*')
-                    ->leftJoin(
-                        'project_users',
-                        'project_users.' . ProjectsConstants::COL_PJ_ID,
-                        DatabaseConstants::TABLE_PROJECTS . '.id'
-                    )
-                    ->where('project_users.' . UsersConstants::COL_USER_ID, $user?->id),
-            };
-            foreach ([ActivitiesConstants::COL_TSK_STT, ProjectsConstants::COL_S_DT, ProjectsConstants::COL_E_DT] as $f)
-                if ($request->filled($f))
-                    $projQ->where($f, $request->input($f));
-            $users = match ($user[UsersConstants::COL_TP]) {
-                PermissionsConstants::SA => User::where(
-                    DatabaseConstants::TABLE_CREATOR,
-                    $cid
-                )
-                    ->where(UsersConstants::COL_TP, PermissionsConstants::CPN)
-                    ->get(),
-                PermissionsConstants::CPN     => User::where(DatabaseConstants::TABLE_CREATOR, $cid)
-                    ->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)
-                    ->get(),
-                default       => [],
-            };
-            $statusList = $user[UsersConstants::COL_TP] === PermissionsConstants::CPN
-                ? Project::$project_status
-                : [];
-            $projects = $projQ
-                ->with(DatabaseConstants::TABLE_TASKS)
-                ->orderByDesc('id')
-                ->get();
-            $lastTask = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $cid)
-                ->orderByDesc(ActivitiesConstants::COL_OD)
-                ->first();
-            return view(
-                self::SINGULAR . '.' . __FUNCTION__,
-                compact(
+            }
+
+            try {
+                $cid = $user?->creatorId() ?: $user?->id;
+
+                $buildQStart = microtime(true);
+                $projQ = Project::query();
+                $projQ = match ($user[UsersConstants::COL_TP]) {
+                    PermissionsConstants::CL   => $projQ->where('client_id', $user?->id),
+                    PermissionsConstants::CPN  => $projQ
+                        ->when(
+                            $request->filled('all_users'),
+                            fn($q) => $q
+                                ->select(DatabaseConstants::TABLE_PROJECTS . '.*')
+                                ->leftJoin(
+                                    'project_users',
+                                    'project_users.' . ProjectsConstants::COL_PJ_ID,
+                                    DatabaseConstants::TABLE_PROJECTS . '.id'
+                                )
+                                ->where('project_users.' . UsersConstants::COL_USER_ID, $request->input('all_users'))
+                        )
+                        ->when(
+                            !$request->filled('all_users'),
+                            fn($q) => $q->where(DatabaseConstants::TABLE_PROJECTS . '.' . DatabaseConstants::TABLE_CREATOR, $user?->id)
+                        ),
+                    default    => $projQ
+                        ->select(DatabaseConstants::TABLE_PROJECTS . '.*')
+                        ->leftJoin(
+                            'project_users',
+                            'project_users.' . ProjectsConstants::COL_PJ_ID,
+                            DatabaseConstants::TABLE_PROJECTS . '.id'
+                        )
+                        ->where('project_users.' . UsersConstants::COL_USER_ID, $user?->id),
+                };
+                $this->logExecutionTime($buildQStart, $action, 'buildProjectQuery');
+
+                $filtersStart = microtime(true);
+                foreach ([ActivitiesConstants::COL_TSK_STT, ProjectsConstants::COL_S_DT, ProjectsConstants::COL_E_DT] as $f) {
+                    if ($request->filled($f)) {
+                        $projQ->where($f, $request->input($f));
+                    }
+                }
+                $this->logExecutionTime($filtersStart, $action, 'applyFilters');
+
+                $usersStart = microtime(true);
+                $users = match ($user[UsersConstants::COL_TP]) {
+                    PermissionsConstants::SA => User::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                        ->where(UsersConstants::COL_TP, PermissionsConstants::CPN)->get(),
+                    PermissionsConstants::CPN => User::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                        ->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->get(),
+                    default => [],
+                };
+                $this->logExecutionTime($usersStart, $action, 'fetchUsers');
+
+                $statusStart = microtime(true);
+                $statusList = $user[UsersConstants::COL_TP] === PermissionsConstants::CPN ? Project::$project_status : [];
+                $this->logExecutionTime($statusStart, $action, 'statusList');
+
+                $fetchStart = microtime(true);
+                $projects = $projQ->with(DatabaseConstants::TABLE_TASKS)->orderByDesc('id')->get();
+                $this->logExecutionTime($fetchStart, $action, 'fetchProjects');
+
+                $lastStageStart = microtime(true);
+                $lastTask = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                    ->orderByDesc(ActivitiesConstants::COL_OD)
+                    ->first();
+                $this->logExecutionTime($lastStageStart, $action, 'fetchLastTaskStage');
+
+                $viewPath = self::SINGULAR . '.' . __FUNCTION__;
+                $existsStart = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($existsStart, $action, 'viewExistsCheck');
+                if (!$exists) {
+                    return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact(
                     DatabaseConstants::TABLE_PROJECTS,
                     DatabaseConstants::TABLE_USERS,
                     'statusList',
                     'lastTask'
-                )
-            );
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial(
-                $request,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' failed', ['error' => $e]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+                ));
+            } catch (AuthorizationException $e) {
+                return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
+            } catch (\Throwable $e) {
+                Log::error(__METHOD__ . ' failed', ['error' => $e]);
+                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+            }
+        });
     }
 
-    public function show(Request $request, int $id): string|RedirectResponse
+    public function show(Request $request, string|int $id): View|string|RedirectResponse
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        $user = $u;
-        try {
-            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.show')) return $r;
-            $cid = $user?->creatorId() ?: $user?->id;
-            $projQ = Project::query();
-            $projQ = match ($user[UsersConstants::COL_TP]) {
-                PermissionsConstants::CL   => $projQ->where('client_id', $user?->id),
-                'Employee' => $projQ
-                    ->select(DatabaseConstants::TABLE_PROJECTS . '.*')
-                    ->leftJoin(
-                        'project_users',
-                        'project_users.' . ProjectsConstants::COL_PJ_ID,
-                        DatabaseConstants::TABLE_PROJECTS . '.id'
+        $action = __FUNCTION__;
+
+        return $this->measureProfile($action, function () use ($request, $id, $action) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $user = $u;
+
+            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.show')) {
+                return $r;
+            }
+
+            try {
+                $cid = $user?->creatorId() ?: $user?->id;
+
+                $buildQStart = microtime(true);
+                $projQ = Project::query();
+                $projQ = match ($user[UsersConstants::COL_TP]) {
+                    PermissionsConstants::CL   => $projQ->where('client_id', $user?->id),
+                    'Employee' => $projQ
+                        ->select(DatabaseConstants::TABLE_PROJECTS . '.*')
+                        ->leftJoin(
+                            'project_users',
+                            'project_users.' . ProjectsConstants::COL_PJ_ID,
+                            DatabaseConstants::TABLE_PROJECTS . '.id'
+                        )
+                        ->where('project_users.' . UsersConstants::COL_USER_ID, $user?->id),
+                    default    => $projQ->where(DatabaseConstants::TABLE_CREATOR, $user?->id),
+                };
+                $this->logExecutionTime($buildQStart, $action, 'buildProjectQuery');
+
+                $projectStart = microtime(true);
+                $project = $projQ->where('id', $id)->firstOrFail();
+                $this->logExecutionTime($projectStart, $action, 'fetchProject');
+
+                $usersStart = microtime(true);
+                $users = User::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                    ->when(
+                        $user[UsersConstants::COL_TP] === PermissionsConstants::SA,
+                        fn($q) => $q->where(UsersConstants::COL_TP, PermissionsConstants::CPN),
+                        fn($q) => $q->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)
                     )
-                    ->where('project_users.' . UsersConstants::COL_USER_ID, $user?->id),
-                default    => $projQ->where(DatabaseConstants::TABLE_CREATOR, $user?->id),
-            };
-            $project = $projQ->where('id', $id)->firstOrFail();
-            $users = User::where(DatabaseConstants::TABLE_CREATOR, $cid)
-                ->when(
-                    $user[UsersConstants::COL_TP] === PermissionsConstants::SA,
-                    fn ($q) => $q->where(UsersConstants::COL_TP, PermissionsConstants::CPN),
-                    fn ($q) => $q->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)
-                )
-                ->get();
-            $chartData = $this->getProjectChart([
-                ProjectsConstants::COL_PJ_ID => $id,
-                'duration' => 'week'
-            ]);
-            $daysLeft = round(
-                (
-                    strtotime($project->end_date)
-                    - strtotime(date('Y-m-d'))
-                ) / 3600 / 24
-            );
-            $total = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->count();
-            $byStage = TaskStage::join(
-                'project_tasks',
-                'project_tasks.stage_id',
-                DatabaseConstants::TABLE_TSK_STGS . '.id'
-            )
-                ->where('project_tasks.' . ProjectsConstants::COL_PJ_ID, $id)
-                ->groupBy(DatabaseConstants::TABLE_TSK_STGS . '.' . ProjectsConstants::COL_NM)
-                ->pluck('count', DatabaseConstants::TABLE_TSK_STGS . '.' . ProjectsConstants::COL_NM);
-            $statusLabels = $byStage->keys()->all();
-            $statusPercents = array_map(
-                fn ($c) => $total ? round($c * 100 / $total, 2) : 0.00,
-                $byStage->all()
-            );
-            $byPri = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)
-                ->groupBy(ProjectsConstants::COL_PRT)
-                ->pluck('count', ProjectsConstants::COL_PRT);
-            $priLabels = $byPri->keys()->all();
-            $priPercents = array_map(
-                fn ($c) => $total ? round($c * 100 / $total, 2) : 0.00,
-                $byPri->all()
-            );
-            $priorityClasses = ['text-success', 'text-primary', 'text-danger'];
-            $stages    = TaskStage::all();
-            $milestones = Milestone::where(ProjectsConstants::COL_PJ_ID, $id)->get();
-            $logged = Timesheet::where(ProjectsConstants::COL_PJ_ID, $id)
-                ->get()
-                ->sum(function ($ts) {
+                    ->get();
+                $this->logExecutionTime($usersStart, $action, 'fetchUsers');
+
+                $chartStart = microtime(true);
+                $chartData = $this->getProjectChart([
+                    ProjectsConstants::COL_PJ_ID => $id,
+                    'duration' => 'week'
+                ]);
+                $this->logExecutionTime($chartStart, $action, 'getProjectChart');
+
+                $calcStart = microtime(true);
+                $daysLeft = round((strtotime($project->end_date) - strtotime(date('Y-m-d'))) / 3600 / 24);
+                $total = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->count();
+                $byStage = TaskStage::join('project_tasks', 'project_tasks.stage_id', DatabaseConstants::TABLE_TSK_STGS . '.id')
+                    ->where('project_tasks.' . ProjectsConstants::COL_PJ_ID, $id)
+                    ->groupBy(DatabaseConstants::TABLE_TSK_STGS . '.' . ProjectsConstants::COL_NM)
+                    ->pluck('count', DatabaseConstants::TABLE_TSK_STGS . '.' . ProjectsConstants::COL_NM);
+                $statusLabels = $byStage->keys()->all();
+                $statusPercents = array_map(fn($c) => $total ? round($c * 100 / $total, 2) : 0.00, $byStage->all());
+
+                $byPri = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)
+                    ->groupBy(ProjectsConstants::COL_PRT)
+                    ->pluck('count', ProjectsConstants::COL_PRT);
+                $priLabels = $byPri->keys()->all();
+                $priPercents = array_map(fn($c) => $total ? round($c * 100 / $total, 2) : 0.00, $byPri->all());
+                $priorityClasses = ['text-success', 'text-primary', 'text-danger'];
+                $stages = TaskStage::all();
+                $milestones = Milestone::where(ProjectsConstants::COL_PJ_ID, $id)->get();
+                $logged = Timesheet::where(ProjectsConstants::COL_PJ_ID, $id)->get()->sum(function ($ts) {
                     $h = date('H', strtotime($ts->time));
                     $m = date('i', strtotime($ts->time));
                     return $h + $m / 60;
                 });
-            $loggedChart = number_format($logged, 2, '.', '');
-            $estimated  = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)
-                ->sum(ProjectsConstants::COL_E_HRS);
-            $tasks   = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->get();
-            $lastTask = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $cid)
-                ->orderByDesc(ActivitiesConstants::COL_OD)
-                ->first();
-            return view(
-                self::SINGULAR . '.' . __FUNCTION__,
-                compact(
+                $loggedChart = number_format($logged, 2, '.', '');
+                $estimated = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->sum(ProjectsConstants::COL_E_HRS);
+                $tasks = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->get();
+                $lastTask = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                    ->orderByDesc(ActivitiesConstants::COL_OD)
+                    ->first();
+                $this->logExecutionTime($calcStart, $action, 'computeMetrics');
+
+                $viewPath = self::SINGULAR . '.' . __FUNCTION__;
+                $existsStart = microtime(true);
+                $exists = ViewFacade::exists($viewPath);
+                $this->logExecutionTime($existsStart, $action, 'viewExistsCheck');
+                if (!$exists) {
+                    return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+
+                return view($viewPath, compact(
                     'user',
                     DatabaseConstants::TABLE_USERS,
                     self::ENTITY,
@@ -219,51 +247,36 @@ class ProjectReportController extends Controller
                     'estimated',
                     DatabaseConstants::TABLE_TASKS,
                     'lastTask'
-                )
-            );
-        } catch (AuthorizationException $e) {
-            return defaultPermissionDenial(
-                $request,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' failed', ['error' => $e]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+                ));
+            } catch (AuthorizationException $e) {
+                return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
+            } catch (\Throwable $e) {
+                Log::error(__METHOD__ . ' failed', ['error' => $e]);
+                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+            }
+        });
     }
 
+    public const GET_PRJ_CHT = 'getProjectChart';
     public function getProjectChart(array $params): array
     {
         $dates = $labels = [];
         if (($params['duration'] ?? '') === 'week') {
-            foreach (Utility::getFirstSeventhWeekDay(-1)['datePeriod']
-                as $d) {
+            foreach (Utility::getFirstSeventhWeekDay(-1)['datePeriod'] as $d) {
                 $dates[] = $d->format('Y-m-d');
                 $labels[] = $d->format('D');
             }
         }
+
         $stages = TaskStage::when(
             $params[DatabaseConstants::TABLE_CREATOR] ?? null,
-            fn ($q) => $q->where(
-                DatabaseConstants::TABLE_CREATOR,
-                $params[DatabaseConstants::TABLE_CREATOR] ?? null
-            )
+            fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $params[DatabaseConstants::TABLE_CREATOR] ?? null)
         )
             ->orderBy(ActivitiesConstants::COL_OD)
             ->get(['id', ProjectsConstants::COL_NM]);
-        $palette = [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40'
-        ];
+
+        $palette = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+
         $datasets = [];
         foreach ($stages as $i => $stage) {
             $datasets[$stage->id] = [
@@ -272,64 +285,46 @@ class ProjectReportController extends Controller
                 'backgroundColor' => $palette[$i % count($palette)]
             ];
         }
+
         foreach ($dates as $date) {
-            $counts = ProjectTask::select(
-                'stage_id',
-                DB::raw('count(*) as total')
-            )
+            $counts = ProjectTask::select('stage_id', DB::raw('count(*) as total'))
                 ->whereDate(DatabaseConstants::COL_U_AT, $date)
-                ->when(
-                    isset($params[ProjectsConstants::COL_PJ_ID]),
-                    fn ($q) => $q->where(
-                        ProjectsConstants::COL_PJ_ID,
-                        $params[ProjectsConstants::COL_PJ_ID]
-                    )
-                )
-                ->when(
-                    isset($params[DatabaseConstants::TABLE_CREATOR]),
-                    fn ($q) => $q->whereIn(
-                        ProjectsConstants::COL_PJ_ID,
-                        fn ($sub) => $sub
-                            ->select('id')
-                            ->from(DatabaseConstants::TABLE_PROJECTS)
-                            ->where(
-                                DatabaseConstants::TABLE_CREATOR,
-                                $params[DatabaseConstants::TABLE_CREATOR]
-                            )
-                    )
-                )
+                ->when(isset($params[ProjectsConstants::COL_PJ_ID]), fn($q) => $q->where(ProjectsConstants::COL_PJ_ID, $params[ProjectsConstants::COL_PJ_ID]))
+                ->when(isset($params[DatabaseConstants::TABLE_CREATOR]), fn($q) => $q->whereIn(
+                    ProjectsConstants::COL_PJ_ID,
+                    fn($sub) => $sub->select('id')->from(DatabaseConstants::TABLE_PROJECTS)->where(DatabaseConstants::TABLE_CREATOR, $params[DatabaseConstants::TABLE_CREATOR])
+                ))
                 ->pluck('total', 'stage_id')
                 ->all();
-            foreach ($datasets as $sid => &$ds)
+
+            foreach ($datasets as $sid => &$ds) {
                 $ds['data'][] = $counts[$sid] ?? 0;
+            }
             unset($ds);
         }
-        return [
-            'labels'   => $labels,
-            'datasets' => array_values($datasets)
-        ];
+
+        return ['labels' => $labels, 'datasets' => array_values($datasets)];
     }
 
-
-    public function export(int $id): mixed
+    public function export(string|int $id): mixed
     {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        $request = request();
-        if ($r = self::guard($request, 'export project report', self::SINGULAR . '.' . __FUNCTION__))
-            return $r;
-        try {
-            $name = 'task_report_' . date('Y-m-d_H:i:s');
-            return Excel::download(
-                new \App\Exports\task_reportExport($id),
-                $name . '.xlsx'
-            );
-        } catch (\Throwable $e) {
-            Log::error(__METHOD__ . ' failed', ['error' => $e]);
-            return defaultUndefinedException(
-                $request,
-                $e,
-                __CLASS__ . '::' . __FUNCTION__
-            );
-        }
+        $action = __FUNCTION__;
+
+        return $this->measureProfile($action, function () use ($id, $action) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            $request = request();
+
+            if ($r = self::guard($request, 'export project report', self::SINGULAR . '.' . __FUNCTION__)) {
+                return $r;
+            }
+
+            try {
+                $name = 'task_report_' . date('Y-m-d_H:i:s');
+                return Excel::download(new \App\Exports\task_reportExport($id), $name . '.xlsx');
+            } catch (\Throwable $e) {
+                Log::error(__METHOD__ . ' failed', ['error' => $e]);
+                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+            }
+        });
     }
 }
