@@ -10,8 +10,10 @@ use App\Config\Constants\{
 };
 use App\Models\{TimeTracker, TrackPhoto};
 use App\Traits\{ChecksLogin, ChecksPermissions};
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log, Storage, Validator, View as ViewFacade};
+use Illuminate\View\View;
 
 class TimeTrackerController extends Controller
 {
@@ -20,7 +22,7 @@ class TimeTrackerController extends Controller
     private const SINGULAR = 'time-tracker';
     private const REDIRECT_INDEX = VW::TMT . '.index';
 
-    public function index(Request $request): \Illuminate\View\View|RedirectResponse
+    public function index(Request $request): View|RedirectResponse
     {
         $action = __METHOD__;
         $view = VW::TMT . '.index';
@@ -30,19 +32,19 @@ class TimeTrackerController extends Controller
             $user = $userOrRedirect;
             if ($resp = self::guard($request, 'manage time tracker', self::REDIRECT_INDEX)) return $resp;
             try {
-                Log::info(__CLASS__ . '::index called', ['user' => $user?->id]);
+                Log::info($action . ' called', ['user' => $user?->id]);
                 $trackers = TimeTracker::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->get();
-                Log::info(__CLASS__ . '::index fetched', ['count' => $trackers->count(), 'user' => $user?->id]);
+                Log::info($action . ' fetched', ['count' => $trackers->count(), 'user' => $user?->id]);
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
                 return view($view, compact('trackers'));
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::index unexpected', ['error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::index', route(self::REDIRECT_INDEX));
+                Log::error($action . ' unexpected', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action . '', route(self::REDIRECT_INDEX));
             }
         });
     }
 
-    public function create(Request $request): \Illuminate\View\View|RedirectResponse
+    public function create(Request $request): View|RedirectResponse
     {
         $action = __METHOD__;
         $view = VW::TMT . '.create';
@@ -50,7 +52,7 @@ class TimeTrackerController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            Log::info(__CLASS__ . '::create called', ['user' => $user?->id]);
+            Log::info($action . ' called', ['user' => $user?->id]);
             if ($resp = $this->guard($request, 'create time tracker', self::REDIRECT_INDEX)) return $resp;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view);
@@ -61,10 +63,10 @@ class TimeTrackerController extends Controller
     {
         $action = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            Log::info(__CLASS__ . '::store called', ['user' => $user?->id, 'input' => $request->all()]);
+            Log::info($action . ' called', ['user' => $user?->id, 'input' => $request->all()]);
             if ($resp = $this->guard($request, 'create time tracker', self::REDIRECT_INDEX)) return $resp;
             $v = Validator::make($request->all(), [
                 ProjectsConstants::COL_PJ_ID      => 'required|integer|exists:projects,id',
@@ -78,11 +80,11 @@ class TimeTrackerController extends Controller
                 ActivitiesConstants::COL_TTL_TIME => 'nullable|integer',
             ]);
             if ($v->fails()) {
-                Log::warning(__CLASS__ . '::store validation failed', ['errors' => $v->errors()->all()]);
+                Log::warning($action . ' validation failed', ['errors' => $v->errors()->all()]);
                 return redirect()->back()->with('error', $v->errors()->first());
             }
             try {
-                DB::transaction(function () use ($request, $user) {
+                DB::transaction(function () use ($request, $user, $action) {
                     $data = $request->only([
                         ProjectsConstants::COL_PJ_ID,
                         ActivitiesConstants::COL_TSK_ID,
@@ -96,17 +98,17 @@ class TimeTrackerController extends Controller
                     ]);
                     $data[DatabaseConstants::TABLE_CREATOR] = $user?->id;
                     $tracker = TimeTracker::create($data);
-                    Log::info(__CLASS__ . '::store created', ['id' => $tracker->id]);
+                    Log::info($action . ' created', ['id' => $tracker->id]);
                 });
                 return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Time tracker successfully created.'));
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::store failed', ['error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::store', route(self::REDIRECT_INDEX));
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         });
     }
 
-    public function show(Request $request, TimeTracker $timeTracker): \Illuminate\View\View|RedirectResponse
+    public function show(Request $request, TimeTracker $timeTracker): View|RedirectResponse
     {
         $action = __METHOD__;
         $view = VW::TMT . '.show';
@@ -114,15 +116,15 @@ class TimeTrackerController extends Controller
         return $this->measureProfile($action, function () use ($request, $timeTracker, $view, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            Log::info(__CLASS__ . '::show called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
+            Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
             if ($resp = $this->guard($request, 'view time tracker', self::REDIRECT_INDEX)) return $resp;
-            if ($timeTracker->created_by !== $user?->id) return defaultPermissionDenial($request, new \Illuminate\Auth\Access\AuthorizationException(), __CLASS__ . '::show', route(self::REDIRECT_INDEX), false);
+            if ($timeTracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('timeTracker'));
         });
     }
 
-    public function edit(Request $request, TimeTracker $timeTracker): \Illuminate\View\View|RedirectResponse
+    public function edit(Request $request, TimeTracker $timeTracker): View|RedirectResponse
     {
         $action = __METHOD__;
         $view = VW::TMT . '.edit';
@@ -130,9 +132,9 @@ class TimeTrackerController extends Controller
         return $this->measureProfile($action, function () use ($request, $timeTracker, $view, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            Log::info(__CLASS__ . '::edit called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
+            Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
             if ($resp = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) return $resp;
-            if ($timeTracker->created_by !== $user?->id) return defaultPermissionDenial($request, new \Illuminate\Auth\Access\AuthorizationException(), __CLASS__ . '::edit', route(self::REDIRECT_INDEX), false);
+            if ($timeTracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('timeTracker'));
         });
@@ -142,12 +144,12 @@ class TimeTrackerController extends Controller
     {
         $action = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $timeTracker) {
+        return $this->measureProfile($action, function () use ($request, $timeTracker, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            Log::info(__CLASS__ . '::update called', ['user' => $user?->id, 'tracker' => $timeTracker->id, 'input' => $request->all()]);
+            Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id, 'input' => $request->all()]);
             if ($resp = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) return $resp;
-            if ($timeTracker->created_by !== $user?->id) return defaultPermissionDenial($request, new \Illuminate\Auth\Access\AuthorizationException(), __CLASS__ . '::update', route(self::REDIRECT_INDEX), false);
+            if ($timeTracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             $v = Validator::make($request->all(), [
                 ProjectsConstants::COL_PJ_ID      => 'required|integer|exists:projects,id',
                 ActivitiesConstants::COL_TSK_ID   => 'required|integer|exists:project_tasks,id',
@@ -160,11 +162,11 @@ class TimeTrackerController extends Controller
                 ActivitiesConstants::COL_TTL_TIME => 'nullable|integer',
             ]);
             if ($v->fails()) {
-                Log::warning(__CLASS__ . '::update validation failed', ['errors' => $v->errors()->all()]);
+                Log::warning($action . ' validation failed', ['errors' => $v->errors()->all()]);
                 return redirect()->back()->with('error', $v->errors()->first());
             }
             try {
-                DB::transaction(function () use ($request, $timeTracker) {
+                DB::transaction(function () use ($request, $timeTracker, $action) {
                     $data = $request->only([
                         ProjectsConstants::COL_PJ_ID,
                         ActivitiesConstants::COL_TSK_ID,
@@ -177,12 +179,12 @@ class TimeTrackerController extends Controller
                         ActivitiesConstants::COL_TTL_TIME,
                     ]);
                     $timeTracker->update($data);
-                    Log::info(__CLASS__ . '::update updated', ['id' => $timeTracker->id]);
+                    Log::info($action . ' updated', ['id' => $timeTracker->id]);
                 });
                 return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Time tracker successfully updated.'));
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::update failed', ['error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::update', route(self::REDIRECT_INDEX));
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         });
     }
@@ -191,21 +193,21 @@ class TimeTrackerController extends Controller
     {
         $action = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request, $trackerId) {
+        return $this->measureProfile($action, function () use ($request, $trackerId, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if ($resp = self::guard($request, 'delete time tracker', self::REDIRECT_INDEX)) return $resp;
             try {
                 return DB::transaction(fn() => $this->performDestroy($request, $user, $trackerId));
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::destroy failed', ['error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::destroy', route(self::REDIRECT_INDEX));
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         });
     }
 
     public const GET_TRT_IMG = 'getTrackerImages';
-    public function getTrackerImages(Request $request): \Illuminate\View\View|RedirectResponse
+    public function getTrackerImages(Request $request): View|RedirectResponse
     {
         $action = __METHOD__;
         $view = VW::TMT . '.images';
@@ -217,13 +219,13 @@ class TimeTrackerController extends Controller
             try {
                 $id = $request->input('id');
                 $tracker = TimeTracker::findOrFail($id);
-                if ($tracker->created_by !== $user?->id) return defaultPermissionDenial($request, new \Illuminate\Auth\Access\AuthorizationException(), __CLASS__ . '::getTrackerImages');
+                if ($tracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 $images = TrackPhoto::where('track_id', $id)->where('user_id', $user?->id)->get();
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
                 return view($view, compact('images', 'tracker'));
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::getTrackerImages unexpected', ['error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::getTrackerImages');
+                Log::error($action . ' unexpected', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         });
     }
@@ -233,7 +235,7 @@ class TimeTrackerController extends Controller
     {
         $action = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
                 return response()->json(['error' => 'Permission denied.'], 403);
             }
@@ -243,15 +245,15 @@ class TimeTrackerController extends Controller
             try {
                 $photo = TrackPhoto::findOrFail($request->input('id'));
                 if ($photo->user_id !== auth()->id()) {
-                    Log::warning(__CLASS__ . '::removeTrackerImages permission denied', ['photo' => $photo->id]);
+                    Log::warning($action . ' permission denied', ['photo' => $photo->id]);
                     return response()->json(['error' => 'Permission denied.'], 403);
                 }
                 Storage::delete($photo->img_path);
                 $photo->delete();
-                Log::info(__CLASS__ . '::removeTrackerImages success', ['photo' => $photo->id]);
+                Log::info($action . ' success', ['photo' => $photo->id]);
                 return response()->json(['success' => true]);
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::removeTrackerImages failed', ['error' => $e->getMessage()]);
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return response()->json(['error' => 'Server error'], 500);
             }
         });
@@ -262,7 +264,7 @@ class TimeTrackerController extends Controller
     {
         $action = __METHOD__;
 
-        return $this->measureProfile($action, function () use ($request) {
+        return $this->measureProfile($action, function () use ($request, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
                 return response()->json(['error' => 'Permission denied.'], 403);
             }
@@ -271,15 +273,15 @@ class TimeTrackerController extends Controller
             }
             try {
                 $track = TimeTracker::findOrFail($request->input('id'));
-                if ($track->created_by !== auth()->id()) {
-                    Log::warning(__CLASS__ . '::removeTracker permission denied', ['track' => $track->id]);
+                if ($track[DatabaseConstants::TABLE_CREATOR] !== auth()->id()) {
+                    Log::warning($action . ' permission denied', ['track' => $track->id]);
                     return response()->json(['error' => 'Permission denied.'], 403);
                 }
                 $track->delete();
-                Log::info(__CLASS__ . '::removeTracker success', ['track' => $track->id]);
+                Log::info($action . ' success', ['track' => $track->id]);
                 return response()->json(['success' => true]);
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::removeTracker failed', ['error' => $e->getMessage()]);
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return response()->json(['error' => 'Server error'], 500);
             }
         });
@@ -287,11 +289,12 @@ class TimeTrackerController extends Controller
 
     private function performDestroy(Request $request, $user, string|int $trackerId): RedirectResponse
     {
-        Log::info(__CLASS__ . '::performDestroy deleting', ['user' => $user?->id, 'tracker' => $trackerId]);
+        $action = __METHOD__;
+        Log::info($action . ' deleting', ['user' => $user?->id, 'tracker' => $trackerId]);
         $tracker = TimeTracker::findOrFail($trackerId);
-        if ($tracker->created_by !== $user?->id) {
-            Log::warning(__CLASS__ . '::performDestroy permission denied', ['user' => $user?->id]);
-            return defaultPermissionDenial($request, new \Illuminate\Auth\Access\AuthorizationException(), __CLASS__ . '::performDestroy', route(self::REDIRECT_INDEX));
+        if ($tracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) {
+            Log::warning($action . ' permission denied', ['user' => $user?->id]);
+            return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX));
         }
         $photos = TrackPhoto::where('track_id', $trackerId)->get();
         foreach ($photos as $photo) {
@@ -299,7 +302,7 @@ class TimeTrackerController extends Controller
             $photo->delete();
         }
         $tracker->delete();
-        Log::info(__CLASS__ . '::performDestroy success', ['tracker' => $trackerId]);
+        Log::info($action . ' success', ['tracker' => $trackerId]);
         return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Time tracker successfully deleted.'));
     }
 }

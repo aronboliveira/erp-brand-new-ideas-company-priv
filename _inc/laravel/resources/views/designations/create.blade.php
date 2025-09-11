@@ -1,28 +1,75 @@
-{{Collective\Html\FormFacade::open(array('url'=>'designation','method'=>'post'))}}
-    <div class="modal-body">
+@php
+    use App\Config\Constants\{StacksConstants as ST, ViewClassNamesConstants as VC, ViewsConstants as VW};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\{Collection, Str};
 
-    <div class="row">
-        <div class="col-12">
-            <div class="form-group">
-                {{ Collective\Html\FormFacade::label('department_id', __('Department'),['class'=>'form-label']) }}
-                {{ Collective\Html\FormFacade::select('department_id', $departments,null, array('class' => 'form-control select','required'=>'required')) }}
-            </div>
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('name',__('Name'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('name',null,array('class'=>'form-control','placeholder'=>__('Enter Designation Name')))}}
-                @error('name')
-                <span class="invalid-name" role="alert">
-                    <strong class="text-danger">{{ $message }}</strong>
-                </span>
-                @enderror
+    $lang = Utility::fetchUserLang();
+    $departmentsIsList  = (is_array($departments ?? null) && count($departments ?? [])) || (($departments ?? null) instanceof Collection && $departments->isNotEmpty());
+    $departmentsOptions = $departmentsIsList ? $departments : ['' => __('No departments available')];
+    $designationStoreBase  = VW::DSG;
+    $designationStoreKebab = Str::kebab($designationStoreBase);
+    $designationStoreName  = Route::has($designationStoreBase) ? $designationStoreBase : (Route::has($designationStoreKebab) ? $designationStoreKebab : null);
+    $designationStoreUrl   = $designationStoreName ? route($designationStoreName) : '#';
+    $designationFormId     = 'designation-store-form';
+    $designationGuardMsg   = Utility::fetchLinkMessage($lang, VW::DSG, 'designation_store_route_unavailable') ?? 'Store designation route is unavailable. Please contact technical support or your domain administrator.';
+
+    $deptHasError = $errors->has('department_id');
+    $deptAttrs    = [
+        'id'               => 'department_id',
+        'class'            => trim(VC::FM_CT_SL.' '.($deptHasError ? 'is-invalid' : '')),
+        'placeholder'      => __('Select Department'),
+        'required'         => 'required',
+        'aria-invalid'     => $deptHasError ? 'true' : 'false',
+        'aria-describedby' => $deptHasError ? 'department_id-error' : null,
+    ];
+    if (!$departmentsIsList) { $deptAttrs['disabled'] = 'disabled'; }
+
+    $nameHasError = $errors->has('name');
+    $nameAttrs    = [
+        'id'               => 'name',
+        'class'            => trim(VC::FM_CT.' '.($nameHasError ? 'is-invalid' : '')),
+        'placeholder'      => __('Enter Designation Name'),
+        'required'         => 'required',
+        'aria-invalid'     => $nameHasError ? 'true' : 'false',
+        'aria-describedby' => $nameHasError ? 'name-error' : null,
+        'autocomplete'     => 'off',
+    ];
+@endphp
+
+{{ Form::open([
+    'url'            => $designationStoreUrl,
+    'method'         => 'POST',
+    'id'             => $designationFormId,
+    'data-url'       => $designationStoreUrl,
+    'data-guard-msg' => $designationGuardMsg,
+    'data-sv-localized' => 'true'
+]) }}
+    @csrf
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::C12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('department_id', __('Department'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('department_id', $departmentsOptions, null, $deptAttrs) }}
+                    @error('department_id')
+                        <span id="department_id-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    @enderror
+                </div>
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
+                    {{ Form::text('name', null, $nameAttrs) }}
+                    @error('name')
+                        <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    @enderror
+                </div>
             </div>
         </div>
-
-    </div>
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
-    {{Collective\Html\FormFacade::close()}}
-
+    <script defer src="{{ asset('assets/js/routes/designations/store.js') }}"></script>
+{{ Form::close() }}

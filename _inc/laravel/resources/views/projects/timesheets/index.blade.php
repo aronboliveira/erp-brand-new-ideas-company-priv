@@ -2,7 +2,7 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
+        ViewsConstants as VW,
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
@@ -10,11 +10,11 @@
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\Str;
     $lang = Utility::fetchUserLang();
-    $projectIndexBaseName = ViewsConstants::PRJ . '.index';
+    $projectIndexBaseName = VW::PRJ . '.index';
     $projectIndexKebabName = Str::kebab($projectIndexBaseName);
     $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
     $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 
@@ -82,14 +82,14 @@
         @endpush
         <li class="breadcrumb-item">
             @php
-                $projectShowBaseName     = ViewsConstants::PRJ.'.show';
+                $projectShowBaseName     = VW::PRJ.'.show';
                 $projectShowKebabName    = Str::kebab($projectShowBaseName);
                 $projectShowResolvedName = Route::has($projectShowBaseName)
                     ? $projectShowBaseName
                     : (Route::has($projectShowKebabName) ? $projectShowKebabName : null);
                 $projectId               = isset($project) && !empty($project->id) ? $project->id : null;
                 $projectShowUrl          = ($projectShowResolvedName && $projectId) ? route($projectShowResolvedName, $projectId) : '#';
-                $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'open_project_route_unavailable') ?? 'Open project route is unavailable. Please contact technical support or your domain administrator.';
+                $projectShowGuardMsg     = Utility::fetchLinkMessage($lang, VW::PRJ, 'open_project_route_unavailable') ?? 'Open project route is unavailable. Please contact technical support or your domain administrator.';
                 $projectShowLinkId       = 'project-show-link';
                 $projectNameText         = ucwords($project->project_name ?? '');
             @endphp
@@ -335,7 +335,7 @@ Object.keys(t).forEach(
 
                 const weeklyDatesDiv = document.querySelector(".weekly-dates-div");
                 const timesheetUrl = "{{ route('timesheets.filters.table.view') }}";
-                const appendTaskUrl = "{{route('append.timesheet.task.html')}}";
+                const appendTaskUrl = "{{route(VW::PRJ . '.' . VW::TMS . '.append.task')}}";
 
                 const ajaxFilterTimesheetTableView = () => {
                     try {

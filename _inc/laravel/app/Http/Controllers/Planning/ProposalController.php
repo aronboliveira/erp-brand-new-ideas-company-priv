@@ -439,7 +439,7 @@ class ProposalController extends Controller
                 DB::rollBack();
                 Log::error("[$action] error", ['err' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::update');
+                return defaultUndefinedException($request, $e, $action);
             }
             $this->logExecutionTime($txStart, $action . '::transaction', 'completed');
         }, ['proposal_id' => $proposal->id]);
@@ -484,7 +484,7 @@ class ProposalController extends Controller
                 ]);
             } catch (\Throwable $e) {
                 Log::error($method . ' error', ['err' => $e->getMessage()]);
-                return defaultUndefinedException(request(), $e, __CLASS__ . '::' . $function);
+                return defaultUndefinedException(request(), $e, $method);
             }
         }, ['encId' => $encId]);
     }
@@ -492,7 +492,8 @@ class ProposalController extends Controller
     public function destroy(Proposal $proposal): RedirectResponse
     {
         $function = __FUNCTION__;
-        return $this->measureProfile($function, function () use ($proposal, $function) {
+        $method = __METHOD__;
+        return $this->measureProfile($function, function () use ($proposal, $function, $method) {
             $method = static::class . '::' . $function;
             $startAction = microtime(true);
             Log::info($method . ' start', ['user' => Auth::id(), 'proposal' => $proposal->id]);
@@ -510,12 +511,12 @@ class ProposalController extends Controller
                 Log::warning($method . ' ownership denied', ['user' => Auth::id(), 'proposal' => $proposal->id]);
                 return defaultPermissionDenial(request(), new \Exception('ownership'), $method);
             }
-            DB::transaction(function () use ($proposal, $function) {
+            DB::transaction(function () use ($proposal, $function, $method) {
                 $startDelete = microtime(true);
                 $proposal->delete();
                 ProposalProduct::where('proposal_id', $proposal->id)->delete();
                 $this->logExecutionTime($startDelete, $function . '::delete', 'completed');
-                Log::info(__METHOD__ . ' deleted', ['proposal' => $proposal->id]);
+                Log::info($method . ' deleted', ['proposal' => $proposal->id]);
             });
             return redirect()->route(static::INDEX_ROUTE)
                 ->with('success', __('Proposal successfully deleted.'));
@@ -638,7 +639,7 @@ class ProposalController extends Controller
                 ]);
             } catch (\Throwable $e) {
                 Log::error($method . ' error', ['err' => $e->getMessage()]);
-                return defaultUndefinedException(request(), $e, __CLASS__ . '::' . $function);
+                return defaultUndefinedException(request(), $e, $method);
             }
         }, ['encId' => $encId]);
     }

@@ -1,18 +1,18 @@
 @php
-    use App\Config\Constants\{ViewsConstants, ViewClassNamesConstants, StacksConstants};
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
     use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\Str;
     use Collective\Html\FormFacade as Form;
 
     $lang = Utility::fetchUserLang();
-    $updateRoute = Route::has(ViewsConstants::APR.'.update')
-        ? route(ViewsConstants::APR.'.update', $appraisal->id)
+    $updateRoute = Route::has(VW::APR.'.update')
+        ? route(VW::APR.'.update', $appraisal->id)
         : '#';
     $formId = 'appraisal-update-form';
     $updateMsg = Utility::fetchLinkMessage(
         $lang,
-        ViewsConstants::APR,
+        VW::APR,
         'appraisal_update_route_unavailable'
     ) ?? 'Appraisal update route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
@@ -27,43 +27,43 @@
       'data-guard-msg'    => $updateMsg,
   ]) }}
       <div class="modal-body">
-          <div class="{{ ViewClassNamesConstants::RW }}">
-              <div class="{{ ViewClassNamesConstants::C12 }}">
-                  <div class="{{ ViewClassNamesConstants::FM_G }}">
-                      {{ Form::label('branch',__('Branch*'),['class'=>ViewClassNamesConstants::FM_LB]) }}
-                      <select name="branch" id="branch" required class="{{ ViewClassNamesConstants::FM_CT_SL }}">
+          <div class="{{ VC::RW }}">
+              <div class="{{ VC::C12 }}">
+                  <div class="{{ VC::FM_G }}">
+                      {{ Form::label('branch',__('Branch*'),['class'=>VC::FM_LB]) }}
+                      <select name="branch" id="branch" required class="{{ VC::FM_CT_SL }}">
                           @foreach($brances as $value)
                               <option value="{{ $value->id }}" @if($appraisal->branch==$value->id) selected @endif>{{ $value->name }}</option>
                           @endforeach
                       </select>
                   </div>
               </div>
-              <div class="{{ ViewClassNamesConstants::CM6 }}">
-                  <div class="{{ ViewClassNamesConstants::FM_G }}">
-                      {{ Form::label('employees',__('Employee*'),['class'=>ViewClassNamesConstants::FM_LB]) }}
+              <div class="{{ VC::CM6 }}">
+                  <div class="{{ VC::FM_G }}">
+                      {{ Form::label('employees',__('Employee*'),['class'=>VC::FM_LB]) }}
                       <div class="employee_div">
-                          <select name="employee" id="employee" required class="{{ ViewClassNamesConstants::FM_CT_SL }}"></select>
+                          <select name="employee" id="employee" required class="{{ VC::FM_CT_SL }}"></select>
                       </div>
                   </div>
               </div>
-              <div class="{{ ViewClassNamesConstants::CM6 }}">
-                  <div class="{{ ViewClassNamesConstants::FM_G }}">
-                      {{ Form::label('appraisal_date',__('Select Month*'),['class'=>ViewClassNamesConstants::FM_LB]) }}
-                      {{ Form::text('appraisal_date',null,['class'=>ViewClassNamesConstants::FM_CT_SL.' d_filter','required']) }}
+              <div class="{{ VC::CM6 }}">
+                  <div class="{{ VC::FM_G }}">
+                      {{ Form::label('appraisal_date',__('Select Month*'),['class'=>VC::FM_LB]) }}
+                      {{ Form::text('appraisal_date',null,['class'=>VC::FM_CT_SL.' d_filter','required']) }}
                   </div>
               </div>
-              <div class="{{ ViewClassNamesConstants::C12 }}">
-                  <div class="{{ ViewClassNamesConstants::FM_G }}">
-                      {{ Form::label('remark',__('Remarks'),['class'=>ViewClassNamesConstants::FM_LB]) }}
-                      {{ Form::textarea('remark',null,['class'=>ViewClassNamesConstants::FM_CT,'rows'=>3]) }}
+              <div class="{{ VC::C12 }}">
+                  <div class="{{ VC::FM_G }}">
+                      {{ Form::label('remark',__('Remarks'),['class'=>VC::FM_LB]) }}
+                      {{ Form::textarea('remark',null,['class'=>VC::FM_CT,'rows'=>3]) }}
                   </div>
               </div>
           </div>
-          <div class="{{ ViewClassNamesConstants::RW }}" id="stares"></div>
+          <div class="{{ VC::RW }}" id="stares"></div>
       </div>
       <div class="modal-footer">
-          <input type="button" value="{{ __('Cancel') }}" class="{{ ViewClassNamesConstants::BT_LG }}" data-bs-dismiss="modal">
-          <input type="submit" value="{{ __('Update') }}" class="{{ ViewClassNamesConstants::BT_PRM }}">
+          <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+          <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
       </div>
       <script async src="{{ asset('assets/js/routes/appraisals/lang/edit.js') }}"></script>
       <script defer src="{{ asset('assets/js/routes/appraisals/edit.js') }}"></script>
@@ -207,7 +207,7 @@
             function onBranchChange() {
               const branchId = this.value ?? '';
               try {
-                const url = '{{ route("getemployee") }}';
+                const url = '{{ route(VW::APR.".get.employee") }}';
                 if (!url) throw 0;
                 $.ajax({
                   url,
@@ -244,7 +244,7 @@
           
             function loadStars(empId, appId = null) {
               try {
-                const routeName = appId ? '{{ route("empByStar1") }}' : '{{ route("empByStar") }}';
+                const routeName = appId ? '{{ route(VW::APR . '.' . VW::EMP . ".star1") }}' : '{{ route(VW::APR . '.' . VW::EMP . ".star") }}';
                 const data = { employee: empId, _token: document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '' };
                 if (appId) data.appraisal = appId;
                 $.ajax({

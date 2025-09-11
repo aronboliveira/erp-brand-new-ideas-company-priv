@@ -6,7 +6,8 @@ use App\Config\Constants\{
     DatabaseConstants,
     EmailsConstants,
     MiddlewaresConstants,
-    PermissionsConstants
+    PermissionsConstants,
+    ViewsConstants as VW
 };
 use App\Models\{
     EmailTemplate,
@@ -26,7 +27,8 @@ use Illuminate\Support\Facades\{
     Auth,
     DB,
     Log,
-    Validator
+    Validator,
+    View as ViewFacade
 };
 
 class EmailTemplateController extends Controller
@@ -41,136 +43,268 @@ class EmailTemplateController extends Controller
 
     public function index(): Response|RedirectResponse
     {
-        $user = Auth::user();
-        Log::info('EmailTemplate:' . __FUNCTION__, ['user_id' => $user?->id]);
-        if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN])) {
-            Log::warning('EmailTemplate:index denied', ['user_id' => $user?->id]);
-            return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
-        }
-        $templates = EmailTemplate::all();
-        return response()->view(DatabaseConstants::TABLE_SETTINGS . '.company', compact('templates'));
+        $action   = __FUNCTION__;
+        $cls      = static::class;
+        $sig      = "$cls::$action";
+        $viewPath = DatabaseConstants::TABLE_SETTINGS . '.company';
+
+        return $this->measureProfile($action, function () use ($sig, $viewPath) {
+            Log::info("$sig start", ['user_id' => Auth::id()]);
+
+            $user = Auth::user();
+            if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN])) {
+                Log::warning("$sig denied", ['user_id' => $user?->id]);
+                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+            }
+
+            $t = microtime(true);
+            $templates = EmailTemplate::all();
+            $this->logExecutionTime($t, "$sig::fetchTemplates", 'completed');
+
+            $t = microtime(true);
+            if (!ViewFacade::exists($viewPath)) {
+                $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
+                return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            }
+            $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
+
+            return response()->view($viewPath, compact('templates'));
+        });
     }
 
     public function create(): Response
     {
-        Log::info('EmailTemplate:' . __FUNCTION__);
-        return response()->view(self::SINGULAR . '.' . __FUNCTION__);
+        $action   = __FUNCTION__;
+        $cls      = static::class;
+        $sig      = "$cls::$action";
+        $viewPath = self::SINGULAR . '.' . $action;
+
+        return $this->measureProfile($action, function () use ($sig, $viewPath) {
+            Log::info("$sig start");
+
+            $t = microtime(true);
+            if (!ViewFacade::exists($viewPath)) {
+                $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
+                return response()->noContent(404);
+            }
+            $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
+
+            return response()->view($viewPath);
+        });
     }
 
     public function store(Request $req): RedirectResponse
     {
-        Log::info('EmailTemplate:' . __FUNCTION__, ['input' => $req->all()]);
-        $req->validate([EmailsConstants::COL_TT => 'required']);
-        $user = Auth::user();
-        $tpl = EmailTemplate::create([
-            EmailsConstants::COL_TT       => $req->name,
-            EmailsConstants::COL_FROM       => config('app.name'),
-            EmailsConstants::COL_SLG           => Str::slug($req->input(EmailsConstants::COL_TT)) ?? '',
-            DatabaseConstants::TABLE_CREATOR => $user?->id,
-        ]);
-        Log::info('EmailTemplate created', ['id' => $tpl->id]);
-        return redirect()->route(self::SINGULAR . 'index')
-            ->with('success', __('Email Template successfully created.'));
+        $action = __FUNCTION__;
+        $cls    = static::class;
+        $sig    = "$cls::$action";
+
+        return $this->measureProfile($action, function () use ($req, $sig) {
+            Log::info("$sig start", ['input' => $req->all()]);
+
+            $t = microtime(true);
+            $req->validate([EmailsConstants::COL_TT => 'required']);
+            $this->logExecutionTime($t, "$sig::validate", 'completed');
+
+            $user  = Auth::user();
+            $title = $req->input(EmailsConstants::COL_TT);
+
+            DB::beginTransaction();
+            try {
+                $t = microtime(true);
+                $tpl = EmailTemplate::create([
+                    EmailsConstants::COL_TT            => $title,
+                    EmailsConstants::COL_FROM          => config('app.name'),
+                    EmailsConstants::COL_SLG           => Str::slug($title) ?? '',
+                    DatabaseConstants::TABLE_CREATOR   => $user?->id,
+                ]);
+                DB::commit();
+                $this->logExecutionTime($t, "$sig::transaction", 'completed');
+
+                Log::info("$sig created", ['id' => $tpl->id]);
+                return redirect()->route(self::SINGULAR . '.index')
+                    ->with('success', __('Email Template successfully created.'));
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error("$sig failed", ['err' => $e->getMessage()]);
+                return redirect()->back()->with('error', __('Unexpected error.'));
+            }
+        });
     }
 
     public function show(int $id): RedirectResponse
     {
-        Log::info('EmailTemplate:' . __FUNCTION__, ['id' => $id]);
-        return redirect()->route(self::REDIRECT_BACK)
-            ->with('error', __('Permission denied.'));
+        $action = __FUNCTION__;
+        $cls    = static::class;
+        $sig    = "$cls::$action";
+
+        return $this->measureProfile($action, function () use ($id, $sig) {
+            Log::info("$sig start", ['id' => $id]);
+            return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+        });
     }
 
     public function edit(int $id): RedirectResponse
     {
-        Log::info('EmailTemplate:' . __FUNCTION__, ['id' => $id]);
-        return redirect()->route(self::REDIRECT_BACK)
-            ->with('error', __('Permission denied.'));
+        $action = __FUNCTION__;
+        $cls    = static::class;
+        $sig    = "$cls::$action";
+
+        return $this->measureProfile($action, function () use ($id, $sig) {
+            Log::info("$sig start", ['id' => $id]);
+            return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+        });
     }
 
     public function update(Request $req, int $id): RedirectResponse
     {
-        Log::info('EmailTemplate:' . __FUNCTION__, ['id' => $id, 'input' => $req->all()]);
-        $req->validate([
-            'from' => 'required',
-            'subject' => 'required',
-            'content' => 'required',
-            'lang' => 'required',
-        ]);
-        $template = EmailTemplate::findOrFail($id);
-        $template->update(['from' => $req->from]);
-        $langData = $req->only(['lang', 'subject', 'content']);
-        $langTpl = EmailTemplateLang::firstOrNew([
-            'parent_id' => $id, 'lang' => $langData['lang']
-        ]);
-        $langTpl->fill($langData)->save();
-        Log::info('EmailTemplateLang saved', ['parent_id' => $id, 'lang' => $langData['lang']]);
-        return redirect()->route('manage.email.language', [$id, $langData['lang']])
-            ->with('success', __('Email Template successfully updated.'));
+        $action = __FUNCTION__;
+        $cls    = static::class;
+        $sig    = "$cls::$action";
+
+        return $this->measureProfile($action, function () use ($req, $id, $sig) {
+            Log::info("$sig start", ['id' => $id, 'input' => $req->all()]);
+
+            $t = microtime(true);
+            $req->validate([
+                'from'    => 'required',
+                'subject' => 'required',
+                'content' => 'required',
+                'lang'    => 'required',
+            ]);
+            $this->logExecutionTime($t, "$sig::validate", 'completed');
+
+            $template = EmailTemplate::findOrFail($id);
+            $template->update(['from' => $req->from]);
+
+            $langData = $req->only(['lang', 'subject', 'content']);
+            $langTpl  = EmailTemplateLang::firstOrNew([
+                'parent_id' => $id,
+                'lang'      => $langData['lang']
+            ]);
+            $langTpl->fill($langData)->save();
+
+            Log::info("$sig lang saved", ['parent_id' => $id, 'lang' => $langData['lang']]);
+            return redirect()->route(VW::EMLS . '.manage.language', [$id, $langData['lang']])
+                ->with('success', __('Email Template successfully updated.'));
+        });
     }
 
     public function destroy(int $id): RedirectResponse
     {
-        Log::info('EmailTemplate:' . __FUNCTION__ . ' denied', ['id' => $id]);
-        return redirect()->route(self::REDIRECT_BACK)
-            ->with('error', __('Permission denied.'));
+        $action = __FUNCTION__;
+        $cls    = static::class;
+        $sig    = "$cls::$action";
+
+        return $this->measureProfile($action, function () use ($id, $sig) {
+            Log::info("$sig denied", ['id' => $id]);
+            return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+        });
     }
 
+    public const MNG_EM_LNG = 'manageEmailLang';
     public function manageEmailLang(int $id, string $lang = 'en'): Response|RedirectResponse
     {
-        $user = Auth::user();
-        Log::info('manageEmailLanguage', ['id' => $id, 'lang' => $lang, 'user_id' => $user?->id]);
-        if ($user->type != PermissionsConstants::SA)
-            return redirect()->route(self::REDIRECT_BACK)
-                ->with('error', __('Permission denied.'));
-        $languages     = Utility::languages();
-        $langName      = Language::where('code', $lang)->first();
-        $template      = EmailTemplate::findOrFail($id);
-        $langTemplate  = EmailTemplateLang::where('parent_id', $id)
-            ->where('lang', $lang)->firstOrFail();
-        $allTemplates  = EmailTemplate::all();
-        return response()->view('email_templates.show', compact(
-            'template',
-            DatabaseConstants::TABLE_LANGS,
-            'langTemplate',
-            'allTemplates',
-            'langName'
-        ));
+        $action   = __FUNCTION__;
+        $cls      = static::class;
+        $sig      = "$cls::$action";
+        $viewPath = 'email_templates.show';
+
+        return $this->measureProfile($action, function () use ($id, $lang, $sig, $viewPath) {
+            $user = Auth::user();
+            Log::info("$sig start", ['id' => $id, 'lang' => $lang, 'user_id' => $user?->id]);
+
+            if ($user->type != PermissionsConstants::SA) {
+                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission denied.'));
+            }
+
+            $t = microtime(true);
+            $languages     = Utility::languages();
+            $langName      = Language::where('code', $lang)->first();
+            $template      = EmailTemplate::findOrFail($id);
+            $langTemplate  = EmailTemplateLang::firstOrNew(['parent_id' => $id, 'lang' => $lang]);
+            $allTemplates  = EmailTemplate::all();
+            $this->logExecutionTime($t, "$sig::fetchData", 'completed');
+
+            $t = microtime(true);
+            if (!ViewFacade::exists($viewPath)) {
+                $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
+                return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+            }
+            $this->logExecutionTime($t, "$sig::viewExistsCheck", 'completed');
+
+            return response()->view($viewPath, compact(
+                'template',
+                DatabaseConstants::TABLE_LANGS,
+                'langTemplate',
+                'allTemplates',
+                'langName',
+                'languages'
+            ));
+        });
     }
 
+    public const STR_EM_LNG = 'storeEmailLang';
     public function storeEmailLang(Request $req, int $id): RedirectResponse
     {
-        Log::info('storeEmailLanguage', ['id' => $id, 'input' => $req->all()]);
-        $req->validate(['subject' => 'required', 'content' => 'required', 'lang' => 'required']);
-        $data = $req->only(['lang', 'subject', 'content']);
-        $langTpl = EmailTemplateLang::firstOrNew([
-            'parent_id' => $id, 'lang' => $data['lang']
-        ]);
-        $langTpl->fill($data)->save();
-        Log::info('EmailTemplateLang upsert', ['parent_id' => $id, 'lang' => $data['lang']]);
-        return redirect()->route('manage.email.language', [$id, $data['lang']])
-            ->with('success', __('Email Template Detail successfully updated.'));
+        $action = __FUNCTION__;
+        $cls    = static::class;
+        $sig    = "$cls::$action";
+
+        return $this->measureProfile($action, function () use ($req, $id, $sig) {
+            Log::info("$sig start", ['id' => $id, 'input' => $req->all()]);
+
+            $t = microtime(true);
+            $req->validate(['subject' => 'required', 'content' => 'required', 'lang' => 'required']);
+            $this->logExecutionTime($t, "$sig::validate", 'completed');
+
+            $data    = $req->only(['lang', 'subject', 'content']);
+            $langTpl = EmailTemplateLang::firstOrNew([
+                'parent_id' => $id,
+                'lang'      => $data['lang']
+            ]);
+            $langTpl->fill($data)->save();
+
+            Log::info("$sig upsert", ['parent_id' => $id, 'lang' => $data['lang']]);
+            return redirect()->route(VW::EMLS . '.manage.language', [$id, $data['lang']])
+                ->with('success', __('Email Template Detail successfully updated.'));
+        });
     }
 
+    public const UPD_STT = 'updateStatus';
     public function updateStatus(Request $req): RedirectResponse
     {
-        $user = Auth::user();
-        Log::info(__FUNCTION__ . ' start', ['user_id' => $user?->id, 'input' => $req->all()]);
-        if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN])) {
-            Log::warning(__FUNCTION__ . ' denied', ['user_id' => $user?->id]);
-            return redirect()->route(self::REDIRECT_BACK)
-                ->with('error', __('Permission Denied.'));
-        }
-        $statuses = $req->except('_token');
-        DB::transaction(fn () => [
-            UserEmailTemplate::where('user_id', $user->id)->update(['is_active' > 0]),
-            collect($statuses)->each(fn ($active, $tplId) => UserEmailTemplate::updateOrCreate(
-                ['user_id' => $user?->id, 'template_id' => $tplId],
-                ['is_active' => $active]
-            ))
-        ]);
-        Log::info(__FUNCTION__ . ' complete', ['user_id' => $user?->id]);
-        return redirect()->route(self::REDIRECT_BACK)
-            ->with('success', __('Status successfully updated!'));
+        $action = __FUNCTION__;
+        $cls    = static::class;
+        $sig    = "$cls::$action";
+
+        return $this->measureProfile($action, function () use ($req, $sig) {
+            $user = Auth::user();
+            Log::info("$sig start", ['user_id' => $user?->id, 'input' => $req->all()]);
+
+            if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN])) {
+                Log::warning("$sig denied", ['user_id' => $user?->id]);
+                return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
+            }
+
+            $statuses = $req->except('_token');
+
+            $t = microtime(true);
+            DB::transaction(function () use ($user, $statuses) {
+                // Reset then apply toggles
+                UserEmailTemplate::where('user_id', $user->id)->update(['is_active' => 0]);
+                collect($statuses)->each(function ($active, $tplId) use ($user) {
+                    UserEmailTemplate::updateOrCreate(
+                        ['user_id' => $user?->id, 'template_id' => $tplId],
+                        ['is_active' => (int) (bool) $active]
+                    );
+                });
+            });
+            $this->logExecutionTime($t, "$sig::transaction", 'completed');
+
+            Log::info("$sig complete", ['user_id' => $user?->id]);
+            return redirect()->route(self::REDIRECT_BACK)->with('success', __('Status successfully updated!'));
+        });
     }
 
     protected function _authorize(Request $req, string $perm): ?RedirectResponse

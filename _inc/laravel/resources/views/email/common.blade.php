@@ -1,193 +1,102 @@
-<!doctype html>
-<html xmlns="http://www.w3.org/1999/xhtml">
 @php
     use App\Models\Utility;
     use App\Config\Constants\SettingsConstants;
-     //   $logo=asset(Storage::url('uploads/logo/'));
-    $logo=\App\Models\Utility::getFile('uploads/logo');
-    $company_logo = Utility::getValByName(SettingsConstants::CPN_LG);
+    $lang = Utility::fetchUserLang();
 @endphp
-<head>
-    <title>Common</title>
-    @include('fragments.std', [
-        'meta_title' => $meta_title,
-        'meta_desc' => $meta_desc
-    ])
-    <style type="text/css">
-        #outlook a {
-            padding: 0;
-        }
-
-        .ReadMsgBody {
-            width: 100%;
-        }
-
-        .ExternalClass {
-            width: 100%;
-        }
-
-        .ExternalClass * {
-            line-height: 100%;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-        }
-
-        table,
-        td {
-            border-collapse: collapse;
-            mso-table-lspace: 0pt;
-            mso-table-rspace: 0pt;
-        }
-
-        img {
-            border: 0;
-            height: auto;
-            line-height: 100%;
-            outline: none;
-            text-decoration: none;
-            -ms-interpolation-mode: bicubic;
-        }
-
-        p {
-            display: block;
-            margin: 13px 0;
-        }
-    </style>
-    <style type="text/css">
-        @media only screen and (max-width: 480px) {
-            @-ms-viewport {
-                width: 320px;
-            }
-
-            @viewport {
-                width: 320px;
-            }
-        }
-    </style>
-    <style type="text/css">
-        .outlook-group-fix {
-            width: 100% !important;
-        }
-    </style>
-    <link href="https://fonts.googleapis.com/css?family=Open Sans" rel="stylesheet" type="text/css">
-    <style type="text/css">
-        @media only screen and (min-width: 480px) {
-            .mj-column-per-100 {
-                width: 100% !important;
-                max-width: 100%;
-            }
-        }
-    </style>
-    <style type="text/css">
-        [owa] .mj-column-per-100 {
-            width: 100% !important;
-            max-width: 100%;
-        }
-    </style>
-    <style type="text/css">
-        @media only screen and (max-width: 480px) {
-            table.full-width-mobile {
-                width: 100% !important;
-            }
-
-            td.full-width-mobile {
-                width: auto !important;
-            }
-        }
-    </style>
-</head>
-<body style="background-color:#f8f8f8;">
-<div style="background-color:#f8f8f8;">
-    <table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600">
+<!doctype html>
+<html lang="{{ $lang ?? app()->getLocale() }}" xmlns="http://www.w3.org/1999/xhtml">
+    @php
+        $logo= Utility::getFile('uploads/logo');
+        $company_logo = Utility::getValByName(SettingsConstants::CPN_LG);
+        //   $logo=asset(Storage::url('uploads/logo/'));
+    @endphp
+    <head>
+        <title>Common Email</title>
+        @include('fragments.std', [
+            'meta_title' => $meta_title,
+            'meta_desc' => $meta_desc
+        ])
+        <link rel="stylesheet" href="{{ asset('assets/css/routes/emails/main.css') }}" />
+        <link href="https://fonts.googleapis.com/css?family=Open Sans" rel="stylesheet" type="text/css">
+    </head>
+    <body class="bg-light">
+    <div class="bg-light">
+        <table align="center" border="0" cellpadding="0" cellspacing="0"
+            role="presentation"
+            class="mx-auto"
+            style="max-width:600px;" width="600">
         <tr>
-            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
-                <div style="background:#ffffff;background-color:#ffffff;Margin:0px auto;max-width:600px;">
-                    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
-                        <tbody>
+            <td style="mso-line-height-rule:exactly; line-height:0; font-size:0;">
+            <div class="bg-white mx-auto rounded-3 shadow-sm" style="max-width:600px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+                    class="w-100 bg-white">
+                <tbody>
+                    <tr>
+                    <td class="text-center align-top p-0">
+                        <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="mx-auto">
                         <tr>
-                            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-left:0px;padding-right:0px;padding-top:0px;text-align:center;vertical-align:top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                            <td class="align-top" style="width:600px;">
+                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" class="w-100">
+                                <tr>
+                                <td class="p-0">
+                                    <table align="center" border="0" cellpadding="0" cellspacing="0"
+                                        role="presentation" class="w-100"
+                                        style="border-top:7px solid #6676EF;">
+                                    <tr><td style="height:0; line-height:0;"></td></tr>
+                                    </table>
+                                </td>
+                                </tr>
+                                <tr>
+                                <td class="text-center py-4">
+                                    <table border="0" cellpadding="0" cellspacing="0" role="presentation"
+                                        style="border-collapse:collapse;">
                                     <tr>
-                                        <td class="" style="vertical-align:top;width:600px;">
-                                            <div class="mj-column-per-100 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                                                    <tr>
-                                                        <td style="font-size:0px;padding:10px 25px;padding-top:0px;padding-right:0px;padding-bottom:40px;padding-left:0px;word-break:break-word;">
-                                                            <p style="border-top:solid 7px #6676EF;font-size:1;margin:0px auto;width:100%;">
-                                                            </p>
-
-                                                            <table align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 7px #6676EF;font-size:1;margin:0px auto;width:600px;" role="presentation" width="600px">
-                                                                <tr>
-                                                                    <td style="height:0;line-height:0;">
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td align="center" style="font-size:0px;padding:10px 25px;padding-top:0px;padding-bottom:0px;word-break:break-word;">
-                                                            <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
-                                                                <tbody>
-                                                                <tr>
-                                                                    <td style="width:110px;">
-                                                                        <img alt="" height="auto" src="{{$logo . '/' . (isset($company_logo) && !empty($company_logo) ? $company_logo : 'logo.png')}}" style="border:none;display:block;outline:none;text-decoration:none;height:auto;width:100%;" title="" width="110"/>
-                                                                    </td>
-                                                                </tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </div>
+                                        <td style="width:110px;">
+                                        <img
+                                            src="{{ rtrim($logo ?? '', '/') . '/' . (!empty($company_logo ?? null) ? e($company_logo) : 'logo.png') }}"
+                                            alt="{{ $company_name ?? 'Logo da empresa' }}"
+                                            width="110"
+                                            class="img-fluid d-block"
+                                            style="height:auto;"
+                                            loading="lazy" decoding="async">
                                         </td>
                                     </tr>
-                                </table>
+                                    </table>
+                                </td>
+                                </tr>
+                            </table>
                             </td>
                         </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        </table>
+                    </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
             </td>
         </tr>
-    </table>
-    <table align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600">
+        </table>
+        <table align="center" border="0" cellpadding="0" cellspacing="0"
+            role="presentation"
+            class="mx-auto mt-3"
+            style="max-width:600px;" width="600">
         <tr>
-            <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
-                <div style="background:#ffffff;background-color:#ffffff;Margin:0px auto;max-width:600px;">
-                    <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
-                        <tbody>
-                        <tr>
-                            <td style="direction:ltr;font-size:0px;padding:20px 0px 20px 0px;padding-bottom:70px;padding-top:30px;text-align:center;vertical-align:top;">
-                                <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                                    <tr>
-                                        <td class="" style="vertical-align:top;width:600px;">
-                                            <div class="mj-column-per-100 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
-                                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
-                                                    <tr>
-                                                        <td align="left" style="font-size:0px;padding:0px 25px 0px 25px;padding-top:0px;padding-right:50px;padding-bottom:0px;padding-left:50px;word-break:break-word;">
-                                                            @yield('content')
-                                                        </td>
-                                                    </tr>
-
-                                                </table>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <td style="mso-line-height-rule:exactly;">
+            <div class="bg-white mx-auto rounded-3 shadow-sm" style="max-width:600px;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+                    class="w-100 bg-white">
+                <tbody>
+                    <tr>
+                    <td class="text-start py-4 px-4 px-md-5" style="padding-bottom:70px;">
+                        @yield('content')
+                    </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
             </td>
         </tr>
-    </table>
-</div>
-</body>
+        </table>
+    </div>
+    </body>
 </html>

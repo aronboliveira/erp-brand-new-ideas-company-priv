@@ -1,176 +1,71 @@
 @php
-use App\Config\Constants\{DatabaseConstants, ViewsConstants};
-$settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR]);
+    # Template 7
+    use App\Config\Constants\{DatabaseConstants, ViewsConstants};
+    use App\Models\Utility as UtilModel;
 
+    $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR] ?? null);
+    $hasInvoiceNumberFormat = is_callable([UtilModel::class, 'invoiceNumberFormat']);
+    $hasDateFormat          = is_callable([UtilModel::class, 'dateFormat']);
+    $hasPriceFormat         = is_callable([UtilModel::class, 'priceFormat']);
+    $hasGetSubTotal            = is_object($invoice ?? null) && method_exists($invoice, 'getSubTotal');
+    $hasGetTotalDiscount       = is_object($invoice ?? null) && method_exists($invoice, 'getTotalDiscount');
+    $hasGetTotalTax            = is_object($invoice ?? null) && method_exists($invoice, 'getTotalTax');
+    $hasInvoiceTotalCreditNote = is_object($invoice ?? null) && method_exists($invoice, 'invoiceTotalCreditNote');
+    $hasGetTotal               = is_object($invoice ?? null) && method_exists($invoice, 'getTotal');
+    $hasGetDue                 = is_object($invoice ?? null) && method_exists($invoice, 'getDue');
+    $fmtInvoiceNo = function ($settings, $id) use ($hasInvoiceNumberFormat) {
+        return $hasInvoiceNumberFormat ? \App\Models\Utility::invoiceNumberFormat($settings, $id) : (string) $id;
+    };
+    $fmtDate = function ($settings, $date) use ($hasDateFormat) {
+        if ($hasDateFormat) return \App\Models\Utility::dateFormat($settings, $date);
+        if ($date instanceof \DateTimeInterface) return $date->format('Y-m-d');
+        return is_string($date) ? $date : (string) $date;
+    };
+    $fmtPrice = function ($settings, $amount) use ($hasPriceFormat) {
+        return $hasPriceFormat ? \App\Models\Utility::priceFormat($settings, $amount) : number_format((float) $amount, 2);
+    };
+    $calcTotalQty = 0; $calcTotalRate = 0; $calcTotalDiscount = 0; $calcTotalTax = 0;
+    if (!empty($invoice->itemData) && is_iterable($invoice->itemData)) {
+        foreach ($invoice->itemData as $it) {
+            $calcTotalQty      += (float)($it->quantity ?? 0);
+            $calcTotalRate     += (float)($it->price ?? 0);
+            $calcTotalDiscount += (float)($it->discount ?? 0);
+            if (!empty($it->itemTax) && is_iterable($it->itemTax)) {
+                foreach ($it->itemTax as $tx) { $calcTotalTax += (float)($tx['tax_price'] ?? 0); }
+            }
+        }
+    }
+    $displayTotalQuantity  = $invoice->totalQuantity  ?? $calcTotalQty;
+    $displayTotalRate      = $invoice->totalRate      ?? $calcTotalRate;
+    $displayTotalDiscount  = $invoice->totalDiscount  ?? $calcTotalDiscount;
+    $displayTotalTaxPrice  = $invoice->totalTaxPrice  ?? $calcTotalTax;
+    $subTotal   = $hasGetSubTotal            ? $invoice->getSubTotal()            : ($invoice->totalRate ?? ($calcTotalRate));
+    $totalDisc  = $hasGetTotalDiscount       ? $invoice->getTotalDiscount()       : ($invoice->totalDiscount ?? ($calcTotalDiscount));
+    $totalTax   = $hasGetTotalTax            ? $invoice->getTotalTax()            : ($invoice->totalTaxPrice ?? ($calcTotalTax));
+    $creditNote = $hasInvoiceTotalCreditNote ? $invoice->invoiceTotalCreditNote() : 0;
+    $total      = $hasGetTotal               ? $invoice->getTotal()               : ($subTotal - $totalDisc + $totalTax);
+    $due        = $hasGetDue                 ? $invoice->getDue()                 : max(0, $total - (($invoice->payments_total ?? 0) - $creditNote));
+    $paidAmount = max(0, ($total - $due) - $creditNote);
+    $company_city  = $settings['company_city']    ?? '';
+    $company_state = $settings['company_state']   ?? '';
+    $company_zip   = $settings['company_zipcode'] ?? '';
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$settings_data[SettingsConstants::RTL] == 'on'?'rtl':''}}">
+<html lang="{{ $lang ? (str_replace('_','-',is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) : DatabaseConstants::DEFAULT_LANG }}" dir="{{ ($siteRtl ?? '') === 'on' ? 'rtl' : '' }}">
 
 <head>
     @include('fragments.std', [
     'meta_title' => $meta_title,
-    'meta_desc' => $meta_desc,
+    'meta_desc'  => $meta_desc,
     ])
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
 
     <style>
         <?php echo $themeCSS; ?>
     </style>
-    <style type="text/css">
-        body {
-            font-family: 'Lato', sans-serif;
-        }
+    <link rel="stylesheet" href="{{ asset('assets/css/routes/invoices/theme6.css') }}" />
 
-        p,
-        li,
-        ul,
-        ol {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            line-height: 1.5;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table tr th {
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        table tr td {
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        table th small {
-            display: block;
-            font-size: 12px;
-        }
-
-        .invoice-preview-main {
-            max-width: 700px;
-            width: 100%;
-            margin: 0 auto;
-            background: #ffff;
-            box-shadow: 0 0 10px #ddd;
-        }
-
-        .invoice-logo {
-            max-width: 200px;
-            width: 100%;
-        }
-
-        .invoice-header table td {
-            padding: 15px 30px;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .no-space tr td {
-            padding: 0;
-        }
-
-        .vertical-align-top td {
-            vertical-align: top;
-        }
-
-        .view-qrcode {
-            max-width: 114px;
-            height: 114px;
-            margin-left: auto;
-            margin-top: 15px;
-            background: var(--white);
-        }
-
-        .view-qrcode img {
-            width: 100%;
-            height: 100%;
-        }
-
-        .invoice-body {
-            padding: 30px 25px 0;
-        }
-
-        table.add-border tr {
-            border-top: 1px solid var(--theme-color);
-        }
-
-        tfoot tr:first-of-type {
-            border-bottom: 1px solid var(--theme-color);
-        }
-
-        .total-table tr:first-of-type td {
-            padding-top: 0;
-        }
-
-        .total-table tr:first-of-type {
-            border-top: 0;
-        }
-
-        .sub-total {
-            padding-right: 0;
-            padding-left: 0;
-        }
-
-        .border-0 {
-            border: none !important;
-        }
-
-        .invoice-summary td,
-        .invoice-summary th {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .total-table td:last-of-type {
-            width: 146px;
-        }
-
-        .invoice-footer {
-            padding: 15px 0;
-        }
-
-        .itm-description td {
-            padding-top: 0;
-        }
-
-        html[dir="rtl"] table tr td,
-        html[dir="rtl"] table tr th {
-            text-align: right;
-        }
-
-        html[dir="rtl"] .text-right {
-            text-align: left;
-        }
-
-        html[dir="rtl"] .view-qrcode {
-            margin-left: 0;
-            margin-right: auto;
-        }
-
-        p:not(:last-of-type) {
-            margin-bottom: 15px;
-        }
-
-        .invoice-summary p {
-            margin-bottom: 0;
-        }
-    </style>
-
-    @if($settings_data[SettingsConstants::RTL]=='on')
+    @if(($settings_data[SettingsConstants::RTL] ?? '')=='on')
     <link rel="stylesheet" href="{{ asset('css/bootstrap-rtl.css') }}">
     @endif
 </head>
@@ -182,10 +77,10 @@ $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::T
                 <tbody>
                     <tr>
                         <td>
-                            <img class="invoice-logo" src="{{$img}}" alt="">
+                            <img class="invoice-logo" src="{{ $img }}" alt="">
                         </td>
                         <td class="text-right">
-                            <h3 style="text-transform: uppercase; font-size: 40px; font-weight: bold;">{{__('INVOICE')}}</h3>
+                            <h3 style="text-transform: uppercase; font-size: 40px; font-weight: bold;">{{ __('INVOICE') }}</h3>
                         </td>
                     </tr>
                 </tbody>
@@ -195,17 +90,22 @@ $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::T
                     <tr>
                         <td>
                             <p>
-                                @if($settings['company_name']){{$settings['company_name']}}@endif<br>
-                                @if($settings['mail_from_address']){{$settings['mail_from_address']}}@endif<br><br>
-                                @if($settings['company_address']){{$settings['company_address']}}@endif
-                                @if($settings['company_city']) <br> {{$settings['company_city']}}, @endif
-                                @if($settings['company_state']){{$settings['company_state']}}@endif
-                                @if($settings['company_zipcode']) - {{$settings['company_zipcode']}}@endif
-                                @if($settings['company_country']) <br>{{$settings['company_country']}}@endif
-                                @if($settings['company_telephone']){{$settings['company_telephone']}}@endif<br>
-                                @if(!empty($settings['registration_number'])){{__('Registration Number')}} : {{$settings['registration_number']}} @endif<br>
-                                @if($settings['vat_gst_number_switch'] == 'on')
-                                @if(!empty($settings['tax_type']) && !empty($settings['vat_number'])){{$settings['tax_type'].' '. __('Number')}} : {{$settings['vat_number']}} <br>@endif
+                                {{ $settings['company_name']      ?? __('No company name available') }}<br>
+                                {{ $settings['mail_from_address'] ?? __('No company email available') }}<br><br>
+                                {{ $settings['company_address']   ?? __('No company address available') }}<br>
+                                {{ $company_city !== '' ? $company_city : __('No city') }}
+                                {{ $company_city !== '' ? ',' : '' }}
+                                {{ $company_state }}
+                                {{ $company_zip !== '' ? ' - '.$company_zip : '' }}<br>
+                                {{ $settings['company_country']   ?? __('No country') }}<br>
+                                {{ $settings['company_telephone'] ?? __('No company phone available') }}<br>
+                                @if(!empty($settings['registration_number']))
+                                    {{ __('Registration Number') }} : {{ $settings['registration_number'] }}
+                                @endif
+                                @if(($settings['vat_gst_number_switch'] ?? '') === 'on')
+                                    @if(!empty($settings['tax_type']) && !empty($settings['vat_number']))
+                                        <br>{{ $settings['tax_type'].' '. __('Number') }} : {{ $settings['vat_number'] }}
+                                    @endif
                                 @endif
                             </p>
                         </td>
@@ -213,29 +113,29 @@ $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::T
                             <table class="no-space" style="width: 45%;margin-left: auto;">
                                 <tbody>
                                     <tr>
-                                        <td>{{__('Number')}}:</td>
-                                        <td class="text-right">{{Utility::invoiceNumberFormat($settings,$invoice->invoice_id)}}</td>
+                                        <td>{{ __('Number') }}:</td>
+                                        <td class="text-right">{{ $fmtInvoiceNo($settings, $invoice->invoice_id ?? '') }}</td>
                                     </tr>
                                     <tr>
-                                        <td>{{__('Issue Date')}}:</td>
-                                        <td class="text-right">{{Utility::dateFormat($settings,$invoice->issue_date)}}</td>
+                                        <td>{{ __('Issue Date') }}:</td>
+                                        <td class="text-right">{{ $fmtDate($settings, $invoice->issue_date ?? '') }}</td>
                                     </tr>
                                     <tr>
-                                        <td><b>{{__('Due Date:')}}</b></td>
-                                        <td class="text-right">{{Utility::dateFormat($settings,$invoice->due_date)}}</td>
+                                        <td><b>{{ __('Due Date:') }}</b></td>
+                                        <td class="text-right">{{ $fmtDate($settings, $invoice->due_date ?? '') }}</td>
                                     </tr>
-                                    @if(!empty($customFields) && count($invoice->customField)>0)
-                                    @foreach($customFields as $field)
-                                    <tr>
-                                        <td>{{$field->name}} :</td>
-                                        <td> {{!empty($invoice->customField)?$invoice->customField[$field->id]:'-'}}</td>
-                                    </tr>
-                                    @endforeach
+                                    @if(!empty($customFields) && !empty($invoice->customField) && count($invoice->customField)>0)
+                                        @foreach($customFields as $field)
+                                            <tr>
+                                                <td>{{ $field->name }} :</td>
+                                                <td>{{ $invoice->customField[$field->id] ?? '-' }}</td>
+                                            </tr>
+                                        @endforeach
                                     @endif
                                     <tr>
                                         <td colspan="2">
                                             <div class="view-qrcode">
-                                                {!! DNS2D::getBarcodeHTML(route(ViewsConstants::INV.'.link.copy',\Crypt::encrypt($invoice->invoice_id)), "QRCODE",2,2) !!}
+                                                {!! DNS2D::getBarcodeHTML(route(ViewsConstants::INV.'.link.copy', \Crypt::encrypt($invoice->invoice_id ?? '')), "QRCODE",2,2) !!}
                                             </div>
                                         </td>
                                     </tr>
@@ -251,39 +151,30 @@ $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::T
             <table class="vertical-align-top">
                 <tbody>
                     <tr>
-
                         <td>
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Bill To')}}:</strong>
-                            @if(!empty($customer->billing_name))
+                            <strong style="margin-bottom: 10px; display:block;">{{ __('Bill To') }}:</strong>
                             <p>
-                                {{!empty($customer->billing_name)?$customer->billing_name:''}}<br>
-                                {{!empty($customer->billing_address)?$customer->billing_address:''}}<br>
-                                {{!empty($customer->billing_city)?$customer->billing_city:'' .', '}}<br>
-                                {{!empty($customer->billing_state)?$customer->billing_state:'',', '}},
-                                {{!empty($customer->billing_zip)?$customer->billing_zip:''}}<br>
-                                {{!empty($customer->billing_country)?$customer->billing_country:''}}<br>
-                                {{!empty($customer->billing_phone)?$customer->billing_phone:''}}<br>
+                                {{ $customer->billing_name    ?? __('No billing name available for customer') }}<br>
+                                {{ $customer->billing_address ?? __('No billing address available for customer') }}<br>
+                                {{ $customer->billing_city    ?? __('No billing city available for customer') }}{{ ($customer->billing_city ?? '') !== '' ? ',' : '' }}<br>
+                                {{ $customer->billing_state   ?? __('No billing state available for customer') }}{{ ($customer->billing_state ?? '') !== '' ? ',' : '' }}
+                                {{ $customer->billing_zip     ?? __('No billing zip available for customer') }}<br>
+                                {{ $customer->billing_country ?? __('No billing country available for customer') }}<br>
+                                {{ $customer->billing_phone   ?? __('No billing phone available for customer') }}<br>
                             </p>
-                            @else
-                            -
-                            @endif
                         </td>
-                        @if($settings['shipping_display']=='on')
+                        @if(($settings['shipping_display'] ?? '')=='on')
                         <td class="text-right">
-                            <strong style="margin-bottom: 10px; display:block;">{{__('Ship To')}}:</strong>
-                            @if(!empty($customer->shipping_name))
+                            <strong style="margin-bottom: 10px; display:block;">{{ __('Ship To') }}:</strong>
                             <p>
-                                {{!empty($customer->shipping_name)?$customer->shipping_name:''}}<br>
-                                {{!empty($customer->shipping_address)?$customer->shipping_address:''}}<br>
-                                {{!empty($customer->shipping_city)?$customer->shipping_city:'' . ', '}}<br>
-                                {{!empty($customer->shipping_state)?$customer->shipping_state:'' .', '}},
-                                {{!empty($customer->shipping_zip)?$customer->shipping_zip:''}}<br>
-                                {{!empty($customer->shipping_country)?$customer->shipping_country:''}}<br>
-                                {{!empty($customer->shipping_phone)?$customer->shipping_phone:''}}<br>
+                                {{ $customer->shipping_name    ?? __('No shipping name available for customer') }}<br>
+                                {{ $customer->shipping_address ?? __('No shipping address available for customer') }}<br>
+                                {{ $customer->shipping_city    ?? __('No shipping city available for customer') }}{{ ($customer->shipping_city ?? '') !== '' ? ',' : '' }}<br>
+                                {{ $customer->shipping_state   ?? __('No shipping state available for customer') }}{{ ($customer->shipping_state ?? '') !== '' ? ',' : '' }}
+                                {{ $customer->shipping_zip     ?? __('No shipping zip available for customer') }}<br>
+                                {{ $customer->shipping_country ?? __('No shipping country available for customer') }}<br>
+                                {{ $customer->shipping_phone   ?? __('No shipping phone available for customer') }}<br>
                             </p>
-                            @else
-                            -
-                            @endif
                         </td>
                         @endif
                     </tr>
@@ -292,99 +183,107 @@ $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::T
             </table>
 
             <table class="add-border invoice-summary" style="margin-top: 30px;">
-                <thead style="background: <?= $color ?>;color:{{$font_color}}">
+                <thead style="background: <?= $color ?>; color: {{ $font_color ?? '#000' }}">
                     <tr>
-                        <th>{{__('Item')}}</th>
-                        <th>{{__('Quantity')}}</th>
-                        <th>{{__('Rate')}}</th>
-                        <th>{{__('Discount')}}</th>
-                        <th>{{__('Tax')}} (%)</th>
-                        <th>{{__('Price')}} <small>after tax & discount</small></th>
+                        <th>{{ __('Item') }}</th>
+                        <th>{{ __('Quantity') }}</th>
+                        <th>{{ __('Rate') }}</th>
+                        <th>{{ __('Discount') }}</th>
+                        <th>{{ __('Tax') }} (%)</th>
+                        <th>{{ __('Price') }} <small>{{ __('after tax & discount') }}</small></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if(isset($invoice->itemData) && count($invoice->itemData) > 0)
-                    @foreach($invoice->itemData as $key => $item)
-                    <tr>
-                        <td>{{$item->name}}</td>
-                        @php
-                        $unitName = App\Models\ProductServiceUnit::find($item->unit);
-                        @endphp
-                        <td>{{$item->quantity . ' (' . $unitName->name . ')'}}</td>
-                        <td>{{Utility::priceFormat($settings,$item->price)}}</td>
-                        <td>{{($item->discount!=0)?Utility::priceFormat($settings,$item->discount):'-'}}</td>
-                        @php
-                        $itemtax = 0;
-                        @endphp
-                        <td>
-                            @if(!empty($item->itemTax))
-
-                            @foreach($item->itemTax as $taxes)
+                    @if(!empty($invoice->itemData) && count($invoice->itemData) > 0)
+                        @foreach($invoice->itemData as $key => $item)
                             @php
-                            $itemtax += $taxes['tax_price'];
+                                $unitModel = \App\Models\ProductServiceUnit::find($item->unit ?? null);
+                                $unitName  = $unitModel->name ?? __('unit');
+                                $qty       = (float)($item->quantity ?? 0);
+                                $rate      = (float)($item->price ?? 0);
+                                $disc      = (float)($item->discount ?? 0);
+                                $itemtax   = 0.0;
+                                $taxLines  = [];
+                                if (!empty($item->itemTax) && is_iterable($item->itemTax)) {
+                                    foreach ($item->itemTax as $taxes) {
+                                        $itemtax += (float)($taxes['tax_price'] ?? 0);
+                                        $taxLines[] = [
+                                            'name' => $taxes['name'] ?? __('Tax'),
+                                            'rate' => $taxes['rate'] ?? 0,
+                                            'disp' => $taxes['price'] ?? $fmtPrice($settings, $taxes['tax_price'] ?? 0),
+                                        ];
+                                    }
+                                }
+                                $lineTotal = ($rate * $qty) - $disc + $itemtax;
                             @endphp
-                            <p>{{$taxes['name']}} ({{$taxes['rate']}}) {{$taxes['price']}}</p>
-                            @endforeach
-                            @else
-                            <span>-</span>
+                            <tr>
+                                <td>{{ $item->name ?? __('Item') }}</td>
+                                <td>{{ $qty.' ('.$unitName.')' }}</td>
+                                <td>{{ $fmtPrice($settings, $rate) }}</td>
+                                <td>{{ $disc != 0 ? $fmtPrice($settings, $disc) : '-' }}</td>
+                                <td>
+                                    @if(count($taxLines))
+                                        @foreach($taxLines as $tx)
+                                            <p>{{ $tx['name'] }} ({{ $tx['rate'] }}) {{ $tx['disp'] }}</p>
+                                        @endforeach
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                                <td>{{ $fmtPrice($settings, $lineTotal) }}</td>
+                            </tr>
+                            @if(!empty($item->description))
+                                <tr class="border-0 itm-description">
+                                    <td colspan="6" style="border-bottom:1px solid <?= $color ?>"> {{ $item->description }}</td>
+                                </tr>
                             @endif
-                        </td>
-                        <td>{{Utility::priceFormat($settings,$item->price * $item->quantity -  $item->discount + $itemtax)}}</td>
-                        @if(!empty($item->description))
-                    <tr class="border-0 itm-description">
-                        <td colspan="6" style="border-bottom:1px solid <?= $color ?>"> {{$item->description}}</td>
-                    </tr>
-                    @endif
-                    </tr>
-                    @endforeach
-
-                    @else
+                        @endforeach
                     @endif
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td>{{__('Total')}}</td>
-                        <td>{{$invoice->totalQuantity}}</td>
-                        <td>{{Utility::priceFormat($settings,$invoice->totalRate)}}</td>
-                        <td>{{Utility::priceFormat($settings,$invoice->totalDiscount)}}</td>
-                        <td>{{Utility::priceFormat($settings,$invoice->totalTaxPrice) }}</td>
-                        <td>{{Utility::priceFormat($settings,$invoice->getSubTotal())}}</td>
+                        <td>{{ __('Total') }}</td>
+                        <td>{{ $displayTotalQuantity }}</td>
+                        <td>{{ $fmtPrice($settings, $displayTotalRate) }}</td>
+                        <td>{{ $fmtPrice($settings, $displayTotalDiscount) }}</td>
+                        <td>{{ $fmtPrice($settings, $displayTotalTaxPrice) }}</td>
+                        <td>{{ $fmtPrice($settings, $subTotal) }}</td>
                     </tr>
                     <tr>
-                        <td colspan=" 4"></td>
+                        <td colspan="4"></td>
                         <td colspan="2" class="sub-total">
                             <table class="total-table">
                                 <tr>
-                                    <td>{{__('Subtotal')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$invoice->getSubTotal())}}</td>
+                                    <td>{{ __('Subtotal') }}:</td>
+                                    <td>{{ $fmtPrice($settings, $subTotal) }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{__('Discount')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$invoice->getTotalDiscount())}}</td>
+                                    <td>{{ __('Discount') }}:</td>
+                                    <td>{{ $fmtPrice($settings, $totalDisc) }}</td>
                                 </tr>
-                                @if(!empty($invoice->taxesData))
-                                @foreach($invoice->taxesData as $taxName => $taxPrice)
-                                <tr>
-                                    <td>{{$taxName}} :</td>
-                                    <td>{{ Utility::priceFormat($settings,$taxPrice)  }}</td>
-                                </tr>
-                                @endforeach
+                                @if(!empty($invoice->taxesData) && is_iterable($invoice->taxesData))
+                                    @foreach($invoice->taxesData as $taxName => $taxPrice)
+                                        <tr>
+                                            <td>{{ $taxName }} :</td>
+                                            <td>{{ $fmtPrice($settings, $taxPrice) }}</td>
+                                        </tr>
+                                    @endforeach
                                 @endif
                                 <tr>
-                                    <td>{{__('Total')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$invoice->getSubTotal()-$invoice->getTotalDiscount()+$invoice->getTotalTax())}}</td>
+                                    <td>{{ __('Total') }}:</td>
+                                    <td>{{ $fmtPrice($settings, $subTotal - $totalDisc + $totalTax) }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{__('Paid')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,($invoice->getTotal()-$invoice->getDue())-($invoice->invoiceTotalCreditNote()))}}</td>
+                                    <td>{{ __('Paid') }}:</td>
+                                    <td>{{ $fmtPrice($settings, $paidAmount) }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{__('Credit Note')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,($invoice->invoiceTotalCreditNote()))}}</td>
+                                    <td>{{ __('Credit Note') }}:</td>
+                                    <td>{{ $fmtPrice($settings, $creditNote) }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{__('Due Amount')}}:</td>
-                                    <td>{{Utility::priceFormat($settings,$invoice->getDue())}}</td>
+                                    <td>{{ __('Due Amount') }}:</td>
+                                    <td>{{ $fmtPrice($settings, $due) }}</td>
                                 </tr>
                             </table>
                         </td>
@@ -392,16 +291,15 @@ $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::T
                 </tfoot>
             </table>
             <div class="invoice-footer">
-                <b>{{$settings['footer_title']}}</b> <br>
-                {!! $settings['footer_notes'] !!}
+                <b>{{ $settings['footer_title'] ?? '' }}</b> <br>
+                {!! $settings['footer_notes'] ?? '' !!}
             </div>
         </div>
     </div>
 
     @if(!isset($preview))
-    @include(ViewsConstants::INV.'.script');
+    @include(ViewsConstants::INV.'.script')
     @endif
 
 </body>
-
 </html>

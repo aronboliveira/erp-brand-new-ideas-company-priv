@@ -1,132 +1,123 @@
 @php
-    use App\Config\Constants\{
-        PlansConstants, 
-        ViewsConstants,
-        ViewClassNamesConstants as VC
-    };
+    use App\Config\Constants\{PlansConstants, ViewsConstants as VW, ViewClassNamesConstants as VC};
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
-    $lang = Utility::fetchUserLang();
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\{Collection, Str};
+
+    $hasChatGPTSettings = method_exists(Utility::class, 'getChatGPTSettings');
+    $plan               = $hasChatGPTSettings ? Utility::getChatGPTSettings() : null;
+    $aiEnabled          = $plan?->{PlansConstants::COL_GPT} == 1;
+    $rolesIsList        = (is_array($roles) && count($roles) > 0) || ($roles instanceof Collection && $roles->isNotEmpty());
+    $roleOptions        = $roles instanceof Collection ? $roles->toArray() : (is_array($roles) ? $roles : []);
+    $roleHasError       = $errors->has('role');
+    $roleAttrs          = [
+        'id'               => 'role',
+        'class'            => trim(VC::FM_CT_SL.' '.($roleHasError ? 'is-invalid' : '')),
+        'placeholder'      => __('Select Role'),
+        'aria-invalid'     => $roleHasError ? 'true' : 'false',
+        'aria-describedby' => $roleHasError ? 'role-error' : null,
+    ];
+    if (!$rolesIsList) { $roleAttrs['disabled'] = 'disabled'; }
+    $lang                       = Utility::fetchUserLang();
+    $docStoreBase               = VW::DOC_UP;
+    $docStoreKebab              = Str::kebab($docStoreBase);
+    $docStoreResolved           = Route::has($docStoreBase) ? $docStoreBase : (Route::has($docStoreKebab) ? $docStoreKebab : null);
+    $docStoreUrl                = $docStoreResolved ? route($docStoreResolved) : '#';
+    $docStoreFormId             = 'document-upload-store-form';
+    $docStoreGuardMsg           = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'store_document_route_unavailable') ?? 'Store document route is unavailable. Please contact technical support or your domain administrator.';
+    $nameHasError               = $errors->has('name');
+    $nameAttrs                  = [
+        'id'               => 'name',
+        'class'            => trim(VC::FM_CT.' '.($nameHasError ? 'is-invalid' : '')),
+        'required'         => 'required',
+        'aria-invalid'     => $nameHasError ? 'true' : 'false',
+        'aria-describedby' => $nameHasError ? 'name-error' : null,
+        'autocomplete'     => 'off',
+    ];
+    $genUrl        = '#';
+    $genGuardMsg   = Utility::fetchLinkMessage($lang, VW::DOC_UP, 'generate_document_route_unavailable') ?? 'Generate document route is unavailable. Please contact technical support or your domain administrator.';
+    if ($aiEnabled) {
+        $genBase     = 'generate';
+        $genKebab    = Str::kebab($genBase);
+        $genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
+        $genUrl      = $genResolved ? route($genResolved, ['document']) : '#';
+    }
 @endphp
-{{Form::open(array('url'=> ViewsConstants::DOC_UP,'method'=>'post', 'enctype' => "multipart/form-data"))}}
+
+{{ Form::open([
+    'url'               => $docStoreUrl,
+    'method'            => 'POST',
+    'enctype'           => 'multipart/form-data',
+    'id'                => $docStoreFormId,
+    'data-url'          => $docStoreUrl,
+    'data-guard-msg'    => $docStoreGuardMsg,
+    'data-sv-localized' => 'true',
+]) }}
     <div class="modal-body">
-        {{-- start for ai module--}}
-        @php
-            $plan= Utility::getChatGPTSettings();
-        @endphp
-        @if($plan?->{PlansConstants::COL_GPT} == 1)
-        <div class="text-end">
-            <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['document']) }}"
-            data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-                <i class="{{ VC::FAS_RB }}"></i> <span>{{__('Generate with AI')}}</span>
-            </a>
-        </div>
+        @if($aiEnabled)
+            <div class="{{ VC::DFL_JCE }}">
+                <a id="document-generate-btn"
+                   href="{{ $genUrl }}"
+                   data-url="{{ $genUrl }}"
+                   data-guard-msg="{{ $genGuardMsg }}"
+                   data-sv-localized="true"
+                   data-size="md"
+                   class="{{ VC::BT_SM_PM }} btn-icon"
+                   data-ajax-popup-over="true"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}">
+                    <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
+                </a>
+            </div>
         @endif
-        {{-- end for ai module--}}
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('name',__('Name'),['class'=>'form-label'])}}
-                    {{Form::text('name',null,array('class'=>'form-control','required'=>'required'))}}
+
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
+                    {{ Form::text('name', null, $nameAttrs) }}
+                    @error('name')
+                        <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    @enderror
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('role',__('Role'),['class'=>'form-label'])}}
-                    {{Form::select('role',$roles,null,array('class'=>'form-control select'))}}
+            <div class="{{ VC::CM6 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('role', __('Role'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('role', $roleOptions, null, $roleAttrs) }}
+                    @error('role')
+                        <span id="role-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    @enderror
                 </div>
             </div>
 
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{ Form::label('description', __('Description'),['class'=>'form-label'])}}
-                    {{ Form::textarea('description',null, array('class' => 'form-control' ,'rows'=> 3)) }}
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('description', __('Description'), ['class' => VC::FM_LB]) }}
+                    {{ Form::textarea('description', null, ['id' => 'description', 'class' => VC::FM_CT, 'rows' => 3]) }}
                 </div>
             </div>
 
-            <div class="col-md-6 form-group">
-                {{Form::label('document',__('Document'),['class'=>'form-label'])}}
-                <div class="choose-file ">
-                    <label for="document" class="form-label">
-                        <input type="file" class="form-control" name="document" id="document" data-filename="document_create" required>
-                        <img id="image" class="mt-3" style="width:25%;"/>
+            <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
+                {{ Form::label('document', __('Document'), ['class' => VC::FM_LB]) }}
+                <div class="choose-file">
+                    <label for="document" class="{{ VC::FM_LB }}">
+                        <input type="file" class="{{ VC::FM_CT }}" name="document" id="document" data-filename="document_create" required>
+                        <img id="image" class="{{ VC::MT3 }}" style="width:25%;"/>
                     </label>
                 </div>
             </div>
-
-
         </div>
     </div>
+
     <div class="modal-footer">
-
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
-{{Form::close()}}
-
-<script async>
-    const imgPatch = {
-      ar: { image_preview_failed: 'تعذر معاينة الصورة.' },
-      da: { image_preview_failed: 'Kunne ikke forhåndsvise billedet.' },
-      de: { image_preview_failed: 'Bildvorschau fehlgeschlagen.' },
-      en: { image_preview_failed: 'Image preview failed.' },
-      es: { image_preview_failed: 'No se pudo previsualizar la imagen.' },
-      fr: { image_preview_failed: 'Échec de l’aperçu de l’image.' },
-      he: { image_preview_failed: 'תצוגה מקדימה של התמונה נכשלה.' },
-      it: { image_preview_failed: 'Anteprima immagine non riuscita.' },
-      ja: { image_preview_failed: '画像プレビューに失敗しました。' },
-      nl: { image_preview_failed: 'Afbeelding kon niet worden weergegeven.' },
-      pl: { image_preview_failed: 'Nie udało się wyświetlić podglądu obrazu.' },
-      pt: { image_preview_failed: 'Falha na pré‑visualização da imagem.' },
-      'pt-br': { image_preview_failed: 'Falha na pré‑visualização da imagem.' },
-      ru: { image_preview_failed: 'Не удалось просмотреть изображение.' },
-      tr: { image_preview_failed: 'Resim ön izlemesi başarısız.' },
-      zh: { image_preview_failed: '图像预览失败。' }
-    };
-    window.translations = Object.keys(window.translations || {}).length
-      ? Object.keys(imgPatch).reduce((a,l)=>{a[l]={...(a[l]||{}),...imgPatch[l]};return a;},window.translations)
-      : imgPatch;
-</script>
-<script defer>
-    (() => {
-    const fileInput = document.getElementById('document');
-    const imgEl     = document.getElementById('image');
-    if (!fileInput || !imgEl) return;
-    
-    const langShort = () => {
-        const l = (sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en')
-        .toLowerCase().replace(/_/g,'-');
-        return l === 'pt-br' ? l : l.slice(0,2);
-    };
-    const t = k => window.translations?.[langShort()]?.[k]
-                ?? window.translations?.en?.[k] ?? '# ERROR';
-    const toast = m => window.show_toastr ? window.show_toastr('error', m, 'error') : alert(m);
-    
-    let lastUrl = '';
-    
-    const previewHandler = () => {
-        try {
-        const file = fileInput.files?.[0];
-        if (!file) return;
-        if (lastUrl) URL.revokeObjectURL(lastUrl);
-        lastUrl       = URL.createObjectURL(file);
-        imgEl.src     = lastUrl;
-        } catch {
-        toast(t('image_preview_failed'));
-        }
-    };
-    
-    fileInput.addEventListener('change', previewHandler);
-    new MutationObserver((ms, obs) => {
-        ms.forEach(m => m.removedNodes.forEach(n => {
-        if (n === fileInput) {
-            fileInput.removeEventListener('change', previewHandler);
-            if (lastUrl) URL.revokeObjectURL(lastUrl);
-            obs.disconnect();
-        }
-        }));
-    }).observe(document.body, { childList: true, subtree: true });
-    })();
-</script>
-    
+    <script async src="{{ asset('assets/js/routes/documentUploads/lang/create.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/documentUploads/store.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/documentUploads/generate.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/documentUploads/img.js') }}"></script>
+{{ Form::close() }}

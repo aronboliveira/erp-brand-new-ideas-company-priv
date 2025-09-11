@@ -1,5 +1,5 @@
 @php
-	use App\Config\Constants\{DatabaseConstants,SettingsConstants,ViewClassNamesConstants};
+	use App\Config\Constants\{DatabaseConstants,SettingsConstants,ViewClassNamesConstants, ViewsConstants as VW};
 	use App\Models\Utility;
 	use Illuminate\Support\Facades\{Auth,Log,Route};
 	$data ??= [];
@@ -616,7 +616,7 @@
 
                     $( "#discount_hidden" ).val(discount);
                     $.ajax({
-                        url: "{{route('cartdiscount')}}",
+                        url: "{{route(VW::POS.'.cart.discount')}}",
                         method: 'POST',
                         data: {discount: discount,},
                         success: function (data)

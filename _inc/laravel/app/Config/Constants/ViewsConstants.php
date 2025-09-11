@@ -67,6 +67,8 @@ class ViewsConstants
 	public const EXP = 'expenses';
 	public const FM_BD = 'form_builders';
 	public const FM_RP = 'form_responses';
+	public const FM = 'forms';
+	public const FM_FD = self::FM . '.fields';
 	public const GL = 'goal';
 	public const GL_TRC = 'goal_trackings';
 	public const GL_TP = 'goal_types';

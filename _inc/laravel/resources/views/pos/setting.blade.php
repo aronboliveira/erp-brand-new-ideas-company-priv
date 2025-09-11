@@ -1,4 +1,4 @@
-<form class="" method="post" action="{{ route('barcode.setting') }}" >
+<form class="" method="post" action="{{ route(VW::POS . '.barcode.setting') }}" >
     @csrf
 
     <div class="modal-body">

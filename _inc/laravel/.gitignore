@@ -14,6 +14,8 @@ vendor/
 **vendor/
 !resources/views/vendor/
 !resources/views/vendors/
+!resources/views/emails/vendor/
+!resources/views/emails/vendors/
 
 # builds
 

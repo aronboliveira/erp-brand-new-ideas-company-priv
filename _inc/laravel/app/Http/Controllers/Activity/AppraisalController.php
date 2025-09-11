@@ -295,6 +295,7 @@ final class AppraisalController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'appraisal_id' => $appraisal->id]);
   }
 
+  public const EMP_BY_STR = 'empByStar';
   public function empByStar(Request $request): JsonResponse
   {
     $action = __FUNCTION__;
@@ -320,6 +321,7 @@ final class AppraisalController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'employee_id' => $request->employee]);
   }
 
+  public const EMP_BY_STR1 = 'empByStar1';
   public function empByStar1(Request $request): JsonResponse
   {
     $action = __FUNCTION__;
@@ -347,6 +349,7 @@ final class AppraisalController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'employee' => $request->employee, 'appraisal' => $request->appraisal]);
   }
 
+  public const GET_EMP = 'getEmployee';
   public function getEmployee(Request $request): JsonResponse
   {
     $action = __FUNCTION__;

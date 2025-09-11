@@ -234,7 +234,7 @@ class SetSalaryController extends Controller
                 return redirect()->back()->with('success', __('Employee salary updated.'));
             } catch (\Throwable $e) {
                 Log::error('Transaction failed in ' . $action, ['error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $action);
             }
         });
     }

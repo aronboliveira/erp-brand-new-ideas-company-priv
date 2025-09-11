@@ -2,79 +2,22 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         PermissionsConstants,
-        YieldingConstants,
         StacksConstants,
-        UsersConstants
+        UsersConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants,
     };
+    use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\{Collection, Str};
     $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        const mailPatch = {
-        ar:{email_template_toggle_failed:'فشل تحديث حالة قالب البريد الإلكتروني.'},
-        da:{email_template_toggle_failed:'Kunne ikke opdatere skabelonstatus.'},
-        de:{email_template_toggle_failed:'Aktualisieren des E‑Mail‑Vorlagenstatus fehlgeschlagen.'},
-        en:{email_template_toggle_failed:'Failed to update e‑mail template status.'},
-        es:{email_template_toggle_failed:'Error al actualizar el estado de la plantilla de correo.'},
-        fr:{email_template_toggle_failed:'Échec de la mise à jour du statut du modèle d’e‑mail.'},
-        he:{email_template_toggle_failed:'עדכון סטטוס תבנית הדוא״ל נכשל.'},
-        it:{email_template_toggle_failed:'Impossibile aggiornare lo stato del modello e‑mail.'},
-        ja:{email_template_toggle_failed:'メールテンプレートの状態を更新できませんでした。'},
-        nl:{email_template_toggle_failed:'Kon status van e‑mailsjabloon niet bijwerken.'},
-        pl:{email_template_toggle_failed:'Nie udało się zaktualizować statusu szablonu e‑mail.'},
-        pt:{email_template_toggle_failed:'Falha ao atualizar o estado do modelo de e‑mail.'},
-        'pt-br':{email_template_toggle_failed:'Falha ao atualizar o status do modelo de e‑mail.'},
-        ru:{email_template_toggle_failed:'Не удалось обновить статус шаблона письма.'},
-        tr:{email_template_toggle_failed:'E‑posta şablonu durumu güncellenemedi.'},
-        zh:{email_template_toggle_failed:'更新电子邮件模板状态失败。'}
-        };
-        window.translations = Object.keys(window.translations||{}).length
-        ? Object.keys(mailPatch).reduce((a,l)=>{a[l]={...(a[l]||{}),...mailPatch[l]};return a;},window.translations)
-        : mailPatch;
-    </script>
-    <script defer>
-        (() => {
-        const CSRF  = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        const lang  = (() => {
-            const l = (sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en')
-                        .toLowerCase().replace(/_/g,'-');
-            return l==='pt-br'?l:l.slice(0,2);
-        })();
-        const t   = k => window.translations?.[lang]?.[k] || window.translations?.en?.[k] || '# ERROR';
-        const pop = (msg,type='error') => window.show_toastr
-            ? window.show_toastr(type, msg, type)
-            : alert(msg);
-        
-        document.addEventListener('click', e => {
-            const cb = e.target.closest('.email-template-checkbox');
-            if (!cb) return;
-        
-            const url = cb.dataset.url;
-            const val = cb.value ?? '';
-            if (!url) { pop(t('email_template_toggle_failed')); return; }
-        
-            fetch(url, {
-            method : 'PUT',
-            headers: {
-                'X-CSRF-TOKEN':''+CSRF,
-                'Content-Type' : 'application/json',
-                'Accept'       : 'application/json'
-            },
-            body: JSON.stringify({ status: val })
-            })
-            .then(r => r.ok ? r.json() : Promise.reject())
-            .then(res => {
-            if (!res?.is_success) return Promise.reject();
-            pop(res.success ?? 'OK', 'success');
-        
-            cb.value = (val === '1' ? '0' : '1');
-            })
-            .catch(() => pop(t('email_template_toggle_failed')));
-        });
-        })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/emailTemplates/lang/toggle.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/emailTemplates/toggle.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_PG_TTL)
     @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::SA ||
@@ -117,56 +60,81 @@
 
 {{--@endsection--}}
 @section(YieldingConstants::ADM_CTT)
+    @php
+        $isSA   = isset($user) && ($user?->{UsersConstants::COL_TP} === PermissionsConstants::SA);
+        $isCPN  = isset($user) && ($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN);
+        $locale = $user->lang ?? app()->getLocale();
+        $isArray       = is_array($EmailTemplates ?? null) && count($EmailTemplates ?? []) > 0;
+        $isCollection  = ($EmailTemplates ?? null) instanceof Collection && ($EmailTemplates->isNotEmpty());
+        $list          = ($isArray || $isCollection) ? $EmailTemplates : [];
+    @endphp
+
     <div class="col-xl-12">
-        <div class="card">
-            <div class="card-header card-body table-border-style">
+        <div class="{{ VC::CD }}">
+            <div class="{{ VC::CD }}-header {{ VC::CD }}-body table-border-style">
                 <h5></h5>
                 <div class="table-responsive">
-                    <table class="table" id="pc-dt-simple">
+                    <table class="{{ VC::TB }}" id="pc-dt-simple">
                         <thead>
-                        <tr>
-                            <th scope="col" class="sort" data-sort="name"> {{__('Name')}}</th>
-                            @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::SA ||
-                                $user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
-                                <th class="text-end">{{__('On / Off')}}</th>
-                            @else
-                                <th class="text-end">{{__('Action')}}</th>
-                            @endif
-                        </tr>
+                            <tr>
+                                <th scope="col" class="sort" data-sort="name">{{ __('Name') }}</th>
+                                @if($isSA || $isCPN)
+                                    <th class="text-end">{{ __('On / Off') }}</th>
+                                @else
+                                    <th class="text-end">{{ __('Action') }}</th>
+                                @endif
+                            </tr>
                         </thead>
                         <tbody>
-
-                        @foreach ($EmailTemplates as $EmailTemplate)
-                            <tr>
-                                <td>{{ $EmailTemplate->name }}</td>
-                                <td>
-                                    @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::SA)
-                                        <div class="text-end">
-                                            <div class="action-btn bg-warning ms-2">
-                                                <a href="{{ route('manage.email.language',[$EmailTemplate->id,$user?->lang]) }}" class="mx-3 btn btn-sm d-inline-flex align-items-center" data-toggle="tooltip" title="{{__('View')}}">
-                                                    <i class="ti ti-eye text-white"></i>
-                                                </a>
+                            @forelse ($list as $EmailTemplate)
+                                @php
+                                    $hasTemplate = isset($EmailTemplate->template) && is_object($EmailTemplate->template);
+                                    $tplId       = $hasTemplate && isset($EmailTemplate->template->id) ? $EmailTemplate->template->id : null;
+                                    $isActive    = $hasTemplate && isset($EmailTemplate->template->is_active) && ((int) $EmailTemplate->template->is_active === 1);
+                                @endphp
+                                <tr>
+                                    <td>{{ $EmailTemplate->name ?? __('No name available for template') }}</td>
+                                    <td>
+                                        @if($isSA)
+                                            <div class="text-end mb-2">
+                                                <div class="{{ VC::ACT_BTN_WRN }}">
+                                                    <a href="{{ route(VW::EMLS . '.manage.language', [$EmailTemplate->id, $locale]) }}"
+                                                       class="{{ VC::BT_SM_FL_CT }}"
+                                                       data-bs-toggle="tooltip"
+                                                       title="{{ __('View') }}">
+                                                        <i class="{{ VC::TI_EYE_WT }}"></i>
+                                                    </a>
+                                                </div>
                                             </div>
-                                        </div>
-                                    @endif
+                                        @endif
 
-                                    @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::SA ||
-                                        $user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
-                                        <div class="text-end">
-
-                                            <div class="form-check form-switch d-inline-block">
-                                                <label class="form-check-label form-switch">
-                                                    <input type="checkbox" class="form-check-input email-template-checkbox" id="email_template_{{!empty($EmailTemplate->template)?$EmailTemplate->template->id:''}}"
-                                                           @if(!empty($EmailTemplate->template)?$EmailTemplate->template->is_active:'0' == 1) checked="checked" @endif type="checkbox" value="{{!empty($EmailTemplate->template)?$EmailTemplate->template->is_active:''}} "
-                                                           data-url="{{route('emails.status.language',[!empty($EmailTemplate->template)?$EmailTemplate->template->id:''])}}"/>
-                                                    <span class="slider1 round"></span>
-                                                </label>
+                                        @if($isSA || $isCPN)
+                                            <div class="text-end">
+                                                <div class="form-check form-switch d-inline-block">
+                                                    <label class="form-check-label form-switch">
+                                                        <input
+                                                            type="checkbox"
+                                                            class="form-check-input email-template-checkbox"
+                                                            id="email_template_{{ $tplId ?? 'na' }}"
+                                                            {{ $isActive ? 'checked' : '' }}
+                                                            value="{{ $isActive ? 1 : 0 }}"
+                                                            data-url="{{ $tplId ? route(VW::EML.'.status.language', [$tplId]) : '' }}"
+                                                            {{ $tplId ? '' : 'disabled' }}
+                                                        />
+                                                        <span class="slider1 round"></span>
+                                                    </label>
+                                                </div>
                                             </div>
-                                        </div>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
+                                        @else
+                                            <div class="text-end">—</div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">{{ __('No Email Templates Found') }}</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

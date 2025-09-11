@@ -136,7 +136,7 @@ class PlanController extends Controller
                 Plan::create($post);
                 return Redirect::back()->with('success', __('Plan successfully created.'));
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::' . __FUNCTION__ . ' failed: ' . $e->getMessage());
+                Log::error($action . ' failed: ' . $e->getMessage());
                 return defaultUndefinedException($request, $e, $action);
             }
         });
@@ -212,7 +212,7 @@ class PlanController extends Controller
                 $plan->update($post);
                 return Redirect::back()->with('success', __('Plan successfully updated.'));
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::' . __FUNCTION__ . ' failed: ' . $e->getMessage());
+                Log::error($action . ' failed: ' . $e->getMessage());
                 return defaultUndefinedException($request, $e, $action);
             }
         });

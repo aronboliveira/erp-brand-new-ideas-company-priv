@@ -235,13 +235,16 @@ Route::post(VW::JB . '/apply/data/{code}', [JobController::class, JobController:
 #region
 Route::get(VW::PRJ . '/copy-link/{id}', [ProjectController::class, 'projectCopyLink'])->name(VW::PRJ . '.copy_link');
 Route::any(VW::PRJ . '/link/{id}/{lang?}', [ProjectController::class, 'projectlink'])->name(VW::PRJ . '.link')->middleware([MiddlewaresConstants::XSS]);
-Route::get(VW::TMS . '/table-view', [TimesheetController::class, TimesheetController::FT_TMS_TBL])->name(VW::TMS . '.filters.table.view')
+Route::get(VW::PRJ . '.' . VW::TMS . '/table-view', [TimesheetController::class, TimesheetController::FT_TMS_TBL])->name(VW::PRJ . '.' . VW::TMS . '.filters.table.view')
     ->middleware([MiddlewaresConstants::XSS]);
 Route::get(VW::INV . '/pdf/{id}', [InvoiceController::class, 'invoice'])->name(VW::INV . '.pdf')
     ->middleware([MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+//================================= Dashboards ====================================//
+#region
 Route::get('/dashboard', [DashboardController::class, DashboardController::ACC_DSB_IDX])
     ->name(DashboardController::ENTITY)
     ->middleware([MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+#endregion
 #endregion
 //================================= Invoice Payment Gateways  ====================================//
 #region
@@ -463,6 +466,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     //================================= Invoices ====================================//
     #region
+
     //================================= Invoices Procedures ====================================//
     #region
     Route::group(
@@ -522,6 +526,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         }
     );
     #endregion
+
     #endregion
 
     //================================= Bills ====================================//
@@ -701,14 +706,17 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post(VW::PPS . '/templates/settings', [ProposalController::class, ProposalController::SV_PPS_TMP])
         ->name(VW::PPS . 'settings');
     #endregion
+
     //================================= Goals ====================================//
     #region
     Route::resource(VW::GL, GoalController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     #endregion
+
     //================================= Budgets ====================================//
     #region
     Route::resource(VW::BDG, BudgetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     #endregion
+
     //================================= Planners ====================================//
     #region
     Route::resource(VW::ACC_AST, AssetController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
@@ -727,7 +735,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::resource(VW::COA, ChartOfAccountController::class);
         }
     );
-
+    //================================= Journal Entries ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -737,11 +746,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             ],
         ],
         function () {
-
-            Route::post('journal-entry/account/destroy', [JournalEntryController::class, 'accountDestroy'])->name('journal.account.destroy');
-
-            Route::delete('journal-entry/journal/destroy/{item_id}', [JournalEntryController::class, 'journalDestroy'])->name('journal.destroy');
-            Route::resource('journal-entry', JournalEntryController::class);
+            Route::post(VW::JRN_ET . '/account/destroy', [JournalEntryController::class, JournalEntryController::ACC_DST])->name(VW::JRN . 'account.destroy');
+            Route::delete(VW::JRN_ET . '/journal/destroy/{item_id}', [JournalEntryController::class, JournalEntryController::JRN_DST])->name(VW::JRN . '.destroy');
+            Route::resource(VW::JRN_ET, JournalEntryController::class);
         }
     );
     #endregion
@@ -868,9 +875,9 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     // TODO METHOD NOT IMPLEMENTED
     Route::get('/{uid}/notifications/seen', [UserController::class, 'notificationSeen'])->name('notifications.seen');
     // Email Templates
-    Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 'manageEmailLang'])->name('manage.email.language')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::any('email_template_store', [EmailTemplateController::class, 'updateStatus'])->name(VW::EMLS . '.status.language')->middleware([MiddlewaresConstants::AUTH]);
-    Route::any('email_template_store/{pid}', [EmailTemplateController::class, 'storeEmailLang'])->name(VW::EMLS . '.store.language')->middleware([MiddlewaresConstants::AUTH]);
+    Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, EmailTemplateController::MNG_EM_LNG])->name(VW::EMLS . '.manage.language')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::any('email_template_store', [EmailTemplateController::class, EmailTemplateController::UPD_STT])->name(VW::EMLS . '.status.language')->middleware([MiddlewaresConstants::AUTH]);
+    Route::any('email_template_store/{pid}', [EmailTemplateController::class, EmailTemplateController::STR_EM_LNG])->name(VW::EMLS . '.store.language')->middleware([MiddlewaresConstants::AUTH]);
     Route::resource('email_template', EmailTemplateController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     // End Email Templates
 
@@ -879,7 +886,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post(VW::EMP . '/json', [EmployeeController::class, 'json'])->name(VW::EMP . '.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, EmployeeController::EMP_JSON])->name(VW::BRC . '.employee.json')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('employee-profile', [EmployeeController::class, 'profile'])->name(VW::EMP . '.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('show-employee-profile/{id}', [EmployeeController::class, EmployeeController::PRF_SHW])->name('show.employee.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get('show-employee-profile/{id}', [EmployeeController::class, EmployeeController::PRF_SHW])->name(VW::EMP . '.show.profile')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::get('last-login', [EmployeeController::class, EmployeeController::LST_LGN])->name('last_login')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
@@ -1156,7 +1163,6 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post(VW::PRJ_TSK_STG . '/order', [TaskStageController::class, 'order'])->name(VW::PRJ_TSK_STG . '.order');
     Route::post(VW::PRJ_TSK_STG . '-new', [TaskStageController::class, TaskStageController::STR_V])->name(VW::PRJ_TSK_STG . '.new')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
-    // End Task Module
 
     //================================= Project Expenses ====================================//
     #region
@@ -1170,7 +1176,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get('/expense-list', [ExpenseController::class, 'expenseList'])->name(VW::EXP . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
 
-    // contract type
+    //================================= Contract Types ====================================//
+    #region
     Route::group(
         [
             'middleware' => [
@@ -1183,24 +1190,26 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::resource(VW::CTC_TP, ContractTypeController::class);
         }
     );
+    #endregion
 
-    // Project Timesheet
-    Route::get('append-timesheet-task-html', [TimesheetController::class, 'appendTimesheetTaskHTML'])->name('append.timesheet.task.html')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    //    Route::get(VW::TMS.'/table-view', [TimesheetController::class, 'filterTimesheetTableView'])->name(VW::TMS.'.filters.table.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('timesheet-view', [TimesheetController::class, 'filterTimesheetView'])->name(VW::TMS . '.filters.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('timesheet-list', [TimesheetController::class, 'timesheetList'])->name('timesheet.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('timesheet-list-get', [TimesheetController::class, 'timesheetListGet'])->name('timesheet.list.get')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/project/{id}/timesheet', [TimesheetController::class, 'timesheetView'])->name('timesheet.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/project/{id}/timesheet/create', [TimesheetController::class, 'timesheetCreate'])->name('timesheet.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/project/timesheet', [TimesheetController::class, 'timesheetStore'])->name('timesheet.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/project/timesheet/{project_id}/edit/{timesheet_id}', [TimesheetController::class, 'timesheetEdit'])->name('timesheet.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::any('/project/timesheet/update/{timesheet_id}', [TimesheetController::class, 'timesheetUpdate'])->name('timesheet.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Project Timesheets ====================================//
+    #region
+    Route::get(VW::PRJ . '.' . VW::TMS . '/append-task', [TimesheetController::class, TimesheetController::APD_TMS_TSK])->name(VW::PRJ . '.' . VW::TMS . '.append.task')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //    Route::get(VW::PRJ . '.' . VW::TMS.'/table-view', [TimesheetController::class, 'filterTimesheetTableView'])->name(VW::PRJ . '.' . VW::TMS.'.filters.table.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PRJ . '.' . VW::TMS . '/view', [TimesheetController::class, TimesheetController::FT_TMS_TBL])->name(VW::PRJ . '.' . VW::TMS . '.filters.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PRJ . '.' . VW::TMS . '/list', [TimesheetController::class, TimesheetController::TMS_LST])->name(VW::PRJ . '.' . VW::TMS . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PRJ . '.' . VW::TMS . '/list-get', [TimesheetController::class, TimesheetController::GET_TMS_LST])->name(VW::PRJ . '.' . VW::TMS . '.list.get')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{id}', [TimesheetController::class, TimesheetController::TMS_VW])->name(VW::PRJ . '.' . VW::TMS . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{id}', [TimesheetController::class, TimesheetController::TMS_STR])->name(VW::PRJ . '.' . VW::TMS . '.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{id}/create', [TimesheetController::class, TimesheetController::TMS_CRT])->name(VW::PRJ . '.' . VW::TMS . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{project_id}/edit/{timesheet_id}', [TimesheetController::class, TimesheetController::TMS_ED])->name(VW::PRJ . '.' . VW::TMS . '.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::any(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/update/{timesheet_id}', [TimesheetController::class, TimesheetController::TMS_UPD])->name(VW::PRJ . '.' . VW::TMS . '.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{timesheet_id}', [TimesheetController::class, TimesheetController::TMS_DST])->name(VW::PRJ . '.' . VW::TMS . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
-    Route::delete('/project/timesheet/{timesheet_id}', [TimesheetController::class, 'timesheetDestroy'])->name('timesheet.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
+    //================================= Project Bugs ====================================//
+    #region
     Route::group(
-        //================================= Project Bugs ====================================//
-        #region
         [
             'middleware' => [
                 MiddlewaresConstants::AUTH,
@@ -1227,23 +1236,28 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::post(VW::BUG_STT . '/order', [BugStatusController::class, 'order'])->name(VW::BUG_STT . '.order');
             Route::get(VW::BUG_RPT . '/{view?}', [ProjectTaskController::class, ProjectTaskController::ALL_BUG])->name(VW::PRJ_BUG . '.view')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
         }
-        #endregion
     );
+    #endregion
 
+    //================================= Project Todos ====================================//
+    #region
     Route::post(VW::TD . '/create', [UserController::class, UserController::TD_STR])->name(VW::TD . '.store')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::TD . '/{id}/update', [UserController::class, UserController::TD_UPD])->name(VW::TD . '.update')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::delete(VW::TD . '/{id}/delete', [UserController::class, UserController::TD_DEL])->name(VW::TD . '.destroy')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
+    //================================= Dashboards Views ====================================//
+    #region
     Route::get('/change/mode', [UserController::class, UserController::CHG_MD])->name('change.mode')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::get('dashboard-view', [DashboardController::class, DashboardController::FT_VW])->name('dashboard.view')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('dashboard', [DashboardController::class, DashboardController::CL_VW])->name('client.dashboard.view')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //================================= SaaS Base ====================================//
     #region
@@ -1268,28 +1282,31 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::CPN . '/apply', [CouponController::class, CouponController::AP_CPN])->name(VW::CPN . '.apply')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     #endregion
     //================================= Form Builder ====================================//
-    Route::resource('form_builder', FormBuilderController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
-    // Form link base view
-    Route::get('/form/{code}', [FormBuilderController::class, 'formView'])->name('form.view')->middleware([MiddlewaresConstants::XSS]);
-    Route::post('/form_view_store', [FormBuilderController::class, 'formViewStore'])->name('form.view.store')->middleware([MiddlewaresConstants::XSS]);
-
-    // Form Field
-    Route::get('/form_builder/{id}/field', [FormBuilderController::class, 'fieldCreate'])->name('form.field.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/form_builder/{id}/field', [FormBuilderController::class, 'fieldStore'])->name('form.field.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/form_builder/{id}/field/{fid}/show', [FormBuilderController::class, 'fieldShow'])->name('form.field.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/form_builder/{id}/field/{fid}/edit', [FormBuilderController::class, 'fieldEdit'])->name('form.field.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/form_builder/{id}/field/{fid}', [FormBuilderController::class, 'fieldUpdate'])->name('form.field.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::delete('/form_builder/{id}/field/{fid}', [FormBuilderController::class, 'fieldDestroy'])->name('form.field.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
-    // Form Response
-    Route::get('/form_response/{id}', [FormBuilderController::class, 'viewResponse'])->name('form.response')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('/response/{id}', [FormBuilderController::class, 'responseDetail'])->name('response.detail')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
-    // Form Field Bind
-    Route::get('/form_field/{id}', [FormBuilderController::class, 'formFieldBind'])->name('form.field.bind')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/form_field_store/{id}}', [FormBuilderController::class, 'bindStore'])->name('form.bind.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
+    #region
+    Route::resource(VW::FM_BD, FormBuilderController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::FM . '/{code}', [FormBuilderController::class, FormBuilderController::FM_VW])->name(VW::FM . '.view')->middleware([MiddlewaresConstants::XSS]);
+    Route::post(VW::FM . '/view_store', [FormBuilderController::class, FormBuilderController::FM_VW_STR])->name(VW::FM . '.view.store')->middleware([MiddlewaresConstants::XSS]);
+    //================================= Form Fields ====================================//
+    #region
+    Route::get(VW::FM_BD . '/{id}/field', [FormBuilderController::class, FormBuilderController::FD_CRT])->name(VW::FM_FD . '.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::FM_BD . '/{id}/field', [FormBuilderController::class, FormBuilderController::FD_STR])->name(VW::FM_FD . '.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    // TODO METHOD NOT IMPLEMENTED
+    Route::get(VW::FM_BD . '/{id}/field/{fid}/show', [FormBuilderController::class, 'formFieldShow'])->name(VW::FM_FD . '.show')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::FM_BD . '/{id}/field/{fid}/edit', [FormBuilderController::class, FormBuilderController::FD_EDT])->name(VW::FM_FD . '.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::FM_BD . '/{id}/field/{fid}', [FormBuilderController::class, FormBuilderController::FD_UPD])->name(VW::FM_FD . '.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::delete(VW::FM_BD . '/{id}/field/{fid}', [FormBuilderController::class, FormBuilderController::FD_DST])->name(VW::FM_FD . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
+    //================================= Form Responses ====================================//
+    #region
+    Route::get(VW::FM . '/responses/{id}', [FormBuilderController::class, FormBuilderController::VW_RES])->name(VW::FM . '.response')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::FM . '/responses/{id}/detail', [FormBuilderController::class, FormBuilderController::RES_DT])->name(VW::FM . '.response.detail')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
+    //================================= Form Binds ====================================//
+    #region
+    Route::get(VW::FM . '/binds/{id}', [FormBuilderController::class, FormBuilderController::FD_BD])->name(VW::FM_FD . '.bind')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::FM . '/binds/{id}/store', [FormBuilderController::class, FormBuilderController::BD_STR])->name(VW::FM . '.bind.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
+    #endregion
     //================================= Contracts ====================================//
     #region
     Route::group(
@@ -1327,8 +1344,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::CTC . '/copy/{id}', [ContractController::class, 'copycontract'])->name(VW::CTC . '.copy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::CTC . '/copy/store', [ContractController::class, 'copycontractstore'])->name(VW::CTC . '.copy.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
-
-    //================================= Contracts ====================================//
+    //================================= Custom Landing Pages ====================================//
     #region
 
     //    Route::get('/landingpage', [LandingPageSectionController::class, 'index'])->name('custom_landing_page.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1349,7 +1365,6 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //    Route::post('/LandingPage/setOrder', [LandingPageSectionController::class, 'setOrder'])->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     //    Route::post('/LandingPage/copySection', [LandingPageSectionController::class, 'copySection'])->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
-
     //================================= Benefits for Gateways ====================================//
     #region
     Route::any(VW::PAY . '/benefit/initiate', [BenefitPaymentController::class, BenefitPaymentController::INI_PAY])->name(VW::PLN . '.pay.with.benefit');
@@ -1568,30 +1583,34 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         MiddlewaresConstants::XSS,
         MiddlewaresConstants::REV
     ]);
-    Route::post(VW::WRH_TRF . '/get-product', [WarehouseTransferController::class, WarehouseTransferController::GET_PRD])->name(VW::WRH_TRF . '.getproduct')
+    Route::post(VW::WRH_TRF . '/get-product', [WarehouseTransferController::class, WarehouseTransferController::GET_PRD])->name(VW::WRH_TRF . '.get.product')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::WRH_TRF . '/get-quantity', [WarehouseTransferController::class, WarehouseTransferController::GET_QT])
-        ->name(VW::WRH_TRF . '.getquantity')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+        ->name(VW::WRH_TRF . '.get.quantity')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
 
-    //pos barcode
-    Route::get('barcode/pos', [PosController::class, 'barcode'])->name(VW::POS . '.barcode')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= POS Barcode ====================================//
+    #region
+    Route::get(VW::POS . '/barcode', [PosController::class, 'barcode'])->name(VW::POS . '.barcode')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::SET . '/pos', [PosController::class, 'setting'])->name(VW::POS . '.setting')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('barcode/settings', [PosController::class, PosController::BC_ST_STR])->name('barcode.setting');
-    Route::get('print/pos', [PosController::class, PosController::BC_PRT])->name(VW::POS . '.print')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::POS . '/getproduct', [PosController::class, PosController::GET_PRD])->name(VW::POS . '.getproduct')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::SET . '/barcode', [PosController::class, PosController::BC_ST_STR])->name(VW::POS . '.barcode.setting');
+    Route::get(VW::POS . '/print', [PosController::class, PosController::BC_PRT])->name(VW::POS . '.print')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::POS . '/get-product', [PosController::class, PosController::GET_PRD])->name(VW::POS . '.get.product')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::any('pos-receipt', [PosController::class, 'receipt'])->name(VW::POS . '.receipt')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/cartdiscount', [PosController::class, PosController::CRT_DSC])->name('cartdiscount')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::POS . '/cart-discount', [PosController::class, PosController::CRT_DSC])->name(VW::POS . '.cart.discount')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
-    //Storage Setting
-
+    //================================= Storage Settings ====================================//
+    #region
     Route::post('storage-settings', [SystemController::class, SystemController::STG_ST_STR])->name(VW::SET . '.storage.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
-    //appricalStar
-
-    Route::post(VW::APR, [AppraisalController::class, 'empByStar'])->name('empByStar')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post(VW::APR . '1', [AppraisalController::class, 'empByStar1'])->name('empByStar1')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('/getemployee', [AppraisalController::class, 'getEmployee'])->name('getemployee');
+    //================================= Appraisals for Employees ====================================//
+    #region
+    Route::post(VW::APR, [AppraisalController::class, AppraisalController::EMP_BY_STR])->name(VW::APR . '.' . VW::EMP . '.star')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::APR . '1', [AppraisalController::class, AppraisalController::EMP_BY_STR1])->name(VW::APR . '.' . VW::EMP . '.star1')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post(VW::APR . '/get-employee', [AppraisalController::class, AppraisalController::GET_EMP])->name(VW::APR . '.get.employee');
+    #endregion
 
     //================================= Offer Letters ====================================//
     #region
@@ -1624,7 +1643,6 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::EMP . '/noc-pdf/{id}', [EmployeeController::class, EmployeeController::NOC_PDF])->name('noc.download.pdf');
     Route::get(VW::EMP . '/noc-doc/{id}', [EmployeeController::class, EmployeeController::NOC_DOC])->name('noc.download.doc');
     #endregion
-
 
     //Project Reports
 
@@ -1680,12 +1698,16 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::delete(VW::USR . '/logs/{id}', [UserController::class, UserController::USR_LOG_DSTR])->name(VW::USR . '.log.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
 
-    //notification Template
-    Route::get('notification_templates/{id?}/{lang?}', [NotificationTemplatesController::class, 'index'])->name('notification_templates.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::resource('notification-templates', NotificationTemplatesController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Notification Templates ====================================//
+    #region
+    Route::get(VW::NTF_TMP . '/{id?}/{lang?}', [NotificationTemplatesController::class, 'index'])->name(VW::NTF_TMP . '.index')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::NTF_TMP, NotificationTemplatesController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
-    //Proposal/Invoice/'.VW::BIL.'Purchase/POS - footer notes
+    //================================= Notification Templates ====================================//
+    #region
     Route::post('system-settings/note', [SystemController::class, SystemController::FT_NT_STR])->name(VW::SYS . '.settings.footernote')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //================================= AI ====================================//
     #region
@@ -1706,8 +1728,11 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::delete(VW::SYS . '/destroy/ip/{id}', [SystemController::class, SystemController::DST_IP])->name(VW::SYS . '.ip.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     #endregion
 
-    //lang enable / disable
-    Route::post('disable-language', [LanguageController::class, LanguageController::DSB_LNG])->name('language.disable')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    //================================= Language Toggles ====================================//
+    #region
+    Route::post('disable-language', [LanguageController::class, LanguageController::DSB_LNG])->name('language.disable')
+        ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    #endregion
 
     //================================= Expenses ====================================//
     #region
@@ -1738,177 +1763,179 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     );
     #endregion
 });
-
+//================================= Cookies ====================================//
+#region
 Route::any('/cookie-consent', [SystemController::class, SystemController::CK_CST])->name('cookie-consent');
+#endregion
+
+//================================= OUT ====================================//
+            // Route::post('{id}/pay-with-paypal', [PaypalController::class, 'customerPayWithPaypal'])->name(VW::CST.'.pay.with.paypal');
+            // Route::get('{id}/get-payment-status/{amount}', [PaypalController::class, 'customerGetPaymentStatus'])->name(VW::CST.'.get.payment.status')
+            //     ->middleware([MiddlewaresConstants::XSS]);
+            // Route::post('plan-pay-with-paypal', [PaypalController::class, 'planPayWithPaypal'])->name(VW::PLN.'.pay.with.paypal')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+            // Route::get('{id}/plan-get-payment-status', [PaypalController::class, 'planGetPaymentStatus'])->name(VW::PLN.'.get.payment.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
 
 
-    // Route::post('{id}/pay-with-paypal', [PaypalController::class, 'customerPayWithPaypal'])->name(VW::CST.'.pay.with.paypal');
-    // Route::get('{id}/get-payment-status/{amount}', [PaypalController::class, 'customerGetPaymentStatus'])->name(VW::CST.'.get.payment.status')
-    //     ->middleware([MiddlewaresConstants::XSS]);
-    // Route::post('plan-pay-with-paypal', [PaypalController::class, 'planPayWithPaypal'])->name(VW::PLN.'.pay.with.paypal')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-    // Route::get('{id}/plan-get-payment-status', [PaypalController::class, 'planGetPaymentStatus'])->name(VW::PLN.'.get.payment.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+        // AUT, XSS, REV GROUP
 
+            //    Route::post('plan-pay-with-paypal', [PaypalController::class, 'planPayWithPaypal'])->name(VW::PLN.'.pay.with.paypal')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+            //    Route::get('{id}/plan-get-payment-status', [PaypalController::class, 'planGetPaymentStatus'])->name(VW::PLN.'.get.payment.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
 
-// AUT, XSS, REV GROUP
+        //     Route::post('invoice-with-aamarpay', [AamarpayController::class, 'invoicepaywithaamarpay'])->name(VW::CST.'.pay.with.aamarpay');
+        //     Route::any('aamarpay-invoice/success/{data}', [AamarpayController::class, 'getInvoicePaymentStatus'])->name(VW::INV . '.pay.aamarpay.success');
+            
+        //     Route::post('/customer-pay-with-coingate', [CoingatePaymentController::class, 'customerPayWithCoingate'])->name(VW::CST.'.pay.with.coingate')->middleware([MiddlewaresConstants::XSS]);
+        //     Route::get('/customer/coingate/{invoice}/{amount}', [CoingatePaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.coingate');
+            
+        //     Route::post('/customer-pay-with-paytm', [PaytmPaymentController::class, 'customerPayWithPaytm'])->name(VW::CST.'.pay.with.paytm')
+        //         ->middleware([MiddlewaresConstants::XSS]);
+        //     Route::post('/customer/paytm/{invoice}/{amount}', [PaytmPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.paytm');
+            
+        //     Route::post('/customer-pay-with-flutterwave', [FlutterwavePaymentController::class, 'customerPayWithFlutterwave'])->name(VW::CST.'.pay.with.flutterwave')->middleware([MiddlewaresConstants::XSS]);
+        //     Route::get('/customer/flutterwave/{txref}/{invoice_id}', [FlutterwavePaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.flutterwave');
+            
+        //     Route::post('/customer-pay-with-razorpay', [RazorpayPaymentController::class, 'customerPayWithRazorpay'])->name(VW::CST.'.pay.with.razorpay')->middleware([MiddlewaresConstants::XSS]);
+        //     Route::get('/customer/razorpay/{txref}/{invoice_id}', [RazorpayPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.razorpay');
+            
+        //     Route::post('/customer-pay-with-mercado', [MercadoPaymentController::class, 'customerPayWithMercado'])->name(VW::CST.'.pay.with.mercado')
+        //         ->middleware([MiddlewaresConstants::XSS]);
+        //     Route::get('/customer/mercado/{invoice}', [MercadoPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.mercado');
+            
+        //     Route::post('/customer-pay-with-mollie', [MolliePaymentController::class, 'customerPayWithMollie'])->name(VW::CST.'.pay.with.mollie')
+        //         ->middleware([MiddlewaresConstants::XSS]);
+        //     Route::get('/customer/mollie/{invoice}/{amount}', [MolliePaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.mollie');
+            
+        //     Route::post('/customer-pay-with-skrill', [SkrillPaymentController::class, 'customerPayWithSkrill'])->name(VW::CST.'.pay.with.skrill')
+        //         ->middleware([MiddlewaresConstants::XSS]);
+        //     Route::get('/customer/skrill/{invoice}/{amount}', [SkrillPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.skrill');
+            
+        //     Route::post('/paymentwall', [PaymentWallPaymentController::class, 'invoicepaymentwall'])->name(VW::INV . '.paymentwallpayment')
+        //         ->middleware([MiddlewaresConstants::XSS]);
+        //     Route::post('/invoice-pay-with-paymentwall/{invoice}', [PaymentWallPaymentController::class, 'invoicePayWithPaymentwall'])
+        //         ->name(VW::INV . '.pay.with.paymentwall')->middleware([MiddlewaresConstants::XSS]);
+        //     Route::get(VW::INV.'/{flag}/{invoice}', [PaymentWallPaymentController::class, 'invoiceerror'])->name('error.invoice.show');
+            
+        //     Route::post('/customer-pay-with-toyyibpay', [ToyyibpayController::class, 'invoicepaywithtoyyibpay'])->name(VW::CST.'.pay.with.toyyibpay');
+        //     Route::get('/customer/toyyibpay/{invoice}/{amount}', [ToyyibpayController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.toyyibpay');
+            
+        //     Route::post('invoice-with-payfast', [PayFastController::class, 'invoicePayWithPayFast'])->name(VW::INV . '.with.payfast');
+        //     Route::get('invoice-payfast-status/{success}', [PayFastController::class, 'invoicepayfaststatus'])->name(VW::INV . '.payfast.status');
+            
+        //     Route::post('/customer-pay-with-iyzipay', [IyziPayController::class, 'invoicepaywithiyzipay'])->name(VW::CST.'.pay.with.iyzipay');
+        //     Route::post('iyzipay/callback/{invoice}/{amount}', [IyzipayController::class, 'getInvoiceiyzipayCallback'])
+        //         ->name('iyzipay.invoicepayment.callback');
+            
+        //     Route::post('/customer-pay-with-sspay', [SspayController::class, 'invoicepaywithsspaypay'])->name(VW::CST.'.pay.with.sspay');
+        //     Route::get('/customer/sspay/{invoice}/{amount}', [SspayController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.sspay');
+            
+        //     Route::post('/invoice-pay-with-paytab', [PaytabController::class, 'invoicePayWithpaytab'])->name(VW::CST.'.pay.with.paytab');
+        //     Route::any('/invoice-paytab-success/{invoice}', [PaytabController::class, 'getInvoicePaymentStatus'])->name(VW::INV . '.paytab.success');
+            
+        //     Route::post('/invoice-with-paytr', [PaytrController::class, 'invoicepaywithpaytr'])->name(VW::CST.'.pay.with.paytr');
+        //     Route::get('/invoice/paytr/status', [PaytrController::class, 'getInvoicePaymentStatus'])->name(VW::INV . '.paytr');
+            
+        //     Route::post('invoice-with-yookassa/', [YooKassaController::class, 'invoicePayWithYookassa'])->name(VW::CST.'.with.yookassa');
+        //     Route::any('invoice-yookassa-status/', [YooKassaController::class, 'getInvociePaymentStatus'])->name(VW::INV . '.yookassa.status');
+            
+        //     Route::any('invoice-with-midtrans/', [MidtransPaymentController::class, 'invoicePayWithMidtrans'])->name(VW::CST.'.with.midtrans');
+        //     Route::any('invoice-midtrans-status/', [MidtransPaymentController::class, 'getInvociePaymentStatus'])->name(VW::INV . '.midtrans.status');
+            
+        //     Route::any('/invoice-with-xendit', [XenditPaymentController::class, 'invoicePayWithXendit'])->name(VW::CST.'.with.xendit');
+        //     Route::any('/invoice-xendit-status', [XenditPaymentController::class, 'getInvociePaymentStatus'])->name(VW::INV . '.xendit.status');
+        // // Invoice Payment Gateways
+        // Route::post('customer/{id}/payment', [StripePaymentController::class, 'addpayment'])->name(VW::CST.'.payment');
 
-    //    Route::post('plan-pay-with-paypal', [PaypalController::class, 'planPayWithPaypal'])->name(VW::PLN.'.pay.with.paypal')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
-    //    Route::get('{id}/plan-get-payment-status', [PaypalController::class, 'planGetPaymentStatus'])->name(VW::PLN.'.get.payment.status')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
+        // Route::group(
+        //     [
+        //         'middleware' => [
+        //             MiddlewaresConstants::AUTH,
+        //             MiddlewaresConstants::XSS,
+        //             MiddlewaresConstants::REV,
+        //         ],
+        //     ],
+        //     function () {
+        //         Route::get('order', [StripePaymentController::class, 'index'])->name(VW::OD.'.index');
+        //         Route::get('/stripe/{code}', [StripePaymentController::class, 'stripe'])->name('stripe');
+        //         Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
+        //     }
+        // );
 
-//     Route::post('invoice-with-aamarpay', [AamarpayController::class, 'invoicepaywithaamarpay'])->name(VW::CST.'.pay.with.aamarpay');
-//     Route::any('aamarpay-invoice/success/{data}', [AamarpayController::class, 'getInvoicePaymentStatus'])->name(VW::INV . '.pay.aamarpay.success');
-    
-//     Route::post('/customer-pay-with-coingate', [CoingatePaymentController::class, 'customerPayWithCoingate'])->name(VW::CST.'.pay.with.coingate')->middleware([MiddlewaresConstants::XSS]);
-//     Route::get('/customer/coingate/{invoice}/{amount}', [CoingatePaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.coingate');
-    
-//     Route::post('/customer-pay-with-paytm', [PaytmPaymentController::class, 'customerPayWithPaytm'])->name(VW::CST.'.pay.with.paytm')
-//         ->middleware([MiddlewaresConstants::XSS]);
-//     Route::post('/customer/paytm/{invoice}/{amount}', [PaytmPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.paytm');
-    
-//     Route::post('/customer-pay-with-flutterwave', [FlutterwavePaymentController::class, 'customerPayWithFlutterwave'])->name(VW::CST.'.pay.with.flutterwave')->middleware([MiddlewaresConstants::XSS]);
-//     Route::get('/customer/flutterwave/{txref}/{invoice_id}', [FlutterwavePaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.flutterwave');
-    
-//     Route::post('/customer-pay-with-razorpay', [RazorpayPaymentController::class, 'customerPayWithRazorpay'])->name(VW::CST.'.pay.with.razorpay')->middleware([MiddlewaresConstants::XSS]);
-//     Route::get('/customer/razorpay/{txref}/{invoice_id}', [RazorpayPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.razorpay');
-    
-//     Route::post('/customer-pay-with-mercado', [MercadoPaymentController::class, 'customerPayWithMercado'])->name(VW::CST.'.pay.with.mercado')
-//         ->middleware([MiddlewaresConstants::XSS]);
-//     Route::get('/customer/mercado/{invoice}', [MercadoPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.mercado');
-    
-//     Route::post('/customer-pay-with-mollie', [MolliePaymentController::class, 'customerPayWithMollie'])->name(VW::CST.'.pay.with.mollie')
-//         ->middleware([MiddlewaresConstants::XSS]);
-//     Route::get('/customer/mollie/{invoice}/{amount}', [MolliePaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.mollie');
-    
-//     Route::post('/customer-pay-with-skrill', [SkrillPaymentController::class, 'customerPayWithSkrill'])->name(VW::CST.'.pay.with.skrill')
-//         ->middleware([MiddlewaresConstants::XSS]);
-//     Route::get('/customer/skrill/{invoice}/{amount}', [SkrillPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.skrill');
-    
-//     Route::post('/paymentwall', [PaymentWallPaymentController::class, 'invoicepaymentwall'])->name(VW::INV . '.paymentwallpayment')
-//         ->middleware([MiddlewaresConstants::XSS]);
-//     Route::post('/invoice-pay-with-paymentwall/{invoice}', [PaymentWallPaymentController::class, 'invoicePayWithPaymentwall'])
-//         ->name(VW::INV . '.pay.with.paymentwall')->middleware([MiddlewaresConstants::XSS]);
-//     Route::get(VW::INV.'/{flag}/{invoice}', [PaymentWallPaymentController::class, 'invoiceerror'])->name('error.invoice.show');
-    
-//     Route::post('/customer-pay-with-toyyibpay', [ToyyibpayController::class, 'invoicepaywithtoyyibpay'])->name(VW::CST.'.pay.with.toyyibpay');
-//     Route::get('/customer/toyyibpay/{invoice}/{amount}', [ToyyibpayController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.toyyibpay');
-    
-//     Route::post('invoice-with-payfast', [PayFastController::class, 'invoicePayWithPayFast'])->name(VW::INV . '.with.payfast');
-//     Route::get('invoice-payfast-status/{success}', [PayFastController::class, 'invoicepayfaststatus'])->name(VW::INV . '.payfast.status');
-    
-//     Route::post('/customer-pay-with-iyzipay', [IyziPayController::class, 'invoicepaywithiyzipay'])->name(VW::CST.'.pay.with.iyzipay');
-//     Route::post('iyzipay/callback/{invoice}/{amount}', [IyzipayController::class, 'getInvoiceiyzipayCallback'])
-//         ->name('iyzipay.invoicepayment.callback');
-    
-//     Route::post('/customer-pay-with-sspay', [SspayController::class, 'invoicepaywithsspaypay'])->name(VW::CST.'.pay.with.sspay');
-//     Route::get('/customer/sspay/{invoice}/{amount}', [SspayController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.sspay');
-    
-//     Route::post('/invoice-pay-with-paytab', [PaytabController::class, 'invoicePayWithpaytab'])->name(VW::CST.'.pay.with.paytab');
-//     Route::any('/invoice-paytab-success/{invoice}', [PaytabController::class, 'getInvoicePaymentStatus'])->name(VW::INV . '.paytab.success');
-    
-//     Route::post('/invoice-with-paytr', [PaytrController::class, 'invoicepaywithpaytr'])->name(VW::CST.'.pay.with.paytr');
-//     Route::get('/invoice/paytr/status', [PaytrController::class, 'getInvoicePaymentStatus'])->name(VW::INV . '.paytr');
-    
-//     Route::post('invoice-with-yookassa/', [YooKassaController::class, 'invoicePayWithYookassa'])->name(VW::CST.'.with.yookassa');
-//     Route::any('invoice-yookassa-status/', [YooKassaController::class, 'getInvociePaymentStatus'])->name(VW::INV . '.yookassa.status');
-    
-//     Route::any('invoice-with-midtrans/', [MidtransPaymentController::class, 'invoicePayWithMidtrans'])->name(VW::CST.'.with.midtrans');
-//     Route::any('invoice-midtrans-status/', [MidtransPaymentController::class, 'getInvociePaymentStatus'])->name(VW::INV . '.midtrans.status');
-    
-//     Route::any('/invoice-with-xendit', [XenditPaymentController::class, 'invoicePayWithXendit'])->name(VW::CST.'.with.xendit');
-//     Route::any('/invoice-xendit-status', [XenditPaymentController::class, 'getInvociePaymentStatus'])->name(VW::INV . '.xendit.status');
-// // Invoice Payment Gateways
-// Route::post('customer/{id}/payment', [StripePaymentController::class, 'addpayment'])->name(VW::CST.'.payment');
+        // Route::post('/customer-pay-with-paystack', [PaystackPaymentController::class, 'customerPayWithPaystack'])->name(VW::CST.'.pay.with.paystack')->middleware([MiddlewaresConstants::XSS]);
+        // Route::get('/customer/paystack/{pay_id}/{invoice_id}', [PaystackPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.paystack');
 
-// Route::group(
-//     [
-//         'middleware' => [
-//             MiddlewaresConstants::AUTH,
-//             MiddlewaresConstants::XSS,
-//             MiddlewaresConstants::REV,
-//         ],
-//     ],
-//     function () {
-//         Route::get('order', [StripePaymentController::class, 'index'])->name(VW::OD.'.index');
-//         Route::get('/stripe/{code}', [StripePaymentController::class, 'stripe'])->name('stripe');
-//         Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
-//     }
-// );
+            // Orders
 
-// Route::post('/customer-pay-with-paystack', [PaystackPaymentController::class, 'customerPayWithPaystack'])->name(VW::CST.'.pay.with.paystack')->middleware([MiddlewaresConstants::XSS]);
-// Route::get('/customer/paystack/{pay_id}/{invoice_id}', [PaystackPaymentController::class, 'getInvoicePaymentStatus'])->name(VW::CST.'.paystack');
+            // Route::group(
+            //     [
+            //         'middleware' => [
+            //             MiddlewaresConstants::AUTH,
+            //             MiddlewaresConstants::XSS,
+            //             MiddlewaresConstants::REV,
+            //         ],
+            //     ],
+            //     function () {
+            //         Route::get('/orders', [StripePaymentController::class, 'index'])->name(VW::OD.'.index');
+            //         Route::get('/stripe/{code}', [StripePaymentController::class, 'stripe'])->name('stripe');
+            //         Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
+            //     }
+            // );
 
-    // Orders
+            // Route::post('/aamarpay/payment', [AamarpayController::class, 'pay'])->name(VW::PLN.'.pay.with.aamarpay');
+            // Route::any('/aamarpay/success/{data}', [AamarpayController::class, 'aamarpaysuccess'])->name('pay.aamarpay.success');
 
-    // Route::group(
-    //     [
-    //         'middleware' => [
-    //             MiddlewaresConstants::AUTH,
-    //             MiddlewaresConstants::XSS,
-    //             MiddlewaresConstants::REV,
-    //         ],
-    //     ],
-    //     function () {
-    //         Route::get('/orders', [StripePaymentController::class, 'index'])->name(VW::OD.'.index');
-    //         Route::get('/stripe/{code}', [StripePaymentController::class, 'stripe'])->name('stripe');
-    //         Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
-    //     }
-    // );
+            // Route::post('/paytr/payment/{plan_id}', [PaytrController::class, 'PlanpayWithPaytr'])->name(VW::PLN.'.pay.with.paytr');
+            // Route::get('/paytr/sussess/', [PaytrController::class, 'paytrsuccess'])->name('pay.paytr.success');
 
-    // Route::post('/aamarpay/payment', [AamarpayController::class, 'pay'])->name(VW::PLN.'.pay.with.aamarpay');
-    // Route::any('/aamarpay/success/{data}', [AamarpayController::class, 'aamarpaysuccess'])->name('pay.aamarpay.success');
+            // Route::post('/plan/yookassa/payment', [YooKassaController::class, 'planPayWithYooKassa'])->name(VW::PLN.'.pay.with.yookassa');
+            // Route::get('/plan/yookassa/{plan}', [YooKassaController::class, 'planGetYooKassaStatus'])->name(VW::PLN.'.yookassa.status');
 
-    // Route::post('/paytr/payment/{plan_id}', [PaytrController::class, 'PlanpayWithPaytr'])->name(VW::PLN.'.pay.with.paytr');
-    // Route::get('/paytr/sussess/', [PaytrController::class, 'paytrsuccess'])->name('pay.paytr.success');
+            // Route::any('/midtrans', [MidtransPaymentController::class, 'planPayWithMidtrans'])->name(VW::PLN.'.pay.with.midtrans');
+            // Route::any('/midtrans/callback', [MidtransPaymentController::class, 'planGetMidtransStatus'])->name(VW::PLN.'.get.midtrans.status');
 
-    // Route::post('/plan/yookassa/payment', [YooKassaController::class, 'planPayWithYooKassa'])->name(VW::PLN.'.pay.with.yookassa');
-    // Route::get('/plan/yookassa/{plan}', [YooKassaController::class, 'planGetYooKassaStatus'])->name(VW::PLN.'.yookassa.status');
+            // Route::any('/xendit/payment', [XenditPaymentController::class, 'planPayWithXendit'])->name(VW::PLN.'.pay.with.xendit');
+            // Route::any('/xendit/payment/status', [XenditPaymentController::class, 'planGetXenditStatus'])->name(VW::PLN.'.xendit.status');
 
-    // Route::any('/midtrans', [MidtransPaymentController::class, 'planPayWithMidtrans'])->name(VW::PLN.'.pay.with.midtrans');
-    // Route::any('/midtrans/callback', [MidtransPaymentController::class, 'planGetMidtransStatus'])->name(VW::PLN.'.get.midtrans.status');
+            // Route::post('/plan-pay-with-flutterwave', [FlutterwavePaymentController::class, 'planPayWithFlutterwave'])->name(VW::PLN.'.pay.with.flutterwave')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/flutterwave/{txref}/{plan_id}', [FlutterwavePaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.flutterwave');
 
-    // Route::any('/xendit/payment', [XenditPaymentController::class, 'planPayWithXendit'])->name(VW::PLN.'.pay.with.xendit');
-    // Route::any('/xendit/payment/status', [XenditPaymentController::class, 'planGetXenditStatus'])->name(VW::PLN.'.xendit.status');
+            // Route::post('/plan-pay-with-razorpay', [RazorpayPaymentController::class, 'planPayWithRazorpay'])->name(VW::PLN.'.pay.with.razorpay')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/razorpay/{txref}/{plan_id}', [RazorpayPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.razorpay');
 
-    // Route::post('/plan-pay-with-flutterwave', [FlutterwavePaymentController::class, 'planPayWithFlutterwave'])->name(VW::PLN.'.pay.with.flutterwave')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/flutterwave/{txref}/{plan_id}', [FlutterwavePaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.flutterwave');
+            // Route::post('/plan-pay-with-paytm', [PaytmPaymentController::class, 'planPayWithPaytm'])->name(VW::PLN.'.pay.with.paytm')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::post('/plan/paytm/{plan}', [PaytmPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.paytm');
 
-    // Route::post('/plan-pay-with-razorpay', [RazorpayPaymentController::class, 'planPayWithRazorpay'])->name(VW::PLN.'.pay.with.razorpay')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/razorpay/{txref}/{plan_id}', [RazorpayPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.razorpay');
+            // Route::post('/plan-pay-with-mercado', [MercadoPaymentController::class, 'planPayWithMercado'])->name(VW::PLN.'.pay.with.mercado')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/mercado/{plan}/{amount}', [MercadoPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.mercado');
 
-    // Route::post('/plan-pay-with-paytm', [PaytmPaymentController::class, 'planPayWithPaytm'])->name(VW::PLN.'.pay.with.paytm')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::post('/plan/paytm/{plan}', [PaytmPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.paytm');
+            // Route::post('/plan-pay-with-mollie', [MolliePaymentController::class, 'planPayWithMollie'])->name(VW::PLN.'.pay.with.mollie')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/mollie/{plan}', [MolliePaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.mollie');
 
-    // Route::post('/plan-pay-with-mercado', [MercadoPaymentController::class, 'planPayWithMercado'])->name(VW::PLN.'.pay.with.mercado')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/mercado/{plan}/{amount}', [MercadoPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.mercado');
+            // Route::post('/plan-pay-with-skrill', [SkrillPaymentController::class, 'planPayWithSkrill'])->name(VW::PLN.'.pay.with.skrill')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/skrill/{plan}', [SkrillPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.skrill');
 
-    // Route::post('/plan-pay-with-mollie', [MolliePaymentController::class, 'planPayWithMollie'])->name(VW::PLN.'.pay.with.mollie')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/mollie/{plan}', [MolliePaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.mollie');
+            // Route::post('/plan-pay-with-coingate', [CoingatePaymentController::class, 'planPayWithCoingate'])->name(VW::PLN.'.pay.with.coingate')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/coingate/{plan}', [CoingatePaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.coingate');
 
-    // Route::post('/plan-pay-with-skrill', [SkrillPaymentController::class, 'planPayWithSkrill'])->name(VW::PLN.'.pay.with.skrill')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/skrill/{plan}', [SkrillPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.skrill');
+            // Route::post('/toyyibpay', [ToyyibpayController::class, 'planPayWithToyyibpay'])->name(VW::PLN.'.toyyibpaypayment');
+            // Route::get('/plan-pay-with-toyyibpay/{id}/{status}/{coupon}', [ToyyibpayController::class, 'getPaymentStatus'])->name(VW::PLN.'.status');
 
-    // Route::post('/plan-pay-with-coingate', [CoingatePaymentController::class, 'planPayWithCoingate'])->name(VW::PLN.'.pay.with.coingate')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/coingate/{plan}', [CoingatePaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.coingate');
+            // Route::post('payfast-plan', [PayFastController::class, 'planPayWithPayfast'])->name('payfast.payment');
+            // Route::get('payfast-plan/{success}', [PayFastController::class, 'getPaymentStatus'])->name('payfast.payment.success');
 
-    // Route::post('/toyyibpay', [ToyyibpayController::class, 'planPayWithToyyibpay'])->name(VW::PLN.'.toyyibpaypayment');
-    // Route::get('/plan-pay-with-toyyibpay/{id}/{status}/{coupon}', [ToyyibpayController::class, 'getPaymentStatus'])->name(VW::PLN.'.status');
+            // Route::post('iyzipay/prepare', [IyziPayController::class, 'initiatePayment'])->name('iyzipay.payment.init');
+            // Route::post('iyzipay/callback/plan/{id}/{amount}/{coupan_code?}', [IyzipayController::class, 'iyzipayCallback'])->name('iyzipay.payment.callback');
 
-    // Route::post('payfast-plan', [PayFastController::class, 'planPayWithPayfast'])->name('payfast.payment');
-    // Route::get('payfast-plan/{success}', [PayFastController::class, 'getPaymentStatus'])->name('payfast.payment.success');
+            // Route::post('/sspay', [SspayController::class, 'SspayPaymentPrepare'])->name(VW::PLN.'.sspaypayment');
+            // Route::get('sspay-payment-plan/{plan_id}/{amount}/{couponCode}', [SspayController::class, 'SspayPlanGetPayment'])->middleware([MiddlewaresConstants::AUTH])->name(VW::PLN.'.sspay.callback');
 
-    // Route::post('iyzipay/prepare', [IyziPayController::class, 'initiatePayment'])->name('iyzipay.payment.init');
-    // Route::post('iyzipay/callback/plan/{id}/{amount}/{coupan_code?}', [IyzipayController::class, 'iyzipayCallback'])->name('iyzipay.payment.callback');
+            // Route::post('plan-pay-with-paytab', [PaytabController::class, 'planPayWithpaytab'])->middleware([MiddlewaresConstants::AUTH])->name(VW::PLN.'.pay.with.paytab');
+            // Route::any('paytab-success/plan', [PaytabController::class, 'PaytabGetPayment'])->middleware([MiddlewaresConstants::AUTH])->name(VW::PLN.'.paytab.success');
 
-    // Route::post('/sspay', [SspayController::class, 'SspayPaymentPrepare'])->name(VW::PLN.'.sspaypayment');
-    // Route::get('sspay-payment-plan/{plan_id}/{amount}/{couponCode}', [SspayController::class, 'SspayPlanGetPayment'])->middleware([MiddlewaresConstants::AUTH])->name(VW::PLN.'.sspay.callback');
+            // Route::post('/plan-pay-with-paystack', [PaystackPaymentController::class, 'planPayWithPaystack'])->name(VW::PLN.'.pay.with.paystack')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/paystack/{pay_id}/{plan_id}', [PaystackPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.paystack');
 
-    // Route::post('plan-pay-with-paytab', [PaytabController::class, 'planPayWithpaytab'])->middleware([MiddlewaresConstants::AUTH])->name(VW::PLN.'.pay.with.paytab');
-    // Route::any('paytab-success/plan', [PaytabController::class, 'PaytabGetPayment'])->middleware([MiddlewaresConstants::AUTH])->name(VW::PLN.'.paytab.success');
+            // // PaymentWall
 
-    // Route::post('/plan-pay-with-paystack', [PaystackPaymentController::class, 'planPayWithPaystack'])->name(VW::PLN.'.pay.with.paystack')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/paystack/{pay_id}/{plan_id}', [PaystackPaymentController::class, 'getPaymentStatus'])->name(VW::PLN.'.paystack');
-
-    // // PaymentWall
-
-    // Route::post('/paymentwalls', [PaymentWallPaymentController::class, 'paymentwall'])->name(VW::PLN.'.paymentwallpayment')->middleware([MiddlewaresConstants::XSS]);
-    // Route::post('/plan-pay-with-paymentwall/{plan}', [PaymentWallPaymentController::class, 'planPayWithPaymentWall'])->name(VW::PLN.'.pay.with.paymentwall')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    // Route::get('/plan/{flag}', [PaymentWallPaymentController::class, 'planeerror'])->name('error.plan.show');
+            // Route::post('/paymentwalls', [PaymentWallPaymentController::class, 'paymentwall'])->name(VW::PLN.'.paymentwallpayment')->middleware([MiddlewaresConstants::XSS]);
+            // Route::post('/plan-pay-with-paymentwall/{plan}', [PaymentWallPaymentController::class, 'planPayWithPaymentWall'])->name(VW::PLN.'.pay.with.paymentwall')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+            // Route::get('/plan/{flag}', [PaymentWallPaymentController::class, 'planeerror'])->name('error.plan.show');

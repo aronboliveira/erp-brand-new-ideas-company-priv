@@ -118,7 +118,7 @@ class LeaveTypeController extends Controller
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'edit leave type', VW::LV_TP . '.index')) !== true) return $redirect;
             if ($leaveType->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), __CLASS__ . '::' . __FUNCTION__, route(VW::LV_TP . '.index'));
+                return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), $action, route(VW::LV_TP . '.index'));
             try {
                 $validator = Validator::make($request->all(), [
                     'title' => 'required',
@@ -145,7 +145,7 @@ class LeaveTypeController extends Controller
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'delete leave type', VW::LV_TP . '.index')) !== true) return $redirect;
             if ($leaveType->created_by !== $user?->creatorId())
-                return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), __CLASS__ . '::' . __FUNCTION__, route(VW::LV_TP . '.index'));
+                return defaultPermissionDenial($request, new AuthorizationException($leaveType->getKey()), $action, route(VW::LV_TP . '.index'));
             try {
                 $leaveType->delete();
                 return redirect()->route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully deleted.'));

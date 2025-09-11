@@ -108,7 +108,7 @@
             if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
 
             const csrf=$('meta[name="csrf-token"]').attr('content') ?? "";
-            const POS_URL='{{route("pos.getproduct")}}';
+            const POS_URL='{{route(VW::POS.".get.product")}}';
 
             const ensureSelect=($wrap)=>{
                 if(!$wrap?.length) return null;

@@ -21,11 +21,29 @@ class Employee extends Model
     use UsesUuids;
 
     private const FILLABLE_FIELDS = [
-        'user_id', 'name', 'dob', 'gender', 'phone', 'address', 'email',
-        'password', 'employee_id', 'branch_id', 'department_id',
-        'designation_id', 'company_doj', 'documents', 'account_holder_name',
-        'account_number', 'bank_name', 'bank_identifier_code', 'branch_location',
-        'tax_payer_id', 'salary_type', 'salary', 'created_by'
+        'user_id',
+        'name',
+        'dob',
+        'gender',
+        'phone',
+        'address',
+        'email',
+        'password',
+        'employee_id',
+        'branch_id',
+        'department_id',
+        'designation_id',
+        'company_doj',
+        'documents',
+        'account_holder_name',
+        'account_number',
+        'bank_name',
+        'bank_identifier_code',
+        'branch_location',
+        'tax_payer_id',
+        'salary_type',
+        'salary',
+        'created_by'
     ]; // ! CHANGED
 
     protected $fillable = self::FILLABLE_FIELDS;                  // ! CHANGED
@@ -78,27 +96,27 @@ class Employee extends Model
     public function getNetSalary(): float
     {
         $total_allowance = $this->allowances->sum(
-            fn ($a) =>
+            fn($a) =>
             $a->type === 'fixed' ? $a->amount : $a->amount * $this->salary / 100
         );
         $total_commission = $this->commissions->sum(
-            fn ($c) =>
+            fn($c) =>
             $c->type === 'fixed' ? $c->amount : $c->amount * $this->salary / 100
         );
         $total_loan = $this->loans->sum(
-            fn ($l) =>
+            fn($l) =>
             $l->type === 'fixed' ? $l->amount : $l->amount * $this->salary / 100
         );
         $total_saturation_deduction = $this->saturationDeductions->sum(
-            fn ($d) =>
+            fn($d) =>
             $d->type === 'fixed' ? $d->amount : $d->amount * $this->salary / 100
         );
         $total_other_payment = $this->otherPayments->sum(
-            fn ($o) =>
+            fn($o) =>
             $o->type === 'fixed' ? $o->amount : $o->amount * $this->salary / 100
         );
         $total_over_time = $this->overtimes->sum(
-            fn ($ot) =>
+            fn($ot) =>
             $ot->number_of_days * $ot->hours * $ot->rate
         );
 

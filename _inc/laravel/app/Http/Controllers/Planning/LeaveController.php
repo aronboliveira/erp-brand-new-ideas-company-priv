@@ -65,11 +65,11 @@ class LeaveController extends Controller
         $action = "$cls::$fn";
         $view = ViewsConstants::LV . '.' . $fn;
 
-        return $this->measureProfile($action, function () use ($request, $view, $action) {
+        return $this->measureProfile($action, function () use ($request, $view, $action, $fn) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $user = $u;
             try {
-                if ($r = self::guard($request, 'create leave', ViewsConstants::LV . '.' . __FUNCTION__)) return $r;
+                if ($r = self::guard($request, 'create leave', ViewsConstants::LV . '.' . $fn)) return $r;
                 $cid = $user?->creatorId() ?: $user?->id;
                 $employees = Employee::query()
                     ->when(

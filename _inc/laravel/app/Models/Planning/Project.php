@@ -7,13 +7,15 @@ use App\Config\Constants\{
     DatabaseConstants,
     PermissionsConstants,
     ProjectsConstants,
-    UsersConstants
+    UsersConstants,
+    ViewsConstants as VW
 };
 use App\Traits\{ChecksLogin, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Support\Facades\{Auth, Storage};
 use Illuminate\{Database\Eloquent\Model, Support\Collection};
 use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne, BelongsToMany};
+use Illuminate\Http\RedirectResponse;
 
 class Project extends Model
 {
@@ -163,15 +165,15 @@ class Project extends Model
                         foreach ($days['datePeriod'] as $dateObj) {
                             $date = $dateObj->format('Y-m-d');
                             $entry = collect($sheet)
-                                ->first(fn ($v) => $v[DatabaseConstants::TABLE_CREATOR] === $uid
+                                ->first(fn($v) => $v[DatabaseConstants::TABLE_CREATOR] === $uid
                                     && $v['date'] === $date);
                             $time = $entry
                                 ? Carbon::parse($entry['time'])->format('H:i')
                                 : '00:00';
                             $type = $entry ? 'edit' : 'create';
                             $url = $entry
-                                ? route('timesheet.edit', [$pid, $entry['id']])
-                                : route('timesheet.create', $pid);
+                                ? route(VW::PRJ . '.' . VW::TMS . '.edit', [$pid, $entry['id']])
+                                : route(VW::PRJ . '.' . VW::TMS . '.create', $pid);
                             $week[] = compact('date', 'time', 'type', 'url');
                         }
                         $tot = Utility::calculateTimesheetHours(
@@ -206,7 +208,7 @@ class Project extends Model
                 foreach ($days['datePeriod'] as $dateObj) {
                     $date = $dateObj->format('Y-m-d');
                     $entry = collect($sheet)
-                        ->first(fn ($v) => $v['date'] === $date);
+                        ->first(fn($v) => $v['date'] === $date);
                     $time = $entry
                         ? Carbon::parse($entry['time'])->format('H:i')
                         : '00:00';
@@ -216,8 +218,8 @@ class Project extends Model
                         'time' => $time,
                         'type' => $entry ? 'edit' : 'create',
                         'url'  => $entry
-                            ? route('timesheet.edit', [$projectId, $entry['id']])
-                            : route('timesheet.create', $projectId)
+                            ? route(VW::PRJ . '.' . VW::TMS . '.edit', [$projectId, $entry['id']])
+                            : route(VW::PRJ . '.' . VW::TMS . '.create', $projectId)
                     ];
                 }
                 $tot = Utility::calculateTimesheetHours($times);
@@ -372,14 +374,14 @@ class Project extends Model
         }
         $total = array_sum($counts);
         return array_map(
-            fn ($c) => $total
+            fn($c) => $total
                 ? round(($c / $total) * 100, 2)
                 : 0,
             $counts
         );
     }
 
-    public function projectLastStage(): ?\App\Models\TaskStage
+    public function projectLastStage(): \App\Models\TaskStage|RedirectResponse|null
     {
         if (
             ($userOrRedirect = self::_checkLogin())

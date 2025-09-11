@@ -1,140 +1,41 @@
 
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
+        ExtendingLayoutsConstants as EL,
         SettingsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
+        StacksConstants as ST,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW,
+        ViewsConstants as VW
     };
-    use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth, Route, URL, Request};
+    use Illuminate\Support\{Collection, Str};
+
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
+@extends(EL::ADM)
+@section(YW::ADM_PG_TTL)
     {{__('Expense Create')}}
 @endsection
-@section(YieldingConstants::ADM_BDC)
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
         {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route(ViewsConstants::EXP.'.index')}}">{{__('Expense')}}</a></li>
+    <li class="breadcrumb-item"><a href="{{route(VW::EXP.'.index')}}">{{__('Expense')}}</a></li>
     <li class="breadcrumb-item">{{__('Expense Create')}}</li>
 @endsection
-@push(StacksConstants::ADM_SCR_PG)
+@push(ST::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
-    <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
+    <script async src="{{ asset('assets/js/routes/expenses/lang/create.js') }}"></script>
+    <script defer src="{{ asset('js/jquery.repeater.min.js') }}"></script>
     <script defer src="{{ asset('js/jquery-searchbox.js') }}"></script>
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-          ar: {
-            selection_failed:             'فشل تغيير النوع.',
-            employee_fetch_failed:        'فشل جلب بيانات الموظف.',
-            customer_fetch_failed:        'فشل جلب بيانات العميل.',
-            vendor_fetch_failed:          'فشل جلب بيانات البائع.',
-            repeater_initialization_failed:'فشل تهيئة المكرر.',
-            item_fetch_failed:            'فشل جلب بيانات الصنف.',
-            calculation_failed:           'فشل حساب الإجماليات.',
-            repeater_delete_failed:       'فشل حذف عنصر التكرار.'
-          },
-          da: {
-            selection_failed:             'Kunne ikke ændre typen.',
-            employee_fetch_failed:        'Kunne ikke hente medarbejderdata.',
-            customer_fetch_failed:        'Kunne ikke hente kundedata.',
-            vendor_fetch_failed:          'Kunne ikke hente leverandørdata.',
-            repeater_initialization_failed:'Kunne ikke initialisere gentager.',
-            item_fetch_failed:            'Kunne ikke hente varedata.',
-            calculation_failed:           'Kunne ikke beregne totaler.',
-            repeater_delete_failed:       'Kunne ikke slette gentagelseselement.'
-          },
-          de: {
-            selection_failed:             'Auswahl konnte nicht geändert werden.',
-            employee_fetch_failed:        'Mitarbeiterdaten konnten nicht geladen werden.',
-            customer_fetch_failed:        'Kundendaten konnten nicht geladen werden.',
-            vendor_fetch_failed:          'Anbieterdaten konnten nicht geladen werden.',
-            repeater_initialization_failed:'Initialisierung des Repeaters fehlgeschlagen.',
-            item_fetch_failed:            'Elementdaten konnten nicht abgerufen werden.',
-            calculation_failed:           'Berechnung der Summen fehlgeschlagen.',
-            repeater_delete_failed:       'Fehler beim Löschen des Wiederholungselements.'
-          },
-          en: {
-            selection_failed:             'Failed to change type.',
-            employee_fetch_failed:        'Failed to load employee details.',
-            customer_fetch_failed:        'Failed to load customer details.',
-            vendor_fetch_failed:          'Failed to load vendor details.',
-            repeater_initialization_failed:'Failed to initialize repeater.',
-            item_fetch_failed:            'Failed to fetch item data.',
-            calculation_failed:           'Failed to calculate totals.',
-            repeater_delete_failed:       'Failed to delete repeater item.'
-          },
-          es: {
-            selection_failed:             'Error al cambiar el tipo.',
-            employee_fetch_failed:        'Error al cargar datos del empleado.',
-            customer_fetch_failed:        'Error al cargar datos del cliente.',
-            vendor_fetch_failed:          'Error al cargar datos del proveedor.',
-            repeater_initialization_failed:'No se pudo inicializar el repetidor.',
-            item_fetch_failed:            'No se pudieron obtener los datos del artículo.',
-            calculation_failed:           'No se pudieron calcular los totales.',
-            repeater_delete_failed:       'No se pudo eliminar el elemento repetidor.'
-          },
-          fr: {
-            selection_failed:             'Échec du changement de type.',
-            employee_fetch_failed:        'Échec du chargement des détails de l’employé.',
-            customer_fetch_failed:        'Échec du chargement des détails du client.',
-            vendor_fetch_failed:          'Échec du chargement des détails du fournisseur.',
-            repeater_initialization_failed:'Échec de l’initialisation du répéteur.',
-            item_fetch_failed:            'Échec de la récupération des données de l’article.',
-            calculation_failed:           'Échec du calcul des totaux.',
-            repeater_delete_failed:       'Échec de la suppression de l’élément répétiteur.'
-          },
-          he: {
-            repeater_delete_failed:       'המחיקה של פריט החזרה נכשלה.'
-          },
-          it: {
-            repeater_delete_failed:       'Impossibile eliminare l’elemento ripetitore.'
-          },
-          ja: {
-            repeater_delete_failed:       'リピーター項目の削除に失敗しました。'
-          },
-          nl: {
-            repeater_delete_failed:       'Kan herhaler-item niet verwijderen.'
-          },
-          pl: {
-            repeater_delete_failed:       'Nie udało się usunąć elementu repeatera.'
-          },
-          pt: {
-            repeater_delete_failed:       'Falha ao excluir item do repetidor.'
-          },
-          'pt-br': {
-            repeater_delete_failed:       'Falha ao excluir item do repetidor.'
-          },
-          ru: {
-            repeater_delete_failed:       'Не удалось удалить элемент повторителя.'
-          },
-          tr: {
-            repeater_delete_failed:       'Tekrarlayıcı öğe silinemedi.'
-          },
-          zh: {
-            repeater_delete_failed:       '无法删除重复器项目。'
-          }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/expenses/createRepeater.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/expenses/createSelect.js') }}"></script>
     <script defer>
         (() => {
             const errFb = '# ERROR';
@@ -307,7 +208,7 @@ Object.keys(t).forEach(
                     data:{ product_id: pid }
                 }));
                 const billItems = JSON.parse(await $.ajax({
-                    url: '{{route(ViewsConstants::BIL.'.items')}}',
+                    url: '{{route(VW::BIL.'.items')}}',
                     type:'GET',
                     headers:{ 'X-CSRF-TOKEN':$('#token').val() },
                     data:{ bill_id: billId, product_id: pid }
@@ -378,7 +279,7 @@ Object.keys(t).forEach(
                 const amt = +row.find('.amount').text()||0;
                 try {
                 await $.ajax({
-                    url: '{{route(ViewsConstants::BIL.'.product.destroy')}}',
+                    url: '{{route(VW::BIL.".product.destroy")}}',
                     type: 'POST',
                     headers:{ 'X-CSRF-TOKEN':$('#token').val() },
                     data: { id, amount: amt }
@@ -393,483 +294,348 @@ Object.keys(t).forEach(
             });
         })();
     </script>
-    <script defer>
-        (() => {
-        const errFb = '# ERROR';
-        const dataClientLocalized = 'data-client-localized';
-        const dataGuardMsg = 'data-guard-msg';
-        const langSessionKey = 'erp-np-lang';
-        let errorMessage = '';
-        
-        const getLocalizedMessage = (msgKey, el) => {
-            let msg = errFb;
-            if (
-            el.getAttribute('data-sv-localized') === 'true' ||
-            el.getAttribute(dataClientLocalized) === 'true'
-            ) {
-            msg = el.getAttribute(dataGuardMsg) || errFb;
-            } else {
-            let lang = (
-                window.sessionStorage.getItem(langSessionKey) ||
-                document.documentElement.lang ||
-                'en'
-            )
-                .toLowerCase()
-                .replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[msgKey] ||
-                window.translations?.['en']?.[msgKey] ||
-                errFb;
-            if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, 'true');
-            }
-            }
-            return msg;
-        };
-        
-        const showError = message => {
-            try {
-            const bsLink = document.querySelector('link[href*="bootstrap"]');
-            let container = document.getElementById('toast-container');
-            if (bsLink && window.bootstrap) {
-                if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                document.body.appendChild(container);
-                }
-                const toastEl = document.createElement('div');
-                toastEl.className = 'toast';
-                toastEl.setAttribute('role', 'alert');
-                toastEl.setAttribute('aria-live', 'assertive');
-                toastEl.setAttribute('aria-atomic', 'true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                body.textContent = message;
-                toastEl.appendChild(body);
-                container.appendChild(toastEl);
-                window.bootstrap.Toast.getOrCreateInstance(toastEl).show();
-            } else {
-                alert(message);
-            }
-            } catch {
-            alert(message);
-            }
-        };
-        
-        const onPointerUp = () => {
-            if (errorMessage) {
-            showError(errorMessage);
-            errorMessage = '';
-            }
-        };
-        
-        document.addEventListener('pointerup', onPointerUp);
-        
-        document.querySelectorAll('[data-repeater-delete]').forEach(el => {
-            if (el.getAttribute('data-guard-listener-active') === 'true') return;
-            el.setAttribute('data-guard-listener-active', 'true');
-            el.addEventListener('click', () => {
-            try {
-                $('.price').change();
-                $('.discount').change();
-            } catch {
-                errorMessage = getLocalizedMessage('repeater_delete_failed', el);
-            }
-            });
-        });
-        
-        new MutationObserver((muts, obs) => {
-            muts.forEach(m => m.removedNodes.forEach(n => {
-            if (n === document.documentElement) {
-                document.removeEventListener('pointerup', onPointerUp);
-                obs.disconnect();
-            }
-            }));
-        }).observe(document.body, { childList: true, subtree: true });
-        })();
-    </script>
-    {{--  start for user select--}}
-    <script defer>
-        (() => {
-          const errFb = '# ERROR';
-          const clientLoc = 'data-client-localized';
-          const guardMsg = 'data-guard-msg';
-          const langKey = 'erp-np-lang';
-          let errorMessage = '';
-        
-          const getMsg = (key, el) => {
-            let msg = errFb;
-            if (
-              el.getAttribute('data-sv-localized') === 'true' ||
-              el.getAttribute(clientLoc) === 'true'
-            ) {
-              msg = el.getAttribute(guardMsg) || errFb;
-            } else {
-              let lang = (
-                window.sessionStorage.getItem(langKey) ||
-                document.documentElement.lang ||
-                'en'
-              )
-                .toLowerCase()
-                .replace(/_/g, '-');
-              lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-              msg =
-                window.translations?.[lang]?.[key] ||
-                window.translations?.['en']?.[key] ||
-                errFb;
-              if (msg !== errFb) {
-                el.setAttribute(guardMsg, msg);
-                el.setAttribute(clientLoc, 'true');
-              }
-            }
-            return msg;
-          };
-        
-          const showError = message => {
-            try {
-              const bs = document.querySelector('link[href*="bootstrap"]');
-              let c = document.getElementById('toast-container');
-              if (bs && window.bootstrap) {
-                if (!c) {
-                  c = document.createElement('div');
-                  c.id = 'toast-container';
-                  document.body.appendChild(c);
-                }
-                const t = document.createElement('div');
-                t.className = 'toast';
-                t.setAttribute('role', 'alert');
-                t.setAttribute('aria-live', 'assertive');
-                t.setAttribute('aria-atomic', 'true');
-                const b = document.createElement('div');
-                b.className = 'toast-body';
-                b.textContent = message;
-                t.appendChild(b);
-                c.appendChild(t);
-                window.bootstrap.Toast.getOrCreateInstance(t).show();
-              } else {
-                alert(message);
-              }
-            } catch {
-              alert(message);
-            }
-          };
-        
-          document.addEventListener('pointerup', () => {
-            if (errorMessage) {
-              showError(errorMessage);
-              errorMessage = '';
-            }
-          });
-        
-          const initSelection = () => {
-            const first = document.querySelector('input[name=type]');
-            if (!first) return;
-            first.checked = true;
-            const radios = document.querySelectorAll('input[name="type"]');
-            radios.forEach(r => {
-              if (r.getAttribute('data-listener-active') === 'true') return;
-              r.setAttribute('data-listener-active', 'true');
-              r.addEventListener('change', onTypeChange);
-              new MutationObserver((m, o) => {
-                m.forEach(mut => mut.removedNodes.forEach(n => {
-                  if (n === r) {
-                    r.removeEventListener('change', onTypeChange);
-                    o.disconnect();
-                  }
-                }));
-              }).observe(document.body, { childList: true, subtree: true });
-            });
-            onTypeChange.call(document.querySelector('input[name="type"]:checked'));
-          };
-        
-          const onTypeChange = function() {
-            const type = this.value;
-            ['employee','customer','vendor'].forEach(cls => {
-              document.querySelectorAll(`.${cls}`).forEach(el => {
-                el.classList.toggle('d-block', cls === type);
-                el.classList.toggle('d-none', cls !== type);
-              });
-            });
-          };
-        
-          const setupAjax = type => {
-            const sel = document.getElementById(type);
-            if (!sel || sel.getAttribute('data-listener-active') === 'true') return;
-            sel.setAttribute('data-listener-active', 'true');
-            const detail = document.getElementById(`${type}_detail`);
-            const box = document.getElementById(`${type}-box`);
-            sel.addEventListener('change', () => {
-              if (detail) detail.classList.replace('d-none','d-block');
-              if (box) box.classList.replace('d-block','d-none');
-              const url = sel.getAttribute('data-url');
-              if (!url) {
-                errorMessage = getMsg(`${type}_fetch_failed`, sel);
-                return;
-              }
-              const id = sel.value;
-              $.ajax({
-                url,
-                type: 'POST',
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                data: { id }
-              })
-              .done(data => {
-                if (data && detail) detail.innerHTML = data;
-                else if (box && detail) {
-                  box.classList.replace('d-none','d-block');
-                  detail.classList.replace('d-block','d-none');
-                }
-              })
-              .fail(() => {
-                errorMessage = getMsg(`${type}_fetch_failed`, sel);
-              });
-            });
-            new MutationObserver((m,o) => {
-              m.forEach(mut => mut.removedNodes.forEach(n => {
-                if (n === sel) {
-                  sel.removeEventListener('change', ()=>{});
-                  o.disconnect();
-                }
-              }));
-            }).observe(document.body, { childList: true, subtree: true });
-          };
-        
-          document.addEventListener('DOMContentLoaded', () => {
-            try {
-              initSelection();
-              ['employee','customer','vendor'].forEach(setupAjax);
-            } catch {
-              console.error('Initialization error');
-            }
-          });
-        })();
-    </script>
-    {{--   end for user select--}}
 @endpush
-@section('content')
-    <div class="row">
-        {{ Collective\Html\FormFacade::open(array('url' => ViewsConstants::EXP,'class'=>'w-100')) }}
-        <div class="col-12">
-            <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="col">
-                                <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP }}">
-                                    <input type="radio" id="employee_radio" value="employee" name="type" class="form-check-input {{isset($_GET['type']) && $_GET['type']=='employee' ?'checked':'checked'}}" >
-                                    <label class="form-check-label" for="employee">{{__('Employee')}}</label>
+@php
+    $formId           = 'expense-create-form';
+    $storeBase        = VW::EXP;
+    $storeKebab       = Str::kebab($storeBase);
+    $storeResolved    = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+    $storeUrl         = $storeResolved ? route($storeResolved) : '#';
+    $storeGuardMsg    = Utility::fetchLinkMessage($lang, VW::EXP, 'store_expense_route_unavailable') ?? 'Store expense route is unavailable. Please contact technical support or your domain administrator.';
+
+    $typeParam        = (string) Request::get('type', 'employee');
+    $isEmployeeType   = $typeParam === 'employee';
+    $isCustomerType   = $typeParam === 'customer';
+    $isVendorType     = $typeParam === 'vendor';
+
+    $employeesIsList  = (is_array($employees ?? null) && count($employees ?? []) > 0) || (($employees ?? null) instanceof Collection && $employees->isNotEmpty());
+    $customersIsList  = (is_array($customers ?? null) && count($customers ?? []) > 0) || (($customers ?? null) instanceof Collection && $customers->isNotEmpty());
+    $vendorsIsList    = (is_array($vendors   ?? null) && count($vendors   ?? []) > 0) || (($vendors   ?? null) instanceof Collection && $vendors->isNotEmpty());
+    $categoryIsList   = (is_array($category  ?? null) && count($category  ?? []) > 0) || (($category  ?? null) instanceof Collection && $category->isNotEmpty());
+    $accountsIsList   = (is_array($accounts  ?? null) && count($accounts  ?? []) > 0) || (($accounts  ?? null) instanceof Collection && $accounts->isNotEmpty());
+    $prodSvcIsList    = (is_array($product_services ?? null) && count($product_services ?? []) > 0) || (($product_services ?? null) instanceof Collection && $product_services->isNotEmpty());
+    $chartAccIsList   = (is_array($chartAccounts ?? null) && count($chartAccounts ?? []) > 0) || (($chartAccounts ?? null) instanceof Collection && $chartAccounts->isNotEmpty());
+
+    $employeeOptions  = $employeesIsList ? (is_array($employees) ? $employees : $employees->toArray()) : [__('No employees available')];
+    $customerOptions  = $customersIsList ? (is_array($customers) ? $customers : $customers->toArray()) : [__('No customers available')];
+    $vendorOptions    = $vendorsIsList   ? (is_array($vendors)   ? $vendors   : $vendors->toArray())   : [__('No vendors available')];
+    $categoryOptions  = $categoryIsList  ? (is_array($category)  ? $category  : $category->toArray())  : [__('No categories available')];
+    $accountOptions   = $accountsIsList  ? (is_array($accounts)  ? $accounts  : $accounts->toArray())  : [__('No accounts available')];
+    $prodSvcOptions   = $prodSvcIsList   ? (is_array($product_services) ? $product_services : $product_services->toArray()) : [__('No items available')];
+    $chartAccOptions  = $chartAccIsList  ? (is_array($chartAccounts)    ? $chartAccounts    : $chartAccounts->toArray())    : [__('No chart accounts available')];
+
+    $empUrlBase       = VW::EXP . '.employee';
+    $empUrlKebab      = Str::kebab($empUrlBase);
+    $empUrlResolved   = Route::has($empUrlBase) ? $empUrlBase : (Route::has($empUrlKebab) ? $empUrlKebab : null);
+    $empUrl           = $empUrlResolved ? route($empUrlResolved) : '#';
+    $empGuardMsg      = Utility::fetchLinkMessage($lang, VW::EXP, 'employee_route_unavailable') ?? 'Employee endpoint is unavailable. Please contact technical support or your domain administrator.';
+
+    $cusUrlBase       = VW::EXP . '.customer';
+    $cusUrlKebab      = Str::kebab($cusUrlBase);
+    $cusUrlResolved   = Route::has($cusUrlBase) ? $cusUrlBase : (Route::has($cusUrlKebab) ? $cusUrlKebab : null);
+    $cusUrl           = $cusUrlResolved ? route($cusUrlResolved) : '#';
+    $cusGuardMsg      = Utility::fetchLinkMessage($lang, VW::EXP, 'customer_route_unavailable') ?? 'Customer endpoint is unavailable. Please contact technical support or your domain administrator.';
+
+    $venUrlBase       = VW::EXP . '.vendor';
+    $venUrlKebab      = Str::kebab($venUrlBase);
+    $venUrlResolved   = Route::has($venUrlBase) ? $venUrlBase : (Route::has($venUrlKebab) ? $venUrlKebab : null);
+    $venUrl           = $venUrlResolved ? route($venUrlResolved) : '#';
+    $venGuardMsg      = Utility::fetchLinkMessage($lang, VW::EXP, 'vendor_route_unavailable') ?? 'Vendor endpoint is unavailable. Please contact technical support or your domain administrator.';
+
+    $prodUrlBase      = VW::EXP . '.product';
+    $prodUrlKebab     = Str::kebab($prodUrlBase);
+    $prodUrlResolved  = Route::has($prodUrlBase) ? $prodUrlBase : (Route::has($prodUrlKebab) ? $prodUrlKebab : null);
+    $prodUrl          = $prodUrlResolved ? route($prodUrlResolved) : '#';
+    $prodGuardMsg     = Utility::fetchLinkMessage($lang, VW::EXP, 'product_route_unavailable') ?? 'Product endpoint is unavailable. Please contact technical support or your domain administrator.';
+
+    $indexBase        = VW::EXP . '.index';
+    $indexKebab       = Str::kebab($indexBase);
+    $indexResolved    = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
+    $indexUrl         = $indexResolved ? route($indexResolved) : '#';
+    $indexGuardMsg    = Utility::fetchLinkMessage($lang, VW::EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
+@endphp
+
+@section(YW::ADM_CTT)
+    <div class="{{ VC::RW }}">
+        {{ Form::open([
+            'url'               => $storeUrl,
+            'id'                => $formId,
+            'class'             => 'w-100',
+            'data-url'          => $storeUrl,
+            'data-guard-msg'    => $storeGuardMsg,
+            'data-sv-localized' => 'true',
+        ]) }}
+            <div class="{{ VC::C12 }}">
+                <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
+                <div class="{{ VC::CD }}">
+                    <div class="card-body">
+                        <div class="{{ VC::RW }}">
+                            <div class="{{ VC::CM6 }}">
+                                <div class="{{ VC::C12 }}">
+                                    <div class="{{ VC::FM_CHK_IL_GP }}">
+                                        <input type="radio" id="employee_radio" value="employee" name="type" class="form-check-input" {{ $isEmployeeType ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="employee_radio">{{ __('Employee') }}</label>
+                                    </div>
+                                    <div class="{{ VC::FM_CHK_IL_GP }}">
+                                        <input type="radio" id="customer_radio" value="customer" name="type" class="form-check-input" {{ $isCustomerType ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="customer_radio">{{ __('Customer') }}</label>
+                                    </div>
+                                    <div class="{{ VC::FM_CHK_IL_GP }}">
+                                        <input type="radio" id="vendor_radio" value="vendor" name="type" class="form-check-input" {{ $isVendorType ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="vendor_radio">{{ __('Vendor') }}</label>
+                                    </div>
                                 </div>
-                                <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP }}">
-                                    <input type="radio" id="customer_radio" value="customer" name="type" class="form-check-input" >
-                                    <label class="form-check-label" for="customer">{{__('Customer')}}</label>
+
+                                <div class="col employee {{ $isEmployeeType ? '' : 'd-none' }}">
+                                    <div class="form-group" id="employee-box">
+                                        {{ Form::label('employee_id', __('Payee'), ['class' => VC::FM_LB]) }}
+                                        {{ Form::select(
+                                            'employee_id',
+                                            $employeeOptions,
+                                            null,
+                                            array_merge([
+                                                'class'         => VC::FM_CT_SL,
+                                                'id'            => 'employee',
+                                                'data-url'      => $empUrl,
+                                                'data-guard-msg'=> $empGuardMsg
+                                            ], $employeesIsList ? [] : ['disabled' => 'disabled'])
+                                        ) }}
+                                    </div>
+                                    <div id="employee_detail" class="d-none"></div>
                                 </div>
-                                <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP }}">
-                                    <input type="radio" id="vendor_radio" value="vendor" name="type" class="form-check-input" >
-                                    <label class="form-check-label" for="vendor">{{__('Vendor')}}</label>
+
+                                <div class="col customer {{ $isCustomerType ? '' : 'd-none' }}">
+                                    <div class="form-group" id="customer-box">
+                                        {{ Form::label('customer_id', __('Payee'), ['class' => VC::FM_LB]) }}
+                                        {{ Form::select(
+                                            'customer_id',
+                                            $customerOptions,
+                                            null,
+                                            array_merge([
+                                                'class'         => VC::FM_CT_SL,
+                                                'id'            => 'customer',
+                                                'data-url'      => $cusUrl,
+                                                'data-guard-msg'=> $cusGuardMsg
+                                            ], $customersIsList ? [] : ['disabled' => 'disabled'])
+                                        ) }}
+                                    </div>
+                                    <div id="customer_detail" class="d-none"></div>
+                                </div>
+
+                                <div class="col vendor {{ $isVendorType ? '' : 'd-none' }}">
+                                    <div class="form-group" id="vendor-box">
+                                        {{ Form::label('vendor_id', __('Payee'), ['class' => VC::FM_LB]) }}
+                                        {{ Form::select(
+                                            'vendor_id',
+                                            $vendorOptions,
+                                            $Id ?? null,
+                                            array_merge([
+                                                'class'         => VC::FM_CT_SL,
+                                                'id'            => 'vendor',
+                                                'data-url'      => $venUrl,
+                                                'data-guard-msg'=> $venGuardMsg
+                                            ], $vendorsIsList ? [] : ['disabled' => 'disabled'])
+                                        ) }}
+                                    </div>
+                                    <div id="vendor_detail" class="d-none"></div>
                                 </div>
                             </div>
 
-                            <div class="col employee">
-                                <div class="form-group" id="employee-box">
-                                    {{ Collective\Html\FormFacade::label('employee_id', __('Payee'),['class'=>'form-label']) }}
-                                    {{ Collective\Html\FormFacade::select('employee_id', $employees,null, array('class' => 'form-control select','id'=>'employee','data-url'=>route(ViewsConstants::EXP.'.employee'))) }}
-                                </div>
-                                <div id="employee_detail" class="d-none">
-                                </div>
-                            </div>
-                            <div class="col customer d-none">
-                                <div class="form-group" id="customer-box">
-                                    {{ Collective\Html\FormFacade::label('customer_id', __('Payee'),['class'=>'form-label']) }}
-                                    {{ Collective\Html\FormFacade::select('customer_id', $customers,null, array('class' => 'form-control select','id'=>'customer','data-url'=>route(ViewsConstants::EXP.'.customer'))) }}
-                                </div>
-                                <div id="customer_detail" class="d-none">
-                                </div>
-                            </div>
-                            <div class="col vendor d-none">
-                                <div class="form-group" id="vendor-box">
-                                    {{ Collective\Html\FormFacade::label('vendor_id', __('Payee'),['class'=>'form-label']) }}
-                                    {{ Collective\Html\FormFacade::select('vendor_id', $vendors,$Id, array('class' => 'form-control select','id'=>'vendor','data-url'=>route(ViewsConstants::EXP.'.vendor'))) }}
-                                </div>
-                                <div id="vendor_detail" class="d-none">
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div class="col-md-6">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ Collective\Html\FormFacade::label('payment_date', __('Payment Date'),['class'=>'form-label']) }}
-                                        {{Collective\Html\FormFacade::date('payment_date',null,array('class'=>'form-control','required'=>'required'))}}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ Collective\Html\FormFacade::label('category_id', __('Category'),['class'=>'form-label']) }}
-                                        {{ Collective\Html\FormFacade::select('category_id', $category,null, array('class' => 'form-control select')) }}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ Collective\Html\FormFacade::label('account_id', __('Account'),['class'=>'form-label']) }}
-                                        {{ Collective\Html\FormFacade::select('account_id',$accounts,null, array('class' => 'form-control','required'=>'required')) }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12">
-            <h5 class="d-inline-block mb-4">{{__('Product & Services')}}</h5>
-            <div class="card repeater">
-                <div class="item-section py-2">
-                    <div class="row justify-content-between align-items-center">
-                        <div class="col-md-12 d-flex align-items-center justify-content-between justify-content-md-end">
-                            <div class="all-button-box me-2">
-                                <a href="#" data-repeater-create="" class="{{ ViewClassNamesConstants::BT_PRM }}" data-bs-toggle="modal" data-target="#add-bank">
-                                    <i class="ti ti-plus"></i> {{__('Add Item')}}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="table mb-0" data-repeater-list="items" id="sortable-table">
-                            <thead>
-                            <tr>
-                                <th width="20%">{{__('Items')}}</th>
-                                <th>{{__('Quantity')}}</th>
-                                <th>{{__('Price')}} </th>
-                                <th>{{__('Discount')}}</th>
-                                <th>{{__('Tax')}} (%)</th>
-                                <th class="text-end">{{__('Amount')}}
-                                    <br><small class="text-danger font-bold">{{__('after tax & discount')}}</small>
-                                </th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody class="ui-sortable" data-repeater-item>
-                            <tr>
-                                <td width="25%" class="form-group pt-0">
-                                    {{ Collective\Html\FormFacade::select('item', $product_services,'', array('class' => 'form-control select2 item','data-url'=>route(ViewsConstants::EXP.'.product'))) }}
-                                </td>
-                                <td>
-                                    <div class="form-group price-input input-group search-form">
-                                        {{ Collective\Html\FormFacade::text('quantity','', array('class' => 'form-control quantity','placeholder'=>__('Qty'))) }}
-                                        <span class="unit input-group-text bg-transparent"></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-group price-input input-group search-form">
-                                        {{ Collective\Html\FormFacade::text('price','', array('class' => 'form-control price','placeholder'=>__('Price'))) }}
-                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-group price-input input-group search-form">
-                                        {{ Collective\Html\FormFacade::text('discount','', array('class' => 'form-control discount','placeholder'=>__('Discount'))) }}
-                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="form-group">
-                                        <div class="input-group">
-                                            <div class="taxes"></div>
-                                            {{ Collective\Html\FormFacade::hidden('tax','', array('class' => 'form-control tax')) }}
-                                            {{ Collective\Html\FormFacade::hidden('itemTaxPrice','', array('class' => 'form-control itemTaxPrice')) }}
-                                            {{ Collective\Html\FormFacade::hidden('itemTaxRate','', array('class' => 'form-control itemTaxRate')) }}
+                            <div class="{{ VC::CM6 }}">
+                                <div class="{{ VC::RW }}">
+                                    <div class="{{ VC::CM6 }}">
+                                        <div class="form-group">
+                                            {{ Form::label('payment_date', __('Payment Date'), ['class' => VC::FM_LB]) }}
+                                            {{ Form::date('payment_date', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
                                         </div>
+                                        @error('payment_date')
+                                            <div class="{{ VC::TXT_MT }} {{ VC::TXS }}">{{ $message }}</div>
+                                        @enderror
                                     </div>
-                                </td>
-
-                                <td class="text-end amount">
-                                    0.00
-                                </td>
-                                <td>
-                                    @can('delete proposal product')
-                                        <a href="#" class="{{ ViewClassNamesConstants::TRS_M2 }}" data-repeater-delete></a>
-                                    @endcan
-                                </td>
-                            </tr>
-                            <tr>
-                                <td  class="form-group">
-                                    {{ Collective\Html\FormFacade::select('chart_account_id', $chartAccounts,'', array('class' => 'form-control select2 js-searchBox')) }}
-                                </td>
-                                <td class="form-group">
-                                    <div class="input-group ">
-                                        {{ Collective\Html\FormFacade::text('amount','', array('class' => 'form-control accountAmount','placeholder'=>__('Amount'))) }}
-                                        <span class="input-group-text bg-transparent">{{\Auth::user()->currencySymbol()}}</span>
+                                    <div class="{{ VC::CM6 }}">
+                                        <div class="form-group">
+                                            {{ Form::label('category_id', __('Category'), ['class' => VC::FM_LB]) }}
+                                            {{ Form::select(
+                                                'category_id',
+                                                $categoryOptions,
+                                                null,
+                                                array_merge(['class' => VC::FM_CT_SL], $categoryIsList ? [] : ['disabled' => 'disabled'])
+                                            ) }}
+                                        </div>
+                                        @unless($categoryIsList)
+                                            <div class="{{ VC::TXT_MT }} {{ VC::TXS }}">{{ __('No categories available.') }}</div>
+                                        @endunless
                                     </div>
-                                </td>
-                                <td colspan="2" class="form-group">
-                                    {{ Collective\Html\FormFacade::textarea('description', null, ['class'=>'form-control pro_description','rows'=>'1','placeholder'=>__('Description')]) }}
-                                </td>
-                                <td></td>
-                                <td class="text-end accountamount">
-                                    0.00
-                                </td>
-                            </tr>
-
-                            </tbody>
-                            <tfoot>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td><strong>{{__('Sub Total')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="text-end subTotal">0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td><strong>{{__('Discount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="text-end totalDiscount">0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td><strong>{{__('Tax')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                <td class="text-end totalTax">0.00</td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td class="blue-text"><strong>{{__('Total Amount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-
-                                <td class="blue-text text-end totalAmount">0.00</td>
-                                {{ Collective\Html\FormFacade::hidden('totalAmount',null, array('class' => 'form-control totalAmount')) }}
-
-                                <td></td>
-                            </tr>
-                            </tfoot>
-                        </table>
+                                    <div class="{{ VC::CM6 }}">
+                                        <div class="form-group">
+                                            {{ Form::label('account_id', __('Account'), ['class' => VC::FM_LB]) }}
+                                            {{ Form::select(
+                                                'account_id',
+                                                $accountOptions,
+                                                null,
+                                                array_merge(['class' => VC::FM_CT, 'required' => 'required'], $accountsIsList ? [] : ['disabled' => 'disabled'])
+                                            ) }}
+                                        </div>
+                                        @unless($accountsIsList)
+                                            <div class="{{ VC::TXT_MT }} {{ VC::TXS }}">{{ __('No accounts available.') }}</div>
+                                        @endunless
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <input type="button" value="{{__('Cancel')}}" onclick="location.href = ' {{ route(ViewsConstants::EXP.'.index') }}';" class="btn btn-light">
-            <input type="submit" value="{{__('Create')}}" class="{{ ViewClassNamesConstants::BT_PRM }}">
-        </div>
-        {{ Collective\Html\FormFacade::close() }}
+            <div class="{{ VC::C12 }}">
+                <h5 class="d-inline-block mb-4">{{ __('Product & Services') }}</h5>
+                <div class="card repeater">
+                    <div class="item-section py-2">
+                        <div class="{{ VC::RW }} justify-content-between align-items-center">
+                            <div class="{{ VC::CM12 }} d-flex align-items-center justify-content-between justify-content-md-end">
+                                <div class="all-button-box me-2">
+                                    <a href="#" data-repeater-create class="{{ VC::BT_PRM }}">
+                                        <i class="ti ti-plus"></i> {{ __('Add Item') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body table-border-style">
+                        <div class="table-responsive">
+                            <table class="table mb-0" data-repeater-list="items" id="sortable-table">
+                                <thead>
+                                <tr>
+                                    <th width="20%">{{ __('Items') }}</th>
+                                    <th>{{ __('Quantity') }}</th>
+                                    <th>{{ __('Price') }}</th>
+                                    <th>{{ __('Discount') }}</th>
+                                    <th>{{ __('Tax') }} (%)</th>
+                                    <th class="text-end">
+                                        {{ __('Amount') }}
+                                        <br><small class="text-danger font-bold">{{ __('after tax & discount') }}</small>
+                                    </th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody class="ui-sortable" data-repeater-item>
+                                @php
+                                    $isCurrencySymbolAvailable = method_exists($user, 'currencySymbol');
+                                @endphp
+                                <tr>
+                                    <td width="25%" class="form-group pt-0">
+                                        {{ Form::select(
+                                            'item',
+                                            $prodSvcOptions,
+                                            '',
+                                            array_merge([
+                                                'class'         => VC::FM_CT.' select2 item',
+                                                'data-url'      => $prodUrl,
+                                                'data-guard-msg'=> $prodGuardMsg
+                                            ], $prodSvcIsList ? [] : ['disabled' => 'disabled'])
+                                        ) }}
+                                    </td>
+                                    <td>
+                                        <div class="form-group price-input input-group search-form">
+                                            {{ Form::text('quantity', '', ['class' => VC::FM_CT.' quantity', 'placeholder' => __('Qty')]) }}
+                                            <span class="unit input-group-text bg-transparent"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group price-input input-group search-form">
+                                            {{ Form::text('price', '', ['class' => VC::FM_CT.' price', 'placeholder' => __('Price')]) }}
+                                            <span class="input-group-text bg-transparent">{{ $isCurrencySymbolAvailable ? $user->currencySymbol() : __('Failed to get currency') }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group price-input input-group search-form">
+                                            {{ Form::text('discount', '', ['class' => VC::FM_CT.' discount', 'placeholder' => __('Discount')]) }}
+                                            <span class="input-group-text bg-transparent">{{ $isCurrencySymbolAvailable ? $user->currencySymbol() : __('Failed to get currency') }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="form-group">
+                                            <div class="input-group">
+                                                <div class="taxes"></div>
+                                                {{ Form::hidden('tax', '', ['class' => VC::FM_CT.' tax']) }}
+                                                {{ Form::hidden('itemTaxPrice', '', ['class' => VC::FM_CT.' itemTaxPrice']) }}
+                                                {{ Form::hidden('itemTaxRate', '', ['class' => VC::FM_CT.' itemTaxRate']) }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end amount">0.00</td>
+                                    <td>
+                                        @can('delete proposal product')
+                                            <a href="#" class="{{ VC::TRS_M2 }}" data-repeater-delete></a>
+                                        @endcan
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="form-group">
+                                        {{ Form::select(
+                                            'chart_account_id',
+                                            $chartAccOptions,
+                                            '',
+                                            array_merge(['class' => VC::FM_CT.' select2 js-searchBox'], $chartAccIsList ? [] : ['disabled' => 'disabled'])
+                                        ) }}
+                                    </td>
+                                    <td class="form-group">
+                                        <div class="input-group">
+                                            {{ Form::text('amount', '', ['class' => VC::FM_CT.' accountAmount', 'placeholder' => __('Amount')]) }}
+                                            <span class="input-group-text bg-transparent">{{ $isCurrencySymbolAvailable ? $user->currencySymbol() : __('Failed to get currency') }}</span>
+                                        </div>
+                                    </td>
+                                    <td colspan="2" class="form-group">
+                                        {{ Form::textarea('description', null, ['class' => VC::FM_CT.' pro_description', 'rows' => 1, 'placeholder' => __('Description')]) }}
+                                    </td>
+                                    <td></td>
+                                    <td class="text-end accountamount">0.00</td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+                                    <td><strong>{{ __('Sub Total') }} ({{ $isCurrencySymbolAvailable ? $user->currencySymbol() : __('Failed to get currency') }})</strong></td>
+                                    <td class="text-end subTotal">0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+                                    <td><strong>{{ __('Discount') }} ({{ $isCurrencySymbolAvailable ? $user->currencySymbol() : __('Failed to get currency') }})</strong></td>
+                                    <td class="text-end totalDiscount">0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+                                    <td><strong>{{ __('Tax') }} ({{ $isCurrencySymbolAvailable ? $user->currencySymbol() : __('Failed to get currency') }})</strong></td>
+                                    <td class="text-end totalTax">0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                                    <td class="blue-text"><strong>{{ __('Total Amount') }} ({{ $isCurrencySymbolAvailable ? $user->currencySymbol() : __('Failed to get currency') }})</strong></td>
+                                    <td class="blue-text text-end totalAmount">0.00</td>
+                                    {{ Form::hidden('totalAmount', null, ['class' => VC::FM_CT.' totalAmount']) }}
+                                    <td></td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a
+                    href="{{ $indexUrl }}"
+                    data-url="{{ $indexUrl }}"
+                    data-guard-msg="{{ $indexGuardMsg }}"
+                    class="btn btn-light"
+                    id="expense-cancel-link"
+                >{{ __('Cancel') }}</a>
+                <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+            </div>
+        {{ Form::close() }}
     </div>
+    @push(ST::ADM_SCR_PG)
+        <script defer src="{{ asset('assets/js/routes/expenses/create.js') }}"></script>
+    @endpush
 @endsection
-

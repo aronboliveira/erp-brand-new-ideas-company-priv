@@ -224,6 +224,7 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::RPT_TX }}"
 	public const ACT_BTN_PRIM = self::ACT_BTN . ' bg-primary ms-2';
 	// "{{ ViewClassNamesConstants::ACT_BTN_PRIM }}"
+	// "{{ VC::ACT_BTN_PRIM }}"
 	// action-btn bg-primary ms-2
 	public const ACT_BTN_INF = self::ACT_BTN . ' bg-info ms-2';
 	// "{{ ViewClassNamesConstants::ACT_BTN_INF }}"
@@ -347,6 +348,7 @@ class ViewClassNamesConstants
 	// d-inline-flex align-items-center
 	public const BT_SM_FL_CT = self::BT_SM_MX3 . ' ' . self::DFL_IL_VC;
 	// "{{ ViewClassNamesConstants::BT_SM_FL_CT }}"
+	// "{{ VC::BT_SM_FL_CT }}"
 	// mx-3 btn btn-sm d-inline-flex align-items-center
 	public const BT_SM_CT_DSB = self::BT_SM_CT . ' disabled';
 	// "{{ ViewClassNamesConstants::BT_SM_CT_DSB }}"
@@ -542,6 +544,7 @@ class ViewClassNamesConstants
 	// ti ti-eye
 	public const TI_EYE_WT = self::TI_EYE . ' text-white';
 	// "{{ ViewClassNamesConstants::TI_EYE_WT }}"
+	// "{{ VC::TI_EYE_WT }}"
 	// ti ti-eye text-white
 	public const TI_DWN = self::TI . ' ' . self::TI . '-download';
 	// "{{ ViewClassNamesConstants::TI_DWN }}"

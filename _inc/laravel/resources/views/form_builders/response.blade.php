@@ -1,104 +1,149 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        YieldingConstants
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW,
+        ViewsConstants as VW
     };
-    use Illuminate\Support\Facades\Route;
-@endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{ $form->name.__("'s Response") }}
-@endsection
-@push(StacksConstants::ADM_SCR_PG)
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\{Collection, Str};
+    use Collective\Html\FormFacade as Form;
 
+    $user    = Auth::user();
+    $lang    = Utility::fetchUserLang(user: $user);
+    $hasForm = !empty($form ?? null) && data_get($form, 'id');
+    $formName = $hasForm ? (data_get($form, 'name') ?: __('Unnamed form')) : __('Form not found');
+@endphp
+
+@extends(EL::ADM)
+
+@section(YW::ADM_PG_TTL)
+    {{ $hasForm ? ($formName . ' ' . __("Response")) : __('Form not found') }}
+@endsection
+
+@push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/formBuilders/responses.js') }}"></script>
 @endpush
-@section(YieldingConstants::ADM_BDC)
+
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('form_builder.index')}}">{{__('Form Builder')}}</a></li>
-    <li class="breadcrumb-item">{{__('Response')}}</li>
+    <li class="breadcrumb-item">
+        @php
+            $indexBase     = VW::FM_BD . '.index';
+            $indexKebab    = Str::kebab($indexBase);
+            $indexResolved = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
+            $indexUrl      = $indexResolved ? route($indexResolved) : '#';
+            $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::FM_BD, 'index_route_unavailable') ?? __('Form builder index route is unavailable. Please contact technical support or your domain administrator.');
+        @endphp
+        <a href="{{ $indexUrl }}" data-url="{{ $indexUrl }}" data-guard-msg="{{ $indexGuardMsg }}" data-sv-localized="true">{{ __('Form Builder') }}</a>
+    </li>
+    <li class="breadcrumb-item">{{ __('Response') }}</li>
 @endsection
 
-@section('content')
+@section(YW::ADM_CTT)
     <div class="row">
         <div class="col-xl-12">
             <div class="card">
                 <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="table datatable">
-                            @if($form->response->count() > 0)
-                            <tbody>
-                            @php
-                                $first = null;
-                                $second = null;
-                                $third = null;
-                                $i = 0;
-                            @endphp
-                            @foreach ($form->response as $response)
-                                @php
-                                    $i++;
-                                        $resp = json_decode($response->response,true);
-                                        if(count($resp) == 1)
-                                        {
-                                            $resp[''] = '';
-                                            $resp[' '] = '';
-                                        }
-                                        elseif(count($resp) == 2)
-                                        {
-                                            $resp[''] = '';
-                                        }
-                                        $firstThreeElements = array_slice($resp, 0, 3);
+                    @if(!$hasForm)
+                        <div class="alert alert-warning mb-0" role="alert">{{ __('The requested form was not found or is unavailable.') }}</div>
+                    @else
+                        @php
+                            $responses = data_get($form, 'response');
+                            $hasResponses = (is_array($responses) && count($responses) > 0) || ($responses instanceof Collection && $responses->isNotEmpty());
+                        @endphp
+                        <div class="table-responsive">
+                            <table class="table datatable">
+                                @if($hasResponses)
+                                    <tbody>
+                                        @php
+                                            $first = null; $second = null; $third = null;
+                                        @endphp
+                                        @foreach ($responses as $response)
+                                            @php
+                                                $raw = data_get($response, 'response', '{}');
+                                                $respArr = is_string($raw) ? (json_decode($raw, true) ?: []) : (is_array($raw) ? $raw : []);
+                                                if (count($respArr) === 1) { $respArr[''] = ''; $respArr[' '] = ''; }
+                                                elseif (count($respArr) === 2) { $respArr[''] = ''; }
+                                                $firstThree = array_slice($respArr, 0, 3, true);
+                                                $thead = array_values(array_keys($firstThree));
+                                                $th0 = $thead[0] ?? '';
+                                                $th1 = $thead[1] ?? '';
+                                                $th2 = $thead[2] ?? '';
+                                                $head1 = ($first !== $th0) ? $th0 : '';
+                                                $head2 = (!empty($th1) && $second !== $th1) ? $th1 : '';
+                                                $head3 = (!empty($th2) && $third !== $th2) ? $th2 : '';
+                                            @endphp
 
-                                        $thead= array_keys($firstThreeElements);
-                                        $head1 = ($first != $thead[0]) ? $thead[0] : '';
-                                        $head2 = (!empty($thead[1]) && $second != $thead[1]) ? $thead[1] : '';
-                                        $head3 = (!empty($thead[2]) && $third != $thead[2]) ? $thead[2] : '';
-                                @endphp
-                                @if(!empty($head1) || !empty($head2) || !empty($head3) && $head3 != ' ')
-                                    <tr>
-                                        <th>{{ $head1 }}</th>
-                                        <th>{{ $head2 }}</th>
-                                        <th>{{ $head3 }}</th>
-                                        <th>#</th>
-                                    </tr>
+                                            @if(!empty($head1) || !empty($head2) || (!empty($head3) && $head3 !== ' '))
+                                                <tr>
+                                                    <th>{{ $head1 }}</th>
+                                                    <th>{{ $head2 }}</th>
+                                                    <th>{{ $head3 }}</th>
+                                                    @can('view form response')
+                                                        <th>#</th>
+                                                    @endcan
+                                                </tr>
+                                            @endif
+
+                                            @php
+                                                $first  = $th0;
+                                                $second = $th1;
+                                                $third  = $th2;
+                                                $vals   = array_values($firstThree);
+                                            @endphp
+
+                                            <tr>
+                                                <td>{{ $vals[0] ?? '-' }}</td>
+                                                <td>{{ $vals[1] ?? '-' }}</td>
+                                                <td>{{ $vals[2] ?? '-' }}</td>
+                                                @can('view form response')
+                                                    @php
+                                                        $detailBase     = VW::FM . '.response.detail';
+                                                        $detailKebab    = Str::kebab($detailBase);
+                                                        $detailResolved = Route::has($detailBase) ? $detailBase : (Route::has($detailKebab) ? $detailKebab : null);
+                                                        $respId         = data_get($response, 'id');
+                                                        $detailUrl      = ($detailResolved && $respId) ? route($detailResolved, $respId) : '#';
+                                                        $detailGuardMsg = Utility::fetchLinkMessage($lang, VW::FM, 'response_detail_route_unavailable') ?? __('Response detail route is unavailable. Please contact technical support or your domain administrator.');
+                                                    @endphp
+                                                    <td class="Action">
+                                                        <div class="{{ VC::ACT_BTN_WRN }}">
+                                                            <a href="#"
+                                                               class="{{ VC::BT_SM_FL_CT }}"
+                                                               data-url="{{ $detailUrl }}"
+                                                               data-ajax-popup="true"
+                                                               data-size="md"
+                                                               data-bs-toggle="tooltip"
+                                                               title="{{ __('View') }}"
+                                                               data-title="{{ __('Response Detail') }}"
+                                                               data-guard-msg="{{ $detailGuardMsg }}"
+                                                               data-sv-localized="true">
+                                                                <i class="{{ VC::TI_EYE_WT }}"></i>
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                @endcan
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                @else
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-center">{{ __('No data available in table') }}</td>
+                                        </tr>
+                                    </tbody>
                                 @endif
-                                @php
-                                    $first =  $thead[0];
-                                    $second =  $thead[1];
-                                    $third =  $thead[2];
-                                @endphp
-                                <tr>
-                                    @foreach(array_values($firstThreeElements) as $ans)
-                                        <td>{{$ans}}</td>
-                                    @endforeach
-                                    <td class="Action">
-                                        <div class="action-btn bg-warning ms-2">
-                                            <a href="#" class="mx-3 btn btn-sm d-inline-flex align-items-center" data-url="{{ route('response.detail',$response->id) }}" data-ajax-popup="true" data-size="md" data-bs-toggle="tooltip" title="{{__('View')}}" data-title="{{__('Response Detail')}}">
-                                                <i class="ti ti-eye text-white"></i>
-                                            </a>
-                                        </div>
-
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                            @else
-                                <tbody>
-                                <tr>
-                                    <td class="text-center">{{__('No data available in table')}}</td>
-                                </tr>
-                                </tbody>
-                            @endif
-                        </table>
-                    </div>
+                            </table>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 @endsection
-

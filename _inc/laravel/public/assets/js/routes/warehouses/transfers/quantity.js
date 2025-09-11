@@ -106,8 +106,8 @@
   };
   const isBadUrl = u => !u || u === "#";
   const urls = {
-    products: '{{ route(VW::WRH_TRF.".getproduct") }}',
-    quantity: '{{ route(VW::WRH_TRF.".getquantity") }}',
+    products: '{{ route(VW::WRH_TRF.".get.product") }}',
+    quantity: '{{ route(VW::WRH_TRF.".get.quantity") }}',
   };
 
   const ensureJq = () => {

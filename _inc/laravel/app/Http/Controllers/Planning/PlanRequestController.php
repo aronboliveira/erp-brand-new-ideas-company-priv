@@ -30,7 +30,7 @@ class PlanRequestController extends Controller
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route('plan-request.index'));
                 return view($view, compact('planRequests'));
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed to list plan requests: ' . $e->getMessage());
+                Log::error($action . ' failed to list plan requests: ' . $e->getMessage());
                 return defaultUndefinedException($request, $e, $action);
             }
         });
@@ -56,7 +56,7 @@ class PlanRequestController extends Controller
             } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $action);
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed to show plan details: ' . $e->getMessage());
+                Log::error($action . ' failed to show plan details: ' . $e->getMessage());
                 return defaultUndefinedException($request, $e, $action);
             }
         });
@@ -87,7 +87,7 @@ class PlanRequestController extends Controller
                 $user->update(['requested_plan' => $id]);
                 return redirect()->back()->with('success', __('Request Send Successfully.'));
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed to request plan: ' . $e->getMessage());
+                Log::error($action . ' failed to request plan: ' . $e->getMessage());
                 return defaultUndefinedException($request, $e, $action);
             }
         });
@@ -147,7 +147,7 @@ class PlanRequestController extends Controller
                 $planReq->delete();
                 return redirect()->back()->with('success', __('Request Rejected Successfully.'));
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed to accept plan request: ' . $e->getMessage());
+                Log::error($action . ' failed to accept plan request: ' . $e->getMessage());
                 return defaultUndefinedException($request, $e, $action);
             }
         });
@@ -167,7 +167,7 @@ class PlanRequestController extends Controller
                 PlanRequest::where('user_id', $id)->delete();
                 return redirect()->back()->with('success', __('Request Canceled Successfully.'));
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed to cancel request: ' . $e->getMessage());
+                Log::error($action . ' failed to cancel request: ' . $e->getMessage());
                 return defaultUndefinedException($request, $e, $action);
             }
         });

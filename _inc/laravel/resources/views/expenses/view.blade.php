@@ -1,345 +1,437 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        UsersConstants,
-        ViewsConstants,
-        ViewsClassNamesConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        UsersConstants as UC,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW
     };
+    use App\Models\{Utility, Bill, ProductServiceUnit, ChartOfAccount};
     use Illuminate\Support\Facades\{Auth, Route};
-    $user = Auth::user();
+    use Illuminate\Support\{Collection, Str};
+
+    $user      = Auth::user();
+    $lang      = Utility::fetchUserLang(user: $user);
+    $settings  = Utility::settings();
+
+    $dashUrl   = Route::has('dashboard') ? route('dashboard') : '#';
+    $expIdxBase = VW::EXP . '.index';
+    $expIdxKebab = Str::kebab($expIdxBase);
+    $expIdxResolved = Route::has($expIdxBase) ? $expIdxBase : (Route::has($expIdxKebab) ? $expIdxKebab : null);
+    $expIdxUrl = $expIdxResolved ? route($expIdxResolved) : '#';
+
+    $hasPriceFmt   = method_exists($user, 'priceFormat');
+    $hasDateFmt    = method_exists($user, 'dateFormat');
+    $hasExpNumFmt  = method_exists($user, 'expenseNumberFormat');
+
+    $hasAccTotal   = method_exists($expense ?? null, 'getAccountTotal');
+    $hasSubTotal   = method_exists($expense ?? null, 'getSubTotal');
+    $hasTotDisc    = method_exists($expense ?? null, 'getTotalDiscount');
+    $hasTotal      = method_exists($expense ?? null, 'getTotal');
+    $hasDue        = method_exists($expense ?? null, 'getDue');
+    $hasDebitNotes = method_exists($expense ?? null, 'billTotalDebitNote');
+
+    $expenseNumber = $hasExpNumFmt
+        ? ($user?->expenseNumberFormat(data_get($expense ?? null, 'bill_id')) ?? __('Failed to get expense number'))
+        : __('Failed to format expense number');
+
+    $paymentDate = $hasDateFmt
+        ? ($user?->dateFormat(data_get($expense ?? null, 'bill_date')) ?? __('Failed to get payment date'))
+        : __('Failed to format date');
+
+    $statusIdx = (int) data_get($expense ?? null, 'status', -1);
+    $statusLbl = data_get(Bill::$statuses ?? [], $statusIdx, __('No status available'));
+
+    $itemsIsList = (is_array($items ?? null) && count($items ?? []) > 0) || (($items ?? null) instanceof Collection && $items->isNotEmpty());
+
+    $totalQuantity   = 0;
+    $totalRate       = 0;
+    $totalTaxPrice   = 0;
+    $totalDiscount   = 0;
+    $taxesData       = [];
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Expense Detail')}}
+
+@extends(EL::ADM)
+
+@section(ST::ADM_SCR_PG)
+    <script async src="{{ asset('assets/js/routes/expenses/lang/view.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/expenses/ship.js') }}"></script>
 @endsection
-@push(StacksConstants::ADM_SCR_PG)
-    <script>
-        $(document).on('click', '#shipping', function () {
-            var url = $(this).data('url');
-            var is_display = $("#shipping").is(":checked");
-            $.ajax({
-                url: url,
-                type: 'get',
-                data: {
-                    'is_display': is_display,
-                },
-                success: function (data) {
-                    // console.log(data);
-                }
-            });
-        })
-    </script>
-@endpush
-@php
-    $settings = Utility::settings();
-@endphp
-@section(YieldingConstants::ADM_BDC)
+
+@section(YW::ADM_PG_TTL)
+    {{ __('Expense Detail') }}
+@endsection
+
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
-            {{ __('Dashboard') }}
-        </a>
+        <a href="{{ $dashUrl }}" {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>{{ __('Dashboard') }}</a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route(ViewsConstants::EXP.'.index')}}">{{__('Expense')}}</a></li>
-    <li class="breadcrumb-item">{{ $user?->expenseNumberFormat($expense->bill_id) }}</li>
+    <li class="breadcrumb-item">
+        <a href="{{ $expIdxUrl }}">{{ __('Expense') }}</a>
+    </li>
+    <li class="breadcrumb-item">{{ $expenseNumber }}</li>
 @endsection
-@section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+
+@section(YW::ADM_CTT)
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::C12 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-body">
                     <div class="invoice">
                         <div class="invoice-print">
-                            <div class="row invoice-title mt-2">
-                                <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12">
-                                    <h4>{{__('Expense')}}</h4>
+                            <div class="{{ VC::RW }} invoice-title mt-2">
+                                <div class="{{ VC::C12 }} {{ VC::CL6 }}">
+                                    <h4>{{ __('Expense') }}</h4>
                                 </div>
-                                <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12 text-end">
-                                    <h4 class="invoice-number">{{ $user?->expenseNumberFormat($expense->bill_id) }}</h4>
+                                <div class="{{ VC::C12 }} {{ VC::CL6 }} text-end">
+                                    <h4 class="invoice-number">{{ $expenseNumber }}</h4>
                                 </div>
-                                <div class="col-12">
-                                    <hr>
-                                </div>
+                                <div class="{{ VC::C12 }}"><hr></div>
                             </div>
-                            <div class="row">
-                                @if($expense->user_type == 'employee')
-                                    <div class="col-5">
+
+                            <div class="{{ VC::RW }}">
+                                @php $uType = (string) data_get($expense ?? null, 'user_type', 'vendor'); @endphp
+
+                                @if($uType === 'employee')
+                                    <div class="{{ VC::CL5 ?? 'col-5' }}">
                                         <small class="font-style">
-                                            <strong>{{__('Employee Detail')}} :</strong><br>
-                                            @if(!empty($user?->name))
-                                                {{!empty($user?->name)?$user?->name:''}}<br>
-                                                {{!empty($user?->email)?$user?->email:''}}<br>
+                                            <strong>{{ __('Employee Detail') }} :</strong><br>
+                                            @php
+                                                $empName  = data_get($user ?? null, 'name');
+                                                $empEmail = data_get($user ?? null, 'email');
+                                            @endphp
+                                            @if($empName || $empEmail)
+                                                {{ $empName ?? __('Name unavailable') }}<br>
+                                                {{ $empEmail ?? __('Email unavailable') }}<br>
                                             @else
-                                                -
+                                                {{ __('No employee details available') }}
                                             @endif
                                         </small>
                                     </div>
-                                @elseif($expense->user_type == 'customer')
-                                    <div class="col-5">
+                                @elseif($uType === 'customer')
+                                    <div class="{{ VC::CL5 ?? 'col-5' }}">
                                         <small class="font-style">
-                                            <strong>{{__('Billed To')}} :</strong><br>
-                                            @if(!empty($user?->billing_name))
-                                                {{!empty($user?->billing_name)?$user?->billing_name:''}}<br>
-                                                {{!empty($user?->billing_address)?$user?->billing_address:''}}<br>
-                                                {{!empty($user?->billing_city)?$user?->billing_city:'' .', '}}<br>
-                                                {{!empty($user?->billing_state)?$user?->billing_state:'',', '}},
-                                                {{!empty($user?->billing_zip)?$user?->billing_zip:''}}<br>
-                                                {{!empty($user?->billing_country)?$user?->billing_country:''}}<br>
-                                                {{!empty($user?->billing_phone)?$user?->billing_phone:''}}<br>
-                                                @if($settings['vat_gst_number_switch'] == 'on')
-                                                    <strong>{{__('Tax Number ')}} : </strong>{{!empty($user?->tax_number)?$user?->tax_number:''}}
+                                            <strong>{{ __('Billed To') }} :</strong><br>
+                                            @php
+                                                $bName = data_get($user ?? null, 'billing_name');
+                                                $bAddr = data_get($user ?? null, 'billing_address');
+                                                $bCity = data_get($user ?? null, 'billing_city');
+                                                $bState= data_get($user ?? null, 'billing_state');
+                                                $bZip  = data_get($user ?? null, 'billing_zip');
+                                                $bCountry = data_get($user ?? null, 'billing_country');
+                                                $bPhone = data_get($user ?? null, 'billing_phone');
+                                                $taxSwitch = data_get($settings ?? [], 'vat_gst_number_switch', 'off') === 'on';
+                                                $taxNum = data_get($user ?? null, 'tax_number');
+                                            @endphp
+                                            @if($bName || $bAddr || $bCity || $bState || $bZip || $bCountry || $bPhone || ($taxSwitch && $taxNum))
+                                                {{ $bName ?? __('Billing name unavailable') }}<br>
+                                                {{ $bAddr ?? __('Billing address unavailable') }}<br>
+                                                {{ $bCity ? $bCity : __('City unavailable') }}{{ $bCity && $bState ? ', ' : '' }}{{ $bState ?? '' }}{{ $bZip ? '-' . $bZip : '' }}<br>
+                                                {{ $bCountry ?? __('Country unavailable') }}<br>
+                                                {{ $bPhone ?? __('Phone unavailable') }}<br>
+                                                @if($taxSwitch)
+                                                    <strong>{{ __('Tax Number') }}:</strong> {{ $taxNum ?? __('Unavailable') }}
                                                 @endif
                                             @else
-                                                -
+                                                {{ __('No billing details available') }}
                                             @endif
                                         </small>
                                     </div>
-                                    @if(App\Models\Utility::getValByName('shipping_display')=='on')
-                                        <div class="col-4">
+                                    @if(Utility::getValByName('shipping_display') == 'on')
+                                        <div class="{{ VC::CL4 ?? 'col-4' }}">
                                             <small>
-                                                <strong>{{__('Shipped To')}} :</strong><br>
-                                                @if(!empty($user?->shipping_name))
-                                                    {{!empty($user?->shipping_name)?$user?->shipping_name:''}}<br>
-                                                    {{!empty($user?->shipping_address)?$user?->shipping_address:''}}<br>
-                                                    {{!empty($user?->shipping_city)?$user?->shipping_city:'' . ', '}}<br>
-                                                    {{!empty($user?->shipping_state)?$user?->shipping_state:'' .', '}},
-                                                    {{!empty($user?->shipping_zip)?$user?->shipping_zip:''}}<br>
-                                                    {{!empty($user?->shipping_country)?$user?->shipping_country:''}}<br>
-                                                    {{!empty($user?->shipping_phone)?$user?->shipping_phone:''}}<br>
+                                                <strong>{{ __('Shipped To') }} :</strong><br>
+                                                @php
+                                                    $sName = data_get($user ?? null, 'shipping_name');
+                                                    $sAddr = data_get($user ?? null, 'shipping_address');
+                                                    $sCity = data_get($user ?? null, 'shipping_city');
+                                                    $sState= data_get($user ?? null, 'shipping_state');
+                                                    $sZip  = data_get($user ?? null, 'shipping_zip');
+                                                    $sCountry = data_get($user ?? null, 'shipping_country');
+                                                    $sPhone = data_get($user ?? null, 'shipping_phone');
+                                                @endphp
+                                                @if($sName || $sAddr || $sCity || $sState || $sZip || $sCountry || $sPhone)
+                                                    {{ $sName ?? __('Shipping name unavailable') }}<br>
+                                                    {{ $sAddr ?? __('Shipping address unavailable') }}<br>
+                                                    {{ $sCity ? $sCity : __('City unavailable') }}{{ $sCity && $sState ? ', ' : '' }}{{ $sState ?? '' }}{{ $sZip ? '-' . $sZip : '' }}<br>
+                                                    {{ $sCountry ?? __('Country unavailable') }}<br>
+                                                    {{ $sPhone ?? __('Phone unavailable') }}<br>
                                                 @else
-                                                    -
+                                                    {{ __('No shipping details available') }}
                                                 @endif
                                             </small>
                                         </div>
                                     @endif
-
                                 @else
-                                    <div class="col-5">
+                                    <div class="{{ VC::CL5 ?? 'col-5' }}">
                                         <small class="font-style">
-                                            <strong>{{__('Billed To')}} :</strong><br>
-                                            @if(!empty($user?->billing_name))
-                                                {{!empty($user?->billing_name)?$user?->billing_name:''}}<br>
-                                                {{!empty($user?->billing_address)?$user?->billing_address:''}}<br>
-                                                {{!empty($user?->billing_city)?$user?->billing_city:'' .', '}}<br>
-                                                {{!empty($user?->billing_state)?$user?->billing_state:'',', '}},
-                                                {{!empty($user?->billing_zip)?$user?->billing_zip:''}}<br>
-                                                {{!empty($user?->billing_country)?$user?->billing_country:''}}<br>
-                                                {{!empty($user?->billing_phone)?$user?->billing_phone:''}}<br>
-                                                @if($settings['vat_gst_number_switch'] == 'on')
-                                                    <strong>{{__('Tax Number')}} : </strong>{{!empty($user?->tax_number)?$user?->tax_number:''}}
+                                            <strong>{{ __('Billed To') }} :</strong><br>
+                                            @php
+                                                $bName = data_get($user ?? null, 'billing_name');
+                                                $bAddr = data_get($user ?? null, 'billing_address');
+                                                $bCity = data_get($user ?? null, 'billing_city');
+                                                $bState= data_get($user ?? null, 'billing_state');
+                                                $bZip  = data_get($user ?? null, 'billing_zip');
+                                                $bCountry = data_get($user ?? null, 'billing_country');
+                                                $bPhone = data_get($user ?? null, 'billing_phone');
+                                                $taxSwitch = data_get($settings ?? [], 'vat_gst_number_switch', 'off') === 'on';
+                                                $taxNum = data_get($user ?? null, 'tax_number');
+                                            @endphp
+                                            @if($bName || $bAddr || $bCity || $bState || $bZip || $bCountry || $bPhone || ($taxSwitch && $taxNum))
+                                                {{ $bName ?? __('Billing name unavailable') }}<br>
+                                                {{ $bAddr ?? __('Billing address unavailable') }}<br>
+                                                {{ $bCity ? $bCity : __('City unavailable') }}{{ $bCity && $bState ? ', ' : '' }}{{ $bState ?? '' }}{{ $bZip ? '-' . $bZip : '' }}<br>
+                                                {{ $bCountry ?? __('Country unavailable') }}<br>
+                                                {{ $bPhone ?? __('Phone unavailable') }}<br>
+                                                @if($taxSwitch)
+                                                    <strong>{{ __('Tax Number') }}:</strong> {{ $taxNum ?? __('Unavailable') }}
                                                 @endif
                                             @else
-                                                -
+                                                {{ __('No billing details available') }}
                                             @endif
                                         </small>
                                     </div>
-                                    @if(App\Models\Utility::getValByName('shipping_display')=='on')
-                                        <div class="col-4">
+                                    @if(Utility::getValByName('shipping_display') == 'on')
+                                        <div class="{{ VC::CL4 ?? 'col-4' }}">
                                             <small>
-                                                <strong>{{__('Shipped To')}} :</strong><br>
-                                                @if(!empty($user?->shipping_name))
-                                                    {{!empty($user?->shipping_name)?$user?->shipping_name:''}}<br>
-                                                    {{!empty($user?->shipping_address)?$user?->shipping_address:''}}<br>
-                                                    {{!empty($user?->shipping_city)?$user?->shipping_city:'' . ', '}}<br>
-                                                    {{!empty($user?->shipping_state)?$user?->shipping_state:'' .', '}},
-                                                    {{!empty($user?->shipping_zip)?$user?->shipping_zip:''}}<br>
-                                                    {{!empty($user?->shipping_country)?$user?->shipping_country:''}}<br>
-                                                    {{!empty($user?->shipping_phone)?$user?->shipping_phone:''}}<br>
+                                                <strong>{{ __('Shipped To') }} :</strong><br>
+                                                @php
+                                                    $sName = data_get($user ?? null, 'shipping_name');
+                                                    $sAddr = data_get($user ?? null, 'shipping_address');
+                                                    $sCity = data_get($user ?? null, 'shipping_city');
+                                                    $sState= data_get($user ?? null, 'shipping_state');
+                                                    $sZip  = data_get($user ?? null, 'shipping_zip');
+                                                    $sCountry = data_get($user ?? null, 'shipping_country');
+                                                    $sPhone = data_get($user ?? null, 'shipping_phone');
+                                                @endphp
+                                                @if($sName || $sAddr || $sCity || $sState || $sZip || $sCountry || $sPhone)
+                                                    {{ $sName ?? __('Shipping name unavailable') }}<br>
+                                                    {{ $sAddr ?? __('Shipping address unavailable') }}<br>
+                                                    {{ $sCity ? $sCity : __('City unavailable') }}{{ $sCity && $sState ? ', ' : '' }}{{ $sState ?? '' }}{{ $sZip ? '-' . $sZip : '' }}<br>
+                                                    {{ $sCountry ?? __('Country unavailable') }}<br>
+                                                    {{ $sPhone ?? __('Phone unavailable') }}<br>
                                                 @else
-                                                    -
+                                                    {{ __('No shipping details available') }}
                                                 @endif
                                             </small>
                                         </div>
                                     @endif
                                 @endif
 
-                                <div class="col">
+                                <div class="{{ VC::CL ?? 'col' }}">
                                     <small>
-                                        <strong>{{__('Payment Date')}} :</strong><br>
-                                        {{$user?->dateFormat($expense->bill_date)}}<br><br>
-                                    </small>
-
-                                </div>
-
-                            </div>
-                            <div class="row">
-
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col">
-                                    <small>
-                                        <strong>{{__('Status')}} : </strong><br>
-                                            <span class="badge bg-primary p-2 px-3 rounded">{{ __(\App\Models\Bill::$statuses[$expense->status]) }}</span>
-
+                                        <strong>{{ __('Payment Date') }} :</strong><br>
+                                        {{ $paymentDate }}<br><br>
                                     </small>
                                 </div>
                             </div>
 
-                            <div class="row mt-4">
-                                <div class="col-md-12">
-                                    <div class="font-bold mb-2">{{__('Product Summary')}}</div>
-                                    <small class="mb-2">{{__('All items here cannot be deleted.')}}</small>
+                            <div class="{{ VC::RW }} mt-3">
+                                <div class="{{ VC::CL ?? 'col' }}">
+                                    <small>
+                                        <strong>{{ __('Status') }} : </strong><br>
+                                        <span class="badge bg-primary p-2 px-3 rounded">{{ __($statusLbl) }}</span>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="{{ VC::RW }} mt-4">
+                                <div class="{{ VC::CM12 }}">
+                                    <div class="font-bold mb-2">{{ __('Product Summary') }}</div>
+                                    <small class="mb-2 d-block">{{ __('All items here cannot be deleted.') }}</small>
+
                                     <div class="table-responsive mt-3">
                                         <table class="table mb-0 table-striped">
                                             <tr>
                                                 <th class="text-dark" data-width="40">#</th>
-                                                <th class="text-dark">{{__('Product')}}</th>
-                                                <th class="text-dark">{{__('Quantity')}}</th>
-                                                <th class="text-dark">{{__('Rate')}}</th>
-                                                <th class="text-dark">{{__('Discount')}}</th>
-                                                <th class="text-dark">{{__('Tax')}}</th>
-                                                <th class="text-dark">{{__('Chart Of Account')}}</th>
-                                                <th class="text-dark">{{__('Account Amount')}}</th>
-                                                <th class="text-dark">{{__('Description')}}</th>
-                                                <th class="text-end text-dark" width="12%">{{__('Price')}}<br>
-                                                    <small class="text-danger font-weight-bold">{{__('after tax & discount')}}</small>
+                                                <th class="text-dark">{{ __('Product') }}</th>
+                                                <th class="text-dark">{{ __('Quantity') }}</th>
+                                                <th class="text-dark">{{ __('Rate') }}</th>
+                                                <th class="text-dark">{{ __('Discount') }}</th>
+                                                <th class="text-dark">{{ __('Tax') }}</th>
+                                                <th class="text-dark">{{ __('Chart Of Account') }}</th>
+                                                <th class="text-dark">{{ __('Account Amount') }}</th>
+                                                <th class="text-dark">{{ __('Description') }}</th>
+                                                <th class="text-end text-dark" width="12%">{{ __('Price') }}<br>
+                                                    <small class="text-danger font-weight-bold">{{ __('after tax & discount') }}</small>
                                                 </th>
                                                 <th></th>
                                             </tr>
-                                            @php
-                                                $totalQuantity=0;
-                                               $totalRate=0;
-                                               $totalTaxPrice=0;
-                                               $totalDiscount=0;
-                                               $taxesData=[];
-                                            @endphp
 
-                                            @foreach($items as $key =>$item)
-
-                                                @if(!empty($item->tax))
+                                            @if($itemsIsList)
+                                                @foreach($items as $key => $item)
                                                     @php
-                                                        $taxes=App\Models\Utility::tax($item->tax);
-                                                        $totalQuantity+=$item->quantity;
-                                                        $totalRate+=$item->price;
-                                                        $totalDiscount+=$item->discount;
-                                                        foreach($taxes as $taxe){
-                                                            $taxDataPrice=App\Models\Utility::taxRate($taxe->rate,$item->price,$item->quantity,$item->discount);
-                                                            if (array_key_exists($taxe->name,$taxesData))
-                                                            {
-                                                                $taxesData[$taxe->name] = $taxesData[$taxe->name]+$taxDataPrice;
-                                                            }
-                                                            else
-                                                            {
-                                                                $taxesData[$taxe->name] = $taxDataPrice;
+                                                        $lineHasProduct = !empty(data_get($item, 'product_id'));
+                                                        $lineQty   = (float) data_get($item, 'quantity', 0);
+                                                        $lineRate  = (float) data_get($item, 'price', 0);
+                                                        $lineDisc  = (float) data_get($item, 'discount', 0);
+                                                        $totalQuantity += $lineQty;
+                                                        $totalRate     += $lineRate;
+                                                        $totalDiscount += $lineDisc;
+
+                                                        $taxList = [];
+                                                        if (!empty(data_get($item, 'tax')) && method_exists(Utility::class, 'tax')) {
+                                                            $taxList = Utility::tax($item->tax);
+                                                        }
+
+                                                        $taxRowsHtml = '';
+                                                        $lineTaxTotal = 0.0;
+                                                        if (!empty($taxList)) {
+                                                            foreach ($taxList as $tx) {
+                                                                $txName = data_get($tx, 'name', __('Tax'));
+                                                                $txRate = (float) data_get($tx, 'rate', 0);
+                                                                $txAmount = method_exists(Utility::class, 'taxRate')
+                                                                    ? (float) Utility::taxRate($txRate, $lineRate, $lineQty, $lineDisc)
+                                                                    : 0.0;
+                                                                $lineTaxTotal += $txAmount;
+                                                                $totalTaxPrice += $txAmount;
+                                                                $taxesData[$txName] = ($taxesData[$txName] ?? 0) + $txAmount;
+                                                                $txAmountFmt = $hasPriceFmt ? ($user?->priceFormat($txAmount) ?? __('Failed to format price')) : __('Failed to format price');
+                                                                $taxRowsHtml .= '<tr><td>' . e($txName) . ' (' . e($txRate) . '%)</td><td>' . e($txAmountFmt) . '</td></tr>';
                                                             }
                                                         }
+                                                        $unitLabel = '-';
+                                                        if ($lineHasProduct) {
+                                                            $productModel = method_exists($item, 'product') ? $item->product() : null;
+                                                            $unitId = data_get($productModel, 'unit_id');
+                                                            $unitNameModel = $unitId ? ProductServiceUnit::find($unitId) : null;
+                                                            $unitLabel = data_get($unitNameModel, 'name', __('Unit unavailable'));
+                                                        }
+                                                        $accountModel = ChartOfAccount::find(data_get($item, 'chart_account_id'));
+                                                        $accountName  = data_get($accountModel, 'name', __('Account unavailable'));
+                                                        $amountAccount = (float) data_get($item, 'amount', 0);
+
+                                                        $rateFmt     = $hasPriceFmt ? ($user?->priceFormat($lineRate) ?? __('Failed to format price')) : __('Failed to format price');
+                                                        $discFmt     = $hasPriceFmt ? ($user?->priceFormat($lineDisc) ?? __('Failed to format price')) : __('Failed to format price');
+                                                        $acctFmt     = $hasPriceFmt ? ($user?->priceFormat($amountAccount) ?? __('Failed to format price')) : __('Failed to format price');
+
+                                                        $lineTotalVal = $lineHasProduct
+                                                            ? (($lineRate * $lineQty) - $lineDisc + $lineTaxTotal)
+                                                            : $amountAccount;
+                                                        $lineTotalFmt = $hasPriceFmt ? ($user?->priceFormat($lineTotalVal) ?? __('Failed to format price')) : __('Failed to format price');
                                                     @endphp
-                                                @endif
 
-                                                @if(!empty($item->product_id))
+                                                    @if($lineHasProduct)
                                                         <tr>
-                                                            <td>{{$key+1}}</td>
-
-                                                            @php
-                                                                $unitName = $item->product();
-                                                                $unit = !empty($unitName)?$unitName->unit_id :'-';
-                                                                $unitName = App\Models\ProductServiceUnit::find($unit);
-                                                            @endphp
-                                                            <td>{{!empty($unitName)?$unitName->name:'-'}}</td>
-                                                            <td>{{$item->quantity . ' (' . $unitName->name . ')'}}</td>
-                                                            <td>{{$user?->priceFormat($item->price)}}</td>
-                                                            <td>{{$user?->priceFormat($item->discount)}}</td>
+                                                            <td>{{ $key + 1 }}</td>
+                                                            <td>{{ $unitLabel }}</td>
+                                                            <td>{{ $lineQty }} {{ $unitLabel !== '-' ? '(' . $unitLabel . ')' : '' }}</td>
+                                                            <td>{{ $rateFmt }}</td>
+                                                            <td>{{ $discFmt }}</td>
                                                             <td>
-                                                                @if(!empty($item->tax))
-                                                                    <table>
-                                                                        @php
-                                                                            $totalTaxRate = 0;
-                                                                        @endphp
-                                                                        @foreach($taxes as $tax)
-
-                                                                            @php
-                                                                                $taxPrice=App\Models\Utility::taxRate($tax->rate,$item->price,$item->quantity,$item->discount) ;
-                                                                                $totalTaxPrice+=$taxPrice;
-                                                                            @endphp
-                                                                            <tr>
-                                                                                <td>{{$tax->name .' ('.$tax->rate .'%)'}}</td>
-                                                                                <td>{{$user?->priceFormat($taxPrice)}}</td>
-                                                                            </tr>
-                                                                        @endforeach
-                                                                    </table>
+                                                                @if(!empty($taxList))
+                                                                    <table>{!! $taxRowsHtml !!}</table>
                                                                 @else
-                                                                    -
+                                                                    {{ __('No taxes applied') }}
                                                                 @endif
                                                             </td>
-
-                                                            @php
-                                                                $chartAccount = \App\Models\ChartOfAccount::find($item->chart_account_id);
-                                                            @endphp
-
-                                                            <td>{{!empty($chartAccount) ? $chartAccount->name : '-'}}</td>
-                                                            <td>{{$user?->priceFormat($item->amount)}}</td>
-
-                                                            <td>{{!empty($item->description)?$item->description:'-'}}</td>
-
-                                                            <td class="text-end">{{$user?->priceFormat(($item->price * $item->quantity - $item->discount) + $totalTaxPrice)}}</td>
+                                                            <td>{{ $accountName }}</td>
+                                                            <td>{{ $acctFmt }}</td>
+                                                            <td>{{ data_get($item, 'description', __('No description')) }}</td>
+                                                            <td class="text-end">{{ $lineTotalFmt }}</td>
                                                             <td></td>
                                                         </tr>
                                                     @else
-                                                    <tr>
-                                                        <td>{{$key+1}}</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        @php
-                                                            $chartAccount = \App\Models\ChartOfAccount::find($item['chart_account_id']);
-                                                        @endphp
-                                                        <td>{{!empty($chartAccount) ? $chartAccount->name : '-'}}</td>
-                                                        <td>{{$user?->priceFormat($item['amount'])}}</td>
-                                                        <td>-</td>
-                                                        <td class="text-end">{{$user?->priceFormat($item['amount'])}}</td>
-                                                        <td></td>
-                                                    </tr>
+                                                        <tr>
+                                                            <td>{{ $key + 1 }}</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>{{ $accountName }}</td>
+                                                            <td>{{ $acctFmt }}</td>
+                                                            <td>{{ __('No description') }}</td>
+                                                            <td class="text-end">{{ $acctFmt }}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    @endif
+                                                @endforeach
+                                            @else
+                                                <tr>
+                                                    <td colspan="11" class="text-center">{{ __('No items found for this expense.') }}</td>
+                                                </tr>
+                                            @endif
 
-                                                @endif
-                                            @endforeach
+                                            @php
+                                                $totalQtyOut    = $totalQuantity;
+                                                $totalRateOut   = $hasPriceFmt ? ($user?->priceFormat($totalRate) ?? __('Failed to format price')) : __('Failed to format price');
+                                                $totalDiscOut   = $hasPriceFmt ? ($user?->priceFormat($totalDiscount) ?? __('Failed to format price')) : __('Failed to format price');
+                                                $totalTaxOut    = $hasPriceFmt ? ($user?->priceFormat($totalTaxPrice) ?? __('Failed to format price')) : __('Failed to format price');
+
+                                                $accTotalVal    = $hasAccTotal ? $expense->getAccountTotal() : null;
+                                                $accTotalOut    = is_numeric($accTotalVal)
+                                                    ? ($hasPriceFmt ? ($user?->priceFormat($accTotalVal) ?? __('Failed to format price')) : __('Failed to format price'))
+                                                    : __('Failed to calculate account total');
+
+                                                $subTotalVal    = $hasSubTotal ? $expense->getSubTotal() : null;
+                                                $subTotalOut    = is_numeric($subTotalVal)
+                                                    ? ($hasPriceFmt ? ($user?->priceFormat($subTotalVal) ?? __('Failed to format price')) : __('Failed to format price'))
+                                                    : __('Failed to calculate subtotal');
+
+                                                $totDiscVal     = $hasTotDisc ? $expense->getTotalDiscount() : null;
+                                                $totDiscOut     = is_numeric($totDiscVal)
+                                                    ? ($hasPriceFmt ? ($user?->priceFormat($totDiscVal) ?? __('Failed to format price')) : __('Failed to format price'))
+                                                    : __('Failed to calculate discount');
+
+                                                $grandTotalVal  = $hasTotal ? $expense->getTotal() : null;
+                                                $grandTotalOut  = is_numeric($grandTotalVal)
+                                                    ? ($hasPriceFmt ? ($user?->priceFormat($grandTotalVal) ?? __('Failed to format price')) : __('Failed to format price'))
+                                                    : __('Failed to calculate total');
+
+                                                $paidValCalcOk  = $hasTotal && $hasDue && $hasDebitNotes;
+                                                $paidVal        = $paidValCalcOk ? (($expense->getTotal() - $expense->getDue()) - $expense->billTotalDebitNote()) : null;
+                                                $paidOut        = is_numeric($paidVal)
+                                                    ? ($hasPriceFmt ? ($user?->priceFormat($paidVal) ?? __('Failed to format price')) : __('Failed to format price'))
+                                                    : __('Failed to calculate paid amount');
+                                            @endphp
+
                                             <tfoot>
                                             <tr>
                                                 <td></td>
-                                                <td><b>{{__('Total')}}</b></td>
-                                                <td><b>{{$totalQuantity}}</b></td>
-                                                <td><b>{{$user?->priceFormat($totalRate)}}</b></td>
-                                                <td><b>{{$user?->priceFormat($totalDiscount)}}</b></td>
-                                                <td><b>{{$user?->priceFormat($totalTaxPrice)}}</b></td>
+                                                <td><b>{{ __('Total') }}</b></td>
+                                                <td><b>{{ $totalQtyOut }}</b></td>
+                                                <td><b>{{ $totalRateOut }}</b></td>
+                                                <td><b>{{ $totalDiscOut }}</b></td>
+                                                <td><b>{{ $totalTaxOut }}</b></td>
                                                 <td></td>
-                                                <td><b>{{$user?->priceFormat($expense->getAccountTotal())}}</b></td>
-
+                                                <td><b>{{ $accTotalOut }}</b></td>
                                             </tr>
                                             <tr>
                                                 <td colspan="8"></td>
-                                                <td class="text-end"><b>{{__('Sub Total')}}</b></td>
-                                                <td class="text-end">{{$user?->priceFormat($expense->getSubTotal())}}</td>
+                                                <td class="text-end"><b>{{ __('Sub Total') }}</b></td>
+                                                <td class="text-end">{{ $subTotalOut }}</td>
                                             </tr>
-
-                                                <tr>
-                                                    <td colspan="8"></td>
-                                                    <td class="text-end"><b>{{__('Discount')}}</b></td>
-                                                    <td class="text-end">{{$user?->priceFormat($expense->getTotalDiscount())}}</td>
-                                                </tr>
+                                            <tr>
+                                                <td colspan="8"></td>
+                                                <td class="text-end"><b>{{ __('Discount') }}</b></td>
+                                                <td class="text-end">{{ $totDiscOut }}</td>
+                                            </tr>
 
                                             @if(!empty($taxesData))
                                                 @foreach($taxesData as $taxName => $taxPrice)
+                                                    @php
+                                                        $txOut = $hasPriceFmt ? ($user?->priceFormat($taxPrice) ?? __('Failed to format price')) : __('Failed to format price');
+                                                    @endphp
                                                     <tr>
                                                         <td colspan="8"></td>
-                                                        <td class="text-end"><b>{{$taxName}}</b></td>
-                                                        <td class="text-end">{{ $user?->priceFormat($taxPrice) }}</td>
+                                                        <td class="text-end"><b>{{ $taxName }}</b></td>
+                                                        <td class="text-end">{{ $txOut }}</td>
                                                     </tr>
                                                 @endforeach
                                             @endif
-                                            <tr>
-                                                <td colspan="8"></td>
-                                                <td class="blue-text text-end"><b>{{__('Total')}}</b></td>
-                                                <td class="blue-text text-end">{{$user?->priceFormat($expense->getTotal())}}</td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="8"></td>
-                                                <td class="text-end"><b>{{__('Paid')}}</b></td>
-                                                <td class="text-end">{{$user?->priceFormat(($expense->getTotal()-$expense->getDue())-($expense->billTotalDebitNote()))}}</td>
-                                            </tr>
 
+                                            <tr>
+                                                <td colspan="8"></td>
+                                                <td class="blue-text text-end"><b>{{ __('Total') }}</b></td>
+                                                <td class="blue-text text-end">{{ $grandTotalOut }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="8"></td>
+                                                <td class="text-end"><b>{{ __('Paid') }}</b></td>
+                                                <td class="text-end">{{ $paidOut }}</td>
+                                            </tr>
                                             </tfoot>
                                         </table>
                                     </div>
@@ -351,5 +443,4 @@
             </div>
         </div>
     </div>
-
 @endsection

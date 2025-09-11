@@ -184,7 +184,7 @@ Object.keys(t).forEach(
                                         $('.totalCredit').html(totalC.toFixed(2));
                                         const id = $row.find('.id').val();
                                         $.ajax({
-                                            url: '{{ route("journal.account.destroy") }}',
+                                            url: '{{ route(VW::JRN.".account.destroy") }}',
                                             type: 'POST',
                                             headers: { 'X-CSRF-TOKEN': $('#token').val() },
                                             data: { id },

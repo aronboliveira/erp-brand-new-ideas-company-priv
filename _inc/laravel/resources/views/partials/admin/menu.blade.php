@@ -9385,10 +9385,10 @@
                             @endpush
                         @endif
                         @php
-                            $emailTemplateRoute = Route::has('manage.email.language')
-                                ? route('manage.email.language', [$emailTemplate->id, $user?->lang])
-                                : (Route::has(Str::kebab('manage.email.language'))
-                                    ? route(Str::kebab('manage.email.language'), [$emailTemplate->id, $user?->lang])
+                            $emailTemplateRoute = Route::has(VW::EMLS . '.manage.language')
+                                ? route(VW::EMLS . '.manage.language', [$emailTemplate->id, $user?->lang])
+                                : (Route::has(Str::kebab(VW::EMLS . '.manage.language'))
+                                    ? route(Str::kebab(VW::EMLS . '.manage.language'), [$emailTemplate->id, $user?->lang])
                                     : '#');
                             $linkId = 'email-template-link';
                             $message = Utility::fetchLinkMessage(

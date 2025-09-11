@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Config\Constants\{DatabaseConstants, UsersConstants, ViewsConstants};
 use App\Models\{ProjectStages, Task};
 use App\Traits\ChecksPermissions;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\View\View;
 use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
@@ -19,13 +20,13 @@ class ProjectStagesController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             if (($r = self::guard($request, 'manage project stage', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
 
             try {
                 $user = $request->user();
-                Log::info(__METHOD__ . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info($method . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
 
                 $buildStart = microtime(true);
                 $query = ProjectStages::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
@@ -36,10 +37,10 @@ class ProjectStagesController extends Controller
                 $stages = $query->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchStages');
 
-                $viewPath = ViewsConstants::PRJ_STG . '.' . __FUNCTION__;
+                $viewPath = ViewsConstants::PRJ_STG . '.' . $action;
                 return $this->renderViewChecked($viewPath, ['projectStages' => $stages], $action);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, $method, route(self::ROUTE_INDEX));
             }
         });
     }
@@ -50,8 +51,7 @@ class ProjectStagesController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $action) {
             if (($r = self::guard($request, 'create project stage', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
-
-            $viewPath = ViewsConstants::PRJ_STG . '.' . __FUNCTION__;
+            $viewPath = ViewsConstants::PRJ_STG . '.' . $action;
             return $this->renderViewChecked($viewPath, [], $action);
         });
     }
@@ -59,17 +59,17 @@ class ProjectStagesController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             if (($r = self::guard($request, 'create project stage', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
 
-            Log::info(__METHOD__ . ' input', ['input' => $request->all()]);
+            Log::info($method . ' input', ['input' => $request->all()]);
 
             $valStart = microtime(true);
             $v = Validator::make($request->all(), ['name' => 'required|string|max:20']);
             $this->logExecutionTime($valStart, $action, 'validate');
             if ($v->fails()) {
-                Log::warning(__METHOD__ . ' validation failed', ['errors' => $v->errors()->all()]);
+                Log::warning($method . ' validation failed', ['errors' => $v->errors()->all()]);
                 return redirect()->route(self::ROUTE_INDEX)->with('error', $v->errors()->first());
             }
 
@@ -93,12 +93,12 @@ class ProjectStagesController extends Controller
                 $this->logExecutionTime($createStart, $action, 'createStage');
 
                 DB::commit();
-                Log::info(__METHOD__ . ' created', ['stage_id' => $stage->id]);
+                Log::info($method . ' created', ['stage_id' => $stage->id]);
 
                 return redirect()->route(self::ROUTE_INDEX)->with('success', __('Project stage successfully created.'));
             } catch (\Throwable $e) {
                 DB::rollBack();
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return defaultUndefinedException($request, $e, $method, route(self::ROUTE_INDEX));
             }
         });
     }
@@ -106,8 +106,8 @@ class ProjectStagesController extends Controller
     public function edit(Request $request, int $id): View|JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $id, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
             if (($r = self::guard($request, 'edit project stage', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
 
             try {
@@ -118,18 +118,18 @@ class ProjectStagesController extends Controller
                 if ($stage[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
                     return defaultPermissionDenial(
                         $request,
-                        new \Illuminate\Auth\Access\AuthorizationException('edit project stage'),
-                        __CLASS__ . '::' . __FUNCTION__,
+                        new AuthorizationException('edit project stage'),
+                        $method,
                         route(self::ROUTE_INDEX)
                     );
                 }
 
-                $viewPath = ViewsConstants::PRJ_STG . '.' . __FUNCTION__;
+                $viewPath = ViewsConstants::PRJ_STG . '.' . $action;
                 return $this->renderViewChecked($viewPath, ['projectStage' => $stage], $action);
             } catch (\Throwable $e) {
-                return $e instanceof \Illuminate\Auth\Access\AuthorizationException
-                    ? defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__)
-                    : defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return $e instanceof AuthorizationException
+                    ? defaultPermissionDenial($request, $e, $method)
+                    : defaultUndefinedException($request, $e, $method, route(self::ROUTE_INDEX));
             }
         });
     }
@@ -137,17 +137,17 @@ class ProjectStagesController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $id, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
             if (($r = self::guard($request, 'edit project stage', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
 
-            Log::info(__METHOD__ . ' input', ['id' => $id, 'input' => $request->all()]);
+            Log::info($method . ' input', ['id' => $id, 'input' => $request->all()]);
 
             $valStart = microtime(true);
             $v = Validator::make($request->all(), ['name' => 'required|string|max:20']);
             $this->logExecutionTime($valStart, $action, 'validate');
             if ($v->fails()) {
-                Log::warning(__METHOD__ . ' validation failed', ['errors' => $v->errors()->all()]);
+                Log::warning($method . ' validation failed', ['errors' => $v->errors()->all()]);
                 return redirect()->route(self::ROUTE_INDEX)->with('error', $v->errors()->first());
             }
 
@@ -160,7 +160,7 @@ class ProjectStagesController extends Controller
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
                 if ($stage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
-                    throw new \Illuminate\Auth\Access\AuthorizationException('edit project stage');
+                    throw new AuthorizationException('edit project stage');
 
                 $updStart = microtime(true);
                 $stage->update([
@@ -173,9 +173,9 @@ class ProjectStagesController extends Controller
                 return redirect()->route(self::ROUTE_INDEX)->with('success', __('Project stage successfully updated.'));
             } catch (\Throwable $e) {
                 DB::rollBack();
-                return $e instanceof \Illuminate\Auth\Access\AuthorizationException
-                    ? defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX))
-                    : defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return $e instanceof AuthorizationException
+                    ? defaultPermissionDenial($request, $e, $method, route(self::ROUTE_INDEX))
+                    : defaultUndefinedException($request, $e, $method, route(self::ROUTE_INDEX));
             }
         });
     }
@@ -183,8 +183,8 @@ class ProjectStagesController extends Controller
     public function destroy(Request $request, int $id): RedirectResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $id, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
             if (($r = self::guard($request, 'delete project stage', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
 
             try {
@@ -195,7 +195,7 @@ class ProjectStagesController extends Controller
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
                 if ($stage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
-                    throw new \Illuminate\Auth\Access\AuthorizationException('delete project stage');
+                    throw new AuthorizationException('delete project stage');
 
                 $usedCheckStart = microtime(true);
                 $used = Task::where('stage', $stage->id)->exists();
@@ -212,9 +212,9 @@ class ProjectStagesController extends Controller
 
                 return redirect()->route(self::ROUTE_INDEX)->with('success', __('Project stage successfully deleted.'));
             } catch (\Throwable $e) {
-                return $e instanceof \Illuminate\Auth\Access\AuthorizationException
-                    ? defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX))
-                    : defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__, route(self::ROUTE_INDEX));
+                return $e instanceof AuthorizationException
+                    ? defaultPermissionDenial($request, $e, $method, route(self::ROUTE_INDEX))
+                    : defaultUndefinedException($request, $e, $method, route(self::ROUTE_INDEX));
             }
         });
     }
@@ -222,13 +222,13 @@ class ProjectStagesController extends Controller
     public function order(Request $request): JsonResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             if (($r = self::guard($request, 'move project stage', self::ROUTE_INDEX)) instanceof RedirectResponse) {
                 return response()->json(['error' => __('Permission denied.')], 401);
             }
 
-            Log::info(__METHOD__, ['order' => $request->input('order')]);
+            Log::info($method, ['order' => $request->input('order')]);
 
             DB::beginTransaction();
             try {
@@ -242,7 +242,7 @@ class ProjectStagesController extends Controller
                 return response()->json(['success' => true], 200);
             } catch (\Throwable $e) {
                 DB::rollBack();
-                Log::error(__METHOD__ . ' failed', ['err' => $e->getMessage()]);
+                Log::error($method . ' failed', ['err' => $e->getMessage()]);
                 return response()->json(['error' => __('An unexpected error occurred.')], 500);
             }
         });

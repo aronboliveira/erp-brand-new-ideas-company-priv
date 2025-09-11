@@ -41,12 +41,12 @@ class ProjectReportController extends Controller
     public function index(Request $request): View|string|RedirectResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $user = $u;
 
-            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.' . __FUNCTION__)) {
+            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.' . $action)) {
                 return $r;
             }
 
@@ -116,7 +116,7 @@ class ProjectReportController extends Controller
                     ->first();
                 $this->logExecutionTime($lastStageStart, $action, 'fetchLastTaskStage');
 
-                $viewPath = self::SINGULAR . '.' . __FUNCTION__;
+                $viewPath = self::SINGULAR . '.' . $action;
                 $existsStart = microtime(true);
                 $exists = ViewFacade::exists($viewPath);
                 $this->logExecutionTime($existsStart, $action, 'viewExistsCheck');
@@ -131,10 +131,10 @@ class ProjectReportController extends Controller
                     'lastTask'
                 ));
             } catch (AuthorizationException $e) {
-                return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed', ['error' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                Log::error($method . ' failed', ['error' => $e]);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
@@ -142,8 +142,8 @@ class ProjectReportController extends Controller
     public function show(Request $request, string|int $id): View|string|RedirectResponse
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($request, $id, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $user = $u;
 
@@ -222,7 +222,7 @@ class ProjectReportController extends Controller
                     ->first();
                 $this->logExecutionTime($calcStart, $action, 'computeMetrics');
 
-                $viewPath = self::SINGULAR . '.' . __FUNCTION__;
+                $viewPath = self::SINGULAR . '.' . $action;
                 $existsStart = microtime(true);
                 $exists = ViewFacade::exists($viewPath);
                 $this->logExecutionTime($existsStart, $action, 'viewExistsCheck');
@@ -249,10 +249,10 @@ class ProjectReportController extends Controller
                     'lastTask'
                 ));
             } catch (AuthorizationException $e) {
-                return defaultPermissionDenial($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, $e, $method);
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed', ['error' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                Log::error($method . ' failed', ['error' => $e]);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
@@ -309,12 +309,12 @@ class ProjectReportController extends Controller
     public function export(string|int $id): mixed
     {
         $action = __FUNCTION__;
-
-        return $this->measureProfile($action, function () use ($id, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($id, $action, $method) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $request = request();
 
-            if ($r = self::guard($request, 'export project report', self::SINGULAR . '.' . __FUNCTION__)) {
+            if ($r = self::guard($request, 'export project report', self::SINGULAR . '.' . $action)) {
                 return $r;
             }
 
@@ -322,8 +322,8 @@ class ProjectReportController extends Controller
                 $name = 'task_report_' . date('Y-m-d_H:i:s');
                 return Excel::download(new \App\Exports\task_reportExport($id), $name . '.xlsx');
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed', ['error' => $e]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                Log::error($method . ' failed', ['error' => $e]);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }

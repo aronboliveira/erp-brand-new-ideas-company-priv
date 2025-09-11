@@ -62,17 +62,17 @@ class ProjectController extends Controller
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
-            if (($guard = self::guard($request, PermissionsConstants::MNG_PRJ, VW::PRJ . '.' . __FUNCTION__)) instanceof RedirectResponse) return $guard;
+            if (($guard = self::guard($request, PermissionsConstants::MNG_PRJ, VW::PRJ . '.' . $action)) instanceof RedirectResponse) return $guard;
             $this->logExecutionTime($t, $action . '::guard', 'completed');
 
-            $viewPath = VW::PRJ . '.' . __FUNCTION__;
+            $viewPath = VW::PRJ . '.' . $action;
             $t = microtime(true);
             $exists = ViewFacade::exists($viewPath);
             $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
             if (!$exists) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
 
             return view($viewPath, compact('view'));
-        }, ['route' => VW::PRJ . '.' . __FUNCTION__, 'view' => $view]);
+        }, ['route' => VW::PRJ . '.' . $action, 'view' => $view]);
     }
 
     public function create(Request $request): View|RedirectResponse|null
@@ -104,7 +104,7 @@ class ProjectController extends Controller
             $clients->prepend('Select Client', '');
             $users->prepend('Select User', '');
 
-            $viewPath = VW::PRJ . '.' . __FUNCTION__;
+            $viewPath = VW::PRJ . '.' . $action;
             $t = microtime(true);
             $exists = ViewFacade::exists($viewPath);
             $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
@@ -117,7 +117,8 @@ class ProjectController extends Controller
     public function store(Request $request): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -217,7 +218,7 @@ class ProjectController extends Controller
                     ->with('success', __('Project Add Successfully')
                         . (isset($res) && $res !== 1 ? '<br><span class="text-danger">' . $res . '</span>' : ''));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
@@ -225,7 +226,8 @@ class ProjectController extends Controller
     public function show(Request $request, Project $project): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $project, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $project, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -346,7 +348,7 @@ class ProjectController extends Controller
                     'last_task'    => $lastTask
                 ]);
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
@@ -354,7 +356,8 @@ class ProjectController extends Controller
     public function edit(Request $request, Project $project): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $project, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $project, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -375,7 +378,7 @@ class ProjectController extends Controller
                     ->pluck(UsersConstants::COL_NM, 'id');
                 $this->logExecutionTime($t, $action . '::fetchClients', 'completed');
 
-                $viewPath = VW::PRJ . '.' . __FUNCTION__;
+                $viewPath = VW::PRJ . '.' . $action;
                 $t = microtime(true);
                 $exists = ViewFacade::exists($viewPath);
                 $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
@@ -383,7 +386,7 @@ class ProjectController extends Controller
 
                 return view($viewPath, compact(self::ENTITY, DatabaseConstants::TABLE_CLIENTS));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
@@ -391,7 +394,8 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $project, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $project, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -447,7 +451,7 @@ class ProjectController extends Controller
                     ->with('success', __('Project Updated Successfully')
                         . (isset($res) && $res !== 1 ? '<br><span class="text-danger">' . $res . '</span>' : ''));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
@@ -455,7 +459,8 @@ class ProjectController extends Controller
     public function destroy(Request $request, Project $project): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $project, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $project, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -474,18 +479,17 @@ class ProjectController extends Controller
 
                 return Redirect::back()->with('success', __('Project Successfully Deleted.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
-
-    // todo
 
     public const INV_MB_VW = 'inviteMemberView';
     public function inviteMemberView(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -512,7 +516,7 @@ class ProjectController extends Controller
 
                 return view($viewPath, compact('projectId', DatabaseConstants::TABLE_USERS));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId]);
     }
@@ -521,7 +525,8 @@ class ProjectController extends Controller
     public function inviteProjectUserMember(Request $request): JsonResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse)
                 return response()->json(['error' => 'Permission denied.'], 401);
@@ -567,7 +572,8 @@ class ProjectController extends Controller
     public function destroyProjectUser(Request $request, int|string $projectId, int $userId): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $userId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $userId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -580,7 +586,7 @@ class ProjectController extends Controller
                 $t = microtime(true);
                 $project = Project::findOrFail($projectId);
                 if ($project->created_by !== $request->user()->ownerId()) {
-                    return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__, VW::PRJ . '.index');
+                    return defaultPermissionDenial($request, new \Exception, $method, VW::PRJ . '.index');
                 }
                 ProjectUser::where(ActivitiesConstants::COL_PJ, $projectId)
                     ->where(UsersConstants::COL_USER_ID, $userId)
@@ -589,7 +595,7 @@ class ProjectController extends Controller
 
                 return Redirect::back()->with('success', __('User successfully deleted!'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId, 'userId' => $userId]);
     }
@@ -598,7 +604,8 @@ class ProjectController extends Controller
     public function loadUser(Request $request): JsonResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return null;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -637,7 +644,8 @@ class ProjectController extends Controller
     public function milestone(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -664,7 +672,8 @@ class ProjectController extends Controller
     public function milestoneStore(Request $request, int|string $projectId): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -708,7 +717,7 @@ class ProjectController extends Controller
 
                 return Redirect::back()->with('success', __('Milestone successfully created.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId]);
     }
@@ -717,7 +726,8 @@ class ProjectController extends Controller
     public function milestoneEdit(Request $request, int|string $milestoneId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $milestoneId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $milestoneId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -744,7 +754,8 @@ class ProjectController extends Controller
     public function milestoneUpdate(Request $request, int|string $milestoneId): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $milestoneId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $milestoneId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -783,7 +794,7 @@ class ProjectController extends Controller
 
                 return Redirect::back()->with('success', __('Milestone updated successfully.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['milestoneId' => $milestoneId]);
     }
@@ -792,7 +803,8 @@ class ProjectController extends Controller
     public function milestoneDestroy(Request $request, int|string $milestoneId): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $milestoneId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $milestoneId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -808,7 +820,7 @@ class ProjectController extends Controller
 
                 return Redirect::back()->with('success', __('Milestone successfully deleted.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['milestoneId' => $milestoneId]);
     }
@@ -817,7 +829,8 @@ class ProjectController extends Controller
     public function milestoneShow(Request $request, int|string $milestoneId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $milestoneId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $milestoneId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -902,7 +915,8 @@ class ProjectController extends Controller
     public function gantt(Request $request, int|string $projectId, string $duration = 'Week'): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $duration, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $duration, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
@@ -937,7 +951,7 @@ class ProjectController extends Controller
 
                 return view($viewPath, compact(self::ENTITY, DatabaseConstants::TABLE_TASKS, 'duration'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId, 'duration' => $duration]);
     }
@@ -946,7 +960,8 @@ class ProjectController extends Controller
     public function ganttPost(Request $request, int|string $projectId): RedirectResponse|JsonResponse
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
@@ -976,21 +991,22 @@ class ProjectController extends Controller
     public function bug(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can(PermissionsConstants::MNG_BUG_RPT))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             try {
                 $t = microtime(true);
                 $project = Project::findOrFail($projectId);
                 if ($project->created_by !== $request->user()->creatorId())
-                    return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                    return defaultPermissionDenial($request, new \Exception, $method);
                 $user = $request->user();
                 $matchedBug = Bug::where(ActivitiesConstants::COL_PJ, $projectId);
                 $bugs = match ($user?->type) {
@@ -1008,7 +1024,7 @@ class ProjectController extends Controller
 
                 return view($viewPath, compact(self::ENTITY, DatabaseConstants::TABLE_BUGS));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId]);
     }
@@ -1017,14 +1033,15 @@ class ProjectController extends Controller
     public function bugCreate(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('create bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             $t = microtime(true);
@@ -1048,14 +1065,15 @@ class ProjectController extends Controller
     public function bugStore(Request $request, int|string $projectId): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('create bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             $t = microtime(true);
@@ -1094,7 +1112,7 @@ class ProjectController extends Controller
                 return Redirect::route(VW::PRJ_TSK_BUG . '.', $projectId)
                     ->with('success', __('Bug successfully created.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId]);
     }
@@ -1103,14 +1121,15 @@ class ProjectController extends Controller
     public function bugEdit(Request $request, int|string $projectId, int|string $bugId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('edit bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             $t = microtime(true);
@@ -1135,14 +1154,15 @@ class ProjectController extends Controller
     public function bugUpdate(Request $request, int|string $projectId, int|string $bugId): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('edit bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             $t = microtime(true);
@@ -1173,7 +1193,7 @@ class ProjectController extends Controller
                 return Redirect::route(VW::PRJ_TSK_BUG . '.', $projectId)
                     ->with('success', __('Bug successfully updated.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId, 'bugId' => $bugId]);
     }
@@ -1182,14 +1202,15 @@ class ProjectController extends Controller
     public function bugDestroy(Request $request, int|string $projectId, int|string $bugId): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('delete bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             try {
@@ -1200,7 +1221,7 @@ class ProjectController extends Controller
                 return Redirect::route(VW::PRJ_TSK_BUG . '.', $projectId)
                     ->with('success', __('Bug successfully deleted.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId, 'bugId' => $bugId]);
     }
@@ -1209,21 +1230,22 @@ class ProjectController extends Controller
     public function bugKanban(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('move bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             try {
                 $t = microtime(true);
                 $project = Project::findOrFail($projectId);
                 if ($project->created_by !== $request->user()->creatorId())
-                    return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                    return defaultPermissionDenial($request, new \Exception, $method);
                 $bugStatus = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
                     ->orderBy(ActivitiesConstants::COL_OD, 'ASC')->get();
                 $this->logExecutionTime($t, $action . '::fetchKanbanData', 'completed');
@@ -1236,7 +1258,7 @@ class ProjectController extends Controller
 
                 return view($viewPath, compact(self::ENTITY, 'bug_status'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         }, ['projectId' => $projectId]);
     }
@@ -1245,14 +1267,15 @@ class ProjectController extends Controller
     public function bugKanbanOrder(Request $request): RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('move bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             try {
@@ -1273,7 +1296,7 @@ class ProjectController extends Controller
 
                 return Redirect::back()->with('success', __('Order updated successfully.'));
             } catch (\Throwable $e) {
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . __FUNCTION__);
+                return defaultUndefinedException($request, $e, $method);
             }
         });
     }
@@ -1282,14 +1305,15 @@ class ProjectController extends Controller
     public function bugShow(Request $request, int|string $projectId, int|string $bugId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action) {
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $projectId, $bugId, $action, $method) {
             $t = microtime(true);
             if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
 
             $t = microtime(true);
             if (!$request->user()->can('view bug report'))
-                return defaultPermissionDenial($request, new \Exception, __CLASS__ . '::' . __FUNCTION__);
+                return defaultPermissionDenial($request, new \Exception, $method);
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             $t = microtime(true);
@@ -1411,8 +1435,6 @@ class ProjectController extends Controller
         }, ['fileId' => $fileId]);
     }
 
-    // todo
-
     public function tracker(Request $request, int $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
@@ -1429,7 +1451,7 @@ class ProjectController extends Controller
             $trackers = TimeTracker::where(ActivitiesConstants::COL_PJ, $projectId)->get();
             $this->logExecutionTime($t, $action . '::fetchTrackers', 'completed');
 
-            $viewPath = 'time_trackers.index';
+            $viewPath = VW::TMT . '.index';
             $t = microtime(true);
             $exists = ViewFacade::exists($viewPath);
             $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
