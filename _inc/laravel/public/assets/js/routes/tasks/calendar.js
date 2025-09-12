@@ -177,7 +177,7 @@
     const $sel = $("#calendar_type");
     let calendar_type = $sel.find(":selected").val();
     $calendar.removeClass("local_calendar");
-    $calendar.removeClass("goggle_calendar");
+    $calendar.removeClass("google_calendar");
     if (calendar_type === undefined) {
       $calendar.addClass("local_calendar");
     }

@@ -359,6 +359,7 @@ class ViewClassNamesConstants
 	// mx-3 btn btn-sm align-items-center bs-pass-para
 	public const BT_PRM = self::BT . ' ' . self::BT . '-primary';
 	// "{{ ViewClassNamesConstants::BT_PRM }}"
+	// "{{ VC::BT_PRM }}"
 	// btn btn-primary
 	public const BT_PR_INV = self::BT . ' ' . self::BT . '-print-invoice';
 	// "{{ ViewClassNamesConstants::BT_PR_INV }}"

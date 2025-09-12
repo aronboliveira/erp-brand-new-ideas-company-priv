@@ -1,32 +1,100 @@
-{{ Collective\Html\FormFacade::open(array('url' => VW::LBL)) }}
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+    use Illuminate\Support\Collection;
+
+    $lang = Utility::fetchUserLang();
+
+    $formId     = 'lbl-store-form';
+    $storeBase  = VW::LBL;
+    $storeKebab = Str::kebab($storeBase);
+    $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+    $storeUrl   = $storeRes ? route($storeRes) : '#';
+    $storeGuard = Utility::fetchLinkMessage($lang, VW::LBL, 'store_route_unavailable') ?? __('Label store route is unavailable. Please contact technical support or your domain administrator.');
+
+    $pipelinesIsList = (is_array($pipelines ?? null) && count($pipelines ?? []) > 0) || (($pipelines ?? null) instanceof Collection && $pipelines->isNotEmpty());
+    $pipelineOptions = $pipelinesIsList ? (is_array($pipelines) ? $pipelines : $pipelines->toArray()) : ['' => __('No pipelines available')];
+    $pipelineErr     = $errors->has('pipeline_id');
+    $pipelineAttrs   = [
+        'id'               => 'pipeline_id',
+        'class'            => trim(VC::FM_CT_SL . ' select2 ' . ($pipelineErr ? 'is-invalid' : '')),
+        'required'         => 'required',
+        'aria-invalid'     => $pipelineErr ? 'true' : 'false',
+        'aria-describedby' => $pipelineErr ? 'pipeline_id-error' : null,
+    ];
+    if (!$pipelinesIsList) { $pipelineAttrs['disabled'] = 'disabled'; }
+
+    $nameErr   = $errors->has('name');
+    $nameAttrs = [
+        'id'               => 'name',
+        'class'            => trim(VC::FM_CT . ' ' . ($nameErr ? 'is-invalid' : '')),
+        'required'         => 'required',
+        'aria-invalid'     => $nameErr ? 'true' : 'false',
+        'aria-describedby' => $nameErr ? 'name-error' : null,
+        'autocomplete'     => 'off',
+    ];
+
+    $colorsIsList = (is_array($colors ?? null) && count($colors ?? []) > 0) || (($colors ?? null) instanceof Collection && $colors->isNotEmpty());
+    $colorErr     = $errors->has('color');
+@endphp
+
+{{ Form::open([
+    'url'               => $storeUrl,
+    'id'                => $formId,
+    'data-url'          => $storeUrl,
+    'data-guard-msg'    => $storeGuard,
+    'data-sv-localized' => 'true',
+]) }}
     <div class="modal-body">
-        <div class="row">
-            <div class="form-group col-12">
-                {{ Collective\Html\FormFacade::label('name', __('Label Name'),['class'=>'form-label']) }}
-                {{ Collective\Html\FormFacade::text('name', '', array('class' => 'form-control','required'=>'required')) }}
-            </div>
-            <div class="form-group col-12">
-                {{ Collective\Html\FormFacade::label('pipeline_id', __('Pipeline'),['class'=>'form-label']) }}
-                {{ Collective\Html\FormFacade::select('pipeline_id', $pipelines,null, array('class' => 'form-control select2','required'=>'required')) }}
-            </div>
-            <div class="form-group col-12">
-                {{ Collective\Html\FormFacade::label('name', __('Color'),['class'=>'form-label']) }}
-                <div class="row gutters-xs">
-                    @foreach($colors as $color)
-                        <div class="col-auto">
-                            <label class="colorinput">
-                                <input name="color" type="radio" value="{{$color}}" class="colorinput-input">
-                                <span class="colorinput-color bg-{{$color}}"></span>
-                            </label>
-                        </div>
-                    @endforeach
-                </div>
+        <div class="{{ VC::RW }}">
+            <div class="form-group {{ VC::C12 }}">
+                {{ Form::label('name', __('Label Name'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('name', '', $nameAttrs) }}
+                @error('name')
+                    <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                @enderror
             </div>
 
+            <div class="form-group {{ VC::C12 }}">
+                {{ Form::label('pipeline_id', __('Pipeline'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('pipeline_id', $pipelineOptions, null, $pipelineAttrs) }}
+                @error('pipeline_id')
+                    <span id="pipeline_id-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                @enderror
+            </div>
+
+            <div class="form-group {{ VC::C12 }}">
+                {{ Form::label('color', __('Color'), ['class' => VC::FM_LB]) }}
+                @if($colorsIsList)
+                    <div class="row gutters-xs">
+                        @foreach($colors as $idx => $color)
+                            @php
+                                $cid = 'color-' . $idx;
+                                $val = (string) $color;
+                            @endphp
+                            <div class="col-auto">
+                                <label class="colorinput" for="{{ $cid }}">
+                                    <input id="{{ $cid }}" name="color" type="radio" value="{{ $val }}" class="colorinput-input" {{ $loop->first ? 'checked' : '' }}>
+                                    <span class="colorinput-color bg-{{ $val }}"></span>
+                                </label>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="alert alert-warning mb-0" role="alert">{{ __('No colors available.') }}</div>
+                @endif
+                @error('color')
+                    <span class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                @enderror
+            </div>
         </div>
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
-{{Collective\Html\FormFacade::close()}}
+    <script defer src="{{ asset('assets/js/routes/labels/store.js') }}"></script>
+{{ Form::close() }}

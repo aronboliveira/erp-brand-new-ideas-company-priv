@@ -1,24 +1,55 @@
-    {{Collective\Html\FormFacade::open(array('url'=>'goal_types','method'=>'post'))}}
-    <div class="modal-body">
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+    use Illuminate\Support\Collection;
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('name',__('Name'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('name',null,array('class'=>'form-control','placeholder'=>__('Enter Goal Type Name')))}}
-                @error('name')
-                <span class="invalid-name" role="alert">
-                    <strong class="text-danger">{{ $message }}</strong>
-                </span>
-                @enderror
+    $lang = Utility::fetchUserLang();
+    $formId    = 'gl-tp-store-form';
+    $storeBase = VW::GL_TP . '.store';
+    $storeKebab= Str::kebab($storeBase);
+    $storeRes  = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+    $storeUrl  = $storeRes ? route($storeRes) : '#';
+    $storeGuard= Utility::fetchLinkMessage($lang, VW::GL_TP, 'store_route_unavailable') ?? __('Goal type store route is unavailable. Please contact technical support or your domain administrator.');
+
+    $nameHasErr = $errors->has('name');
+    $nameAttrs  = [
+        'id'               => 'name',
+        'class'            => trim(VC::FM_CT . ' ' . ($nameHasErr ? 'is-invalid' : '')),
+        'placeholder'      => __('Enter Goal Type Name'),
+        'aria-invalid'     => $nameHasErr ? 'true' : 'false',
+        'aria-describedby' => $nameHasErr ? 'name-error' : null,
+        'autocomplete'     => 'off',
+        'required'         => 'required',
+    ];
+@endphp
+
+{{ Form::open([
+    'url'               => $storeUrl,
+    'method'            => 'POST',
+    'id'                => $formId,
+    'data-url'          => $storeUrl,
+    'data-guard-msg'    => $storeGuard,
+    'data-sv-localized' => 'true',
+]) }}
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::FM_G }}">
+                    {{ Form::label('name', __('Name'), ['class' => VC::FM_LB]) }}
+                    {{ Form::text('name', null, $nameAttrs) }}
+                    @error('name')
+                        <span id="name-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                    @enderror
+                </div>
             </div>
         </div>
-
     </div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
-</div>
-    {{Collective\Html\FormFacade::close()}}
-
+    <div class="modal-footer">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+    </div>
+    <script defer src="{{ asset('assets/js/routes/goals/types/store.js') }}"></script>
+{{ Form::close() }}

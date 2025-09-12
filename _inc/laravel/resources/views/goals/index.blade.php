@@ -1,114 +1,189 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW
     };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth,Route};
+    use App\Models\{Goal, Utility};
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\{Collection, Str};
+
     $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    $hasUser = (bool) $user;
+    $hasUserPriceFormat = $hasUser && method_exists($user, 'priceFormat');
+    $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
+    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : (string) app()->getLocale();
+    $hasGoalTypeMap = property_exists(Goal::class, 'goalType') && is_array(Goal::$goalType);
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Goals')}}
+@extends(EL::ADM)
+
+@section(YW::ADM_PG_TTL)
+    {{ __('Manage Goals') }}
 @endsection
-@section(YieldingConstants::ADM_BDC)
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Goal')}}</li>
+    <li class="breadcrumb-item">{{ __('Goal') }}</li>
 @endsection
-@section(YieldingConstants::ADM_ACT_BTN)
-<div class="float-end">
-     @can('create goal')
+
+@push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/goals/index.js') }}"></script>
+@endpush
+
+@section(YW::ADM_ACT_BTN)
+<div class="{{ VC::FEND }}">
+    @can('create goal')
+        @php
+            $createBase     = VW::GL . '.create';
+            $createKebab    = Str::kebab($createBase);
+            $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
+            $createUrl      = $createResolved ? route($createResolved) : '#';
+            $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL, 'create_goal_route_unavailable') : null) ?? __('Create Goal route is unavailable. Please contact technical support or your domain administrator.');
+        @endphp
         <a href="#"
-            data-url="{{ route(ViewsConstants::GL.'.create') }}"
-            data-bs-toggle="tooltip"
-            data-size="lg"
-            title="{{ __('Create') }}"
-            data-ajax-popup="true"
-            data-title="{{ __('Create New Goal') }}"
-            class="{{ ViewClassNamesConstants::BT_SM_PM }}">
-            <i class="{{ ViewClassNamesConstants::TI_PLS }}"></i>
+           data-url="{{ $createUrl }}"
+           data-bs-toggle="tooltip"
+           data-size="lg"
+           title="{{ __('Create') }}"
+           data-ajax-popup="true"
+           data-title="{{ __('Create New Goal') }}"
+           class="{{ VC::BT_SM_PM }}"
+           data-guard-msg="{{ $createGuardMsg }}"
+           data-sv-localized="true">
+            <i class="{{ VC::TI_PLS }}"></i>
         </a>
     @endcan
 </div>
 @endsection
-@section(YieldingConstants::ADM_CTT)
-    <div class="{{ ViewClassNamesConstants::RW }}">
-        <div class="col-xl-12">
-            <div class="{{ ViewClassNamesConstants::CD }}">
-                <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                        <table class="{{ ViewClassNamesConstants::TB }} datatable">
-                            <thead>
-                                <tr>
-                                    <th>{{ __('Name') }}</th>
-                                    <th>{{ __('Type') }}</th>
-                                    <th>{{ __('From') }}</th>
-                                    <th>{{ __('To') }}</th>
-                                    <th>{{ __('Amount') }}</th>
-                                    <th>{{ __('Is Dashboard Display') }}</th>
-                                    <th width="10%">{{ __('Action') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($golas as $gola)
+
+@section(YW::ADM_CTT)
+    @if(!$hasUser)
+        <div class="alert alert-warning mb-0" role="alert">{{ __('Failed to load Goals for the current user.') }}</div>
+    @else
+        <div class="{{ VC::RW }}">
+            <div class="col-xl-12">
+                <div class="{{ VC::CD }}">
+                    <div class="card-body table-border-style">
+                        <div class="table-responsive">
+                            @php
+                                $list = $golas ?? [];
+                                $hasList = ($list instanceof Collection) ? $list->isNotEmpty() : (is_array($list) && count($list) > 0);
+                                $hasActions = $user->can('edit goal') || $user->can('delete goal');
+                            @endphp
+                            <table class="{{ VC::TB }} datatable">
+                                <thead>
                                     <tr>
-                                        <td class="font-style">{{ $gola->name }}</td>
-                                        <td class="font-style">{{ __(\App\Models\Goal::$goalType[$gola->type]) }}</td>
-                                        <td class="font-style">{{ $gola->from }}</td>
-                                        <td class="font-style">{{ $gola->to }}</td>
-                                        <td class="font-style">{{ $user?->priceFormat($gola->amount) }}</td>
-                                        <td class="font-style">{{ $gola->is_display==1?__('Yes'):__('No') }}</td>
-                                        <td class="Action">
-                                            <span>
-                                                @can('edit goal')
-                                                    <div class="{{ ViewClassNamesConstants::ACT_BTN }} {{ ViewClassNamesConstants::BG_P }} {{ ViewClassNamesConstants::MS2 }}">
-                                                        <a href="#"
-                                                           class="{{ ViewClassNamesConstants::BT_SM_MX3 }} {{ ViewClassNamesConstants::AL_IT_CT }}"
-                                                           data-url="{{ route(ViewsConstants::GL.'.edit',$gola->id) }}"
-                                                           data-ajax-popup="true"
-                                                           data-title="{{ __('Edit Goal') }}"
-                                                           data-bs-toggle="tooltip"
-                                                           title="{{ __('Edit') }}">
-                                                            <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                                        </a>
-                                                    </div>
-                                                @endcan
-                                                @can('delete goal')
-                                                    <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
-                                                        {!! Collective\Html\FormFacade::open([
-                                                            'method'=>'DELETE',
-                                                            'route'=>[ViewsConstants::GL.'.destroy',$gola->id],
-                                                            'id'=>'delete-form-'.$gola->id
-                                                        ]) !!}
-                                                        <a href="#"
-                                                           class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}"
-                                                           data-bs-toggle="tooltip"
-                                                           title="{{ __('Delete') }}"
-                                                           data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                           data-confirm-yes="document.getElementById('delete-form-{{$gola->id}}').submit();">
-                                                            <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>
-                                                        </a>
-                                                        {!! Collective\Html\FormFacade::close() !!}
-                                                    </div>
-                                                @endcan
-                                            </span>
-                                        </td>
+                                        <th>{{ __('Name') }}</th>
+                                        <th>{{ __('Type') }}</th>
+                                        <th>{{ __('From') }}</th>
+                                        <th>{{ __('To') }}</th>
+                                        <th>{{ __('Amount') }}</th>
+                                        <th>{{ __('Is Dashboard Display') }}</th>
+                                        @if($hasActions)
+                                            <th width="10%">{{ __('Action') }}</th>
+                                        @endif
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @if($hasList)
+                                        @foreach($list as $gola)
+                                            @php
+                                                $gid      = isset($gola->id) ? (string) $gola->id : '';
+                                                $name     = isset($gola->name) && $gola->name !== '' ? $gola->name : __('Unnamed goal');
+                                                $typeKey  = $gola->type ?? null;
+                                                $typeTxt  = ($hasGoalTypeMap && isset(Goal::$goalType[$typeKey])) ? __(Goal::$goalType[$typeKey]) : __('Unknown');
+                                                $from     = isset($gola->from) ? $gola->from : __('No start available');
+                                                $to       = isset($gola->to) ? $gola->to : __('No end available');
+                                                $amountV  = $gola->amount ?? null;
+                                                $amount   = $hasUserPriceFormat && $amountV !== null ? $user->priceFormat($amountV) : ($amountV !== null ? $amountV : __('No amount available'));
+                                                $isDisp   = isset($gola->is_display) && (int)$gola->is_display === 1 ? __('Yes') : __('No');
+                                            @endphp
+                                            <tr>
+                                                <td class="font-style">{{ $name }}</td>
+                                                <td class="font-style">{{ $typeTxt }}</td>
+                                                <td class="font-style">{{ $from }}</td>
+                                                <td class="font-style">{{ $to }}</td>
+                                                <td class="font-style">{{ $amount }}</td>
+                                                <td class="font-style">{{ $isDisp }}</td>
+                                                @if($hasActions)
+                                                    <td class="Action">
+                                                        <span>
+                                                            @can('edit goal')
+                                                                @php
+                                                                    $editBase     = VW::GL . '.edit';
+                                                                    $editKebab    = Str::kebab($editBase);
+                                                                    $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
+                                                                    $editUrl      = ($editResolved && $gid !== '') ? route($editResolved, $gid) : '#';
+                                                                    $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL, 'edit_goal_route_unavailable') : null) ?? __('Edit Goal route is unavailable. Please contact technical support or your domain administrator.');
+                                                                @endphp
+                                                                <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                                    <a href="#"
+                                                                       class="{{ VC::BT_SM_FL_CT }}"
+                                                                       data-url="{{ $editUrl }}"
+                                                                       data-ajax-popup="true"
+                                                                       data-title="{{ __('Edit Goal') }}"
+                                                                       data-bs-toggle="tooltip"
+                                                                       title="{{ __('Edit') }}"
+                                                                       data-guard-msg="{{ $editGuardMsg }}"
+                                                                       data-sv-localized="true">
+                                                                        <i class="{{ VC::TI_PC_WT }}"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endcan
+                                                            @can('delete goal')
+                                                                @php
+                                                                    $destroyBase     = VW::GL . '.destroy';
+                                                                    $destroyKebab    = Str::kebab($destroyBase);
+                                                                    $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
+                                                                    $destroyUrl      = ($destroyResolved && $gid !== '') ? route($destroyResolved, $gid) : '#';
+                                                                    $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL, 'destroy_goal_route_unavailable') : null) ?? __('Delete Goal route is unavailable. Please contact technical support or your domain administrator.');
+                                                                    $delFormId       = 'goal-delete-form-' . ($gid === '' ? 'x' : $gid);
+                                                                    $confirmTitle    = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
+                                                                    $confirmBody     = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
+                                                                @endphp
+                                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                                    {!! Form::Sopen([
+                                                                        'method'            => 'DELETE',
+                                                                        'url'               => $destroyUrl,
+                                                                        'id'                => $delFormId,
+                                                                        'data-url'          => $destroyUrl,
+                                                                        'data-guard-msg'    => $destroyGuardMsg,
+                                                                        'data-sv-localized' => 'true',
+                                                                    ]) !!}
+                                                                        <a href="#"
+                                                                           class="{{ VC::BT_SM_CT_PR }}"
+                                                                           data-bs-toggle="tooltip"
+                                                                           title="{{ __('Delete') }}"
+                                                                           data-confirm="{{ __($confirmTitle) }}|{{ __($confirmBody) }}"
+                                                                           data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();">
+                                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                        </a>
+                                                                    {!! Form::Sclose() !!}
+                                                                </div>
+                                                            @endcan
+                                                        </span>
+                                                    </td>
+                                                @endif
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="{{ $hasActions ? 7 : 6 }}" class="text-center">{{ __('No goals found.') }}</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 @endsection

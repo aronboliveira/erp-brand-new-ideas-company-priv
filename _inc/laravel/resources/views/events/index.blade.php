@@ -68,7 +68,7 @@
                             <h5>{{ __('Calendar') }}</h5>
                         </div>
                         <div class="col-lg-6">
-                            @if (isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
+                            @if (!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
                                 <select class="{{ VC::FM_CT }}" name="calendar_type" id="calendar_type" style="float:right;width:150px;" onchange="get_data()">
                                     <option value="google_calendar">{{ __('Google calendar') }}</option>
                                     <option value="local_calendar" selected="true">{{ __('Local calendar') }}</option>
@@ -93,7 +93,7 @@
                             <div class="row {{ VC::ALC }} {{ VC::JCB }}">
                                 <div class="{{ VC::ALC }}">
                                     @if(!$events->isEmpty())
-                                        @forelse ($current_month_event as $event)
+                                        @forelse ($events as $event)
                                             @php
                                                 $eventIdValue                       = (string) ($event->id ?? '');
                                                 $eventsEditBaseRouteName            = ViewsConstants::EVT.'.edit';
@@ -204,9 +204,9 @@
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
   <script defer src="{{ asset('assets/js/routes/events/index.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins/main.min.js') }}"></script>
-    <script async src="{{ asset('assets/js/routes/events/lang/calendar.js') }}"></script>
-    <script defer>
+  <script src="{{ asset('assets/js/plugins/main.min.js') }}"></script>
+  <script async src="{{ asset('assets/js/routes/events/lang/calendar.js') }}"></script>
+  <script defer>
         (() => {
           const langKey      = 'erp-np-lang';
           const toastBoxId   = 'toast-box';
@@ -268,7 +268,7 @@
               if (!base) throw 0;
               let ct = $('#calendar_type').find(':selected').val();
               const cal = $('#calendar');
-              cal.removeClass('local_calendar goggle_calendar');
+              cal.removeClass('local_calendar google_calendar');
               if (!ct) cal.addClass('local_calendar');
               cal.addClass(ct);
               $.ajax({

@@ -344,7 +344,7 @@ class MeetingController extends Controller
       $user = $userOrRedirect;
       Log::info("[{$class}::{$action}] start", ['calendar_type' => $req->get('calendar_type'), 'creator_id' => $user?->creatorId()]);
       try {
-        if ($req->get('calendar_type') === 'goggle_calendar') {
+        if ($req->get('calendar_type') === 'google_calendar') {
           $gcStart = microtime(true);
           $data = Utility::getCalendarData('meeting');
           $this->logExecutionTime($gcStart, $action, 'googleCalendarData');

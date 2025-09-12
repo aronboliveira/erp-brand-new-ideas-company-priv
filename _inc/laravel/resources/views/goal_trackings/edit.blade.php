@@ -1,104 +1,196 @@
 @php
     use App\Config\Constants\{
-        PlansConstants, 
-        ViewsConstants,
+        PlansConstants as PL,
+        ViewsConstants as VW,
         ViewClassNamesConstants as VC
     };
     use App\Models\Utility;
+    use Illuminate\Support\Facades\{Route};
+    use Illuminate\Support\{Collection, Str};
     use Collective\Html\FormFacade as Form;
-    $lang = Utility::fetchUserLang();
+
+    $lang            = Utility::fetchUserLang();
+    $hasGoal         = !empty($goalTracking ?? null) && data_get($goalTracking, 'id');
+
+    $branchesIsList  = (is_array($brances ?? null) && count($brances ?? []) > 0) || (($brances ?? null) instanceof Collection && $brances->isNotEmpty());
+    $goalTypesIsList = (is_array($goalTypes ?? null) && count($goalTypes ?? []) > 0) || (($goalTypes ?? null) instanceof Collection && $goalTypes->isNotEmpty());
+    $statusIsList    = (is_array($status ?? null) && count($status ?? []) > 0) || (($status ?? null) instanceof Collection && $status->isNotEmpty());
+
+    $branchOptions   = $branchesIsList  ? (is_array($brances) ? $brances : $brances->toArray())       : [__('No branches available')];
+    $goalTypeOptions = $goalTypesIsList ? (is_array($goalTypes) ? $goalTypes : $goalTypes->toArray()) : [__('No goal types available')];
+    $statusOptions   = $statusIsList    ? (is_array($status) ? $status : $status->toArray())          : [__('No statuses available')];
+
+    $rating      = (int) data_get($goalTracking ?? [], 'rating', 0);
+    $progressVal = (int) data_get($goalTracking ?? [], 'progress', 0);
+
+    $plan      = Utility::getChatGPTSettings();
+    $aiAllowed = (data_get($plan, PL::COL_GPT, 0) == 1);
+
+    $genBase     = 'generate';
+    $genKebab    = Str::kebab($genBase);
+    $genResolved = Route::has($genBase) ? $genBase : (Route::has($genKebab) ? $genKebab : null);
+    $genUrl      = $genResolved ? route($genResolved, ['goal tracking']) : '#';
+    $genGuardMsg = Utility::fetchLinkMessage($lang, VW::GL_TRC, 'ai_generate_route_unavailable') ?? __('Generate content route for goal trackings is unavailable. Please contact technical support or your domain administrator.');
+
+    $updateBase     = VW::GL_TRC . '.update';
+    $updateKebab    = Str::kebab($updateBase);
+    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+    $updateUrl      = ($updateResolved && $hasGoal) ? route($updateResolved, $goalTracking->id) : '#';
+    $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::GL_TRC, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+
+    $starLabels = [
+        5 => __('Excellent – 5 stars'),
+        4 => __('Very good – 4 stars'),
+        3 => __('Good – 3 stars'),
+        2 => __('Fair – 2 stars'),
+        1 => __('Poor – 1 star'),
+    ];
 @endphp
-{{Form::model($goalTracking,array('route' => array(ViewsConstants::GL_TRC.'.update', $goalTracking->id), 'method' => 'PUT')) }}
-    <div class="modal-body">
-        {{-- start for ai module--}}
-        @php
-            $plan= Utility::getChatGPTSettings();
-        @endphp
-        @if($plan?->{PlansConstants::COL_GPT} == 1)
-        <div class="text-end">
-            <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['goal tracking']) }}"
-            data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-                <i class="{{ VC::FAS_RB }}"></i> <span>{{__('Generate with AI')}}</span>
-            </a>
-        </div>
-        @endif
-        {{-- end for ai module--}}
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('branch',__('Branch'),['class'=>'form-label'])}}
-                    {{Form::select('branch',$brances,null,array('class'=>'form-control select','required'=>'required'))}}
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('goal_type',__('GoalTypes'),['class'=>'form-label'])}}
-                    {{Form::select('goal_type',$goalTypes,null,array('class'=>'form-control select','required'=>'required'))}}
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('start_date',__('Start Date'),['class'=>'form-label'])}}
-                    {{Form::date('start_date',null,array('class' => 'form-control'))}}
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{Form::label('end_date',__('End Date'),['class'=>'form-label'])}}
-                    {{Form::date('end_date',null,array('class' => 'form-control'))}}
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('subject',__('Subject'),['class'=>'form-label'])}}
-                    {{Form::text('subject',null,array('class'=>'form-control'))}}
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('target_achievement',__('Target Achievement'),['class'=>'form-label'])}}
-                    {{Form::text('target_achievement',null,array('class'=>'form-control'))}}
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('description',__('Description'),['class'=>'form-label'])}}
-                    {{Form::textarea('description',null,array('class'=>'form-control'))}}
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{Form::label('status',__('Status'),['class'=>'form-label'])}}
-                    {{Form::select('status',$status,null,array('class'=>'form-control select'))}}
-                </div>
-            </div>
-            <div class="col-md-12">
-                <fieldset id='demo1' class="rating">
-                    <input class="stars" type="radio" id="rating-5" name="rating" value="5" {{($goalTracking->rating==5) ? 'checked':''}} >
-                    <label class="full" for="rating-5" title="Awesome - 5 stars"></label>
-                    <input class="stars" type="radio" id="rating-4" name="rating" value="4" {{($goalTracking->rating==4) ? 'checked':''}}>
-                    <label class="full" for="rating-4" title="Pretty good - 4 stars"></label>
-                    <input class="stars" type="radio" id="rating-3" name="rating" value="3" {{($goalTracking->rating==3) ? 'checked':''}}>
-                    <label class="full" for="rating-3" title="Meh - 3 stars"></label>
-                    <input class="stars" type="radio" id="rating-2" name="rating" value="2" {{($goalTracking->rating==2) ? 'checked':''}}>
-                    <label class="full" for="rating-2" title="Kinda bad - 2 stars"></label>
-                    <input class="stars" type="radio" id="technical-1" name="rating" value="1" {{($goalTracking->rating==1) ? 'checked':''}}>
-                    <label class="full" for="technical-1" title="Sucks big time - 1 star"></label>
-                </fieldset>
-            </div>
-            <div class="col-md-12">
-                <div class="form-group">
-                    <input type="range" class="slider w-100 mb-0 " name="progress" id="myRange" value="{{$goalTracking->progress}}" min="1" max="100" oninput="ageOutputId.value = myRange.value">
-                    <output name="ageOutputName" id="ageOutputId">{{$goalTracking->progress}}</output>
-                    %
-                </div>
-            </div>
 
+@if(!$hasGoal)
+    <div class="alert alert-warning mb-0" role="alert">{{ __('The requested goal tracking entry was not found or is unavailable.') }}</div>
+@else
+    {{ Form::model($goalTracking, [
+        'url'               => $updateUrl,
+        'method'            => 'PUT',
+        'id'                => 'goal-tracking-edit-form',
+        'data-url'          => $updateUrl,
+        'data-guard-msg'    => $updateGuardMsg,
+        'data-sv-localized' => 'true',
+    ]) }}
+        <div class="modal-body">
+            @if($aiAllowed)
+                <div class="text-end">
+                    <a
+                        id="goal-ai-generate-btn"
+                        href="{{ $genUrl }}"
+                        data-size="md"
+                        class="btn btn-primary btn-icon btn-sm"
+                        data-ajax-popup-over="true"
+                        data-url="{{ $genUrl }}"
+                        data-bs-placement="top"
+                        data-title="{{ __('Generate content with AI') }}"
+                        data-guard-msg="{{ $genGuardMsg }}"
+                        data-sv-localized="true"
+                    >
+                        <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
+                    </a>
+                </div>
+            @endif
 
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ Form::label('branch', __('Branch'), ['class' => 'form-label']) }}
+                        {{ Form::select(
+                            'branch',
+                            $branchOptions,
+                            null,
+                            array_merge(['class' => VC::FM_CT.' select', 'required' => 'required'], $branchesIsList ? [] : ['disabled' => 'disabled'])
+                        ) }}
+                        @unless($branchesIsList)
+                            <div class="{{ VC::TXT_MT }} {{ VC::TXS }}">{{ __('No branches available.') }}</div>
+                        @endunless
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ Form::label('goal_type', __('GoalTypes'), ['class' => 'form-label']) }}
+                        {{ Form::select(
+                            'goal_type',
+                            $goalTypeOptions,
+                            null,
+                            array_merge(['class' => VC::FM_CT.' select', 'required' => 'required'], $goalTypesIsList ? [] : ['disabled' => 'disabled'])
+                        ) }}
+                        @unless($goalTypesIsList)
+                            <div class="{{ VC::TXT_MT }} {{ VC::TXS }}">{{ __('No goal types available.') }}</div>
+                        @endunless
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ Form::label('start_date', __('Start Date'), ['class' => 'form-label']) }}
+                        {{ Form::date('start_date', null, ['class' => VC::FM_CT]) }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ Form::label('end_date', __('End Date'), ['class' => 'form-label']) }}
+                        {{ Form::date('end_date', null, ['class' => VC::FM_CT]) }}
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ Form::label('subject', __('Subject'), ['class' => 'form-label']) }}
+                        {{ Form::text('subject', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter a subject or leave empty if unknown')]) }}
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ Form::label('target_achievement', __('Target Achievement'), ['class' => 'form-label']) }}
+                        {{ Form::text('target_achievement', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter a target achievement')]) }}
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ Form::label('description', __('Description'), ['class' => 'form-label']) }}
+                        {{ Form::textarea('description', null, ['class' => VC::FM_CT, 'placeholder' => __('Enter a description')]) }}
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        {{ Form::label('status', __('Status'), ['class' => 'form-label']) }}
+                        {{ Form::select(
+                            'status',
+                            $statusOptions,
+                            null,
+                            array_merge(['class' => VC::FM_CT.' select'], $statusIsList ? [] : ['disabled' => 'disabled'])
+                        ) }}
+                        @unless($statusIsList)
+                            <div class="{{ VC::TXT_MT }} {{ VC::TXS }}">{{ __('No statuses available.') }}</div>
+                        @endunless
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <fieldset id="demo1" class="rating">
+                        @foreach([5,4,3,2,1] as $value)
+                            <input class="stars" type="radio" id="rating-{{ $value }}" name="rating" value="{{ $value }}" {{ $rating === $value ? 'checked' : '' }}>
+                            <label class="full" for="rating-{{ $value }}" title="{{ $starLabels[$value] }}"></label>
+                        @endforeach
+                    </fieldset>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <input
+                            type="range"
+                            class="slider w-100 mb-0"
+                            name="progress"
+                            id="goal-progress-range"
+                            value="{{ $progressVal }}"
+                            min="1"
+                            max="100"
+                            aria-label="{{ __('Progress') }}"
+                        >
+                        <output name="progressOutputName" id="goal-progress-output">{{ $progressVal }}</output>
+                        %
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
-    </div>
-{{Form::close()}}
+        <div class="modal-footer">
+            <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+            <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
+        </div>
+        <script defer src="{{ asset('assets/js/routes/goals/trackings/edit.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/goals/trackings/generateEdit.js') }}"></script>
+    {{ Form::close() }}
+@endif

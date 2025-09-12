@@ -98,9 +98,9 @@
                             <h5>{{ __('Calendar') }}</h5>
                         </div>
                         <div class="col-lg-6">
-                            @if (isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
+                            @if (!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
                                 <select class="form-control" name="calendar_type" id="calendar_type" style="float: right;width: 150px;" onchange="get_data()">
-                                    <option value="goggle_calendar">{{__('Google calendar')}}</option>
+                                    <option value="google_calendar">{{__('Google calendar')}}</option>
                                     <option value="local_calendar" selected="true">{{__('Local calendar')}}</option>
                                 </select>
                             @endif
@@ -180,7 +180,7 @@
         {
             var calendar_type=$('#calendar_type :selected').val();
             $('#calendar').removeClass('local_calendar');
-            $('#calendar').removeClass('goggle_calendar');
+            $('#calendar').removeClass('google_calendar');
             if(calendar_type==undefined){
                 $('#calendar').addClass('local_calendar');
             }

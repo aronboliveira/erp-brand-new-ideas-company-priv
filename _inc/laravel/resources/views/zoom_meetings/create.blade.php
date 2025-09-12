@@ -89,7 +89,7 @@
                 {{ Form::password('password', ['class' => VC::FM_CT, 'placeholder' => __('Enter Password')]) }}
             </div>
 
-            @if(isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
+            @if(!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
                 <div class="{{ VC::FM_GCB6 }}">
                     {{ Form::label('synchronize_type', __('Synchronize in Google Calendar ?'), ['class' => VC::FM_LB]) }}
                     <div class="form-switch">

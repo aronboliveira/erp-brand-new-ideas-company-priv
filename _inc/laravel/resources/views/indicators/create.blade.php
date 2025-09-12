@@ -1,58 +1,132 @@
-{{Collective\Html\FormFacade::open(array('url'=>'indicators','method'=>'post'))}}
-<div class="modal-body">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('branch',__('Branch'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('branch',$brances,null,array('class'=>'form-control select','required'=>'required'))}}
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+    use Illuminate\Support\Collection;
+
+    $lang = Utility::fetchUserLang();
+
+    $formId     = 'ind-store-form';
+    $storeBase  = VW::IND . '.store';
+    $storeKebab = Str::kebab($storeBase);
+    $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+    $storeUrl   = $storeRes ? route($storeRes) : '#';
+    $storeGuard = Utility::fetchLinkMessage($lang, VW::IND, 'store_route_unavailable') ?? __('Indicators store route is unavailable. Please contact technical support or your domain administrator.');
+
+    $branchesIsList = (is_array($brances ?? null) && count($brances ?? []) > 0) || (($brances ?? null) instanceof Collection && $brances->isNotEmpty());
+    $branchOptions  = $branchesIsList ? (is_array($brances) ? $brances : $brances->toArray()) : ['' => __('No branches available')];
+    $branchErr      = $errors->has('branch');
+    $branchAttrs    = [
+        'id'               => 'branch',
+        'class'            => trim(VC::FM_CT_SL . ' ' . ($branchErr ? 'is-invalid' : '')),
+        'required'         => 'required',
+        'aria-invalid'     => $branchErr ? 'true' : 'false',
+        'aria-describedby' => $branchErr ? 'branch-error' : null,
+    ];
+    if (!$branchesIsList) { $branchAttrs['disabled'] = 'disabled'; }
+
+    $deptsIsList = (is_array($departments ?? null) && count($departments ?? []) > 0) || (($departments ?? null) instanceof Collection && $departments->isNotEmpty());
+    $deptOptions = $deptsIsList ? (is_array($departments) ? $departments : $departments->toArray()) : ['' => __('No departments available')];
+    $deptErr     = $errors->has('department');
+    $deptAttrs   = [
+        'id'               => 'department',
+        'class'            => trim(VC::FM_CT_SL . ' ' . ($deptErr ? 'is-invalid' : '')),
+        'required'         => 'required',
+        'aria-invalid'     => $deptErr ? 'true' : 'false',
+        'aria-describedby' => $deptErr ? 'department-error' : null,
+    ];
+    if (!$deptsIsList) { $deptAttrs['disabled'] = 'disabled'; }
+
+    $perfIsList = (is_array($performance ?? null) && count($performance ?? []) > 0) || (($performance ?? null) instanceof Collection && $performance->isNotEmpty());
+
+    $ratingTitles = [
+        5 => __('Excellent - 5 stars'),
+        4 => __('Very good - 4 stars'),
+        3 => __('Satisfactory - 3 stars'),
+        2 => __('Needs improvement - 2 stars'),
+        1 => __('Unsatisfactory - 1 star'),
+    ];
+@endphp
+
+{{ Form::open([
+    'url'               => $storeUrl,
+    'method'            => 'POST',
+    'id'                => $formId,
+    'data-url'          => $storeUrl,
+    'data-guard-msg'    => $storeGuard,
+    'data-sv-localized' => 'true',
+]) }}
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('branch', __('Branch'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('branch', $branchOptions, null, $branchAttrs) }}
+                @error('branch')
+                    <span id="branch-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                @enderror
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('department',__('Department'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::select('department',$departments,null,array('class'=>'form-control select','required'=>'required'))}}
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('department', __('Department'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('department', $deptOptions, null, $deptAttrs) }}
+                @error('department')
+                    <span id="department-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                @enderror
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('designation',__('Designation'),['class'=>'form-label'])}}
-                <select class="select form-control select2-multiple" id="designation_id" name="designation" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}" required>
-                </select>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('designation', __('Designation'), ['class' => VC::FM_LB]) }}
+                <select class="select {{ VC::FM_CT_SL }} select2-multiple" id="designation_id" name="designation" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}" required></select>
             </div>
         </div>
 
-    </div>
-    @foreach($performance as $performances)
-    <div class="row">
-        <div class="col-md-12 mt-3">
-                    <h6>{{$performances->name}}</h6>
-            <hr class="mt-0">
-        </div>
+        @if($perfIsList)
+            @foreach($performance as $perf)
+                @php
+                    $perfName = (string) (data_get($perf, 'name') ?: __('Indicator group name unavailable'));
+                    $typesRaw = data_get($perf, 'types');
+                    $typesIsList = (is_array($typesRaw) && count($typesRaw) > 0) || ($typesRaw instanceof Collection && $typesRaw->isNotEmpty());
+                @endphp
+                <div class="{{ VC::RW }}">
+                    <div class="{{ VC::C12 }} {{ VC::MT3 }}">
+                        <h6 class="{{ VC::H6 }}">{{ $perfName }}</h6>
+                        <hr class="{{ VC::MB0 }}">
+                    </div>
 
-        @foreach($performances->types as $types )
-            <div class="col-6">
-                    {{$types->name}}
+                    @if($typesIsList)
+                        @foreach($typesRaw as $type)
+                            @php
+                                $typeName = (string) (data_get($type, 'name') ?: __('Indicator type name unavailable'));
+                                $typeId   = (string) (data_get($type, 'id') ?: ('x' . $loop->index));
+                            @endphp
+                            <div class="{{ VC::CM6 }}">{{ $typeName }}</div>
+                            <div class="{{ VC::CM6 }}">
+                                <fieldset class="rating">
+                                    @foreach($ratingTitles as $val => $title)
+                                        <input class="stars" type="radio" id="rating-{{ $val }}-{{ $typeId }}" name="rating[{{ $typeId }}]" value="{{ $val }}">
+                                        <label class="full" for="rating-{{ $val }}-{{ $typeId }}" title="{{ $title }}"></label>
+                                    @endforeach
+                                </fieldset>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="{{ VC::C12 }}">
+                            <div class="alert alert-warning {{ VC::MB0 }}" role="alert">{{ __('No indicator types available.') }}</div>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+        @else
+            <div class="{{ VC::C12 }}">
+                <div class="alert alert-warning {{ VC::MB0 }}" role="alert">{{ __('No indicators available.') }}</div>
             </div>
-            <div class="col-6">
-                <fieldset id='demo1' class="rating">
-                    <input class="stars" type="radio" id="technical-5-{{$types->id}}" name="rating[{{$types->id}}]" value="5"/>
-                    <label class="full" for="technical-5-{{$types->id}}" title="Awesome - 5 stars"></label>
-                    <input class="stars" type="radio" id="technical-4-{{$types->id}}" name="rating[{{$types->id}}]" value="4"/>
-                    <label class="full" for="technical-4-{{$types->id}}" title="Pretty good - 4 stars"></label>
-                    <input class="stars" type="radio" id="technical-3-{{$types->id}}" name="rating[{{$types->id}}]" value="3"/>
-                    <label class="full" for="technical-3-{{$types->id}}" title="Meh - 3 stars"></label>
-                    <input class="stars" type="radio" id="technical-2-{{$types->id}}" name="rating[{{$types->id}}]" value="2"/>
-                    <label class="full" for="technical-2-{{$types->id}}" title="Kinda bad - 2 stars"></label>
-                    <input class="stars" type="radio" id="technical-1-{{$types->id}}" name="rating[{{$types->id}}]" value="1"/>
-                    <label class="full" for="technical-1-{{$types->id}}" title="Sucks big time - 1 star"></label>
-                </fieldset>
-            </div>
-        @endforeach
+        @endif
     </div>
-    @endforeach
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
-</div>
-{{Collective\Html\FormFacade::close()}}
+    <div class="modal-footer">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+    </div>
+    <script defer src="{{ asset('assets/js/routes/indicators/store.js') }}"></script>
+{{ Form::close() }}

@@ -1,77 +1,144 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW
     };
-    use Illuminate\Support\Facades\Route;
-@endphp
-@extends(ExtendingLayoutsConstants::ADM)
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
 
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Job Category')}}
+    $user               = Auth::user();
+    $hasFetchUserLang   = is_callable([Utility::class, 'fetchUserLang']);
+    $hasFetchLinkMsg    = is_callable([Utility::class, 'fetchLinkMessage']);
+    $lang               = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : app()->getLocale();
+@endphp
+
+@extends(EL::ADM)
+
+@section(YW::ADM_PG_TTL)
+    {{ __('Manage Job Category') }}
 @endsection
 
-@section(YieldingConstants::ADM_BDC)
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Job Category')}}</li>
+    <li class="breadcrumb-item">{{ __('Job Category') }}</li>
 @endsection
 
-@section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+@section(YW::ADM_ACT_BTN)
+    <div class="{{ VC::FEND }}">
         @can('create job category')
-            <a href="#" data-url="{{ route('job-category.create') }}" data-ajax-popup="true" data-title="{{__('Create New Job Category')}}" data-bs-toggle="tooltip" title="{{__('Create')}}"  class="btn btn-sm btn-primary">
-                <i class="ti ti-plus"></i>
+            @php
+                $createBase   = VW::JB_CAT . '.create';
+                $createUrl    = Route::has($createBase) ? route($createBase) : '#';
+                $createMsg    = ($hasFetchLinkMsg ? Utility::fetchLinkMessage($lang, VW::JB_CAT, 'create_job_category_route_unavailable') : null)
+                                ?? __('Create job category route is unavailable. Please contact technical support or your domain administrator.');
+            @endphp
+            <a  href="{{ $createUrl }}"
+                data-url="{{ $createUrl }}"
+                data-ajax-popup="true"
+                data-title="{{ __('Create New Job Category') }}"
+                data-bs-toggle="tooltip"
+                title="{{ __('Create') }}"
+                class="{{ VC::BT_SM_PM }}"
+                data-guard-msg="{{ $createMsg }}"
+                data-sv-localized="true">
+                <i class="{{ VC::TI_PLS }}"></i>
             </a>
-
         @endcan
     </div>
 @endsection
 
-@section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-3">
+@section(YW::ADM_CTT)
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CL_XL3 }}">
             @include('layouts.hrm_setup')
         </div>
-        <div class="col-9">
-            <div class="card">
+        <div class="{{ VC::CLMS9 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="{{ VC::TB }} datatable">
                             <thead>
-                            <tr>
-                                <th>{{__('Category')}}</th>
-                                <th width="200px">{{__('Action')}}</th>
-                            </tr>
+                                <tr>
+                                    <th>{{ __('Category') }}</th>
+                                    <th width="200px">{{ __('Action') }}</th>
+                                </tr>
                             </thead>
                             <tbody class="font-style">
-                            @foreach ($categories as $category)
-                                <tr>
-                                    <td>{{ $category->title }}</td>
-                                    <td>
-                                        @can('edit job category')
-                                            <div class="action-btn bg-primary ms-2">
-                                                <a href="#" class="mx-3 btn btn-sm align-items-center" data-url="{{ route('job-category.edit',$category->id) }}" data-ajax-popup="true" data-title="{{__('Edit Job Category')}}" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
-                                                    <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                                </a>
-                                            </div>
-                                        @endcan
-                                        @can('delete job category')
-                                            <div class="action-btn bg-danger ms-2">
-                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['job-category.destroy', $category->id],'id'=>'delete-form-'.$category->id]) !!}
-                                                <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}"><i class="ti ti-trash text-white"></i></a>
-                                                {!! Collective\Html\FormFacade::close() !!}
-                                            </div>
-                                        @endcan
-                                    </td>
-                                </tr>
-                            @endforeach
+                                @forelse ($categories as $category)
+                                    @php
+                                        $cid   = isset($category->id) ? (string)$category->id : '';
+                                        $title = isset($category->title) && $category->title !== '' ? $category->title : __('Category title was not available.');
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $title }}</td>
+                                        <td>
+                                            @can('edit job category')
+                                                @php
+                                                    $editBase = VW::JB_CAT . '.edit';
+                                                    $editUrl  = (Route::has($editBase) && $cid !== '') ? route($editBase, $cid) : '#';
+                                                    $editMsg  = ($hasFetchLinkMsg ? Utility::fetchLinkMessage($lang, VW::JB_CAT, 'edit_job_category_route_unavailable') : null)
+                                                                ?? __('Edit job category route is unavailable. Please contact technical support or your domain administrator.');
+                                                @endphp
+                                                <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                    <a  href="{{ $editUrl }}"
+                                                        class="{{ VC::BT_SM_FL_CT }}"
+                                                        data-url="{{ $editUrl }}"
+                                                        data-ajax-popup="true"
+                                                        data-title="{{ __('Edit Job Category') }}"
+                                                        data-bs-toggle="tooltip"
+                                                        title="{{ __('Edit') }}"
+                                                        data-guard-msg="{{ $editMsg }}"
+                                                        data-sv-localized="true">
+                                                        <i class="{{ VC::TI_PC_WT }}"></i>
+                                                    </a>
+                                                </div>
+                                            @endcan
+
+                                            @can('delete job category')
+                                                @php
+                                                    $destroyBase = VW::JB_CAT . '.destroy';
+                                                    $destroyUrl  = (Route::has($destroyBase) && $cid !== '') ? route($destroyBase, $cid) : '#';
+                                                    $destroyMsg  = ($hasFetchLinkMsg ? Utility::fetchLinkMessage($lang, VW::JB_CAT, 'destroy_job_category_route_unavailable') : null)
+                                                                    ?? __('Delete job category route is unavailable. Please contact technical support or your domain administrator.');
+                                                    $delFormId   = 'delete-form-' . ($cid === '' ? 'x' : $cid);
+                                                    $cTitle      = ($hasFetchLinkMsg ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
+                                                    $cBody       = ($hasFetchLinkMsg ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';
+                                                @endphp
+                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                    {!! Form::open([
+                                                        'method'            => 'DELETE',
+                                                        'url'               => $destroyUrl,
+                                                        'id'                => $delFormId,
+                                                        'data-url'          => $destroyUrl,
+                                                        'data-guard-msg'    => $destroyMsg,
+                                                        'data-sv-localized' => 'true',
+                                                    ]) !!}
+                                                        <a  href="#"
+                                                            class="{{ VC::BT_SM_CT_PR }}"
+                                                            data-bs-toggle="tooltip"
+                                                            title="{{ __('Delete') }}"
+                                                            data-confirm="{{ __($cTitle) }}|{{ __($cBody) }}"
+                                                            data-confirm-yes="document.getElementById('{{ $delFormId }}').submit();">
+                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                        </a>
+                                                    {!! Form::close() !!}
+                                                </div>
+                                            @endcan
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="2" class="text-center">{{ __('No job categories were available to display.') }}</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -80,3 +147,7 @@
         </div>
     </div>
 @endsection
+
+@push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/jobs/categories/index.js') }}"></script>
+@endpush

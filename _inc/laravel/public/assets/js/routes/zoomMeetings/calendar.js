@@ -147,7 +147,7 @@
     const cal = qs("#calendar");
     if (!cal) return;
     cal.classList.remove("local_calendar");
-    cal.classList.remove("goggle_calendar");
+    cal.classList.remove("google_calendar");
     if (!type) cal.classList.add("local_calendar");
     cal.classList.add(type);
   };

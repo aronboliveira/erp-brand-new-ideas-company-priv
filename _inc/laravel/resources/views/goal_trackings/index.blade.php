@@ -1,210 +1,218 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW,
+        ViewsConstants as VW
     };
     use App\Models\Utility;
     use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\{Collection, Str};
+
     $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    $hasUser = (bool) $user;
+    $hasUserDateFormat = $hasUser && method_exists($user, 'dateFormat');
+    $hasFetchUserLang = is_callable([Utility::class, 'fetchUserLang']);
+    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+    $hasGetProgressColor = is_callable([Utility::class, 'getProgressColor']);
+    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : (string) app()->getLocale();
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Goal Tracking')}}
+
+@extends(EL::ADM)
+
+@section(YW::ADM_PG_TTL)
+    {{ __('Manage Goal Tracking') }}
 @endsection
-@section(YieldingConstants::ADM_BDC)
+
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Goal Tracking')}}</li>
+    <li class="breadcrumb-item">{{ __('Goal Tracking') }}</li>
 @endsection
-@push(StacksConstants::ADM_CSS)
+
+@push(ST::ADM_CSS)
     <style>
         @import url({{ asset('css/font-awesome.css') }});
     </style>
 @endpush
-@push(StacksConstants::ADM_SCR_PG)
+
+@push(ST::ADM_SCR_PG)
     <script defer src="{{ asset('js/bootstrap-toggle.js') }}"></script>
-    <script defer>
-        (() => {
-          const errFb = '# ERROR';
-          const dataClientLoc = 'data-client-localized';
-          const dataGuardMsg = 'data-guard-msg';
-        
-          function getLocalizedMessage(el, key) {
-            let msg = errFb;
-            if (el.getAttribute(dataClientLoc) === 'true') {
-              msg = el.getAttribute(dataGuardMsg) || errFb;
-            } else {
-              let lang = (window.sessionStorage.getItem('erp-np-lang')
-                || document.documentElement.lang
-                || 'en')
-                .toLowerCase()
-                .replace(/_/g, '-');
-              lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-              msg = window.translations?.[lang]?.[key]
-                 || el.getAttribute(dataGuardMsg)
-                 || window.translations?.['en']?.[key]
-                 || errFb;
-              if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLoc, 'true');
-              }
-            }
-            return msg;
-          }
-        
-          function showError(msg) {
-            const bsLink = document.querySelector("link[href*='bootstrap']");
-            if (bsLink && window.bootstrap?.Toast) {
-              const container = document.getElementById('toast-container') || (() => {
-                const c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); return c;
-              })();
-              const toastEl = document.createElement('div');
-              toastEl.className = 'toast';
-              toastEl.setAttribute('role', 'alert');
-              toastEl.setAttribute('aria-live', 'assertive');
-              toastEl.setAttribute('aria-atomic', 'true');
-              const body = document.createElement('div');
-              body.className = 'toast-body';
-              body.textContent = msg;
-              toastEl.appendChild(body);
-              container.appendChild(toastEl);
-              window.bootstrap.Toast.getOrCreateInstance(toastEl).show();
-            } else {
-              alert(msg);
-            }
-          }
-        
-          document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.toggleswitch').forEach(el => {
-              try {
-                if (typeof $(el).bootstrapToggle !== 'function') {
-                  throw new Error('bootstrapToggle missing');
-                }
-                $(el).bootstrapToggle();
-              } catch {
-                const msg = getLocalizedMessage(el, 'toggle_init_failed');
-                el.addEventListener('click', () => showError(msg), { once: true });
-              }
-            });
-        
-            const starSelector = "fieldset[id^='demo'] .stars";
-            const handleStarClick = e => {
-              const tgt = e.target;
-              if (!tgt.matches(starSelector)) return;
-              try {
-                alert(tgt.value);
-                tgt.checked = true;
-              } catch {
-                const msg = getLocalizedMessage(tgt, 'star_click_failed');
-                tgt.addEventListener('pointerup', () => showError(msg), { once: true });
-              }
-            };
-        
-            if (!document.body.hasAttribute('data-star-listener')) {
-              document.body.addEventListener('click', handleStarClick);
-              document.body.setAttribute('data-star-listener', 'true');
-              const mo = new MutationObserver(() => {
-                if (!document.querySelector(starSelector)) {
-                  mo.disconnect();
-                  document.body.removeEventListener('click', handleStarClick);
-                }
-              });
-              mo.observe(document.body, { childList: true, subtree: true });
-            }
-          });
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/goals/trackings/toggle.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/goals/trackings/index.js') }}"></script>
 @endpush
-@section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-    @can('create goal tracking')
-       <a href="#" data-size="lg" data-url="{{ route(ViewsConstants::GL_TRC.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create')}}" data-title="{{__('Create New Goal Tracking')}}" class="btn btn-sm btn-primary">
-            <i class="ti ti-plus"></i>
-        </a>
+
+@section(YW::ADM_ACT_BTN)
+    <div class="{{ VC::FEND }}">
+        @can('create goal tracking')
+            @php
+                $createBase     = VW::GL_TRC . '.create';
+                $createKebab    = Str::kebab($createBase);
+                $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
+                $createUrl      = $createResolved ? route($createResolved) : '#';
+                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'create_goal_tracking_route_unavailable') : null) ?? __('Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+            @endphp
+            <a href="#"
+               data-size="lg"
+               data-url="{{ $createUrl }}"
+               data-ajax-popup="true"
+               data-bs-toggle="tooltip"
+               title="{{ __('Create') }}"
+               data-title="{{ __('Create New Goal Tracking') }}"
+               class="{{ VC::BT_SM_PM }}"
+               data-guard-msg="{{ $createGuardMsg }}"
+               data-sv-localized="true">
+                <i class="{{ VC::TI_PLS }}"></i>
+            </a>
         @endcan
     </div>
 @endsection
-@section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-            <div class="card-body table-border-style">
-                    <div class="table-responsive">
-                    <table class="table datatable">
-                            <thead>
-                            <tr>
-                                <th>{{__('Goal Type')}}</th>
-                                <th>{{__('Subject')}}</th>
-                                <th>{{__('Branch')}}</th>
-                                <th>{{__('Target Achievement')}}</th>
-                                <th>{{__('Start Date')}}</th>
-                                <th>{{__('End Date')}}</th>
-                                <th>{{__('Rating')}}</th>
-                                <th width="20%">{{__('Progress')}}</th>
-                                    <th width="200px">{{__('Action')}}</th>
-                            </tr>
-                            </thead>
-                            <tbody class="font-style">
-                            @foreach ($goalTrackings as $goalTracking)
+
+@section(YW::ADM_CTT)
+    @if(!$hasUser)
+        <div class="alert alert-warning mb-0" role="alert">{{ __('Failed to load Goal Tracking for the current user.') }}</div>
+    @else
+        @php
+            $list = $goalTrackings ?? [];
+            $hasList = ($list instanceof Collection) ? $list->isNotEmpty() : (is_array($list) && count($list) > 0);
+            $hasActions = $user->can('edit goal tracking') || $user->can('delete goal tracking');
+        @endphp
+        <div class="row">
+            <div class="{{ VC::CM12 }}">
+                <div class="{{ VC::CD }}">
+                    <div class="card-body table-border-style">
+                        <div class="table-responsive">
+                            <table class="{{ VC::TB }} datatable">
+                                <thead>
                                 <tr>
-                                    <td>{{ !empty($goalTracking->goalType)?$goalTracking->goalType->name:'' }}</td>
-                                    <td>{{$goalTracking->subject}}</td>
-                                    <td>{{ !empty($goalTracking->branches)?$goalTracking->branches->name:'' }}</td>
-                                    <td>{{$goalTracking->target_achievement}}</td>
-                                    <td>{{$user?->dateFormat($goalTracking->start_date)}}</td>
-                                    <td>{{$user?->dateFormat($goalTracking->end_date)}}</td>
-                                    <td>
-                                        @for($i=1; $i<=5; $i++)
-                                            @if($goalTracking->rating < $i)
-                                                <i class="fas fa-star"></i>
-                                            @else
-                                                <i class="text-warning fas fa-star"></i>
-                                            @endif
-                                        @endfor
-                                    </td>
-                                    <td>
-                                        <div class="progress-wrapper">
-                                            <span class="progress-percentage"><small class="font-weight-bold"></small>{{$goalTracking->progress}}%</span>
-                                            <div class="progress progress-xs mt-2 w-100">
-                                                <div class="progress-bar bg-{{Utility::getProgressColor($goalTracking->progress)}}" role="progressbar" aria-valuenow="{{$goalTracking->progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{$goalTracking->progress}}%;"></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    @if( Gate::check('edit goal tracking') ||Gate::check('delete goal tracking'))
-                                        <td>
-                                            @can('edit goal tracking')
-                                            <div class="action-btn bg-primary ms-2">
-                                                <a href="#" data-url="{{ route(ViewsConstants::GL_TRC.'.edit',$goalTracking->id) }}" data-size="lg" data-ajax-popup="true" data-title="{{__('Edit Goal Tracking')}}" class="mx-3 btn btn-sm align-items-center " data-bs-toggle="tooltip" title="{{__('Edit')}}" data-original-title="{{__('Edit')}}">
-                                                <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i></a>
-                                            </div>
-                                                @endcan
-                                            @can('delete goal tracking')
-                                            <div class="action-btn bg-danger ms-2">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstants::GL_TRC.'.destroy', $goalTracking->id],'id'=>'delete-form-'.$goalTracking->id]) !!}
-                                                   <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm-yes="document.getElementById('delete-form-{{$goalTracking->id}}').submit();">
-                                                   <i class="ti ti-trash text-white"></i>
-                                                    </a>
-                                                {!! Collective\Html\FormFacade::close() !!}
-                                            </div>
-                                            @endcan
-                                        </td>
+                                    <th>{{ __('Goal Type') }}</th>
+                                    <th>{{ __('Subject') }}</th>
+                                    <th>{{ __('Branch') }}</th>
+                                    <th>{{ __('Target Achievement') }}</th>
+                                    <th>{{ __('Start Date') }}</th>
+                                    <th>{{ __('End Date') }}</th>
+                                    <th>{{ __('Rating') }}</th>
+                                    <th width="20%">{{ __('Progress') }}</th>
+                                    @if($hasActions)
+                                        <th width="200px">{{ __('Action') }}</th>
                                     @endif
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody class="font-style">
+                                @if($hasList)
+                                    @foreach ($list as $goalTracking)
+                                        @php
+                                            $gtId     = (string) ($goalTracking->id ?? '');
+                                            $gtType   = data_get($goalTracking, 'goalType.name') ?: __('No goal type available');
+                                            $subject  = $goalTracking->subject ?? __('No subject available');
+                                            $branch   = data_get($goalTracking, 'branches.name') ?: __('No branch available');
+                                            $target   = $goalTracking->target_achievement ?? 0;
+                                            $startAt  = $goalTracking->start_date ?? null;
+                                            $endAt    = $goalTracking->end_date ?? null;
+                                            $rating   = (int) ($goalTracking->rating ?? 0);
+                                            $progress = (int) ($goalTracking->progress ?? 0);
+                                            $startFmt = $hasUserDateFormat ? $user->dateFormat($startAt) : ($startAt ?? __('No start date available'));
+                                            $endFmt   = $hasUserDateFormat ? $user->dateFormat($endAt)   : ($endAt ?? __('No end date available'));
+                                            $progClr  = $hasGetProgressColor ? Utility::getProgressColor($progress) : 'primary';
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $gtType }}</td>
+                                            <td>{{ $subject }}</td>
+                                            <td>{{ $branch }}</td>
+                                            <td>{{ $target }}</td>
+                                            <td>{{ $startFmt }}</td>
+                                            <td>{{ $endFmt }}</td>
+                                            <td>
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($rating < $i)
+                                                        <i class="fas fa-star"></i>
+                                                    @else
+                                                        <i class="text-warning fas fa-star"></i>
+                                                    @endif
+                                                @endfor
+                                            </td>
+                                            <td>
+                                                <div class="progress-wrapper">
+                                                    <span class="progress-percentage"><small class="font-weight-bold"></small>{{ $progress }}%</span>
+                                                    <div class="{{ VC::PG_XS }} mt-2 w-100">
+                                                        <div class="progress-bar bg-{{ $progClr }}" role="progressbar" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ $progress }}%;"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            @if($hasActions)
+                                                <td>
+                                                    @can('edit goal tracking')
+                                                        @php
+                                                            $editBase     = VW::GL_TRC . '.edit';
+                                                            $editKebab    = Str::kebab($editBase);
+                                                            $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
+                                                            $editUrl      = ($editResolved && $gtId !== '') ? route($editResolved, $gtId) : '#';
+                                                            $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'edit_goal_tracking_route_unavailable') : null) ?? __('Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                                                        @endphp
+                                                        <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                            <a href="#"
+                                                               class="{{ VC::BT_SM_FL_CT }}"
+                                                               data-url="{{ $editUrl }}"
+                                                               data-size="lg"
+                                                               data-ajax-popup="true"
+                                                               data-title="{{ __('Edit Goal Tracking') }}"
+                                                               data-bs-toggle="tooltip"
+                                                               title="{{ __('Edit') }}"
+                                                               data-guard-msg="{{ $editGuardMsg }}"
+                                                               data-sv-localized="true">
+                                                                <i class="{{ VC::TI_PC_WT }}"></i>
+                                                            </a>
+                                                        </div>
+                                                    @endcan
+
+                                                    @can('delete goal tracking')
+                                                        @php
+                                                            $destroyBase     = VW::GL_TRC . '.destroy';
+                                                            $destroyKebab    = Str::kebab($destroyBase);
+                                                            $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
+                                                            $destroyUrl      = ($destroyResolved && $gtId !== '') ? route($destroyResolved, $gtId) : '#';
+                                                            $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'destroy_goal_tracking_route_unavailable') : null) ?? __('Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                                                            $deleteFormId    = 'goal-tracking-delete-form-' . ($gtId === '' ? 'x' : $gtId);
+                                                        @endphp
+                                                        <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                            {!! Collective\Html\FormFacade::open([
+                                                                'method'            => 'DELETE',
+                                                                'url'               => $destroyUrl,
+                                                                'id'                => $deleteFormId,
+                                                                'data-url'          => $destroyUrl,
+                                                                'data-guard-msg'    => $destroyGuardMsg,
+                                                                'data-sv-localized' => 'true',
+                                                            ]) !!}
+                                                                <a href="#"
+                                                                   class="{{ VC::BT_SM_CT_PR }}"
+                                                                   data-bs-toggle="tooltip"
+                                                                   title="{{ __('Delete') }}"
+                                                                   data-confirm="{{ __(($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?') }}|{{ __(($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                   data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();">
+                                                                    <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                </a>
+                                                            {!! Collective\Html\FormFacade::close() !!}
+                                                        </div>
+                                                    @endcan
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="{{ $hasActions ? 9 : 8 }}" class="text-center">{{ __('No goal tracking records found.') }}</td>
+                                    </tr>
+                                @endif
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-
         </div>
-    </div>
+    @endif
 @endsection
-

@@ -42,6 +42,7 @@
 @endsection
 @push(StacksConstants::CTC_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/jobs/applications/lang/pdf.js') }}"></script>
     <script defer>
         (function () {
         const errFb = "# ERROR";

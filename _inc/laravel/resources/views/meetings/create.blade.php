@@ -74,7 +74,7 @@
                     {{Form::textarea('note',null,array('class'=>'form-control','placeholder'=>__('Enter Meeting Note')))}}
                 </div>
             </div>
-            @if(isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
+            @if(!empty($settings) && isset($settings['google_calendar_enable']) && $settings['google_calendar_enable'] == 'on')
                 <div class="form-group col-md-6 ">
                     {{Form::label('synchronize_type',__('Synchronize in Google Calendar ?'),array('class'=>'form-label')) }}
                     <div class="form-switch">

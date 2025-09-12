@@ -1,6 +1,6 @@
 @php
     use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\Str;
+    use Illuminate\Support\{Collection, Str};
     use App\Models\Utility;
     use App\Config\Constants\{
         PermissionsConstants,
@@ -70,7 +70,7 @@
                             $i = 0;
                             $bugStatusIterable =
                                 (is_array($bugStatus ?? null) && count($bugStatus ?? []) > 0) ||
-                                (($bugStatus ?? null) instanceof \Illuminate\Support\Collection && ($bugStatus)->isNotEmpty());
+                                (($bugStatus ?? null) instanceof Collection && ($bugStatus)->isNotEmpty());
                         @endphp
 
                         @if($bugStatusIterable)
@@ -94,8 +94,8 @@
                                                             $editName    = ViewsConstants::BUG_STT . '.edit';
                                                             $editRoute   = Route::has($editName)
                                                                 ? route($editName, $bugId)
-                                                                : (Route::has(\Illuminate\Support\Str::kebab($editName))
-                                                                    ? route(\Illuminate\Support\Str::kebab($editName), $bugId)
+                                                                : (Route::has(Str::kebab($editName))
+                                                                    ? route(Str::kebab($editName), $bugId)
                                                                     : '#');
                                                             $editBtnId   = 'bugstatus-edit-btn-' . $bugId;
                                                             $editMsg     = Utility::fetchLinkMessage($langLocal, ViewsConstants::BUG_STT, 'bug_status_edit_route_unavailable')
@@ -122,8 +122,8 @@
                                                             $destroyName     = ViewsConstants::BUG_STT . '.destroy';
                                                             $destroyRoute    = Route::has($destroyName)
                                                                 ? route($destroyName, $bugId)
-                                                                : (Route::has(\Illuminate\Support\Str::kebab($destroyName))
-                                                                    ? route(\Illuminate\Support\Str::kebab($destroyName), $bugId)
+                                                                : (Route::has(Str::kebab($destroyName))
+                                                                    ? route(Str::kebab($destroyName), $bugId)
                                                                     : '#');
                                                             $destroyFormId   = 'bugstatus-delete-form-' . $bugId;
                                                             $destroyBtnId    = 'bugstatus-delete-btn-' . $bugId;
