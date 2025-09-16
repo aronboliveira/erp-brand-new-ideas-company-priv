@@ -6,7 +6,7 @@
     use Illuminate\Support\Str;
     
     $lang = method_exists('Utility', 'fetchUserLang') ? Utility::fetchUserLang() : 'en';
-    $storeBaseName = VW::PRM . '.store';
+    $storeBaseName = VW::PRM;
     $storeKebabName = Str::kebab($storeBaseName);
     $storeResolvedName = Route::has($storeBaseName) ? $storeBaseName : (Route::has($storeKebabName) ? $storeKebabName : null);
     $storeUrl = $storeResolvedName ? route($storeResolvedName) : '#';
@@ -118,7 +118,7 @@
             try {
                 const guardToast = (msg) => {
                     try {
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
                         let container = document.getElementById('toast-container');
                         if (!container) {
                             container = document.createElement('div');

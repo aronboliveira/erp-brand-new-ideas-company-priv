@@ -36,7 +36,7 @@
         ['name' => 'shipping_zip',     'type' => 'text',     'label' => __('Zip Code'),'cols' => 6],
     ];
     $showShipping = Utility::getValByName('shipping_display') === 'on';
-    $storeBase   = VW::VND . '.store';
+    $storeBase   = VW::VND;
     $storeKebab  = Str::kebab($storeBase);
     $storeName   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl    = $storeName ? route($storeName) : url(VW::VND);

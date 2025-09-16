@@ -26,7 +26,7 @@
         ['name'=>'shipping_country', 'type'=>'text',     'label'=>__('Country'),     'cols'=>6],
         ['name'=>'shipping_zip',     'type'=>'text',     'label'=>__('Zip Code'),    'cols'=>6],
     ];
-    $customersStoreBaseRouteName  = ViewsConstants::CST.'.store';
+    $customersStoreBaseRouteName  = ViewsConstants::CST;
     $customersStoreKebabRouteName = Str::kebab($customersStoreBaseRouteName);
     $customersStoreResolvedName   = Route::has($customersStoreBaseRouteName)
         ? $customersStoreBaseRouteName

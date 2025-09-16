@@ -13,7 +13,7 @@
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user: $user);
 
-    $storeBase  = VW::EMP . '.store';
+    $storeBase  = VW::EMP;
     $storeKebab = Str::kebab($storeBase);
     $storeName  = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeName ? route($storeName) : '#';

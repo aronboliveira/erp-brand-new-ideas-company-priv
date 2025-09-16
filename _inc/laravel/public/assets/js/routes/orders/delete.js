@@ -1,47 +1,73 @@
 (() => {
-  const selector = '[id^="delete-order-link-"]';
-  const alias = "data-listening-deleteorderclick";
-
-  document.querySelectorAll(selector).forEach(el => {
-    if (!el.hasAttribute(alias)) {
-      el.setAttribute(alias, "true");
-      el.addEventListener("click", event => {
-        const url = el.getAttribute("data-url");
-        const href = el.href;
-        if ((!url || url === "#") && (!href || href === "#")) {
-          event.preventDefault();
-          const hasBS = Array.from(document.scripts).some(
-            s =>
-              s.src &&
-              s.src.includes("bootstrap.min.js") &&
-              window.bootstrap &&
-              typeof window.bootstrap.Modal === "function"
-          );
-          const msg = el.getAttribute("data-guard-msg");
-          if (hasBS) {
-            const wrapper = document.createElement("div");
-            wrapper.innerHTML = `
-													<div class="modal fade" tabindex="-1">
-															<div class="modal-dialog modal-sm">
-																	<div class="modal-content">
-																			<div class="modal-header">
-																					<h5 class="modal-title">Error</h5>
-																					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-																			</div>
-																			<div class="modal-body"><p>${msg}</p></div>
-																			<div class="modal-footer">
-																					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-																			</div>
-																	</div>
-															</div>
-													</div>`;
-            document.body.appendChild(wrapper);
-            new window.bootstrap.Modal(wrapper.querySelector(".modal")).show();
-          } else {
-            alert(msg);
-          }
-        }
-      });
+  const DEFAULT_MSG =
+    "Requested route is unavailable. Please contact technical support or your domain administrator.";
+  const toast = message => {
+    const text = message || DEFAULT_MSG;
+    const hasBs =
+      !!document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
+      !!window.bootstrap;
+    let box = document.getElementById("toast-container");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "toast-container";
+      document.body.appendChild(box);
     }
+    if (hasBs) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.setAttribute("role", "alert");
+      t.setAttribute("aria-live", "assertive");
+      t.setAttribute("aria-atomic", "true");
+      const b = document.createElement("div");
+      b.className = "toast-body";
+      b.textContent = text;
+      t.appendChild(b);
+      box.appendChild(t);
+      bootstrap.Toast.getOrCreateInstance(t).show();
+    } else {
+      alert(text);
+    }
+  };
+  const guardLink = el => {
+    if (!el || el.getAttribute("data-listener-active") === "true") return;
+    el.setAttribute("data-listener-active", "true");
+    el.addEventListener("click", e => {
+      const href = (el.getAttribute("href") ?? "#").trim();
+      const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
+      if (url !== "#" && href !== "#") return;
+      e.preventDefault();
+      toast(el.getAttribute("data-guard-msg") || DEFAULT_MSG);
+      el.setAttribute("data-failed-route", "true");
+    });
+  };
+  const guardForm = fm => {
+    if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
+    fm.setAttribute("data-submit-guarded", "true");
+    fm.addEventListener("submit", e => {
+      const action = (fm.getAttribute("action") ?? "#").trim();
+      const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
+      if (url !== "#" && action !== "#") return;
+      e.preventDefault();
+      toast(fm.getAttribute("data-guard-msg") || DEFAULT_MSG);
+      fm.setAttribute("data-failed-route", "true");
+    });
+  };
+  const tooltips = () => {
+    try {
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        try {
+          bootstrap.Tooltip.getOrCreateInstance(el);
+        } catch {}
+      });
+    } catch {}
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    document
+      .querySelectorAll("a[data-guard-msg],a[data-url]")
+      .forEach(guardLink);
+    document
+      .querySelectorAll("form[data-guard-msg],form[data-url]")
+      .forEach(guardForm);
+    tooltips();
   });
 })();

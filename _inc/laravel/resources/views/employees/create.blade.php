@@ -62,7 +62,7 @@
             <div>
                 <div class="{{ VC::RW }}"></div>
                 @php
-                    $empStoreBase     = VW::EMP.'.store';
+                    $empStoreBase     = VW::EMP;
                     $empStoreKebab    = Str::kebab($empStoreBase);
                     $empStoreResolved = Route::has($empStoreBase) ? $empStoreBase : (Route::has($empStoreKebab) ? $empStoreKebab : null);
                     $empStoreUrl      = $empStoreResolved ? route($empStoreResolved) : '#';

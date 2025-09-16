@@ -10,7 +10,7 @@
     use Illuminate\Support\Str;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user: $user);
-    $dlStoreBaseRouteName   = ViewsConstants::DL.'.store';
+    $dlStoreBaseRouteName   = ViewsConstants::DL;
     $dlStoreKebabRouteName  = Str::kebab($dlStoreBaseRouteName);
     $dlStoreResolvedName    = Route::has($dlStoreBaseRouteName)
         ? $dlStoreBaseRouteName

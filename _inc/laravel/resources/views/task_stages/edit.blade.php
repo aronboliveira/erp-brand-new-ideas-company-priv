@@ -27,28 +27,28 @@
 			? $updateBaseName
 			: (Route::has(Str::kebab($updateBaseName)) ? Str::kebab($updateBaseName) : null);
 	} catch (\Error $e) {
-		Log::error('Blade projectTaskStages/update: route name resolution error (Error): ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: route name resolution error (Error): ' . $e->getMessage());
 	} catch (InvalidArgumentException $e) {
-		Log::error('Blade projectTaskStages/update: invalid argument while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: invalid argument while resolving route name: ' . $e->getMessage());
 	} catch (\Exception $e) {
-		Log::error('Blade projectTaskStages/update: general exception while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: general exception while resolving route name: ' . $e->getMessage());
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTaskStages/update: throwable while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: throwable while resolving route name: ' . $e->getMessage());
 	}
 
 	try {
 		$updateActionUrl = ($updateResolved && !empty($stageId)) ? route($updateResolved, $stageId) : '#';
 	} catch (\Error $e) {
-		Log::error('Blade projectTaskStages/update: route URL generation error (Error): ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: route URL generation error (Error): ' . $e->getMessage());
 		$updateActionUrl = '#';
 	} catch (InvalidArgumentException $e) {
-		Log::error('Blade projectTaskStages/update: invalid argument while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: invalid argument while generating URL: ' . $e->getMessage());
 		$updateActionUrl = '#';
 	} catch (\Exception $e) {
-		Log::error('Blade projectTaskStages/update: general exception while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: general exception while generating URL: ' . $e->getMessage());
 		$updateActionUrl = '#';
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTaskStages/update: throwable while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/stages/update: throwable while generating URL: ' . $e->getMessage());
 		$updateActionUrl = '#';
 	}
 @endphp
@@ -81,4 +81,4 @@
 		<input type="submit" value="{{ $updateLabel }}" class="{{ VC::BT_PRM }}">
 	</div>
 {{ Form::close() }}
-<script defer src="{{ asset('assets/js/routes/projectTaskStages/update.js') }}"></script>
+<script defer src="{{ asset('assets/js/routes/projects/tasks/stages/update.js') }}"></script>

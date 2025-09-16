@@ -39,44 +39,7 @@
         </a>
     </li>
     @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                const link = document.getElementById('project-index-link');
-                if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                link.setAttribute('data-listener-active', 'true');
-                link.addEventListener('click', e => {
-                    try {
-                        const url = link.getAttribute('data-url') || '#';
-                        if (url !== '#') return;
-                        e.preventDefault();
-                        const msg = link.getAttribute('data-guard-msg') || '# ERROR';
-                        const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                        let container = document.getElementById('toast-container');
-                        if (!container) {
-                            container = document.createElement('div');
-                            container.id = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-                        if (hasBootstrap) {
-                            const toast = document.createElement('div');
-                            toast.className = 'toast';
-                            toast.setAttribute('role','alert');
-                            toast.setAttribute('aria-live','assertive');
-                            toast.setAttribute('aria-atomic','true');
-                            const body = document.createElement('div');
-                            body.className = 'toast-body';
-                            body.textContent = msg;
-                            toast.appendChild(body);
-                            container.appendChild(toast);
-                            bootstrap.Toast.getOrCreateInstance(toast).show();
-                        } else {
-                            alert(msg);
-                        }
-                        link.setAttribute('data-failed-route', 'true');
-                    } catch (err) {}
-                });
-            })();
-        </script>
+        <script defer src="{{ asset('assets/js/routes/projects/tasks/index.js') }}"></script>
     @endpush
     <li class="breadcrumb-item">{{__('Task')}}</li>
 @endsection
@@ -159,44 +122,7 @@
                 <span class="btn-inner--text"><i class="ti ti-list"></i>{{ __('List View') }}</span>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        const btn = document.getElementById('{{ $taskboardViewBtnId }}');
-                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                        btn.setAttribute('data-listener-active', 'true');
-                        btn.addEventListener('click', e => {
-                            try {
-                                const url = btn.getAttribute('data-url') || '#';
-                                if (url !== '#') return;
-                                e.preventDefault();
-                                const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (hasBootstrap) {
-                                    const toast = document.createElement('div');
-                                    toast.className = 'toast';
-                                    toast.setAttribute('role','alert');
-                                    toast.setAttribute('aria-live','assertive');
-                                    toast.setAttribute('aria-atomic','true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toast.appendChild(body);
-                                    container.appendChild(toast);
-                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                } else {
-                                    alert(msg);
-                                }
-                                btn.setAttribute('data-failed-route', 'true');
-                            } catch (err) {}
-                        });
-                    })();
-                </script>
+                <script defer src="{{ asset('assets/js/routes/projects/tasks/boardView.js') }}"></script>
             @endpush
         @else
             @php
@@ -227,44 +153,7 @@
                 <span class="btn-inner--text"><i class="ti ti-table"></i></span>
             </a>
             @push(StacksConstants::ADM_SCR_PG)
-                <script defer>
-                    (() => {
-                        const btn = document.getElementById('{{ $taskboardGridViewBtnId }}');
-                        if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
-                        btn.setAttribute('data-listener-active', 'true');
-                        btn.addEventListener('click', e => {
-                            try {
-                                const url = btn.getAttribute('data-url') || '#';
-                                if (url !== '#') return;
-                                e.preventDefault();
-                                const msg = btn.getAttribute('data-guard-msg') || '# ERROR';
-                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (hasBootstrap) {
-                                    const toast = document.createElement('div');
-                                    toast.className = 'toast';
-                                    toast.setAttribute('role','alert');
-                                    toast.setAttribute('aria-live','assertive');
-                                    toast.setAttribute('aria-atomic','true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toast.appendChild(body);
-                                    container.appendChild(toast);
-                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                } else {
-                                    alert(msg);
-                                }
-                                btn.setAttribute('data-failed-route', 'true');
-                            } catch (err) {}
-                        });
-                    })();
-                </script>
+                <script defer src="{{ asset('assets/js/routes/projects/tasks/gridView.js') }}"></script>
             @endpush
         @endif
     </div>
@@ -273,7 +162,7 @@
     <div class="row min-750" id="taskboard_view"></div>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script async src="{{ asset('assets/js/routes/projectTasks/lang/sort.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/projects/tasks/lang/sort.js') }}"></script>
     <script defer>
         (()=>{
             const errFb='# ERROR';

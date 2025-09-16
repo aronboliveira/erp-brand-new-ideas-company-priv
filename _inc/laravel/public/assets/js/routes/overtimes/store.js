@@ -1,52 +1,44 @@
 (() => {
-  const attachGuard = (el, eventType) => {
-    if (!el || el.getAttribute("data-listener-active") === "true") return;
-    el.setAttribute("data-listener-active", "true");
-    el.addEventListener(eventType, event => {
+  try {
+    const fm = document.getElementById("ovt-store-form");
+    if (!fm) return;
+    if (fm.getAttribute("data-submit-guarded") === "true") return;
+    fm.setAttribute("data-submit-guarded", "true");
+    fm.addEventListener("submit", e => {
       try {
-        const href = el.tagName === "A" ? el.getAttribute("href") : null;
-        const action = el.tagName === "FORM" ? el.getAttribute("action") : null;
-        const url = el.getAttribute("data-url");
-        if (
-          (href && href !== "#") ||
-          (action && action !== "#") ||
-          (url && url !== "#")
-        )
-          return;
-        event.preventDefault();
-        const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
-        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+        const action = (fm.getAttribute("action") ?? "#").trim();
+        const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
+        if (url !== "#" && action !== "#") return;
+        e.preventDefault();
+        const msg =
+          fm.getAttribute("data-guard-msg") ??
+          "Overtime store route is unavailable. Please contact technical support or your domain administrator.";
+        const hasBootstrap = !!(
+          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
+        );
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
           document.body.appendChild(container);
         }
-        if (bootstrapLink && window.bootstrap) {
-          const toastEl = document.createElement("div");
-          toastEl.className = "toast";
-          toastEl.setAttribute("role", "alert");
-          toastEl.setAttribute("aria-live", "assertive");
-          toastEl.setAttribute("aria-atomic", "true");
-          const body = document.createElement("div");
-          body.className = "toast-body";
-          body.textContent = msg;
-          toastEl.appendChild(body);
-          container.appendChild(toastEl);
-          bootstrap.Toast.getOrCreateInstance(toastEl).show();
+        if (hasBootstrap) {
+          const t = document.createElement("div");
+          t.className = "toast";
+          t.setAttribute("role", "alert");
+          t.setAttribute("aria-live", "assertive");
+          t.setAttribute("aria-atomic", "true");
+          const b = document.createElement("div");
+          b.className = "toast-body";
+          b.textContent = msg;
+          t.appendChild(b);
+          container.appendChild(t);
+          bootstrap.Toast.getOrCreateInstance(t).show();
         } else {
           alert(msg);
         }
-        el.setAttribute("data-failed-route", "true");
-      } catch (e) {}
+        fm.setAttribute("data-failed-route", "true");
+      } catch {}
     });
-  };
-
-  attachGuard(document.getElementById("overtime-store-form"), "submit");
-  document
-    .querySelectorAll('[id^="overtime-edit-"]')
-    .forEach(el => attachGuard(el, "click"));
-  document
-    .querySelectorAll('[id^="overtime-delete-"]')
-    .forEach(el => attachGuard(el, "click"));
+  } catch {}
 })();

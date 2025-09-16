@@ -1,145 +1,155 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        LangsConstants,
-        StacksConstants,
-        ViewsConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW
     };
     use App\Models\Utility;
-    use Illuminate\Support\Facades\{Auth, Cookie, Route};
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Collection;
+
     $user = Auth::user();
-    $lang = Utility::fetchUserLang(user:$user);
+    $hasFetchUserLang    = is_callable([Utility::class, 'fetchUserLang']);
+    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+
+    $leavetypesIsList = (is_array($leavetypes ?? null) && count($leavetypes ?? []) > 0)
+        || (($leavetypes ?? null) instanceof Collection && $leavetypes->isNotEmpty());
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Leave Type')}}
+
+@extends(EL::ADM)
+
+@section(YW::ADM_PG_TTL)
+    {{ __('Manage Leave Type') }}
 @endsection
-@section(YieldingConstants::ADM_BDC)
+
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}" {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Leave Type')}}</li>
+    <li class="breadcrumb-item">{{ __('Leave Type') }}</li>
 @endsection
-@section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
+
+@section(YW::ADM_ACT_BTN)
+    <div class="{{ VC::FEND }}">
         @can('create leave type')
             @php
-                $createUrl   = Route::has(ViewsConstants::LV_TP.'.create')
-                    ? route(ViewsConstants::LV_TP.'.create')
-                    : '#';
-                $createClass = 'create-leavetype-link';
+                $createUrl = Route::has(VW::LV_TP.'.create') ? route(VW::LV_TP.'.create') : '#';
+                $createGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV_TP, 'create_leave_type_unavailable') : null)
+                    ?? __('Create leave type route is unavailable. Please contact technical support or your domain administrator.');
             @endphp
-            <a
-                href="{{ $createUrl }}"
-                id="{{ $createClass }}"
-                class="{{ ViewClassNamesConstants::BT_SM_PM }} {{ $createClass }}"
-                data-url="{{ $createUrl }}"
-                data-ajax-popup="true"
-                data-title="{{ __('Create New Leave Type') }}"
-                data-url="{{ $createUrl }}"
-                data-sv-localized="true"
-                data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::LV_TP, 'create_leave_type_unavailable') ?? '# ERROR' ) }}"
-                data-bs-toggle="tooltip"
-                title="{{ __('Create') }}"
-                data-original-title="{{ __('Create') }}"
-            >
-                <i class="{{ ViewClassNamesConstants::TI_PLS }}"></i>
+            <a href="{{ $createUrl }}"
+               class="{{ VC::BT_SM_PM }}"
+               data-url="{{ $createUrl }}"
+               data-ajax-popup="true"
+               data-title="{{ __('Create New Leave Type') }}"
+               data-sv-localized="true"
+               data-guard-msg="{{ $createGuard }}"
+               data-bs-toggle="tooltip"
+               title="{{ __('Create') }}">
+                <i class="{{ VC::TI_PLS }}"></i>
             </a>
-            <script defer src="{{ asset('assets/js/routes/leaveTypes/create.js') }}"></script>
         @endcan
     </div>
 @endsection
-@section(YieldingConstants::ADM_CTT)
-    <div class="row">
+
+@section(YW::ADM_CTT)
+    <div class="{{ VC::RW }}">
         <div class="col-3">
             @include('layouts.hrm_setup')
         </div>
         <div class="col-9">
-            <div class="card">
+            <div class="{{ VC::CD }}">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="{{ VC::TB }} datatable">
                             <thead>
-                            <tr>
-                                <th>{{__('Leave Type')}}</th>
-                                <th>{{__('Days / Year')}}</th>
-                                <th width="200px">{{__('Action')}}</th>
-                            </tr>
+                                <tr>
+                                    <th>{{ __('Leave Type') }}</th>
+                                    <th>{{ __('Days / Year') }}</th>
+                                    <th width="200px">{{ __('Action') }}</th>
+                                </tr>
                             </thead>
                             <tbody class="font-style">
-                            @foreach ($leavetypes as $leavetype)
-                                <tr>
-                                    <td>{{ $leavetype->title }}</td>
-                                    <td>{{ $leavetype->days}}</td>
-                                    <td>
-                                        @can('edit leave type')
-                                            @php
-                                                $editUrl    = Route::has(ViewsConstants::LV_TP.'.edit')
-                                                    ? route(ViewsConstants::LV_TP.'.edit', $leavetype->id)
-                                                    : '#';
-                                                $editClass  = 'edit-leavetype-link';
-                                            @endphp
-                                            <div class="{{ ViewClassNamesConstants::ACT_BTN_PRIM }}">
-                                                <a
-                                                    href="{{ $editUrl }}"
-                                                    id="{{ $editClass }}"
-                                                    class="{{ ViewClassNamesConstants::BT_SM_CT }} {{ $editClass }}"
-                                                    data-url="{{ $editUrl }}"
-                                                    data-sv-localized="true"
-                                                    data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::LV_TP, 'edit_leave_type_unavailable') ?? '# ERROR' ) }}"
-                                                    data-ajax-popup="true"
-                                                    data-title="{{ __('Edit Leave Type') }}"
-                                                    data-bs-toggle="tooltip"
-                                                    title="{{ __('Edit') }}"
-                                                    data-original-title="{{ __('Edit') }}"
-                                                >
-                                                    <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                                </a>
-                                            </div>
-                                            <script defer src="{{ asset('assets/js/routes/leaveTypes/edit.js') }}"></script>
-                                        @endcan
-                                    
-                                        @can('delete leave type')
-                                            @php
-                                                $deleteUrl   = Route::has(ViewsConstants::LV_TP.'.destroy')
-                                                    ? route(ViewsConstants::LV_TP.'.destroy', $leavetype->id)
-                                                    : '#';
-                                                $deleteClass = 'delete-leavetype-link';
-                                                $formId      = 'delete-leavetype-form-'.$leavetype->id;
-                                            @endphp
-                                            <div class="action-btn bg-danger ms-2">
-                                                {!! Collective\Html\FormFacade::open([
-                                                    'method' => 'DELETE',
-                                                    'url'    => $deleteUrl,
-                                                    'id'     => $formId
-                                                ]) !!}/
-                                                    <a
-                                                        href="{{ $deleteUrl }}"
-                                                        id="{{ $deleteClass }}"
-                                                        class="{{ ViewClassNamesConstants::BT_SM_CT_PR }} {{ $deleteClass }}"
-                                                        data-url="{{ $deleteUrl }}"
-                                                        data-sv-localized="true"
-                                                        data-guard-msg="{{ __( Utility::fetchLinkMessage($lang, ViewsConstants::LV_TP, 'delete_leave_type_unavailable') ?? '# ERROR' ) }}"
-                                                        data-bs-toggle="tooltip"
-                                                        title="{{ __('Delete') }}"
-                                                        data-original-title="{{ __('Delete') }}"
-                                                        data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                        data-confirm-yes="document.getElementById('{{ $formId }}').submit();"
-                                                    >
-                                                        <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>
-                                                    </a>
-                                                {!! Collective\Html\FormFacade::close() !!}
-                                            </div>
-                                            <script defer src="{{ asset('assets/js/routes/leaveTypes/delete.js') }}"></script>
-                                        @endcan
-                                    </td>
-                                </tr>
-                            @endforeach
+                                @if ($leavetypesIsList)
+                                    @foreach ($leavetypes as $leavetype)
+                                        @php
+                                            $id      = isset($leavetype->id) ? (string)$leavetype->id : '';
+                                            $title   = isset($leavetype->title) && $leavetype->title !== '' ? $leavetype->title : __('(title not available)');
+                                            $daysRaw = $leavetype->days ?? null;
+                                            $days    = (is_numeric($daysRaw) || (is_string($daysRaw) && trim($daysRaw) !== ''))
+                                                        ? $daysRaw
+                                                        : __('Days per year data was not available.');
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $title }}</td>
+                                            <td>{{ $days }}</td>
+                                            <td>
+                                                @can('edit leave type')
+                                                    @php
+                                                        $editUrl = ($id !== '' && Route::has(VW::LV_TP.'.edit')) ? route(VW::LV_TP.'.edit', $id) : '#';
+                                                        $editGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV_TP, 'edit_leave_type_unavailable') : null)
+                                                            ?? __('Edit leave type route is unavailable. Please contact technical support or your domain administrator.');
+                                                    @endphp
+                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                        <a href="#"
+                                                           class="{{ VC::BT_SM_CT }}"
+                                                           data-url="{{ $editUrl }}"
+                                                           data-ajax-popup="true"
+                                                           data-title="{{ __('Edit Leave Type') }}"
+                                                           data-sv-localized="true"
+                                                           data-guard-msg="{{ $editGuard }}"
+                                                           data-bs-toggle="tooltip"
+                                                           title="{{ __('Edit') }}">
+                                                            <i class="{{ VC::TI_PC_WT }}"></i>
+                                                        </a>
+                                                    </div>
+                                                @endcan
+
+                                                @can('delete leave type')
+                                                    @php
+                                                        $delUrl  = ($id !== '' && Route::has(VW::LV_TP.'.destroy')) ? route(VW::LV_TP.'.destroy', $id) : '#';
+                                                        $formId  = 'delete-leavetype-form-'.($id === '' ? 'x' : $id);
+                                                        $delGuard = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LV_TP, 'delete_leave_type_unavailable') : null)
+                                                            ?? __('Delete leave type route is unavailable. Please contact technical support or your domain administrator.');
+                                                        $confirmA = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? __('Are You Sure?');
+                                                        $confirmB = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? __('This action can not be undone. Do you want to continue?');
+                                                    @endphp
+                                                    <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                        {!! Form::open([
+                                                            'method'            => 'DELETE',
+                                                            'url'               => $delUrl,
+                                                            'id'                => $formId,
+                                                            'data-url'          => $delUrl,
+                                                            'data-guard-msg'    => $delGuard,
+                                                            'data-sv-localized' => 'true'
+                                                        ]) !!}
+                                                            <a href="#"
+                                                               class="{{ VC::BT_SM_CT_PR }}"
+                                                               data-bs-toggle="tooltip"
+                                                               title="{{ __('Delete') }}"
+                                                               data-confirm="{{ __($confirmA) }}|{{ __($confirmB) }}"
+                                                               data-confirm-yes="document.getElementById('{{ $formId }}').submit();">
+                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                            </a>
+                                                        {!! Form::close() !!}
+                                                    </div>
+                                                @endcan
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">
+                                            {{ __('Leave types data was not available or failed to be fetched.') }}
+                                        </td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -148,3 +158,7 @@
         </div>
     </div>
 @endsection
+
+@push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/leaves/types/index.js') }}"></script>
+@endpush

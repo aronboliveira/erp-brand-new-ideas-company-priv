@@ -43,7 +43,7 @@
                 $createKebab    = Str::kebab($createBase);
                 $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
                 $createUrl      = $createResolved ? route($createResolved) : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'create_goal_type_route_unavailable') : null) ?? __('Create Goal Type route is unavailable. Please contact technical support or your domain administrator.');
+                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'create_goal_type_route_unavailable') : 'Create Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Goal Type route is unavailable. Please contact technical support or your domain administrator.');
             @endphp
             <a href="#"
                data-url="{{ $createUrl }}"
@@ -97,7 +97,7 @@
                                                     $editKebab    = Str::kebab($editBase);
                                                     $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
                                                     $editUrl      = ($editResolved && $gtId !== '') ? route($editResolved, $gtId) : '#';
-                                                    $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'edit_goal_type_route_unavailable') : null) ?? __('Edit Goal Type route is unavailable. Please contact technical support or your domain administrator.');
+                                                    $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'edit_goal_type_route_unavailable') : 'Edit Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Goal Type route is unavailable. Please contact technical support or your domain administrator.');
                                                 @endphp
                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                     <a href="#"
@@ -119,7 +119,7 @@
                                                     $destroyKebab    = Str::kebab($destroyBase);
                                                     $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
                                                     $destroyUrl      = ($destroyResolved && $gtId !== '') ? route($destroyResolved, $gtId) : '#';
-                                                    $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'destroy_goal_type_route_unavailable') : null) ?? __('Delete Goal Type route is unavailable. Please contact technical support or your domain administrator.');
+                                                    $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TP, 'destroy_goal_type_route_unavailable') : 'Delete Goal Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Goal Type route is unavailable. Please contact technical support or your domain administrator.');
                                                     $deleteFormId    = 'goal-type-delete-form-' . ($gtId === '' ? 'x' : $gtId);
                                                     $confirmTitle    = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
                                                     $confirmBody     = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';

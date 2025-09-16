@@ -18,8 +18,8 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     @if($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN)
-        <script async src="{{ asset('assets/js/routes/projectTaskStages/lang/reorder.js') }}"></script>
-        <script defer src="{{ asset('assets/js/routes/projectTaskStages/reorder.js') }}"></script>
+        <script async src="{{ asset('assets/js/routes/projects/tasks/stages/lang/reorder.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/projects/tasks/stages/reorder.js') }}"></script>
     @endif
 @endpush
 @section(YieldingConstants::ADM_PG_TTL)
@@ -59,7 +59,7 @@
                     <i class="{{ VC::TI_PLS }}"></i>
                 </a>
                 @push(StacksConstants::ADM_SCR_PG)
-                    <script defer src="{{ asset('assets/js/routes/projectTaskStages/create.js') }}"></script>
+                    <script defer src="{{ asset('assets/js/routes/projects/tasks/stages/create.js') }}"></script>
                 @endpush
         @endcan
     </div>

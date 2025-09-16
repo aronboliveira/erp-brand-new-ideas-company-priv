@@ -10,7 +10,7 @@
     use Collective\Html\FormFacade as Form;
 
     $lang                   = Utility::fetchUserLang();
-    $routeName              = ViewsConstants::CST_QT . '.store';
+    $routeName              = ViewsConstants::CST_QT;
     $createUrl              = Route::has($routeName)
         ? route($routeName)
         : (Route::has(Str::kebab($routeName))

@@ -13,7 +13,7 @@
     $lang = Utility::fetchUserLang();
 
     $formId     = 'hld-store-form';
-    $storeBase  = VW::HLD . '.store';
+    $storeBase  = VW::HLD;
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';

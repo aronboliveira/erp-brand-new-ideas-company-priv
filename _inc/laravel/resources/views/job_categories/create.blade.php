@@ -9,7 +9,7 @@
     $lang = Utility::fetchUserLang();
 
     $formId     = 'jb-cat-store-form';
-    $storeBase  = VW::JB_CAT . '.store';
+    $storeBase  = VW::JB_CAT;
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';

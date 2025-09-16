@@ -10,7 +10,7 @@
     };
 
     $lang = Utility::fetchUserLang();
-    $storeName     = ViewsConstants::CPT . '.store';
+    $storeName     = ViewsConstants::CPT;
     $storeRoute    = Route::has($storeName)
         ? route($storeName)
         : '#';

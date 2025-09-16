@@ -1139,8 +1139,8 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}/edit', [ProjectTaskController::class, 'edit'])->name(VW::PRJ_TSK_C . '.edit')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::PRJ . '/{id}/' . VW::TSK . '/update/{tid}', [ProjectTaskController::class, 'update'])->name(VW::PRJ_TSK_C . '.update')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::delete(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}', [ProjectTaskController::class, 'destroy'])->name(VW::PRJ_TSK_C . '.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::patch(VW::PRJ . '/{id}/' . VW::TSK . '/order', [ProjectTaskController::class, ProjectTaskController::TSK_OD_UPD])->name('tasks.update.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::patch('update-task-priority-color', [ProjectTaskController::class, ProjectTaskController::UPD_TSK_PR_CL])->name('update.task.priority.color')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::patch(VW::PRJ . '/{id}/' . VW::TSK . '/order', [ProjectTaskController::class, ProjectTaskController::TSK_OD_UPD])->name(VW::PRJ . '.tasks.update.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::patch('update-task-priority-color', [ProjectTaskController::class, ProjectTaskController::UPD_TSK_PR_CL])->name(VW::PRJ . '.tasks.update.priority.color')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     Route::post(VW::PRJ . '/{id}/comment/{tid}/file', [ProjectTaskController::class, ProjectTaskController::CM_STR_F])->name(VW::PRJ_TSK_C . '.comment.store.file')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::delete(VW::PRJ . '/{id}/comment/{tid}/file/{fid}', [ProjectTaskController::class, ProjectTaskController::CM_DST_F])->name(VW::PRJ_TSK_C . '.comment.destroy.file');

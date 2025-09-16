@@ -8,7 +8,7 @@
 
     $lang      = Utility::fetchUserLang();
     $formId    = 'gl-store-form';
-    $storeBase = VW::GL . '.store';
+    $storeBase = VW::GL;
     $storeKbb  = Str::kebab($storeBase);
     $storeRes  = Route::has($storeBase) ? $storeBase : (Route::has($storeKbb) ? $storeKbb : null);
     $storeUrl  = $storeRes ? route($storeRes) : '#';

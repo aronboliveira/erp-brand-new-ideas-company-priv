@@ -8,25 +8,21 @@
                     <tr>
                         <th>{{__('Warehouse') }}</th>
                         <th>{{__('Quantity')}}</th>
-
                     </tr>
                     </thead>
                     <tbody>
-
                     @forelse ($products as $product)
                         @if(!empty($product->warehouse()))
                             <tr>
-                                <td>{{ !empty($product->warehouse())?$product->warehouse()->name:'-' }}</td>
-                                <td>{{ $product->quantity }}</td>
+                                <td>{{ !empty($product->warehouse())?( !empty($product->warehouse()->name) ? $product->warehouse()->name : __('No name available')) :__('No name available') }}</td>
+                                <td>{{ !empty($product->quantity) ? $product->quantity : __('No quantity available') }}</td>
                             </tr>
                         @endif
                     @empty
-
                         <tr>
                             <td colspan="4" class="text-center">{{__(' Product not select in warehouse')}}</td>
                         </tr>
                     @endforelse
-
                     </tbody>
                 </table>
 

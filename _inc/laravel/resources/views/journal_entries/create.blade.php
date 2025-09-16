@@ -16,7 +16,7 @@
     $lang = Utility::fetchUserLang(user: $user);
 
     $formId     = 'jrn-et-store-form';
-    $storeBase  = VW::JRN_ET . '.store';
+    $storeBase  = VW::JRN_ET;
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';

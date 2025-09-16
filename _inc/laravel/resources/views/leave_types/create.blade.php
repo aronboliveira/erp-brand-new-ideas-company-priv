@@ -1,30 +1,74 @@
-    {{Collective\Html\FormFacade::open(array('url'=>'leavetype','method'=>'post'))}}
-    <div class="modal-body">
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+    use Illuminate\Support\Collection;
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('title',__('Leave Type'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::text('title',null,array('class'=>'form-control','placeholder'=>__('Enter Leave Type Name')))}}
+    $lang = Utility::fetchUserLang();
+
+    $formId     = 'lv-tp-store-form';
+    $storeBase  = VW::LV_TP;
+    $storeKebab = Str::kebab($storeBase);
+    $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
+    $storeUrl   = $storeRes ? route($storeRes) : '#';
+    $storeGuard = Utility::fetchLinkMessage($lang, VW::LV_TP, 'store_route_unavailable') ?? __('Leave type store route is unavailable. Please contact technical support or your domain administrator.');
+
+    $titleErr = $errors->has('title');
+    $titleAttrs = [
+        'id'               => 'title',
+        'class'            => trim(VC::FM_CT . ' ' . ($titleErr ? 'is-invalid' : '')),
+        'placeholder'      => __('Enter Leave Type Name'),
+        'required'         => 'required',
+        'aria-invalid'     => $titleErr ? 'true' : 'false',
+        'aria-describedby' => $titleErr ? 'title-error' : null,
+        'autocomplete'     => 'off',
+    ];
+
+    $daysErr = $errors->has('days');
+    $daysAttrs = [
+        'id'               => 'days',
+        'class'            => trim(VC::FM_CT . ' ' . ($daysErr ? 'is-invalid' : '')),
+        'placeholder'      => __('Enter Days / Year'),
+        'required'         => 'required',
+        'aria-invalid'     => $daysErr ? 'true' : 'false',
+        'aria-describedby' => $daysErr ? 'days-error' : null,
+        'min'              => '0',
+        'step'             => '1',
+        'inputmode'        => 'numeric',
+    ];
+@endphp
+
+{{ Form::open([
+    'url'               => $storeUrl,
+    'method'            => 'POST',
+    'id'                => $formId,
+    'data-url'          => $storeUrl,
+    'data-guard-msg'    => $storeGuard,
+    'data-sv-localized' => 'true',
+]) }}
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            <div class="form-group {{ VC::C12 }}">
+                {{ Form::label('title', __('Leave Type'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('title', null, $titleAttrs) }}
                 @error('title')
-                <span class="invalid-name" role="alert">
-                    <strong class="text-danger">{{ $message }}</strong>
-                </span>
+                    <span id="title-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
+                @enderror
+            </div>
+            <div class="form-group {{ VC::C12 }}">
+                {{ Form::label('days', __('Days Per Year'), ['class' => VC::FM_LB]) }}
+                {{ Form::number('days', null, $daysAttrs) }}
+                @error('days')
+                    <span id="days-error" class="invalid-feedback d-block" role="alert"><strong class="text-danger">{{ $message }}</strong></span>
                 @enderror
             </div>
         </div>
-        <div class="col-md-12">
-            <div class="form-group">
-                {{Collective\Html\FormFacade::label('days',__('Days Per Year'),['class'=>'form-label'])}}
-                {{Collective\Html\FormFacade::number('days',null,array('class'=>'form-control','placeholder'=>__('Enter Days / Year')))}}
-            </div>
-        </div>
-
-    </div>
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
-    {{Collective\Html\FormFacade::close()}}
-
+    <script defer src="{{ asset('assets/js/routes/leaves/types/store.js') }}"></script>
+{{ Form::close() }}

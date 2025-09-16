@@ -371,7 +371,7 @@
             __('Amount').' <br><small class="text-danger font-weight-bold">'.__('after tax & discount').'</small>',
             '',
         ];
-        $purchaseStoreBase      = ViewsConstants::PRC.'.store';
+        $purchaseStoreBase      = ViewsConstants::PRC;
         $purchaseStoreKebab     = Str::kebab($purchaseStoreBase);
         $purchaseStoreResolved  = Route::has($purchaseStoreBase) ? $purchaseStoreBase : (Route::has($purchaseStoreKebab) ? $purchaseStoreKebab : null);
         $purchaseStoreUrl       = $purchaseStoreResolved ? route($purchaseStoreResolved) : '#';

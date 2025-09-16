@@ -11,7 +11,7 @@
     };
 
     $lang        = Utility::fetchUserLang();
-    $routeName   = ViewsConstants::CPN_PL . '.store';
+    $routeName   = ViewsConstants::CPN_PL;
     $storeRoute  = Route::has($routeName)
         ? route($routeName)
         : (Route::has(Str::kebab($routeName))

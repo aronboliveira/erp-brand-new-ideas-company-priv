@@ -9,7 +9,7 @@
     $lang = Utility::fetchUserLang();
 
     $formId     = 'ind-store-form';
-    $storeBase  = VW::IND . '.store';
+    $storeBase  = VW::IND;
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';

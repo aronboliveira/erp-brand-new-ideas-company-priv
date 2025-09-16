@@ -26,11 +26,11 @@
         </a>
     </li>
     @php
-        $expIndexBase    = VW::EXP.'.index';
+        $expIndexBase    = VW::PRJ_EXP.'.index';
         $expIndexKebab   = Str::kebab($expIndexBase);
         $expIndexName    = Route::has($expIndexBase) ? $expIndexBase : (Route::has($expIndexKebab) ? $expIndexKebab : null);
         $expIndexUrl     = $expIndexName ? route($expIndexName) : '#';
-        $expIndexGuard   = Utility::fetchLinkMessage($lang, VW::EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
+        $expIndexGuard   = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
     @endphp
     <li class="breadcrumb-item">
         <a
@@ -269,7 +269,7 @@
               const text = await resp.text();
               const item = JSON.parse(text);
         
-              const resp2 = await fetch(`{{ route(VW::EXP.'.items') }}?bill_id=${billId}&product_id=${prodId}`, {
+              const resp2 = await fetch(`{{ route(VW::PRJ_EXP.'.items') }}?bill_id=${billId}&product_id=${prodId}`, {
                 headers: { "X-CSRF-TOKEN": $("#token").val() }
               });
               const billItems = JSON.parse(await resp2.text());
@@ -481,41 +481,41 @@
 @if(!empty($expense) && isset($expense->id))
   @php
       $formId         = 'expense-update-form';
-      $updateBase     = VW::EXP . '.update';
+      $updateBase     = VW::PRJ_EXP . '.update';
       $updateKebab    = Str::kebab($updateBase);
       $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
       $updateUrl      = ($updateResolved && isset($expense?->id)) ? route($updateResolved, $expense->id) : '#';
-      $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'update_expense_route_unavailable') ?? 'Update expense route is unavailable. Please contact technical support or your domain administrator.';
+      $updateGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'update_expense_route_unavailable') ?? 'Update expense route is unavailable. Please contact technical support or your domain administrator.';
 
-      $empBase     = VW::EXP . '.employee';
+      $empBase     = VW::PRJ_EXP . '.employee';
       $empKebab    = Str::kebab($empBase);
       $empResolved = Route::has($empBase) ? $empBase : (Route::has($empKebab) ? $empKebab : null);
       $empUrl      = $empResolved ? route($empResolved) : '#';
-      $empGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'employee_route_unavailable') ?? 'Employee endpoint is unavailable. Please contact technical support or your domain administrator.';
+      $empGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'employee_route_unavailable') ?? 'Employee endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-      $cusBase     = VW::EXP . '.customer';
+      $cusBase     = VW::PRJ_EXP . '.customer';
       $cusKebab    = Str::kebab($cusBase);
       $cusResolved = Route::has($cusBase) ? $cusBase : (Route::has($cusKebab) ? $cusKebab : null);
       $cusUrl      = $cusResolved ? route($cusResolved) : '#';
-      $cusGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'customer_route_unavailable') ?? 'Customer endpoint is unavailable. Please contact technical support or your domain administrator.';
+      $cusGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'customer_route_unavailable') ?? 'Customer endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-      $venBase     = VW::EXP . '.vendor';
+      $venBase     = VW::PRJ_EXP . '.vendor';
       $venKebab    = Str::kebab($venBase);
       $venResolved = Route::has($venBase) ? $venBase : (Route::has($venKebab) ? $venKebab : null);
       $venUrl      = $venResolved ? route($venResolved) : '#';
-      $venGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'vendor_route_unavailable') ?? 'Vendor endpoint is unavailable. Please contact technical support or your domain administrator.';
+      $venGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'vendor_route_unavailable') ?? 'Vendor endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-      $prodBase     = VW::EXP . '.product';
+      $prodBase     = VW::PRJ_EXP . '.product';
       $prodKebab    = Str::kebab($prodBase);
       $prodResolved = Route::has($prodBase) ? $prodBase : (Route::has($prodKebab) ? $prodKebab : null);
       $prodUrl      = $prodResolved ? route($prodResolved) : '#';
-      $prodGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'product_route_unavailable') ?? 'Product endpoint is unavailable. Please contact technical support or your domain administrator.';
+      $prodGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'product_route_unavailable') ?? 'Product endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-      $indexBase     = VW::EXP . '.index';
+      $indexBase     = VW::PRJ_EXP . '.index';
       $indexKebab    = Str::kebab($indexBase);
       $indexResolved = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
       $indexUrl      = $indexResolved ? route($indexResolved) : '#';
-      $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
+      $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
 
       $employeesIsList = (is_array($employees ?? null) && count($employees ?? []) > 0) || (($employees ?? null) instanceof Collection && $employees->isNotEmpty());
       $customersIsList = (is_array($customers ?? null) && count($customers ?? []) > 0) || (($customers ?? null) instanceof Collection && $customers->isNotEmpty());

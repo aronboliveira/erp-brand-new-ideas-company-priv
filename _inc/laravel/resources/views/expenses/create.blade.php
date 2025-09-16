@@ -26,7 +26,7 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route(VW::EXP.'.index')}}">{{__('Expense')}}</a></li>
+    <li class="breadcrumb-item"><a href="{{route(VW::PRJ_EXP.'.index')}}">{{__('Expense')}}</a></li>
     <li class="breadcrumb-item">{{__('Expense Create')}}</li>
 @endsection
 @push(ST::ADM_SCR_PG)
@@ -297,11 +297,11 @@
 @endpush
 @php
     $formId           = 'expense-create-form';
-    $storeBase        = VW::EXP;
+    $storeBase        = VW::PRJ_EXP . '.store';
     $storeKebab       = Str::kebab($storeBase);
     $storeResolved    = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl         = $storeResolved ? route($storeResolved) : '#';
-    $storeGuardMsg    = Utility::fetchLinkMessage($lang, VW::EXP, 'store_expense_route_unavailable') ?? 'Store expense route is unavailable. Please contact technical support or your domain administrator.';
+    $storeGuardMsg    = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'store_expense_route_unavailable') ?? 'Store expense route is unavailable. Please contact technical support or your domain administrator.';
 
     $typeParam        = (string) Request::get('type', 'employee');
     $isEmployeeType   = $typeParam === 'employee';
@@ -324,41 +324,41 @@
     $prodSvcOptions   = $prodSvcIsList   ? (is_array($product_services) ? $product_services : $product_services->toArray()) : [__('No items available')];
     $chartAccOptions  = $chartAccIsList  ? (is_array($chartAccounts)    ? $chartAccounts    : $chartAccounts->toArray())    : [__('No chart accounts available')];
 
-    $empUrlBase       = VW::EXP . '.employee';
+    $empUrlBase       = VW::PRJ_EXP . '.employee';
     $empUrlKebab      = Str::kebab($empUrlBase);
     $empUrlResolved   = Route::has($empUrlBase) ? $empUrlBase : (Route::has($empUrlKebab) ? $empUrlKebab : null);
     $empUrl           = $empUrlResolved ? route($empUrlResolved) : '#';
-    $empGuardMsg      = Utility::fetchLinkMessage($lang, VW::EXP, 'employee_route_unavailable') ?? 'Employee endpoint is unavailable. Please contact technical support or your domain administrator.';
+    $empGuardMsg      = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'employee_route_unavailable') ?? 'Employee endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-    $cusUrlBase       = VW::EXP . '.customer';
+    $cusUrlBase       = VW::PRJ_EXP . '.customer';
     $cusUrlKebab      = Str::kebab($cusUrlBase);
     $cusUrlResolved   = Route::has($cusUrlBase) ? $cusUrlBase : (Route::has($cusUrlKebab) ? $cusUrlKebab : null);
     $cusUrl           = $cusUrlResolved ? route($cusUrlResolved) : '#';
-    $cusGuardMsg      = Utility::fetchLinkMessage($lang, VW::EXP, 'customer_route_unavailable') ?? 'Customer endpoint is unavailable. Please contact technical support or your domain administrator.';
+    $cusGuardMsg      = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'customer_route_unavailable') ?? 'Customer endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-    $venUrlBase       = VW::EXP . '.vendor';
+    $venUrlBase       = VW::PRJ_EXP . '.vendor';
     $venUrlKebab      = Str::kebab($venUrlBase);
     $venUrlResolved   = Route::has($venUrlBase) ? $venUrlBase : (Route::has($venUrlKebab) ? $venUrlKebab : null);
     $venUrl           = $venUrlResolved ? route($venUrlResolved) : '#';
-    $venGuardMsg      = Utility::fetchLinkMessage($lang, VW::EXP, 'vendor_route_unavailable') ?? 'Vendor endpoint is unavailable. Please contact technical support or your domain administrator.';
+    $venGuardMsg      = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'vendor_route_unavailable') ?? 'Vendor endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-    $prodUrlBase      = VW::EXP . '.product';
+    $prodUrlBase      = VW::PRJ_EXP . '.product';
     $prodUrlKebab     = Str::kebab($prodUrlBase);
     $prodUrlResolved  = Route::has($prodUrlBase) ? $prodUrlBase : (Route::has($prodUrlKebab) ? $prodUrlKebab : null);
     $prodUrl          = $prodUrlResolved ? route($prodUrlResolved) : '#';
-    $prodGuardMsg     = Utility::fetchLinkMessage($lang, VW::EXP, 'product_route_unavailable') ?? 'Product endpoint is unavailable. Please contact technical support or your domain administrator.';
+    $prodGuardMsg     = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'product_route_unavailable') ?? 'Product endpoint is unavailable. Please contact technical support or your domain administrator.';
 
-    $indexBase        = VW::EXP . '.index';
+    $indexBase        = VW::PRJ_EXP . '.index';
     $indexKebab       = Str::kebab($indexBase);
     $indexResolved    = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
     $indexUrl         = $indexResolved ? route($indexResolved) : '#';
-    $indexGuardMsg    = Utility::fetchLinkMessage($lang, VW::EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
+    $indexGuardMsg    = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
 @section(YW::ADM_CTT)
     <div class="{{ VC::RW }}">
         {{ Form::open([
-            'url'               => $storeUrl,
+            'route'               => $storeUrl,
             'id'                => $formId,
             'class'             => 'w-100',
             'data-url'          => $storeUrl,

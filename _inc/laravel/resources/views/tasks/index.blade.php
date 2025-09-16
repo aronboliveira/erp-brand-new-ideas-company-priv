@@ -751,7 +751,7 @@
                             .parent()
                             .find(".count")
                             .text($("#" + target.id + " > div").length);
-                        const explicit = "{{route('tasks.update.order',[$project->id])}}";
+                        const explicit = "{{route(VW::PRJ . '.tasks.update.order',[$project->id])}}";
                         const endpoint = resolveUrl(target, explicit);
                         if (!endpoint) {
                             scheduleInteractiveError(

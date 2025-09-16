@@ -38,11 +38,11 @@
         @php
             $calendarRouteName = VW::HLD.'.calendar';
             $calendarUrl = Route::has($calendarRouteName) ? route($calendarRouteName) : '#';
-            $calendarMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'calendar_holiday_route_unavailable') : null) ?? __('Calendar view route is unavailable. Please contact technical support or your domain administrator.');
+            $calendarMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'calendar_holiday_route_unavailable') : 'Calendar view route is unavailable. Please contact technical support or your domain administrator.') ?? __('Calendar view route is unavailable. Please contact technical support or your domain administrator.');
 
             $createRouteName = VW::HLD.'.create';
             $createUrl = Route::has($createRouteName) ? route($createRouteName) : '#';
-            $createMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'create_holiday_route_unavailable') : null) ?? __('Create holiday route is unavailable. Please contact technical support or your domain administrator.');
+            $createMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'create_holiday_route_unavailable') : 'Create holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create holiday route is unavailable. Please contact technical support or your domain administrator.');
         @endphp
         <div class="{{ VC::FEND }}">
             <a href="{{ $calendarUrl }}"
@@ -178,7 +178,7 @@
                                                             @php
                                                                 $editRouteName = VW::HLD.'.edit';
                                                                 $editUrl = (Route::has($editRouteName) && $hid !== '') ? route($editRouteName, $hid) : '#';
-                                                                $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'edit_holiday_route_unavailable') : null) ?? __('Edit Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                                                                $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'edit_holiday_route_unavailable') : 'Edit Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Holiday route is unavailable. Please contact technical support or your domain administrator.');
                                                             @endphp
                                                             <div class="{{ VC::ACT_BTN }} {{ VC::BG_P }} {{ VC::MS2 }}">
                                                                 <a href="{{ $editUrl }}"
@@ -198,7 +198,7 @@
                                                             @php
                                                                 $destroyRouteName = VW::HLD.'.destroy';
                                                                 $destroyUrl = (Route::has($destroyRouteName) && $hid !== '') ? route($destroyRouteName, $hid) : '#';
-                                                                $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'destroy_holiday_route_unavailable') : null) ?? __('Delete Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                                                                $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'destroy_holiday_route_unavailable') : 'Delete Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Holiday route is unavailable. Please contact technical support or your domain administrator.');
                                                                 $delFormId = 'delete-form-'.$hid;
                                                                 $confirmTitle = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
                                                                 $confirmBody = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';

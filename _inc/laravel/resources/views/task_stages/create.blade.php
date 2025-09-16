@@ -76,4 +76,4 @@
 		<input type="submit" value="{{ $createLabel }}" class="{{ VC::BT_PRM }}">
 	</div>
 {{ Form::close() }}
-<script defer src="{{ asset('assets/js/routes/projectTaskStages/store.js') }}"></script>
+<script defer src="{{ asset('assets/js/routes/projects/tasks/stages/store.js') }}"></script>

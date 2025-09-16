@@ -9,7 +9,7 @@
     $storeFormId = 'store_termination';
     $generateLinkId = 'termination-generate-link';
 
-    $tmnStoreName = ViewsConstants::TMN . '.store';
+    $tmnStoreName = ViewsConstants::TMN;
     $tmnKebabStoreName = Str::kebab($tmnStoreName);
     $tmnBaseName = ViewsConstants::TMN;
     $tmnKebabBaseName = Str::kebab($tmnBaseName);

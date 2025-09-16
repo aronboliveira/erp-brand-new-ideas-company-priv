@@ -1,55 +1,78 @@
-{{Collective\Html\FormFacade::model($loan,array('route' => array('loan.update', $loan->id), 'method' => 'PUT')) }}
-<div class="modal-body">
-    <div class="card-body p-0">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('title', __('Title')) }}
-                    {{ Collective\Html\FormFacade::text('title',null, array('class' => 'form-control','required'=>'required')) }}
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('loan_option', __('Loan Options')) }}<span class="text-danger">*</span>
-                    {{ Collective\Html\FormFacade::select('loan_option',$loan_options,null, array('class' => 'form-control select','required'=>'required')) }}
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('type', __('Type'), ['class' => 'form-label']) }}
-                    {{ Collective\Html\FormFacade::select('type', $loans, null, ['class' => 'form-control select amount_type', 'required' => 'required']) }}
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('amount', __('Loan Amount'),['class'=>'form-label amount_label']) }}
-                    {{ Collective\Html\FormFacade::number('amount',null, array('class' => 'form-control','required'=>'required')) }}
-                </div>
-            </div>
-{{--            <div class="col-md-6">--}}
-{{--                <div class="form-group">--}}
-{{--                    {{ Collective\Html\FormFacade::label('start_date', __('Start Date')) }}--}}
-{{--                    {{ Collective\Html\FormFacade::date('start_date',null, array('class' => 'form-control','required'=>'required')) }}--}}
-{{--                </div>--}}
-{{--            </div>--}}
-{{--            <div class="col-md-6">--}}
-{{--                <div class="form-group">--}}
-{{--                    {{ Collective\Html\FormFacade::label('end_date', __('End Date')) }}--}}
-{{--                    {{ Collective\Html\FormFacade::date('end_date',null, array('class' => 'form-control','required'=>'required')) }}--}}
-{{--                </div>--}}
-{{--            </div>--}}
-            <div class="col-md-12">
-                <div class="form-group">
-                    {{ Collective\Html\FormFacade::label('reason', __('Reason')) }}
-                    {{ Collective\Html\FormFacade::textarea('reason',null, array('class' => 'form-control','required'=>'required','rows' => 3)) }}
+@php
+    use App\Config\Constants\{
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Collection;
+
+    $hasLoan   = !empty($loan ?? null) && data_get($loan, 'id');
+    $lang      = Utility::fetchUserLang();
+    $routeName = VW::LN . '.update';
+    $actionUrl = ($hasLoan && Route::has($routeName)) ? route($routeName, $loan->id) : '#';
+    $guardMsg  = Utility::fetchLinkMessage($lang, VW::LN, 'update_route_unavailable')
+                 ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+@endphp
+
+@if($hasLoan)
+    {{ Form::model($loan, [
+        'url'               => $actionUrl,
+        'method'            => 'PUT',
+        'id'                => 'loan-update-form',
+        'data-url'          => $actionUrl,
+        'data-guard-msg'    => $guardMsg,
+        'data-sv-localized' => 'true'
+    ]) }}
+        <div class="modal-body">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="{{ VC::FM_GCB12 }}">
+                        <div class="form-group">
+                            {{ Form::label('title', __('Title')) }}
+                            {{ Form::text('title', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                        </div>
+                    </div>
+
+                    <div class="{{ VC::FM_GCB6 }}">
+                        <div class="form-group">
+                            {{ Form::label('loan_option', __('Loan Options')) }}<span class="text-danger">*</span>
+                            {{ Form::select('loan_option', $loan_options, null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
+                        </div>
+                    </div>
+
+                    <div class="{{ VC::FM_GCB6 }}">
+                        <div class="form-group">
+                            {{ Form::label('type', __('Type'), ['class' => VC::FM_LB]) }}
+                            {{ Form::select('type', $loans, null, ['class' => VC::FM_CT_SL.' amount_type', 'required' => 'required']) }}
+                        </div>
+                    </div>
+
+                    <div class="{{ VC::FM_GCB6 }}">
+                        <div class="form-group">
+                            {{ Form::label('amount', __('Loan Amount'), ['class' => VC::FM_LB.' amount_label']) }}
+                            {{ Form::number('amount', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                        </div>
+                    </div>
+
+                    <div class="{{ VC::FM_GCB12 }}">
+                        <div class="form-group">
+                            {{ Form::label('reason', __('Reason')) }}
+                            {{ Form::textarea('reason', null, ['class' => VC::FM_CT, 'required' => 'required', 'rows' => 3]) }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-    </div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
-</div>
-{{Collective\Html\FormFacade::close()}}
+        <div class="modal-footer">
+            <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+            <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
+        </div>
+        <script defer src="{{ asset('assets/js/routes/loans/update.js') }}"></script>
+    {{ Form::close() }}
+
+@else
+    <p>{{ __('The requested loan could not be found or is unavailable.') }}</p>
+@endif

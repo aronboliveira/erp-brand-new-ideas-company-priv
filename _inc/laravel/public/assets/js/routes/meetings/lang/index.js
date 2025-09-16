@@ -1,0 +1,238 @@
+(() => {
+  if (!window.translations) {
+    window.translations = {};
+  }
+  const t = {
+    ar: {
+      dept_init_fail: "فشل تهيئة قائمة الأقسام",
+      dept_load_fail: "فشل تحميل الأقسام",
+      emp_load_fail: "فشل تحميل الموظفين",
+      choices_fail: "فشل تحميل مكتبة الاختيارات",
+      edit_meeting_route_unavailable:
+        "تحرير مسار الاجتماع غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول المجال.",
+      calendar_view_route_unavailable:
+        "عرض التقويم غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول المجال.",
+      create_meeting_route_unavailable:
+        "إنشاء مسار اجتماع جديد غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول المجال الخاص بك.",
+      delete_meeting_route_unavailable:
+        "حذف مسار الاجتماع غير متاح. يرجى الاتصال بالدعم الفني أو مسؤول المجال.",
+    },
+    da: {
+      dept_init_fail: "Kunne ikke initialisere afdelingsliste",
+      dept_load_fail: "Kunne ikke indlæse afdelinger",
+      emp_load_fail: "Kunne ikke indlæse medarbejdere",
+      choices_fail: "Kunne ikke indlæse valgbibliotek",
+      edit_meeting_route_unavailable:
+        "Redigeringsruten til mødet er ikke tilgængelig. Kontakt venligst teknisk support eller din domæneadministrator.",
+      calendar_view_route_unavailable:
+        "Kalendervisningsrute er ikke tilgængelig. Kontakt venligst teknisk support eller din domæneadministrator.",
+      create_meeting_route_unavailable:
+        "Opret ny møderute er ikke tilgængelig. Kontakt venligst teknisk support eller din domæneadministrator.",
+      delete_meeting_route_unavailable:
+        "Slet møderute er ikke tilgængelig. Kontakt venligst teknisk support eller din domæneadministrator.",
+    },
+    de: {
+      dept_init_fail: "Abteilungsliste konnte nicht initialisiert werden",
+      dept_load_fail: "Abteilungen konnten nicht geladen werden",
+      emp_load_fail: "Mitarbeiter konnten nicht geladen werden",
+      choices_fail: "Auswahlbibliothek konnte nicht geladen werden",
+      edit_meeting_route_unavailable:
+        "Die Bearbeitung der Meeting-Route ist nicht verfügbar. Bitte kontaktieren Sie den technischen Support oder Ihren Domänenadministrator.",
+      calendar_view_route_unavailable:
+        "Kalenderansicht-Route ist nicht verfügbar. Bitte kontaktieren Sie den technischen Support oder Ihren Domänenadministrator.",
+      create_meeting_route_unavailable:
+        "Erstellen einer neuen Meeting-Route ist nicht verfügbar. Bitte kontaktieren Sie den technischen Support oder Ihren Domänenadministrator.",
+      delete_meeting_route_unavailable:
+        "Löschen der Meeting-Route ist nicht verfügbar. Bitte kontaktieren Sie den technischen Support oder Ihren Domänenadministrator.",
+    },
+    en: {
+      dept_init_fail: "Failed to initialize department list",
+      dept_load_fail: "Failed to load departments",
+      emp_load_fail: "Failed to load employees",
+      choices_fail: "Failed to load choices library",
+      edit_meeting_route_unavailable:
+        "Edit meeting route is unavailable. Please contact technical support or your domain administrator.",
+      calendar_view_route_unavailable:
+        "Calendar view route is unavailable. Please contact technical support or your domain administrator.",
+      create_meeting_route_unavailable:
+        "Create new meeting route is unavailable. Please contact technical support or your domain administrator.",
+      delete_meeting_route_unavailable:
+        "Delete meeting route is unavailable. Please contact technical support or your domain administrator.",
+    },
+    es: {
+      dept_init_fail: "Error al inicializar lista de departamentos",
+      dept_load_fail: "Error al cargar departamentos",
+      emp_load_fail: "Error al cargar empleados",
+      choices_fail: "Error al cargar biblioteca de opciones",
+      edit_meeting_route_unavailable:
+        "No es posible editar la ruta de la reunión. Por favor, póngase en contacto con el soporte técnico o con el administrador de dominio.",
+      calendar_view_route_unavailable:
+        "La ruta de la vista de calendario no está disponible. Por favor, póngase en contacto con el soporte técnico o con el administrador de dominio.",
+      create_meeting_route_unavailable:
+        "La creación de una nueva ruta de reunión no está disponible. Por favor, póngase en contacto con soporte técnico o con el administrador de dominio.",
+      delete_meeting_route_unavailable:
+        "La eliminación de la ruta de la reunión no está disponible. Por favor, póngase en contacto con el soporte técnico o con el administrador de dominio.",
+    },
+    fr: {
+      dept_init_fail: "Échec de l'initialisation de la liste des départements",
+      dept_load_fail: "Échec du chargement des départements",
+      emp_load_fail: "Échec du chargement des employés",
+      choices_fail: "Échec du chargement de la bibliothèque de choix",
+      edit_meeting_route_unavailable:
+        "La modification de l'itinéraire de réunion n'est pas disponible. Veuillez contacter le support technique ou votre administrateur de domaine.",
+      calendar_view_route_unavailable:
+        "La route de la vue calendrier n'est pas disponible. Veuillez contacter le support technique ou votre administrateur de domaine.",
+      create_meeting_route_unavailable:
+        "La création d'un nouvel itinéraire de réunion n'est pas disponible. Veuillez contacter le support technique ou votre administrateur de domaine.",
+      delete_meeting_route_unavailable:
+        "La suppression de l'itinéraire de réunion n'est pas disponible. Veuillez contacter le support technique ou votre administrateur de domaine.",
+    },
+    he: {
+      dept_init_fail: "נכשל באתחול רשימת המחלקות",
+      dept_load_fail: "נכשל בטעינת המחלקות",
+      emp_load_fail: "נכשל בטעינת העובדים",
+      choices_fail: "נכשל בטעינת ספריית הבחירות",
+      edit_meeting_route_unavailable:
+        "עריכת מסלול הפגישה אינה זמינה. אנא פנה לתמיכה הטכנית או למנהל התחום שלך.",
+      calendar_view_route_unavailable:
+        "נתיב תצוגת היומן אינו זמין. אנא פנה לתמיכה הטכנית או למנהל הדומיין שלך.",
+      create_meeting_route_unavailable:
+        "יצירת מסלול פגישה חדש אינה זמינה. אנא פנה לתמיכה הטכנית או למנהל התחום שלך.",
+      delete_meeting_route_unavailable:
+        "מחיקת מסלול הפגישה אינה זמינה. אנא פנה לתמיכה הטכנית או למנהל הדומיין שלך.",
+    },
+    it: {
+      dept_init_fail: "Impossibile inizializzare l'elenco dei dipartimenti",
+      dept_load_fail: "Impossibile caricare i dipartimenti",
+      emp_load_fail: "Impossibile caricare i dipendenti",
+      choices_fail: "Impossibile caricare la libreria delle scelte",
+      edit_meeting_route_unavailable:
+        "La modifica del percorso della riunione non è disponibile. Si prega di contattare il supporto tecnico o l'amministratore di dominio.",
+      calendar_view_route_unavailable:
+        "Il percorso della vista calendario non è disponibile. Si prega di contattare il supporto tecnico o l'amministratore di dominio.",
+      create_meeting_route_unavailable:
+        "La creazione di un nuovo percorso riunione non è disponibile. Si prega di contattare il supporto tecnico o l'amministratore di dominio.",
+      delete_meeting_route_unavailable:
+        "La cancellazione del percorso della riunione non è disponibile. Si prega di contattare il supporto tecnico o l'amministratore di dominio.",
+    },
+    ja: {
+      dept_init_fail: "部門リストの初期化に失敗しました",
+      dept_load_fail: "部門の読み込みに失敗しました",
+      emp_load_fail: "従業員の読み込みに失敗しました",
+      choices_fail: "選択ライブラリの読み込みに失敗しました",
+      edit_meeting_route_unavailable:
+        "会議ルートの編集は利用できません。技術サポートまたはドメイン管理者にお問い合わせください。",
+      calendar_view_route_unavailable:
+        "カレンダー表示ルートは利用できません。技術サポートまたはドメイン管理者にお問い合わせください。",
+      create_meeting_route_unavailable:
+        "新しい会議ルートの作成は利用できません。技術サポートまたはドメイン管理者にお問い合わせください。",
+      delete_meeting_route_unavailable:
+        "会議ルートの削除は利用できません。技術サポートまたはドメイン管理者にお問い合わせください。",
+    },
+    nl: {
+      dept_init_fail: "Initialiseren afdelingslijst mislukt",
+      dept_load_fail: "Laden afdelingen mislukt",
+      emp_load_fail: "Laden werknemers mislukt",
+      choices_fail: "Laden keuzebibliotheek mislukt",
+      edit_meeting_route_unavailable:
+        "Het bewerken van de vergaderroute is niet beschikbaar. Neem contact op met de technische ondersteuning of uw domeinbeheerder.",
+      calendar_view_route_unavailable:
+        "Route voor kalenderweergave is niet beschikbaar. Neem contact op met de technische ondersteuning of uw domeinbeheerder.",
+      create_meeting_route_unavailable:
+        "Het aanmaken van een nieuwe vergaderroute is niet beschikbaar. Neem contact op met de technische ondersteuning of uw domeinbeheerder.",
+      delete_meeting_route_unavailable:
+        "Het verwijderen van de vergaderroute is niet beschikbaar. Neem contact op met de technische ondersteuning of uw domeinbeheerder.",
+    },
+    pl: {
+      dept_init_fail: "Nie udało się zainicjować listy działów",
+      dept_load_fail: "Nie udało się załadować działów",
+      emp_load_fail: "Nie udało się załadować pracowników",
+      choices_fail: "Nie udało się załadować biblioteki wyboru",
+      edit_meeting_route_unavailable:
+        "Edycja trasy spotkania jest niedostępna. Skontaktuj się z pomocą techniczną lub administratorem domeny.",
+      calendar_view_route_unavailable:
+        "Trasa widoku kalendarza jest niedostępna. Skontaktuj się z pomocą techniczną lub administratorem domeny.",
+      create_meeting_route_unavailable:
+        "Tworzenie nowej trasy spotkania jest niedostępne. Skontaktuj się z pomocą techniczną lub administratorem domeny.",
+      delete_meeting_route_unavailable:
+        "Usuwanie trasy spotkania jest niedostępne. Skontaktuj się z pomocą techniczną lub administratorem domeny.",
+    },
+    pt: {
+      dept_init_fail: "Falha ao inicializar lista de departamentos",
+      dept_load_fail: "Falha ao carregar departamentos",
+      emp_load_fail: "Falha ao carregar funcionários",
+      choices_fail: "Falha ao carregar biblioteca de escolhas",
+      edit_meeting_route_unavailable:
+        "A edição da rota da reunião não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador do domínio.",
+      calendar_view_route_unavailable:
+        "A rota de exibição do calendário não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador de domínio.",
+      create_meeting_route_unavailable:
+        "A criação de uma nova rota de reunião não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador de domínio.",
+      delete_meeting_route_unavailable:
+        "A exclusão da rota da reunião não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador do domínio.",
+    },
+    "pt-br": {
+      dept_init_fail: "Falha ao inicializar lista de departamentos",
+      dept_load_fail: "Falha ao carregar departamentos",
+      emp_load_fail: "Falha ao carregar funcionários",
+      choices_fail: "Falha ao carregar biblioteca de escolhas",
+      edit_meeting_route_unavailable:
+        "A edição da rota da reunião não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador do domínio.",
+      calendar_view_route_unavailable:
+        "A rota de exibição do calendário não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador de domínio.",
+      create_meeting_route_unavailable:
+        "A criação de uma nova rota de reunião não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador de domínio.",
+      delete_meeting_route_unavailable:
+        "A exclusão da rota da reunião não está disponível. Por favor, entre em contato com o suporte técnico ou com o administrador de domínio.",
+    },
+    ru: {
+      dept_init_fail: "Не удалось инициализировать список отделов",
+      dept_load_fail: "Не удалось загрузить отделы",
+      emp_load_fail: "Не удалось загрузить сотрудников",
+      choices_fail: "Не удалось загрузить библиотеку выбора",
+      edit_meeting_route_unavailable:
+        "Изменение маршрута встречи недоступно. Пожалуйста, свяжитесь с технической поддержкой или администратором домена.",
+      calendar_view_route_unavailable:
+        "Маршрут просмотра календаря недоступен. Пожалуйста, свяжитесь с технической поддержкой или администратором домена.",
+      create_meeting_route_unavailable:
+        "Создание нового маршрута встречи недоступно. Пожалуйста, свяжитесь с технической поддержкой или администратором домена.",
+      delete_meeting_route_unavailable:
+        "Удаление маршрута встречи недоступно. Пожалуйста, свяжитесь с технической поддержкой или администратором домена.",
+    },
+    tr: {
+      dept_init_fail: "Departman listesi başlatılamadı",
+      dept_load_fail: "Departmanlar yüklenemedi",
+      emp_load_fail: "Çalışanlar yüklenemedi",
+      choices_fail: "Seçim kütüphanesi yüklenemedi",
+      edit_meeting_route_unavailable:
+        "Toplantı rotasını düzenleme kullanılamıyor. Lütfen teknik destek veya alan yöneticisi ile iletişime geçin.",
+      calendar_view_route_unavailable:
+        "Takvim görüntüleme rotası kullanılamıyor. Lütfen teknik destek veya alan yöneticinizle iletişime geçin.",
+      create_meeting_route_unavailable:
+        "Yeni toplantı rotası oluşturma kullanılamıyor. Lütfen teknik destek veya alan yöneticinizle iletişime geçin.",
+      delete_meeting_route_unavailable:
+        "Toplantı rotasını silme kullanılamıyor. Lütfen teknik destek veya alan yöneticinizle iletişime geçin.",
+    },
+    zh: {
+      dept_init_fail: "无法初始化部门列表",
+      dept_load_fail: "无法加载部门",
+      emp_load_fail: "无法加载员工",
+      choices_fail: "无法加载选择库",
+      edit_meeting_route_unavailable:
+        "无法编辑会议路由。请联系技术支持或您的域管理员。",
+      calendar_view_route_unavailable:
+        "日历视图路由不可用。请联系技术支持或您的域管理员。",
+      create_meeting_route_unavailable:
+        "无法创建新的会议路由。请联系技术支持或您的域管理员。",
+      delete_meeting_route_unavailable:
+        "删除会议路由不可用。请联系技术支持或您的域管理员。",
+    },
+  };
+  Object.keys(t).forEach(
+    k =>
+      (window.translations[k] = {
+        ...(window.translations[k] || {}),
+        ...t[k],
+      })
+  );
+})();

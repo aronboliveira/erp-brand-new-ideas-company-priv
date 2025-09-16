@@ -23,7 +23,7 @@
         ViewsConstants::INV,
         'invoice_index_route_unavailable'
     ) ?? 'Invoice list route is unavailable. Please contact technical support or your domain administrator.';
-    $storeName      = ViewsConstants::INV . '.store';
+    $storeName      = ViewsConstants::INV;
     $storeRoute     = Route::has($storeName)
         ? route($storeName)
         : '#';

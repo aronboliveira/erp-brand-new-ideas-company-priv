@@ -56,7 +56,7 @@
                 window.bootstrap.Toast.getOrCreateInstance(toast).show();
               } catch (err) {
                 console.error(
-                  "[assets/js/routes/projectTasks/index.js] Bootstrap toast instantiation error:",
+                  "[assets/js/routes/projects/tasks/index.js] Bootstrap toast instantiation error:",
                   err?.constructor?.name ?? "Error",
                   err?.message ?? "Unknown error"
                 );
@@ -69,7 +69,7 @@
             l.setAttribute("data-failed-route", "true");
           } catch (err) {
             console.error(
-              "[assets/js/routes/projectTasks/index.js] Click handler error:",
+              "[assets/js/routes/projects/tasks/index.js] Click handler error:",
               err?.constructor?.name ?? "Error",
               err?.message ?? "Unknown error"
             );
@@ -77,7 +77,7 @@
         });
       } catch (err) {
         console.error(
-          "[assets/js/routes/projectTasks/index.js] Link binding error:",
+          "[assets/js/routes/projects/tasks/index.js] Link binding error:",
           err?.constructor?.name ?? "Error",
           err?.message ?? "Unknown error"
         );
@@ -85,7 +85,7 @@
     });
   } catch (error) {
     console.error(
-      "[assets/js/routes/projectTasks/index.js] Initialization error:",
+      "[assets/js/routes/projects/tasks/index.js] Initialization error:",
       error?.constructor?.name ?? "Error",
       error?.message ?? "Unknown error"
     );

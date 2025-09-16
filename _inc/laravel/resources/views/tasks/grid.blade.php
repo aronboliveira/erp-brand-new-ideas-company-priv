@@ -15,13 +15,13 @@
 			? $indexBase
 			: (Route::has(Str::kebab($indexBase)) ? Str::kebab($indexBase) : null);
 	} catch (\Error $e) {
-		Log::error('Blade projectTasks/list: route name resolution error (Error): ' . $e->getMessage());
+		Log::error('Blade projects/tasks/list: route name resolution error (Error): ' . $e->getMessage());
 	} catch (\InvalidArgumentException $e) {
-		Log::error('Blade projectTasks/list: invalid argument while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/list: invalid argument while resolving route name: ' . $e->getMessage());
 	} catch (\Exception $e) {
-		Log::error('Blade projectTasks/list: general exception while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/list: general exception while resolving route name: ' . $e->getMessage());
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTasks/list: throwable while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/list: throwable while resolving route name: ' . $e->getMessage());
 	}
 @endphp
 
@@ -35,7 +35,7 @@
 						try {
 							$permissions = $user?->getPermission(data_get($task, 'project_id'));
 						} catch (\Throwable $e) {
-							Log::error('Blade projectTasks/list: error getting permissions: ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: error getting permissions: ' . $e->getMessage());
 						}
 
 						$showUrl = '#';
@@ -43,16 +43,16 @@
 							$projectId = data_get($task, 'project.id');
 							$showUrl = ($indexResolved && !empty($projectId)) ? route($indexResolved, $projectId) : '#';
 						} catch (\Error $e) {
-							Log::error('Blade projectTasks/list: route URL generation error (Error): ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: route URL generation error (Error): ' . $e->getMessage());
 							$showUrl = '#';
 						} catch (\InvalidArgumentException $e) {
-							Log::error('Blade projectTasks/list: invalid argument while generating URL: ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: invalid argument while generating URL: ' . $e->getMessage());
 							$showUrl = '#';
 						} catch (\Exception $e) {
-							Log::error('Blade projectTasks/list: general exception while generating URL: ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: general exception while generating URL: ' . $e->getMessage());
 							$showUrl = '#';
 						} catch (\Throwable $e) {
-							Log::error('Blade projectTasks/list: throwable while generating URL: ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: throwable while generating URL: ' . $e->getMessage());
 							$showUrl = '#';
 						}
 
@@ -60,7 +60,7 @@
 						try {
 							$progressPct = data_get($task->taskProgress($task), 'percentage');
 						} catch (\Throwable $e) {
-							Log::error('Blade projectTasks/list: error computing task progress: ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: error computing task progress: ' . $e->getMessage());
 							$progressPct = null;
 						}
 						$progressVal = is_string($progressPct) ? str_replace('%', '', $progressPct) : null;
@@ -78,7 +78,7 @@
 								$isOverdue = @strtotime($ed) < @time();
 							}
 						} catch (\Throwable $e) {
-							Log::error('Blade projectTasks/list: error formatting end date: ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: error formatting end date: ' . $e->getMessage());
 							$endDateOut = null;
 							$isOverdue = false;
 						}
@@ -87,7 +87,7 @@
 						try {
 							$usersList = $task->users() ?? [];
 						} catch (\Throwable $e) {
-							Log::error('Blade projectTasks/list: error fetching task users: ' . $e->getMessage());
+							Log::error('Blade projects/tasks/list: error fetching task users: ' . $e->getMessage());
 							$usersList = [];
 						}
 					@endphp
@@ -171,5 +171,5 @@
 			@endif
 		</div>
 	</div>
-    <script defer src="{{ asset('assets/js/routes/projectTasks/index.js') }}"></script>
+  <script defer src="{{ asset('assets/js/routes/projects/tasks/gridShow.js') }}"></script>
 </div>

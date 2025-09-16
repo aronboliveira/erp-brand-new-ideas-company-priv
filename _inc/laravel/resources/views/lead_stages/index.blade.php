@@ -1,229 +1,221 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YW
     };
-    use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Collection;
+
+    $user = Auth::user();
+
+    $hasFetchUserLang    = is_callable([Utility::class, 'fetchUserLang']);
+    $hasFetchLinkMessage = is_callable([Utility::class, 'fetchLinkMessage']);
+    $lang = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : app()->getLocale();
+
+    $createResolved  = Route::has(VW::LD_STG . '.create') ? route(VW::LD_STG . '.create') : '#';
+    $createGuardMsg  = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LD_STG, 'create_lead_stage_route_unavailable') : null)
+        ?? __('Create lead stage route is unavailable. Please contact technical support or your domain administrator.');
+
+    $orderResolved   = Route::has(VW::LD_STG . '.order') ? route(VW::LD_STG . '.order') : '#';
+    $orderGuardMsg   = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LD_STG, 'order_lead_stage_route_unavailable') : null)
+        ?? __('Reordering lead stages is unavailable. Please contact technical support or your domain administrator.');
+
+    $pipelinesIsList = (is_array($pipelines ?? null) && count($pipelines ?? []) > 0)
+        || (($pipelines ?? null) instanceof Collection && $pipelines->isNotEmpty());
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Lead Stages')}}
+
+@extends(EL::ADM)
+
+@section(YW::ADM_PG_TTL)
+    {{ __('Manage Lead Stages') }}
 @endsection
-@push(StacksConstants::ADM_SCR_PG)
+
+@push(ST::ADM_SCR_PG)
     <script async src="{{ asset('js/jquery-ui.min.js') }}"></script>
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:  { lead_order_unavailable: 'فشل تحديث ترتيب المراحل' },
-            da:  { lead_order_unavailable: 'Opdatering af rækkefølge mislykkedes' },
-            de:  { lead_order_unavailable: 'Reihenfolgeaktualisierung fehlgeschlagen' },
-            en:  { lead_order_unavailable: 'Failed to update lead stages order' },
-            es:  { lead_order_unavailable: 'Error al actualizar el orden de etapas' },
-            fr:  { lead_order_unavailable: 'Échec de la mise à jour de l’ordre des étapes' },
-            he:  { lead_order_unavailable: 'עדכון סדר השלבים נכשל' },
-            it:  { lead_order_unavailable: 'Aggiornamento dell’ordine delle fasi non riuscito' },
-            ja:  { lead_order_unavailable: 'ステージ順序の更新に失敗しました' },
-            nl:  { lead_order_unavailable: 'Bijwerken volgorde mislukt' },
-            pl:  { lead_order_unavailable: 'Aktualizacja kolejności nieudana' },
-            pt:  { lead_order_unavailable: 'Falha ao atualizar a ordem das etapas' },
-            'pt-br': { lead_order_unavailable: 'Falha ao atualizar a ordem das etapas' },
-            ru:  { lead_order_unavailable: 'Не удалось обновить порядок этапов' },
-            tr:  { lead_order_unavailable: 'Aşamalar sırası güncellenemedi' },
-            zh:  { lead_order_unavailable: '无法更新阶段顺序' }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (() => {
-            const ERR_FB                = '# ERROR';
-            const DATA_CLIENT_LOCALIZED = 'data-client-localized';
-            const DATA_GUARD_MSG        = 'data-guard-msg';
-
-            const getLocalizedMessage = (el, key) => {
-                let msg = ERR_FB;
-                if (el?.getAttribute('data-sv-localized') === 'true'
-                    || el?.getAttribute(DATA_CLIENT_LOCALIZED) === 'true') {
-                    msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
-                } else {
-                    let lang = (sessionStorage.getItem('erp-np-lang')
-                                || document.documentElement.lang
-                                || 'en')
-                                .toLowerCase()
-                                .replace(/_/g,'-');
-                    lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-                    msg = window.translations?.[lang]?.[key]
-                        || window.translations?.['en']?.[key]
-                        || ERR_FB;
-                    if (msg !== ERR_FB) {
-                        el.setAttribute(DATA_GUARD_MSG, msg);
-                        el.setAttribute(DATA_CLIENT_LOCALIZED, 'true');
-                    }
-                }
-                return msg;
-            };
-
-            const handleErrorDisplay = (el, key) => {
-                const message = el
-                    ? getLocalizedMessage(el, key)
-                    : ERR_FB;
-                const hasBootstrap = document.querySelector('link[href*="bootstrap"]')
-                                    && window.bootstrap?.Toast;
-                if (hasBootstrap) {
-                    if (!document.querySelector('#error-toast')) {
-                        const toast = document.createElement('div');
-                        toast.id        = 'error-toast';
-                        toast.className = 'toast align-items-center text-bg-danger border-0';
-                        toast.setAttribute('role','alert');
-                        toast.setAttribute('aria-live','assertive');
-                        toast.setAttribute('aria-atomic','true');
-                        toast.innerHTML = `
-                            <div class="d-flex">
-                                <div class="toast-body">${message}</div>
-                                <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
-                                        data-bs-dismiss="toast"
-                                        aria-label="Close"></button>
-                            </div>`;
-                        document.body.appendChild(toast);
-                    }
-                    new bootstrap.Toast(
-                        document.querySelector('#error-toast')
-                    ).show();
-                } else {
-                    alert(message);
-                }
-            };
-
-            try {
-                if (typeof $ === 'undefined' || !$.fn.sortable) {
-                    console.error('jQuery UI sortable is required');
-                    return;
-                }
-
-                $('.sortable').each(function() {
-                    try {
-                        $(this).sortable();
-                        $(this).disableSelection();
-                        $(this).on('sortstop', function() {
-                            const el = this;
-                            const order = [];
-                            $(el).find('li').each((i, item) => {
-                                order[i] = $(item).attr('data-id') ?? '';
-                            });
-                            const url = "{{ route('lead_stages.order') }}";
-                            if (!url) return;
-                            $.ajax({
-                                url,
-                                type: 'POST',
-                                data: {
-                                    order,
-                                    _token: $('meta[name="csrf-token"]').attr('content')
-                                },
-                                success: () => {},
-                                error: () => {
-                                    handleErrorDisplay(el, 'lead_order_unavailable');
-                                }
-                            });
-                        });
-                    } catch {
-                        handleErrorDisplay(this, 'lead_order_unavailable');
-                    }
-                });
-            } catch (e) {
-                console.error('Initialization failed', e);
-            }
-        })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/leads/stages/lang/index.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/leads/stages/index.js') }}"></script>
 @endpush
-@section(YieldingConstants::ADM_BDC)
+
+@section(YW::ADM_BDC)
     <li class="breadcrumb-item">
         <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+           {{ Route::has('dashboard') ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Lead Stage')}}</li>
+    <li class="breadcrumb-item">{{ __('Lead Stage') }}</li>
 @endsection
-@section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-        <a href="#" data-size="md" data-url="{{ route('lead_stages.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{__('Create Lead Stage')}}" class="btn btn-sm btn-primary">
-            <i class="ti ti-plus"></i>
+
+@section(YW::ADM_ACT_BTN)
+    <div class="{{ VC::FEND }}">
+        <a href="#"
+           data-size="md"
+           data-url="{{ $createResolved }}"
+           data-ajax-popup="true"
+           data-bs-toggle="tooltip"
+           title="{{ __('Create Lead Stage') }}"
+           class="{{ VC::BT_SM_PM }}"
+           data-guard-msg="{{ $createGuardMsg }}"
+           data-sv-localized="true">
+            <i class="{{ VC::TI_PLS }}"></i>
         </a>
     </div>
 @endsection
-@section(YieldingConstants::ADM_CTT)
-    <div class="row">
+
+@section(YW::ADM_CTT)
+    <div class="{{ VC::RW }}">
         <div class="col-3">
             @include('layouts.crm_setup')
         </div>
         <div class="col-9">
-            <div class="row justify-content-center">
-                <div class="p-3 card">
-                    <ul class="nav nav-pills nav-fill" id="pills-tab" role="tablist">
-                        @php($i=0)
-                        @foreach($pipelines as $key => $pipeline)
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link @if($i==0) active @endif" id="pills-user-tab-1" data-bs-toggle="pill"
-                                        data-bs-target="#tab{{$key}}" type="button">{{$pipeline['name']}}
-                                </button>
-                            </li>
-                            @php($i++)
-                        @endforeach
-                    </ul>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <div class="tab-content" id="pills-tabContent">
-                            @php($i=0)
+            <div class="{{ VC::RW }} justify-content-center">
+                <div class="p-3 {{ VC::CD }}">
+                    @if($pipelinesIsList)
+                        <ul class="{{ VC::NAV_PL }} {{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
+                            @php($i = 0)
                             @foreach($pipelines as $key => $pipeline)
-                                <div class="tab-pane fade show @if($i==0) active @endif" id="tab{{$key}}" role="tabpanel" aria-labelledby="pills-user-tab-1">
-                                    <ul class="list-unstyled list-group sortable stage">
-                                        @foreach ($pipeline['lead_stages'] as $lead_stages)
-                                            <li class="d-flex align-items-center justify-content-between list-group-item" data-id="{{$lead_stages->id}}">
-                                                <h6 class="mb-0">
-                                                    <i class="me-3 ti ti-arrows-maximize" data-feather="move"></i>
-                                                    <span>{{$lead_stages->name}}</span>
-                                                </h6>
-                                                <span class="float-end">
-                                                    @can('edit lead stage')
-                                                        <div class="action-btn bg-info ms-2"><a href="#" class="mx-3 btn btn-sm d-inline-flex align-items-center" data-url="{{ URL::to('lead_stages/'.$lead_stages->id.'/edit') }}" data-ajax-popup="true" data-size="md" data-bs-toggle="tooltip" title="{{__('Edit')}}" data-title="{{__('Edit Lead Stages')}}">
-                                                            <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                                        </a>
-                                                    </div>
-                                                    @endcan
-                                                    @if(count($pipeline['lead_stages']))
-                                                        @can('delete lead stage')
-                                                            <div class="action-btn bg-danger ms-2">
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['lead_stages.destroy', $lead_stages->id]]) !!}
-                                                                <a href="#" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}"><i class="ti ti-trash text-white"></i></a>
-                                                                {!! Collective\Html\FormFacade::close() !!}
-                                                            </div>
-                                                        @endcan
-                                                    @endif
-                                                </span>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                </div>
+                                @php
+                                    $pName = isset($pipeline['name']) && $pipeline['name'] !== '' ? $pipeline['name'] : __('Unnamed pipeline');
+                                @endphp
+                                <li class="{{ VC::NV_IT }}" role="presentation">
+                                    <button class="{{ VC::NV_LK }} @if($i===0) active @endif"
+                                            id="tab-btn-{{ $key }}"
+                                            data-bs-toggle="pill"
+                                            data-bs-target="#tab{{ $key }}"
+                                            type="button"
+                                            role="tab">
+                                        {{ $pName }}
+                                    </button>
+                                </li>
                                 @php($i++)
                             @endforeach
+                        </ul>
+                    @else
+                        <div class="alert alert-warning mb-0" role="alert">
+                            {{ __('Lead pipelines were not available or failed to load.') }}
                         </div>
-                        <p class="mt-4"><strong>{{__('Note')}} : </strong><b>{{__('You can easily change order of lead stage using drag & drop.')}}</b></p>
+                    @endif
+                </div>
+
+                <div class="{{ VC::CD }}">
+                    <div class="card-body">
+                        @if($pipelinesIsList)
+                            <div class="tab-content" id="pills-tabContent">
+                                @php($i = 0)
+                                @foreach($pipelines as $key => $pipeline)
+                                    @php
+                                        $leadStages = $pipeline['lead_stages'] ?? [];
+                                        $leadStagesIsList = (is_array($leadStages ?? null) && count($leadStages ?? []) > 0)
+                                            || (($leadStages ?? null) instanceof Collection && $leadStages->isNotEmpty());
+                                    @endphp
+                                    <div class="tab-pane fade show @if($i===0) active @endif"
+                                         id="tab{{ $key }}"
+                                         role="tabpanel"
+                                         aria-labelledby="tab-btn-{{ $key }}">
+                                        @if($leadStagesIsList)
+                                            <ul class="list-unstyled {{ VC::LGRP }} sortable stage"
+                                                data-sort-url="{{ $orderResolved }}"
+                                                data-guard-msg="{{ $orderGuardMsg }}"
+                                                data-sv-localized="true">
+                                                @foreach ($leadStages as $stage)
+                                                    @php
+                                                        $sid   = isset($stage->id) ? (string)$stage->id : '';
+                                                        $sname = isset($stage->name) && $stage->name !== '' ? $stage->name : __('Unnamed stage');
+                                                    @endphp
+                                                    <li class="{{ VC::DFL_AIC_JCB_IT }}"
+                                                        data-id="{{ $sid }}">
+                                                        <h6 class="{{ VC::MB0 }}">
+                                                            <i class="{{ VC::TI_AR_M3 }}" data-feather="move"></i>
+                                                            <span>{{ $sname }}</span>
+                                                        </h6>
+                                                        <span class="{{ VC::FEND }}">
+                                                            @can('edit lead stage')
+                                                                @php
+                                                                    $editUrl = Route::has(VW::LD_STG . '.edit') && $sid !== ''
+                                                                        ? route(VW::LD_STG . '.edit', $sid)
+                                                                        : '#';
+                                                                    $editMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LD_STG, 'edit_lead_stage_route_unavailable') : null)
+                                                                        ?? __('Edit lead stage route is unavailable. Please contact technical support or your domain administrator.');
+                                                                @endphp
+                                                                <div class="{{ VC::ACT_BTN_INF }}">
+                                                                    <a href="#"
+                                                                       class="{{ VC::BT_SM_FL_CT }}"
+                                                                       data-url="{{ $editUrl }}"
+                                                                       data-ajax-popup="true"
+                                                                       data-size="md"
+                                                                       data-bs-toggle="tooltip"
+                                                                       title="{{ __('Edit') }}"
+                                                                       data-title="{{ __('Edit Lead Stages') }}"
+                                                                       data-guard-msg="{{ $editMsg }}"
+                                                                       data-sv-localized="true">
+                                                                        <i class="{{ VC::TI_PC_WT }}"></i>
+                                                                    </a>
+                                                                </div>
+                                                            @endcan
+
+                                                            @php
+                                                                $canDelete = auth()->user()?->can('delete lead stage') ?? false;
+                                                            @endphp
+                                                            @if($canDelete)
+                                                                @php
+                                                                    $destroyUrl = Route::has(VW::LD_STG . '.destroy') && $sid !== ''
+                                                                        ? route(VW::LD_STG . '.destroy', $sid)
+                                                                        : '#';
+                                                                    $formId   = 'delete-form-' . ($sid === '' ? 'x' : $sid);
+                                                                    $delMsg   = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::LD_STG, 'delete_lead_stage_route_unavailable') : null)
+                                                                        ?? __('Delete lead stage route is unavailable. Please contact technical support or your domain administrator.');
+                                                                    $confirmA = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null)
+                                                                        ?? __('Are You Sure?');
+                                                                    $confirmB = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null)
+                                                                        ?? __('This action can not be undone. Do you want to continue?');
+                                                                @endphp
+                                                                <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                                    {!! Form::open([
+                                                                        'method'            => 'DELETE',
+                                                                        'url'               => $destroyUrl,
+                                                                        'id'                => $formId,
+                                                                        'data-url'          => $destroyUrl,
+                                                                        'data-guard-msg'    => $delMsg,
+                                                                        'data-sv-localized' => 'true'
+                                                                    ]) !!}
+                                                                        <a href="#"
+                                                                           class="{{ VC::BT_SM_CT_PR }}"
+                                                                           data-bs-toggle="tooltip"
+                                                                           title="{{ __('Delete') }}"
+                                                                           data-confirm="{{ __($confirmA) }}|{{ __($confirmB) }}"
+                                                                           data-confirm-yes="document.getElementById('{{ $formId }}').submit();">
+                                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                        </a>
+                                                                    {!! Form::close() !!}
+                                                                </div>
+                                                            @endif
+                                                        </span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @else
+                                            <div class="alert alert-info mb-0" role="alert">
+                                                {{ __('No lead stages were found for this pipeline.') }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                    @php($i++)
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="alert alert-warning mb-0" role="alert">
+                                {{ __('Lead pipelines were not available or failed to load.') }}
+                            </div>
+                        @endif
+                        <p class="{{ VC::MT4 }}"><strong>{{ __('Note') }} : </strong><b>{{ __('You can easily change order of lead stage using drag & drop.') }}</b></p>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

@@ -4,10 +4,13 @@
         ExtendingLayoutsConstants,
         SettingsConstants,
         StacksConstants,
-        ViewClassNamesConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
         YieldingConstants,
     };
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Collection;
+    $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @push(StacksConstants::ADM_CSS)
@@ -32,115 +35,7 @@
     <li class="breadcrumb-item active" aria-current="page">{{__('Language')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script defer>
-        (() => {
-        const errFb = '# ERROR';
-        const dataClientLocalized = 'data-client-localized';
-        const dataGuardMsg = 'data-guard-msg';
-        const defaultLangSessionKey = 'erp-np-lang';
-        const getLocalizedMessage = (msgKey, el) => {
-            let msg = errFb;
-            if (el.getAttribute('data-sv-localized') === 'true' || el.getAttribute(dataClientLocalized) === 'true') {
-            msg = el.getAttribute(dataGuardMsg) ?? errFb;
-            } else {
-            let lang = (window.sessionStorage.getItem(defaultLangSessionKey) ?? document.documentElement.lang ?? 'en')
-                .toLowerCase()
-                .replace(/_/g, '-');
-            lang = lang === 'pt-br' ? lang : lang.slice(0, 2);
-            msg = window.translations?.[lang]?.[msgKey] ??
-                    el.getAttribute(dataGuardMsg) ??
-                    window.translations?.['en']?.[msgKey] ??
-                    errFb;
-            if (msg !== errFb) {
-                el.setAttribute(dataGuardMsg, msg);
-                el.setAttribute(dataClientLocalized, 'true');
-            }
-            }
-            return msg;
-        };
-        const el = document.querySelector('#disable_lang');
-        if (!el || el.getAttribute('data-listener-attached') === 'true') return;
-        const observer = new MutationObserver((mutations, obs) => {
-            for (const m of mutations) {
-            for (const node of m.removedNodes) {
-                if (node === el) {
-                el.removeEventListener('pointerup', handler);
-                obs.disconnect();
-                }
-            }
-            }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-        el.setAttribute('data-listener-attached', 'true');
-        el.addEventListener('pointerup', handler);
-        function handler() {
-            try {
-            const isChecked = el.checked ?? false;
-            const mode = isChecked ? 'on' : 'off';
-            const url = el.getAttribute('data-url');
-            const href = el.form?.action ?? el.getAttribute('href');
-            if ((!url || url === '#') && (!href || href === '#')) {
-                showError(getLocalizedMessage('disable_lang_unavailable', el));
-                return;
-            }
-            const requestUrl = url || href;
-            const token = window.csrfToken ?? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-            if (!token) console.log('CSRF token missing');
-            $.ajax({
-                type: 'POST',
-                url: requestUrl,
-                dataType: 'json',
-                data: { _token: token, mode, lang: el.getAttribute('data-lang') ?? '' }
-            })
-            .done(data => show_toastr('success', data.message, 'success'))
-            .fail(() => showError(getLocalizedMessage('disable_lang_failed', el)));
-            } catch {
-            showError(getLocalizedMessage('disable_lang_failed', el));
-            }
-        }
-        function showError(message) {
-            try {
-            let container = document.querySelector('#bootstrap-toast-container');
-            if (!container) {
-                const hasBootstrap = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-                .some(l => /bootstrap/i.test(l.href)) && window.bootstrap?.Toast;
-                if (hasBootstrap) {
-                container = document.createElement('div');
-                container.id = 'bootstrap-toast-container';
-                container.setAttribute('aria-live', 'polite');
-                container.setAttribute('aria-atomic', 'true');
-                document.body.appendChild(container);
-                }
-            }
-            if (container && window.bootstrap.Toast) {
-                let toast = container.querySelector('.toast');
-                if (!toast) {
-                toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.setAttribute('role', 'alert');
-                toast.setAttribute('aria-live', 'assertive');
-                toast.setAttribute('aria-atomic', 'true');
-                const body = document.createElement('div');
-                body.className = 'toast-body';
-                toast.appendChild(body);
-                container.appendChild(toast);
-                if (toast.getAttribute('data-click-listener') !== 'true') {
-                    toast.addEventListener('click', () => body.textContent = message);
-                    toast.setAttribute('data-click-listener', 'true');
-                }
-                }
-                toast.querySelector('.toast-body').textContent = message;
-                new bootstrap.Toast(toast).show();
-            } else {
-                alert(message);
-            }
-            el.setAttribute('data-failed-route', 'true');
-            } catch {
-            alert(message);
-            }
-        }
-        })();
-    </script>
+    <script defer src="{{ asset('assets/js/routes/languages/index.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
@@ -167,18 +62,18 @@
                 </div>
             </div>
             @php
-                $langDestroyRoute = Route::has('languages.destroy')
-                    ? route('languages.destroy', $currentLang)
+                $langDestroyRoute = Route::has(VW::LNG.'.destroy')
+                    ? route(VW::LNG.'.destroy', $currentLang)
                     : '#';
                 $linkId = 'lang-destroy-link';
                 $langDestroyMsg = Utility::fetchLinkMessage(
                     app()->getLocale(),
-                    ViewsConstants::LNG,
+                    VW::LNG,
                     'language_destroy_route_unavailable'
                 ) ?? 'Language delete route is unavailable. Please contact technical support or your domain administrator.';
             @endphp
-            <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG }}">
-                {!! Collective\Html\FormFacade::open([
+            <div class="{{ VC::ACT_BTN_DNG }}">
+                {!! Form::open([
                     'method' => 'DELETE',
                     'url'    => $langDestroyRoute,
                     'id'     => 'langDestroyForm'
@@ -189,13 +84,13 @@
                         data-url="{{ $langDestroyRoute }}"
                         data-sv-localized="true"
                         data-guard-msg="{{ $langDestroyMsg }}"
-                        class="{{ ViewClassNamesConstants::BT_SM_DG }} btn-icon bs-pass-para"
+                        class="{{ VC::BT_SM_DG }} btn-icon bs-pass-para"
                         data-bs-toggle="tooltip"
                         title="{{ __('Delete') }}"
                     >
-                        <i class="{{ ViewClassNamesConstants::TI_TRS_WT }}"></i>
+                        <i class="{{ VC::TI_TRS_WT }}"></i>
                     </a>
-                {!! Collective\Html\FormFacade::close() !!}
+                {!! Form::close() !!}
             </div>
             @push(StacksConstants::ADM_SCR_PG)
                 <script defer>
@@ -259,23 +154,23 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
         <div class="col-xl-2 col-md-3">
-            <div class="{{ ViewClassNamesConstants::CD_STK }}" style="top:30px">
-                <div class="{{ ViewClassNamesConstants::LG_FLSH }}" id="useradd-sidenav">
+            <div class="{{ VC::CD_STK }}" style="top:30px">
+                <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
                     @foreach ($languages as $code => $langName)
                             @php
-                                $manageRoute = Route::has('languages.manage')
-                                    ? route('languages.manage', ['lang' => $code])
+                                $manageRoute = Route::has(VW::LNG.'.manage')
+                                    ? route(VW::LNG.'.manage', ['lang' => $code])
                                     : '#';
                                 $linkId = 'language-manage-' . $code . '-link';
                                 $message = Utility::fetchLinkMessage(
                                     app()->getLocale(),
-                                    ViewsConstants::LNG,
+                                    VW::LNG,
                                     'language_manage_route_unavailable'
                                 ) ?? 'Manage Language route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
                             <a
                                 id="{{ $linkId }}"
-                                class="{{ ViewClassNamesConstants::LGI_ACT_NBD }} {{ $currentLang === $code ? 'active' : '' }}"
+                                class="{{ VC::LGI_ACT_NBD }} {{ $currentLang === $code ? 'active' : '' }}"
                                 href="{{ $manageRoute }}"
                                 data-url="{{ $manageRoute }}"
                                 data-sv-localized="true"
@@ -283,7 +178,7 @@
                             >
                                 {{ ucfirst($langName) }}
                                 <div class="float-end">
-                                    <i class="{{ ViewClassNamesConstants::TI_CHV_RT }}"></i>
+                                    <i class="{{ VC::TI_CHV_RT }}"></i>
                                 </div>
                             </a>
                     @endforeach
@@ -365,13 +260,13 @@
                             <div class="tab-content" id="myTabContent">
                                 <div class="tab-pane fade show active" id="pills-user-1" role="tabpanel" aria-labelledby="pills-user-tab-1">
                                     @php
-                                        $storeDataRoute = Route::has('languages.store.data')
-                                            ? route('languages.store.data', [$currentLang])
+                                        $storeDataRoute = Route::has(VW::LNG.'.store.data')
+                                            ? route(VW::LNG.'.store.data', [$currentLang])
                                             : '#';
                                         $formId = 'langStoreForm';
                                         $storeDataMsg = Utility::fetchLinkMessage(
                                             app()->getLocale(),
-                                            ViewsConstants::LNG,
+                                            VW::LNG,
                                             'languages_store_data_route_unavailable'
                                         ) ?? 'Language store data route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
@@ -386,82 +281,57 @@
                                     >
                                         @csrf
                                         <div class="row">
-                                            @foreach($arrLabel as $label => $value)
+                                            @php
+                                                $labelPairs = [];
+                                                if (is_array($arrLabel ?? null) && count($arrLabel)) {
+                                                    $labelPairs = $arrLabel;
+                                                } elseif (($arrLabel ?? null) instanceof Collection && $arrLabel->isNotEmpty()) {
+                                                    $labelPairs = $arrLabel->toArray();
+                                                }
+                                            @endphp
+                                            @forelse($labelPairs as $label => $value)
+                                                @php
+                                                    $safeLabel  = isset($label) && $label !== '' ? (string) $label : __('(unnamed label)');
+                                                    $inputKey   = isset($label) && $label !== '' ? (string) $label : ('label_' . $loop->index);
+                                                    $hasValue   = isset($value) && $value !== '';
+                                                @endphp
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label class="form-label">{{ $label }}</label>
+                                                        <label class="form-label">{{ $safeLabel }}</label>
                                                         <input
                                                             type="text"
                                                             class="form-control"
-                                                            name="label[{{ $label }}]"
-                                                            value="{{ $value }}"
+                                                            name="label[{{ $inputKey }}]"
+                                                            value="{{ $hasValue ? $value : '' }}"
+                                                            placeholder="{{ $hasValue ? '' : __('(not set)') }}"
                                                         >
                                                     </div>
                                                 </div>
-                                            @endforeach
+                                            @empty
+                                                <div class="col-12 text-center text-muted">
+                                                    {{ __('No labels found.') }}
+                                                </div>
+                                            @endforelse
                                             <div class="col-lg-12 text-end">
-                                                <button class="{{ ViewClassNamesConstants::BT_PRM }}" type="submit">
+                                                <button class="{{ VC::BT_PRM }}" type="submit">
                                                     {{ __('Save Changes') }}
                                                 </button>
                                             </div>
                                         </div>
                                     </form>
                                     @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-lang-store-listener-active';
-                                                const form = document.getElementById('{{ $formId }}');
-                                                if (!form || form.getAttribute(listenerAttr) === 'true') return;
-                                                form.setAttribute(listenerAttr, 'true');
-                                                form.addEventListener('submit', event => {
-                                                    try {
-                                                        const action     = form.getAttribute('action');
-                                                        const dataAction = form.getAttribute('data-action');
-                                                        if ((!action || action === '#') && (!dataAction || dataAction === '#')) {
-                                                            event.preventDefault();
-                                                            const msg           = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container       = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container       = document.createElement('div');
-                                                                container.id    = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $formId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                        <script defer src="{{ asset('assets/js/routes/languages/indexLabelStore.js') }}"></script>
                                     @endpush
                                 </div>
                                 <div class="tab-pane fade" id="pills-user-2" role="tabpanel" aria-labelledby="pills-user-tab-2">
                                     @php
-                                        $storeDataRoute = Route::has('languages.store.data')
-                                            ? route('languages.store.data', [$currentLang])
+                                        $storeDataRoute = Route::has(VW::LNG.'.store.data')
+                                            ? route(VW::LNG.'.store.data', [$currentLang])
                                             : '#';
                                         $formId = 'languages-store-data-form';
                                         $storeDataMsg = Utility::fetchLinkMessage(
                                             app()->getLocale(),
-                                            ViewsConstants::LNG,
+                                            VW::LNG,
                                             'languages_store_data_route_unavailable'
                                         ) ?? 'Language store data route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
@@ -475,114 +345,164 @@
                                     >
                                         @csrf
                                         <div class="row">
-                                            @foreach($arrMessage as $fileName => $fileValue)
+                                            @php
+                                                $root = ($arrMessage instanceof Collection)
+                                                            ? $arrMessage->toArray()
+                                                            : (is_array($arrMessage ?? null) ? $arrMessage : []);
+                                            @endphp
+                                            @forelse($root as $fileName => $fileValue)
+                                                @php
+                                                    $fileTitle = isset($fileName) && $fileName !== '' ? ucfirst((string) $fileName) : __('Untitled file');
+                                                    $lvl1 = is_array($fileValue ?? null) ? $fileValue : [];
+                                                @endphp
+
                                                 <div class="col-lg-12">
-                                                    <h5>{{ucfirst($fileName)}}</h5>
+                                                    <h5>{{ $fileTitle }}</h5>
                                                 </div>
-                                                @foreach($fileValue as $label => $value)
+
+                                                @forelse($lvl1 as $label => $value)
                                                     @if(is_array($value))
-                                                        @foreach($value as $label2 => $value2)
+                                                        @php $lvl2 = $value; @endphp
+                                                        @forelse($lvl2 as $label2 => $value2)
                                                             @if(is_array($value2))
-                                                                @foreach($value2 as $label3 => $value3)
+                                                                @php $lvl3 = $value2; @endphp
+                                                                @forelse($lvl3 as $label3 => $value3)
                                                                     @if(is_array($value3))
-                                                                        @foreach($value3 as $label4 => $value4)
+                                                                        @php $lvl4 = $value3; @endphp
+                                                                        @forelse($lvl4 as $label4 => $value4)
                                                                             @if(is_array($value4))
-                                                                                @foreach($value4 as $label5 => $value5)
+                                                                                @php $lvl5 = $value4; @endphp
+                                                                                @forelse($lvl5 as $label5 => $value5)
+                                                                                    @php
+                                                                                        $namePath = "message[{$fileName}][{$label}][{$label2}][{$label3}][{$label4}][{$label5}]";
+                                                                                        $display  = "{$fileName}.{$label}.{$label2}.{$label3}.{$label4}.{$label5}";
+                                                                                        $valSet   = isset($value5) && $value5 !== '';
+                                                                                    @endphp
                                                                                     <div class="col-md-6">
                                                                                         <div class="form-group">
-                                                                                            <label>{{$fileName}}.{{$label}}.{{$label2}}.{{$label3}}.{{$label4}}.{{$label5}}</label>
-                                                                                            <input type="text" class="form-control" name="message[{{$fileName}}][{{$label}}][{{$label2}}][{{$label3}}][{{$label4}}][{{$label5}}]" value="{{$value5}}">
+                                                                                            <label>{{ $display }}</label>
+                                                                                            <input
+                                                                                                type="text"
+                                                                                                class="form-control"
+                                                                                                name="{{ $namePath }}"
+                                                                                                value="{{ $valSet ? $value5 : '' }}"
+                                                                                                placeholder="{{ $valSet ? '' : __('(not set)') }}"
+                                                                                            >
                                                                                         </div>
                                                                                     </div>
-                                                                                @endforeach
+                                                                                @empty
+                                                                                    <div class="col-12 text-muted text-center">
+                                                                                        {{ __('No data found for :path', ['path' => "{$fileName}.{$label}.{$label2}.{$label3}.{$label4}"]) }}
+                                                                                    </div>
+                                                                                @endforelse
                                                                             @else
+                                                                                @php
+                                                                                    $namePath = "message[{$fileName}][{$label}][{$label2}][{$label3}][{$label4}]";
+                                                                                    $display  = "{$fileName}.{$label}.{$label2}.{$label3}.{$label4}";
+                                                                                    $valSet   = isset($value4) && $value4 !== '';
+                                                                                @endphp
                                                                                 <div class="col-lg-6">
                                                                                     <div class="form-group">
-                                                                                        <label>{{$fileName}}.{{$label}}.{{$label2}}.{{$label3}}.{{$label4}}</label>
-                                                                                        <input type="text" class="form-control" name="message[{{$fileName}}][{{$label}}][{{$label2}}][{{$label3}}][{{$label4}}]" value="{{$value4}}">
+                                                                                        <label>{{ $display }}</label>
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            class="form-control"
+                                                                                            name="{{ $namePath }}"
+                                                                                            value="{{ $valSet ? $value4 : '' }}"
+                                                                                            placeholder="{{ $valSet ? '' : __('(not set)') }}"
+                                                                                        >
                                                                                     </div>
                                                                                 </div>
                                                                             @endif
-                                                                        @endforeach
+                                                                        @empty
+                                                                            <div class="col-12 text-muted text-center">
+                                                                                {{ __('No data found for :path', ['path' => "{$fileName}.{$label}.{$label2}.{$label3}"]) }}
+                                                                            </div>
+                                                                        @endforelse
                                                                     @else
+                                                                        @php
+                                                                            $namePath = "message[{$fileName}][{$label}][{$label2}][{$label3}]";
+                                                                            $display  = "{$fileName}.{$label}.{$label2}.{$label3}";
+                                                                            $valSet   = isset($value3) && $value3 !== '';
+                                                                        @endphp
                                                                         <div class="col-lg-6">
                                                                             <div class="form-group">
-                                                                                <label>{{$fileName}}.{{$label}}.{{$label2}}.{{$label3}}</label>
-                                                                                <input type="text" class="form-control" name="message[{{$fileName}}][{{$label}}][{{$label2}}][{{$label3}}]" value="{{$value3}}">
+                                                                                <label>{{ $display }}</label>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    class="form-control"
+                                                                                    name="{{ $namePath }}"
+                                                                                    value="{{ $valSet ? $value3 : '' }}"
+                                                                                    placeholder="{{ $valSet ? '' : __('(not set)') }}"
+                                                                                >
                                                                             </div>
                                                                         </div>
                                                                     @endif
-                                                                @endforeach
+                                                                @empty
+                                                                    <div class="col-12 text-muted text-center">
+                                                                        {{ __('No data found for :path', ['path' => "{$fileName}.{$label}.{$label2}"]) }}
+                                                                    </div>
+                                                                @endforelse
                                                             @else
+                                                                @php
+                                                                    $namePath = "message[{$fileName}][{$label}][{$label2}]";
+                                                                    $display  = "{$fileName}.{$label}.{$label2}";
+                                                                    $valSet   = isset($value2) && $value2 !== '';
+                                                                @endphp
                                                                 <div class="col-lg-6">
                                                                     <div class="form-group">
-                                                                        <label>{{$fileName}}.{{$label}}.{{$label2}}</label>
-                                                                        <input type="text" class="form-control" name="message[{{$fileName}}][{{$label}}][{{$label2}}]" value="{{$value2}}">
+                                                                        <label>{{ $display }}</label>
+                                                                        <input
+                                                                            type="text"
+                                                                            class="form-control"
+                                                                            name="{{ $namePath }}"
+                                                                            value="{{ $valSet ? $value2 : '' }}"
+                                                                            placeholder="{{ $valSet ? '' : __('(not set)') }}"
+                                                                        >
                                                                     </div>
                                                                 </div>
                                                             @endif
-                                                        @endforeach
+                                                        @empty
+                                                            <div class="col-12 text-muted text-center">
+                                                                {{ __('No data found for :path', ['path' => "{$fileName}.{$label}"]) }}
+                                                            </div>
+                                                        @endforelse
                                                     @else
+                                                        @php
+                                                            $namePath = "message[{$fileName}][{$label}]";
+                                                            $display  = "{$fileName}.{$label}";
+                                                            $valSet   = isset($value) && $value !== '';
+                                                        @endphp
                                                         <div class="col-lg-6">
                                                             <div class="form-group">
-                                                                <label>{{$fileName}}.{{$label}}</label>
-                                                                <input type="text" class="form-control" name="message[{{$fileName}}][{{$label}}]" value="{{$value}}">
+                                                                <label>{{ $display }}</label>
+                                                                <input
+                                                                    type="text"
+                                                                    class="form-control"
+                                                                    name="{{ $namePath }}"
+                                                                    value="{{ $valSet ? $value : '' }}"
+                                                                    placeholder="{{ $valSet ? '' : __('(not set)') }}"
+                                                                >
                                                             </div>
                                                         </div>
                                                     @endif
-                                                @endforeach
-                                            @endforeach
+                                                @empty
+                                                    <div class="col-12 text-muted text-center">
+                                                        {{ __('No data found for :file', ['file' => $fileTitle]) }}
+                                                    </div>
+                                                @endforelse
+                                            @empty
+                                                <div class="col-12 text-muted text-center">
+                                                    {{ __('No message entries found.') }}
+                                                </div>
+                                            @endforelse
                                         </div>
                                         <div class="col-lg-12 text-end">
-                                            <button class="{{ ViewClassNamesConstants::BT_PRM }}" type="submit">{{ __('Save Changes')}}</button>
+                                            <button class="{{ VC::BT_PRM }}" type="submit">{{ __('Save Changes')}}</button>
                                         </div>
                                     </form>
                                     @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-languages-store-listener-active';
-                                                const form = document.getElementById('{{ $formId }}');
-                                                if (!form || form.getAttribute(listenerAttr) === 'true') return;
-                                                form.setAttribute(listenerAttr, 'true');
-
-                                                form.addEventListener('submit', event => {
-                                                    try {
-                                                        const actionUrl = form.getAttribute('action');
-                                                        const dataUrl = form.getAttribute('data-url');
-                                                        if ((!actionUrl || actionUrl === '#') && (!dataUrl || dataUrl === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = form.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                        }
-                                                    } catch {}
-                                                });
-
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $formId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
+                                        <script defer src="{{ asset('assets/js/routes/languages/indexFileStore.js') }}">
                                         </script>
                                     @endpush
                                 </div>

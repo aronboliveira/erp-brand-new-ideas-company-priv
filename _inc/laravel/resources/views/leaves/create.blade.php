@@ -7,7 +7,7 @@
 
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
-    $storeBase       = VW::LV . '.store';
+    $storeBase       = VW::LV;
     $storeKebab      = Str::kebab($storeBase);
     $storeResolved   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl        = $storeResolved ? route($storeResolved) : '#';

@@ -1119,6 +1119,6 @@
     <script defer src="{{ asset('assets/js/routes/commissions/storeSalary.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/loans/storeSalary.js') }}"></script>
     <script defer src="{{ asset('assets/js/routes/saturationDeductions/storeSalary.js') }}"></script>
-    <script defer src="{{ asset('assets/js/routes/otherPayments/store.js') }}"></script>
-    <script defer src="{{ asset('assets/js/routes/overtimes/store.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/otherPayments/storeSalary.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/overtimes/storeSalary.js') }}"></script>
 @endpush

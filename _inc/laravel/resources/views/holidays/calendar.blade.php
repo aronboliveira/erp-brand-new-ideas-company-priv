@@ -57,7 +57,7 @@
                 $createKebab    = Str::kebab($createBase);
                 $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
                 $createUrl      = $createResolved ? route($createResolved) : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'create_holiday_route_unavailable') : null) ?? __('Create Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'create_holiday_route_unavailable') : 'Create Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Holiday route is unavailable. Please contact technical support or your domain administrator.');
             @endphp
             <a href="#"
                class="{{ VC::BT_SM_PM }}"
@@ -208,7 +208,7 @@
                                                                         $editKebab    = Str::kebab($editBase);
                                                                         $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
                                                                         $editUrl      = ($editResolved && $hid !== '') ? route($editResolved, $hid) : '#';
-                                                                        $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'edit_holiday_route_unavailable') : null) ?? __('Edit Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                                                                        $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'edit_holiday_route_unavailable') : 'Edit Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Holiday route is unavailable. Please contact technical support or your domain administrator.');
                                                                     @endphp
                                                                     <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                         <a href="#"
@@ -230,7 +230,7 @@
                                                                         $destroyKebab    = Str::kebab($destroyBase);
                                                                         $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
                                                                         $destroyUrl      = ($destroyResolved && $hid !== '') ? route($destroyResolved, $hid) : '#';
-                                                                        $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'destroy_holiday_route_unavailable') : null) ?? __('Delete Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                                                                        $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'destroy_holiday_route_unavailable') : 'Delete Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Holiday route is unavailable. Please contact technical support or your domain administrator.');
                                                                         $deleteFormId    = 'holiday-delete-form-' . ($hid === '' ? 'x' : $hid);
                                                                         $confirmTitle    = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') : null) ?? 'Are You Sure?';
                                                                         $confirmBody     = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') : null) ?? 'This action can not be undone. Do you want to continue?';

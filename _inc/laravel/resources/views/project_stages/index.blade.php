@@ -28,39 +28,7 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{ asset('assets/js/jscolor.js') }}"></script>
     <script async src="{{ asset('assets/libs/jquery-ui/jquery-ui.js') }}"></script>
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:{project_stage_order_unavailable:'فشل تحديث ترتيب مراحل المشروع'},
-            da:{project_stage_order_unavailable:'Opdatering af projektfaserækkefølge mislykkedes'},
-            de:{project_stage_order_unavailable:'Aktualisieren der Projektphasenreihenfolge fehlgeschlagen'},
-            en:{project_stage_order_unavailable:'Failed to update project stages order'},
-            es:{project_stage_order_unavailable:'Error al actualizar el orden de las etapas del proyecto'},
-            fr:{project_stage_order_unavailable:'Échec de la mise à jour de l’ordre des étapes du projet'},
-            he:{project_stage_order_unavailable:'עדכון סדר שלבי הפרויקט נכשל'},
-            it:{project_stage_order_unavailable:'Aggiornamento ordine fasi progetto non riuscito'},
-            ja:{project_stage_order_unavailable:'プロジェクト段階の順序を更新できませんでした'},
-            nl:{project_stage_order_unavailable:'Bijwerken van volgorde projectfasen mislukt'},
-            pl:{project_stage_order_unavailable:'Nie udało się zaktualizować kolejności etapów projektu'},
-            pt:{project_stage_order_unavailable:'Falha ao atualizar a ordem das etapas do projeto'},
-            'pt-br':{project_stage_order_unavailable:'Falha ao atualizar a ordem das etapas do projeto'},
-            ru:{project_stage_order_unavailable:'Не удалось обновить порядок этапов проекта'},
-            tr:{project_stage_order_unavailable:'Proje aşamaları sırası güncellenemedi'},
-            zh:{project_stage_order_unavailable:'无法更新项目阶段顺序'}
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/projects/stages/lang/index.js') }}"></script>
     <script defer>
         (() => {
             const DATA_LISTENER_ADDED='data-listener-added';
@@ -161,47 +129,7 @@ Object.keys(t).forEach(
             </a>
         </div>
         @push(StacksConstants::ADM_SCR_PG)
-            <script defer>
-                (() => {
-                    try {
-                        const l = document.getElementById('{{ $projectStageCreateLinkId }}');
-                        if (!l || l.getAttribute('data-listener-active') === 'true') return;
-                        l.setAttribute('data-listener-active', 'true');
-                        l.addEventListener('click', (e) => {
-                            try {
-                                const href = l.getAttribute('href') || '#';
-                                const url  = l.getAttribute('data-url') || href || '#';
-                                if (href !== '#' || url !== '#') return;
-                                e.preventDefault();
-                                const msg = l.getAttribute('data-guard-msg') || 'Create project stage route is unavailable. Please contact technical support or your domain administrator.';
-                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                                let container = document.getElementById('toast-container');
-                                if (!container) {
-                                    container = document.createElement('div');
-                                    container.id = 'toast-container';
-                                    document.body.appendChild(container);
-                                }
-                                if (hasBootstrap) {
-                                    const toast = document.createElement('div');
-                                    toast.className = 'toast';
-                                    toast.setAttribute('role','alert');
-                                    toast.setAttribute('aria-live','assertive');
-                                    toast.setAttribute('aria-atomic','true');
-                                    const body = document.createElement('div');
-                                    body.className = 'toast-body';
-                                    body.textContent = msg;
-                                    toast.appendChild(body);
-                                    container.appendChild(toast);
-                                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                                } else {
-                                    alert(msg);
-                                }
-                                l.setAttribute('data-failed-route', 'true');
-                            } catch (err) {}
-                        });
-                    } catch (error) {}
-                })();
-            </script>
+            <script defer src="{{ asset('assets/js/routes/projects/stages/create.js') }}"></script>
         @endpush
     @endcan
 @endsection

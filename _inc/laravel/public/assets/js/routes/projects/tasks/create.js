@@ -1,6 +1,6 @@
 (() => {
   try {
-    const f = document.getElementById("edit-project-task-form");
+    const f = document.getElementById("create-project-task-form");
     if (!f) return;
     if (f.getAttribute("data-listener-active") === "true") return;
     f.setAttribute("data-listener-active", "true");
@@ -28,17 +28,15 @@
           return;
         wrap.setAttribute("data-listener-active", "true");
 
-        wrap.addEventListener("click", () => {
+        wrap.addEventListener("click", e => {
           try {
             const id = wrap.getAttribute("data-id") ?? "";
             if (!id) return;
 
             if (toSet.has(id)) {
               toSet.delete(id);
-              wrap.classList.remove("selected");
             } else {
               toSet.add(id);
-              wrap.classList.add("selected");
             }
             if (assigneesInput) {
               assigneesInput.value = Array.from(toSet).join(",");
@@ -60,7 +58,7 @@
             }
           } catch (err) {
             console.error(
-              "[assets/js/routes/projectTasks/edit.js] add_usr click error:",
+              "[assets/js/routes/projects/tasks/create.js] add_usr click error:",
               err?.constructor?.name ?? "Error",
               err?.message ?? "Unknown error"
             );
@@ -68,7 +66,7 @@
         });
       } catch (err) {
         console.error(
-          "[assets/js/routes/projectTasks/edit.js] bind add_usr error:",
+          "[assets/js/routes/projects/tasks/create.js] bind add_usr error:",
           err?.constructor?.name ?? "Error",
           err?.message ?? "Unknown error"
         );
@@ -97,7 +95,7 @@
 
         const msg =
           f.getAttribute("data-guard-msg") ??
-          "Update project task route is unavailable. Please contact technical support or your domain administrator.";
+          "Create project task route is unavailable. Please contact technical support or your domain administrator.";
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
@@ -128,7 +126,7 @@
             window.bootstrap.Toast.getOrCreateInstance(toast).show();
           } catch (err) {
             console.error(
-              "[assets/js/routes/projectTasks/edit.js] Bootstrap toast instantiation error:",
+              "[assets/js/routes/projects/tasks/create.js] Bootstrap toast instantiation error:",
               err?.constructor?.name ?? "Error",
               err?.message ?? "Unknown error"
             );
@@ -141,7 +139,7 @@
         f.setAttribute("data-failed-route", "true");
       } catch (err) {
         console.error(
-          "[assets/js/routes/projectTasks/edit.js] Submit handler error:",
+          "[assets/js/routes/projects/tasks/create.js] Submit handler error:",
           err?.constructor?.name ?? "Error",
           err?.message ?? "Unknown error"
         );
@@ -149,7 +147,7 @@
     });
   } catch (error) {
     console.error(
-      "[assets/js/routes/projectTasks/edit.js] Initialization error:",
+      "[assets/js/routes/projects/tasks/create.js] Initialization error:",
       error?.constructor?.name ?? "Error",
       error?.message ?? "Unknown error"
     );

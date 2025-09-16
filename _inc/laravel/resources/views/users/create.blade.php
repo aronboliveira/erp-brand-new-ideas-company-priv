@@ -11,7 +11,7 @@
     use Illuminate\Support\{Facades\Auth, Facades\Route, Str};
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user: $user);
-    $storeBase = VW::USR . '.store';
+    $storeBase = VW::USR;
     $storeKebab = Str::kebab($storeBase);
     $storeName  = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeName ? route($storeName, []) : '#';

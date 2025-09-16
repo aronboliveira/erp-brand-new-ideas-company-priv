@@ -8,7 +8,7 @@
     $lang = Utility::fetchUserLang();
     $settings = Utility::settings();
     $canCreate = Gate::check('create event');
-    $storeName = VW::EVT.'.store';
+    $storeName = VW::EVT;
     $storeUrl = $canCreate && Route::has($storeName) ? route($storeName) : (trim(VW::EVT,'/') ? URL::to(VW::EVT) : '#');
     $storeGuard = Utility::fetchLinkMessage($lang, VW::EVT, 'store_route_unavailable') ?? 'Event create route is unavailable. Please contact technical support or your domain administrator.';
     $depName = VW::EVT.'.departments';

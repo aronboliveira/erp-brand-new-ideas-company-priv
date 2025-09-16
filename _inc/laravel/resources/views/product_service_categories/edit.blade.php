@@ -49,168 +49,136 @@
         <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
         <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
     </div>
-{{ Form::close() }}
-    <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-    ar:{account_toggle_unavailable:'تعذر تبديل عرض الحساب',get_account_unavailable:'تعذر جلب قائمة الحسابات'},
-    da:{account_toggle_unavailable:'Kunne ikke skifte konto-visibility',get_account_unavailable:'Kan ikke hente kontoliste'},
-    de:{account_toggle_unavailable:'Kontosichtbarkeit konnte nicht umgeschaltet werden',get_account_unavailable:'Kontenliste konnte nicht geladen werden'},
-    en:{account_toggle_unavailable:'Cannot toggle account visibility',get_account_unavailable:'Cannot fetch accounts list'},
-    es:{account_toggle_unavailable:'No se puede alternar la visibilidad de cuenta',get_account_unavailable:'No se puede obtener la lista de cuentas'},
-    fr:{account_toggle_unavailable:'Impossible d’afficher/masquer la section compte',get_account_unavailable:'Impossible de récupérer la liste des comptes'},
-    he:{account_toggle_unavailable:'לא ניתן להחליף תצוגת חשבון',get_account_unavailable:'לא ניתן להביא את רשימת החשבונות'},
-    it:{account_toggle_unavailable:'Impossibile alternare visibilità conto',get_account_unavailable:'Impossibile recuperare elenco conti'},
-    ja:{account_toggle_unavailable:'アカウント表示を切り替えできません',get_account_unavailable:'口座リストを取得できません'},
-    nl:{account_toggle_unavailable:'Kan zichtbaarheid van account niet wisselen',get_account_unavailable:'Kan accountlijst niet ophalen'},
-    pl:{account_toggle_unavailable:'Nie można przełączyć widoczności konta',get_account_unavailable:'Nie można pobrać listy kont'},
-    pt:{account_toggle_unavailable:'Não foi possível alternar a visibilidade da conta',get_account_unavailable:'Não foi possível obter a lista de contas'},
-    'pt-br':{account_toggle_unavailable:'Não foi possível alternar a visibilidade da conta',get_account_unavailable:'Não foi possível obter a lista de contas'},
-    ru:{account_toggle_unavailable:'Не удалось переключить видимость счета',get_account_unavailable:'Не удалось получить список счетов'},
-    tr:{account_toggle_unavailable:'Hesap görünürlüğü değiştirilemiyor',get_account_unavailable:'Hesap listesi alınamıyor'},
-    zh:{account_toggle_unavailable:'无法切换账户可见性',get_account_unavailable:'无法获取账户列表'}
-  };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
- 
-          })();
-    </script>
-<script defer>
-  (() => {
-    const dataListenerAdded = 'data-listener-added';
-    const errFb = '# ERROR';
-    const dataClientLocalized = 'data-client-localized';
-    const dataGuardMsg = 'data-guard-msg';
-
-    const getLocalizedMessage = (el, msgKey) => {
-      let msg = errFb;
-      if (el.getAttribute('data-sv-localized') === 'true' || el.getAttribute(dataClientLocalized) === 'true') msg = el.getAttribute(dataGuardMsg) || errFb;
-      else {
-        let lang = (window.sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en').toLowerCase().replace(/_/g,'-');
-        lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-        msg = window.translations?.[lang]?.[msgKey] || el.getAttribute(dataGuardMsg) || window.translations?.['en']?.[msgKey] || errFb;
-        if (msg !== errFb) { el.setAttribute(dataGuardMsg, msg); el.setAttribute(dataClientLocalized, 'true'); }
-      }
-      return msg;
-    };
-    const handleErrorDisplay = (el, msgKey) => {
-      const message = el ? getLocalizedMessage(el, msgKey) : errFb;
-      const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
-      if (hasBootstrap) {
-        if (!document.querySelector('#error-toast')) {
-          const toast = document.createElement('div');
-          toast.id = 'error-toast';
-          toast.className = 'toast align-items-center text-bg-danger border-0';
-          toast.setAttribute('role','alert');
-          toast.setAttribute('aria-live','assertive');
-          toast.setAttribute('aria-atomic','true');
-          toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
-          document.body.appendChild(toast);
-        }
-        new bootstrap.Toast(document.querySelector('#error-toast')).show();
-      } else { alert(message); }
-    };
-    try {
-      if (typeof $ === 'undefined') { console.error('jQuery is required'); return; }
-      $(document).on('click','.cattype',function() {
-        try {
-          const type = $(this).val() ?? '';
-          const $acc = $('.account');
-          if (!$acc.length) return;
-          if (type !== 'product & service') $acc.removeClass('d-none').addClass('d-block');
-          else $acc.addClass('d-none').removeClass('d-block');
-        } catch { 
-          const el = this;
-          if (!el.hasAttribute(dataListenerAdded)) {
-            el.addEventListener('click', ()=>handleErrorDisplay(el,'account_toggle_unavailable'));
-            el.setAttribute(dataListenerAdded,'true');
-            const obs = new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener('click',()=>handleErrorDisplay(el,'account_toggle_unavailable')); o.disconnect(); }});
-            obs.observe(document.body,{childList:true,subtree:true});
+    <script async src="{{ asset('assets/js/routes/product/services/categories/lang/edit.js') }}"></script>
+    <script defer>
+      (() => {
+        const dataListenerAdded = 'data-listener-added';
+        const errFb = '# ERROR';
+        const dataClientLocalized = 'data-client-localized';
+        const dataGuardMsg = 'data-guard-msg';
+    
+        const getLocalizedMessage = (el, msgKey) => {
+          let msg = errFb;
+          if (el.getAttribute('data-sv-localized') === 'true' || el.getAttribute(dataClientLocalized) === 'true') msg = el.getAttribute(dataGuardMsg) || errFb;
+          else {
+            let lang = (window.sessionStorage.getItem('erp-np-lang') || document.documentElement.lang || 'en').toLowerCase().replace(/_/g,'-');
+            lang = lang === 'pt-br' ? lang : lang.slice(0,2);
+            msg = window.translations?.[lang]?.[msgKey] || el.getAttribute(dataGuardMsg) || window.translations?.['en']?.[msgKey] || errFb;
+            if (msg !== errFb) { el.setAttribute(dataGuardMsg, msg); el.setAttribute(dataClientLocalized, 'true'); }
           }
-        }
-      });
-      const $type = $('#type');
-      const attachPointerGuard = (el, key) => {
-        if (!el || el.getAttribute(dataListenerAdded)==='true') return;
-        el.addEventListener('pointerup', ()=>handleErrorDisplay(el,key), { once:true });
-        el.setAttribute(dataListenerAdded,'true');
-        const obs = new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener('pointerup',()=>handleErrorDisplay(el,key)); o.disconnect(); }});
-        obs.observe(document.body,{childList:true,subtree:true});
-      };
-
-      $(document).on('change','#type',function() {
-        const el = this;
+          return msg;
+        };
+        const handleErrorDisplay = (el, msgKey) => {
+          const message = el ? getLocalizedMessage(el, msgKey) : errFb;
+          const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap?.Toast;
+          if (hasBootstrap) {
+            if (!document.querySelector('#error-toast')) {
+              const toast = document.createElement('div');
+              toast.id = 'error-toast';
+              toast.className = 'toast align-items-center text-bg-danger border-0';
+              toast.setAttribute('role','alert');
+              toast.setAttribute('aria-live','assertive');
+              toast.setAttribute('aria-atomic','true');
+              toast.innerHTML = `<div class="d-flex"><div class="toast-body">${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+              document.body.appendChild(toast);
+            }
+            new bootstrap.Toast(document.querySelector('#error-toast')).show();
+          } else { alert(message); }
+        };
         try {
-          const type = $(el).val() ?? '';
-          const url = '{{ route(ViewsConstants::PRD_SV_CAT.".getAccount") }}' || '';
-          if (!url || url === '#') { attachPointerGuard(el,'get_account_unavailable'); return; }
-          $.ajax({
-            url,
-            type:'POST',
-            data:{ type, _token: '{{ csrf_token() }}' },
-            success:data=>{
-              try {
-                const $sel = $('#chart_account');
-                if (!$sel.length) return;
-                $sel.empty();
-                if (!$sel.find('option[value=""]').length) $sel.append('<option value="">{{__(" --- Select Account ---")}}</option>');
-                $.each(data,(key,value)=>{
-                  const selected = String(key) === String('{{ $category->chart_account_id }}') ? ' selected' : '';
-                  $sel.append($sel.find(`option[value="${key}"]`).length ? '' : `<option value="${key}"${selected}>${value}</option>`);
-                });
-              } catch { attachPointerGuard(el,'get_account_unavailable'); }
-            },
-            error:()=>attachPointerGuard(el,'get_account_unavailable')
-          });
-        } catch { attachPointerGuard(el,'get_account_unavailable'); }
-      });
-      $(function(){ try { $type.trigger('change'); } catch { attachPointerGuard($type.get(0),'get_account_unavailable'); } });
-    } catch(e) { console.error('Initialization failed', e); }
-  })();
-</script>
-<script defer>
-    (() => {
-        const form = document.getElementById('{{ $formId }}');
-        if (!form || form.getAttribute('data-listener-active') === 'true') return;
-        form.setAttribute('data-listener-active', 'true');
-        form.addEventListener('submit', (e) => {
+          if (typeof $ === 'undefined') { console.error('jQuery is required'); return; }
+          $(document).on('click','.cattype',function() {
             try {
-                const url = form.getAttribute('data-url') || '#';
-                if (url !== '#') return;
-                e.preventDefault();
-                const msg = form.getAttribute('data-guard-msg') || '# ERROR';
-                const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
-                let container = document.getElementById('toast-container');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'toast-container';
-                    document.body.appendChild(container);
-                }
-                if (bs) {
-                    const toast = document.createElement('div');
-                    toast.className = 'toast';
-                    toast.setAttribute('role', 'alert');
-                    toast.setAttribute('aria-live', 'assertive');
-                    toast.setAttribute('aria-atomic', 'true');
-                    const body = document.createElement('div');
-                    body.className = 'toast-body';
-                    body.textContent = msg;
-                    toast.appendChild(body);
-                    container.appendChild(toast);
-                    bootstrap.Toast.getOrCreateInstance(toast).show();
-                } else {
-                    alert(msg);
-                }
-                form.setAttribute('data-failed-route', 'true');
-            } catch (error) {}
-        });
-    })();
-</script>
+              const type = $(this).val() ?? '';
+              const $acc = $('.account');
+              if (!$acc.length) return;
+              if (type !== 'product & service') $acc.removeClass('d-none').addClass('d-block');
+              else $acc.addClass('d-none').removeClass('d-block');
+            } catch { 
+              const el = this;
+              if (!el.hasAttribute(dataListenerAdded)) {
+                el.addEventListener('click', ()=>handleErrorDisplay(el,'account_toggle_unavailable'));
+                el.setAttribute(dataListenerAdded,'true');
+                const obs = new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener('click',()=>handleErrorDisplay(el,'account_toggle_unavailable')); o.disconnect(); }});
+                obs.observe(document.body,{childList:true,subtree:true});
+              }
+            }
+          });
+          const $type = $('#type');
+          const attachPointerGuard = (el, key) => {
+            if (!el || el.getAttribute(dataListenerAdded)==='true') return;
+            el.addEventListener('pointerup', ()=>handleErrorDisplay(el,key), { once:true });
+            el.setAttribute(dataListenerAdded,'true');
+            const obs = new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener('pointerup',()=>handleErrorDisplay(el,key)); o.disconnect(); }});
+            obs.observe(document.body,{childList:true,subtree:true});
+          };
+    
+          $(document).on('change','#type',function() {
+            const el = this;
+            try {
+              const type = $(el).val() ?? '';
+              const url = '{{ route(ViewsConstants::PRD_SV_CAT.".getAccount") }}' || '';
+              if (!url || url === '#') { attachPointerGuard(el,'get_account_unavailable'); return; }
+              $.ajax({
+                url,
+                type:'POST',
+                data:{ type, _token: '{{ csrf_token() }}' },
+                success:data=>{
+                  try {
+                    const $sel = $('#chart_account');
+                    if (!$sel.length) return;
+                    $sel.empty();
+                    if (!$sel.find('option[value=""]').length) $sel.append('<option value="">{{__(" --- Select Account ---")}}</option>');
+                    $.each(data,(key,value)=>{
+                      const selected = String(key) === String('{{ $category->chart_account_id }}') ? ' selected' : '';
+                      $sel.append($sel.find(`option[value="${key}"]`).length ? '' : `<option value="${key}"${selected}>${value}</option>`);
+                    });
+                  } catch { attachPointerGuard(el,'get_account_unavailable'); }
+                },
+                error:()=>attachPointerGuard(el,'get_account_unavailable')
+              });
+            } catch { attachPointerGuard(el,'get_account_unavailable'); }
+          });
+          $(function(){ try { $type.trigger('change'); } catch { attachPointerGuard($type.get(0),'get_account_unavailable'); } });
+        } catch(e) { console.error('Initialization failed', e); }
+      })();
+    </script>
+    <script defer>
+        (() => {
+            const form = document.getElementById('{{ $formId }}');
+            if (!form || form.getAttribute('data-listener-active') === 'true') return;
+            form.setAttribute('data-listener-active', 'true');
+            form.addEventListener('submit', (e) => {
+                try {
+                    const url = form.getAttribute('data-url') || '#';
+                    if (url !== '#') return;
+                    e.preventDefault();
+                    const msg = form.getAttribute('data-guard-msg') || '# ERROR';
+                    const bs = document.querySelector('link[href*="bootstrap"]') && window.bootstrap;
+                    let container = document.getElementById('toast-container');
+                    if (!container) {
+                        container = document.createElement('div');
+                        container.id = 'toast-container';
+                        document.body.appendChild(container);
+                    }
+                    if (bs) {
+                        const toast = document.createElement('div');
+                        toast.className = 'toast';
+                        toast.setAttribute('role', 'alert');
+                        toast.setAttribute('aria-live', 'assertive');
+                        toast.setAttribute('aria-atomic', 'true');
+                        const body = document.createElement('div');
+                        body.className = 'toast-body';
+                        body.textContent = msg;
+                        toast.appendChild(body);
+                        container.appendChild(toast);
+                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                    } else {
+                        alert(msg);
+                    }
+                    form.setAttribute('data-failed-route', 'true');
+                } catch (error) {}
+            });
+        })();
+    </script>
+{{ Form::close() }}

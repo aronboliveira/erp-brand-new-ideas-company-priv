@@ -10,7 +10,7 @@
 
     $lang = Utility::fetchUserLang();
 
-    $storeBase   = VW::ZMM . '.store';
+    $storeBase   = VW::ZMM;
     $storeKebab  = Str::kebab($storeBase);
     $storeName   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl    = $storeName ? route($storeName) : '#';

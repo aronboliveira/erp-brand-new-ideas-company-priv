@@ -16,7 +16,7 @@
     $settings  = Utility::settings();
 
     $dashUrl   = Route::has('dashboard') ? route('dashboard') : '#';
-    $expIdxBase = VW::EXP . '.index';
+    $expIdxBase = VW::PRJ_EXP . '.index';
     $expIdxKebab = Str::kebab($expIdxBase);
     $expIdxResolved = Route::has($expIdxBase) ? $expIdxBase : (Route::has($expIdxKebab) ? $expIdxKebab : null);
     $expIdxUrl = $expIdxResolved ? route($expIdxResolved) : '#';

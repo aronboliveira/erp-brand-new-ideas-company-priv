@@ -20,28 +20,28 @@
 	try {
 		$updateResolved = Route::has($updateBase) ? $updateBase : (Route::has(Str::kebab($updateBase)) ? Str::kebab($updateBase) : null);
 	} catch (\Error $e) {
-		Log::error('Blade projectTasks/edit: route name resolution error: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: route name resolution error: ' . $e->getMessage());
 	} catch (InvalidArgumentException $e) {
-		Log::error('Blade projectTasks/edit: invalid argument while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: invalid argument while resolving route name: ' . $e->getMessage());
 	} catch (\Exception $e) {
-		Log::error('Blade projectTasks/edit: general exception while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: general exception while resolving route name: ' . $e->getMessage());
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTasks/edit: throwable while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: throwable while resolving route name: ' . $e->getMessage());
 	}
 
 	try {
 		$updateUrl = ($updateResolved && !empty($projectId) && !empty($taskId)) ? route($updateResolved, [$projectId, $taskId]) : '#';
 	} catch (\Error $e) {
-		Log::error('Blade projectTasks/edit: route URL generation error: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: route URL generation error: ' . $e->getMessage());
 		$updateUrl = '#';
 	} catch (InvalidArgumentException $e) {
-		Log::error('Blade projectTasks/edit: invalid argument while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: invalid argument while generating URL: ' . $e->getMessage());
 		$updateUrl = '#';
 	} catch (\Exception $e) {
-		Log::error('Blade projectTasks/edit: general exception while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: general exception while generating URL: ' . $e->getMessage());
 		$updateUrl = '#';
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTasks/edit: throwable while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/edit: throwable while generating URL: ' . $e->getMessage());
 		$updateUrl = '#';
 	}
 
@@ -177,4 +177,4 @@
 		{{ Form::button($updateBtnLabel, ['type' => 'submit', 'class' => '{{ VC::BT_SM_PM }} rounded-pill']) }}
 	</div>
 {{ Form::close() }}
-<script defer src="{{ asset('assets/js/routes/projectTasks/edit.js') }}"></script>
+<script defer src="{{ asset('assets/js/routes/projects/tasks/edit.js') }}"></script>

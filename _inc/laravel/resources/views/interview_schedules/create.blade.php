@@ -8,9 +8,9 @@
 
     $lang = Utility::fetchUserLang();
 
-    $viewKey    = 'interview-schedule';
+    $viewKey    = VW::ITV_SCD;
     $formId     = 'iv-sch-store-form';
-    $storeBase  = $viewKey . '.store';
+    $storeBase  = $viewKey;
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';

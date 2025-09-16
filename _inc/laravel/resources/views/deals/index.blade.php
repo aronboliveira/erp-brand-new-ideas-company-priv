@@ -357,7 +357,7 @@
                                     @foreach($deals as $deal)
                                         @php
                                             $dealId      = $deal->id ?? uniqid('deal_');
-                                            $dealName    = !empty($deal->name) ? $deal->name : __('(No name)');
+                                            $dealName    = !empty($deal->name) ? $deal->name : __('No deal name available');
                                             $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
                                             $labelsRaw   = method_exists($deal, 'labels')   ? ($deal->labels()   ?? []) : ($deal->labels   ?? []);
                                             $labels   = (is_array($labelsRaw)   && count($labelsRaw))   || ($labelsRaw   instanceof Collection && $labelsRaw->isNotEmpty())   ? $labelsRaw   : [];

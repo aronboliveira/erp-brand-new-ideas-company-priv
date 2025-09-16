@@ -54,7 +54,7 @@
                 $createKebab    = Str::kebab($createBase);
                 $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
                 $createUrl      = $createResolved ? route($createResolved) : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'create_goal_tracking_route_unavailable') : null) ?? __('Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'create_goal_tracking_route_unavailable') : 'Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
             @endphp
             <a href="#"
                data-size="lg"
@@ -151,7 +151,7 @@
                                                             $editKebab    = Str::kebab($editBase);
                                                             $editResolved = Route::has($editBase) ? $editBase : (($editKebab !== $editBase && Route::has($editKebab)) ? $editKebab : null);
                                                             $editUrl      = ($editResolved && $gtId !== '') ? route($editResolved, $gtId) : '#';
-                                                            $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'edit_goal_tracking_route_unavailable') : null) ?? __('Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                                                            $editGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'edit_goal_tracking_route_unavailable') : 'Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
                                                         @endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             <a href="#"
@@ -175,7 +175,7 @@
                                                             $destroyKebab    = Str::kebab($destroyBase);
                                                             $destroyResolved = Route::has($destroyBase) ? $destroyBase : (($destroyKebab !== $destroyBase && Route::has($destroyKebab)) ? $destroyKebab : null);
                                                             $destroyUrl      = ($destroyResolved && $gtId !== '') ? route($destroyResolved, $gtId) : '#';
-                                                            $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'destroy_goal_tracking_route_unavailable') : null) ?? __('Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
+                                                            $destroyGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::GL_TRC, 'destroy_goal_tracking_route_unavailable') : 'Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Goal Tracking route is unavailable. Please contact technical support or your domain administrator.');
                                                             $deleteFormId    = 'goal-tracking-delete-form-' . ($gtId === '' ? 'x' : $gtId);
                                                         @endphp
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">

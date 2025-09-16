@@ -23,13 +23,13 @@
 			? $taskCreateBase
 			: (Route::has(Str::kebab($taskCreateBase)) ? Str::kebab($taskCreateBase) : null);
 	} catch (\Error $e) {
-		Log::error('Blade projectTasks/create: route name resolution error: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: route name resolution error: ' . $e->getMessage());
 	} catch (InvalidArgumentException $e) {
-		Log::error('Blade projectTasks/create: invalid argument while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: invalid argument while resolving route name: ' . $e->getMessage());
 	} catch (\Exception $e) {
-		Log::error('Blade projectTasks/create: general exception while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: general exception while resolving route name: ' . $e->getMessage());
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTasks/create: throwable while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: throwable while resolving route name: ' . $e->getMessage());
 	}
 
 	try {
@@ -37,16 +37,16 @@
 			? route($taskCreateResolved, [$project_id, $stage_id])
 			: '#';
 	} catch (\Error $e) {
-		Log::error('Blade projectTasks/create: route URL generation error: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: route URL generation error: ' . $e->getMessage());
 		$taskCreateUrl = '#';
 	} catch (InvalidArgumentException $e) {
-		Log::error('Blade projectTasks/create: invalid argument while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: invalid argument while generating URL: ' . $e->getMessage());
 		$taskCreateUrl = '#';
 	} catch (\Exception $e) {
-		Log::error('Blade projectTasks/create: general exception while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: general exception while generating URL: ' . $e->getMessage());
 		$taskCreateUrl = '#';
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTasks/create: throwable while generating URL: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/create: throwable while generating URL: ' . $e->getMessage());
 		$taskCreateUrl = '#';
 	}
 
@@ -181,4 +181,4 @@
 		{{ Form::button($createLabel, ['type' => 'submit', 'class' => 'btn btn-sm btn-primary rounded-pill']) }}
 	</div>
 {{ Form::close() }}
-<script defer src="{{ asset('assets/js/routes/projectTasks/create.js') }}"></script>
+<script defer src="{{ asset('assets/js/routes/projects/tasks/create.js') }}"></script>

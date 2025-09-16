@@ -131,7 +131,7 @@ Object.keys(t).forEach(
                     $('#'+source.id).parent().find('.count').text($('#'+source.id+' > div').length);
                     $('#'+target.id).parent().find('.count').text($('#'+target.id+' > div').length);
                     safeAjax({
-                        url:'{{ route('tasks.update.order',[$project->id]) }}',
+                        url:'{{ route(VW::PRJ . ".tasks.update.order",[$project->id]) }}',
                         type:'PATCH',
                         data:{ id, sort, new_stage, old_stage, project_id, _token:'{{ csrf_token() }}' }
                     }, target, 'task_order_unavailable');

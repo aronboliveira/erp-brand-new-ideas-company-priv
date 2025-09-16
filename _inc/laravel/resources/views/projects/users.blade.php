@@ -116,7 +116,7 @@
                                 if (href !== '#' || url !== '#') return;
                                 e.preventDefault();
                                 const msg = el.getAttribute('data-guard-msg') || 'Delete project user route is unavailable. Please contact technical support or your domain administrator.';
-                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
                                 let container = document.getElementById('toast-container');
                                 if (!container) {
                                     container = document.createElement('div');

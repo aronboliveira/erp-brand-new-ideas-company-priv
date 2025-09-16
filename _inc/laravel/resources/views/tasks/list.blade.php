@@ -14,13 +14,13 @@
 			? $indexBase
 			: (Route::has(Str::kebab($indexBase)) ? Str::kebab($indexBase) : null);
 	} catch (\Error $e) {
-		Log::error('Blade projectTasks/table: route name resolution error: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/table: route name resolution error: ' . $e->getMessage());
 	} catch (\InvalidArgumentException $e) {
-		Log::error('Blade projectTasks/table: invalid argument while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/table: invalid argument while resolving route name: ' . $e->getMessage());
 	} catch (\Exception $e) {
-		Log::error('Blade projectTasks/table: general exception while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/table: general exception while resolving route name: ' . $e->getMessage());
 	} catch (\Throwable $e) {
-		Log::error('Blade projectTasks/table: throwable while resolving route name: ' . $e->getMessage());
+		Log::error('Blade projects/tasks/table: throwable while resolving route name: ' . $e->getMessage());
 	}
 @endphp
 
@@ -51,7 +51,7 @@
 								try {
 									$showUrl = ($indexResolved && !empty($projectId)) ? route($indexResolved, $projectId) : '#';
 								} catch (\Throwable $e) {
-									Log::error('Blade projectTasks/table: URL generation error: ' . $e->getMessage());
+									Log::error('Blade projects/tasks/table: URL generation error: ' . $e->getMessage());
 									$showUrl = '#';
 								}
 
@@ -68,7 +68,7 @@
 										$isOverdue = @strtotime($endDate) < @time();
 									}
 								} catch (\Throwable $e) {
-									Log::error('Blade projectTasks/table: end date formatting error: ' . $e->getMessage());
+									Log::error('Blade projects/tasks/table: end date formatting error: ' . $e->getMessage());
 									$endDateOut = '';
 									$isOverdue = false;
 								}
@@ -79,7 +79,7 @@
 								try {
 									$ownerState = $user?->checkProject(data_get($task, 'project_id'));
 								} catch (\Throwable $e) {
-									Log::error('Blade projectTasks/table: checkProject error: ' . $e->getMessage());
+									Log::error('Blade projects/tasks/table: checkProject error: ' . $e->getMessage());
 									$ownerState = null;
 								}
 								$ownerBadge = ($ownerState === 'Owner') ? ProjectsConstants::STT_SCS : ProjectsConstants::STT_WRN;
@@ -97,7 +97,7 @@
 									$progress['percentage'] = (string) data_get($tmp, 'percentage', '0%');
 									$progress['color'] = (string) data_get($tmp, 'color', 'secondary');
 								} catch (\Throwable $e) {
-									Log::error('Blade projectTasks/table: taskProgress error: ' . $e->getMessage());
+									Log::error('Blade projects/tasks/table: taskProgress error: ' . $e->getMessage());
 								}
 								$progressPctOnly = is_string($progress['percentage']) ? str_replace('%', '', $progress['percentage']) : '0';
 
@@ -189,6 +189,6 @@
 			</table>
 		</div>
 	</div>
-    <script defer src="{{ asset('assets/js/routes/projectTasks/list.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/projects/tasks/list.js') }}"></script>
 </div>
 

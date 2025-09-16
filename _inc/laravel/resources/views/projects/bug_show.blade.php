@@ -78,7 +78,7 @@
                     <div class="tab-pane fade active show" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                         <div class="form-group m-0">
                             @php
-                                $commentStoreBaseName     = ViewsConstants::PRJ_BUG_CM.'.store';
+                                $commentStoreBaseName     = ViewsConstants::PRJ_BUG_CM;
                                 $commentStoreKebabName    = Str::kebab($commentStoreBaseName);
                                 $commentStoreResolvedName = Route::has($commentStoreBaseName)
                                     ? $commentStoreBaseName

@@ -254,7 +254,7 @@
                     const url = el.getAttribute('data-url') || href || '#';
                     if (href !== '#' || url !== '#') return false;
                     const msg = el.getAttribute('data-guard-msg') || 'Requested route is unavailable. Please contact technical support or your domain administrator.';
-                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast);
+                    const hasBootstrap = document.querySelector('link[href*="bootstrap"]') && window.bootstrap && window.bootstrap.Toast;
                     let container = document.getElementById('toast-container');
                     if (!container) {
                         container = document.createElement('div');

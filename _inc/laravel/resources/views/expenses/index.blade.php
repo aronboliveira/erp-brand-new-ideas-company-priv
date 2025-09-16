@@ -31,21 +31,21 @@
     <li class="breadcrumb-item">{{__('Expense')}}</li>
 @endsection
 @php
-    $indexBase     = VW::EXP . '.index';
+    $indexBase     = VW::PRJ_EXP . '.index';
     $indexKebab    = Str::kebab($indexBase);
     $indexResolved = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
     $indexUrl      = $indexResolved ? route($indexResolved) : '#';
-    $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
+    $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'index_expense_route_unavailable') ?? 'Expense index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 @section(YW::ADM_ACT_BTN)
     <div class="float-end">
         @can('create bill')
             @php
-                $createBase     = VW::EXP . '.create';
+                $createBase     = VW::PRJ_EXP . '.create';
                 $createKebab    = Str::kebab($createBase);
                 $createResolved = Route::has($createBase) ? $createBase : (Route::has($createKebab) ? $createKebab : null);
                 $createUrl      = $createResolved ? route($createResolved, 0) : '#';
-                $createGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'create_expense_route_unavailable') ?? 'Create expense route is unavailable. Please contact technical support or your domain administrator.';
+                $createGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'create_expense_route_unavailable') ?? 'Create expense route is unavailable. Please contact technical support or your domain administrator.';
             @endphp
             <a
                 id="exp-create-btn"
@@ -151,12 +151,12 @@
                             @if((is_array($expenses) && count($expenses)) || ($expenses instanceof Collection && $expenses->isNotEmpty()))
                                 @foreach ($expenses as $expense)
                                     @php
-                                        $showBase     = VW::EXP . '.show';
+                                        $showBase     = VW::PRJ_EXP . '.show';
                                         $showKebab    = Str::kebab($showBase);
                                         $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
                                         $encryptedId  = Crypt::encrypt($expense->id);
                                         $showUrl      = $showResolved ? route($showResolved, $encryptedId) : '#';
-                                        $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'show_expense_route_unavailable') ?? 'Show expense route is unavailable. Please contact technical support or your domain administrator.';
+                                        $showGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'show_expense_route_unavailable') ?? 'Show expense route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
                                     <tr>
                                         <td class="Id">
@@ -196,11 +196,11 @@
 
                                                     @can('edit bill')
                                                         @php
-                                                            $editBase     = VW::EXP . '.edit';
+                                                            $editBase     = VW::PRJ_EXP . '.edit';
                                                             $editKebab    = Str::kebab($editBase);
                                                             $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
                                                             $editUrl      = $editResolved ? route($editResolved, $encryptedId) : '#';
-                                                            $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'edit_expense_route_unavailable') ?? 'Edit expense route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $editGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'edit_expense_route_unavailable') ?? 'Edit expense route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <div class="{{ VC::ACT_BTN_PRIM }}">
                                                             <a
@@ -218,11 +218,11 @@
 
                                                     @can('delete bill')
                                                         @php
-                                                            $destroyBase     = VW::EXP . '.destroy';
+                                                            $destroyBase     = VW::PRJ_EXP . '.destroy';
                                                             $destroyKebab    = Str::kebab($destroyBase);
                                                             $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
                                                             $destroyUrl      = $destroyResolved ? route($destroyResolved, $expense->id) : '#';
-                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'destroy_expense_route_unavailable') ?? 'Delete expense route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ_EXP, 'destroy_expense_route_unavailable') ?? 'Delete expense route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                             {!! Form::open([

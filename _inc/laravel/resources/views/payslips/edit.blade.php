@@ -13,7 +13,7 @@
     $lang = Utility::fetchUserLang();
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
-@section('content')
+@section(YieldingConstants::ADM_CTT)
     <div class="main-content">
         <section class="section">
             <div class="section-header">
@@ -549,80 +549,223 @@
 @endsection
 
 @push(StacksConstants::ADM_SCR_PG)
-
-    <script type="text/javascript">
-
-        $(document).ready(function () {
-            var d_id = $('#department_id').val();
-            var designation_id = '{{ $employee->designation_id }}';
-            getDesignation(d_id);
-
-
-            $("#allowance-dataTable").dataTable({
-                "columnDefs": [
-                    {"sortable": false, "targets": [1]}
-                ]
-            });
-
-            $("#commission-dataTable").dataTable({
-                "columnDefs": [
-                    {"sortable": false, "targets": [1]}
-                ]
-            });
-
-            $("#loan-dataTable").dataTable({
-                "columnDefs": [
-                    {"sortable": false, "targets": [1]}
-                ]
-            });
-
-            $("#saturation-deduction-dataTable").dataTable({
-                "columnDefs": [
-                    {"sortable": false, "targets": [1]}
-                ]
-            });
-
-            $("#other-payment-dataTable").dataTable({
-                "columnDefs": [
-                    {"sortable": false, "targets": [1]}
-                ]
-            });
-
-            $("#overtime-dataTable").dataTable({
-                "columnDefs": [
-                    {"sortable": false, "targets": [1]}
-                ]
-            });
-
-
-        });
-
-        $(document).on('change', 'select[name=department_id]', function () {
-            var department_id = $(this).val();
-            getDesignation(department_id);
-        });
-
-        function getDesignation(did) {
-            $.ajax({
-                url: '{{route(ViewsConstants::EMP.".json")}}',
-                type: 'POST',
-                data: {
-                    "department_id": did, "_token": "{{ csrf_token() }}",
-                },
-                success: function (data) {
-                    $('#designation_id').empty();
-                    $('#designation_id').append('<option value="">Select any Designation</option>');
-                    $.each(data, function (key, value) {
-                        var select = '';
-                        if (key == '{{ $employee->designation_id }}') {
-                            select = 'selected';
-                        }
-
-                        $('#designation_id').append('<option value="' + key + '"  ' + select + '>' + value + '</option>');
-                    });
+    <script async src="{{ asset('assets/js/routes/payslips/lang/edit.js') }}"></script>
+    <script defer>
+        (function () {
+            const $ = window.jQuery;
+            const errFb = "# ERROR";
+            const dataClientLocalized = "data-client-localized";
+            const dataGuardMsg = "data-guard-msg";
+            const dataSvLocalized = "data-sv-localized";
+            const dataErrArmed = "data-err-armed";
+            const dataBound = "data-bound";
+            const qs = (s, r = document) => r.querySelector(s);
+            const getMsg = (el, key) => {
+                let msg = errFb;
+                if (
+                el.getAttribute(dataSvLocalized) === "true" ||
+                el.getAttribute(dataClientLocalized) === "true"
+                ) {
+                msg = el.getAttribute(dataGuardMsg) || errFb;
+                } else {
+                let lang = (
+                    window.sessionStorage.getItem("erp-np-lang") ||
+                    document.documentElement.lang ||
+                    "en"
+                )
+                    .toLowerCase()
+                    .replace(/_/g, "-");
+                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                msg =
+                    window.translations?.[lang]?.[key] ||
+                    el.getAttribute(dataGuardMsg) ||
+                    window.translations?.en?.[key] ||
+                    errFb;
+                if (msg !== errFb) {
+                    el.setAttribute(dataGuardMsg, msg);
+                    el.setAttribute(dataClientLocalized, "true");
                 }
-            });
-        }
-
+                }
+                return msg;
+            };
+            const hasBS = () =>
+                !!qs('link[href*="bootstrap"]') &&
+                !!(window.bootstrap && window.bootstrap.Toast);
+            const ensureToastContainer = () => {
+                let c = qs("#np-toast-container");
+                if (c) return c;
+                c = document.createElement("div");
+                c.id = "np-toast-container";
+                c.style.position = "fixed";
+                c.style.top = "1rem";
+                c.style.right = "1rem";
+                c.setAttribute("aria-live", "polite");
+                c.setAttribute("aria-atomic", "true");
+                document.body.appendChild(c);
+                return c;
+            };
+            const showToast = message => {
+                const container = ensureToastContainer();
+                let t = qs("#np-toast", container);
+                if (!t) {
+                t = document.createElement("div");
+                t.id = "np-toast";
+                t.className = "toast";
+                t.setAttribute("role", "alert");
+                t.setAttribute("aria-live", "assertive");
+                t.setAttribute("aria-atomic", "true");
+                t.innerHTML =
+                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                container.appendChild(t);
+                }
+                const body = t.querySelector(".toast-body");
+                if (body) body.textContent = message ?? errFb;
+                try {
+                new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+                } catch (_) {
+                alert(message ?? errFb);
+                }
+            };
+            const scheduleClickError = (key, host) => {
+                const el = host || document.body;
+                if (!el || el.getAttribute(dataErrArmed) === "true") return;
+                el.setAttribute(dataErrArmed, "true");
+                const once = () => {
+                try {
+                    const m = getMsg(el, key);
+                    hasBS() ? showToast(m) : alert(m);
+                } finally {
+                    el.removeAttribute(dataErrArmed);
+                }
+                };
+                document.addEventListener("click", once, { once: true });
+                const mo = new MutationObserver((m, o) => {
+                if (!document.body.contains(el)) {
+                    document.removeEventListener("click", once);
+                    o.disconnect();
+                }
+                });
+                mo.observe(document.documentElement, { childList: true, subtree: true });
+            };
+            const initDataTables = () => {
+                if (!($ && $.fn && ($.fn.DataTable || $.fn.dataTable))) {
+                try {
+                    console.error("DataTables unavailable");
+                } catch (_) {}
+                scheduleClickError("datatable_unavailable");
+                return;
+                }
+                const ids = [
+                "#allowance-dataTable",
+                "#commission-dataTable",
+                "#loan-dataTable",
+                "#saturation-deduction-dataTable",
+                "#other-payment-dataTable",
+                "#overtime-dataTable",
+                ];
+                ids.forEach(function (sel) {
+                const el = qs(sel);
+                if (!el) return;
+                if ($.fn.DataTable.isDataTable(el)) return;
+                try {
+                    $(sel).DataTable({ columnDefs: [{ sortable: false, targets: [1] }] });
+                } catch (_) {
+                    scheduleClickError("datatable_unavailable", el);
+                }
+                });
+            };
+            const getDesignation = did => {
+                const url = '{{route(ViewsConstants::EMP.".json")}}';
+                const target = qs("#designation_id") || qs('select[name="designation_id"]');
+                if (!url || url === "#") {
+                scheduleClickError("designation_unavailable", target || document.body);
+                return;
+                }
+                try {
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: { department_id: did, _token: "{{ csrf_token() }}" },
+                    success: function (data) {
+                    try {
+                        const sel =
+                        qs("#designation_id") || qs('select[name="designation_id"]');
+                        if (!sel) {
+                        scheduleClickError("element_unavailable");
+                        return;
+                        }
+                        const current = "{{ $employee->designation_id }}";
+                        if (sel.tagName === "SELECT") {
+                        while (sel.firstChild) {
+                            sel.removeChild(sel.firstChild);
+                        }
+                        const opt0 = document.createElement("option");
+                        opt0.value = "";
+                        opt0.textContent = "Select any Designation";
+                        sel.appendChild(opt0);
+                        $.each(data || {}, function (key, value) {
+                            const opt = document.createElement("option");
+                            opt.value = key;
+                            opt.textContent = value;
+                            if (String(key) === String(current)) opt.selected = true;
+                            sel.appendChild(opt);
+                        });
+                        }
+                    } catch (_) {
+                        scheduleClickError(
+                        "designation_unavailable",
+                        target || document.body
+                        );
+                    }
+                    },
+                    error: function () {
+                    scheduleClickError(
+                        "designation_unavailable",
+                        target || document.body
+                    );
+                    },
+                });
+                } catch (_) {
+                scheduleClickError("request_failed");
+                }
+            };
+            const bindDeptChange = () => {
+                const doc = document.documentElement;
+                if (doc.getAttribute(dataBound) === "true") return;
+                doc.setAttribute(dataBound, "true");
+                const handler = function () {
+                const department_id = $(this).val?.();
+                getDesignation(department_id);
+                };
+                $(document).on("change", 'select[name="department_id"]', handler);
+                const mo = new MutationObserver(function () {
+                const exists = qs('select[name="department_id"]');
+                if (!exists) {
+                    $(document).off("change", 'select[name="department_id"]', handler);
+                    doc.removeAttribute(dataBound);
+                    mo.disconnect();
+                }
+                });
+                mo.observe(document.body, { childList: true, subtree: true });
+            };
+            const start = () => {
+                if (!$ || !$.ajax) {
+                try {
+                    console.error("jQuery unavailable");
+                } catch (_) {}
+                scheduleClickError("request_failed");
+                return;
+                }
+                initDataTables();
+                const d_id = $("#department_id").val?.();
+                if (d_id != null) getDesignation(d_id);
+                bindDeptChange();
+            };
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", start, { once: true });
+            } else {
+                start();
+            }
+        })();
     </script>
 @endpush

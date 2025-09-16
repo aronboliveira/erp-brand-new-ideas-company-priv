@@ -13,7 +13,7 @@
 
     $lang = Utility::fetchUserLang();
 
-    $storeBase  = ViewsConstants::GL_TRC . '.store';
+    $storeBase  = ViewsConstants::GL_TRC;
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';

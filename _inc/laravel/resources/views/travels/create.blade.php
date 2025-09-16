@@ -12,7 +12,7 @@
 
     $lang = Utility::fetchUserLang();
 
-    $storeBase     = VW::TRV . '.store';
+    $storeBase     = VW::TRV;
     $storeResolved = Route::has($storeBase) ? $storeBase : (Route::has(Str::kebab($storeBase)) ? Str::kebab($storeBase) : null);
     $storeUrl      = $storeResolved ? route($storeResolved) : url(VW::TRV);
     $storeGuard    = Utility::fetchLinkMessage($lang, VW::TRV, 'store_travel_route_unavailable') ?? 'Store travel route is unavailable. Please contact technical support or your domain administrator.';

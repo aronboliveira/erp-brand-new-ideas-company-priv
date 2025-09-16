@@ -13,7 +13,7 @@
 
     $user = Auth::user();
     $lang       = Utility::fetchUserLang(user: $user);
-    $routeName  = ViewsConstants::CPL . '.store';
+    $routeName  = ViewsConstants::CPL;
     $storeRoute = Route::has($routeName)
         ? route($routeName)
         : (Route::has(Str::kebab($routeName))

@@ -1,84 +1,156 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        ViewClassNamesConstants,
-        StacksConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YD
     };
     use App\Models\Utility;
-    use Illuminate\Support\Facades\Route;
-    $lang = Utility::fetchUserLang();
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Illuminate\Support\Collection;
+
+    $user = Auth::user();
+    $lang = is_callable([Utility::class, 'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+    $canFetchMsg = is_callable([Utility::class, 'fetchLinkMessage']);
+
+    $dashUrl   = Route::has('dashboard') ? route('dashboard') : '#';
+    $dashGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, 'generics', 'dashboard_unavailable') : null) ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+
+    $items = [];
+    if (is_array($types ?? null) && count($types)) {
+        $items = $types;
+    } elseif (($types ?? null) instanceof Collection && $types->isNotEmpty()) {
+        $items = $types;
+    }
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@push(StacksConstants::ADM_SCR_PG)
-@endpush
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Performance type')}}
+@extends(EL::ADM)
+
+@section(YD::ADM_PG_TTL)
+    {{ __('Manage Performance type') }}
 @endsection
-@section('title')
-    <div class="d-inline-block">
-        <h5 class="h4 d-inline-block font-weight-400 mb-0 ">{{__('Performance Type')}}</h5>
-    </div>
-@endsection
-@section(YieldingConstants::ADM_BDC)
+
+@section(YD::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ $dashUrl }}"
+           data-url="{{ $dashUrl }}"
+           data-sv-localized="true"
+           data-guard-msg="{{ $dashGuard }}"
+           {{ $dashUrl !== '#' ? '' : 'aria-disabled=true' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item active" aria-current="page">{{__('Performance Type')}}</li>
+    <li class="breadcrumb-item active" aria-current="page">{{ __('Performance Type') }}</li>
 @endsection
-@section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-        <a href="#" data-url="{{ route(ViewsConstans::PFM_TP.'.create') }}" data-ajax-popup="true" data-title="{{__('Create New Performance Type')}}" data-bs-toggle="tooltip" title="{{__('Create')}}"  class="btn btn-sm btn-primary">
-            <i class="ti ti-plus"></i>
-        </a>
+
+@section(YD::ADM_ACT_BTN)
+    <div class="{{ VC::FEND }}">
+        @can('create performance type')
+            @php
+                $createUrl   = Route::has(VW::PFM_TP.'.create') ? route(VW::PFM_TP.'.create') : '#';
+                $createGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PFM_TP, 'create_performance_type_unavailable') : 'Create Performance Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Performance Type route is unavailable. Please contact technical support or your domain administrator.');
+            @endphp
+            <a href="{{ $createUrl }}"
+               data-url="{{ $createUrl }}"
+               data-ajax-popup="true"
+               data-title="{{ __('Create New Performance Type') }}"
+               data-sv-localized="true"
+               data-guard-msg="{{ $createGuard }}"
+               data-bs-toggle="tooltip"
+               title="{{ __('Create') }}"
+               class="{{ VC::BT_SM_PM }}">
+                <i class="{{ VC::TI_PLS }}"></i>
+            </a>
+        @endcan
     </div>
 @endsection
-@section(YieldingConstants::ADM_CTT)
-    <div class="row">
+
+@section(YD::ADM_CTT)
+    <div class="{{ VC::RW }}">
         <div class="col-3">
             @include('layouts.hrm_setup')
         </div>
         <div class="col-9">
-            <div class="card">
+            <div class="{{ VC::CD }}">
                 <div class="card-body table-border-style">
                     <div class="table-responsive">
-                        <table class="table datatable">
+                        <table class="{{ VC::TB }} datatable">
                             <thead>
-                            <tr>
-                                <th scope="col">{{__('Name')}}</th>
-                                <th scope="col" class="">{{__('Action')}}</th>
-                            </tr>
+                                <tr>
+                                    <th scope="col">{{ __('Name') }}</th>
+                                    @canany(['edit performance type','delete performance type'])
+                                        <th scope="col">{{ __('Action') }}</th>
+                                    @endcanany
+                                </tr>
                             </thead>
                             <tbody class="list">
-                            @foreach ($types as $type)
-                                <tr class="font-style">
-                                    <td>{{ $type->name }}</td>
-                                    <td class="">
-                                        <div class="action-btn bg-primary ms-2">
-                                            <a href="#" data-url="{{ route(ViewsConstans::PFM_TP.'.edit',$type->id) }}" data-ajax-popup="true" title="{{__('Edit')}}" data-title="{{__('Edit Performance Type')}}" class="mx-3 btn btn-sm align-items-center" data-bs-toggle="tooltip" data-original-title="{{__('Edit')}}">
-                                                <i class="{{ ViewClassNamesConstants::TI_PC_WT }}"></i>
-                                            </a>
-                                        </div>
-                                        <div class="action-btn bg-danger ms-2">
-                                            {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => [ViewsConstans::PFM_TP.'.destroy', $type->id],'id'=>'delete-form-'.$type->id]) !!}
-                                            <a href="#!" class="mx-3 btn btn-sm align-items-center bs-pass-para" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$type->id}}').submit();">
-                                                <i class="ti ti-trash text-white"></i>
-                                            </a>
-                                            {!! Collective\Html\FormFacade::close() !!}
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
+                                @forelse($items as $type)
+                                    @php
+                                        $name = isset($type->name) && $type->name !== '' ? $type->name : __('No name for performance type available');
+                                    @endphp
+                                    <tr class="font-style">
+                                        <td>{{ $name }}</td>
+                                        @canany(['edit performance type','delete performance type'])
+                                            <td>
+                                                @can('edit performance type')
+                                                    @php
+                                                        $editUrl   = Route::has(VW::PFM_TP.'.edit') ? route(VW::PFM_TP.'.edit', $type->id) : '#';
+                                                        $editGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PFM_TP, 'edit_performance_type_unavailable') : 'Edit Performance Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Edit Performance Type route is unavailable. Please contact technical support or your domain administrator.');
+                                                    @endphp
+                                                    <div class="{{ VC::ACT_BTN_PRIM }}">
+                                                        <a href="{{ $editUrl }}"
+                                                           class="{{ VC::BT_SM_CT }}"
+                                                           data-url="{{ $editUrl }}"
+                                                           data-ajax-popup="true"
+                                                           data-title="{{ __('Edit Performance Type') }}"
+                                                           data-sv-localized="true"
+                                                           data-guard-msg="{{ $editGuard }}"
+                                                           data-bs-toggle="tooltip"
+                                                           title="{{ __('Edit') }}">
+                                                            <i class="{{ VC::TI_PC_WT }}"></i>
+                                                        </a>
+                                                    </div>
+                                                @endcan
+                                                @can('delete performance type')
+                                                    @php
+                                                        $delUrl   = Route::has(VW::PFM_TP.'.destroy') ? route(VW::PFM_TP.'.destroy', $type->id) : '#';
+                                                        $delGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::PFM_TP, 'delete_performance_type_unavailable') : 'Delete Performance Type route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Performance Type route is unavailable. Please contact technical support or your domain administrator.');
+                                                        $formId   = 'delete-form-'.$type->id;
+                                                    @endphp
+                                                    <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                        {!! Form::open(['method' => 'DELETE', 'url' => $delUrl, 'id' => $formId, 'data-url'=>$delUrl, 'data-sv-localized'=>'true', 'data-guard-msg'=>$delGuard]) !!}
+                                                            <a href="{{ $delUrl }}"
+                                                               class="{{ VC::BT_SM_CT_PR }}"
+                                                               data-url="{{ $delUrl }}"
+                                                               data-sv-localized="true"
+                                                               data-guard-msg="{{ $delGuard }}"
+                                                               data-bs-toggle="tooltip"
+                                                               title="{{ __('Delete') }}"
+                                                               data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                               data-confirm-yes="document.getElementById('{{ $formId }}').submit();">
+                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                            </a>
+                                                        {!! Form::close() !!}
+                                                    </div>
+                                                @endcan
+                                            </td>
+                                        @endcanany
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="2" class="text-center text-muted">{{ __('No performance types found.') }}</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 @endsection
 
+@push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/performanceTypes/index.js') }}"></script>
+@endpush
