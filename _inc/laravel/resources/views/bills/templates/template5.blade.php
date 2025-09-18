@@ -82,7 +82,7 @@ try {
     $enc  = $rid ? Crypt::encrypt($rid) : null;
     $href = $enc ? route(ViewsConstants::BIL . '.link.copy', $enc) : '#';
     if ($href !== '#') {
-        $qrHtml = \Milon\Barcode\DNS2D::getBarcodeHTML($href, 'QRCODE', 2, 2);
+        $qrHtml = class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML($href, 'QRCODE', 2, 2 ) : __('Failed to generate QRCode');
     }
 } catch (\Throwable $e) {
     Log::error('QR: ' . $e->getMessage());

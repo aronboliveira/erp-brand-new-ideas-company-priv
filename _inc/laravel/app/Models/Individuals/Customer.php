@@ -18,8 +18,18 @@ class Customer extends Authenticatable
     protected $guard_name = 'web';
 
     private const MONTHS = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December',
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
     ];
     private const FILLABLE = [
         'billing_address',
@@ -121,41 +131,41 @@ class Customer extends Authenticatable
             ->whereYear('send_date', $year)
             ->get();
 
-        $data['month']      = array_map(fn (string $m): string => __($m), self::MONTHS);
+        $data['month']      = array_map(fn(string $m): string => __($m), self::MONTHS);
         $data['currentYear'] = date('M-Y');
 
         $statusData = ['unpaid' => [], 'paid' => [], 'partial' => [], 'due' => []];
         foreach (self::MONTHS as $idx => $_) {
             $monthNum      = $idx + 1;
             $monthInvoices = $invoices->filter(
-                fn ($inv): bool =>
+                fn($inv): bool =>
                 Carbon::parse($inv->send_date)->month === $monthNum
             );
             $statusData['unpaid'][] = (float) $monthInvoices
                 ->filter(
-                    fn ($inv): bool =>
+                    fn($inv): bool =>
                     $inv->status === 1 && Carbon::parse($inv->due_date)->gt($today)
                 )
-                ->sum(fn ($inv): float => $inv->getDue());
+                ->sum(fn($inv): float => $inv->getDue());
             $statusData['paid'][]   = (float) $monthInvoices
-                ->filter(fn ($inv): bool => $inv->status === 4)
-                ->sum(fn ($inv): float => $inv->getTotal());
+                ->filter(fn($inv): bool => $inv->status === 4)
+                ->sum(fn($inv): float => $inv->getTotal());
             $statusData['partial'][] = (float) $monthInvoices
-                ->filter(fn ($inv): bool => $inv->status === 3)
-                ->sum(fn ($inv): float => $inv->getDue());
+                ->filter(fn($inv): bool => $inv->status === 3)
+                ->sum(fn($inv): float => $inv->getDue());
             $statusData['due'][]    = (float) $monthInvoices
                 ->filter(
-                    fn ($inv): bool =>
+                    fn($inv): bool =>
                     $inv->status === 1 && Carbon::parse($inv->due_date)->lt($today)
                 )
-                ->sum(fn ($inv): float => $inv->getDue());
+                ->sum(fn($inv): float => $inv->getDue());
         }
         $data['data'] = $statusData;
 
         $totalCount      = $invoices->count();
         $unpaidCount     = $invoices
             ->filter(
-                fn ($inv): bool =>
+                fn($inv): bool =>
                 $inv->status === 1 && Carbon::parse($inv->due_date)->gt($today)
             )
             ->count();
@@ -163,7 +173,7 @@ class Customer extends Authenticatable
         $partialCount    = $invoices->where('status', 3)->count();
         $dueCount        = $invoices
             ->filter(
-                fn ($inv): bool =>
+                fn($inv): bool =>
                 $inv->status === 1 && Carbon::parse($inv->due_date)->lt($today)
             )
             ->count();
@@ -208,14 +218,14 @@ class Customer extends Authenticatable
             ->whereNotIn(self::COL_STATUS, ['0', '4'])
             ->whereDate(self::COL_DUE_DATE, '<', now()->toDateString())
             ->get()
-            ->sum(fn (Invoice $inv): float => $inv->getDue());
+            ->sum(fn(Invoice $inv): float => $inv->getDue());
     }
 
     public function customerTotalInvoiceSum(string $customerId): float
     {
         return Invoice::where(self::COL_CUSTOMER_ID, $customerId)
             ->get()
-            ->sum(fn (Invoice $inv): float => $inv->getTotal());
+            ->sum(fn(Invoice $inv): float => $inv->getTotal());
     }
 
     public function customerTotalInvoice(string $customerId): int

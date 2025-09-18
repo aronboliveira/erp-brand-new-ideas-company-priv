@@ -80,18 +80,18 @@ class Proposal extends Model
 
     public function getSubTotal(): float
     {
-        return $this->items->sum(fn ($p) => $p->price * $p->quantity);
+        return $this->items->sum(fn($p) => $p->price * $p->quantity);
     }
 
     public function getTotalDiscount(): float
     {
-        return $this->items->sum(fn ($p) => $p->discount);
+        return $this->items->sum(fn($p) => $p->discount);
     }
 
     public function getTotalTax(): float
     {
         return $this->items->sum(
-            fn ($p) => (Utility::totalTaxRate($p->tax) / 100)
+            fn($p) => (Utility::totalTaxRate($p->tax) / 100)
                 * ($p->price * $p->quantity - $p->discount)
         );
     }

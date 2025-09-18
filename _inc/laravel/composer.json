@@ -173,7 +173,7 @@
       "@php -r 'foreach (glob(\"./storage/logs/*.log\") as $f) { file_put_contents($f, \"\"); }' && echo \"Logs cleared successfully.\""
     ],
     "rm-logs": [
-      "find storage/logs -type f -name '*.log' -exec rm -f {} ; && echo \"Logs removal complete.\" || echo \"Logs removal attempted.\""
+      "find storage/logs -type f -name '*.log' -exec rm -f {} \\; && echo \"Logs removal complete.\" || echo \"Logs removal attempted.\""
     ],
     "clear-logs-ps": [
       "powershell -Command \"Get-ChildItem -Path 'storage/logs/*.log' | Clear-Content; Write-Host 'Logs cleared successfully.' -ForegroundColor Green\""

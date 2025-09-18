@@ -263,12 +263,12 @@
         <script defer src="{{ asset('assets/js/plugins/sweetalert2.all.min.js') }}"></script>
         @if($message = Session::get('success'))
             <script>
-                show_toastr('success', '{!! $message !!}');
+               typeof show_toastr === 'function' &&  show_toastr('success', '{!! $message !!}');
             </script>
         @endif
         @if($message = Session::get('error'))
             <script>
-                show_toastr('error', '{!! $message !!}');
+                typeof show_toastr === 'function' && show_toastr('error', '{!! $message !!}');
             </script>
         @endif
         @if($get_cookie['enable_cookie'] == 'on')

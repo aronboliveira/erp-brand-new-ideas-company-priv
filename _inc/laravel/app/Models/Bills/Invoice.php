@@ -21,7 +21,7 @@ class Invoice extends Model
 
     private const COL_CATEGORY_ID     = 'category_id';
     private const COL_CREATED_BY      = 'created_by';
-    private const COL_customer_id     = 'customer_id';
+    private const COL_CUSTOMER_ID     = 'customer_id';
     private const COL_DISCOUNT_APPLY  = 'discount_apply';
     private const COL_DUE_DATE        = 'due_date';
     private const COL_ISSUE_DATE      = 'issue_date';
@@ -34,7 +34,7 @@ class Invoice extends Model
 
     protected $fillable = [
         self::COL_INVOICE_ID,
-        self::COL_customer_id,
+        self::COL_CUSTOMER_ID,
         self::COL_ISSUE_DATE,
         self::COL_DUE_DATE,
         self::COL_SEND_DATE,
@@ -104,8 +104,8 @@ class Invoice extends Model
     public function customer(): HasOne
     {
         return $this
-            ->hasOne(Customer::class, 'id', self::COL_customer_id);
-        // * consider belongsTo(Customer::class, self::COL_customer_id)
+            ->hasOne(Customer::class, 'id', self::COL_CUSTOMER_ID);
+        // * consider belongsTo(Customer::class, self::COL_CUSTOMER_ID)
     }
 
     public function category(): HasOne
@@ -128,18 +128,18 @@ class Invoice extends Model
 
     public function getSubTotal(): float
     {
-        return $this->items->sum(fn ($p) => $p->price * $p->quantity);
+        return $this->items->sum(fn($p) => $p->price * $p->quantity);
     }
 
     public function getTotalDiscount(): float
     {
-        return $this->items->sum(fn ($p) => $p->discount);
+        return $this->items->sum(fn($p) => $p->discount);
     }
 
     public function getTotalTax(): float
     {
         return $this->items->sum(
-            fn ($p) => (Utility::totalTaxRate($p->tax) / 100)
+            fn($p) => (Utility::totalTaxRate($p->tax) / 100)
                 * ($p->price * $p->quantity - $p->discount)
         );
     }

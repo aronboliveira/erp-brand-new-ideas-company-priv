@@ -17,7 +17,7 @@ class Transaction extends Model
     private const COL_DESCRIPTION = 'description';
     private const COL_DATE        = 'date';
     private const COL_CREATED_BY  = 'created_by';
-    private const COL_customer_id = 'customer_id';
+    private const COL_CUSTOMER_ID = 'customer_id';
     private const COL_PAYMENT_ID  = 'payment_id';
     private const COL_USER_ID     = 'user_id';
     private const COL_USER_TYPE   = 'user_type';
@@ -31,7 +31,7 @@ class Transaction extends Model
         self::COL_DESCRIPTION,
         self::COL_DATE,
         self::COL_CREATED_BY,
-        self::COL_customer_id,
+        self::COL_CUSTOMER_ID,
         self::COL_PAYMENT_ID,
         self::COL_CATEGORY,
     ];

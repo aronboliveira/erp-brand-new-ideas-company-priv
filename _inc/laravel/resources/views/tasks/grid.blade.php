@@ -33,7 +33,7 @@
 					@php
 						$permissions = null;
 						try {
-							$permissions = $user?->getPermission(data_get($task, 'project_id'));
+							$permissions = method_exists($user, 'getPermission') ? $user?->getPermission(data_get($task, 'project_id')) : null;
 						} catch (\Throwable $e) {
 							Log::error('Blade projects/tasks/list: error getting permissions: ' . $e->getMessage());
 						}
@@ -58,7 +58,7 @@
 
 						$progressPct = null;
 						try {
-							$progressPct = data_get($task->taskProgress($task), 'percentage');
+							$progressPct = method_exists($task, 'taskProgress') ? data_get($task->taskProgress($task), 'percentage') : null;
 						} catch (\Throwable $e) {
 							Log::error('Blade projects/tasks/list: error computing task progress: ' . $e->getMessage());
 							$progressPct = null;
@@ -74,7 +74,7 @@
 						try {
 							$ed = data_get($task, 'end_date');
 							if (!empty($ed) && $ed !== '0000-00-00') {
-								$endDateOut = Utility::getDateFormated($ed);
+								$endDateOut = is_callable([Utility::class, 'getDateFormated']) ? Utility::getDateFormated($ed) : null;
 								$isOverdue = @strtotime($ed) < @time();
 							}
 						} catch (\Throwable $e) {
@@ -85,7 +85,7 @@
 
 						$usersList = [];
 						try {
-							$usersList = $task->users() ?? [];
+							$usersList = method_exists($task, 'users') ? $task->users() : [];
 						} catch (\Throwable $e) {
 							Log::error('Blade projects/tasks/list: error fetching task users: ' . $e->getMessage());
 							$usersList = [];

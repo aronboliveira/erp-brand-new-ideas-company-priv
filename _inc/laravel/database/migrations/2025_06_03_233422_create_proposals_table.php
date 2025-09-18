@@ -34,13 +34,15 @@ class CreateProposalsTable extends Migration
             $table->uuid(self::COL_CREATED_BY);                                // ! CHANGED
             $table->uuid(self::COL_TAX_ID)->nullable();                        // ! CHANGED
             $table->timestamps();
-            foreach ([
-                self::COL_CUSTOMER_ID => DatabaseConstants::TABLE_CUSTOMERS,
-                self::COL_CATEGORY_ID => DatabaseConstants::TABLE_PROD_SERV_CATS,
-                self::COL_CREATED_BY => DatabaseConstants::TABLE_USERS,
-                self::COL_TAX_ID => DatabaseConstants::TABLE_TAXES,
-                self::COL_CONVERTED_INVOICE_ID => DatabaseConstants::TABLE_INVS,
-            ] as $col => $tbl)
+            foreach (
+                [
+                    self::COL_CUSTOMER_ID => DatabaseConstants::TABLE_CUSTOMERS,
+                    self::COL_CATEGORY_ID => DatabaseConstants::TABLE_PROD_SERV_CATS,
+                    self::COL_CREATED_BY => DatabaseConstants::TABLE_USERS,
+                    self::COL_TAX_ID => DatabaseConstants::TABLE_TAXES,
+                    self::COL_CONVERTED_INVOICE_ID => DatabaseConstants::TABLE_INVS,
+                ] as $col => $tbl
+            )
                 $table->foreign($col)
                     ->references('id')->on($tbl)
                     ->cascadeOnDelete(); // * ADDED
@@ -50,13 +52,15 @@ class CreateProposalsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_CUSTOMER_ID,
-                self::COL_CATEGORY_ID,
-                self::COL_CREATED_BY,
-                self::COL_TAX_ID,
-                self::COL_CONVERTED_INVOICE_ID,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_CUSTOMER_ID,
+                    self::COL_CATEGORY_ID,
+                    self::COL_CREATED_BY,
+                    self::COL_TAX_ID,
+                    self::COL_CONVERTED_INVOICE_ID,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

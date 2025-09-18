@@ -7,12 +7,14 @@
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth,Route};
-    use App\Models\Utility;
+    use Illuminate\Support\{Collection, Str};
 
     $user           = Auth::user();
     $lang           = Utility::fetchUserLang(user: $user);
+    $currSymbol = is_callable([$user, 'fetchCurrencySymbol']) ? fetchCurrencySymbol() : __('Failed to get currency symbol');
     $invoiceIndexRouteName     = ViewsConstants::INV . '.index';
     $invoiceIndexUrl           = Route::has($invoiceIndexRouteName)
         ? route($invoiceIndexRouteName)
@@ -47,121 +49,14 @@
         </a>
     </li>
     @push(StacksConstants::ADM_SCR_PG)
-        <script defer>
-            (() => {
-                const link = document.getElementById('breadcrumb-invoice-link');
-                if (!link || link.getAttribute('data-listener-active') === 'true') return;
-                link.setAttribute('data-listener-active', 'true');
-                link.addEventListener('click', event => {
-                    try {
-                        const url = link.getAttribute('data-url') ?? '#';
-                        if (url !== '#') return;
-                        event.preventDefault();
-
-                        const msg           = link.getAttribute('data-guard-msg') ?? '# ERROR';
-                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                        let container       = document.getElementById('toast-container');
-                        if (!container) {
-                            container       = document.createElement('div');
-                            container.id    = 'toast-container';
-                            document.body.appendChild(container);
-                        }
-
-                        if (bootstrapLink && window.bootstrap) {
-                            const toastEl      = document.createElement('div');
-                            toastEl.className  = 'toast';
-                            toastEl.setAttribute('role', 'alert');
-                            toastEl.setAttribute('aria-live', 'assertive');
-                            toastEl.setAttribute('aria-atomic', 'true');
-
-                            const body         = document.createElement('div');
-                            body.className     = 'toast-body';
-                            body.textContent   = msg;
-
-                            toastEl.appendChild(body);
-                            container.appendChild(toastEl);
-                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                        } else {
-                            alert(msg);
-                        }
-
-                        link.setAttribute('data-failed-route', 'true');
-                    } catch (e) {}
-                });
-            })();
-        </script>
+        <script defer src="{{asset('assets/js/routes/invoice/createIndex.js')}}"></script>
     @endpush
     <li class="breadcrumb-item">{{__('Invoice Edit')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('js/jquery-ui.min.js')}}"></script>
     <script defer src="{{asset('js/jquery.repeater.min.js')}}"></script>
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:       {
-                repeater_show_unavailable:   'فشل عرض المكرر',
-                repeater_hide_unavailable:   'فشل إخفاء المكرر',
-                repeater_setlist_unavailable:'فشل إعداد قائمة المكرر',
-                repeater_create_unavailable: 'فشل إنشاء عنصر المكرر',
-                repeater_delete_unavailable: 'فشل حذف عنصر المكرر',
-                customer_change_unavailable: 'فشل جلب تفاصيل العميل',
-                customer_remove_unavailable: 'فشل إزالة تفاصيل العميل',
-                item_change_unavailable:     'فشل جلب تفاصيل الصنف',
-                items_fetch_unavailable:     'فشل جلب عناصر الفاتورة',
-                calculation_unavailable:     'فشل الحساب'
-            },
-            da:       {
-                repeater_show_unavailable:   'Visning af gentager mislykkedes',
-                repeater_hide_unavailable:   'Skjul af gentager mislykkedes',
-                repeater_setlist_unavailable:'Indstilling af gentagerliste mislykkedes',
-                repeater_create_unavailable: 'Oprettelse af gentagelseselement mislykkedes',
-                repeater_delete_unavailable: 'Sletning af gentagelseselement mislykkedes',
-                customer_change_unavailable: 'Hentning af kundedetaljer mislykkedes',
-                customer_remove_unavailable: 'Fjernelse af kundedetaljer mislykkedes',
-                item_change_unavailable:     'Hentning af vareoplysninger mislykkedes',
-                items_fetch_unavailable:     'Hentning af fakturaelementer mislykkedes',
-                calculation_unavailable:     'Beregning mislykkedes'
-            },
-            de:       {
-                repeater_show_unavailable:   'Wiederholer-Anzeige fehlgeschlagen',
-                repeater_hide_unavailable:   'Wiederholer-Ausblenden fehlgeschlagen',
-                repeater_setlist_unavailable:'Einrichten der Wiederholungsliste fehlgeschlagen',
-                repeater_create_unavailable: 'Erstellen des Wiederholungselements fehlgeschlagen',
-                repeater_delete_unavailable: 'Löschen des Wiederholungselements fehlgeschlagen',
-                customer_change_unavailable: 'Abruf der Kundendetails fehlgeschlagen',
-                customer_remove_unavailable: 'Entfernen der Kundendetails fehlgeschlagen',
-                item_change_unavailable:     'Abruf der Artikeldetails fehlgeschlagen',
-                items_fetch_unavailable:     'Abruf der Rechnungspositionen fehlgeschlagen',
-                calculation_unavailable:     'Berechnung fehlgeschlagen'
-            },
-            en:       {
-                repeater_show_unavailable:   'Cannot show repeater',
-                repeater_hide_unavailable:   'Cannot hide repeater',
-                repeater_setlist_unavailable:'Cannot set repeater list',
-                repeater_create_unavailable: 'Cannot create repeater item',
-                repeater_delete_unavailable: 'Cannot delete repeater item',
-                customer_change_unavailable: 'Cannot fetch customer details',
-                customer_remove_unavailable: 'Cannot remove customer details',
-                item_change_unavailable:     'Cannot fetch item details',
-                items_fetch_unavailable:     'Cannot fetch invoice items',
-                calculation_unavailable:     'Calculation failed'
-            },
-            // ... other languages with same keys ...
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/invoices/lang/edit.js') }}"></script>
     <script defer>
         (() => {
             const DATA_LISTENER_ADDED   = 'data-listener-added';
@@ -251,7 +146,7 @@ Object.keys(t).forEach(
                                         $multi.MultiFile({
                                             max:      3,
                                             accept:   'png|jpg|jpeg',
-                                            max_size: {{ SettingsConstants::MAX_U_SIZE_DEF }}
+                                            max_size: "{{ SettingsConstants::MAX_U_SIZE_DEF }}"
                                         });
                                     }
                                     if ($('.select2').length) {
@@ -510,9 +405,10 @@ Object.keys(t).forEach(
     </script>
 @endpush
 
-@section('content')
+@section(YieldingConstants::ADM_CTT)
     <div class="row">
-        @php
+        @if(!empty($invoice) && isset($invoice->id))
+                @php
             $updateRouteName         = ViewsConstants::INV . '.update';
             $updateActionUrl         = Route::has($updateRouteName)
                 ? route($updateRouteName, $invoice->id)
@@ -524,7 +420,7 @@ Object.keys(t).forEach(
                 'invoice_update_route_unavailable'
             ) ?? 'Invoice update route is unavailable. Please contact technical support or your domain administrator.';
         @endphp
-        {{ Collective\Html\FormFacade::model($invoice, [
+        {{ Form::model($invoice, [
             'route'           => $updateActionUrl,
             'method'        => 'PUT',
             'class'         => 'w-100',
@@ -539,8 +435,8 @@ Object.keys(t).forEach(
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::CM6 }}">
                                 <div class="{{ VC::FM_G }}" id="customer-box">
-                                    {{ Collective\Html\FormFacade::label('customer_id', __('Customer'), ['class' => VC::FM_LB]) }}
-                                    {{ Collective\Html\FormFacade::select('customer_id', $customers, null, [
+                                    {{ Form::label('customer_id', __('Customer'), ['class' => VC::FM_LB]) }}
+                                    {{ Form::select('customer_id', (is_array($customers) && count($customers)) || ($customers instanceof Collection && $customers->isNotEmpty()) ? $customers : [__('No costumers available')], null, [
                                         'class'    => VC::FM_CT_SL,
                                         'id'       => 'customer',
                                         'data-url' => route(ViewsConstants::INV.'.customer'),
@@ -549,14 +445,13 @@ Object.keys(t).forEach(
                                 </div>
                                 <div id="customer_detail" class="d-none"></div>
                             </div>
-
                             <div class="{{ VC::CM6 }}">
                                 <div class="{{ VC::RW }}">
                                     <div class="{{ VC::CM6 }}">
                                         <div class="{{ VC::FM_G }}">
-                                            {{ Collective\Html\FormFacade::label('issue_date', __('Issue Date'), ['class' => VC::FM_LB]) }}
+                                            {{ Form::label('issue_date', __('Issue Date'), ['class' => VC::FM_LB]) }}
                                             <div class="form-icon-user">
-                                                {{ Collective\Html\FormFacade::date('issue_date', null, [
+                                                {{ Form::date('issue_date', null, [
                                                     'class'    => VC::FM_CT,
                                                     'required' => 'required'
                                                 ]) }}
@@ -565,9 +460,9 @@ Object.keys(t).forEach(
                                     </div>
                                     <div class="{{ VC::CM6 }}">
                                         <div class="{{ VC::FM_G }}">
-                                            {{ Collective\Html\FormFacade::label('due_date', __('Due Date'), ['class' => VC::FM_LB]) }}
+                                            {{ Form::label('due_date', __('Due Date'), ['class' => VC::FM_LB]) }}
                                             <div class="form-icon-user">
-                                                {{ Collective\Html\FormFacade::date('due_date', null, [
+                                                {{ Form::date('due_date', null, [
                                                     'class'    => VC::FM_CT,
                                                     'required' => 'required'
                                                 ]) }}
@@ -576,40 +471,41 @@ Object.keys(t).forEach(
                                     </div>
                                     <div class="{{ VC::CM6 }}">
                                         <div class="{{ VC::FM_G }}">
-                                            {{ Collective\Html\FormFacade::label('invoice_number', __('Invoice Number'), ['class' => VC::FM_LB]) }}
+                                            {{ Form::label('invoice_number', __('Invoice Number'), ['class' => VC::FM_LB]) }}
                                             <div class="form-icon-user">
                                                 <input type="text"
                                                     class="{{ VC::FM_CT }}"
-                                                    value="{{ $invoice_number }}"
+                                                    value="{{ !empty($invoice_number) ? $invoice_number : __('No invoice number available')}}"
                                                     readonly>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="{{ VC::CM6 }}">
-                                        {{ Collective\Html\FormFacade::label('category_id', __('Category'), ['class' => VC::FM_LB]) }}
-                                        {{ Collective\Html\FormFacade::select('category_id', $category, null, [
+                                        {{ Form::label('category_id', __('Category'), ['class' => VC::FM_LB]) }}
+                                        {{ Form::select('category_id', (is_array($category) && count($category)) || ($category instanceof Collection && $category->isNotEmpty()) ? $category : [__('No category available')], null, [
                                             'class'    => VC::FM_CT_SL,
                                             'required' => 'required'
                                         ]) }}
                                     </div>
                                     <div class="{{ VC::CM6 }}">
                                         <div class="{{ VC::FM_G }}">
-                                            {{ Collective\Html\FormFacade::label('ref_number', __('Ref Number'), ['class' => VC::FM_LB]) }}
+                                            {{ Form::label('ref_number', __('Ref Number'), ['class' => VC::FM_LB]) }}
                                             <div class="form-icon-user">
                                                 <span><i class="{{ VC::TI_JOINT ?? 'ti ti-joint' }}"></i></span>
-                                                {{ Collective\Html\FormFacade::text('ref_number', null, [
+                                                {{ Form::text('ref_number', null, [
                                                     'class' => VC::FM_CT
                                                 ]) }}
                                             </div>
                                         </div>
                                     </div>
-
-                                    @if(!$customFields->isEmpty())
+                                    @if((is_array($customFields) && count($customFields)) || ($customFields instanceof Collection && $customFields->isNotEmpty()))
                                         <div class="{{ VC::CM6 }}">
                                             <div class="tab-pane fade show" id="tab-2" role="tabpanel">
                                                 @include(ViewsConstants::CST_FD . '.formBuilder')
                                             </div>
                                         </div>
+                                    @else
+                                        <div class="{{ VC::CM6 }}">{{__('No custom field found.')}}</div>
                                     @endif
                                 </div>
                             </div>
@@ -619,137 +515,158 @@ Object.keys(t).forEach(
             </div>
             <div class="{{ VC::C12 }}">
                 <h5 class="{{ VC::DBL }} {{ VC::MB4 }}">{{ __('Product & Services') }}</h5>
-                <div class="{{ VC::CD }} repeater" data-value='{!! json_encode($invoice->items) !!}'>
-                    <div class="item-section {{ VC::PY2 }}">
-                        <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
-                            <div class="col-md-12 d-flex align-items-center justify-content-between justify-content-md-end">
-                                <div class="all-button-box me-2">
-                                    <a href="#" data-repeater-create="" class="{{ VC::BT_PRM }}" data-bs-toggle="modal" data-target="#add-bank">
-                                        <i class="{{ VC::TI_PLS }}"></i> {{ __('Add item') }}
-                                    </a>
+                @if(!empty($invoice->items))
+                    <div class="{{ VC::CD }} repeater" data-value='{!! json_encode($invoice->items) !!}'>
+                        <div class="item-section {{ VC::PY2 }}">
+                            <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
+                                <div class="col-md-12 d-flex align-items-center justify-content-between justify-content-md-end">
+                                    <div class="all-button-box me-2">
+                                        <a href="#" data-repeater-create="" class="{{ VC::BT_PRM }}" data-bs-toggle="modal" data-target="#add-bank">
+                                            <i class="{{ VC::TI_PLS }}"></i> {{ __('Add item') }}
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="card-body table-border-style">
-                        <div class="table-responsive">
-                            <table class="{{ VC::TB }} mb-0 table-custom-style"
-                                data-repeater-list="items"
-                                id="sortable-table">
-                                <thead>
-                                <tr>
-                                    <th>{{ __('Items') }}</th>
-                                    <th>{{ __('Quantity') }}</th>
-                                    <th>{{ __('Price') }}</th>
-                                    <th>{{ __('Discount') }}</th>
-                                    <th>{{ __('Tax') }}</th>
-                                    <th class="text-end">{{ __('Amount') }}</th>
-                                    <th></th>
-                                </tr>
-                                </thead>
-                                <tbody class="ui-sortable" data-repeater-item>
-                                <tr>
-                                    {{ Collective\Html\FormFacade::hidden('id', null, ['class' => VC::FM_CT . ' id']) }}
-                                    <td width="25%" class="{{ VC::FM_G }} pt-0">
-                                        {{ Collective\Html\FormFacade::select('item', $product_services, null, [
-                                            'class'    => VC::FM_CT_SL . ' item',
-                                            'data-url' => route(ViewsConstants::INV.'.product')
-                                        ]) }}
-                                    </td>
-                                    <td>
-                                        <div class="form-group price-input input-group search-form">
-                                            {{ Collective\Html\FormFacade::text('quantity', null, [
-                                                'class'       => VC::FM_CT . ' quantity',
-                                                'required'    => 'required',
-                                                'placeholder' => __('Qty')
+                        <div class="card-body table-border-style">
+                            <div class="table-responsive">
+                                <table class="{{ VC::TB }} mb-0 table-custom-style"
+                                    data-repeater-list="items"
+                                    id="sortable-table">
+                                    <thead>
+                                    <tr>
+                                        <th>{{ __('Items') }}</th>
+                                        <th>{{ __('Quantity') }}</th>
+                                        <th>{{ __('Price') }}</th>
+                                        <th>{{ __('Discount') }}</th>
+                                        <th>{{ __('Tax') }}</th>
+                                        <th class="text-end">{{ __('Amount') }}</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="ui-sortable" data-repeater-item>
+                                    <tr>
+                                        {{ Form::hidden('id', null, ['class' => VC::FM_CT . ' id']) }}
+                                        @php
+                                            $invProductBase        = VW::INV.'.product';
+                                            $invProductKebab       = Str::kebab($invProductBase);
+                                            $invProductResolved    = Route::has($invProductBase) ? $invProductBase : (Route::has($invProductKebab) ? $invProductKebab : null);
+                                            $invProductUrl         = $invProductResolved ? route($invProductResolved) : '#';
+                                            $invProductGuardMsg    = Utility::fetchLinkMessage($lang, VW::INV, 'invoice_product_route_unavailable') ?? 'Invoice product route is unavailable. Please contact technical support or your domain administrator.';
+                                            $psIsList              = (is_array($product_services ?? null) && count($product_services ?? []) > 0) || (($product_services ?? null) instanceof Collection && $product_services->isNotEmpty());
+                                            $psOptions             = $psIsList ? (is_array($product_services) ? $product_services : $product_services->toArray()) : [__('No services available')];
+                                        @endphp
+                                        <td width="25%" class="{{ VC::FM_G }} pt-0">
+                                            {{ Form::select('item', $psOptions, null, [
+                                                'class'             => VC::FM_CT_SL.' item invoice-product-select',
+                                                'data-url'          => $invProductUrl,
+                                                'data-guard-msg'    => $invProductGuardMsg,
+                                                'data-sv-localized' => 'true',
                                             ]) }}
-                                            <span class="{{ VC::INP_GP_TXT }} {{ VC::BG_TPR }}"></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="form-group price-input input-group search-form">
-                                            {{ Collective\Html\FormFacade::text('price', null, [
-                                                'class'       => VC::FM_CT . ' price',
-                                                'required'    => 'required',
-                                                'placeholder' => __('Price')
-                                            ]) }}
-                                            <span class="{{ VC::INP_GP_TXT }} {{ VC::BG_TPR }}">{{ \Auth::user()->currencySymbol() }}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="form-group price-input input-group search-form">
-                                            {{ Collective\Html\FormFacade::text('discount', null, [
-                                                'class'       => VC::FM_CT . ' discount',
-                                                'required'    => 'required',
-                                                'placeholder' => __('Discount')
-                                            ]) }}
-                                            <span class="{{ VC::INP_GP_TXT }} {{ VC::BG_TPR }}">{{ \Auth::user()->currencySymbol() }}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="form-group">
-                                            <div class="input-group colorpickerinput">
-                                                <div class="taxes"></div>
-                                                {{ Collective\Html\FormFacade::hidden('tax', null, ['class' => 'form-control tax']) }}
-                                                {{ Collective\Html\FormFacade::hidden('itemTaxPrice', null, ['class' => 'form-control itemTaxPrice']) }}
-                                                {{ Collective\Html\FormFacade::hidden('itemTaxRate', null, ['class' => 'form-control itemTaxRate']) }}
+                                        </td>
+                                        @push(StacksConstants::ADM_SCR_PG)
+                                            <script defer src="{{ asset('assets/js/routes/invoices/product.js') }}"></script>
+                                        @endpush
+                                        <td>
+                                            <div class="form-group price-input input-group search-form">
+                                                {{ Form::text('quantity', null, [
+                                                    'class'       => VC::FM_CT . ' quantity',
+                                                    'required'    => 'required',
+                                                    'placeholder' => __('Qty')
+                                                ]) }}
+                                                <span class="{{ VC::INP_GP_TXT }} {{ VC::BG_TPR }}"></span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-end amount">0.00</td>
-                                    <td>
-                                        <a href="#" class="{{ VC::TRS_M2 }} delete_item" data-repeater-delete></a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2">
-                                        <div class="{{ VC::FM_G }}">
-                                            {{ Collective\Html\FormFacade::textarea('description', null, [
-                                                'class'       => 'form-control pro_description',
-                                                'rows'        => 2,
-                                                'placeholder' => __('Description')
-                                            ]) }}
-                                        </div>
-                                    </td>
-                                    <td colspan="5"></td>
-                                </tr>
-                                </tbody>
-                                <tfoot>
-                                <tr>
-                                    <td colspan="4"></td>
-                                    <td><strong>{{ __('Sub Total') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-                                    <td class="text-end subTotal">0.00</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="4"></td>
-                                    <td><strong>{{ __('Discount') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-                                    <td class="text-end totalDiscount">0.00</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="4"></td>
-                                    <td><strong>{{ __('Tax') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-                                    <td class="text-end totalTax">0.00</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="4"></td>
-                                    <td class="blue-text"><strong>{{ __('Total Amount') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-                                    <td class="text-end totalAmount blue-text">0.00</td>
-                                    <td></td>
-                                </tr>
-                                </tfoot>
-                            </table>
+                                        </td>
+                                        <td>
+                                            <div class="form-group price-input input-group search-form">
+                                                {{ Form::text('price', null, [
+                                                    'class'       => VC::FM_CT . ' price',
+                                                    'required'    => 'required',
+                                                    'placeholder' => __('Price')
+                                                ]) }}
+                                                <span class="{{ VC::INP_GP_TXT }} {{ VC::BG_TPR }}">{{ $currSymbol }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-group price-input input-group search-form">
+                                                {{ Form::text('discount', null, [
+                                                    'class'       => VC::FM_CT . ' discount',
+                                                    'required'    => 'required',
+                                                    'placeholder' => __('Discount')
+                                                ]) }}
+                                                <span class="{{ VC::INP_GP_TXT }} {{ VC::BG_TPR }}">{{ $currSymbol }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-group">
+                                                <div class="input-group colorpickerinput">
+                                                    <div class="taxes"></div>
+                                                    {{ Form::hidden('tax', null, ['class' => 'form-control tax']) }}
+                                                    {{ Form::hidden('itemTaxPrice', null, ['class' => 'form-control itemTaxPrice']) }}
+                                                    {{ Form::hidden('itemTaxRate', null, ['class' => 'form-control itemTaxRate']) }}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end amount">0.00</td>
+                                        <td>
+                                            <a href="#" class="{{ VC::TRS_M2 }} delete_item" data-repeater-delete></a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="{{ VC::FM_G }}">
+                                                {{ Form::textarea('description', null, [
+                                                    'class'       => 'form-control pro_description',
+                                                    'rows'        => 2,
+                                                    'placeholder' => __('Description')
+                                                ]) }}
+                                            </div>
+                                        </td>
+                                        <td colspan="5"></td>
+                                    </tr>
+                                    </tbody>
+                                    <tfoot>
+                                    <tr>
+                                        <td colspan="4"></td>
+                                        <td><strong>{{ __('Sub Total') }} ({{ $currSymbol }})</strong></td>
+                                        <td class="text-end subTotal">0.00</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4"></td>
+                                        <td><strong>{{ __('Discount') }} ({{ $currSymbol }})</strong></td>
+                                        <td class="text-end totalDiscount">0.00</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4"></td>
+                                        <td><strong>{{ __('Tax') }} ({{ $currSymbol }})</strong></td>
+                                        <td class="text-end totalTax">0.00</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4"></td>
+                                        <td class="blue-text"><strong>{{ __('Total Amount') }} ({{ $currSymbol }})</strong></td>
+                                        <td class="text-end totalAmount blue-text">0.00</td>
+                                        <td></td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
+                @else
+                    <div class="{{VC::CD}}">{{__('No items found for invoice')}}</div>
+                @endif
             </div>
             <div class="modal-footer">
+                @php
+                    $cancelBtnId = 'cancel-invoice-btn-' . $invoice->id
+                @endphp
                 <input
                     type="button"
-                    id="{{ 'cancel-invoice-btn-' . $invoice->id }}"
+                    id="{{ $cancelBtnId }}"
                     value="{{ __('Cancel') }}"
                     class="{{ VC::BT_LG }} {{ VC::ME3 }}"
                     data-url="{{ $invoiceIndexUrl }}"
@@ -802,7 +719,12 @@ Object.keys(t).forEach(
                     value="{{ __('Update') }}"
                     class="{{ VC::BT_PRM }}">
             </div>
-        {{ Collective\Html\FormFacade::close() }}
+        {{ Form::close() }}
+        @else
+            <div class="alert alert-danger d-block w-100" role="alert">
+                {{ __('Invoice data is not available.') }}
+            </div>
+        @endif
     </div>
 @endsection
 

@@ -299,12 +299,12 @@
         <script src="{{ asset('js/custom.js') }}"></script>
         @if($message = Session::get('success'))
             <script>
-                show_toastr('success', '{!! $message !!}');
+               typeof show_toastr === 'function' &&  show_toastr('success', '{!! $message !!}');
             </script>
         @endif
         @if($message = Session::get('error'))
             <script>
-                show_toastr('error', '{!! $message !!}');
+                typeof show_toastr === 'function' && show_toastr('error', '{!! $message !!}');
             </script>
         @endif
         @stack('script-page')

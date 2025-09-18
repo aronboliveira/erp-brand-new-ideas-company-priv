@@ -299,7 +299,7 @@ try {
                                             <div class="view-qrcode" style="margin-top:0;margin-bottom:15px;">
                                                 <?php
                                                 try {
-                                                    echo (string) \Milon\Barcode\DNS2D::getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), 'QRCODE', 2, 2);
+                                                    echo (string) class_exists(\Milon\Barcode\DNS2D::class) && is_callable([\Milon\Barcode\DNS2D, 'getBarcodeHTML']) ? \Milon\Barcode\DNS2D::getBarcodeHTML(route(ViewsConstants::BIL . '.link.copy', Crypt::encrypt(data_get($bill, 'bill_id'))), 'QRCODE', 2, 2) : __('Failed to generate QRCode');
                                                 } catch (\Throwable $e) {
                                                     Log::error('QR: ' . $e->getMessage());
                                                 }

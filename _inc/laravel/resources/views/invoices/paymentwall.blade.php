@@ -1,48 +1,16 @@
+@php
+    $invoice = !empty($data) && isset($data['invoice_id']) ? $data['invoice_id'] : null;
+    $invoice_id = \Illuminate\Support\Facades\Crypt::decrypt($invoice);
+    $price = !empty($data) && isset($data['amount']) ? $data['amount'] : 999999999999999;
+    $user = \Illuminate\Support\Facades\Auth::user();
+@endphp
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-@php
-    $invoice = $data['invoice_id'];
-    $invoice_id = \Illuminate\Support\Facades\Crypt::decrypt($invoice);
-    $price = $data['amount'];
-
-@endphp
 {{-- {{ dd( $admin_payment_setting) }} --}}
-<script async src="https://api.paymentwall.com/brick/build/brick-default.1.5.0.min.js"> </script>
-<div id="payment-form-container"> </div>
-    <script>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-      ar: { paymentwall_unavailable: 'لا يمكن تحميل Paymentwall' },
-      da: { paymentwall_unavailable: 'Kan ikke indlæse Paymentwall' },
-      de: { paymentwall_unavailable: 'Paymentwall konnte nicht geladen werden' },
-      en: { paymentwall_unavailable: 'Cannot load Paymentwall' },
-      es: { paymentwall_unavailable: 'No se puede cargar Paymentwall' },
-      fr: { paymentwall_unavailable: 'Impossible de charger Paymentwall' },
-      he: { paymentwall_unavailable: 'לא ניתן לטעון Paymentwall' },
-      it: { paymentwall_unavailable: 'Impossibile caricare Paymentwall' },
-      ja: { paymentwall_unavailable: 'Paymentwallを読み込めません' },
-      nl: { paymentwall_unavailable: 'Kan Paymentwall niet laden' },
-      pl: { paymentwall_unavailable: 'Nie można załadować Paymentwall' },
-      pt: { paymentwall_unavailable: 'Não foi possível carregar Paymentwall' },
-      'pt-br': { paymentwall_unavailable: 'Não foi possível carregar Paymentwall' },
-      ru: { paymentwall_unavailable: 'Не удалось загрузить Paymentwall' },
-      tr: { paymentwall_unavailable: 'Paymentwall yüklenemiyor' },
-      zh: { paymentwall_unavailable: '无法加载 Paymentwall' }
-  };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
- 
-          })();
-    </script>
+<script async src="https://api.paymentwall.com/brick/build/brick-default.1.5.0.min.js"></script>
+<div id="payment-form-container"></div>
+<script async src="{{ asset('assets/js/routes/invoices/lang/paymentwall.js') }}"></script>
 <script defer>
   (() => {
       const DATA_LISTENER_ADDED   = 'data-listener-added';
@@ -118,16 +86,16 @@ Object.keys(t).forEach(
           if (typeof Brick === 'undefined') {
               throw new Error('Brick library missing');
           }
-
+            
           const brick = new Brick({
-              public_key: '{{ $company_payment_setting['paymentwall_public_key'] }}',
+              public_key: '{{ !empty($company_payment_setting['paymentwall_public_key']) ? $company_payment_setting['paymentwall_public_key'] : '' }}',
               amount:     '{{ $price }}',
               currency:   '{{ App\Models\Utility::getValByName("site_currency") }}',
               container:  containerId,
-              action:     '{{ route("invoice.pay.with.paymentwall",[$data["invoice_id"],"amount"=>$data["amount"]]) }}',
+              action:     '{{ route(VW::INV.".pay.with.paymentwall",[$data["invoice_id"],"amount"=>$data["amount"]]) }}',
               form: {
                   merchant:       'Paymentwall',
-                  product:        '{{ Auth::user()->invoiceNumberFormat($invoice_id) }}',
+                  product:        '{{ \Illuminate\Support\Facades\Auth::user()->invoiceNumberFormat($invoice_id) }}',
                   pay_button:     'Pay',
                   show_zip:       true,
                   show_cardholder:true

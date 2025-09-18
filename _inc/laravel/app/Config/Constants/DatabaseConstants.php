@@ -90,7 +90,7 @@ class DatabaseConstants
 	public const TABLE_GOL = 'generated_offer_letters';
 	public const TABLE_EC = 'experience_certificates';
 	public const TABLE_NOC = 'noc_certificates';
-	public const TABLE_JL = 'joining_letter.s';
+	public const TABLE_JL = 'joining_letters';
 	public const TABLE_TRS = 'transactions';
 	public const TABLE_LBL = 'labels';
 

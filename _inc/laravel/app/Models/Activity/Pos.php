@@ -12,19 +12,25 @@ class Pos extends Model
     use HasFactory, UsesUuids, ChecksLogin;
 
     protected $fillable = [
-        'pos_id', 'customer_id', 'warehouse_id', 'pos_date',
-        'category_id', 'status', 'shipping_display',
-        'created_by', 'tax'
+        'pos_id',
+        'customer_id',
+        'warehouse_id',
+        'pos_date',
+        'category_id',
+        'status',
+        'shipping_display',
+        'created_by',
+        'tax'
     ];
 
     private const COL_CREATED_BY   = 'created_by';
-    private const COL_customer_id  = 'customer_id';
+    private const COL_CUSTOMER_ID  = 'customer_id';
     private const COL_POS_ID       = 'pos_id';
     private const COL_WAREHOUSE_ID = 'warehouse_id';
 
     public function customer(): HasOne
     {
-        return $this->hasOne(Customer::class, self::COL_customer_id, 'id');
+        return $this->hasOne(Customer::class, self::COL_CUSTOMER_ID, 'id');
     }
 
     public function items(): HasMany
@@ -49,7 +55,7 @@ class Pos extends Model
 
     public function getSubTotal(): float
     {
-        return $this->items->sum(fn ($p) => $p->price * $p->quantity);
+        return $this->items->sum(fn($p) => $p->price * $p->quantity);
     }
 
     public function getTotalDiscount(): float
@@ -60,7 +66,7 @@ class Pos extends Model
     public function getTotalTax(): float
     {
         return $this->items->sum(
-            fn ($p) => (Utility::totalTaxRate($p->tax) / 100) *
+            fn($p) => (Utility::totalTaxRate($p->tax) / 100) *
                 ($p->price * $p->quantity)
         );
     }
@@ -82,7 +88,7 @@ class Pos extends Model
         $user = $userOrRedirect;
         $query = self::where(self::COL_CREATED_BY, $user?->creatorId());
         $month && $query->whereRaw('MONTH(created_at)=?', [date('m')]);
-        $total = $query->get()->sum(fn ($p) => $p->getTotal());
+        $total = $query->get()->sum(fn($p) => $p->getTotal());
         return $user?->priceFormat($total);
     }
 
@@ -101,7 +107,7 @@ class Pos extends Model
         )->where(self::COL_CREATED_BY, $user?->creatorId())
             ->orderBy('created_at')
             ->get()
-            ->groupBy(fn ($v) => Carbon::parse(
+            ->groupBy(fn($v) => Carbon::parse(
                 $v->created_at
             )->format('dm'));
 
@@ -111,7 +117,7 @@ class Pos extends Model
             $key = Carbon::parse($date)->format('dm');
             $posesArray['label'][] = $date;
             $posesArray['value'][] = $grouped[$key]
-                ? $grouped[$key]->sum(fn ($p) => $p->getTotal())
+                ? $grouped[$key]->sum(fn($p) => $p->getTotal())
                 : 0;
         }
 

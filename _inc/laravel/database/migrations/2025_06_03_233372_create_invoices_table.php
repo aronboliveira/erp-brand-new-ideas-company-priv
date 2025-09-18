@@ -37,12 +37,14 @@ class CreateInvoicesTable extends Migration
             $table->uuid(self::COL_TAX_ID)->nullable();                                // * ADDED
             $table->uuid(self::COL_CREATED_BY);                                        // ! CHANGED
             $table->timestamps();
-            foreach ([
-                self::COL_CUSTOMER_ID => DatabaseConstants::TABLE_CUSTOMERS,
-                self::COL_CATEGORY_ID => DatabaseConstants::TABLE_PROD_SERV_CATS,
-                self::COL_TAX_ID => DatabaseConstants::TABLE_TAXES,
-                self::COL_CREATED_BY      =>  DatabaseConstants::TABLE_USERS,
-            ] as $col => $tbl)
+            foreach (
+                [
+                    self::COL_CUSTOMER_ID => DatabaseConstants::TABLE_CUSTOMERS,
+                    self::COL_CATEGORY_ID => DatabaseConstants::TABLE_PROD_SERV_CATS,
+                    self::COL_TAX_ID => DatabaseConstants::TABLE_TAXES,
+                    self::COL_CREATED_BY      =>  DatabaseConstants::TABLE_USERS,
+                ] as $col => $tbl
+            )
                 $table->foreign($col)
                     ->references('id')->on($tbl)
                     ->cascadeOnDelete(); // * ADDED
@@ -52,12 +54,14 @@ class CreateInvoicesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_CUSTOMER_ID,
-                self::COL_CATEGORY_ID,
-                self::COL_TAX_ID,
-                self::COL_CREATED_BY,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_CUSTOMER_ID,
+                    self::COL_CATEGORY_ID,
+                    self::COL_TAX_ID,
+                    self::COL_CREATED_BY,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);
