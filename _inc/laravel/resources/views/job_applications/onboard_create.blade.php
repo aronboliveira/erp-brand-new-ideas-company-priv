@@ -1,45 +1,83 @@
-{{ Collective\Html\FormFacade::open(['route' => ['job.on.board.store', $id], 'method' => 'post']) }}
-<div class="modal-body">
-    <div class="row">
-        @if ($id == 0)
-            <div class="form-group col-md-12">
-                {{ Collective\Html\FormFacade::label('application', __('Interviewer'), ['class' => 'col-form-label']) }}
-                {{ Collective\Html\FormFacade::select('application', $applications, null, ['class' => 'form-control select2', 'required' => 'required']) }}
-            </div>
-        @endif
-        <div class="form-group col-md-12">
-            {!! Collective\Html\FormFacade::label('joining_date', __('Joining Date'), ['class' => 'col-form-label']) !!}
-            {!! Collective\Html\FormFacade::date('joining_date', null, ['class' => 'form-control','autocomplete'=>'off']) !!}
-        </div>
+@php
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC};
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\{Collection, Str};
 
-        <div class="form-group col-md-6">
-            {!! Collective\Html\FormFacade::label('days_of_week', __('Days Of Week'), ['class' => 'col-form-label']) !!}
-            {!! Collective\Html\FormFacade::number('days_of_week', null, ['class' => 'form-control','autocomplete'=>'off','min'=>'0']) !!}
-        </div>
-        <div class="form-group col-md-6">
-            {!! Collective\Html\FormFacade::label('salary', __('Salary'), ['class' => 'col-form-label']) !!}
-            {!! Collective\Html\FormFacade::number('salary', null, ['class' => 'form-control','autocomplete'=>'off','min'=>'0']) !!}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('salary_type', __('Salary Type'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('salary_type', $salary_type, null, ['class' => 'form-control select']) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('salary_duration', __('Salary Duration'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('salary_duration', $salary_duration, null, ['class' => 'form-control select']) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('job_type', __('Job Type'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('job_type', $job_type, null, ['class' => 'form-control select']) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('status', __('Status'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('status', $status, null, ['class' => 'form-control select']) }}
+    $lang = Utility::fetchUserLang();
+
+    $formId   = 'job-ob-store-form-' . (is_numeric($id ?? null) ? $id : 'x');
+    $base     = VW::JB.'.on.board.store';
+    $baseKb   = Str::kebab($base);
+    $resolved = Route::has($base) ? $base : (Route::has($baseKb) ? $baseKb : null);
+    $action   = ($resolved && is_numeric($id ?? null)) ? route($resolved, [$id]) : '#';
+    $guardMsg = Utility::fetchLinkMessage($lang, VW::JB, 'store_board_route_unavailable') ?? __('Job onboarding creation route is unavailable. Please contact technical support or your domain administrator.');
+
+    $appsIsList  = (is_array($applications ?? null) && count($applications ?? []) > 0) || (($applications ?? null) instanceof Collection && $applications->isNotEmpty());
+    $appsOptions = $appsIsList ? (is_array($applications) ? $applications : $applications->toArray()) : ['' => __('No interviewers available')];
+
+    $salaryTypeIsList     = (is_array($salary_type ?? null) && $salary_type) || (($salary_type ?? null) instanceof Collection && $salary_type->isNotEmpty());
+    $salaryDurationIsList = (is_array($salary_duration ?? null) && $salary_duration) || (($salary_duration ?? null) instanceof Collection && $salary_duration->isNotEmpty());
+    $jobTypeIsList        = (is_array($job_type ?? null) && $job_type) || (($job_type ?? null) instanceof Collection && $job_type->isNotEmpty());
+    $statusIsList         = (is_array($status ?? null) && $status) || (($status ?? null) instanceof Collection && $status->isNotEmpty());
+@endphp
+
+{{ Form::open([
+    'url'               => $action,
+    'method'            => 'post',
+    'id'                => $formId,
+    'data-url'          => $action,
+    'data-guard-msg'    => $guardMsg,
+    'data-sv-localized' => 'true',
+]) }}
+    <div class="modal-body">
+        <div class="{{ VC::RW }}">
+            @if(($id ?? null) == 0)
+                <div class="{{ VC::FM_GCB12 }}">
+                    {{ Form::label('application', __('Interviewer'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('application', $appsOptions, null, array_merge(['class' => VC::FM_CT_SL.' select2','required'=>'required'], $appsIsList ? [] : ['disabled'=>'disabled'])) }}
+                    @unless($appsIsList)
+                        <small class="{{ VC::TXT_MT }}">{{ __('No interviewers available') }}</small>
+                    @endunless
+                </div>
+            @endif
+
+            <div class="{{ VC::FM_GCB12 }}">
+                {{ Form::label('joining_date', __('Joining Date'), ['class' => VC::FM_LB]) }}
+                {{ Form::date('joining_date', null, ['class' => VC::FM_CT, 'autocomplete' => 'off']) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('days_of_week', __('Days Of Week'), ['class' => VC::FM_LB]) }}
+                {{ Form::number('days_of_week', null, ['class' => VC::FM_CT, 'autocomplete'=>'off', 'min'=>'0']) }}
+            </div>
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('salary', __('Salary'), ['class' => VC::FM_LB]) }}
+                {{ Form::number('salary', null, ['class' => VC::FM_CT, 'autocomplete'=>'off', 'min'=>'0']) }}
+            </div>
+
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('salary_type', __('Salary Type'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('salary_type', $salary_type ?? [], null, array_merge(['class' => VC::FM_CT_SL.' select'], $salaryTypeIsList ? [] : ['disabled'=>'disabled'])) }}
+            </div>
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('salary_duration', __('Salary Duration'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('salary_duration', $salary_duration ?? [], null, array_merge(['class' => VC::FM_CT_SL.' select'], $salaryDurationIsList ? [] : ['disabled'=>'disabled'])) }}
+            </div>
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('job_type', __('Job Type'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('job_type', $job_type ?? [], null, array_merge(['class' => VC::FM_CT_SL.' select'], $jobTypeIsList ? [] : ['disabled'=>'disabled'])) }}
+            </div>
+            <div class="{{ VC::FM_GCB6 }}">
+                {{ Form::label('status', __('Status'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('status', $status ?? [], null, array_merge(['class' => VC::FM_CT_SL.' select'], $statusIsList ? [] : ['disabled'=>'disabled'])) }}
+            </div>
         </div>
     </div>
-</div>
-<div class="modal-footer">
-    <input type="button" value="Cancel" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{ __('Create') }}" class="btn btn-primary">
-</div>
-{{ Collective\Html\FormFacade::close() }}
+    <div class="modal-footer">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+    </div>
+    <script defer src="{{ asset('assets/js/routes/jobs/boards/store.js') }}"></script>
+{{ Form::close() }}

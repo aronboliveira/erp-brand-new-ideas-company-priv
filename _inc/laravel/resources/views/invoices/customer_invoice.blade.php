@@ -649,15 +649,15 @@
                                                                 'data-url'       => $deleteRoute,
                                                                 'data-guard-msg' => $guardMsg,
                                                             ]) !!}
-                                                            <a href="#"
-                                                            class="{{ VC::BT_SM_CT_PR }}"
-                                                            data-listener-alias="delete-payment-{{ $payment->id }}"
-                                                            data-bs-toggle="tooltip"
-                                                            title="{{ __('Delete') }}"
-                                                            data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
-                                                            data-confirm-yes="document.getElementById('delete-form-{{ $payment->id }}').submit();">
-                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
-                                                            </a>
+                                                                <a href="#"
+                                                                class="{{ VC::BT_SM_CT_PR }}"
+                                                                data-listener-alias="delete-payment-{{ $payment->id }}"
+                                                                data-bs-toggle="tooltip"
+                                                                title="{{ __('Delete') }}"
+                                                                data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
+                                                                data-confirm-yes="document.getElementById('delete-form-{{ $payment->id }}').submit();">
+                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
+                                                                </a>
                                                             {!! Form::close() !!}
                                                         </div>
                                                     </td>

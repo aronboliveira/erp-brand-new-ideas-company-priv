@@ -33,160 +33,11 @@
 @push(StacksConstants::ADM_SCR_PG)
     <script src="{{asset('css/summernote/summernote-bs4.js')}}"></script>
     <script async src="{{asset('js/bootstrap-tagsinput.min.js')}}"></script>
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:  { tags_unavailable: 'لا يمكن تهيئة الوسوم' },
-            da:  { tags_unavailable: 'Kan ikke initialisere tags' },
-            de:  { tags_unavailable: 'Tags konnten nicht initialisiert werden' },
-            en:  { tags_unavailable: 'Cannot initialize tags' },
-            es:  { tags_unavailable: 'No se pueden inicializar etiquetas' },
-            fr:  { tags_unavailable: 'Impossible d’initialiser les tags' },
-            he:  { tags_unavailable: 'לא ניתן לאתחל תגים' },
-            it:  { tags_unavailable: 'Impossibile inizializzare i tag' },
-            ja:  { tags_unavailable: 'タグを初期化できません' },
-            nl:  { tags_unavailable: 'Kan tags niet initialiseren' },
-            pl:  { tags_unavailable: 'Nie można zainicjalizować tagów' },
-            pt:  { tags_unavailable: 'Não foi possível inicializar as tags' },
-            'pt-br': { tags_unavailable: 'Não foi possível inicializar as tags' },
-            ru:  { tags_unavailable: 'Не удалось инициализировать теги' },
-            tr:  { tags_unavailable: 'Etiketler başlatılamıyor' },
-            zh:  { tags_unavailable: '无法初始化标签' }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (() => {
-            const DATA_LISTENER_ADDED   = 'data-listener-added';
-            const ERR_FB                = '# ERROR';
-            const DATA_CLIENT_LOCALIZED = 'data-client-localized';
-            const DATA_GUARD_MSG        = 'data-guard-msg';
-
-            const getLocalizedMessage = (el, key) => {
-                let msg = ERR_FB;
-                if (
-                    el?.getAttribute('data-sv-localized') === 'true' ||
-                    el?.getAttribute(DATA_CLIENT_LOCALIZED) === 'true'
-                ) {
-                    msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
-                } else {
-                    let lang = (
-                        sessionStorage.getItem('erp-np-lang') ||
-                        document.documentElement.lang ||
-                        'en'
-                    )
-                        .toLowerCase()
-                        .replace(/_/g, '-');
-                    lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-                    msg =
-                        window.translations?.[lang]?.[key] ||
-                        el.getAttribute(DATA_GUARD_MSG) ||
-                        window.translations?.['en']?.[key] ||
-                        ERR_FB;
-                    if (msg !== ERR_FB) {
-                        el.setAttribute(DATA_GUARD_MSG, msg);
-                        el.setAttribute(DATA_CLIENT_LOCALIZED, 'true');
-                    }
-                }
-                return msg;
-            };
-
-            const handleErrorDisplay = (el, key) => {
-                const message = el
-                    ? getLocalizedMessage(el, key)
-                    : ERR_FB;
-                const hasBootstrap =
-                    document.querySelector('link[href*="bootstrap"]') &&
-                    window.bootstrap?.Toast;
-                if (hasBootstrap) {
-                    if (!document.querySelector('#error-toast')) {
-                        const toast = document.createElement('div');
-                        toast.id        = 'error-toast';
-                        toast.className = 'toast align-items-center text-bg-danger border-0';
-                        toast.setAttribute('role', 'alert');
-                        toast.setAttribute('aria-live', 'assertive');
-                        toast.setAttribute('aria-atomic', 'true');
-                        toast.innerHTML = `
-                            <div class="d-flex">
-                                <div class="toast-body">${message}</div>
-                                <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
-                                        data-bs-dismiss="toast"
-                                        aria-label="Close"></button>
-                            </div>`;
-                        document.body.appendChild(toast);
-                    }
-                    new bootstrap.Toast(
-                        document.querySelector('#error-toast')
-                    ).show();
-                } else {
-                    alert(message);
-                }
-            };
-
-            try {
-                if (typeof $ === 'undefined' || !$.fn.tagsinput) throw new Error();
-                const $els = $('[data-toggle="tags"]');
-                if (!$els.length) return;
-                $els.each(function() {
-                    try {
-                        $(this).tagsinput({ tagClass: 'badge badge-primary' });
-                    } catch {
-                        const el = this;
-                        if (!el.hasAttribute(DATA_LISTENER_ADDED)) {
-                            el.addEventListener('click', () =>
-                                handleErrorDisplay(el, 'tags_unavailable')
-                            );
-                            el.setAttribute(DATA_LISTENER_ADDED, 'true');
-                            const obs = new MutationObserver((_, o) => {
-                                if (!document.body.contains(el)) {
-                                    el.removeEventListener('click',
-                                        () => handleErrorDisplay(el, 'tags_unavailable')
-                                    );
-                                    o.disconnect();
-                                }
-                            });
-                            obs.observe(document.body, { childList: true, subtree: true });
-                        }
-                    }
-                });
-            } catch {
-                const el = document.body;
-                if (!el.hasAttribute(DATA_LISTENER_ADDED)) {
-                    el.addEventListener('click', () =>
-                        handleErrorDisplay(el, 'tags_unavailable')
-                    );
-                    el.setAttribute(DATA_LISTENER_ADDED, 'true');
-                    const obs = new MutationObserver((_, o) => {
-                        if (!document.body.contains(el)) {
-                            el.removeEventListener('click',
-                                () => handleErrorDisplay(el, 'tags_unavailable')
-                            );
-                            o.disconnect();
-                        }
-                    });
-                    obs.observe(document.body, { childList: true, subtree: true });
-                } else {
-                    handleErrorDisplay(el, 'tags_unavailable');
-                }
-            }
-        })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/jobs/lang/edit.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/jobs/edit.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
-        {{-- start for ai module--}}
         @php
             $plan= Utility::getChatGPTSettings();
         @endphp
@@ -196,153 +47,152 @@ Object.keys(t).forEach(
                 <i class="{{ VC::FAS_RB }}"> </i> <span>{{__('Generate with AI')}}</span>
             </a>
         @endif
-        {{-- end for ai module--}}
     </div>
 @endsection
 @section(YieldingConstants::ADM_CTT)
     {{Form::model($job,array('route' => array(ViewsConstants::JB.'.update', $job->id), 'method' => 'PUT')) }}
-    <div class="row mt-3">
-        <div class="col-md-6 ">
-            <div class="card card-fluid">
-                <div class="card-body job-create ">
-                    <div class="row">
-                        <div class="form-group col-md-12">
-                            {!! Form::label('title', __('Job Title'),['class'=>'form-label']) !!}
-                            {!! Form::text('title', null, ['class' => 'form-control','required' => 'required']) !!}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('branch', __('Branch'),['class'=>'form-label']) !!}
-                            {{ Form::select('branch', $branches,null, array('class' => 'form-control select','required'=>'required')) }}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('category', __('Job Category'),['class'=>'form-label']) !!}
-                            {{ Form::select('category', $categories,null, array('class' => 'form-control select','required'=>'required')) }}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('position', __('Positions'),['class'=>'form-label']) !!}
-                            {!! Form::text('position', null, ['class' => 'form-control','required' => 'required']) !!}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('status', __('Status'),['class'=>'form-label']) !!}
-                            {{ Form::select('status', $status,null, array('class' => 'form-control select','required'=>'required')) }}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('start_date', __('Start Date'),['class'=>'form-label']) !!}
-                            {!! Form::date('start_date', null, ['class' => 'form-control']) !!}
-                        </div>
-                        <div class="form-group col-md-6">
-                            {!! Form::label('end_date', __('End Date'),['class'=>'form-label']) !!}
-                            {!! Form::date('end_date', null, ['class' => 'form-control']) !!}
-                        </div>
+        <div class="row mt-3">
+            <div class="col-md-6 ">
+                <div class="card card-fluid">
+                    <div class="card-body job-create ">
+                        <div class="row">
+                            <div class="form-group col-md-12">
+                                {!! Form::label('title', __('Job Title'),['class'=>'form-label']) !!}
+                                {!! Form::text('title', null, ['class' => 'form-control','required' => 'required']) !!}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('branch', __('Branch'),['class'=>'form-label']) !!}
+                                {{ Form::select('branch', $branches,null, array('class' => 'form-control select','required'=>'required')) }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('category', __('Job Category'),['class'=>'form-label']) !!}
+                                {{ Form::select('category', $categories,null, array('class' => 'form-control select','required'=>'required')) }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('position', __('Positions'),['class'=>'form-label']) !!}
+                                {!! Form::text('position', null, ['class' => 'form-control','required' => 'required']) !!}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('status', __('Status'),['class'=>'form-label']) !!}
+                                {{ Form::select('status', $status,null, array('class' => 'form-control select','required'=>'required')) }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('start_date', __('Start Date'),['class'=>'form-label']) !!}
+                                {!! Form::date('start_date', null, ['class' => 'form-control']) !!}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {!! Form::label('end_date', __('End Date'),['class'=>'form-label']) !!}
+                                {!! Form::date('end_date', null, ['class' => 'form-control']) !!}
+                            </div>
 
-                        <div class="form-group col-md-12">
-                            <input type="text" class="form-control" value="{{$job->skill}}" data-toggle="tags" name="skill" placeholder="Skill"/>
+                            <div class="form-group col-md-12">
+                                <input type="text" class="form-control" value="{{$job->skill}}" data-toggle="tags" name="skill" placeholder="Skill"/>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6 ">
-            <div class="card card-fluid">
-                <div class="card-body job-create">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <h6>{{__('Need to ask ?')}}</h6>
-                                <div class="my-4">
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="applicant[]" value="gender" id="check-gender" {{(in_array('gender',$job->applicant)?'checked':'')}}>
-                                        <label class="form-check-label" for="check-gender">{{__('Gender')}} </label>
-                                    </div>
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="applicant[]" value="dob" id="check-dob" {{(in_array('dob',$job->applicant)?'checked':'')}}>
-                                        <label class="form-check-label" for="check-dob">{{__('Date Of Birth')}}</label>
-                                    </div>
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="applicant[]" value="country" id="check-country" {{(in_array('country',$job->applicant)?'checked':'')}}>
-                                        <label class="form-check-label" for="check-country">{{__('Country')}}</label>
+            <div class="col-md-6 ">
+                <div class="card card-fluid">
+                    <div class="card-body job-create">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <h6>{{__('Need to ask ?')}}</h6>
+                                    <div class="my-4">
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="applicant[]" value="gender" id="check-gender" {{(in_array('gender',$job->applicant)?'checked':'')}}>
+                                            <label class="form-check-label" for="check-gender">{{__('Gender')}} </label>
+                                        </div>
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="applicant[]" value="dob" id="check-dob" {{(in_array('dob',$job->applicant)?'checked':'')}}>
+                                            <label class="form-check-label" for="check-dob">{{__('Date Of Birth')}}</label>
+                                        </div>
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="applicant[]" value="country" id="check-country" {{(in_array('country',$job->applicant)?'checked':'')}}>
+                                            <label class="form-check-label" for="check-country">{{__('Country')}}</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <h6>{{__('Need to show option ?')}}</h6>
-                                <div class="my-4">
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="visibility[]" value="profile" id="check-profile" {{(in_array('profile',$job->visibility)?'checked':'')}}>
-                                        <label class="form-check-label" for="check-profile">{{__('Profile Image')}} </label>
-                                    </div>
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="visibility[]" value="resume" id="check-resume" {{(in_array('resume',$job->visibility)?'checked':'')}}>
-                                        <label class="form-check-label" for="check-resume">{{__('Resume')}}</label>
-                                    </div>
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="visibility[]" value="letter" id="check-letter" {{(in_array('letter',$job->visibility)?'checked':'')}}>
-                                        <label class="form-check-label" for="check-letter">{{__('Cover Letter')}}</label>
-                                    </div>
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="visibility[]" value="terms" id="check-terms" {{(in_array('terms',$job->visibility)?'checked':'')}}>
-                                        <label class="form-check-label" for="check-terms">{{__('Terms And Conditions')}}</label>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <h6>{{__('Need to show option ?')}}</h6>
+                                    <div class="my-4">
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="visibility[]" value="profile" id="check-profile" {{(in_array('profile',$job->visibility)?'checked':'')}}>
+                                            <label class="form-check-label" for="check-profile">{{__('Profile Image')}} </label>
+                                        </div>
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="visibility[]" value="resume" id="check-resume" {{(in_array('resume',$job->visibility)?'checked':'')}}>
+                                            <label class="form-check-label" for="check-resume">{{__('Resume')}}</label>
+                                        </div>
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="visibility[]" value="letter" id="check-letter" {{(in_array('letter',$job->visibility)?'checked':'')}}>
+                                            <label class="form-check-label" for="check-letter">{{__('Cover Letter')}}</label>
+                                        </div>
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="visibility[]" value="terms" id="check-terms" {{(in_array('terms',$job->visibility)?'checked':'')}}>
+                                            <label class="form-check-label" for="check-terms">{{__('Terms And Conditions')}}</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-group col-md-12">
-                            <h6>{{__('Custom Question')}}</h6>
-                            <div class="my-4">
-                                @foreach($customQuestion as $question)
-                                    <div class="form-check custom-checkbox">
-                                        <input type="checkbox" class="form-check-input" name="custom_question[]" value="{{$question->id}}" id="custom_question_{{$question->id}}" {{(in_array($question->id,$job->custom_question)?'checked':'')}}>
-                                        <label class="form-check-label" for="custom_question_{{$question->id}}">{{$question->question}} </label>
-                                    </div>
-                                @endforeach
+                            <div class="form-group col-md-12">
+                                <h6>{{__('Custom Question')}}</h6>
+                                <div class="my-4">
+                                    @foreach($customQuestion as $question)
+                                        <div class="form-check custom-checkbox">
+                                            <input type="checkbox" class="form-check-input" name="custom_question[]" value="{{$question->id}}" id="custom_question_{{$question->id}}" {{(in_array($question->id,$job->custom_question)?'checked':'')}}>
+                                            <label class="form-check-label" for="custom_question_{{$question->id}}">{{$question->question}} </label>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card card-fluid">
-                <div class="card-body ">
-                    <div class="row">
-                        <div class="form-group col-md-12">
-                            {!! Form::label('description', __('Job Description'),['class'=>'form-label']) !!}
-                            <textarea class="form-control summernote-simple-2" name="description" id="exampleFormControlTextarea1" rows="15">{{$job->description}}</textarea>
+            <div class="col-md-6">
+                <div class="card card-fluid">
+                    <div class="card-body ">
+                        <div class="row">
+                            <div class="form-group col-md-12">
+                                {!! Form::label('description', __('Job Description'),['class'=>'form-label']) !!}
+                                <textarea class="form-control summernote-simple-2" name="description" id="exampleFormControlTextarea1" rows="15">{{$job->description}}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card card-fluid">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="form-group col-6 mb-2">
-                            {!! Form::label('requirement', __('Job Requirement'),['class'=>'form-label']) !!}
-                        </div>
-                        <div class="col-6 text-end">
-                            @if($plan->chatgpt == 1)
-                                <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" id="grammarCheck" data-url="{{ route('grammar',['grammar']) }}"
-                                   data-bs-placement="top" data-title="{{ __('Grammar check with AI') }}">
-                                    <i class="ti ti-rotate"></i> <span>{{__('Grammar check with AI')}}</span>
-                                </a>
-                            @endif
-                        </div>
-                        <div class="form-group col-md-12">
-                            <textarea class="form-control summernote-simple" name="requirement" id="exampleFormControlTextarea2" rows="8">{{$job->requirement}}</textarea>
+            <div class="col-md-6">
+                <div class="card card-fluid">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="form-group col-6 mb-2">
+                                {!! Form::label('requirement', __('Job Requirement'),['class'=>'form-label']) !!}
+                            </div>
+                            <div class="col-6 text-end">
+                                @if($plan->chatgpt == 1)
+                                    <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" id="grammarCheck" data-url="{{ route('grammar',['grammar']) }}"
+                                    data-bs-placement="top" data-title="{{ __('Grammar check with AI') }}">
+                                        <i class="ti ti-rotate"></i> <span>{{__('Grammar check with AI')}}</span>
+                                    </a>
+                                @endif
+                            </div>
+                            <div class="form-group col-md-12">
+                                <textarea class="form-control summernote-simple" name="requirement" id="exampleFormControlTextarea2" rows="8">{{$job->requirement}}</textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-12 text-end">
-            <div class="form-group">
-                <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
+            <div class="col-md-12 text-end">
+                <div class="form-group">
+                    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
+                </div>
             </div>
         </div>
-        {{Form::close()}}
-    </div>
+    {{Form::close()}}
 @endsection
 

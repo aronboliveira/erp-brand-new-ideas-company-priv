@@ -1002,7 +1002,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post('job-application/{id}/skill/store', [JobApplicationController::class, 'addSkill'])->name(VW::JB . '.application.skill.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('job-application/{id}/note/store', [JobApplicationController::class, 'addNote'])->name(VW::JB . '.application.note.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::delete('job-application/{id}/note/destroy', [JobApplicationController::class, 'destroyNote'])->name(VW::JB . '.application.note.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::post('job-application/getByJob', [JobApplicationController::class, 'getByJob'])->name('get.job.application')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::post('job-application/getByJob', [JobApplicationController::class, 'getByJob'])->name(VW::JB_APL . '.get')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get('job-onboard', [JobApplicationController::class, 'jobOnBoard'])->name(VW::JB . '.on.board')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::JB_OB . '/create/{id}', [JobApplicationController::class, 'jobBoardCreate'])->name(VW::JB . '.on.board.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::JB_OB . '/store/{id}', [JobApplicationController::class, 'jobBoardStore'])->name(VW::JB . '.on.board.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);

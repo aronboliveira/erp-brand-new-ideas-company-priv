@@ -1,216 +1,195 @@
 @php
     use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        StacksConstants,
-        ViewClassNamesConstants,
-        YieldingConstants,
+        ExtendingLayoutsConstants as EL,
+        StacksConstants as ST,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+        YieldingConstants as YD
     };
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Auth, Route};
+    use Collective\Html\FormFacade as Form;
+
+    $user = Auth::user() ?? null;
+    $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+    $canFetchMsg = is_callable([Utility::class,'fetchLinkMessage']);
+
+    $convertUrl = route(VW::JB.'.on.board.convert', data_get($jobOnBoard,'id'));
+    $convertGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::JB, 'onboard_convert_route_unavailable') : 'Convert route is unavailable. Please contact technical support or your domain administrator.') ?? __('Convert route is unavailable. Please contact technical support or your domain administrator.');
+
+    $designationUrl = route(VW::DSG.'.byDepartment');
+    $designationGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::DSG, 'designation_by_department_unavailable') : 'Designation list route is unavailable. Please contact technical support or your domain administrator.') ?? __('Designation list route is unavailable. Please contact technical support or your domain administrator.');
 @endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Convert To Employee')}}
+
+@extends(EL::ADM)
+
+@section(YD::ADM_PG_TTL)
+    {{ __('Convert To Employee') }}
 @endsection
-@section('content')
-    <div class="row">
-        {{Collective\Html\FormFacade::open(array('route'=>array('job.on.board.convert',$jobOnBoard->id),'method'=>'post','enctype'=>'multipart/form-data'))}}
+
+@section(YD::ADM_CTT)
+    <div class="{{ VC::RW }}">
+        {!! Form::open(['url'=>$convertUrl,'method'=>'post','enctype'=>'multipart/form-data','data-url'=>$convertUrl,'data-guard-msg'=>$convertGuard]) !!}
     </div>
-    <div class="row">
-        <div class="col-md-6 ">
-            <div class="card card-fluid">
-                <div class="card-header"><h6 class="mb-0">{{__('Personal Detail')}}</h6></div>
-                <div class="card-body ">
-                    <div class="row">
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('name', __('Name'),['class'=>'form-label']) !!}<span class="text-danger pl-1">*</span>
-                            {!! Collective\Html\FormFacade::text('name', !empty($jobOnBoard->applications)?$jobOnBoard->applications->name:'', ['class' => 'form-control','required' => 'required']) !!}
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CM6 }}">
+            <div class="{{ VC::CD }} card-fluid">
+                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Personal Detail') }}</h6></div>
+                <div class="card-body">
+                    <div class="{{ VC::RW }}">
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('name', __('Name'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::text('name', data_get($jobOnBoard,'applications.name',__('No name available')), ['class'=>VC::FM_CT,'required'=>'required']) !!}
                         </div>
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('phone', __('Phone'),['class'=>'form-label']) !!}<span class="text-danger pl-1">*</span>
-                            {!! Collective\Html\FormFacade::number('phone',!empty($jobOnBoard->applications)?$jobOnBoard->applications->phone:'', ['class' => 'form-control']) !!}
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('phone', __('Phone'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::number('phone', data_get($jobOnBoard,'applications.phone',__('Failed to get phone')), ['class'=>VC::FM_CT]) !!}
                         </div>
-
-                            <div class="form-group col-md-6">
-                                {!! Collective\Html\FormFacade::label('dob', __('Date of Birth'),['class'=>'form-label']) !!}<span class="text-danger pl-1">*</span>
-                                {!! Collective\Html\FormFacade::date('dob', !empty($jobOnBoard->applications)?$jobOnBoard->applications->dob:'', ['class' => 'form-control datepicker']) !!}
-                            </div>
-
-
-                            <div class="form-group col-md-6 ">
-                                {!! Collective\Html\FormFacade::label('gender', __('Gender'),['class'=>'form-label']) !!}<span class="text-danger pl-1">*</span>
-                                <div class="d-flex radio-check mt-2">
-                                    <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP }}">
-                                        <input type="radio" id="g_male" value="Male" name="gender" class="form-check-input" {{(!empty($jobOnBoard->applications) && $jobOnBoard->applications->gender=='Male')?'checked':''}}>
-                                        <label class="form-check-label" for="g_male">{{__('Male')}}</label>
-                                    </div>
-                                    <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP }}">
-                                        <input type="radio" id="g_female" value="Female" name="gender" class="form-check-input" {{(!empty($jobOnBoard->applications) && $jobOnBoard->applications->gender=='Female')?'checked':''}}>
-                                        <label class="form-check-label" for="g_female">{{__('Female')}}</label>
-                                    </div>
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('dob', __('Date of Birth'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::date('dob', data_get($jobOnBoard,'applications.dob',''), ['class'=>VC::FM_CT.' datepicker']) !!}
+                        </div>
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('gender', __('Gender'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            <div class="d-flex radio-check {{ VC::MT2 }}">
+                                <div class="{{ VC::FM_CHK_IL_GP_COLM6 }}">
+                                    <input type="radio" id="g_male" value="Male" name="gender" class="form-check-input" {{ data_get($jobOnBoard,'applications.gender')==='Male'?'checked':'' }}>
+                                    <label class="form-check-label" for="g_male">{{ __('Male') }}</label>
+                                </div>
+                                <div class="{{ VC::FM_CHK_IL_GP_COLM6 }}">
+                                    <input type="radio" id="g_female" value="Female" name="gender" class="form-check-input" {{ data_get($jobOnBoard,'applications.gender')==='Female'?'checked':'' }}>
+                                    <label class="form-check-label" for="g_female">{{ __('Female') }}</label>
                                 </div>
                             </div>
-
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('email', __('Email'),['class'=>'form-label']) !!}<span class="text-danger pl-1">*</span>
-                            {!! Collective\Html\FormFacade::email('email',old('email'), ['class' => 'form-control','required' => 'required']) !!}
                         </div>
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('password', __('Password'),['class'=>'form-label']) !!}<span class="text-danger pl-1">*</span>
-                            {!! Collective\Html\FormFacade::password('password', ['class' => 'form-control','required' => 'required']) !!}
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('email', __('Email'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::email('email', old('email'), ['class'=>VC::FM_CT,'required'=>'required']) !!}
+                        </div>
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('password', __('Password'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                            {!! Form::password('password', ['class'=>VC::FM_CT,'required'=>'required']) !!}
                         </div>
                     </div>
-                    <div class="form-group">
-                        {!! Collective\Html\FormFacade::label('address', __('Address'),['class'=>'form-label']) !!}<span class="text-danger pl-1">*</span>
-                        {!! Collective\Html\FormFacade::textarea('address',old('address'), ['class' => 'form-control','rows'=>2]) !!}
+                    <div class="{{ VC::FM_G }}">
+                        {!! Form::label('address', __('Address'), ['class'=>VC::FM_LB]) !!}<span class="text-danger pl-1">*</span>
+                        {!! Form::textarea('address', old('address'), ['class'=>VC::FM_CT,'rows'=>2]) !!}
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-6 ">
-            <div class="card card-fluid">
-                <div class="card-header"><h6 class="mb-0">{{__('Company Detail')}}</h6></div>
+        <div class="{{ VC::CM6 }}">
+            <div class="{{ VC::CD }} card-fluid">
+                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Company Detail') }}</h6></div>
                 <div class="card-body employee-detail-create-body">
-                    <div class="row">
+                    <div class="{{ VC::RW }}">
                         @csrf
-                        <div class="form-group col-md-12">
-                            {!! Collective\Html\FormFacade::label('employee_id', __('Employee ID'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::text('employee_id', $employeesId, ['class' => 'form-control','disabled'=>'disabled']) !!}
+                        <div class="{{ VC::FM_GCB12 }}">
+                            {!! Form::label('employee_id', __('Employee ID'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::text('employee_id', $employeesId ?? __('Failed to get employee id'), ['class'=>VC::FM_CT,'disabled'=>'disabled']) !!}
                         </div>
-
-                        <div class="form-group col-md-6">
-                            {{ Collective\Html\FormFacade::label('branch_id', __('Branch'),['class'=>'form-label']) }}
-                            {{ Collective\Html\FormFacade::select('branch_id', $branches,!empty($jobOnBoard->applications)?!empty($jobOnBoard->applications->jobs)?$jobOnBoard->applications->jobs->branch:'':'', array('class' => 'form-control','required'=>'required')) }}
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('branch_id', __('Branch'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::select('branch_id', $branches ?? [], data_get($jobOnBoard,'applications.jobs.branch',''), ['class'=>VC::FM_CT,'required'=>'required']) !!}
                         </div>
-
-                        <div class="form-group col-md-6">
-                            {{ Collective\Html\FormFacade::label('department_id', __('Department'),['class'=>'form-label']) }}
-                            {{ Collective\Html\FormFacade::select('department_id', $departments,null, array('class' => 'form-control','id'=>'department_id','required'=>'required')) }}
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('department_id', __('Department'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::select('department_id', $departments ?? [], null, ['class'=>VC::FM_CT,'id'=>'department_id','required'=>'required','data-designation-url'=>$designationUrl,'data-guard-msg'=>$designationGuard]) !!}
                         </div>
-
-                        <div class="form-group col-md-12">
-                            {{ Collective\Html\FormFacade::label('designation_id', __('Designation'),['class'=>'form-label']) }}
-                            <select class=" form-control " id="designation_id" name="designation_id" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}">
-                                <option value="">{{__('Select any Designation')}}</option>
+                        <div class="{{ VC::FM_GCB12 }}">
+                            {!! Form::label('designation_id', __('Designation'), ['class'=>VC::FM_LB]) !!}
+                            <select class="{{ VC::FM_CT }}" id="designation_id" name="designation_id" data-toggle="select2" data-placeholder="{{ __('Select Designation ...') }}" data-url="{{ $designationUrl }}" data-guard-msg="{{ $designationGuard }}">
+                                <option value="">{{ __('Select any Designation') }}</option>
                             </select>
                         </div>
-                        <div class="form-group col-md-12 ">
-                            {!! Collective\Html\FormFacade::label('company_doj', __('Company Date Of Joining'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::date('company_doj', $jobOnBoard->joining_date, ['class' => 'form-control datepicker','required' => 'required']) !!}
+                        <div class="{{ VC::FM_GCB12 }}">
+                            {!! Form::label('company_doj', __('Company Date Of Joining'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::date('company_doj', data_get($jobOnBoard,'joining_date',null), ['class'=>VC::FM_CT.' datepicker','required'=>'required']) !!}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-6 ">
-            <div class="card card-fluid">
-                <div class="card-header"><h6 class="mb-0">{{__('Document')}}</h6></div>
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::CM6 }}">
+            <div class="{{ VC::CD }} card-fluid">
+                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Document') }}</h6></div>
                 <div class="card-body employee-detail-create-body">
-                    @foreach($documents as $key=>$document)
-                        <div class="row">
-                            <div class="form-group col-12">
-                                <div class="float-left col-4">
-                                    <label for="document" class="float-left pt-1 form-label">{{ $document->name }} @if($document->is_required == 1) <span class="text-danger">*</span> @endif</label>
-                                </div>
-                                <div class="float-right col-8">
-                                    <input type="hidden" name="emp_doc_id[{{ $document->id}}]" id="" value="{{$document->id}}">
-                                    <div class="choose-file form-group">
-                                        <label for="document[{{ $document->id }}]">
-                                            <div>{{__('Choose File')}}</div>
-                                            <input class="form-control  @error('document') is-invalid @enderror border-0" @if($document->is_required == 1) required @endif name="document[{{ $document->id}}]" type="file" id="document[{{ $document->id }}]" data-filename="{{ $document->id.'_filename'}}">
-                                        </label>
-                                        <p class="{{ $document->id.'_filename'}}"></p>
+                    @php
+                        $docs = (is_array($documents??null) && count($documents??[])) ? $documents : ((($documents??null) instanceof \Illuminate\Support\Collection && $documents->isNotEmpty()) ? $documents : []);
+                    @endphp
+                    @if(!empty($docs))
+                        @foreach($docs as $document)
+                            <div class="{{ VC::RW }}">
+                                <div class="{{ VC::FM_GCB12 }}">
+                                    <div class="float-left col-4">
+                                        <label for="document" class="float-left pt-1 {{ VC::FM_LB }}">{{ data_get($document,'name',__('No document name available')) }} @if((int) (data_get($document,'is_required',0))===1) <span class="text-danger">*</span> @endif</label>
                                     </div>
-
+                                    <div class="float-right col-8">
+                                        <input type="hidden" name="emp_doc_id[{{ data_get($document,'id','') }}]" value="{{ data_get($document,'id','') }}">
+                                        <div class="choose-file {{ VC::FM_G }}">
+                                            <label for="document[{{ data_get($document,'id','') }}]">
+                                                <div>{{ __('Choose File') }}</div>
+                                                <input class="{{ VC::FM_CT }} @error('document') is-invalid @enderror border-0" @if((int) (data_get($document,'is_required',0))===1) required @endif name="document[{{ data_get($document,'id','') }}]" type="file" id="document[{{ data_get($document,'id','') }}]" data-filename="{{ data_get($document,'id','') . '_filename' }}">
+                                            </label>
+                                            <p class="{{ data_get($document,'id','') . '_filename' }}"></p>
+                                        </div>
+                                    </div>
                                 </div>
-
                             </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    @else
+                        <div class="{{ VC::RW }}"><div class="{{ VC::CM12 }}"><h6 class="text-center">{{ __('No documents available') }}</h6></div></div>
+                    @endif
                 </div>
             </div>
         </div>
-        <div class="col-md-6 ">
-            <div class="card card-fluid">
-                <div class="card-header"><h6 class="mb-0">{{__('Bank Account Detail')}}</h6></div>
+        <div class="{{ VC::CM6 }}">
+            <div class="{{ VC::CD }} card-fluid">
+                <div class="card-header"><h6 class="{{ VC::MB0 }}">{{ __('Bank Account Detail') }}</h6></div>
                 <div class="card-body employee-detail-create-body">
-                    <div class="row">
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('account_holder_name', __('Account Holder Name'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::text('account_holder_name', old('account_holder_name'), ['class' => 'form-control']) !!}
-
+                    <div class="{{ VC::RW }}">
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('account_holder_name', __('Account Holder Name'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::text('account_holder_name', old('account_holder_name'), ['class'=>VC::FM_CT]) !!}
                         </div>
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('account_number', __('Account Number'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::number('account_number', old('account_number'), ['class' => 'form-control']) !!}
-
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('account_number', __('Account Number'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::number('account_number', old('account_number'), ['class'=>VC::FM_CT]) !!}
                         </div>
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('bank_name', __('Bank Name'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::text('bank_name', old('bank_name'), ['class' => 'form-control']) !!}
-
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('bank_name', __('Bank Name'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::text('bank_name', old('bank_name'), ['class'=>VC::FM_CT]) !!}
                         </div>
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('bank_identifier_code', __('Bank Identifier Code'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::text('bank_identifier_code',old('bank_identifier_code'), ['class' => 'form-control']) !!}
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('bank_identifier_code', __('Bank Identifier Code'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::text('bank_identifier_code', old('bank_identifier_code'), ['class'=>VC::FM_CT]) !!}
                         </div>
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('branch_location', __('Branch Location'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::text('branch_location',old('branch_location'), ['class' => 'form-control']) !!}
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('branch_location', __('Branch Location'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::text('branch_location', old('branch_location'), ['class'=>VC::FM_CT]) !!}
                         </div>
-                        <div class="form-group col-md-6">
-                            {!! Collective\Html\FormFacade::label('tax_payer_id', __('Tax Payer Id'),['class'=>'form-label']) !!}
-                            {!! Collective\Html\FormFacade::text('tax_payer_id',old('tax_payer_id'), ['class' => 'form-control']) !!}
+                        <div class="{{ VC::FM_GCB6 }}">
+                            {!! Form::label('tax_payer_id', __('Tax Payer Id'), ['class'=>VC::FM_LB]) !!}
+                            {!! Form::text('tax_payer_id', old('tax_payer_id'), ['class'=>VC::FM_CT]) !!}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-12 text-end" >
-            {!! Collective\Html\FormFacade::submit('Create', ['class' => 'btn btn-primary radius-10px']) !!}
-            {{--            </form>--}}
-            {{Collective\Html\FormFacade::close()}}
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::C12 }} text-end">
+            {!! Form::submit(__('Create'), ['class'=>VC::BT_PRM.' radius-10px']) !!}
+            {!! Form::close() !!}
         </div>
     </div>
 @endsection
-
-@push(StacksConstants::ADM_SCR_PG)
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:  { designation_fetch_unavailable: 'لا يمكن جلب المسميات الوظيفية' },
-            da:  { designation_fetch_unavailable: 'Kan ikke hente titler' },
-            de:  { designation_fetch_unavailable: 'Kann Bezeichnungen nicht abrufen' },
-            en:  { designation_fetch_unavailable: 'Cannot fetch designations' },
-            es:  { designation_fetch_unavailable: 'No se pueden obtener las designaciones' },
-            fr:  { designation_fetch_unavailable: 'Impossible de récupérer les désignations' },
-            he:  { designation_fetch_unavailable: 'לא ניתן להביא את התפקידים' },
-            it:  { designation_fetch_unavailable: 'Impossibile recuperare le designazioni' },
-            ja:  { designation_fetch_unavailable: '役職を取得できません' },
-            nl:  { designation_fetch_unavailable: 'Kan functietitels niet ophalen' },
-            pl:  { designation_fetch_unavailable: 'Nie można pobrać stanowisk' },
-            pt:  { designation_fetch_unavailable: 'Não foi possível obter as designações' },
-            'pt-br': { designation_fetch_unavailable: 'Não foi possível obter as designações' },
-            ru:  { designation_fetch_unavailable: 'Не удалось получить должности' },
-            tr:  { designation_fetch_unavailable: 'Unvanlar alınamadı' },
-            zh:  { designation_fetch_unavailable: '无法获取职务' }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
+    
+@push(ST::ADM_SCR_PG)
+    <script defer src="{{ asset('assets/js/routes/jobs/boards/convert.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/jobs/boards/lang/convert.js') }}"></script>
     <script defer>
         (() => {
             const DATA_LISTENER_ADDED   = 'data-listener-added';

@@ -17,13 +17,13 @@
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('job.index')}}">{{__('Job')}}</a></li>
+    <li class="breadcrumb-item"><a href="{{route(VW::JB.'.index')}}">{{__('Job')}}</a></li>
     <li class="breadcrumb-item">{{__('Job Details')}}</li>
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
     @can('edit job')
-            <a href="{{ route('job.edit',$job->id) }}" data-url="" data-ajax-popup="true" data-title="{{__('Edit Job')}}" data-bs-toggle="tooltip" title="{{__('Edit')}}"  class="btn btn-sm btn-primary">
+            <a href="{{ route(VW::JB.'.edit',$job->id) }}" data-url="" data-ajax-popup="true" data-title="{{__('Edit Job')}}" data-bs-toggle="tooltip" title="{{__('Edit')}}"  class="btn btn-sm btn-primary">
                 <i class="ti ti-pencil"></i>
             </a>
 

@@ -60,9 +60,10 @@
 		);
 	}
     $data = Utility::fallbackSettings($data);
+    $lang = Utility::fetchUserLang();
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
+<html lang="{{ $lang ? (str_replace('_', '-', is_string($lang) ? $lang : DatabaseConstants::DEFAULT_LANG)) : DatabaseConstants::DEFAULT_LANG }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
         <title>
             {{ !empty($companySettings['header_text']) ? $companySettings['header_text']->value : config('app.name', 'ERP Nova Prestech') }}
@@ -141,7 +142,7 @@
                             </div>
                             <div class="apply-job-form">
                                 <h2 class="mb-4">{{__('Apply for this job')}}</h2>
-                                {{Collective\Html\FormFacade::open(array('route'=>array('job.apply.data',$job->code),'method'=>'post', 'enctype' => "multipart/form-data"))}}
+                                {{Collective\Html\FormFacade::open(array('route'=>array(VW::JB.'.apply.data',$job->code),'method'=>'post', 'enctype' => "multipart/form-data"))}}
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">

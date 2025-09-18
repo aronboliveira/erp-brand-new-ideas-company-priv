@@ -26,121 +26,8 @@
     <li class="breadcrumb-item">{{__('Job')}}</li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-        <script async>
-          (() => { 
-              if (!window.translations) {
-  window.translations = {};
-}
-const t = {
-            ar:  { copy_success: 'تم نسخ الرابط إلى الحافظة', copy_unavailable: 'لا يمكن النسخ إلى الحافظة' },
-            da:  { copy_success: 'Link kopieret til udklipsholder', copy_unavailable: 'Kan ikke kopiere til udklipsholder' },
-            de:  { copy_success: 'Link in die Zwischenablage kopiert', copy_unavailable: 'Kann nicht in die Zwischenablage kopieren' },
-            en:  { copy_success: 'URL copied to clipboard', copy_unavailable: 'Cannot copy to clipboard' },
-            es:  { copy_success: 'URL copiada al portapapeles', copy_unavailable: 'No se puede copiar al portapapeles' },
-            fr:  { copy_success: 'URL copiée dans le presse-papiers', copy_unavailable: 'Impossible de copier dans le presse-papiers' },
-            he:  { copy_success: 'הקישור הועתק ללוח', copy_unavailable: 'לא ניתן להעתיק ללוח' },
-            it:  { copy_success: "URL copiata negli appunti", copy_unavailable: 'Impossibile copiare negli appunti' },
-            ja:  { copy_success: 'URLをクリップボードにコピーしました', copy_unavailable: 'クリップボードにコピーできません' },
-            nl:  { copy_success: 'URL gekopieerd naar klembord', copy_unavailable: 'Kan niet kopiëren naar klembord' },
-            pl:  { copy_success: 'Adres URL skopiowany do schowka', copy_unavailable: 'Nie można skopiować do schowka' },
-            pt:  { copy_success: 'URL copiado para a área de transferência', copy_unavailable: 'Não é possível copiar para a área de transferência' },
-            'pt-br': { copy_success: 'URL copiada para a área de transferência', copy_unavailable: 'Não é possível copiar para a área de transferência' },
-            ru:  { copy_success: 'URL скопирован в буфер обмена', copy_unavailable: 'Не удалось скопировать в буфер обмена' },
-            tr:  { copy_success: 'URL panoya kopyalandı', copy_unavailable: 'Panoya kopyalanamıyor' },
-            zh:  { copy_success: 'URL 已复制到剪贴板', copy_unavailable: '无法复制到剪贴板' }
-        };
-Object.keys(t).forEach(
-  k =>
-    (window.translations[k] = {
-      ...(window.translations[k] || {}),
-      ...t[k],
-    })
-);
-     
-          })();
-    </script>
-    <script defer>
-        (() => {
-            const ERR_FB                = '# ERROR';
-            const DATA_CLIENT_LOCALIZED = 'data-client-localized';
-            const DATA_GUARD_MSG        = 'data-guard-msg';
-
-            const getLocalizedMessage = (el, key) => {
-                let msg = ERR_FB;
-                if (
-                    el?.getAttribute('data-sv-localized') === 'true' ||
-                    el?.getAttribute(DATA_CLIENT_LOCALIZED) === 'true'
-                ) {
-                    msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
-                } else {
-                    let lang = (
-                        sessionStorage.getItem('erp-np-lang') ||
-                        document.documentElement.lang ||
-                        'en'
-                    )
-                        .toLowerCase()
-                        .replace(/_/g, '-');
-                    lang = lang === 'pt-br' ? lang : lang.slice(0,2);
-                    msg =
-                        window.translations?.[lang]?.[key] ||
-                        el.getAttribute(DATA_GUARD_MSG) ||
-                        window.translations?.['en']?.[key] ||
-                        ERR_FB;
-                    if (msg !== ERR_FB) {
-                        el.setAttribute(DATA_GUARD_MSG, msg);
-                        el.setAttribute(DATA_CLIENT_LOCALIZED, 'true');
-                    }
-                }
-                return msg;
-            };
-
-            const handleErrorDisplay = (el, key) => {
-                const message = el
-                    ? getLocalizedMessage(el, key)
-                    : ERR_FB;
-                const hasBootstrap =
-                    document.querySelector('link[href*="bootstrap"]') &&
-                    window.bootstrap?.Toast;
-                if (hasBootstrap) {
-                    if (!document.querySelector('#error-toast')) {
-                        const toast = document.createElement('div');
-                        toast.id        = 'error-toast';
-                        toast.className = 'toast align-items-center text-bg-danger border-0';
-                        toast.setAttribute('role', 'alert');
-                        toast.setAttribute('aria-live', 'assertive');
-                        toast.setAttribute('aria-atomic', 'true');
-                        toast.innerHTML = `
-                            <div class="d-flex">
-                                <div class="toast-body">${message}</div>
-                                <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
-                                        data-bs-dismiss="toast"
-                                        aria-label="Close"></button>
-                            </div>`;
-                        document.body.appendChild(toast);
-                    }
-                    new bootstrap.Toast(
-                        document.querySelector('#error-toast')
-                    ).show();
-                } else {
-                    alert(message);
-                }
-            };
-
-            const copyToClipboard = (el) => {
-                if (!el?.id) return;
-                try {
-                    navigator.clipboard.writeText(el.id);
-                    const msg = getLocalizedMessage(el, 'copy_success');
-                    show_toastr('success', msg, 'success');
-                } catch {
-                    handleErrorDisplay(el, 'copy_unavailable');
-                }
-            };
-
-            window.copyToClipboard = copyToClipboard;
-        })();
-    </script>
+    <script async src="{{ asset('assets/js/routes/jobs/lang/index.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/jobs/index.js') }}"></script>
 @endpush
 @section(YieldingConstants::ADM_ACT_BTN)
     <div class="float-end">
@@ -258,18 +145,9 @@ Object.keys(t).forEach(
                                         @if( Gate::check('edit job') ||Gate::check('delete job') || Gate::check('show job'))
                                             <td>
                                             @if($job->status!='in_active')
-                                                    {{--                                            <div class="action-btn bg-warning ms-2">--}}
-                                                    {{--                                                <a href="{{ route(ViewsConstants::JB.'.requirement',[$job->code,!empty($job)?$job->createdBy->lang:DatabaseConstants::DEFAULT_LANG]) }}" class="mx-3 btn btn-sm align-items-center " onclick="copyToClipboard(this)" data-bs-toggle="tooltip" data-original-title="{{__('Click to copy')}}">--}}
-                                                    {{--                                                    <i class="ti ti-link text-white"></i></a>--}}
-
-                                                    {{--                                                <a href="#" id="{{ route(ViewsConstants::INV.'.link.copy',[$invoiceID]) }}" class="mx-3 btn btn-sm align-items-center"   onclick="copyToClipboard(this)" data-bs-toggle="tooltip" data-original-title="{{__('Click to copy')}}"><i class="ti ti-link text-white"></i></a>--}}
-
-                                                    {{--                                            </div>--}}
-
                                                     <div class="action-btn bg-warning ms-2">
                                                         <a href="#" id="{{ route(ViewsConstants::JB.'.requirement',[$job->code,!empty($job)?$job->createdBy->lang:DatabaseConstants::DEFAULT_LANG]) }}" class="mx-3 btn btn-sm align-items-center"  onclick="copyToClipboard(this)" data-bs-toggle="tooltip" title="{{__('Copy')}}" data-original-title="{{__('Click to copy')}}"><i class="ti ti-link text-white"></i></a>
                                                     </div>
-
                                                 @endif
                                                 @can('show job')
                                                 <div class="action-btn bg-info ms-2">
@@ -303,3 +181,10 @@ Object.keys(t).forEach(
             </div>
         </div>
 @endsection
+                                                    {{--                                            <div class="action-btn bg-warning ms-2">--}}
+                                                    {{--                                                <a href="{{ route(ViewsConstants::JB.'.requirement',[$job->code,!empty($job)?$job->createdBy->lang:DatabaseConstants::DEFAULT_LANG]) }}" class="mx-3 btn btn-sm align-items-center " onclick="copyToClipboard(this)" data-bs-toggle="tooltip" data-original-title="{{__('Click to copy')}}">--}}
+                                                    {{--                                                    <i class="ti ti-link text-white"></i></a>--}}
+
+                                                    {{--                                                <a href="#" id="{{ route(ViewsConstants::INV.'.link.copy',[$invoiceID]) }}" class="mx-3 btn btn-sm align-items-center"   onclick="copyToClipboard(this)" data-bs-toggle="tooltip" data-original-title="{{__('Click to copy')}}"><i class="ti ti-link text-white"></i></a>--}}
+
+                                                    {{--                                            </div>--}}

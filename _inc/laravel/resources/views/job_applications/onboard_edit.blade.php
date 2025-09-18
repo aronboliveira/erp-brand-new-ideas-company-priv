@@ -1,44 +1,78 @@
-{{ Collective\Html\FormFacade::model($jobOnBoard, ['route' => ['job.on.board.update', $jobOnBoard->id], 'method' => 'post']) }}
-<div class="modal-body">
-    <div class="row">
-        <div class="form-group col-md-12">
-            {!! Collective\Html\FormFacade::label('joining_date', __('Joining Date'), ['class' => 'col-form-label']) !!}
-            {!! Collective\Html\FormFacade::date('joining_date', null, ['class' => 'form-control d_week','autocomplete'=>'off']) !!}
+@php
+    use App\Config\Constants\{
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\{Collection, Str};
+
+    $lang      = Utility::fetchUserLang();
+    $hasModel  = !empty($jobOnBoard ?? null) && data_get($jobOnBoard, 'id');
+
+    $updateBase     = VW::JB . '.on.board.update';
+    $updateKebab    = Str::kebab($updateBase);
+    $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+    $updateUrl      = ($updateResolved && $hasModel) ? route($updateResolved, $jobOnBoard->id) : '#';
+    $updateGuard    = Utility::fetchLinkMessage($lang, VW::JB, 'on_board_update_route_unavailable')
+                        ?? __('Update Job On Board route is unavailable. Please contact technical support or your domain administrator.');
+@endphp
+
+@if($hasModel)
+    {{ Form::model($jobOnBoard, [
+        'url'               => $updateUrl,
+        'method'            => 'PUT',
+        'id'                => 'jobOnBoard-update-form',
+        'data-url'          => $updateUrl,
+        'data-guard-msg'    => $updateGuard,
+        'data-sv-localized' => 'true'
+    ]) }}
+        <div class="modal-body">
+            <div class="row">
+                <div class="{{ VC::FM_GCB12 }}">
+                    {{ Form::label('joining_date', __('Joining Date'), ['class' => VC::FM_LB]) }}
+                    {{ Form::date('joining_date', null, ['class' => VC::FM_CT . ' d_week','autocomplete'=>'off']) }}
+                </div>
+
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('days_of_week', __('Days Of Week'), ['class' => VC::FM_LB]) }}
+                    {{ Form::text('days_of_week', null, ['class' => VC::FM_CT,'autocomplete'=>'off']) }}
+                </div>
+
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('salary', __('Salary'), ['class' => VC::FM_LB]) }}
+                    {{ Form::text('salary', null, ['class' => VC::FM_CT,'autocomplete'=>'off']) }}
+                </div>
+
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('salary_type', __('Salary Type'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('salary_type', $salary_type ?? [], null, ['class' => VC::FM_CT_SL]) }}
+                </div>
+
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('salary_duration', __('Salary Duration'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('salary_duration', $salary_duration ?? [], null, ['class' => VC::FM_CT_SL]) }}
+                </div>
+
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('job_type', __('Job Type'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('job_type', $job_type ?? [], null, ['class' => VC::FM_CT_SL]) }}
+                </div>
+
+                <div class="{{ VC::FM_GCB6 }}">
+                    {{ Form::label('status', __('Status'), ['class' => VC::FM_LB]) }}
+                    {{ Form::select('status', $status ?? [], null, ['class' => VC::FM_CT_SL]) }}
+                </div>
+            </div>
         </div>
 
-        <div class="form-group col-md-6">
-            {!! Collective\Html\FormFacade::label('days_of_week', __('Days Of Week'), ['class' => 'col-form-label']) !!}
-            {!! Collective\Html\FormFacade::text('days_of_week', null, ['class' => 'form-control','autocomplete'=>'off']) !!}
+        <div class="modal-footer">
+            <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+            <input type="submit" value="{{ __('Update') }}" class="{{ VC::BT_PRM }}">
         </div>
-        <div class="form-group col-md-6">
-            {!! Collective\Html\FormFacade::label('salary', __('Salary'), ['class' => 'col-form-label']) !!}
-            {!! Collective\Html\FormFacade::text('salary', null, ['class' => 'form-control','autocomplete'=>'off']) !!}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('salary_type', __('Salary Type'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('salary_type', $salary_type, null, ['class' => 'form-control select']) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('salary_duration', __('Salary Type'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('salary_duration', $salary_duration, null, ['class' => 'form-control select']) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('jop_type', __('Job Type'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('job_type', $job_type, null, ['class' => 'form-control select']) }}
-        </div>
-        <div class="form-group col-md-6">
-            {{ Collective\Html\FormFacade::label('status', __('Status'), ['class' => 'col-form-label']) }}
-            {{ Collective\Html\FormFacade::select('status', $status, null, ['class' => 'form-control select']) }}
-        </div>
-    </div>
-</div>
-{{-- <div class="col-12">
-    <input type="submit" value="{{ __('Update') }}" class="btn-create badge-blue">
-    <input type="button" value="{{ __('Cancel') }}" class="btn-create bg-gray" data-dismiss="modal">
-</div> --}}
-<div class="modal-footer">
-    <input type="button" value="Cancel" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{ __('Update') }}" class="btn btn-primary">
-</div>
-
-{{ Collective\Html\FormFacade::close() }}
+        <script defer src="{{ asset('assets/js/routes/jobs/boards/update.js') }}"></script>
+    {{ Form::close() }}
+@else
+    <div>{{ __('The requested onboarding record was not found.') }}</div>
+@endif
