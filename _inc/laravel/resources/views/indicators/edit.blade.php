@@ -1,5 +1,5 @@
 @php
-    use App\Config\Constants\{ViewClassNamesConstants as VC, StacksConstants as ST};
+    use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants as ST};
     use App\Models\Utility;
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\{Collection, Str};
@@ -42,7 +42,7 @@
                 <div class="{{ VC::FM_GCB12 }}">
                     <div class="form-group">
                         {{ Form::label('branch', __('Branch'), ['class' => 'form-label']) }}
-                        {{ Form::select('branch', $brances ?? [], null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
+                        {{ Form::select('branch', $branches ?? [], null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
                     </div>
                 </div>
                 <div class="{{ VC::FM_GCB6 }}">
@@ -199,7 +199,7 @@
               const fetchDesignation = did => {
                 try {
                   if (!did) throw new Error('designation_fetch_unavailable');
-                  const url = '{{ route("employees.json") }}';
+                  const url = '{{ route(VW::EMP . ".json") }}';
                   if (!url || url === '#') throw new Error('designation_fetch_unavailable');
                   $.ajax({
                     url,
@@ -246,7 +246,7 @@
                       const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
                       if (url === "#" || action === "#") {
                         e.preventDefault();
-                        showToast(fm.getAttribute("data-guard-msg") || tr("update_unavailable"));
+                        showError(fm.getAttribute("data-guard-msg") || window.translations?.[navigator.language.slice(0,2)]?.update_unavailable || 'Update route is unavailable. Please contact technical support or your domain administrator.');
                         fm.setAttribute("data-failed-route", "true");
                       }
                     } catch {}

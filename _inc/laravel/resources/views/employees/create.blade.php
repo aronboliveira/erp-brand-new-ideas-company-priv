@@ -373,7 +373,7 @@
             const loadDesig = id => {
                 try {
                 $.ajax({
-                    url: '{{ route("employees.json") }}',
+                    url: '{{ route(VW::EMP . ".json") }}',
                     type: 'POST',
                     data: { department_id: id ?? '', _token: csrf },
                     success: data => {

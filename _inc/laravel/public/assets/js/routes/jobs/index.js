@@ -1,152 +1,110 @@
 (() => {
-  const ERR_FB = "# ERROR";
-  const DATA_CLIENT_LOCALIZED = "data-client-localized";
-  const DATA_GUARD_MSG = "data-guard-msg";
+  const QA = s => Array.from(document.querySelectorAll(s));
+  const T = window.JOBS_I18N || {};
+  const DEFAULT_ROUTE_MSG =
+    T.routeUnavailable ||
+    "Requested route is unavailable. Please contact technical support or your domain administrator.";
+  const COPIED = T.copySuccess || "Link copied to clipboard";
+  const COPY_FAIL = T.copyFail || "Failed to copy link";
 
-  const getLocalizedMessage = (el, key) => {
-    let msg = ERR_FB;
-    if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(DATA_CLIENT_LOCALIZED) === "true"
-    ) {
-      msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
-    } else {
-      let lang = (
-        sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[key] ||
-        el.getAttribute(DATA_GUARD_MSG) ||
-        window.translations?.["en"]?.[key] ||
-        ERR_FB;
-      if (msg !== ERR_FB) {
-        el.setAttribute(DATA_GUARD_MSG, msg);
-        el.setAttribute(DATA_CLIENT_LOCALIZED, "true");
-      }
+  const toast = message => {
+    const text = message || DEFAULT_ROUTE_MSG;
+    const hasBs = !!(
+      document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
+      window.bootstrap
+    );
+    let box = document.getElementById("toast-container");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "toast-container";
+      box.style.position = "fixed";
+      box.style.top = "1rem";
+      box.style.right = "1rem";
+      box.style.zIndex = "1060";
+      document.body.appendChild(box);
     }
-    return msg;
-  };
-
-  const handleErrorDisplay = (el, key) => {
-    const message = el ? getLocalizedMessage(el, key) : ERR_FB;
-    const hasBootstrap =
-      document.querySelector('link[href*="bootstrap"]') &&
-      window.bootstrap?.Toast;
-    if (hasBootstrap) {
-      if (!document.querySelector("#error-toast")) {
-        const toast = document.createElement("div");
-        toast.id = "error-toast";
-        toast.className = "toast align-items-center text-bg-danger border-0";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
-        toast.innerHTML = `
-                            <div class="d-flex">
-                                <div class="toast-body">${message}</div>
-                                <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
-                                        data-bs-dismiss="toast"
-                                        aria-label="Close"></button>
-                            </div>`;
-        document.body.appendChild(toast);
-      }
-      new bootstrap.Toast(document.querySelector("#error-toast")).show();
+    if (hasBs) {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.setAttribute("role", "alert");
+      t.setAttribute("aria-live", "assertive");
+      t.setAttribute("aria-atomic", "true");
+      const b = document.createElement("div");
+      b.className = "toast-body";
+      b.textContent = text;
+      t.appendChild(b);
+      box.appendChild(t);
+      bootstrap.Toast.getOrCreateInstance(t).show();
     } else {
-      alert(message);
+      alert(text);
     }
   };
 
-  const copyToClipboard = el => {
-    if (!el?.id) return;
+  const bindLinkGuard = el => {
+    if (!el || el.getAttribute("data-listener-active") === "true") return;
+    el.setAttribute("data-listener-active", "true");
+    el.addEventListener("click", e => {
+      const href = (el.getAttribute("href") ?? "#").trim();
+      const url = (el.getAttribute("data-url") ?? href ?? "#").trim();
+      if (url !== "#" && href !== "#") return;
+      e.preventDefault();
+      toast(el.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+      el.setAttribute("data-failed-route", "true");
+    });
+  };
+
+  const bindFormGuard = fm => {
+    if (!fm || fm.getAttribute("data-submit-guarded") === "true") return;
+    fm.setAttribute("data-submit-guarded", "true");
+    fm.addEventListener("submit", e => {
+      const action = (fm.getAttribute("action") ?? "#").trim();
+      const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
+      if (url !== "#" && action !== "#") return;
+      e.preventDefault();
+      toast(fm.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+      fm.setAttribute("data-failed-route", "true");
+    });
+  };
+
+  const initTooltips = () => {
     try {
-      navigator.clipboard.writeText(el.id);
-      const msg = getLocalizedMessage(el, "copy_success");
-      show_toastr("success", msg, "success");
-    } catch {
-      handleErrorDisplay(el, "copy_unavailable");
-    }
+      QA('[data-bs-toggle="tooltip"]').forEach(el => {
+        try {
+          bootstrap.Tooltip.getOrCreateInstance(el);
+        } catch (_) {}
+      });
+    } catch (_) {}
   };
 
-  window.copyToClipboard = copyToClipboard;
-})();
-(() => {
-  const ERR_FB = "# ERROR";
-  const DATA_CLIENT_LOCALIZED = "data-client-localized";
-  const DATA_GUARD_MSG = "data-guard-msg";
+  const copyToClipboard = text =>
+    navigator.clipboard
+      ? navigator.clipboard.writeText(text)
+      : Promise.reject();
 
-  const getLocalizedMessage = (el, key) => {
-    let msg = ERR_FB;
-    if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(DATA_CLIENT_LOCALIZED) === "true"
-    ) {
-      msg = el.getAttribute(DATA_GUARD_MSG) || ERR_FB;
-    } else {
-      let lang = (
-        sessionStorage.getItem("erp-np-lang") ||
-        document.documentElement.lang ||
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
-      lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[key] ||
-        el.getAttribute(DATA_GUARD_MSG) ||
-        window.translations?.["en"]?.[key] ||
-        ERR_FB;
-      if (msg !== ERR_FB) {
-        el.setAttribute(DATA_GUARD_MSG, msg);
-        el.setAttribute(DATA_CLIENT_LOCALIZED, "true");
-      }
-    }
-    return msg;
+  const bindCopy = () => {
+    QA("a.copy-link").forEach(a => {
+      if (a.getAttribute("data-copy-bound") === "true") return;
+      a.setAttribute("data-copy-bound", "true");
+      a.addEventListener("click", e => {
+        const href = (a.getAttribute("href") ?? "#").trim();
+        const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
+        if (url === "#" || href === "#") {
+          e.preventDefault();
+          toast(a.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+          return;
+        }
+        e.preventDefault();
+        copyToClipboard(url)
+          .then(() => toast(COPIED))
+          .catch(() => toast(COPY_FAIL));
+      });
+    });
   };
 
-  const handleErrorDisplay = (el, key) => {
-    const message = el ? getLocalizedMessage(el, key) : ERR_FB;
-    const hasBootstrap =
-      document.querySelector('link[href*="bootstrap"]') &&
-      window.bootstrap?.Toast;
-    if (hasBootstrap) {
-      if (!document.querySelector("#error-toast")) {
-        const toast = document.createElement("div");
-        toast.id = "error-toast";
-        toast.className = "toast align-items-center text-bg-danger border-0";
-        toast.setAttribute("role", "alert");
-        toast.setAttribute("aria-live", "assertive");
-        toast.setAttribute("aria-atomic", "true");
-        toast.innerHTML = `
-                            <div class="d-flex">
-                                <div class="toast-body">${message}</div>
-                                <button type="button"
-                                        class="btn-close btn-close-white me-2 m-auto"
-                                        data-bs-dismiss="toast"
-                                        aria-label="Close"></button>
-                            </div>`;
-        document.body.appendChild(toast);
-      }
-      new bootstrap.Toast(document.querySelector("#error-toast")).show();
-    } else {
-      alert(message);
-    }
-  };
-
-  const copyToClipboard = el => {
-    if (!el?.id) return;
-    try {
-      navigator.clipboard.writeText(el.id);
-      const msg = getLocalizedMessage(el, "copy_success");
-      show_toastr("success", msg, "success");
-    } catch {
-      handleErrorDisplay(el, "copy_unavailable");
-    }
-  };
-
-  window.copyToClipboard = copyToClipboard;
+  document.addEventListener("DOMContentLoaded", () => {
+    QA("a.route-guard, a[data-guard-msg], a[data-url]").forEach(bindLinkGuard);
+    QA("form[data-guard-msg], form[data-url]").forEach(bindFormGuard);
+    bindCopy();
+    initTooltips();
+  });
 })();

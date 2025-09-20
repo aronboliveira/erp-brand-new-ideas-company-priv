@@ -1,39 +1,82 @@
 @php
-    $logo=\App\Models\Utility::getFile('uploads/logo');
-    $company_logo = \App\Models\Utility::GetLogo();
+    use App\Config\Constants\{
+        SettingsConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC,
+    };
+    use App\Models\Utility;
+    use Illuminate\Support\Collection;
+    use Illuminate\Support\Facades\{Auth, Route};
+
+    $user = Auth::user();
+    $lang = Utility::fetchUserLang(user: $user);
+
+    $logo = Utility::getFile('uploads/logo');
+    $company_logo = Utility::GetLogo();
+
+    $sendBase     = VW::PY_SLP.'.send';
+    $sendResolved = Route::has($sendBase) ? $sendBase : null;
+    $sendUrl      = ($sendResolved && isset($employee->id, $payslip->salary_month)) ? route($sendResolved, [$employee->id, $payslip->salary_month]) : '#';
+    $sendGuard    = Utility::fetchLinkMessage($lang, VW::PY_SLP, 'send_route_unavailable') ?? __('Send Payslip route is unavailable. Please contact technical support or your domain administrator.');
+
+    $canPrice = is_callable([$user, 'priceFormat']);
+    $canDate  = is_callable([$user, 'dateFormat']);
+
+    $earnAllowance = $payslipDetail['earning']['allowance']   ?? [];
+    $earnCommission= $payslipDetail['earning']['commission']  ?? [];
+    $earnOther     = $payslipDetail['earning']['otherPayment']?? [];
+    $earnOver      = $payslipDetail['earning']['overTime']    ?? [];
+    $dedLoan       = $payslipDetail['deduction']['loan']      ?? [];
+    $dedDeduc      = $payslipDetail['deduction']['deduction'] ?? [];
+
+    $earnAllowanceHas = ($earnAllowance instanceof Collection && $earnAllowance->isNotEmpty()) || (is_array($earnAllowance) && count($earnAllowance) > 0);
+    $earnCommissionHas= ($earnCommission instanceof Collection && $earnCommission->isNotEmpty()) || (is_array($earnCommission) && count($earnCommission) > 0);
+    $earnOtherHas     = ($earnOther instanceof Collection && $earnOther->isNotEmpty()) || (is_array($earnOther) && count($earnOther) > 0);
+    $earnOverHas      = ($earnOver instanceof Collection && $earnOver->isNotEmpty()) || (is_array($earnOver) && count($earnOver) > 0);
+    $dedLoanHas       = ($dedLoan instanceof Collection && $dedLoan->isNotEmpty()) || (is_array($dedLoan) && count($dedLoan) > 0);
+    $dedDeducHas      = ($dedDeduc instanceof Collection && $dedDeduc->isNotEmpty()) || (is_array($dedDeduc) && count($dedDeduc) > 0);
+
+    $totalEarning   = $payslipDetail['totalEarning']   ?? 0;
+    $totalDeduction = $payslipDetail['totalDeduction'] ?? 0;
 @endphp
 
 <div class="card bg-none card-box">
     <div class="card-body">
-
         <div class="text-end">
-            <a href="#" class="btn btn-sm btn-primary" onclick="saveAsPDF()"><span class="ti ti-download"></span></a>
-            <a title="Mail Send" href="{{route('payslip.send',[$employee->id,$payslip->salary_month])}}" class="btn btn-sm btn-warning"><span class="ti ti-send"></span></a>
+            <a href="#" id="payslip-download" class="{{ VC::BT_SM_PM }}"><i class="{{ VC::TI_DWN }}"></i></a>
+            <a title="Mail Send"
+               id="payslip-mail-send"
+               href="{{ $sendUrl }}"
+               data-url="{{ $sendUrl }}"
+               data-guard-msg="{{ $sendGuard }}"
+               data-sv-localized="true"
+               class="{{ VC::BT_SM }} btn-warning"><span class="ti ti-send"></span></a>
         </div>
+
         <div class="invoice" id="printableArea">
             <div class="invoice-number">
-                <img src="{{$logo.'/'.(isset($company_logo) && !empty($company_logo)?$company_logo:SettingsConstants::CPN_LG_DK_DEF)}}" width="120px;">
+                <img src="{{ $logo.'/'.(!empty($company_logo) ? $company_logo : SettingsConstants::CPN_LG_DK_DEF) }}" width="120px;">
             </div>
+
             <div class="invoice-print">
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="invoice-title">
-                        </div>
+                        <div class="invoice-title"></div>
                         <hr>
                         <div class="row text-sm">
                             <div class="col-md-6">
                                 <address>
-                                    <strong>{{__('Name')}} :</strong> {{$employee->name}}<br>
-                                    <strong>{{__('Position')}} :</strong> {{__('Employee')}}<br>
-                                    <strong>{{__('Salary Date')}} :</strong> {{\Auth::user()->dateFormat( $payslip->created_at)}}<br>
+                                    <strong>{{ __('Name') }} :</strong> {{ $employee->name ?? __('Unknown') }}<br>
+                                    <strong>{{ __('Position') }} :</strong> {{ __('Employee') }}<br>
+                                    <strong>{{ __('Salary Date') }} :</strong> {{ $canDate ? $user->dateFormat($payslip->created_at ?? now()) : ($payslip->created_at ?? now()) }}<br>
                                 </address>
                             </div>
                             <div class="col-md-6 text-end">
                                 <address>
-                                    <strong>{{\Utility::getValByName('company_name')}} </strong><br>
-                                    {{\Utility::getValByName('company_address')}} , {{\Utility::getValByName('company_city')}},<br>
-                                    {{\Utility::getValByName('company_state')}}-{{\Utility::getValByName('company_zipcode')}}<br>
-                                    <strong>{{__('Salary Slip')}} :</strong> {{ $payslip->salary_month}}<br>
+                                    <strong>{{ Utility::getValByName('company_name') }} </strong><br>
+                                    {{ Utility::getValByName('company_address') }} , {{ Utility::getValByName('company_city') }},<br>
+                                    {{ Utility::getValByName('company_state') }}-{{ Utility::getValByName('company_zipcode') }}<br>
+                                    <strong>{{ __('Salary Slip') }} :</strong> {{ $payslip->salary_month ?? '-' }}<br>
                                 </address>
                             </div>
                         </div>
@@ -43,222 +86,313 @@
                 <div class="row mt-2">
                     <div class="col-md-12">
                         <div class="card-body table-border-style">
-
                             <div class="table-responsive">
                                 <table class="table table-md">
                                     <tbody>
-                                    <tr class="font-weight-bold">
-                                        <th>{{__('Earning')}}</th>
-                                        <th>{{__('Title')}}</th>
-                                        <th>{{__('Type')}}</th>
-                                        <th class="text-end">{{__('Amount')}}</th>
-                                    </tr>
-                                    <tr>
-                                        <td>{{__('Basic Salary')}}</td>
-                                        <td>-</td>
-                                        <td>-</td>
-                                        <td class="text-end">{{  \Auth::user()->priceFormat( $payslip->basic_salary)}}</td>
-                                    </tr>
-                                    @foreach ($payslipDetail['earning']['allowance'] as $allowance)
-                                        @php
-                                            $employess = \App\Models\Employee::find($allowance->employee_id);
-                                            $allowance = json_decode($allowance->allowance);
-                                        @endphp
-                                        @foreach ($allowance as $all)
-                                            <tr>
-                                                <td>{{ __('Allowance') }}</td>
-                                                <td>{{ $all->title }}</td>
-                                                <td>{{ ucfirst($all->type) }}</td>
-                                                @if ($all->type != 'percentage')
-                                                    <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($all->amount) }}</td>
-                                                @else
-                                                    <td class="text-end">{{ $all->amount }}%
-                                                        ({{ \Auth::user()->priceFormat(($all->amount * $payslip->basic_salary) / 100) }})
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
+                                        <tr class="font-weight-bold">
+                                            <th>{{ __('Earning') }}</th>
+                                            <th>{{ __('Title') }}</th>
+                                            <th>{{ __('Type') }}</th>
+                                            <th class="text-end">{{ __('Amount') }}</th>
+                                        </tr>
+                                        <tr>
+                                            <td>{{ __('Basic Salary') }}</td>
+                                            <td>-</td>
+                                            <td>-</td>
+                                            <td class="text-end">
+                                                {{ $canPrice ? $user->priceFormat($payslip->basic_salary ?? 0) : number_format((float)($payslip->basic_salary ?? 0),2) }}
+                                            </td>
+                                        </tr>
 
-                                    @foreach ($payslipDetail['earning']['commission'] as $commission)
-                                        @php
-                                            $employess = \App\Models\Employee::find($commission->employee_id);
-                                            $commissions = json_decode($commission->commission);
-                                        @endphp
-                                        @foreach ($commissions as $empcom)
-                                            <tr>
-                                                <td>{{ __('Commission') }}</td>
-                                                <td>{{ $empcom->title }}</td>
-                                                <td>{{ ucfirst($empcom->type) }}</td>
-                                                @if ($empcom->type != 'percentage')
-                                                    <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($empcom->amount) }}</td>
-                                                @else
-                                                    <td class="text-end">{{ $empcom->amount }}%
-                                                        ({{ \Auth::user()->priceFormat(($empcom->amount * $payslip->basic_salary) / 100) }})
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-                                    @foreach ($payslipDetail['earning']['otherPayment'] as $otherPayment)
-                                        @php
-                                            $employess = \App\Models\Employee::find($otherPayment->employee_id);
-                                            $otherpay = json_decode($otherPayment->other_payment);
-                                        @endphp
-                                        @foreach ($otherpay as $op)
-                                            <tr>
-                                                <td>{{ __('Other Payment') }}</td>
-                                                <td>{{ $op->title }}</td>
-                                                <td>{{ ucfirst($op->type) }}</td>
-                                                @if ($op->type != 'percentage')
-                                                    <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($op->amount) }}</td>
-                                                @else
-                                                    <td class="text-end">{{ $op->amount }}%
-                                                        ({{ \Auth::user()->priceFormat(($op->amount * $payslip->basic_salary) / 100) }})
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-                                    @foreach ($payslipDetail['earning']['overTime'] as $overTime)
-                                        @php
-                                            $arrayJson = json_decode($overTime->overtime);
-                                            foreach ($arrayJson as $key => $overtime) {
-                                                foreach ($arrayJson as $key => $overtimes) {
-                                                    $overtitle = $overtimes->title;
-                                                    $OverTime = $overtimes->number_of_days * $overtimes->hours * $overtimes->rate;
-                                                }
-                                            }
-                                        @endphp
-                                        @foreach ($arrayJson as $overtime)
-                                            <tr>
-                                                <td>{{ __('OverTime') }}</td>
-                                                <td>{{ $overtime->title }}</td>
-                                                <td>-</td>
-                                                <td class="text-end">
-                                                    {{ \Auth::user()->priceFormat($overtime->number_of_days * $overtime->hours * $overtime->rate) }}
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
+                                        @if($earnAllowanceHas)
+                                            @foreach ($earnAllowance as $allowanceRow)
+                                                @php $allowanceItems = json_decode($allowanceRow->allowance ?? '[]'); @endphp
+                                                @foreach ($allowanceItems as $all)
+                                                    <tr>
+                                                        <td>{{ __('Allowance') }}</td>
+                                                        <td>{{ $all->title ?? '-' }}</td>
+                                                        <td>{{ isset($all->type) ? ucfirst($all->type) : '-' }}</td>
+                                                        @if (($all->type ?? '') !== 'percentage')
+                                                            <td class="text-end">
+                                                                {{ $canPrice ? $user->priceFormat($all->amount ?? 0) : number_format((float)($all->amount ?? 0),2) }}
+                                                            </td>
+                                                        @else
+                                                            <td class="text-end">
+                                                                {{ ($all->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($all->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($all->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                            </td>
+                                                        @endif
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        @else
+                                            <tr><td colspan="4">{{ __('No allowances found') }}</td></tr>
+                                        @endif
+
+                                        @if($earnCommissionHas)
+                                            @foreach ($earnCommission as $commissionRow)
+                                                @php $commissionItems = json_decode($commissionRow->commission ?? '[]'); @endphp
+                                                @foreach ($commissionItems as $empcom)
+                                                    <tr>
+                                                        <td>{{ __('Commission') }}</td>
+                                                        <td>{{ $empcom->title ?? '-' }}</td>
+                                                        <td>{{ isset($empcom->type) ? ucfirst($empcom->type) : '-' }}</td>
+                                                        @if (($empcom->type ?? '') !== 'percentage')
+                                                            <td class="text-end">
+                                                                {{ $canPrice ? $user->priceFormat($empcom->amount ?? 0) : number_format((float)($empcom->amount ?? 0),2) }}
+                                                            </td>
+                                                        @else
+                                                            <td class="text-end">
+                                                                {{ ($empcom->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($empcom->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($empcom->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                            </td>
+                                                        @endif
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        @else
+                                            <tr><td colspan="4">{{ __('No commissions found') }}</td></tr>
+                                        @endif
+
+                                        @if($earnOtherHas)
+                                            @foreach ($earnOther as $otherRow)
+                                                @php $otherItems = json_decode($otherRow->other_payment ?? '[]'); @endphp
+                                                @foreach ($otherItems as $op)
+                                                    <tr>
+                                                        <td>{{ __('Other Payment') }}</td>
+                                                        <td>{{ $op->title ?? '-' }}</td>
+                                                        <td>{{ isset($op->type) ? ucfirst($op->type) : '-' }}</td>
+                                                        @if (($op->type ?? '') !== 'percentage')
+                                                            <td class="text-end">
+                                                                {{ $canPrice ? $user->priceFormat($op->amount ?? 0) : number_format((float)($op->amount ?? 0),2) }}
+                                                            </td>
+                                                        @else
+                                                            <td class="text-end">
+                                                                {{ ($op->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($op->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($op->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                            </td>
+                                                        @endif
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        @else
+                                            <tr><td colspan="4">{{ __('No other payments found') }}</td></tr>
+                                        @endif
+
+                                        @if($earnOverHas)
+                                            @foreach ($earnOver as $overRow)
+                                                @php $otItems = json_decode($overRow->overtime ?? '[]'); @endphp
+                                                @foreach ($otItems as $ot)
+                                                    @php
+                                                        $otTotal = (float)($ot->number_of_days ?? 0) * (float)($ot->hours ?? 0) * (float)($ot->rate ?? 0);
+                                                    @endphp
+                                                    <tr>
+                                                        <td>{{ __('OverTime') }}</td>
+                                                        <td>{{ $ot->title ?? '-' }}</td>
+                                                        <td>-</td>
+                                                        <td class="text-end">
+                                                            {{ $canPrice ? $user->priceFormat($otTotal) : number_format($otTotal,2) }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        @else
+                                            <tr><td colspan="4">{{ __('No overtime found') }}</td></tr>
+                                        @endif
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                        <div class="card-body table-border-style">
 
+                        <div class="card-body table-border-style">
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover table-md">
                                     <tbody>
-                                    <tr class="font-weight-bold">
-                                        <th>{{__('Deduction')}}</th>
-                                        <th>{{__('Title')}}</th>
-                                        <th>{{__('type')}}</th>
-                                        <th class="text-end">{{__('Amount')}}</th>
-                                    </tr>
+                                        <tr class="font-weight-bold">
+                                            <th>{{ __('Deduction') }}</th>
+                                            <th>{{ __('Title') }}</th>
+                                            <th>{{ __('Type') }}</th>
+                                            <th class="text-end">{{ __('Amount') }}</th>
+                                        </tr>
 
+                                        @if($dedLoanHas)
+                                            @foreach ($dedLoan as $loanRow)
+                                                @php $loanItems = json_decode($loanRow->loan ?? '[]'); @endphp
+                                                @foreach ($loanItems as $l)
+                                                    <tr>
+                                                        <td>{{ __('Loan') }}</td>
+                                                        <td>{{ $l->title ?? '-' }}</td>
+                                                        <td>{{ isset($l->type) ? ucfirst($l->type) : '-' }}</td>
+                                                        @if (($l->type ?? '') !== 'percentage')
+                                                            <td class="text-end">
+                                                                {{ $canPrice ? $user->priceFormat($l->amount ?? 0) : number_format((float)($l->amount ?? 0),2) }}
+                                                            </td>
+                                                        @else
+                                                            <td class="text-end">
+                                                                {{ ($l->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($l->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($l->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                            </td>
+                                                        @endif
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        @else
+                                            <tr><td colspan="4">{{ __('No loans found') }}</td></tr>
+                                        @endif
 
-
-                                    @foreach ($payslipDetail['deduction']['loan'] as $loan)
-                                        @php
-                                            $employess = \App\Models\Employee::find($loan->employee_id);
-                                            $loans = json_decode($loan->loan);
-                                        @endphp
-                                        @foreach ($loans as $emploanss)
-                                            <tr>
-                                                <td>{{ __('Loan') }}</td>
-                                                <td>{{ $emploanss->title }}</td>
-                                                <td>{{ ucfirst($emploanss->type) }}</td>
-                                                @if ($emploanss->type != 'percentage')
-                                                    <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($emploanss->amount) }}</td>
-                                                @else
-                                                    <td class="text-end">{{ $emploanss->amount }}%
-                                                        ({{ \Auth::user()->priceFormat(($emploanss->amount * $payslip->basic_salary) / 100) }})
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-
-                                    @foreach ($payslipDetail['deduction']['deduction'] as $deduction)
-                                        @php
-                                            $employess = \App\Models\Employee::find($deduction->employee_id);
-                                            $deductions = json_decode($deduction->saturation_deduction);
-                                        @endphp
-                                        @foreach ($deductions as $saturationdeduc)
-                                            <tr>
-                                                <td>{{ __('Saturation Deduction') }}</td>
-                                                <td>{{ $saturationdeduc->title }}</td>
-                                                <td>{{ ucfirst($saturationdeduc->type) }}</td>
-                                                @if ($saturationdeduc->type != 'percentage')
-                                                    <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($saturationdeduc->amount) }}
-                                                    </td>
-                                                @else
-                                                    <td class="text-end">{{ $saturationdeduc->amount }}%
-                                                        ({{ \Auth::user()->priceFormat(($saturationdeduc->amount * $payslip->basic_salary) / 100) }})
-                                                    </td>
-                                                @endif
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
+                                        @if($dedDeducHas)
+                                            @foreach ($dedDeduc as $dedRow)
+                                                @php $dedItems = json_decode($dedRow->saturation_deduction ?? '[]'); @endphp
+                                                @foreach ($dedItems as $d)
+                                                    <tr>
+                                                        <td>{{ __('Saturation Deduction') }}</td>
+                                                        <td>{{ $d->title ?? '-' }}</td>
+                                                        <td>{{ isset($d->type) ? ucfirst($d->type) : '-' }}</td>
+                                                        @if (($d->type ?? '') !== 'percentage')
+                                                            <td class="text-end">
+                                                                {{ $canPrice ? $user->priceFormat($d->amount ?? 0) : number_format((float)($d->amount ?? 0),2) }}
+                                                            </td>
+                                                        @else
+                                                            <td class="text-end">
+                                                                {{ ($d->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($d->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($d->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                            </td>
+                                                        @endif
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        @else
+                                            <tr><td colspan="4">{{ __('No deductions found') }}</td></tr>
+                                        @endif
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
                         <div class="row mt-4">
-                            <div class="col-lg-8">
-
-                            </div>
+                            <div class="col-lg-8"></div>
                             <div class="col-lg-4 text-end text-sm">
                                 <div class="invoice-detail-item pb-2">
-                                    <div class="invoice-detail-name font-bold">{{__('Total Earning')}}</div>
-                                    <div class="invoice-detail-value">{{ \Auth::user()->priceFormat($payslipDetail['totalEarning'])}}</div>
+                                    <div class="invoice-detail-name font-bold">{{ __('Total Earning') }}</div>
+                                    <div class="invoice-detail-value">
+                                        {{ $canPrice ? $user->priceFormat($totalEarning) : number_format((float)$totalEarning,2) }}
+                                    </div>
                                 </div>
                                 <div class="invoice-detail-item">
-                                    <div class="invoice-detail-name font-bold">{{__('Total Deduction')}}</div>
-                                    <div class="invoice-detail-value">{{ \Auth::user()->priceFormat($payslipDetail['totalDeduction'])}}</div>
+                                    <div class="invoice-detail-name font-bold">{{ __('Total Deduction') }}</div>
+                                    <div class="invoice-detail-value">
+                                        {{ $canPrice ? $user->priceFormat($totalDeduction) : number_format((float)$totalDeduction,2) }}
+                                    </div>
                                 </div>
                                 <hr class="mt-2 mb-2">
                                 <div class="invoice-detail-item">
-                                    <div class="invoice-detail-name font-bold">{{__('Net Salary')}}</div>
-                                    <div class="invoice-detail-value invoice-detail-value-lg">{{ \Auth::user()->priceFormat($payslip->net_payble)}}</div>
+                                    <div class="invoice-detail-name font-bold">{{ __('Net Salary') }}</div>
+                                    <div class="invoice-detail-value invoice-detail-value-lg">
+                                        {{ $canPrice ? $user->priceFormat($payslip->net_payble ?? 0) : number_format((float)($payslip->net_payble ?? 0),2) }}
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <hr>
+                        <div class="text-md-right pb-2 text-sm">
+                            <div class="float-lg-left mb-lg-0 mb-3">
+                                <p class="mt-2">{{ __('Employee Signature') }}</p>
+                            </div>
+                            <p class="mt-2">{{ __('Paid By') }}</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <hr>
-            <div class="text-md-right pb-2 text-sm">
-                <div class="float-lg-left mb-lg-0 mb-3 ">
-                    <p class="mt-2">{{__('Employee Signature')}}</p>
-                </div>
-                <p class="mt-2"> {{__('Paid By')}}</p>
-            </div>
         </div>
     </div>
-</div>
-
-<script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-<script>
-
-    var filename = $('#filename').val()
-
-    function saveAsPDF() {
-        var element = document.getElementById('printableArea');
-        var opt = {
-            margin: 0.3,
-            filename: filename,
-            image: {type: 'jpeg', quality: 1},
-            html2canvas: {scale: 4, dpi: 72, letterRendering: true},
-            jsPDF: {unit: 'in', format: 'A2'}
+    <script defer src="{{ asset('assets/js/routes/payslips/pdf.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/payslips/lang/pdf.js') }}"></script>
+    <script defer>
+        (() => {
+        const errFb = "# ERROR";
+        const dataClientLocalized = "data-client-localized";
+        const dataGuardMsg = "data-guard-msg";
+        const guardOnce = "data-guard-once";
+        const getMsg = el => {
+            let msg = errFb;
+            if (el.getAttribute("data-sv-localized") === "true" || el.getAttribute(dataClientLocalized) === "true") {
+            msg = el.getAttribute(dataGuardMsg) || errFb;
+            } else {
+            let lang = (window.sessionStorage.getItem("erp-np-lang") || document.documentElement.lang || "en").toLowerCase().replace(/_/g, "-");
+            lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+            const msgKey = "savepdf_unavailable";
+            msg = window.translations?.[lang]?.[msgKey] || el.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
+            if (msg !== errFb) {
+                el.setAttribute(dataGuardMsg, msg);
+                el.setAttribute(dataClientLocalized, "true");
+            }
+            }
+            return msg;
         };
-        html2pdf().set(opt).from(element).save();
-    }
-</script>
+        const hasBootstrapCss = () => !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
+        const showError = (el, text) => {
+            const message = text ?? getMsg(el);
+            if (hasBootstrapCss() && window.bootstrap) {
+            const wrapId = "toast-wrap-guard";
+            if (!document.getElementById(wrapId)) {
+                const wrap = document.createElement("div");
+                wrap.id = wrapId;
+                wrap.className = "position-fixed top-0 end-0 p-3";
+                wrap.style.zIndex = "1080";
+                document.body.appendChild(wrap);
+            }
+            const toastId = "toast-savepdf-error";
+            if (!document.getElementById(toastId)) {
+                const t = document.createElement("div");
+                t.id = toastId;
+                t.className = "toast align-items-center text-bg-danger border-0";
+                t.setAttribute("role", "alert");
+                t.setAttribute("aria-live", "assertive");
+                t.setAttribute("aria-atomic", "true");
+                t.innerHTML = '<div class="d-flex"><div class="toast-body">' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>';
+                document.getElementById(wrapId).appendChild(t);
+                new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+            }
+            } else {
+            alert(message);
+            }
+        };
+        const saveAsPDF = el => {
+            try {
+            const inputName = document.getElementById("filename");
+            const nameVal = inputName?.value?.trim() || "document";
+            const element = document.getElementById("printableArea");
+            if (!element || typeof html2pdf === "undefined" || !html2pdf?.().set) throw new Error("deps_missing");
+            const opt = {
+                margin: 0.3,
+                filename: nameVal,
+                image: { type: "jpeg", quality: 1 },
+                html2canvas: { scale: 4, dpi: 72, letterRendering: true },
+                jsPDF: { unit: "in", format: "A2" }
+            };
+            html2pdf().set(opt).from(element).save().catch(() => showError(el));
+            } catch {
+            showError(el);
+            if (typeof html2pdf === "undefined") {
+                try { console.error("html2pdf library failed to load"); } catch {}
+            }
+            }
+        };
+        const selector = '[data-action="save-pdf"]';
+        const attach = node => {
+            const el = node?.matches?.(selector) ? node : node?.querySelector?.(selector);
+            if (!el || el.getAttribute(guardOnce) === "true") return;
+            el.setAttribute(guardOnce, "true");
+            el.addEventListener("click", e => {
+            e.preventDefault();
+            saveAsPDF(el);
+            }, { passive: true });
+        };
+        document.querySelectorAll(selector).forEach(attach);
+        const mo = new MutationObserver(muts => {
+            muts.forEach(m => {
+            m.addedNodes && m.addedNodes.forEach(n => attach(n));
+            });
+        });
+        mo.observe(document.documentElement, { childList: true, subtree: true });
+        window.saveAsPDF = () => saveAsPDF(document.querySelector(selector) ?? document.body);
+        })();
+    </script>
+</div>

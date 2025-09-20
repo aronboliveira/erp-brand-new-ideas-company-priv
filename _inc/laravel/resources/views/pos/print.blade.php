@@ -46,10 +46,91 @@
 @push(StacksConstants::ADM_CSS)
     <link rel="stylesheet" href="{{ asset('css/datatable/buttons.dataTables.min.css') }}">
 @endpush
+@section(YieldingConstants::ADM_ACT_BTN)
+    @php
+        $posBarcodeRouteBase = VW::POS.'.barcode';
+        $posBarcodeRouteKebab = Str::kebab($posBarcodeRouteBase);
+        $posBarcodeRouteResolved = Route::has($posBarcodeRouteBase) ? $posBarcodeRouteBase : (Route::has($posBarcodeRouteKebab) ? $posBarcodeRouteKebab : null);
+        $posBarcodeUrl = $posBarcodeRouteResolved ? route($posBarcodeRouteResolved) : '#';
+        $posBarcodeUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
+        $posBarcodeGuardMsg = Utility::fetchLinkMessage($posBarcodeUserLang, VW::POS, 'barcode_pos_route_unavailable') ?? 'POS barcode route is unavailable. Please contact technical support or your domain administrator.';
+        $posBarcodeBackLinkId = 'pos-barcode-back-link';
+    @endphp
+    <a href="{{ $posBarcodeUrl }}"
+    id="{{ $posBarcodeBackLinkId }}"
+    class="{{ VC::BT_SM_PM }}"
+    data-url="{{ $posBarcodeUrl }}"
+    data-guard-msg="{{ $posBarcodeGuardMsg }}"
+    data-sv-localized="true"
+    data-bs-toggle="tooltip"
+    title="{{ __('Back') }}">
+        <i class="ti ti-arrow-left text-white"></i>
+    </a>
+    @push(StacksConstants::ADM_SCR_PG)
+        <script defer src="{{ asset('assets/js/routes/pos/barcode.js') }}"></script>
+    @endpush
+@endsection
+
+@section(YieldingConstants::ADM_CTT)
+    <div class="{{ VC::RW }} {{ VC::MT3 }}">
+        <div class="{{ VC::C12 }}">
+            <div class="{{ VC::CD }}">
+                <div class="card-body">
+                    @php
+                        $posReceiptBaseName     = ViewsConstants::POS.'.receipt';
+                        $posReceiptKebabName    = Str::kebab($posReceiptBaseName);
+                        $posReceiptResolvedName = Route::has($posReceiptBaseName)
+                            ? $posReceiptBaseName
+                            : (Route::has($posReceiptKebabName) ? $posReceiptKebabName : null);
+                        $posReceiptRouteArray   = $posReceiptResolvedName ? [$posReceiptResolvedName] : ['#'];
+                        $posReceiptUrl          = $posReceiptResolvedName ? route($posReceiptResolvedName) : '#';
+                        $posReceiptGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'create_pos_receipt_route_unavailable') ?? 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
+                        $posReceiptFormId       = 'pos-receipt-form';
+                    @endphp
+                    {!! Form::open([
+                        'route'          => $posReceiptRouteArray,
+                        'method'         => 'post',
+                        'accept-charset' => 'UTF-8',
+                        'id'             => $posReceiptFormId,
+                        'data-url'       => $posReceiptUrl,
+                        'data-guard-msg' => $posReceiptGuardMsg
+                    ]) !!}
+                        @csrf
+                        @push(StacksConstants::ADM_SCR_PG)
+                            <script defer src="{{ asset('assets/js/routes/pos/receipt.js') }}"></script>
+                        @endpush
+                        <div class="{{ VC::RW }}" id="printableArea">
+                            <div class="col-md-4">
+                                <div class="{{ VC::FM_G }}">
+                                    {{ Form::label('warehouse_id', __('Warehouse'), ['class' => VC::FM_LB]) }}
+                                    {{ Form::select('warehouse_id', $warehouses, '', ['class' => VC::FM_CT_SL, 'id' => 'warehouse_id', 'required' => 'required']) }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="{{ VC::FM_G }}" id="product_div">
+                                    {{ Form::label('product_id', __('Product'), ['class' => VC::FM_LB]) }}
+                                    <select class="{{ VC::FM_CT_SL }}" name="product_id[]" id="product_id" required></select>
+                                </div>
+                            </div>
+                            <div class="{{ VC::FM_G }} col-md-4">
+                                {{ Form::label('quantity', __('Quantity'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
+                                {{ Form::text('quantity', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                            </div>
+                        </div>
+                        <div class="{{ VC::CM6 }} pt-4">
+                            <button class="{{ VC::BT_SM_PM }} btn-icon" type="submit">
+                                {{ __('Print') }}
+                            </button>
+                        </div>
+                    {{ Form::close() }}
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
 @push(StacksConstants::ADM_SCR_PG)
     <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script async src="{{ asset('assets/js/routes/pos/lang/fetch.js') }}">
-    </script>
+    <script async src="{{ asset('assets/js/routes/pos/lang/fetch.js') }}"></script>
     <script defer>
         (()=>{
             const errFb="# ERROR";
@@ -222,87 +303,3 @@
         })();
     </script>
 @endpush
-@section(YieldingConstants::ADM_ACT_BTN)
-    @php
-        $posBarcodeRouteBase = VW::POS.'.barcode';
-        $posBarcodeRouteKebab = Str::kebab($posBarcodeRouteBase);
-        $posBarcodeRouteResolved = Route::has($posBarcodeRouteBase) ? $posBarcodeRouteBase : (Route::has($posBarcodeRouteKebab) ? $posBarcodeRouteKebab : null);
-        $posBarcodeUrl = $posBarcodeRouteResolved ? route($posBarcodeRouteResolved) : '#';
-        $posBarcodeUserLang = isset($lang) ? $lang : Utility::fetchUserLang();
-        $posBarcodeGuardMsg = Utility::fetchLinkMessage($posBarcodeUserLang, VW::POS, 'barcode_pos_route_unavailable') ?? 'POS barcode route is unavailable. Please contact technical support or your domain administrator.';
-        $posBarcodeBackLinkId = 'pos-barcode-back-link';
-    @endphp
-    <a href="{{ $posBarcodeUrl }}"
-    id="{{ $posBarcodeBackLinkId }}"
-    class="{{ VC::BT_SM_PM }}"
-    data-url="{{ $posBarcodeUrl }}"
-    data-guard-msg="{{ $posBarcodeGuardMsg }}"
-    data-sv-localized="true"
-    data-bs-toggle="tooltip"
-    title="{{ __('Back') }}">
-        <i class="ti ti-arrow-left text-white"></i>
-    </a>
-    @push(StacksConstants::ADM_SCR_PG)
-        <script defer src="{{ asset('assets/js/routes/pos/barcode.js') }}"></script>
-    @endpush
-@endsection
-
-@section(YieldingConstants::ADM_CTT)
-    <div class="{{ VC::RW }} {{ VC::MT3 }}">
-        <div class="{{ VC::C12 }}">
-            <div class="{{ VC::CD }}">
-                <div class="card-body">
-                    @php
-                        $posReceiptBaseName     = ViewsConstants::POS.'.receipt';
-                        $posReceiptKebabName    = Str::kebab($posReceiptBaseName);
-                        $posReceiptResolvedName = Route::has($posReceiptBaseName)
-                            ? $posReceiptBaseName
-                            : (Route::has($posReceiptKebabName) ? $posReceiptKebabName : null);
-                        $posReceiptRouteArray   = $posReceiptResolvedName ? [$posReceiptResolvedName] : ['#'];
-                        $posReceiptUrl          = $posReceiptResolvedName ? route($posReceiptResolvedName) : '#';
-                        $posReceiptGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::POS, 'create_pos_receipt_route_unavailable') ?? 'Create pos receipt route is unavailable. Please contact technical support or your domain administrator.';
-                        $posReceiptFormId       = 'pos-receipt-form';
-                    @endphp
-                    {!! Form::open([
-                        'route'          => $posReceiptRouteArray,
-                        'method'         => 'post',
-                        'accept-charset' => 'UTF-8',
-                        'id'             => $posReceiptFormId,
-                        'data-url'       => $posReceiptUrl,
-                        'data-guard-msg' => $posReceiptGuardMsg
-                    ]) !!}
-                        @csrf
-                        @push(StacksConstants::ADM_SCR_PG)
-                            <script defer src="{{ asset('assets/js/routes/pos/receipt.js') }}"></script>
-                        @endpush
-                        <div class="{{ VC::RW }}" id="printableArea">
-                            <div class="col-md-4">
-                                <div class="{{ VC::FM_G }}">
-                                    {{ Form::label('warehouse_id', __('Warehouse'), ['class' => VC::FM_LB]) }}
-                                    {{ Form::select('warehouse_id', $warehouses, '', ['class' => VC::FM_CT_SL, 'id' => 'warehouse_id', 'required' => 'required']) }}
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="{{ VC::FM_G }}" id="product_div">
-                                    {{ Form::label('product_id', __('Product'), ['class' => VC::FM_LB]) }}
-                                    <select class="{{ VC::FM_CT_SL }}" name="product_id[]" id="product_id" required></select>
-                                </div>
-                            </div>
-                            <div class="{{ VC::FM_G }} col-md-4">
-                                {{ Form::label('quantity', __('Quantity'), ['class' => VC::FM_LB]) }}<span class="text-danger">*</span>
-                                {{ Form::text('quantity', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
-                            </div>
-                        </div>
-                        <div class="{{ VC::CM6 }} pt-4">
-                            <button class="{{ VC::BT_SM_PM }} btn-icon" type="submit">
-                                {{ __('Print') }}
-                            </button>
-                        </div>
-                    {{ Form::close() }}
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
-
-

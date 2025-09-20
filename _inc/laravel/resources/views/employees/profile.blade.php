@@ -3,13 +3,13 @@
 	use App\Models\Utility;
 	use Collective\Html\FormFacade as Form;
 	use Illuminate\Support\Facades\{Auth, Crypt, Log, Route, Storage};
-	use Illuminate\Support\Str;
+	use Illuminate\Support\{Collection, Str};
 	use InvalidArgumentException;
 	use RuntimeException;
 	use TypeError;
 	$user ??= null;
 	$employees ??= [];
-	$brances ??= [];
+	$branches ??= [];
 	$departments ??= [];
 	try {
 		$user = Auth::user();
@@ -55,7 +55,7 @@
 				<div class="all-select-box">
 					<div class="btn-box">
 						{{ Form::label('branch', __('Branch'), ['class'=>'text-type']) }}
-						{{ Form::select('branch', $brances, isset($_GET['branch']) ? (string)$_GET['branch'] : '', ['class'=>'select-box select2']) }}
+						{{ Form::select('branch', ((is_array($branches) && count($branches)) || ($branches instanceof Collection && $branches->isNotEmpty())) ? $branches : [__('No branches available')], isset($_GET['branch']) ? (string)$_GET['branch'] : '', ['class'=>'select-box select2']) }}
 					</div>
 				</div>
 			</div>
@@ -63,7 +63,7 @@
 				<div class="all-select-box">
 					<div class="btn-box">
 						{{ Form::label('department', __('Department'), ['class'=>'text-type']) }}
-						{{ Form::select('department', $departments, isset($_GET['department']) ? (string)$_GET['department'] : '', ['class'=>'select-box select2']) }}
+						{{ Form::select('department', ((is_array($departments) && count($departments)) || ($departments instanceof Collection && $departments->isNotEmpty())) ? $departments : [__('No departments available')], isset($_GET['department']) ? (string)$_GET['department'] : '', ['class'=>'select-box select2']) }}
 					</div>
 				</div>
 			</div>

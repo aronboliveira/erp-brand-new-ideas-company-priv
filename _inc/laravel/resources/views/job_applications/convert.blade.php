@@ -267,7 +267,7 @@
 
                 const loadDesignations = (did) => {
                     if (did == null) return;
-                    const url = '{{ route("employees.json") }}' ?? '';
+                    const url = '{{ route(VW::EMP . ".json") }}' ?? '';
                     if (!url) return;
                     try {
                         $.ajax({

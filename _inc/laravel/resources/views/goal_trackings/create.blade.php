@@ -31,9 +31,9 @@
     $genGuard  = Utility::fetchLinkMessage($lang, ViewsConstants::GL_TRC, 'ai_generate_route_unavailable')
                 ?? __('Generate content route for goal trackings is unavailable. Please contact technical support or your domain administrator.');
 
-    $branchesIsList = (is_array($brances ?? null) && count($brances ?? []) > 0)
-                   || (($brances ?? null) instanceof Collection && $brances->isNotEmpty());
-    $branchOptions  = $branchesIsList ? (is_array($brances) ? $brances : $brances->toArray()) : ['' => __('No branches available')];
+    $branchesIsList = (is_array($branches ?? null) && count($branches ?? []) > 0)
+                   || (($branches ?? null) instanceof Collection && $branches->isNotEmpty());
+    $branchOptions  = $branchesIsList ? (is_array($branches) ? $branches : $branches->toArray()) : ['' => __('No branches available')];
     $branchHasErr   = $errors->has('branch');
     $branchAttrs    = [
         'id'               => 'branch',

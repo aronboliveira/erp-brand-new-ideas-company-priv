@@ -3523,12 +3523,12 @@
             <script defer src="{{ asset('js/jscolor.js') }}"></script>
             @if ($message = Session::get('success'))
                 <script>
-                typeof show_toastr === 'function' &&  show_toastr('success', '{!! $message !!}');
+                    (() => {typeof show_toastr === 'function' &&  show_toastr('success', '{!! $message !!}');})()
                 </script>
             @endif
             @if ($message = Session::get('error'))
                 <script>
-                    typeof show_toastr === 'function' && show_toastr('error', '{!! $message !!}');
+                    (() => {typeof show_toastr === 'function' && show_toastr('error', '{!! $message !!}');})()
                 </script>
             @endif
             <script async src="https://js.stripe.com/v3/"></script>

@@ -15,8 +15,8 @@
     $storeUrl   = $storeRes ? route($storeRes) : '#';
     $storeGuard = Utility::fetchLinkMessage($lang, VW::IND, 'store_route_unavailable') ?? __('Indicators store route is unavailable. Please contact technical support or your domain administrator.');
 
-    $branchesIsList = (is_array($brances ?? null) && count($brances ?? []) > 0) || (($brances ?? null) instanceof Collection && $brances->isNotEmpty());
-    $branchOptions  = $branchesIsList ? (is_array($brances) ? $brances : $brances->toArray()) : ['' => __('No branches available')];
+    $branchesIsList = (is_array($branches ?? null) && count($branches ?? []) > 0) || (($branches ?? null) instanceof Collection && $branches->isNotEmpty());
+    $branchOptions  = $branchesIsList ? (is_array($branches) ? $branches : $branches->toArray()) : ['' => __('No branches available')];
     $branchErr      = $errors->has('branch');
     $branchAttrs    = [
         'id'               => 'branch',

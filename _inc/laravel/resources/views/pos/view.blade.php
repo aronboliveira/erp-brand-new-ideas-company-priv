@@ -2,177 +2,206 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        YieldingConstants
+        YieldingConstants,
+        ViewsConstants as VW,
+        ViewClassNamesConstants as VC
     };
-    use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\{Auth, Route, Crypt};
+    use Illuminate\Support\Str;
+
+    $user = Auth::user();
+    $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang(user:$user) : app()->getLocale();
+
+    $canPosNum   = is_object($user) && is_callable([$user,'posNumberFormat']);
+    $canDate     = is_object($user) && is_callable([$user,'dateFormat']);
+    $canPrice    = is_object($user) && is_callable([$user,'priceFormat']);
+
+    $dashBase   = 'dashboard';
+    $dashUrl    = Route::has($dashBase) ? route($dashBase) : '#';
+    $dashGuard  = Utility::fetchLinkMessage($lang,'generics','dashboard_unavailable') ?? __('Dashboard route is unavailable. Please contact technical support or your domain administrator.');
+
+    $repBase     = VW::POS . '.report';
+    $repKebab    = Str::kebab($repBase);
+    $repResolved = Route::has($repBase) ? $repBase : (Route::has($repKebab) ? $repKebab : null);
+    $repUrl      = $repResolved ? route($repResolved) : '#';
+    $repGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'report_route_unavailable') ?? __('Report route is unavailable. Please contact technical support or your domain administrator.');
+
+    $pdfBase     = VW::POS . '.pdf';
+    $pdfKebab    = Str::kebab($pdfBase);
+    $pdfResolved = Route::has($pdfBase) ? $pdfBase : (Route::has($pdfKebab) ? $pdfKebab : null);
+    $pdfUrl      = ($pdfResolved && !empty($pos?->id)) ? route($pdfResolved, Crypt::encrypt($pos->id)) : '#';
+    $pdfGuard    = Utility::fetchLinkMessage($lang, VW::POS, 'pdf_route_unavailable') ?? __('PDF route is unavailable. Please contact technical support or your domain administrator.');
+
+    $settings = Utility::settings();
+
+    $posNumber  = $canPosNum ? ($user->posNumberFormat($pos->pos_id ?? null) ?? __('No POS number available')) : __('No POS number available');
+    $issueDate  = $canDate ? ($user->dateFormat($pos->purchase_date ?? null) ?? __('No issue date available')) : __('No issue date available');
+
+    $amountFmt   = $canPrice ? ($user->priceFormat($posPayment['amount'] ?? 0) ?? __('Could not format amount')) : __('No amount available');
+    $discountFmt = $canPrice ? ($user->priceFormat($posPayment['discount'] ?? 0) ?? __('Could not format discount')) : __('No discount available');
+    $totalFmt    = $canPrice ? ($user->priceFormat($posPayment['discount_amount'] ?? 0) ?? __('Could not format total')) : __('No total available');
+
+    $shippingOn = (Utility::getValByName('shipping_display') ?? '') === 'on';
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
+
 @section(YieldingConstants::ADM_PG_TTL)
-    {{__('POS Detail')}}
+    {{ __('POS Detail') }}
 @endsection
-@push(StacksConstants::ADM_SCR_PG)
-    <script>
-        $(document).on('click', '#shipping', function () {
-            var url = $(this).data('url');
-            var is_display = $("#shipping").is(":checked");
-            $.ajax({
-                url: url,
-                type: 'get',
-                data: {
-                    'is_display': is_display,
-                },
-                success: function (data) {
-                    // console.log(data);
-                }
-            });
-        })
-    </script>
-@endpush
-@php
-    $settings = Utility::settings();
-@endphp
+
 @section(YieldingConstants::ADM_BDC)
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
+        <a href="{{ $dashUrl }}" data-url="{{ $dashUrl }}" data-guard-msg="{{ $dashGuard }}" data-sv-localized="true" {{ $dashUrl === '#' ? 'aria-disabled=true' : '' }}>
             {{ __('Dashboard') }}
         </a>
     </li>
-    <li class="breadcrumb-item"><a href="{{route('pos.report')}}">{{__('POS Summary')}}</a></li>
-    <li class="breadcrumb-item">{{ AUth::user()->posNumberFormat($pos->pos_id) }}</li>
+    <li class="breadcrumb-item">
+        <a href="{{ $repUrl }}" data-url="{{ $repUrl }}" data-guard-msg="{{ $repGuard }}" data-sv-localized="true" {{ $repUrl === '#' ? 'aria-disabled=true' : '' }}>
+            {{ __('POS Summary') }}
+        </a>
+    </li>
+    <li class="breadcrumb-item">{{ $posNumber }}</li>
 @endsection
+
 @section(YieldingConstants::ADM_ACT_BTN)
-    <div class="float-end">
-        <a href="{{ route('pos.pdf', Crypt::encrypt($pos->id))}}" class="btn btn-primary" target="_blank">{{__('Download')}}</a>
+    <div class="{{ VC::FEND }}">
+        <a href="{{ $pdfUrl }}" target="_blank" class="{{ VC::BT_PRM }}" data-url="{{ $pdfUrl }}" data-guard-msg="{{ $pdfGuard }}" data-sv-localized="true">{{ __('Download') }}</a>
     </div>
 @endsection
+
 @section(YieldingConstants::ADM_CTT)
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+    <div class="{{ VC::RW }}">
+        <div class="{{ VC::C12 }}">
+            <div class="{{ VC::CD }}">
                 <div class="card-body">
-                    <div class="row mt-2">
-                        <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12">
-                            <h4>{{__('POS')}}</h4>
+                    <div class="row mt-3">
+                        <div class="{{ VC::C12 }} {{ VC::CL6 }} {{ VC::CM6 }}">
+                            <h4>{{ __('POS') }}</h4>
                         </div>
-                        <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12 text-end">
-                            <h4 class="invoice-number">{{ Auth::user()->posNumberFormat($pos->pos_id) }}</h4>
+                        <div class="{{ VC::C12 }} {{ VC::CL6 }} {{ VC::CM6 }} text-end">
+                            <h4 class="invoice-number">{{ $posNumber }}</h4>
                         </div>
-                        <div class="col-12">
-                            <hr>
-                        </div>
+                        <div class="{{ VC::C12 }}"><hr></div>
                     </div>
-                    <div class="row">
-                        <div class="col-5">
+
+                    <div class="{{ VC::RW }}">
+                        <div class="{{ VC::C12 }} {{ VC::CL4 }} {{ VC::CM5 }}">
                             <small class="font-style">
-                                <strong>{{__('Billed To')}} :</strong><br>
-                                @if(!empty($customer->billing_name))
-                                    {{!empty($customer->billing_name)?$customer->billing_name:''}}<br>
-                                    {{!empty($customer->billing_address)?$customer->billing_address:''}}<br>
-                                    {{!empty($customer->billing_city)?$customer->billing_city:'' .', '}}<br>
-                                    {{!empty($customer->billing_state)?$customer->billing_state:'',', '}},
-                                    {{!empty($customer->billing_zip)?$customer->billing_zip:''}}<br>
-                                    {{!empty($customer->billing_country)?$customer->billing_country:''}}<br>
-                                    {{!empty($customer->billing_phone)?$customer->billing_phone:''}}<br>
-                                    @if($settings['vat_gst_number_switch'] == 'on')
-                                    <strong>{{__('Tax Number ')}} : </strong>{{!empty($customer->tax_number)?$customer->tax_number:''}}
+                                <strong>{{ __('Billed To') }} :</strong><br>
+                                @php
+                                    $bn = data_get($customer ?? [], 'billing_name');
+                                    $ba = data_get($customer ?? [], 'billing_address');
+                                    $bc = data_get($customer ?? [], 'billing_city');
+                                    $bs = data_get($customer ?? [], 'billing_state');
+                                    $bz = data_get($customer ?? [], 'billing_zip');
+                                    $bco= data_get($customer ?? [], 'billing_country');
+                                    $bp = data_get($customer ?? [], 'billing_phone');
+                                    $btax = data_get($customer ?? [], 'tax_number');
+                                @endphp
+                                @if(!empty($bn))
+                                    {{ $bn }}<br>
+                                    {{ $ba ?? '' }}<br>
+                                    {{ $bc ? $bc : '' }}{{ $bc && $bs ? ', ' : '' }}{{ $bs ? $bs : '' }}{{ ($bc || $bs) && $bz ? ', ' : '' }}{{ $bz ?? '' }}<br>
+                                    {{ $bco ?? '' }}<br>
+                                    {{ $bp ?? '' }}<br>
+                                    @if(($settings['vat_gst_number_switch'] ?? '') === 'on')
+                                        <strong>{{ __('Tax Number') }} : </strong>{{ $btax ?? '' }}
                                     @endif
                                 @else
                                     -
                                 @endif
                             </small>
                         </div>
-                        <div class="col-4">
-                            @if(App\Models\Utility::getValByName('shipping_display')=='on')
+
+                        <div class="{{ VC::C12 }} {{ VC::CL4 }} {{ VC::CM4 }}">
+                            @if($shippingOn)
+                                @php
+                                    $sn = data_get($customer ?? [], 'shipping_name');
+                                    $sa = data_get($customer ?? [], 'shipping_address');
+                                    $sc = data_get($customer ?? [], 'shipping_city');
+                                    $ss = data_get($customer ?? [], 'shipping_state');
+                                    $sz = data_get($customer ?? [], 'shipping_zip');
+                                    $sco= data_get($customer ?? [], 'shipping_country');
+                                    $sp = data_get($customer ?? [], 'shipping_phone');
+                                @endphp
                                 <small>
-                                    <strong>{{__('Shipped To')}} :</strong><br>
-                                        @if(!empty($customer->shipping_name))
-                                        {{!empty($customer->shipping_name)?$customer->shipping_name:''}}<br>
-                                        {{!empty($customer->shipping_address)?$customer->shipping_address:''}}<br>
-                                        {{!empty($customer->shipping_city)?$customer->shipping_city:'' . ', '}}<br>
-                                        {{!empty($customer->shipping_state)?$customer->shipping_state:'' .', '}},
-                                        {{!empty($customer->shipping_zip)?$customer->shipping_zip:''}}<br>
-                                        {{!empty($customer->shipping_country)?$customer->shipping_country:''}}<br>
-                                        {{!empty($customer->shipping_phone)?$customer->shipping_phone:''}}<br>
+                                    <strong>{{ __('Shipped To') }} :</strong><br>
+                                    @if(!empty($sn))
+                                        {{ $sn }}<br>
+                                        {{ $sa ?? '' }}<br>
+                                        {{ $sc ? $sc : '' }}{{ $sc && $ss ? ', ' : '' }}{{ $ss ? $ss : '' }}{{ ($sc || $ss) && $sz ? ', ' : '' }}{{ $sz ?? '' }}<br>
+                                        {{ $sco ?? '' }}<br>
+                                        {{ $sp ?? '' }}<br>
                                     @else
-                                    -
+                                        -
                                     @endif
                                 </small>
                             @endif
                         </div>
-                        <div class="col-3">
-                            <div class="d-flex align-items-center justify-content-end">
-                                <div class="me-4">
+
+                        <div class="{{ VC::C12 }} {{ VC::CL4 }} {{ VC::CM3 }}">
+                            <div class="{{ VC::DFL_AIC_JCB }}">
+                                <div class="{{ VC::ME3 }}">
                                     <small>
-                                        <strong>{{__('Issue Date')}} :</strong>
-                                        {{\Auth::user()->dateFormat($pos->purchase_date)}}<br><br>
+                                        <strong>{{ __('Issue Date') }} :</strong>
+                                        {{ $issueDate }}<br><br>
                                     </small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-4">
-                        <div class="col-md-12">
-                            <div class="table-responsive mt-3">
-                                <table class="table">
+
+                    <div class="{{ VC::RW }} {{ VC::MT3 }}">
+                        <div class="{{ VC::CM12 }}">
+                            <div class="table-responsive {{ VC::MT3 }}">
+                                <table class="{{ VC::TB }}">
                                     <thead>
-                                    <tr>
-                                        <th class="text-dark" >#</th>
-                                        <th class="text-dark">{{__('Items')}}</th>
-                                        <th class="text-dark">{{__('Quantity')}}</th>
-                                        <th class="text-dark">{{__('Price')}}</th>
-                                        <th class="text-dark">{{__('Tax')}}</th>
-                                        <th class="text-dark">{{__('Tax Amount')}}</th>
-                                        <th class="text-dark">{{__('Total')}}</th>
-                                    </tr>
+                                        <tr>
+                                            <th class="text-dark">#</th>
+                                            <th class="text-dark">{{ __('Items') }}</th>
+                                            <th class="text-dark">{{ __('Quantity') }}</th>
+                                            <th class="text-dark">{{ __('Price') }}</th>
+                                            <th class="text-dark">{{ __('Tax') }}</th>
+                                            <th class="text-dark">{{ __('Tax Amount') }}</th>
+                                            <th class="text-dark">{{ __('Total') }}</th>
+                                        </tr>
                                     </thead>
                                     @php
-                                        $totalQuantity=0;
-                                        $totalRate=0;
-                                        $totalTaxPrice=0;
-                                        $totalDiscount=0;
-                                        $taxesData=[];
+                                        $taxesData = [];
                                     @endphp
-                                    @foreach($items as $key =>$item)
-                                        @if(!empty($item->tax))
-                                            @php
-                                                $taxes=App\Models\Utility::tax($item->tax);
-                                                $totalQuantity+=$item->quantity;
-                                                $totalRate+=$item->price;
-                                                $totalDiscount+=$item->discount;
-                                                foreach($taxes as $taxe){
-
-                                                    $taxDataPrice=App\Models\Utility::taxRate($taxe->rate,$item->price,$item->quantity);
-                                                    if (array_key_exists($taxe->name,$taxesData))
-                                                    {
-                                                        $taxesData[$taxe->name] = $taxesData[$taxe->name]+$taxDataPrice;
-                                                    }
-                                                    else
-                                                    {
-                                                        $taxesData[$taxe->name] = $taxDataPrice;
-                                                    }
+                                    @forelse(($items ?? []) as $key => $item)
+                                        @php
+                                            $rowTaxTotal = 0;
+                                            $taxes = [];
+                                            if (!empty($item?->tax)) {
+                                                $taxes = Utility::tax($item->tax) ?? [];
+                                                foreach ($taxes as $tx) {
+                                                    $tp = Utility::taxRate($tx->rate ?? 0, $item->price ?? 0, $item->quantity ?? 0);
+                                                    $rowTaxTotal += $tp;
+                                                    $name = $tx->name ?? 'Tax';
+                                                    $taxesData[$name] = ($taxesData[$name] ?? 0) + $tp;
                                                 }
-                                            @endphp
-                                        @endif
+                                            }
+                                            $qty = $item->quantity ?? 0;
+                                            $price = $item->price ?? 0;
+                                            $lineTotal = ($price * $qty) + $rowTaxTotal;
+                                            $priceFmt = $canPrice ? ($user->priceFormat($price) ?? '') : (string)$price;
+                                            $rowTaxFmt = $canPrice ? ($user->priceFormat($rowTaxTotal) ?? '') : (string)$rowTaxTotal;
+                                            $lineTotalFmt = $canPrice ? ($user->priceFormat($lineTotal) ?? '') : (string)$lineTotal;
+                                        @endphp
                                         <tr>
-                                            <td>{{$key+1}}</td>
-                                            <td>{{!empty($item->product())?$item->product()->name:''}}</td>
-                                            <td>{{$item->quantity}}</td>
-                                            <td>{{\Auth::user()->priceFormat($item->price)}}</td>
+                                            <td>{{ ($key ?? 0) + 1 }}</td>
+                                            <td>{{ optional($item->product())->name ?? __('Unnamed product') }}</td>
+                                            <td>{{ $qty }}</td>
+                                            <td>{{ $priceFmt }}</td>
                                             <td>
-                                                @if(!empty($item->tax))
+                                                @if(!empty($taxes))
                                                     <table>
-                                                        @php
-                                                            $totalTaxRate = 0;
-                                                            $totalTaxPrice = 0;
-                                                        @endphp
                                                         @foreach($taxes as $tax)
-                                                            @php
-                                                                $taxPrice=App\Models\Utility::taxRate($tax->rate,$item->price,$item->quantity);
-                                                                $totalTaxPrice+=$taxPrice;
-                                                            @endphp
                                                             <tr>
-                                                                <span class="badge bg-primary">{{$tax->name .' ('.$tax->rate .'%)'}}</span> <br>
+                                                                <span class="badge bg-primary">{{ ($tax->name ?? 'Tax') . ' (' . (($tax->rate ?? 0)) . '%)' }}</span><br>
                                                             </tr>
                                                         @endforeach
                                                     </table>
@@ -180,37 +209,29 @@
                                                     -
                                                 @endif
                                             </td>
-                                            <td>{{\Auth::user()->priceFormat($totalTaxPrice)}}</td>
-                                            <td >{{\Auth::user()->priceFormat(($item->price*$item->quantity) + $totalTaxPrice)}}</td>
+                                            <td>{{ $rowTaxFmt }}</td>
+                                            <td>{{ $lineTotalFmt }}</td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-muted">{{ __('No items available.') }}</td>
+                                        </tr>
+                                    @endforelse
 
                                     <tr>
-                                        <td><b>{{__(' Sub Total')}}</b></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td>{{\Auth::user()->priceFormat($posPayment['amount'])}}</td>
+                                        <td><b>{{ __('Sub Total') }}</b></td>
+                                        <td></td><td></td><td></td><td></td><td></td>
+                                        <td>{{ $amountFmt }}</td>
                                     </tr>
                                     <tr>
-                                        <td><b>{{__('Discount')}}</b></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td>{{\Auth::user()->priceFormat($posPayment['discount'])}}</td>
+                                        <td><b>{{ __('Discount') }}</b></td>
+                                        <td></td><td></td><td></td><td></td><td></td>
+                                        <td>{{ $discountFmt }}</td>
                                     </tr>
                                     <tr class="pos-header">
-                                        <td><b>{{__('Total')}}</b></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td>{{\Auth::user()->priceFormat($posPayment['discount_amount'])}}</td>
+                                        <td><b>{{ __('Total') }}</b></td>
+                                        <td></td><td></td><td></td><td></td><td></td>
+                                        <td>{{ $totalFmt }}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -221,3 +242,52 @@
         </div>
     </div>
 @endsection
+
+@push(StacksConstants::ADM_SCR_PG)
+    <script async src="{{ asset('assets/js/routes/pos/lang/view.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/pos/view.js') }}"></script>
+    <script defer>
+        (() => {
+            const $ = window.jQuery;
+            const send = (url, isDisplay) => {
+            if ($ && typeof $.ajax === "function") {
+                $.ajax({
+                url,
+                type: "GET",
+                data: { is_display: !!isDisplay },
+                success: () => {},
+                error: () => {},
+                });
+                return;
+            }
+            try {
+                const u = new URL(url, window.location.href);
+                u.searchParams.set("is_display", isDisplay ? "1" : "0");
+                fetch(u.toString(), { method: "GET", credentials: "same-origin" }).catch(() => {});
+            } catch (_) {}
+            };
+            const handler = (e) => {
+            try {
+                const target = e.target.closest("#shipping");
+                if (!target) return;
+                const url = target.getAttribute("data-url") || "";
+                if (!url) return;
+                const isDisplay = target.checked === true;
+                send(url, isDisplay);
+            } catch (_) {}
+            };
+            const init = () => {
+            if ($ && typeof $(document).on === "function") {
+                $(document).on("click", "#shipping", handler);
+            } else {
+                document.addEventListener("click", handler);
+            }
+            };
+            if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init, { once: true });
+            } else {
+            init();
+            }
+        })();
+    </script>
+@endpush

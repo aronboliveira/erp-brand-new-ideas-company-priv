@@ -32,7 +32,7 @@
                   <div class="{{ VC::FM_G }}">
                       {{ Form::label('branch',__('Branch*'),['class'=>VC::FM_LB]) }}
                       <select name="branch" id="branch" required class="{{ VC::FM_CT_SL }}">
-                          @foreach($brances as $value)
+                          @foreach($branches as $value)
                               <option value="{{ $value->id }}" @if($appraisal->branch==$value->id) selected @endif>{{ $value->name }}</option>
                           @endforeach
                       </select>

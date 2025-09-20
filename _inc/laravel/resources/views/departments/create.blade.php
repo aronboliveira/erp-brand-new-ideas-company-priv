@@ -6,7 +6,7 @@
     use Illuminate\Support\Facades\Route;
     use Illuminate\Support\{Collection, Str};
 
-    $lang = Utility::fetchLinkMessage();
+    $lang = Utility::fetchUserLang();
     $branchIsList  = (is_array($branch ?? null) && count($branch ?? [])) || (($branch ?? null) instanceof Collection && $branch->isNotEmpty());
     $branchOptions = $branchIsList ? $branch : ['' => __('No branches available')];
     $departmentStoreBaseRouteName  = VW::DPT;
@@ -14,7 +14,6 @@
     $departmentStoreResolvedName   = Route::has($departmentStoreBaseRouteName) ? $departmentStoreBaseRouteName : (Route::has($departmentStoreKebabRouteName) ? $departmentStoreKebabRouteName : null);
     $departmentStoreUrl            = $departmentStoreResolvedName ? route($departmentStoreResolvedName) : '#';
     $departmentStoreFormId         = 'department-store-form';
-    $departmentStoreGuardMessage   = 'Store department route is unavailable. Please contact technical support or your domain administrator.';
     $guardMsg = Utility::fetchLinkMessage($lang, VW::DPT, 'store_department_route_unavailable') ?? 'Store department route is unavailable. Please contact technical support or your domain administrator.';
     $branchHasError = $errors->has('branch_id');
     $branchAttrs    = [

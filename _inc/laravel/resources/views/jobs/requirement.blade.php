@@ -3,10 +3,12 @@
 		DatabaseConstants,
 		ExtendingLayoutsConstants,
 		SettingsConstants,
-		ViewClassNamesConstants
+        ViewsConstants as VW,
+		ViewClassNamesConstants as VC,
 	};
 	use App\Models\Utility;
-	use Illuminate\Support\Facades\Log;
+	use Illuminate\Support\Facades\{Log, Route};
+    use Illuminate\Support\{Collection, Str};
 	$data ??= [];
 	$logo ??= '';
 	$colorSettings ??= [];
@@ -19,14 +21,14 @@
 	$faviconUrl ??= '';
 	try {
 		$data = Utility::prepareCommonViewData(null, 'uploads/logo/') ?: [];
-		$logo = $data[SettingsConstants::LOGO] ?? '';
-		$colorSettings = $data[SettingsConstants::CLR_STG] ?? [];
-		$color = $data[SettingsConstants::THM_CLR] ?? '';
-		$meta_title = $data[SettingsConstants::MT_TTL_K] ?? '';
-		$meta_desc = $data[SettingsConstants::MT_DESC_LONG] ?? '';
-		$meta_image = $data[SettingsConstants::MT_IMG_K] ?? '';
-		$meta_logo = $data[SettingsConstants::MT_LOGO] ?? '';
-		$get_cookie = $data[SettingsConstants::CK_STG] ?? '';
+		$logo = $data[ST::LOGO] ?? '';
+		$colorSettings = $data[ST::CLR_STG] ?? [];
+		$color = $data[ST::THM_CLR] ?? '';
+		$meta_title = $data[ST::MT_TTL_K] ?? '';
+		$meta_desc = $data[ST::MT_DESC_LONG] ?? '';
+		$meta_image = $data[ST::MT_IMG_K] ?? '';
+		$meta_logo = $data[ST::MT_LOGO] ?? '';
+		$get_cookie = $data[ST::CK_STG] ?? '';
 		$faviconUrl = Utility::getCompanyLogo() ?: '';
 	} catch (\Error $e) {
 		Log::error(
@@ -60,106 +62,115 @@
 		);
 	}
     $data = Utility::fallbackSettings($data);
+    $lang = Utility::fetchUserLang();
+    $siteRtl = data_get($data,'site_rtl','off');
+    $jobTitle = data_get($job,'title',__('No job title available'));
+    $branchName = data_get($job,'branches.name');
+    $skills = array_filter(array_map('trim',explode(',',(string) data_get($job,'skill',''))));
+    $reqHtml = data_get($job,'requirement');
+    $descHtml = data_get($job,'description');
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
+<html lang="{{ $lang ?? (str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
-        @include('fragments.std', [
-            'meta_title' => $meta_title,
-            'meta_desc' => $meta_desc,
-            'meta_vp' => 'shrink-to-fit=no',
-        ])
-        <title>
-            {{ !empty($companySettings['header_text']) ? $companySettings['header_text']->value : config('app.name', 'ERP Nova Prestech') }}
-            - {{ __('Career') }}</title>
-        @include('fragments.og', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
-            'meta_image' => $meta_image,
-            'meta_logo' => $meta_logo
-        ])
-        @include('fragments.x', [
-            'meta_title' => $meta_title, 
-            'meta_desc' => $meta_desc, 
-            'meta_image' => $meta_image,
-            'meta_logo' => $meta_logo
-        ])
-        @include('fragments.favicon', ['faviconUrl' => $faviconUrl])
+        @include('fragments.std', ['meta_title'=>$meta_title,'meta_desc'=>$meta_desc,'meta_vp'=>'shrink-to-fit-no'])
+        <title>{{ data_get($companySettings,'header_text.value',config('app.name','ERP Nova Prestech')) }} - {{ __('Career') }}</title>
+        @include('fragments.og', ['meta_title'=>$meta_title,'meta_desc'=>$meta_desc,'meta_image'=>$meta_image,'meta_logo'=>$meta_logo])
+        @include('fragments.x', ['meta_title'=>$meta_title,'meta_desc'=>$meta_desc,'meta_image'=>$meta_image,'meta_logo'=>$meta_logo])
+        @include('fragments.favicon', ['faviconUrl'=>$faviconUrl])
         <link rel="stylesheet" href="{{ asset('assets/fonts/tabler-icons.min.css') }}">
         <link rel="stylesheet" href="{{ asset('css/site.css') }}" id="stylesheet">
-        @if (issetcolor_($colorSettings[SettingsConstants::CST_DRK]) && $colorSettings[SettingsConstants::CST_DRK] == 'on')
+        @if (function_exists('issetcolor_') ? (issetcolor_(data_get($colorSettings,ST::CST_DRK)) && data_get($colorSettings,ST::CST_DRK)==='on') : (data_get($colorSettings,ST::CST_DRK)==='on'))
             <link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}">
         @else
-            <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}"id="main-style-link">
+            <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" id="main-style-link">
         @endif
         <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
-        @if (issetcolor_($colorSettings[SettingsConstants::CST_DRK]) && $colorSettings[SettingsConstants::CST_DRK] == 'on')
+        @if (function_exists('issetcolor_') ? (issetcolor_(data_get($colorSettings,ST::CST_DRK)) && data_get($colorSettings,ST::CST_DRK)==='on') : (data_get($colorSettings,ST::CST_DRK)==='on'))
             <link rel="stylesheet" href="{{ asset('css/custom-dark.css') }}">
         @endif
         <meta name="csrf-token" content="{{ csrf_token() }}">
     </head>
-    <body class="{{$color}}">
+    <body class="{{ $color }}">
         <div class="job-wrapper">
             <div class="job-content">
-                <nav class="{{ ViewClassNamesConstants::NVB }}">
-                    <div class="{{ ViewClassNamesConstants::CT }}">
-                        <a class="{{ ViewClassNamesConstants::NVB_BR }}" href="#">
-                            <img src="{{ $logo . '/' . (isset($company_logos) && !empty($company_logos) ? $company_logos : 
-                            SettingsConstants::CPN_LG_LT_DEF) }}" alt="logo" style="width: 90px">
+                <nav class="{{ VC::NVB }}">
+                    <div class="{{ VC::CT }}">
+                        @php $companyLogo = !empty($company_logos) ? $company_logos : ST::CPN_LG_LT_DEF; @endphp
+                        <a class="{{ VC::NVB_BR }}" href="#">
+                            <img src="{{ rtrim($logo,'/').'/'.$companyLogo }}" alt="logo" style="width:90px">
                         </a>
                     </div>
                 </nav>
                 <section class="job-banner">
-                    <div class="job-banner-bg">
-                        <img src="{{asset('/storage/uploads/job/banner.png')}}" alt="">
-                    </div>
-                    <div class="{{ ViewClassNamesConstants::CT }}">
+                    <div class="job-banner-bg"><img src="{{ asset('/storage/uploads/job/banner.png') }}" alt=""></div>
+                    <div class="{{ VC::CT }}">
                         <div class="job-banner-content text-center text-white">
-                            <h1 class="text-white mb-3">
-                                {{__(' We help')}} <br> {{__('businesses grow')}}
-                            </h1>
+                            <h1 class="text-white mb-3">{{ __(' We help') }} <br> {{ __('businesses grow') }}</h1>
                             <p>{{ __('Work there. Find the dream job you’ve always wanted..') }}</p>
-                            </p>
                         </div>
                     </div>
                 </section>
                 <section class="apply-job-section">
-                    <div class="{{ ViewClassNamesConstants::CT }}">
+                    <div class="{{ VC::CT }}">
                         <div class="apply-job-wrapper bg-light">
                             <div class="section-title text-center">
-                                <p><b>{{$job->title}}</b></p>
+                                <p><b>{{ $jobTitle }}</b></p>
                                 <div class="d-flex flex-wrap justify-content-center gap-1 mb-4">
-                                    @foreach (explode(',', $job->skill) as $skill)
-                                        <span class="badge rounded p-2 bg-primary">{{ $skill }}</span>
-                                    @endforeach
+                                    @if(is_array($skills) && count($skills))
+                                        @foreach($skills as $skill)
+                                            <span class="badge rounded p-2 bg-primary">{{ $skill }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="badge rounded p-2 bg-primary">{{ __('No skills available') }}</span>
+                                    @endif
                                 </div>
-
-                                @if(!empty($job->branches)?$job->branches->name:'')
-                                    <p> <i class="ti ti-map-pin ms-1"></i> {{!empty($job->branches)?$job->branches->name:''}}</p>
-                                @endif
-
-                                <a href="{{route('job.apply',[$job->code,$currentLang])}}" class="btn btn-primary rounded">{{__('Apply now')}} <i class="ti ti-send ms-2"></i> </a>
+                                <p><i class="ti ti-map-pin ms-1"></i> {{ !empty($branchName) ? $branchName : __('No branch name available') }}</p>
+                                @php
+                                    $jobCode       = (string) data_get($job, 'code', '');
+                                    $locale        = isset($currentLang) ? $currentLang : app()->getLocale();
+                                    $applyBase     = VW::JB.'.apply';
+                                    $applyKebab    = Str::kebab($applyBase);
+                                    $applyResolved = Route::has($applyBase) ? $applyBase : (Route::has($applyKebab) ? $applyKebab : null);
+                                    $applyUrl      = ($applyResolved && $jobCode !== '') ? route($applyResolved, [$jobCode, $locale]) : '#';
+                                    $applyGuardMsg = Utility::fetchLinkMessage($lang, VW::JB, 'apply_job_route_unavailable')
+                                                    ?? 'Apply job route is unavailable. Please contact technical support or your domain administrator.';
+                                    $linkId        = 'job-apply-link-'.($jobCode !== '' ? $jobCode : 'x');
+                                @endphp
+                                <a
+                                    id="{{ $linkId }}"
+                                    href="{{ $applyUrl }}"
+                                    class="btn btn-primary rounded job-apply-link"
+                                    data-url="{{ $applyUrl }}"
+                                    data-guard-msg="{{ $applyGuardMsg }}"
+                                    data-sv-localized="true"
+                                    {{ $applyUrl === '#' ? 'aria-disabled=true' : '' }}
+                                >
+                                    {{ __('Apply now') }} <i class="ti ti-send ms-2"></i>
+                                </a>
+                                <script defer src="{{ asset('assets/js/routes/jobs/applyRequirement.js') }}"></script>
                             </div>
-                            <h3>{{__('Requirements')}}</h3>
-                            <p>{!! $job->requirement !!}</p>
-
+                            <h3>{{ __('Requirements') }}</h3>
+                            <p>{!! !empty($reqHtml) ? $reqHtml : e(__('No requirements available')) !!}</p>
                             <hr>
-                            <h3>{{__('Description')}}</h3><br>
-                            {!! $job->description !!}
+                            <h3>{{ __('Description') }}</h3><br>
+                            {!! !empty($descHtml) ? $descHtml : e(__('No description available')) !!}
                         </div>
                     </div>
                 </section>
             </div>
         </div>
+        <div id="toast-container" style="position:fixed;top:1rem;right:1rem;z-index:1060"></div>
         <script src="{{ asset('assets/js/plugins/popper.min.js') }}"></script>
         <script src="{{ asset('assets/js/plugins/bootstrap.min.js') }}"></script>
         <script src="{{ asset('js/site.core.js') }}"></script>
         <script src="{{ asset('js/site.js') }}"></script>
-        <script src="{{ asset('js/demo.js') }} "></script>
+        <script src="{{ asset('js/demo.js') }}"></script>
         <script async src="{{ asset('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
         <script async src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/jobs/requirement.js') }}"></script>
     </body>
-    @if($get_cookie['enable_cookie'] == 'on')
+    @if(is_array($get_cookie) && data_get($get_cookie,'enable_cookie')==='on')
         @includeIf(ExtendingLayoutsConstants::CKC)
     @endif
 </html>

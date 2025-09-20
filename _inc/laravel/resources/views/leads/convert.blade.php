@@ -82,40 +82,68 @@
 </div>
 
 {{Collective\Html\FormFacade::close()}}
-
-<script>
-    $(document).ready(function () {
-        var is_client = $("input[name='client_check']:checked").val();
-        $("input[name='client_check']").click(function () {
-            is_client = $(this).val();
-
-            if (is_client == "exist") {
-                $('.exist_client').removeClass('d-none');
-                $('#client_name').removeAttr('required');
-                $('#client_email').removeAttr('required');
-                $('#client_password').removeAttr('required');
-                $('.new_client').addClass('d-none');
-            } else {
-                $('.new_client').removeClass('d-none');
-                $('#client_name').attr('required', 'required');
-                $('#client_email').attr('required', 'required');
-                $('#client_password').attr('required', 'required');
-                $('.exist_client').addClass('d-none');
-            }
-        });
-        if (is_client == "exist") {
-            $('.exist_client').removeClass('d-none');
-            $('#client_name').removeAttr('required');
-            $('#client_email').removeAttr('required');
-            $('#client_password').removeAttr('required');
-            $('.new_client').addClass('d-none');
+<script async src="{{ asset('assets/js/routes/leads/lang/convert.js') }}"></script>
+<script defer>
+  (() => {
+    const getLocale = () => {
+      const raw =
+        (window.appLocale || document.documentElement.lang || "en").toLowerCase();
+      return raw === "pt-br" ? "pt-br" : raw.split("-")[0];
+    };
+    const tr = (key) => {
+      const loc = getLocale();
+      const dict =
+        (window.translations && window.translations[loc]) ||
+        (window.translations && window.translations.en) ||
+        {};
+      return dict[key] || key;
+    };
+    const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const toggleClass = (nodes, c, add) =>
+      nodes.forEach((n) => n && (add ? n.classList.add(c) : n.classList.remove(c)));
+    const setRequired = (sels, on) =>
+      sels.forEach((s) => {
+        const el = document.querySelector(s);
+        if (el) on ? el.setAttribute("required", "required") : el.removeAttribute("required");
+      });
+    const applyMode = (mode) => {
+      try {
+        const existBlocks = qsa(".exist_client");
+        const newBlocks = qsa(".new_client");
+        const req = ["#client_name", "#client_email", "#client_password"];
+        if (mode === "exist") {
+          toggleClass(existBlocks, "d-none", false);
+          toggleClass(newBlocks, "d-none", true);
+          setRequired(req, false);
         } else {
-            $('.new_client').removeClass('d-none');
-            $('#client_name').attr('required', 'required');
-            $('#client_email').attr('required', 'required');
-            $('#client_password').attr('required', 'required');
-            $('.exist_client').addClass('d-none');
+          toggleClass(existBlocks, "d-none", true);
+          toggleClass(newBlocks, "d-none", false);
+          setRequired(req, true);
         }
-    })
-
+      } catch {
+        console.warn(tr("request_failed"));
+      }
+    };
+    const init = () => {
+      try {
+        const radios = qsa('input[name="client_check"]');
+        if (radios.length === 0) {
+          console.warn(tr("element_unavailable"));
+          return;
+        }
+        const checked = radios.find((r) => r.checked);
+        applyMode(checked ? checked.value : "new");
+        radios.forEach((r) =>
+          r.addEventListener("click", () => applyMode(r.value || "new"))
+        );
+      } catch {
+        console.warn(tr("request_failed"));
+      }
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+      init();
+    }
+  })();
 </script>

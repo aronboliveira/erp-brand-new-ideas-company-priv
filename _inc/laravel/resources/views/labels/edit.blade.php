@@ -47,7 +47,7 @@
                         @foreach($colors as $color)
                             <div class="col-auto">
                                 <label class="colorinput">
-                                    <input name="color" type="radio" value="{{ $color }}" @checked($label->color == $color) class="colorinput-input">
+                                    <input name="color" type="radio" value="{{ $color }}" @checked(!empty($label->color) && $label->color == $color) class="colorinput-input">
                                     <span class="colorinput-color bg-{{ $color }}"></span>
                                 </label>
                             </div>

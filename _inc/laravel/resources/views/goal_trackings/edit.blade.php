@@ -12,11 +12,11 @@
     $lang            = Utility::fetchUserLang();
     $hasGoal         = !empty($goalTracking ?? null) && data_get($goalTracking, 'id');
 
-    $branchesIsList  = (is_array($brances ?? null) && count($brances ?? []) > 0) || (($brances ?? null) instanceof Collection && $brances->isNotEmpty());
+    $branchesIsList  = (is_array($branches ?? null) && count($branches ?? []) > 0) || (($branches ?? null) instanceof Collection && $branches->isNotEmpty());
     $goalTypesIsList = (is_array($goalTypes ?? null) && count($goalTypes ?? []) > 0) || (($goalTypes ?? null) instanceof Collection && $goalTypes->isNotEmpty());
     $statusIsList    = (is_array($status ?? null) && count($status ?? []) > 0) || (($status ?? null) instanceof Collection && $status->isNotEmpty());
 
-    $branchOptions   = $branchesIsList  ? (is_array($brances) ? $brances : $brances->toArray())       : [__('No branches available')];
+    $branchOptions   = $branchesIsList  ? (is_array($branches) ? $branches : $branches->toArray())       : [__('No branches available')];
     $goalTypeOptions = $goalTypesIsList ? (is_array($goalTypes) ? $goalTypes : $goalTypes->toArray()) : [__('No goal types available')];
     $statusOptions   = $statusIsList    ? (is_array($status) ? $status : $status->toArray())          : [__('No statuses available')];
 

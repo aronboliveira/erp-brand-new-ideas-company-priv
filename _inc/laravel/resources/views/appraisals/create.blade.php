@@ -24,7 +24,7 @@
                     {{ Form::label('branch',__('Branch*'),['class'=>ViewClassNamesConstants::FM_LB]) }}
                     <select name="branch" id="branch" required class="{{ ViewClassNamesConstants::FM_CT_SL }}">
                         <option selected disabled value="0">{{ __('Select Branch') }}</option>
-                        @foreach($brances as $value)
+                        @foreach($branches as $value)
                             <option value="{{ $value->id }}">{{ $value->name }}</option>
                         @endforeach
                     </select>
