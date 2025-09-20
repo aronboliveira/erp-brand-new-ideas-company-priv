@@ -4,61 +4,106 @@
         ExtendingLayoutsConstants,
         PlansConstants,
         SettingsConstants,
-        StacksConstants,
         ViewClassNamesConstants as VC,
-        YieldingConstants,
+        ViewsConstants as VW
     };
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Facades\{Route};
+    use Illuminate\Support\Str;
+
+    function resolveRoute(string $base): ?string {
+        $k = Str::kebab($base);
+        return Route::has($base) ? $base : (Route::has($k) ? $k : null);
+    }
+
     $lang = Utility::fetchUserLang();
+
+    $leadStoreBase = VW::LD . '.store';
+    $leadStoreResolved = resolveRoute($leadStoreBase);
+    $leadStoreUrl = $leadStoreResolved ? route($leadStoreResolved) : '#';
+    $leadStoreGuard = __(Utility::fetchLinkMessage($lang, VW::LD, 'lead_store_route_unavailable') ?? 'Lead store route is unavailable. Please contact technical support or your domain administrator.');
+
+    $usrIndexBase = VW::USR . '.index';
+    $usrIndexResolved = resolveRoute($usrIndexBase);
+    $usrIndexUrl = $usrIndexResolved ? route($usrIndexResolved) : '#';
+    $usrIndexGuard = __(Utility::fetchLinkMessage($lang, VW::USR, 'user_index_route_unavailable') ?? 'Users index route is unavailable. Please contact technical support or your domain administrator.');
+
+    $plan = Utility::getChatGPTSettings();
 @endphp
-{{ Form::open(array('url' => ViewsConstants::LD)) }}
+
+@if($leadStoreResolved)
+    @php
+        $formOpen = ['route' => [$leadStoreResolved], 'id' => 'lead-create-form', 'data-url' => $leadStoreUrl, 'data-guard-msg' => $leadStoreGuard, 'data-sv-localized' => 'true'];
+    @endphp
+@else
+    @php
+        $formOpen = ['url' => '#', 'id' => 'lead-create-form', 'data-url' => '#', 'data-guard-msg' => $leadStoreGuard, 'data-sv-localized' => 'true'];
+    @endphp
+@endif
+
+{{ Form::open($formOpen) }}
     <div class="modal-body">
-        {{-- start for ai module--}}
-        @php
-            $plan= Utility::getChatGPTSettings();
-        @endphp
-        @if($plan?->{PlansConstants::COL_GPT} == 1)
+        @if(($plan?->{PlansConstants::COL_GPT} ?? 0) == 1)
+            @php
+                $genBase = 'generate';
+                $genResolved = resolveRoute($genBase);
+                $genUrl = $genResolved ? route($genResolved, ['lead']) : '#';
+                $genGuard = __(Utility::fetchLinkMessage($lang, 'generics', 'ai_generate_unavailable') ?? 'AI generate route is unavailable. Please contact technical support or your domain administrator.');
+            @endphp
             <div class="text-end">
-                <a href="#" data-size="md" class="btn btn-primary btn-icon btn-sm" data-ajax-popup-over="true" data-url="{{ route('generate',['lead']) }}"
-                data-bs-placement="top" data-title="{{ __('Generate content with AI') }}">
-                    <i class="{{ VC::FAS_RB }}"></i> <span>{{__('Generate with AI')}}</span>
+                <a href="{{ $genUrl }}"
+                   data-url="{{ $genUrl }}"
+                   data-guard-msg="{{ $genGuard }}"
+                   data-sv-localized="true"
+                   data-size="md"
+                   class="{{ VC::BT }} {{ VC::BT_PM }} btn-icon {{ VC::BT_SM }} ld-route-guard"
+                   data-ajax-popup-over="true"
+                   data-bs-placement="top"
+                   data-title="{{ __('Generate content with AI') }}">
+                    <i class="{{ VC::FAS_RB }}"></i> <span>{{ __('Generate with AI') }}</span>
                 </a>
             </div>
+        @else
+            <div class="text-end text-muted text-xs">{{ __('AI module is unavailable for your plan.') }}</div>
         @endif
-        {{-- end for ai module--}}
-        <div class="row">
+
+        <div class="{{ VC::RW }}">
             <div class="col-6 form-group">
-                {{ Form::label('subject', __('Subject'),['class'=>'form-label']) }}
-                {{ Form::text('subject', null, array('class' => 'form-control','required'=>'required')) }}
+                {{ Form::label('subject', __('Subject'),['class'=> VC::FM_LB]) }}
+                {{ Form::text('subject', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
             <div class="col-6 form-group">
-                {{ Form::label('user_id', __('User'),['class'=>'form-label']) }}
-                {{ Form::select('user_id', $users,null, array('class' => 'form-control select','required'=>'required')) }}
-                @if(count($users) == 1)
+                {{ Form::label('user_id', __('User'),['class'=> VC::FM_LB]) }}
+                {{ Form::select('user_id', $users ?? [], null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
+                @if(is_countable($users ?? []) && count($users ?? []) == 1)
                     <div class="text-muted text-xs">
-                        {{__('Please create new users')}} <a href="{{route(ViewsConstants::USR.'.index')}}">{{__('here')}}</a>.
+                        {{ __('Please create new users') }} <a href="{{ $usrIndexUrl }}" class="ld-route-guard" data-url="{{ $usrIndexUrl }}" data-guard-msg="{{ $usrIndexGuard }}" data-sv-localized="true">{{ __('here') }}</a>.
                     </div>
                 @endif
             </div>
             <div class="col-6 form-group">
-                {{ Form::label('name', __('Name'),['class'=>'form-label']) }}
-                {{ Form::text('name', null, array('class' => 'form-control','required'=>'required')) }}
+                {{ Form::label('name', __('Name'),['class'=> VC::FM_LB]) }}
+                {{ Form::text('name', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
             <div class="col-6 form-group">
-                {{ Form::label('email', __('Email'),['class'=>'form-label']) }}
-                {{ Form::text('email', null, array('class' => 'form-control','required'=>'required')) }}
+                {{ Form::label('email', __('Email'),['class'=> VC::FM_LB]) }}
+                {{ Form::text('email', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
             <div class="col-6 form-group">
-                {{ Form::label('phone', __('Phone'),['class'=>'form-label']) }}
-                {{ Form::text('phone', null, array('class' => 'form-control','required'=>'required')) }}
+                {{ Form::label('phone', __('Phone'),['class'=> VC::FM_LB]) }}
+                {{ Form::text('phone', null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
         </div>
     </div>
     <div class="modal-footer">
-        <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-        <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+        <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+        <input type="submit" id="lead-submit" value="{{ __('Create') }}" class="{{ VC::BT_PM }} {{ VC::BT_SM }} ld-submit" data-url="{{ $leadStoreUrl }}" data-guard-msg="{{ $leadStoreGuard }}" data-sv-localized="true">
     </div>
-{{Form::close()}}
+    <script async src="{{ asset('assets/js/routes/leads/lang/create.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/leads/create.js') }}"></script>
+{{ Form::close() }}
 
+@if(!$leadStoreResolved)
+    <div class="text-center text-muted py-3">{{ __('Failed to mount the form because the submit route was not available.') }}</div>
+@endif

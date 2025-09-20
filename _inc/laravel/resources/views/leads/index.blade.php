@@ -7,6 +7,7 @@
         YieldingConstants
     };
     use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth, Gate, Route, URL};
     use Illuminate\Support\Collection;
 
@@ -46,23 +47,25 @@
         @php
             $changePipelineRoute = VW::DL . '.change.pipeline';
         @endphp
-        {{ Collective\Html\FormFacade::open([
+        {{ Form::open([
             'route' => Route::has($changePipelineRoute) ? $changePipelineRoute : null,
             'url'   => Route::has($changePipelineRoute) ? null : URL::to(trim(VW::DL,'/').'/change/pipeline'),
             'id'    => 'change-pipeline',
             'class' => VC::BT_SM
         ]) }}
-            {{ Collective\Html\FormFacade::select(
+            {{ Form::select(
                 'default_pipeline_id',
-                ($pipelines ?? []) ?: [],
+                ((is_array($pipelines ?? null) && count($pipelines ?? [])) || (($pipelines ?? null) instanceof Collection && ($pipelines)->isNotEmpty()))
+                    ? $pipelines
+                    : ['' => __('No pipeline available')],
                 data_get($pipeline,'id',''),
                 ['class'=> VC::FM_CT_SL.' me-4','id'=>'default_pipeline_id']
             ) }}
-        {{ Collective\Html\FormFacade::close() }}
+        {{ Form::close() }}
 
         @can('view lead')
             @php
-                $listGuard = Utility::fetchLinkMessage($lang, VW::DL, 'list_route_unavailable')
+                $listGuard = Utility::fetchLinkMessage($lang, VW::DL, 'deals_list_route_unavailable')
                     ?? 'List view route is unavailable. Please contact technical support or your domain administrator.';
                 $listHref = Route::has(VW::LD.'.list') ? route(VW::LD.'.list') : '#';
             @endphp
@@ -88,7 +91,7 @@
 
         @can('create lead')
             @php
-                $createGuard = Utility::fetchLinkMessage($lang, VW::DL, 'create_route_unavailable')
+                $createGuard = Utility::fetchLinkMessage($lang, VW::DL, 'deals_create_route_unavailable')
                     ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
                 $createHref = Route::has(VW::LD.'.create') ? route(VW::LD.'.create') : '#';
             @endphp
@@ -190,15 +193,14 @@
                                                 $leadName = (string) data_get($lead,'name',__('No lead name available'));
                                                 $isActive = (int) data_get($lead,'is_active',0) === 1;
 
-                                                $labels = method_exists($lead,'labels') ? ($lead->labels() ?? []) : [];
+                                                $labels   = method_exists($lead,'labels')   ? ($lead->labels()   ?? []) : [];
                                                 $products = method_exists($lead,'products') ? ($lead->products() ?? []) : [];
                                                 $sources  = method_exists($lead,'sources')  ? ($lead->sources()  ?? []) : [];
-                                                $leadUsers = data_get($lead,'users',[]);
-
-                                                $guardShow   = Utility::fetchLinkMessage($lang, VW::DL, 'show_route_unavailable')   ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
-                                                $guardEdit   = Utility::fetchLinkMessage($lang, VW::DL, 'edit_route_unavailable')   ?? 'Edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                $guardLabels = Utility::fetchLinkMessage($lang, VW::DL, 'labels_route_unavailable') ?? 'Labels route is unavailable. Please contact technical support or your domain administrator.';
-                                                $guardDelete = Utility::fetchLinkMessage($lang, 'generics', 'delete_route_unavailable') ?? 'Delete route is unavailable. Please contact technical support or your domain administrator.';
+                                                $leadUsers= data_get($lead,'users',[]);
+                                                $guardShow   = Utility::fetchLinkMessage($lang, VW::DL, 'deals_show_route_unavailable')   ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
+                                                $guardEdit   = Utility::fetchLinkMessage($lang, VW::DL, 'deals_edit_route_unavailable')   ?? 'Edit route is unavailable. Please contact technical support or your domain administrator.';
+                                                $guardLabels = Utility::fetchLinkMessage($lang, VW::DL, 'deals_labels_route_unavailable') ?? 'Labels route is unavailable. Please contact technical support or your domain administrator.';
+                                                $guardDelete = Utility::fetchLinkMessage($lang, 'generics', 'deal_destroy_route_unavailable') ?? 'Delete route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
 
                                             <div class="{{ VC::CD }}" data-id="{{ $leadId }}">
@@ -267,11 +269,11 @@
                                                                             $deleteRouteExists = Route::has(VW::LD.'.destroy');
                                                                             $deleteAction = $deleteRouteExists ? route(VW::LD.'.destroy',$leadId) : '#';
                                                                             $deleteConfirm = __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?')
-                                                                                .'|'.
+                                                                                .'|' .
                                                                                 __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?');
                                                                         @endphp
                                                                         @if($deleteRouteExists)
-                                                                            {!! Collective\Html\FormFacade::open([
+                                                                            {!! Form::open([
                                                                                 'method' => 'DELETE',
                                                                                 'route'  => [VW::LD.'.destroy',$leadId],
                                                                                 'id'     => 'delete-form-'.$leadId
@@ -285,7 +287,7 @@
                                                                                     <i class="{{ VC::TI_ARC }}"></i>
                                                                                     <span>{{ __('Delete') }}</span>
                                                                                 </a>
-                                                                            {!! Collective\Html\FormFacade::close() !!}
+                                                                            {!! Form::close() !!}
                                                                         @else
                                                                             <a href="#!"
                                                                                class="dropdown-item"

@@ -103,4 +103,88 @@
   Object.keys(t).forEach(k => {
     window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
   });
+  (function () {
+    var t = {
+      ar: {
+        action_unavailable: "الإجراء غير متاح.",
+        convert_to_deal_unavailable: "تحويل العميل المحتمل إلى صفقة غير متاح.",
+      },
+      da: {
+        action_unavailable: "Handling ikke tilgængelig.",
+        convert_to_deal_unavailable:
+          "Konvertering af lead til aftale er ikke tilgængelig.",
+      },
+      de: {
+        action_unavailable: "Aktion nicht verfügbar.",
+        convert_to_deal_unavailable:
+          "Umwandlung des Leads in Deal ist nicht verfügbar.",
+      },
+      en: {
+        action_unavailable: "Action unavailable.",
+        convert_to_deal_unavailable: "Convert to Deal is unavailable.",
+      },
+      es: {
+        action_unavailable: "Acción no disponible.",
+        convert_to_deal_unavailable: "Convertir a negocio no está disponible.",
+      },
+      fr: {
+        action_unavailable: "Action indisponible.",
+        convert_to_deal_unavailable:
+          "Conversion du lead en affaire indisponible.",
+      },
+      he: {
+        action_unavailable: "הפעולה אינה זמינה.",
+        convert_to_deal_unavailable: "המרת ליד להזדמנות אינה זמינה.",
+      },
+      it: {
+        action_unavailable: "Azione non disponibile.",
+        convert_to_deal_unavailable:
+          "Conversione lead in trattativa non disponibile.",
+      },
+      ja: {
+        action_unavailable: "操作を利用できません。",
+        convert_to_deal_unavailable: "案件への変換は利用できません。",
+      },
+      nl: {
+        action_unavailable: "Actie niet beschikbaar.",
+        convert_to_deal_unavailable:
+          "Converteren naar deal is niet beschikbaar.",
+      },
+      pl: {
+        action_unavailable: "Akcja niedostępna.",
+        convert_to_deal_unavailable:
+          "Konwersja leada na szansę jest niedostępna.",
+      },
+      pt: {
+        action_unavailable: "Ação indisponível.",
+        convert_to_deal_unavailable: "Converter para Negócio indisponível.",
+      },
+      "pt-br": {
+        action_unavailable: "Ação indisponível.",
+        convert_to_deal_unavailable: "Converter para Negócio indisponível.",
+      },
+      ru: {
+        action_unavailable: "Действие недоступно.",
+        convert_to_deal_unavailable: "Преобразование лида в сделку недоступно.",
+      },
+      tr: {
+        action_unavailable: "Eylem kullanılamıyor.",
+        convert_to_deal_unavailable:
+          "Lead'ı fırsata dönüştürme kullanılamıyor.",
+      },
+      zh: {
+        action_unavailable: "无法执行此操作。",
+        convert_to_deal_unavailable: "无法将线索转换为交易。",
+      },
+    };
+    if (!window.translations) window.translations = t;
+    else
+      Object.keys(t).forEach(function (k) {
+        window.translations[k] = Object.assign(
+          {},
+          window.translations[k] || {},
+          t[k]
+        );
+      });
+  })();
 })();

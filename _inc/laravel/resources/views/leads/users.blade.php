@@ -1,17 +1,71 @@
-{{ Collective\Html\FormFacade::model($lead, array('route' => array('leads.users.update', $lead->id), 'method' => 'PUT')) }}
-<div class="modal-body">
-    <div class="row">
-        <div class="col-12 form-group">
-            {{ Collective\Html\FormFacade::label('users', __('User'),['class'=>'form-label']) }}
-            {{ Collective\Html\FormFacade::select('users[]', $users,false, array('class' => 'form-control select2','id'=>'choices-multiple3','multiple'=>'')) }}
+@php
+    use App\Config\Constants\{
+        ViewClassNamesConstants as VC,
+        ViewsConstants as VW
+    };
+    use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
+    use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
+
+    $lang = is_callable([Utility::class,'fetchUserLang']) ? Utility::fetchUserLang() : app()->getLocale();
+
+    $leadOk   = isset($lead) && !empty($lead);
+    $formId   = 'leads-users-form';
+
+    $updateBase  = VW::LD . '.users.update';
+    $updateKebab = Str::kebab($updateBase);
+    $updateName  = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
+
+    $formUrl   = ($leadOk && $updateName) ? route($updateName, [$lead->id]) : '#';
+    $formGuard = Utility::fetchLinkMessage($lang, VW::LD, 'users_update_route_unavailable') ?? 'Leads users update route is unavailable. Please contact technical support or your domain administrator.';
+
+    $usersIsList = (isset($users) && ((is_array($users) && count($users) > 0) || (is_object($users) && method_exists($users,'isNotEmpty') && $users->isNotEmpty())));
+    $userOptions = $usersIsList ? (is_array($users) ? $users : (method_exists($users,'toArray') ? $users->toArray() : [])) : ['' => __('No users available')];
+    $usersDisabled = !$usersIsList;
+@endphp
+
+@if($leadOk)
+    {{ Form::model($lead, [
+        'url'               => $formUrl,
+        'method'            => 'PUT',
+        'id'                => $formId,
+        'data-url'          => $formUrl,
+        'data-guard-msg'    => $formGuard,
+        'data-sv-localized' => 'true',
+    ]) }}
+        {{ Form::token() }}
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-12 form-group">
+                    {{ Form::label('users', __('User'), ['class' => 'form-label']) }}
+                    {{ Form::select(
+                        'users[]',
+                        $userOptions,
+                        null,
+                        array_merge(
+                            [
+                                'class'            => 'form-control select2',
+                                'id'               => 'choices-multiple3',
+                                'multiple'         => 'multiple',
+                                'data-placeholder' => __('Select Users'),
+                                'placeholder'      => __('Select Users'),
+                            ],
+                            $usersDisabled ? ['disabled' => 'disabled'] : []
+                        )
+                    ) }}
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
-<div class="modal-footer">
-    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
-    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
-</div>
+        <div class="modal-footer">
+            <input type="button" value="{{ __('Cancel') }}" class="{{ VC::BT_LG }}" data-bs-dismiss="modal">
+            <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
+        </div>
 
-{{Collective\Html\FormFacade::close()}}
-
+        <script async src="{{ asset('assets/js/routes/leads/lang/users.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/leads/users.js') }}"></script>
+    {{ Form::close() }}
+@else
+    <div>{{ __('No lead could be found') }}</div>
+@endif
