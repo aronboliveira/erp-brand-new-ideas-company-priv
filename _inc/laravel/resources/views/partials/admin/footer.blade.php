@@ -59,4 +59,4 @@
 @endif
 @stack('script-page')
 @stack('old-datatable-js')
-<script defer src="{{ asset('assets/js/routes/partials/admin/footer.min.js') }}"></script>
+<script defer src="{{ asset('assets/js/routes/partials/admin/footer.js') }}"></script>

@@ -31,7 +31,7 @@
         $coaIndexResolved = Route::has($coaIndexBase) ? $coaIndexBase : (Route::has($coaIndexKebab) ? $coaIndexKebab : null);
         $coaIndexUrl = $coaIndexResolved ? route($coaIndexResolved) : '#';
         $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-        $coaIndexGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::COA, 'index_chart_of_account_route_unavailable') ?? 'Chart of account index route is unavailable. Please contact technical support or your domain administrator.';
+        $coaIndexGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::COA, 'coa_index_route_unavailable') ?? 'Chart of account index route is unavailable. Please contact technical support or your domain administrator.';
         $breadcrumbCoaIndexLinkId = 'breadcrumb-coa-index-link';
     @endphp
     </li>

@@ -7,10 +7,10 @@
     use Illuminate\Support\Collection;
 
     $lang = Utility::fetchUserLang();
-    $routeName   = 'contract.copy.store';
+    $routeName   = VW::CTC.'.copy.store';
     $formId      = 'copy_contract';
     $actionHref  = Route::has($routeName) ? route($routeName, $contract->id) : '#';
-    $guardMsg    = Utility::fetchLinkMessage($lang, VW::CTR, 'copy_route_unavailable')
+    $guardMsg    = Utility::fetchLinkMessage($lang, VW::CTC, 'copy_route_unavailable')
                     ?? __('Copy contract route is unavailable. Please contact technical support or your domain administrator.');
     $formParams = [
         'method'            => 'POST',

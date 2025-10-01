@@ -27,6 +27,46 @@
       link_copy_success: "Lien copié dans le presse-papiers.",
       link_copy_failed: "Échec de la copie du lien.",
     },
+    he: {
+      link_copy_success: "הקישור הועתק ללוח.",
+      link_copy_failed: "העתקת הקישור נכשלה.",
+    },
+    it: {
+      link_copy_success: "Link copiato negli appunti.",
+      link_copy_failed: "Copia del link non riuscita.",
+    },
+    ja: {
+      link_copy_success: "リンクがクリップボードにコピーされました。",
+      link_copy_failed: "リンクのコピーに失敗しました。",
+    },
+    nl: {
+      link_copy_success: "Link gekopieerd naar klembord.",
+      link_copy_failed: "Kopiëren van link mislukt.",
+    },
+    pl: {
+      link_copy_success: "Link skopiowany do schowka.",
+      link_copy_failed: "Nie udało się skopiować linku.",
+    },
+    pt: {
+      link_copy_success: "Link copiado para a área de transferência.",
+      link_copy_failed: "Falha ao copiar o link.",
+    },
+    "pt-br": {
+      link_copy_success: "Link copiado para a área de transferência.",
+      link_copy_failed: "Falha ao copiar o link.",
+    },
+    ru: {
+      link_copy_success: "Ссылка скопирована в буфер обмена.",
+      link_copy_failed: "Не удалось скопировать ссылку.",
+    },
+    tr: {
+      link_copy_success: "Bağlantı panoya kopyalandı.",
+      link_copy_failed: "Bağlantı kopyalanamadı.",
+    },
+    zh: {
+      link_copy_success: "链接已复制到剪贴板。",
+      link_copy_failed: "复制链接失败。",
+    },
   };
   Object.keys(t).forEach(
     k =>

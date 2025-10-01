@@ -127,7 +127,7 @@
                                                         $showKebab    = Str::kebab($showBase);
                                                         $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
                                                         $showUrl      = ($showResolved && $estId) ? route($showResolved, $estId) : '#';
-                                                        $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'show_estimate_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                        $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_show_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
                                                     @endphp
                                                     <a
                                                         href="{{ $showUrl }}"
@@ -169,7 +169,7 @@
                                                                 $showKebab    = Str::kebab($showBase);
                                                                 $showResolved = Route::has($showBase) ? $showBase : (Route::has($showKebab) ? $showKebab : null);
                                                                 $showUrl      = ($showResolved && $estId) ? route($showResolved, $estId) : '#';
-                                                                $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'show_estimate_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $showGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_show_route_unavailable') ?? 'Show estimate route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
                                                             <a
                                                                 href="{{ $showUrl }}"
@@ -188,7 +188,7 @@
                                                                 $editKebab    = Str::kebab($editBase);
                                                                 $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
                                                                 $editUrl      = ($editResolved && $estId) ? route($editResolved, $estId) : '#';
-                                                                $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'edit_estimate_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_edit_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
                                                             <a
                                                                 href="#"
@@ -210,7 +210,7 @@
                                                                 $destroyKebab    = Str::kebab($destroyBase);
                                                                 $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has($destroyKebab) ? $destroyKebab : null);
                                                                 $destroyUrl      = ($destroyResolved && $estId) ? route($destroyResolved, $estId) : '#';
-                                                                $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'destroy_estimate_route_unavailable') ?? 'Delete estimate route is unavailable. Please contact technical support or your domain administrator.';
+                                                                $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_destroy_route_unavailable') ?? 'Delete estimate route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
                                                             <a
                                                                 href="#"

@@ -203,7 +203,7 @@
                                                             $destroyBase     = VW::FM_BD . '.destroy';
                                                             $destroyResolved = Route::has($destroyBase) ? $destroyBase : (Route::has(Str::kebab($destroyBase)) ? Str::kebab($destroyBase) : null);
                                                             $destroyUrl      = ($destroyResolved && $formId) ? route($destroyResolved, $formId) : '#';
-                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'destroy_form_builder_route_unavailable') ?? 'Delete form builder route is unavailable. Please contact technical support or your domain administrator.';
+                                                            $destroyGuardMsg = Utility::fetchLinkMessage($lang, VW::EXP, 'destroy_route_unavailable') ?? 'Delete form builder route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <div class="action-btn bg-danger ms-2">
                                                             {!! Form::open(['method' => 'DELETE', 'url' => $destroyUrl, 'id' => 'delete-form-'.$formId, 'data-guard-msg' => $destroyGuardMsg, 'data-sv-localized' => 'true']) !!}

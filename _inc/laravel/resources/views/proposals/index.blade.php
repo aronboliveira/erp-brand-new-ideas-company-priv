@@ -178,7 +178,7 @@
                                 : (Route::has($proposalIndexKebabName) ? $proposalIndexKebabName : null);
                             $proposalIndexRouteArray   = $proposalIndexResolvedName ? [$proposalIndexResolvedName] : ['#'];
                             $proposalIndexUrl          = $proposalIndexResolvedName ? route($proposalIndexResolvedName) : '#';
-                            $proposalIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'index_proposal_route_unavailable') ?? 'Index proposal route is unavailable. Please contact technical support or your domain administrator.';
+                            $proposalIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PPS, 'proposal_index_route_unavailable') ?? 'Index proposal route is unavailable. Please contact technical support or your domain administrator.';
                             $proposalIndexFormId       = 'frm_submit';
                         @endphp
                         {!! Form::open([
@@ -268,7 +268,7 @@
                                             ? $productServiceIndexBaseName
                                             : (Route::has($productServiceIndexKebabName) ? $productServiceIndexKebabName : null);
                                         $productServiceIndexUrl          = $productServiceIndexResolvedName ? route($productServiceIndexResolvedName) : '#';
-                                        $productServiceIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV, 'index_product_service_route_unavailable') ?? 'Index product service route is unavailable. Please contact technical support or your domain administrator.';
+                                        $productServiceIndexGuardMsg     = Utility::fetchLinkMessage($lang, ViewsConstants::PRD_SV, 'product_service_index_route_unavailable') ?? 'Index product service route is unavailable. Please contact technical support or your domain administrator.';
                                         $productServiceIndexLinkId       = 'product-service-index-reset-link';
                                         $resetTitleText                  = isset($resetTitle) ? $resetTitle : __('Export');
                                     @endphp

@@ -17,7 +17,7 @@
     $updateResolved = Route::has($updateBase) ? $updateBase : (Route::has($updateKebab) ? $updateKebab : null);
     $updateUrl      = ($updateResolved && $hasLoanOpt) ? route($updateResolved, $loanoption->id) : '#';
     $updateGuard    = Utility::fetchLinkMessage($lang, VW::LN_OPT, 'update_route_unavailable')
-                        ?? 'Update route is unavailable. Please contact technical support or your domain administrator.';
+                        ?? 'Update Loan option route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
 @if($hasLoanOpt)

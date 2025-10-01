@@ -21,6 +21,36 @@
     fr: {
       lead_toggle_failed: "Échec du basculement de l’état du lead.",
     },
+    he: {
+      lead_toggle_failed: "נכשל בהחלפת מצב הליד.",
+    },
+    it: {
+      lead_toggle_failed: "Impossibile cambiare lo stato del lead.",
+    },
+    ja: {
+      lead_toggle_failed: "リードステータスの切り替えに失敗しました。",
+    },
+    nl: {
+      lead_toggle_failed: "Kan de status van de lead niet wijzigen.",
+    },
+    pl: {
+      lead_toggle_failed: "Nie udało się przełączyć statusu leada.",
+    },
+    pt: {
+      lead_toggle_failed: "Falha ao alternar o status do lead.",
+    },
+    "pt-br": {
+      lead_toggle_failed: "Falha ao alternar o status do lead.",
+    },
+    ru: {
+      lead_toggle_failed: "Не удалось изменить статус лида.",
+    },
+    tr: {
+      lead_toggle_failed: "Lead durumu değiştirilemedi.",
+    },
+    zh: {
+      lead_toggle_failed: "无法切换潜在客户状态。",
+    },
   };
   Object.keys(t).forEach(
     k =>

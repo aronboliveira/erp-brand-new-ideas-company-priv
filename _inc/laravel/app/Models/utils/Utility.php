@@ -2698,7 +2698,7 @@ class Utility extends Model
         ];
     }
 
-    public static function fetchUserLang(?Request $req = null, ?User $user = null): ?string
+    public static function fetchUserLang(?User $user = null, ?Request $req = null): ?string
     {
         $lang = DatabaseConstants::DEFAULT_LANG;
         try {
@@ -2764,6 +2764,58 @@ class Utility extends Model
             if ($shouldFallback) return null;
             return !$isFailure && !(is_string($resultMsg) && !empty($resultMsg)) ? $startMsg : 'Something went wrong! Try again later.';
         }
+    }
+
+    public static function displayErrorMessage($msg = null, $lang = DatabaseConstants::DEFAULT_LANG): string
+    {
+        if (!$msg)
+            $msg = Utility::fetchLinkMessage($lang, 'generics', 'route_unavailable') ?? 'Request unavailable';
+        $escapedMsg = addslashes(__($msg));
+        $uuid = Str::uuid();
+        $snippet = <<<HTML
+        <script id="{$uuid}-route-alert">
+            (function() {
+                const message = '{$escapedMsg}';
+                if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Toast) {
+                    const toast = document.getElementById('loginToast') || document.querySelector('.toast');
+                    if (toast) {
+                        const body = toast.querySelector('.toast-body');
+                        if (body) {
+                            const delay = 5000;
+                            const bs = new window.bootstrap.Toast(toast, { delay });
+                            body.textContent = message;
+                            toast.style.display = 'block';
+                            bs.show();
+                            const handleHidden = function() {
+                                body.textContent = '';
+                                toast.style.display = 'none';
+                                toast.removeEventListener('hidden.bs.toast', handleHidden);
+                            };
+                            toast.addEventListener('hidden.bs.toast', handleHidden);
+                            setTimeout(function() {
+                                document.getElementById('{$uuid}')?.remove();
+                            }, delay * 1.25);
+                            return;
+                        }
+                    }
+                }
+                if (typeof window.LaravelToast !== 'undefined' || typeof window.toastr !== 'undefined') {
+                    if (window.toastr) {
+                        window.toastr.error(message);
+                    } else if (window.LaravelToast) {
+                        window.LaravelToast.error(message);
+                    }
+                    setTimeout(function() {
+                        document.getElementById('{$uuid}')?.remove();
+                    }, 5000);
+                    return;
+                }
+                alert(message);
+                document.getElementById('{$uuid}')?.remove();
+            })();
+        </script>
+        HTML;
+        return $snippet;
     }
 
     public static function languageCreate(string $createdBy): void

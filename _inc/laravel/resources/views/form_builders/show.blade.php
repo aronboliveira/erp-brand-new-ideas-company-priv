@@ -41,7 +41,7 @@
         $indexKebab    = Str::kebab($indexBase);
         $indexResolved = Route::has($indexBase) ? $indexBase : (Route::has($indexKebab) ? $indexKebab : null);
         $indexUrl      = $indexResolved ? route($indexResolved) : '#';
-        $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::FM_BD, 'index_route_unavailable') ?? __('Form builder index route is unavailable. Please contact technical support or your domain administrator.');
+        $indexGuardMsg = Utility::fetchLinkMessage($lang, VW::FM_BD, 'form_builder_index_route_unavailable') ?? __('Form builder index route is unavailable. Please contact technical support or your domain administrator.');
     @endphp
     <li class="breadcrumb-item">
         <a href="{{ $indexUrl }}" data-url="{{ $indexUrl }}" data-guard-msg="{{ $indexGuardMsg }}" data-sv-localized="true">{{ __('Form Builder') }}</a>

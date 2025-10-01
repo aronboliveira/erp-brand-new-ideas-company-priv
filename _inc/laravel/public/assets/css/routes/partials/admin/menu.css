@@ -1,0 +1,13 @@
+.navbar-wrapper {
+  height: 95%;
+  overflow: hidden;
+}
+.navbar-wrapper li {
+  list-style: none;
+}
+#np-toast-container {
+  z-index: 9999;
+}
+.toast-body .d-flex {
+  z-index: 9;
+}

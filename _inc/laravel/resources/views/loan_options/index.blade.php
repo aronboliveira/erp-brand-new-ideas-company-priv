@@ -116,7 +116,6 @@
                                                     </a>
                                                 </div>
                                             @endcan
-
                                             @can('delete loan option')
                                                 @php
                                                     $formId   = 'delete-loanoption-'.$id;

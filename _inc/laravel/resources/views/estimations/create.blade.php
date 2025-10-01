@@ -21,7 +21,7 @@
     $taxIndexResolved    = Route::has($taxIndexBase) ? $taxIndexBase : (Route::has($taxIndexKebab) ? $taxIndexKebab : null);
     $taxIndexUrl         = $taxIndexResolved ? route($taxIndexResolved) : '#';
     $taxIndexLinkId      = 'tax-index-link';
-    $taxIndexGuardMsg    = Utility::fetchLinkMessage($lang, VW::TX, 'index_tax_route_unavailable') ?? 'Tax index route is unavailable. Please contact technical support or your domain administrator.';
+    $taxIndexGuardMsg    = Utility::fetchLinkMessage($lang, VW::TX, 'tx_index_route_unavailable') ?? 'Tax index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 
 <div class="{{ VC::CD }} bg-none card-box">

@@ -57,7 +57,7 @@
                 $createKebab    = Str::kebab($createBase);
                 $createResolved = Route::has($createBase) ? $createBase : (($createKebab !== $createBase && Route::has($createKebab)) ? $createKebab : null);
                 $createUrl      = $createResolved ? route($createResolved) : '#';
-                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'create_holiday_route_unavailable') : 'Create Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Holiday route is unavailable. Please contact technical support or your domain administrator.');
+                $createGuardMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'holiday_create_route_unavailable') : 'Create Holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Holiday route is unavailable. Please contact technical support or your domain administrator.');
             @endphp
             <a href="#"
                class="{{ VC::BT_SM_PM }}"

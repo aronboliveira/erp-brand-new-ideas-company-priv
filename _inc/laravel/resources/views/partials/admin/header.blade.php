@@ -328,6 +328,6 @@
                 });
             })();
         </script>
-        <script defer src="{{ asset('assets/js/routes/partials/admin/header.min.js') }}">
+        <script defer src="{{ asset('assets/js/routes/partials/admin/header.js') }}">
         </script>
     </header>

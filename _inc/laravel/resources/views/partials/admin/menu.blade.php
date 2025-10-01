@@ -1,19 +1,19 @@
 @php
 	use App\Config\Constants\{
-        DatabaseConstants,
-        PermissionsConstants,
-        PlansConstants,
-        SettingsConstants,
-        StacksConstants,
+        DatabaseConstants as DBC,
+        PermissionsConstants as PMC,
+        PlansConstants as PLC,
+        SettingsConstants as SC,
+        StacksConstants as ST,
         UsersConstants,
         ViewClassNamesConstants as VC,
-        ViewsConstants
+        ViewsConstants as VW
     };
 	use App\Http\Controllers\EmployeeAttendanceController as EAC;
-	use App\Models\{Plan, User, Utility};
+	use App\Models\{Employee, Plan, User, Utility};
     use Illuminate\Http\Request;
     use Illuminate\Support\Str;
-	use Illuminate\Support\Facades\{Auth,Log,Request as RF,Route};
+	use Illuminate\Support\Facades\{Auth,Crypt,Log,Request as RF,Route};
 	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R};
     Log::debug('Loading admin menu data...');
 	$data ??= [];
@@ -25,20 +25,22 @@
 	$lang ??= '';
 	$logo ??= '';
 	$user ??= null;
-	$userPlan ??= DatabaseConstants::DEFAULT_PLAN;
+	$userPlan ??= DBC::DEFAULT_PLAN;
+    $routeUnavailableMessage = Utility::fetchLinkMessage($lang, 'generics', 'route_unavailable');
+    $disabledRoutes = [];
 	try {
 		$data=Utility::prepareCommonViewData()?:[];
 		$logo=Utility::getFile('uploads/logo/')?:'';
-		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
-		$company_logo=$data[SettingsConstants::CPN_LG_DK]??'';
-		$company_logos=$data[SettingsConstants::CPN_LG_LT]??'';
+		$colorSettings=$data[SC::CLR_STG]??[];
+		$company_logo=$data[SC::CPN_LG_DK]??'';
+		$company_logos=$data[SC::CPN_LG_LT]??'';
 		$company_small_logo=$data['company_small_logo']??'';
 		$emailTemplate=\App\Models\EmailTemplate::emailTemplateData()?:[];
 		$user = Auth::user();
 		$lang = Utility::fetchUserLang(user:$user);
 		$userPlan = $user instanceof User
 				   ? Plan::getPlan($user?->showDashboard())
-				   : Plan::find(DatabaseConstants::DEFAULT_PLAN);
+				   : Plan::find(DBC::DEFAULT_PLAN);
 	} catch (\Error $e) {
 		Log::error(
 			'Error fetching attendance data',
@@ -79,17 +81,17 @@
             'name' => $userPlan->name,
             'type' => $userPlan->type,
             'status' => $userPlan->status,
-            'acc' => $userPlan->{PlansConstants::COL_ACC},
-            'crm' => $userPlan->{PlansConstants::COL_CRM},
-            'hrm' => $userPlan->{PlansConstants::COL_HRM},
-            'pos' => $userPlan->{PlansConstants::COL_POS},
-            'prj' => $userPlan->{PlansConstants::COL_PRJ}
+            'acc' => $userPlan->{PLC::COL_ACC},
+            'crm' => $userPlan->{PLC::COL_CRM},
+            'hrm' => $userPlan->{PLC::COL_HRM},
+            'pos' => $userPlan->{PLC::COL_POS},
+            'prj' => $userPlan->{PLC::COL_PRJ}
         ]);
     } else Log::notice('No plan found!');
     if ($user instanceof User)
     Log::debug('User permissions names: ', $user->getAllPermissions()->pluck('name')->toArray());
 @endphp
-@if (!empty($colorSettings[SettingsConstants::CST_DRK]) && $colorSettings[SettingsConstants::CST_DRK] === 'on')
+@if (!empty($colorSettings[SC::CST_DRK]) && $colorSettings[SC::CST_DRK] === 'on')
     <nav class="dash-sidebar light-sidebar transprent-bg">
 @else
     <nav class="dash-sidebar light-sidebar">
@@ -98,29 +100,29 @@
         <div class="m-header main-logo">
             <a href="#" class="b-brand">
                 {{--                <img src="{{ asset(Storage::url('uploads/logo/'.$logo)) }}" alt="{{ env('APP_NAME') }}" class="{{ VC::LOGO_LG }}" /> --}}
-                @if ($colorSettings[SettingsConstants::CST_DRK] && $colorSettings[SettingsConstants::CST_DRK] == 'on')
-                    <img src="{{ (isset($company_logos) && !empty($company_logos) ? $company_logos : SettingsConstants::CPN_LG_DK_DEF) }}"
+                @if ($colorSettings[SC::CST_DRK] && $colorSettings[SC::CST_DRK] == 'on')
+                    <img src="{{ (isset($company_logos) && !empty($company_logos) ? $company_logos : SC::CPN_LG_DK_DEF) }}"
                         alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO_LG }}">
                 @else
-                    <img src="{{ (isset($company_logo) && !empty($company_logo) ? $company_logo : SettingsConstants::CPN_LG_LT_DEF) }}"
+                    <img src="{{ (isset($company_logo) && !empty($company_logo) ? $company_logo : SC::CPN_LG_LT_DEF) }}"
                         alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO_LG }}">
                 @endif
             </a>
         </div>
         <div class="navbar-content">
             @if ($user instanceof User)
-                @if ($user[UsersConstants::COL_TP] !== PermissionsConstants::CL)
+                @if ($user[UsersConstants::COL_TP] !== PMC::CL)
                     <ul class="dash-navbar">
-                        @if (Gate::check(PermissionsConstants::SHW_HRM_DSB) ||
-                                Gate::check(PermissionsConstants::SHW_PRJ_DSB) ||
-                                Gate::check(PermissionsConstants::SHW_ACC_DSB) ||
-                                Gate::check(PermissionsConstants::SHW_CRM_DSB) ||
-                                Gate::check(PermissionsConstants::SHW_POS_DSB))
+                        @if (Gate::check(PMC::SHW_HRM_DSB) ||
+                                Gate::check(PMC::SHW_PRJ_DSB) ||
+                                Gate::check(PMC::SHW_ACC_DSB) ||
+                                Gate::check(PMC::SHW_CRM_DSB) ||
+                                Gate::check(PMC::SHW_POS_DSB))
                             @php
                                 $segments = [
                                     null,
-                                    ViewsConstants::ACC_DSB,
-                                    PermissionsConstants::INC_RPT,
+                                    VW::ACC_DSB,
+                                    PMC::INC_RPT,
                                     'reports',
                                     'reports_monthly_cashflow',
                                     'reports_quarterly_cashflow',
@@ -129,7 +131,7 @@
                                     'reports_monthly_attendance',
                                     'reports_lead',
                                     'reports_deal',
-                                    ViewsConstants::POS_DSB,
+                                    VW::POS_DSB,
                                     'reports_warehouse',
                                     'reports_daily_purchase',
                                     'reports_monthly_purchase',
@@ -153,11 +155,11 @@
                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                 </a>
                                 <ul class="dash-submenu">
-                                    @if ($userPlan?->{PlansConstants::COL_ACC} == 1 && Gate::check(PermissionsConstants::SHW_ACC_DSB))
+                                    @if ($userPlan?->{PLC::COL_ACC} == 1 && Gate::check(PMC::SHW_ACC_DSB))
                                         @php
                                             $segments = [
                                                 null,
-                                                ViewsConstants::ACC_DSB,
+                                                VW::ACC_DSB,
                                                 'report',
                                                 'reports_monthly_cashflow',
                                                 'reports_quarterly_cashflow'
@@ -176,11 +178,11 @@
                                                 </span>
                                             </a>
                                             <ul class="dash-submenu">
-                                                @can(PermissionsConstants::SHW_ACC_DSB)
+                                                @can(PMC::SHW_ACC_DSB)
                                                     @php
                                                         $segments = [
                                                             null,
-                                                            ViewsConstants::ACC_DSB
+                                                            VW::ACC_DSB
                                                         ];
                                                         $kebabSegments = array_map(function($segment) {
                                                             if ($segment === null) return null;
@@ -207,21 +209,20 @@
                                                             {{ __('Overview') }}
                                                         </a>
                                                     </li>
-                                                    @push(StacksConstants::ADM_SCR_PG)
-                                                        <script defer src="{{ asset('assets/routes/partials/admin/menu/dashboard.js') }}">
-                                                        </script>
+                                                    @push(ST::ADM_SCR_PG)
+                                                        <script defer src="{{ asset('assets/routes/partials/admin/menu/dashboard.js') }}"></script>
                                                     @endpush
                                                 @endcan
-                                                @if (Gate::check(PermissionsConstants::INC_RPT) ||
-                                                        Gate::check(PermissionsConstants::EXP_RPT) ||
-                                                        Gate::check(PermissionsConstants::IE_RPT) ||
-                                                        Gate::check(PermissionsConstants::TAX_RPT) ||
-                                                        Gate::check(PermissionsConstants::LP_RPT) ||
-                                                        Gate::check(PermissionsConstants::INV_RPT) ||
-                                                        Gate::check(PermissionsConstants::BIL_RPT) ||
-                                                        Gate::check(PermissionsConstants::STK_RPT) ||
-                                                        Gate::check(PermissionsConstants::TAX_RPT) ||
-                                                        Gate::check(PermissionsConstants::MNG_TRT))
+                                                @if (Gate::check(PMC::INC_RPT) ||
+                                                        Gate::check(PMC::EXP_RPT) ||
+                                                        Gate::check(PMC::IE_RPT) ||
+                                                        Gate::check(PMC::TAX_RPT) ||
+                                                        Gate::check(PMC::LP_RPT) ||
+                                                        Gate::check(PMC::INV_RPT) ||
+                                                        Gate::check(PMC::BIL_RPT) ||
+                                                        Gate::check(PMC::STK_RPT) ||
+                                                        Gate::check(PMC::TAX_RPT) ||
+                                                        Gate::check(PMC::MNG_TRT))
                                                     @php
                                                         $segments = [
                                                             'reports',
@@ -244,19 +245,19 @@
                                                             </span>
                                                         </a>
                                                         <ul class="dash-submenu">
-                                                            @can(PermissionsConstants::STT_RPT)
+                                                            @can(PMC::STT_RPT)
                                                                 @php
-                                                                    $accountStatementRoute = Route::has(ViewsConstants::RPT.'.account.statement')
-                                                                        ? route(ViewsConstants::RPT.'.account.statement')
+                                                                    $accountStatementRoute = Route::has(VW::RPT.'.account.statement')
+                                                                        ? route(VW::RPT.'.account.statement')
                                                                         : '#';
                                                                     $linkId = 'account-statement-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'account_statement_route_unavailable'
                                                                     ) ?? 'Account statement route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.account.statement' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.account.statement' ? ' active' : '' }}">
                                                                     <a
                                                                         id="{{ $linkId }}"
                                                                         class="dash-link"
@@ -268,73 +269,25 @@
                                                                         {{ __('Account Statement') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-account-statement-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const message = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role','alert');
-                                                                                            toastEl.setAttribute('aria-live','assertive');
-                                                                                            toastEl.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = message;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(message);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('js/routes/partials/admin/menu/accountStatement.js') }}"></script>
                                                                 @endpush
                                                             @endcan
-                                                            @can(PermissionsConstants::INV_RPT)
+                                                            @can(PMC::INV_RPT)
                                                                 @php
-                                                                    $invoiceSummaryRoute = Route::has(ViewsConstants::RPT.'.invoice.summary')
-                                                                        ? route(ViewsConstants::RPT.'.invoice.summary')
+                                                                    $invoiceSummaryRoute = Route::has(VW::RPT.'.invoice.summary')
+                                                                        ? route(VW::RPT.'.invoice.summary')
                                                                         : '#';
-                                                                    $linkId = 'invoice-summary-link';
+                                                                    $invoiceSummaryId = 'invoice-summary-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'invoice_summary_route_unavailable'
                                                                     ) ?? 'Invoice summary route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.invoice.summary' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.invoice.summary' ? ' active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $invoiceSummaryId }}"
                                                                         class="dash-link"
                                                                         href="{{ $invoiceSummaryRoute }}"
                                                                         data-url="{{ $invoiceSummaryRoute }}"
@@ -344,70 +297,22 @@
                                                                         {{ __('Invoice Summary') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-invoice-summary-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const message = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role','alert');
-                                                                                            toastEl.setAttribute('aria-live','assertive');
-                                                                                            toastEl.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = message;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(message);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('js/routes/partials/admin/menu/invoiceSummary.js') }}"></script>
                                                                 @endpush
                                                             @endcan
                                                             @php
-                                                                $salesRoute = Route::has(ViewsConstants::RPT.'.sales')
-                                                                    ? route(ViewsConstants::RPT.'.sales')
+                                                                $salesRoute = Route::has(VW::RPT.'.sales')
+                                                                    ? route(VW::RPT.'.sales')
                                                                     : '#';
                                                                 $salesLinkId = 'sales-report-link';
                                                                 $salesMessage = Utility::fetchLinkMessage(
                                                                     $lang,
-                                                                    ViewsConstants::RPT,
+                                                                    VW::RPT,
                                                                     'sales_report_route_unavailable'
                                                                 ) ?? 'Sales report route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
-                                                            <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.sales' ? ' active' : '' }}">
+                                                            <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.sales' ? ' active' : '' }}">
                                                                 <a
                                                                     id="{{ $salesLinkId }}"
                                                                     class="dash-link"
@@ -419,69 +324,21 @@
                                                                     {{ __('Sales Report') }}
                                                                 </a>
                                                             </li>
-                                                            @push(StacksConstants::ADM_SCR_PG)
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const listenerAttr = 'data-sales-listener-active';
-                                                                        const el = document.getElementById('{{ $salesLinkId }}');
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role','alert');
-                                                                                        toastEl.setAttribute('aria-live','assertive');
-                                                                                        toastEl.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                            }
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    })();
-                                                                </script>
+                                                            @push(ST::ADM_SCR_PG)
+                                                                <script defer src="{{ asset('js/routes/partials/admin/menu/salesReport.js') }}"></script>
                                                             @endpush
                                                             @php
-                                                                $receivablesRoute = Route::has(ViewsConstants::RPT.'.receivables')
-                                                                    ? route(ViewsConstants::RPT.'.receivables')
+                                                                $receivablesRoute = Route::has(VW::RPT.'.receivables')
+                                                                    ? route(VW::RPT.'.receivables')
                                                                     : '#';
                                                                 $receivablesLinkId = 'receivables-link';
                                                                 $receivablesMessage = Utility::fetchLinkMessage(
                                                                     $lang,
-                                                                    ViewsConstants::RPT,
+                                                                    VW::RPT,
                                                                     'receivables_report_route_unavailable'
                                                                 ) ?? 'Receivables route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
-                                                            <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.receivables' ? ' active' : '' }}">
+                                                            <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.receivables' ? ' active' : '' }}">
                                                                 <a
                                                                     id="{{ $receivablesLinkId }}"
                                                                     class="dash-link"
@@ -493,69 +350,21 @@
                                                                     {{ __('Receivables') }}
                                                                 </a>
                                                             </li>
-                                                            @push(StacksConstants::ADM_SCR_PG)
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const listenerAttr = 'data-receivables-listener-active';
-                                                                        const el = document.getElementById('{{ $receivablesLinkId }}');
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role','alert');
-                                                                                        toastEl.setAttribute('aria-live','assertive');
-                                                                                        toastEl.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                            }
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    })();
-                                                                </script>
+                                                            @push(ST::ADM_SCR_PG)
+                                                                <script defer src="{{ asset('js/routes/partials/admin/menu/receivables.js') }}"></script>
                                                             @endpush
                                                             @php
-                                                                $payablesRoute = Route::has(ViewsConstants::RPT.'.payables')
-                                                                    ? route(ViewsConstants::RPT.'.payables')
+                                                                $payablesRoute = Route::has(VW::RPT.'.payables')
+                                                                    ? route(VW::RPT.'.payables')
                                                                     : '#';
                                                                 $payablesLinkId = 'payables-link';
                                                                 $payablesMessage = Utility::fetchLinkMessage(
                                                                     $lang,
-                                                                    ViewsConstants::RPT,
+                                                                    VW::RPT,
                                                                     'payables_report_route_unavailable'
                                                                 ) ?? 'Payables route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
-                                                            <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.payables' ? ' active' : '' }}">
+                                                            <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.payables' ? ' active' : '' }}">
                                                                 <a
                                                                     id="{{ $payablesLinkId }}"
                                                                     class="dash-link"
@@ -567,72 +376,24 @@
                                                                     {{ __('Payables') }}
                                                                 </a>
                                                             </li>
-                                                            @push(StacksConstants::ADM_SCR_PG)
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const listenerAttr = 'data-payables-listener-active';
-                                                                        const el = document.getElementById('{{ $payablesLinkId }}');
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role','alert');
-                                                                                        toastEl.setAttribute('aria-live','assertive');
-                                                                                        toastEl.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                            }
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    })();
-                                                                </script>
+                                                            @push(ST::ADM_SCR_PG)
+                                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/payables.js') }}"></script>
                                                             @endpush
-                                                            @can(PermissionsConstants::BIL_RPT)
+                                                            @can(PMC::BIL_RPT)
                                                                 @php
-                                                                    $billSummaryRoute = Route::has(ViewsConstants::RPT.'.bill.summary')
-                                                                        ? route(ViewsConstants::RPT.'.bill.summary')
+                                                                    $billSummaryRoute = Route::has(VW::RPT.'.bill.summary')
+                                                                        ? route(VW::RPT.'.bill.summary')
                                                                         : '#';
-                                                                    $linkId = 'bill-summary-link';
+                                                                    $billSummaryLinkId = 'bill-summary-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'bill_summary_route_unavailable'
                                                                     ) ?? 'Bill summary route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.bill.summary' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.bill.summary' ? ' active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $billSummaryLinkId }}"
                                                                         class="dash-link"
                                                                         href="{{ $billSummaryRoute }}"
                                                                         data-url="{{ $billSummaryRoute }}"
@@ -642,73 +403,25 @@
                                                                         {{ __('Bill Summary') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-bill-summary-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role','alert');
-                                                                                            toastEl.setAttribute('aria-live','assertive');
-                                                                                            toastEl.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/billSummary.js') }}"></script>
                                                                 @endpush
                                                             @endcan
-                                                            @can(PermissionsConstants::STK_RPT)
+                                                            @can(PMC::STK_RPT)
                                                                 @php
-                                                                    $productStockRoute = Route::has(ViewsConstants::RPT.'.product.stock.report')
-                                                                        ? route(ViewsConstants::RPT.'.product.stock.report')
+                                                                    $productStockRoute = Route::has(VW::RPT.'.product.stock.report')
+                                                                        ? route(VW::RPT.'.product.stock.report')
                                                                         : '#';
-                                                                    $linkId = 'product-stock-link';
+                                                                    $productStockLinkId = 'product-stock-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'product_stock_report_route_unavailable'
                                                                     ) ?? 'Product stock report route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.product.stock.report' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.product.stock.report' ? ' active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $productStockLinkId }}"
                                                                         class="dash-link"
                                                                         href="{{ $productStockRoute }}"
                                                                         data-url="{{ $productStockRoute }}"
@@ -718,73 +431,25 @@
                                                                         {{ __('Product Stock') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-product-stock-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role','alert');
-                                                                                            toastEl.setAttribute('aria-live','assertive');
-                                                                                            toastEl.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/productStock.js') }}"></script>
                                                                 @endpush
                                                             @endcan
-                                                            @can(PermissionsConstants::LP_RPT)
+                                                            @can(PMC::LP_RPT)
                                                                 @php
-                                                                    $cashflowRoute = Route::has(ViewsConstants::RPT.'.monthly.cashflow')
-                                                                        ? route(ViewsConstants::RPT.'.monthly.cashflow')
+                                                                    $cashflowRoute = Route::has(VW::RPT.'.monthly.cashflow')
+                                                                        ? route(VW::RPT.'.monthly.cashflow')
                                                                         : '#';
-                                                                    $linkId = 'cashflow-link';
+                                                                    $cashFlowId = 'cashflow-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'monthly_cashflow_route_unavailable'
                                                                     ) ?? 'Cash flow route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
                                                                 <li class="dash-item {{ request()->is('reports-monthly-cashflow') || request()->is('reports-quarterly-cashflow') ? 'active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $cashFlowId }}"
                                                                         class="dash-link"
                                                                         href="{{ $cashflowRoute }}"
                                                                         data-url="{{ $cashflowRoute }}"
@@ -794,7 +459,7 @@
                                                                         {{ __('Cash Flow') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
+                                                                @push(ST::ADM_SCR_PG)
                                                                     <script defer>
                                                                         (() => {
                                                                             const listenerAttr = 'data-cashflow-listener-active';
@@ -846,19 +511,19 @@
                                                                     </script>
                                                                 @endpush 
                                                             @endcan
-                                                            @can(PermissionsConstants::MNG_TRT)
+                                                            @can(PMC::MNG_TRT)
                                                                 @php
-                                                                    $transactionRoute = Route::has(ViewsConstants::TST.'.index')
-                                                                        ? route(ViewsConstants::TST.'.index')
+                                                                    $transactionRoute = Route::has(VW::TST.'.index')
+                                                                        ? route(VW::TST.'.index')
                                                                         : '#';
                                                                     $linkId = 'transaction-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::TST,
+                                                                        VW::TST,
                                                                         'transaction_index_route_unavailable'
                                                                     ) ?? 'Transaction route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::TST.'.index' || RF::route()->getName() == ViewsConstants::TRF.'.create' || RF::route()->getName() == ViewsConstants::TST.'.edit' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::TST.'.index' || RF::route()->getName() == VW::TRF.'.create' || RF::route()->getName() == VW::TST.'.edit' ? ' active' : '' }}">
                                                                     <a
                                                                         id="{{ $linkId }}"
                                                                         class="dash-link"
@@ -870,73 +535,25 @@
                                                                         {{ __('Transaction') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-transaction-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role', 'alert');
-                                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/transactions.js') }}"></script>
                                                                 @endpush
                                                             @endcan
-                                                            @can(PermissionsConstants::INC_RPT)
+                                                            @can(PMC::INC_RPT)
                                                                 @php
-                                                                    $incomeSummaryRoute = Route::has(ViewsConstants::RPT.'.income.summary')
-                                                                        ? route(ViewsConstants::RPT.'.income.summary')
+                                                                    $incomeSummaryRoute = Route::has(VW::RPT.'.income.summary')
+                                                                        ? route(VW::RPT.'.income.summary')
                                                                         : '#';
-                                                                    $linkId = 'income-summary-link';
+                                                                    $incomeSummaryLinkId = 'income-summary-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'income_summary_route_unavailable'
                                                                     ) ?? 'Income summary route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.income.summary' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.income.summary' ? ' active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $incomeSummaryLinkId }}"
                                                                         class="dash-link"
                                                                         href="{{ $incomeSummaryRoute }}"
                                                                         data-url="{{ $incomeSummaryRoute }}"
@@ -946,73 +563,25 @@
                                                                         {{ __('Income Summary') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-income-summary-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role','alert');
-                                                                                            toastEl.setAttribute('aria-live','assertive');
-                                                                                            toastEl.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/incomeSummary.js') }}"></script>
                                                                 @endpush
                                                             @endcan
-                                                            @can(PermissionsConstants::EXP_RPT)
+                                                            @can(PMC::EXP_RPT)
                                                                 @php
-                                                                    $expenseSummaryRoute = Route::has(ViewsConstants::RPT.'.expense.summary')
-                                                                        ? route(ViewsConstants::RPT.'.expense.summary')
+                                                                    $expenseSummaryRoute = Route::has(VW::RPT.'.expense.summary')
+                                                                        ? route(VW::RPT.'.expense.summary')
                                                                         : '#';
-                                                                    $linkId = 'expense-summary-link';
+                                                                    $expenseSummaryLinkId = 'expense-summary-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'expense_summary_route_unavailable'
                                                                     ) ?? 'Expense summary route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.expense.summary' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.expense.summary' ? ' active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $expenseSummaryLinkId }}"
                                                                         class="dash-link"
                                                                         href="{{ $expenseSummaryRoute }}"
                                                                         data-url="{{ $expenseSummaryRoute }}"
@@ -1022,73 +591,25 @@
                                                                         {{ __('Expense Summary') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-expense-summary-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role','alert');
-                                                                                            toastEl.setAttribute('aria-live','assertive');
-                                                                                            toastEl.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/expenseSummary.js') }}"></script>
                                                                 @endpush
                                                             @endcan
-                                                            @can(PermissionsConstants::IE_RPT)
+                                                            @can(PMC::IE_RPT)
                                                                 @php
-                                                                    $incomeVsExpenseRoute = Route::has(ViewsConstants::RPT.'.income.vs.expense.summary')
-                                                                        ? route(ViewsConstants::RPT.'.income.vs.expense.summary')
+                                                                    $incomeVsExpenseRoute = Route::has(VW::RPT.'.income.vs.expense.summary')
+                                                                        ? route(VW::RPT.'.income.vs.expense.summary')
                                                                         : '#';
-                                                                    $linkId = 'income-vs-expense-summary-link';
+                                                                    $incomeVsExpenseSummaryId = 'income-vs-expense-summary-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'income_vs_expense_summary_route_unavailable'
                                                                     ) ?? 'Income VS Expense route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.income.vs.expense.summary' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.income.vs.expense.summary' ? ' active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $incomeVsExpenseSummaryId }}"
                                                                         class="dash-link"
                                                                         href="{{ $incomeVsExpenseRoute }}"
                                                                         data-url="{{ $incomeVsExpenseRoute }}"
@@ -1098,73 +619,25 @@
                                                                         {{ __('Income VS Expense') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-income-vs-expense-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role', 'alert');
-                                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{asset('assets/js/routes/partials/admin/menu/incomeVsExpenseSummary.js')}}"></script>
                                                                 @endpush
                                                             @endcan
-                                                            @can(PermissionsConstants::TAX_RPT)
+                                                            @can(PMC::TAX_RPT)
                                                                 @php
-                                                                    $taxSummaryRoute = Route::has(ViewsConstants::RPT.'.tax.summary')
-                                                                        ? route(ViewsConstants::RPT.'.tax.summary')
+                                                                    $taxSummaryRoute = Route::has(VW::RPT.'.tax.summary')
+                                                                        ? route(VW::RPT.'.tax.summary')
                                                                         : '#';
-                                                                    $linkId = 'tax-summary-link';
+                                                                    $taxLinkId = 'tax-summary-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::RPT,
+                                                                        VW::RPT,
                                                                         'tax_summary_unavailable'
                                                                     ) ?? 'Tax summary route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RPT.'.tax.summary' ? ' active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::RPT.'.tax.summary' ? ' active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $taxLinkId }}"
                                                                         class="dash-link"
                                                                         href="{{ $taxSummaryRoute }}"
                                                                         data-url="{{ $taxSummaryRoute }}"
@@ -1174,56 +647,8 @@
                                                                         {{ __('Tax Summary') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-tax-summary-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role','alert');
-                                                                                            toastEl.setAttribute('aria-live','assertive');
-                                                                                            toastEl.setAttribute('aria-atomic','true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{asset('assets/js/routes/partials/admin/menu/taxSummary.js')}}"></script>
                                                                 @endpush
                                                             @endcan
                                                         </ul>
@@ -1232,11 +657,11 @@
                                             </ul>
                                         </li>
                                     @endif
-                                    @if ($userPlan?->{PlansConstants::COL_HRM} == 1)
-                                        @can(PermissionsConstants::SHW_HRM_DSB)
+                                    @if ($userPlan?->{PLC::COL_HRM} == 1)
+                                        @can(PMC::SHW_HRM_DSB)
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::HRM_DSB,
+                                                    VW::HRM_DSB,
                                                     'reports_payroll'
                                                 ];
                                                 $kebabSegments = array_map(function($segment) {
@@ -1256,7 +681,7 @@
                                                 <ul class="dash-submenu">
                                                     @php
                                                         $hrmDashboardRoute = Route::has('hrm.dashboard') ? route('hrm.dashboard') : '#';
-                                                        $linkId = 'hrm-dashboard-link';
+                                                        $hrmDsbLinkId = 'hrm-dashboard-link';
                                                         $message = Utility::fetchLinkMessage(
                                                             $lang,
                                                             'generic',
@@ -1265,7 +690,7 @@
                                                     @endphp
                                                     <li class="dash-item {{ RF::route()->getName() == 'hrm.dashboard' ? ' active' : '' }}">
                                                         <a
-                                                            id="{{ $linkId }}"
+                                                            id="{{ $hrmDsbLinkId }}"
                                                             class="dash-link"
                                                             href="{{ $hrmDashboardRoute }}"
                                                             data-url="{{ $hrmDashboardRoute }}"
@@ -1275,70 +700,20 @@
                                                             {{ __('Overview') }}
                                                         </a>
                                                     </li>
-                                                    @push(StacksConstants::ADM_SCR_PG)
-                                                        <script defer>
-                                                            (() => {
-                                                                const listenerAttr = 'data-hrm-dashboard-listener-active';
-                                                                const el = document.getElementById('{{ $linkId }}');
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.body.contains(el)) {
-                                                                        observer.disconnect();
-                                                                        el.removeEventListener('click', () => {});
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            })();
-                                                        </script>
+                                                    @push(ST::ADM_SCR_PG)
+                                                        <script defer src="{{asset('assets/js/routes/partials/admin/menu/hrmDashboard.js')}}"></script>
                                                     @endpush
-                                                    @can(PermissionsConstants::MNG_RPT)
+                                                    @can(PMC::MNG_RPT)
                                                         @php
                                                             $segments = [
                                                                 'reports_monthly_attendance',
                                                                 'reports_leave',
                                                                 'reports_payroll'
                                                             ];
-                                                            
                                                             $kebabSegments = array_map(function($segment) {
                                                                 if ($segment === null) return null;
                                                                 return str_replace('_', '-', strtolower(preg_replace('/([A-Z])/', '-$1', $segment)));
                                                             }, $segments);
-                                                            
                                                             $allSegments = array_merge($segments, $kebabSegments);
                                                             $isHrmReports = in_array(RF::segment(1), $allSegments);
                                                         @endphp
@@ -1351,31 +726,31 @@
                                                                 </span>
                                                             </a>
                                                             @php
-                                                                $payrollRoute = Route::has(ViewsConstants::RPT.'.payroll')
-                                                                    ? route(ViewsConstants::RPT.'.payroll')
+                                                                $payrollRoute = Route::has(VW::RPT.'.payroll')
+                                                                    ? route(VW::RPT.'.payroll')
                                                                     : '#';
                                                                 $payrollLinkId = 'reports-payroll-link';
                                                                 $payrollMessage = Utility::fetchLinkMessage(
                                                                     $lang,
-                                                                    ViewsConstants::RPT,
+                                                                    VW::RPT,
                                                                     'payroll_route_unavailable'
                                                                 ) ?? 'Payroll route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $leaveRoute = Route::has(ViewsConstants::RPT.'.leave')
-                                                                    ? route(ViewsConstants::RPT.'.leave')
+                                                                $leaveRoute = Route::has(VW::RPT.'.leave')
+                                                                    ? route(VW::RPT.'.leave')
                                                                     : '#';
                                                                 $leaveLinkId = 'reports-leave-link';
                                                                 $leaveMessage = Utility::fetchLinkMessage(
                                                                     $lang,
-                                                                    ViewsConstants::RPT,
+                                                                    VW::RPT,
                                                                     'leave_route_unavailable'
                                                                 ) ?? 'Leave route is unavailable. Please contact technical support or your domain administrator.';
-                                                                $attendanceRoute = Route::has(ViewsConstants::RPT.'.monthly.attendance')
-                                                                    ? route(ViewsConstants::RPT.'.monthly.attendance')
+                                                                $attendanceRoute = Route::has(VW::RPT.'.monthly.attendance')
+                                                                    ? route(VW::RPT.'.monthly.attendance')
                                                                     : '#';
                                                                 $attendanceLinkId = 'reports-monthly-attendance-link';
                                                                 $attendanceMessage = Utility::fetchLinkMessage(
                                                                     $lang,
-                                                                    ViewsConstants::RPT,
+                                                                    VW::RPT,
                                                                     'monthly_attendance_route_unavailable'
                                                                 ) ?? 'Monthly attendance route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
@@ -1401,7 +776,7 @@
                                                                         data-sv-localized="true"
                                                                         data-guard-msg="{{ $leaveMessage }}"
                                                                     >
-                                                                        {{ __(ViewsConstants::LV) }}
+                                                                        {{ __(VW::LV) }}
                                                                     </a>
                                                                 </li>
                                                                 <li class="dash-item {{ (request()->is('reports-monthly-attendance') || request()->is('reports_monthly_attendance')) ? 'active' : '' }}">
@@ -1417,154 +792,10 @@
                                                                     </a>
                                                                 </li>
                                                             </ul>
-                                                            @push(StacksConstants::ADM_SCR_PG)
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const listenerAttr = 'data-payroll-listener-active';
-                                                                        const el = document.getElementById('{{ $payrollLinkId }}');
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role','alert');
-                                                                                        toastEl.setAttribute('aria-live','assertive');
-                                                                                        toastEl.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                            }
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    })();
-                                                                </script>
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const listenerAttr = 'data-leave-listener-active';
-                                                                        const el = document.getElementById('{{ $leaveLinkId }}');
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role','alert');
-                                                                                        toastEl.setAttribute('aria-live','assertive');
-                                                                                        toastEl.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                            }
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    })();
-                                                                </script>
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const listenerAttr = 'data-attendance-listener-active';
-                                                                        const el = document.getElementById('{{ $attendanceLinkId }}');
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role','alert');
-                                                                                        toastEl.setAttribute('aria-live','assertive');
-                                                                                        toastEl.setAttribute('aria-atomic','true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                            }
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    })();
-                                                                </script>
+                                                            @push(ST::ADM_SCR_PG)
+                                                                <script defer src="{{asset('assets/js/routes/partials/admin/menu/reportsPayroll.js')}}"></script>
+                                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsLeave.js') }}"></script>
+                                                                <script defer src="{{asset('assets/js/routes/partials/admin/menu/reportsMonthlyAttendance.js')}}"></script>
                                                             @endpush
                                                         </li>
                                                     @endcan
@@ -1572,10 +803,10 @@
                                             </li>
                                         @endcan
                                     @endif
-                                    @if ($userPlan?->{PlansConstants::COL_CRM} == 1)
-                                        @can(PermissionsConstants::SHW_CRM_DSB)
+                                    @if ($userPlan?->{PLC::COL_CRM} == 1)
+                                        @can(PMC::SHW_CRM_DSB)
                                             @php
-                                                $segments = [ViewsConstants::CRM_DSB, 'reports-lead', 'reports-deal'];
+                                                $segments = [VW::CRM_DSB, 'reports-lead', 'reports-deal'];
                                                 $kebabSegments = array_map(function($s) {
                                                     return strtolower(preg_replace('/[A-Z]/', '-$0', lcfirst($s)));
                                                 }, $segments);
@@ -1608,68 +839,18 @@
                                                             {{ __('Overview') }}
                                                         </a>
                                                     </li>
-                                                    @push(StacksConstants::ADM_SCR_PG)
-                                                        <script defer>
-                                                            (() => {
-                                                                const listenerAttr = 'data-crm-dashboard-listener-active';
-                                                                const el = document.getElementById('{{ $linkId }}');
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.body.contains(el)) {
-                                                                        observer.disconnect();
-                                                                        el.removeEventListener('click', () => {});
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            })();
-                                                        </script>
+                                                    @push(ST::ADM_SCR_PG)
+                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/crmDashboard.js') }}"></script>
                                                     @endpush
                                                     @php
                                                         $segments = [
                                                             'reports_lead',
                                                             'reports_deal'
                                                         ];
-                                                        
                                                         $kebabSegments = array_map(function($segment) {
                                                             if ($segment === null) return null;
                                                             return str_replace('_', '-', strtolower(preg_replace('/([A-Z])/', '-$1', $segment)));
                                                         }, $segments);
-                                                        
                                                         $allSegments = array_merge($segments, $kebabSegments);
                                                         $isCrmReports = in_array(RF::segment(1), $allSegments);
                                                     @endphp
@@ -1680,23 +861,23 @@
                                                             </span>
                                                         </a>
                                                         @php
-                                                            $leadRoute = Route::has(ViewsConstants::RPT.'.lead')
-                                                                ? route(ViewsConstants::RPT.'.lead')
+                                                            $leadRoute = Route::has(VW::RPT.'.lead')
+                                                                ? route(VW::RPT.'.lead')
                                                                 : '#';
                                                             $leadLinkId = 'reports-lead-link';
                                                             $leadMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::RPT,
+                                                                VW::RPT,
                                                                 'lead_route_unavailable'
                                                             ) ?? 'Lead report route is unavailable. Please contact technical support or your domain administrator.';
                                                         
-                                                            $dealRoute = Route::has(ViewsConstants::RPT.'.deal')
-                                                                ? route(ViewsConstants::RPT.'.deal')
+                                                            $dealRoute = Route::has(VW::RPT.'.deal')
+                                                                ? route(VW::RPT.'.deal')
                                                                 : '#';
                                                             $dealLinkId = 'reports-deal-link';
                                                             $dealMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::RPT,
+                                                                VW::RPT,
                                                                 'deal_route_unavailable'
                                                             ) ?? 'Deal report route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -1726,191 +907,47 @@
                                                                 </a>
                                                             </li>
                                                         </ul>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-lead-listener-active';
-                                                                    const el = document.getElementById('{{ $leadLinkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role','alert');
-                                                                                    toastEl.setAttribute('aria-live','assertive');
-                                                                                    toastEl.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-deal-listener-active';
-                                                                    const el = document.getElementById('{{ $dealLinkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role','alert');
-                                                                                    toastEl.setAttribute('aria-live','assertive');
-                                                                                    toastEl.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsLead.js') }}"></script>
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsDeal.js') }}"></script>
                                                         @endpush
                                                     </li>
                                                 </ul>
                                             </li>
                                         @endcan
                                     @endif
-                                    @if ($userPlan?->{PlansConstants::COL_PJ} == 1)
-                                        @can(PermissionsConstants::SHW_PRJ_DSB)
+                                    @if ($userPlan?->{PLC::COL_PJ} == 1)
+                                        @can(PMC::SHW_PRJ_DSB)
                                             @php
                                                 $projectDashboardRoute = Route::has('project.dashboard')
                                                     ? route('project.dashboard')
                                                     : '#';
-                                                $linkId = 'project-dashboard-link';
+                                                $projectDashboardLinkId = 'project-dashboard-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::PRJ,
+                                                    VW::PRJ,
                                                     'project_dashboard_route_unavailable'
                                                 ) ?? 'Project dashboard route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ RF::route()->getName() == 'project.dashboard' ? ' active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $projectDashboardLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $projectDashboardRoute }}"
                                                     data-url="{{ $projectDashboardRoute }}"
                                                     data-sv-localized="true"
                                                     data-guard-msg="{{ $message }}"
                                                 >
-                                                    {{ __(ViewsConstants::PRJ) }}
+                                                    {{ __(VW::PRJ) }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-project-dashboard-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.body.contains(el)) {
-                                                                observer.disconnect();
-                                                                el.removeEventListener('click', () => {});
-                                                            }
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/projectDashboard.js') }}"></script>
                                             @endpush                                
                                         @endcan
                                     @endif
-                                    @if ($userPlan?->{PlansConstants::COL_POS} == 1)
-                                        @can(PermissionsConstants::SHW_POS_DSB)
+                                    @if ($userPlan?->{PLC::COL_POS} == 1)
+                                        @can(PMC::SHW_POS_DSB)
                                             @php
                                                 $segments = [
                                                     'pos_dashboard',
@@ -1936,19 +973,19 @@
                                                 </a>
                                                 <ul class="dash-submenu">
                                                     @php
-                                                        $posDashboardRoute = Route::has(ViewsConstants::POS.'.dashboard')
-                                                            ? route(ViewsConstants::POS.'.dashboard')
+                                                        $posDashboardRoute = Route::has(VW::POS.'.dashboard')
+                                                            ? route(VW::POS.'.dashboard')
                                                             : '#';
-                                                        $linkId = 'pos-dashboard-link';
+                                                        $posDashboardLinkId = 'pos-dashboard-link';
                                                         $message = Utility::fetchLinkMessage(
                                                             $lang,
                                                             'generics',
                                                             'pos_dashboard_route_unavailable'
                                                         ) ?? 'The route for the dashboard of the Points of Sales is unavailable. Please contact technical support or your domain administrator.';
                                                     @endphp
-                                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::POS.'.dashboard' ? ' active' : '' }}">
+                                                    <li class="dash-item {{ RF::route()->getName() == VW::POS.'.dashboard' ? ' active' : '' }}">
                                                         <a
-                                                            id="{{ $linkId }}"
+                                                            id="{{ $posDashboardLinkId }}"
                                                             class="dash-link"
                                                             href="{{ $posDashboardRoute }}"
                                                             data-url="{{ $posDashboardRoute }}"
@@ -1958,56 +995,8 @@
                                                             {{ __('Overview') }}
                                                         </a>
                                                     </li>
-                                                    @push(StacksConstants::ADM_SCR_PG)
-                                                        <script defer>
-                                                            (() => {
-                                                                const listenerAttr = 'data-pos-dashboard-listener-active';
-                                                                const el = document.getElementById('{{ $linkId }}');
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.body.contains(el)) {
-                                                                        observer.disconnect();
-                                                                        el.removeEventListener('click', () => {});
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            })();
-                                                        </script>
+                                                    @push(ST::ADM_SCR_PG)
+                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/posDashboard.js') }}"></script>
                                                     @endpush
                                                     <li class="{{ VC::DSH_IT_MN }} {{ $isPosReports ? 'active dash-trigger' : '' }}"
                                                         href="#crm-report" data-toggle="collapse" role="button"
@@ -2016,40 +1005,40 @@
                                                             <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                         </a>
                                                     @php
-                                                        $warehouseRoute = Route::has(ViewsConstants::RPT.'.warehouse')
-                                                            ? route(ViewsConstants::RPT.'.warehouse')
+                                                        $warehouseRoute = Route::has(VW::RPT.'.warehouse')
+                                                            ? route(VW::RPT.'.warehouse')
                                                             : '#';
                                                         $warehouseLinkId = 'warehouse-report-link';
                                                         $warehouseMessage = Utility::fetchLinkMessage(
                                                             $lang,
-                                                            ViewsConstants::RPT,
+                                                            VW::RPT,
                                                             'warehouse_report_route_unavailable'
                                                         ) ?? 'Warehouse report route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $dailyPurchaseRoute = Route::has(ViewsConstants::RPT.'.daily.purchase')
-                                                            ? route(ViewsConstants::RPT.'.daily.purchase')
+                                                        $dailyPurchaseRoute = Route::has(VW::RPT.'.daily.purchase')
+                                                            ? route(VW::RPT.'.daily.purchase')
                                                             : '#';
                                                         $dailyPurchaseLinkId = 'daily-purchase-report-link';
                                                         $dailyPurchaseMessage = Utility::fetchLinkMessage(
                                                             $lang,
-                                                            ViewsConstants::RPT,
+                                                            VW::RPT,
                                                             'daily_purchase_report_route_unavailable'
                                                         ) ?? 'Purchase daily/monthly report route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $dailyPosRoute = Route::has(ViewsConstants::RPT.'.daily.pos')
-                                                            ? route(ViewsConstants::RPT.'.daily.pos')
+                                                        $dailyPosRoute = Route::has(VW::RPT.'.daily.pos')
+                                                            ? route(VW::RPT.'.daily.pos')
                                                             : '#';
                                                         $dailyPosLinkId = 'daily-pos-report-link';
                                                         $dailyPosMessage = Utility::fetchLinkMessage(
                                                             $lang,
-                                                            ViewsConstants::RPT,
+                                                            VW::RPT,
                                                             'daily_pos_report_route_unavailable'
                                                         ) ?? 'POS daily/monthly report route is unavailable. Please contact technical support or your domain administrator.';
-                                                        $posVsPurchaseRoute = Route::has(ViewsConstants::RPT.'.pos.vs.purchase')
-                                                            ? route(ViewsConstants::RPT.'.pos.vs.purchase')
+                                                        $posVsPurchaseRoute = Route::has(VW::RPT.'.pos.vs.purchase')
+                                                            ? route(VW::RPT.'.pos.vs.purchase')
                                                             : '#';
                                                         $posVsPurchaseLinkId = 'pos-vs-purchase-report-link';
                                                         $posVsPurchaseMessage = Utility::fetchLinkMessage(
                                                             $lang,
-                                                            ViewsConstants::RPT,
+                                                            VW::RPT,
                                                             'pos_vs_purchase_report_route_unavailable'
                                                         ) ?? 'POS VS Purchase report route is unavailable. Please contact technical support or your domain administrator.';
                                                         $menuItems = [
@@ -2112,203 +1101,11 @@
                                                             </li>
                                                         @endforeach
                                                     </ul>
-                                                    @push(StacksConstants::ADM_SCR_PG)
-                                                        <script defer>
-                                                            (() => {
-                                                                const listenerAttr = 'data-warehouse-listener-active';
-                                                                const el = document.getElementById('{{ $warehouseLinkId }}');
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.body.contains(el)) {
-                                                                        observer.disconnect();
-                                                                        el.removeEventListener('click', () => {});
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            })();
-                                                        </script>
-                                                        <script defer>
-                                                            (() => {
-                                                                const listenerAttr = 'data-daily-purchase-listener-active';
-                                                                const el = document.getElementById('{{ $dailyPurchaseLinkId }}');
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.body.contains(el)) {
-                                                                        observer.disconnect();
-                                                                        el.removeEventListener('click', () => {});
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            })();
-                                                        </script>
-                                                        <script defer>
-                                                            (() => {
-                                                                const listenerAttr = 'data-daily-pos-listener-active';
-                                                                const el = document.getElementById('{{ $dailyPosLinkId }}');
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.body.contains(el)) {
-                                                                        observer.disconnect();
-                                                                        el.removeEventListener('click', () => {});
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            })();
-                                                        </script>
-                                                        <script defer>
-                                                            (() => {
-                                                                const listenerAttr = 'data-pos-vs-purchase-listener-active';
-                                                                const el = document.getElementById('{{ $posVsPurchaseLinkId }}');
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = container;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role','alert');
-                                                                                toastEl.setAttribute('aria-live','assertive');
-                                                                                toastEl.setAttribute('aria-atomic','true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.body.contains(el)) {
-                                                                        observer.disconnect();
-                                                                        el.removeEventListener('click', () => {});
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            })();
-                                                        </script>
+                                                    @push(ST::ADM_SCR_PG)
+                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsWarehouse.js') }}"></script>
+                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsDailyPurchase.js') }}"></script>
+                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsPosPurchase.js') }}"></script>
+                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsPosVsPurchase.js') }}"></script>
                                                     @endpush                                                
                                                     </li>
                                                 </ul>
@@ -2318,55 +1115,55 @@
                                 </ul>
                             </li>
                         @endif
-                        @if (!empty($userPlan) && $userPlan?->{PlansConstants::COL_HRM} == 1)
-                            @if (Gate::check(PermissionsConstants::MNG_EMP) || Gate::check(PermissionsConstants::MNG_SSL))
+                        @if (!empty($userPlan) && $userPlan?->{PLC::COL_HRM} == 1)
+                            @if (Gate::check(PMC::MNG_EMP) || Gate::check(PMC::MNG_SSL))
                                 @php
                                     $segments = [
-                                        ViewsConstants::ALW_OPT,
-                                        ViewsConstants::ANC,
-                                        ViewsConstants::AWD,
-                                        ViewsConstants::AWD_TP,
-                                        ViewsConstants::BRC,
-                                        ViewsConstants::C_JB_APL,
-                                        ViewsConstants::CPN_PL,
-                                        ViewsConstants::CPL,
-                                        ViewsConstants::CPT,
-                                        ViewsConstants::CRR,
-                                        ViewsConstants::CST_QT,
-                                        ViewsConstants::DDT_OPT,
-                                        ViewsConstants::DOC,
-                                        ViewsConstants::DOC_UP,
-                                        ViewsConstants::DPT,
-                                        ViewsConstants::DSG,
-                                        ViewsConstants::EMP,
-                                        ViewsConstants::EMP_ATD,
-                                        ViewsConstants::GL_TP,
-                                        ViewsConstants::HLD,
-                                        ViewsConstants::HLD_CLD,
-                                        ViewsConstants::ITV_SCD,
-                                        ViewsConstants::JB,
-                                        ViewsConstants::JB_APL,
-                                        ViewsConstants::JB_CAT,
-                                        ViewsConstants::JB_OB,
-                                        ViewsConstants::JB_STG,
-                                        ViewsConstants::LN_OPT,
-                                        ViewsConstants::LV,
-                                        ViewsConstants::LV_CLD,
-                                        ViewsConstants::LV_RQ,
-                                        ViewsConstants::LV_TP,
-                                        ViewsConstants::PFM_TP,
-                                        ViewsConstants::PLC,
-                                        ViewsConstants::PRM,
-                                        ViewsConstants::PY_SLP,
-                                        ViewsConstants::PY_SLP_TP,
-                                        ViewsConstants::RSG,
-                                        ViewsConstants::S_SLR,
-                                        ViewsConstants::TMN,
-                                        ViewsConstants::TMN_TP,
-                                        ViewsConstants::TNG,
-                                        ViewsConstants::TRF,
-                                        ViewsConstants::TRV,
-                                        ViewsConstants::WRN
+                                        VW::ALW_OPT,
+                                        VW::ANC,
+                                        VW::AWD,
+                                        VW::AWD_TP,
+                                        VW::BRC,
+                                        VW::C_JB_APL,
+                                        VW::CPN_PL,
+                                        VW::CPL,
+                                        VW::CPT,
+                                        VW::CRR,
+                                        VW::CST_QT,
+                                        VW::DDT_OPT,
+                                        VW::DOC,
+                                        VW::DOC_UP,
+                                        VW::DPT,
+                                        VW::DSG,
+                                        VW::EMP,
+                                        VW::EMP_ATD,
+                                        VW::GL_TP,
+                                        VW::HLD,
+                                        VW::HLD_CLD,
+                                        VW::ITV_SCD,
+                                        VW::JB,
+                                        VW::JB_APL,
+                                        VW::JB_CAT,
+                                        VW::JB_OB,
+                                        VW::JB_STG,
+                                        VW::LN_OPT,
+                                        VW::LV,
+                                        VW::LV_CLD,
+                                        VW::LV_RQ,
+                                        VW::LV_TP,
+                                        VW::PFM_TP,
+                                        VW::PLC,
+                                        VW::PRM,
+                                        VW::PY_SLP,
+                                        VW::PY_SLP_TP,
+                                        VW::RSG,
+                                        VW::S_SLR,
+                                        VW::TMN,
+                                        VW::TMN_TP,
+                                        VW::TNG,
+                                        VW::TRF,
+                                        VW::TRV,
+                                        VW::WRN
                                     ];
                                     
                                     $kebabSegments = array_map(function($segment) {
@@ -2394,30 +1191,30 @@
                                         @php
                                             $isEmployee = strtolower($user[UsersConstants::COL_TP]) === 'employee';
                                             if ($isEmployee) {
-                                                $employee = App\Models\Employee::where('user_id', $user?->id)->first();
-                                                $empRoute = Route::has(ViewsConstants::EMP.'.show')
-                                                    ? route(ViewsConstants::EMP.'.show', Illuminate\Support\Facades\Crypt::encrypt($employee->id))
+                                                $employee = Employee::where('user_id', $user?->id)->first();
+                                                $empRoute = Route::has(VW::EMP.'.show')
+                                                    ? route(VW::EMP.'.show', Crypt::encrypt($employee->id))
                                                     : '#';
                                                 $msgKey = 'show_employee_route_unavailable';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::EMP,
+                                                    VW::EMP,
                                                     $msgKey
                                                 ) ?? 'Employee view route is unavailable. Please contact technical support or your domain administrator.';
                                             } else {
-                                                $empRoute = Route::has(ViewsConstants::EMP.'.index')
-                                                    ? route(ViewsConstants::EMP.'.index')
+                                                $empRoute = Route::has(VW::EMP.'.index')
+                                                    ? route(VW::EMP.'.index')
                                                     : '#';
                                                 $msgKey = 'employee_setup_route_unavailable';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::EMP,
+                                                    VW::EMP,
                                                     $msgKey
                                                 ) ?? 'Employee setup route is unavailable. Please contact technical support or your domain administrator.';
                                             }
                                             $linkId = 'employee-link';
                                         @endphp
-                                        <li class="dash-item {{ RF::segment(1) == ViewsConstants::EMP ? 'active dash-trigger' : '' }}">
+                                        <li class="dash-item {{ RF::segment(1) == VW::EMP ? 'active dash-trigger' : '' }}">
                                             <a
                                                 id="{{ $linkId }}"
                                                 class="dash-link"
@@ -2429,62 +1226,14 @@
                                                 {{ $isEmployee ? __('Employee') : __('Employee Setup') }}
                                             </a>
                                         </li>
-                                        @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                    const listenerAttr = 'data-employee-listener-active';
-                                                    const el = document.getElementById('{{ $linkId }}');
-                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                    el.setAttribute(listenerAttr, 'true');
-                                                    el.addEventListener('click', event => {
-                                                        try {
-                                                            const url = el.getAttribute('data-url');
-                                                            const href = el.href;
-                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                event.preventDefault();
-                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                const containerId = 'toast-container';
-                                                                let container = document.getElementById(containerId);
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = containerId;
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bootstrapLink && window.bootstrap) {
-                                                                    const toastEl = document.createElement('div');
-                                                                    toastEl.className = 'toast';
-                                                                    toastEl.setAttribute('role', 'alert');
-                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toastEl.appendChild(body);
-                                                                    container.appendChild(toastEl);
-                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                el.setAttribute('data-failed-route', 'true');
-                                                            }
-                                                        } catch (error) {}
-                                                    });
-                                                    const observer = new MutationObserver(() => {
-                                                        if (!document.body.contains(el)) {
-                                                            observer.disconnect();
-                                                            el.removeEventListener('click', () => {});
-                                                        }
-                                                    });
-                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                })();
-                                            </script>
+                                        @push(ST::ADM_SCR_PG)
+                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/employee.js') }}"></script>
                                         @endpush
-                                        @if (Gate::check(PermissionsConstants::MNG_SSL) || Gate::check(PermissionsConstants::MNG_PSL))
+                                        @if (Gate::check(PMC::MNG_SSL) || Gate::check(PMC::MNG_PSL))
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::PY_SLP,
-                                                    ViewsConstants::S_SLR
+                                                    VW::PY_SLP,
+                                                    VW::S_SLR
                                                 ];
                                                 
                                                 $kebabSegments = array_map(function($segment) {
@@ -2500,23 +1249,23 @@
                                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                 </a>
                                                 <ul class="dash-submenu">
-                                                    @can(PermissionsConstants::MNG_SSL)
+                                                    @can(PMC::MNG_SSL)
                                                         @php
-                                                            $setSalaryRoute = Route::has(ViewsConstants::S_SLR.'.index')
-                                                                ? route(ViewsConstants::S_SLR.'.index')
-                                                                : (Route::has(Str::kebab(ViewsConstants::S_SLR.'.index'))
-                                                                ? route(Str::kebab(ViewsConstants::S_SLR.'.index'))
+                                                            $setSalaryRoute = Route::has(VW::S_SLR.'.index')
+                                                                ? route(VW::S_SLR.'.index')
+                                                                : (Route::has(Str::kebab(VW::S_SLR.'.index'))
+                                                                ? route(Str::kebab(VW::S_SLR.'.index'))
                                                                 : '#');
-                                                            $linkId = 'set-salary-link';
+                                                            $setSalaryLinkId = 'set-salary-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::S_SLR,
+                                                                VW::S_SLR,
                                                                 'set_salary_index_route_unavailable'
                                                             ) ?? 'Set salary route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <li class="dash-item {{ (request()->is('set_salaries*') || request()->is('set-salaries*')) ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $setSalaryLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $setSalaryRoute }}"
                                                                 data-url="{{ $setSalaryRoute }}"
@@ -2526,73 +1275,25 @@
                                                                 {{ __('Set salary') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-set-salary-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role', 'alert');
-                                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/setSalary.js') }}"></script>
                                                         @endpush
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_PSL)
+                                                    @can(PMC::MNG_PSL)
                                                         @php
-                                                            $payslipRoute = Route::has(ViewsConstants::PY_SLP.'.index')
-                                                                ? route(ViewsConstants::PY_SLP.'.index')
+                                                            $payslipRoute = Route::has(VW::PY_SLP.'.index')
+                                                                ? route(VW::PY_SLP.'.index')
                                                                 : '#';
-                                                            $linkId = 'payslip-link';
+                                                            $paySlipLinkId = 'payslip-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::PY_SLP,
+                                                                VW::PY_SLP,
                                                                 'payslip_index_route_unavailable'
                                                             ) ?? 'Payslip route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <li class="dash-item {{ request()->is('payslip*') ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $paySlipLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $setSalaryRoute }}"
                                                                 data-url="{{ $payslipRoute }}"
@@ -2602,66 +1303,18 @@
                                                                 {{ __('Payslip') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-payslip-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role','alert');
-                                                                                    toastEl.setAttribute('aria-live','assertive');
-                                                                                    toastEl.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/payslip.js') }}"></script>
                                                         @endpush
                                                     @endcan
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if (Gate::check(PermissionsConstants::MNG_LV) || Gate::check(PermissionsConstants::MNG_ATD))
+                                        @if (Gate::check(PMC::MNG_LV) || Gate::check(PMC::MNG_ATD))
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::EMP_ATD,
-                                                    ViewsConstants::LV
+                                                    VW::EMP_ATD,
+                                                    VW::LV
                                                 ];
                                                 
                                                 $kebabSegments = array_map(function($segment) {
@@ -2678,21 +1331,21 @@
                                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                 </a>
                                                 <ul class="dash-submenu">
-                                                    @can(PermissionsConstants::MNG_LV)
+                                                    @can(PMC::MNG_LV)
                                                         @php
-                                                            $manageLeaveRoute = Route::has(ViewsConstants::LV.'.index')
-                                                                ? route(ViewsConstants::LV.'.index')
+                                                            $manageLeaveRoute = Route::has(VW::LV.'.index')
+                                                                ? route(VW::LV.'.index')
                                                                 : '#';
-                                                            $linkId = 'manage-leave-link';
+                                                            $manageLeaveLinkId = 'manage-leave-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::LV,
+                                                                VW::LV,
                                                                 'leave_index_route_unavailable'
                                                             ) ?? 'Manage leave route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
-                                                        <li class="dash-item {{ RF::route()->getName() == ViewsConstants::LV.'.index' ? 'active' : '' }}">
+                                                        <li class="dash-item {{ RF::route()->getName() == VW::LV.'.index' ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $manageLeaveLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $manageLeaveRoute }}"
                                                                 data-url="{{ $manageLeaveRoute }}"
@@ -2702,62 +1355,14 @@
                                                                 {{ __('Manage Leave') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-manage-leave-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role','alert');
-                                                                                    toastEl.setAttribute('aria-live','assertive');
-                                                                                    toastEl.setAttribute('aria-atomic','true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/manageLeave.js') }}"></script>
                                                         @endpush
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_ATD)
+                                                    @can(PMC::MNG_ATD)
                                                         @php
                                                             $segments = [
-                                                                ViewsConstants::EMP_ATD
+                                                                VW::EMP_ATD
                                                             ];
                                                             
                                                             $kebabSegments = array_map(function($segment) {
@@ -2778,21 +1383,21 @@
                                                             </a>
                                                             <ul class="dash-submenu">
                                                                 @php
-                                                                    $markAttendanceRoute = Route::has(ViewsConstants::EMP_ATD.'.index')
-                                                                        ? route(ViewsConstants::EMP_ATD.'.index')
-                                                                        : (Route::has(Str::kebab(ViewsConstants::EMP_ATD.'.index'))
-                                                                        ? route(Str::kebab(ViewsConstants::EMP_ATD.'.index'))
+                                                                    $markAttendanceRoute = Route::has(VW::EMP_ATD.'.index')
+                                                                        ? route(VW::EMP_ATD.'.index')
+                                                                        : (Route::has(Str::kebab(VW::EMP_ATD.'.index'))
+                                                                        ? route(Str::kebab(VW::EMP_ATD.'.index'))
                                                                         : '#');
-                                                                    $linkId = 'mark-attendance-link';
+                                                                    $markAttendanceLinkId = 'mark-attendance-link';
                                                                     $message = Utility::fetchLinkMessage(
                                                                         $lang,
-                                                                        ViewsConstants::EMP_ATD,
+                                                                        VW::EMP_ATD,
                                                                         'attendance_index_route_unavailable'
                                                                     ) ?? 'Mark attendance route is unavailable. Please contact technical support or your domain administrator.';
                                                                 @endphp
-                                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::EMP_ATD.'.index' ? 'active' : '' }}">
+                                                                <li class="dash-item {{ RF::route()->getName() == VW::EMP_ATD.'.index' ? 'active' : '' }}">
                                                                     <a
-                                                                        id="{{ $linkId }}"
+                                                                        id="{{ $markAttendanceLinkId }}"
                                                                         class="dash-link"
                                                                         href="{{ $markAttendanceRoute }}"
                                                                         data-url="{{ $markAttendanceRoute }}"
@@ -2802,74 +1407,26 @@
                                                                         {{ __('Mark Attendance') }}
                                                                     </a>
                                                                 </li>
-                                                                @push(StacksConstants::ADM_SCR_PG)
-                                                                    <script defer>
-                                                                        (() => {
-                                                                            const listenerAttr = 'data-mark-attendance-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                    const url = el.getAttribute('data-url');
-                                                                                    const href = el.href;
-                                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                        event.preventDefault();
-                                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                        const containerId = 'toast-container';
-                                                                                        let container = document.getElementById(containerId);
-                                                                                        if (!container) {
-                                                                                            container = document.createElement('div');
-                                                                                            container.id = containerId;
-                                                                                            document.body.appendChild(container);
-                                                                                        }
-                                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                                            const toastEl = document.createElement('div');
-                                                                                            toastEl.className = 'toast';
-                                                                                            toastEl.setAttribute('role', 'alert');
-                                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                                            const body = document.createElement('div');
-                                                                                            body.className = 'toast-body';
-                                                                                            body.textContent = msg;
-                                                                                            toastEl.appendChild(body);
-                                                                                            container.appendChild(toastEl);
-                                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                        } else {
-                                                                                            alert(msg);
-                                                                                        }
-                                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                                    }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                    observer.disconnect();
-                                                                                    el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                        })();
-                                                                    </script>
+                                                                @push(ST::ADM_SCR_PG)
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/markAttendance.js') }}"></script>
                                                                 @endpush
-                                                                @can(PermissionsConstants::CR_ATD)
+                                                                @can(PMC::CR_ATD)
                                                                     @php
-                                                                        $bulkAttendanceRoute = Route::has(ViewsConstants::EMP_ATD.'.'.EAC::BK_ATD)
-                                                                            ? route(ViewsConstants::EMP_ATD.'.'.EAC::BK_ATD)
-                                                                            : (Route::has(Str::kebab(Route::has(ViewsConstants::EMP_ATD.'.'.EAC::BK_ATD)))
-                                                                            ? route(Str::kebab(ViewsConstants::EMP_ATD.'.'.EAC::BK_ATD))
+                                                                        $bulkAttendanceRoute = Route::has(VW::EMP_ATD.'.'.EAC::BK_ATD)
+                                                                            ? route(VW::EMP_ATD.'.'.EAC::BK_ATD)
+                                                                            : (Route::has(Str::kebab(Route::has(VW::EMP_ATD.'.'.EAC::BK_ATD)))
+                                                                            ? route(Str::kebab(VW::EMP_ATD.'.'.EAC::BK_ATD))
                                                                             : '#');
-                                                                        $linkId = 'bulk-attendance-link';
+                                                                        $bulkAttendanceLinkId = 'bulk-attendance-link';
                                                                         $message = Utility::fetchLinkMessage(
                                                                             $lang,
-                                                                            ViewsConstants::EMP_ATD,
+                                                                            VW::EMP_ATD,
                                                                             'bulk_attendance_route_unavailable'
                                                                         ) ?? 'Bulk attendance route is unavailable. Please contact technical support or your domain administrator.';
                                                                     @endphp
-                                                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::EMP_ATD.'.'.EAC::BK_ATD ? 'active' : '' }}">
+                                                                    <li class="dash-item {{ RF::route()->getName() == VW::EMP_ATD.'.'.EAC::BK_ATD ? 'active' : '' }}">
                                                                         <a
-                                                                            id="{{ $linkId }}"
+                                                                            id="{{ $bulkAttendanceLinkId }}"
                                                                             class="dash-link"
                                                                             href="{{ $bulkAttendanceRoute }}"
                                                                             data-url="{{ $bulkAttendanceRoute }}"
@@ -2879,56 +1436,8 @@
                                                                             {{ __('Bulk Attendance') }}
                                                                         </a>
                                                                     </li>
-                                                                    @push(StacksConstants::ADM_SCR_PG)
-                                                                        <script defer>
-                                                                            (() => {
-                                                                            const listenerAttr = 'data-bulk-attendance-listener-active';
-                                                                            const el = document.getElementById('{{ $linkId }}');
-                                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                            el.setAttribute(listenerAttr, 'true');
-                                                                            el.addEventListener('click', event => {
-                                                                                try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role', 'alert');
-                                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                    alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                                } catch (error) {}
-                                                                            });
-                                                                            const observer = new MutationObserver(() => {
-                                                                                if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                                }
-                                                                            });
-                                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                                            })();
-                                                                        </script>
+                                                                    @push(ST::ADM_SCR_PG)
+                                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/bulkAttendance.js') }}"></script>
                                                                     @endpush
                                                                 @endcan
                                                             </ul>
@@ -2937,19 +1446,17 @@
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if (Gate::check(PermissionsConstants::MNG_IND) || Gate::check(PermissionsConstants::MNG_APR) || Gate::check(PermissionsConstants::MNG_GTR))
+                                        @if (Gate::check(PMC::MNG_IND) || Gate::check(PMC::MNG_APR) || Gate::check(PMC::MNG_GTR))
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::APR,
-                                                    ViewsConstants::GL_TRC,
-                                                    ViewsConstants::IND
+                                                    VW::APR,
+                                                    VW::GL_TRC,
+                                                    VW::IND
                                                 ];
-                                                
                                                 $kebabSegments = array_map(function($segment) {
                                                     if ($segment === null) return null;
                                                     return str_replace('_', '-', strtolower(preg_replace('/([A-Z])/', '-$1', $segment)));
                                                 }, $segments);
-                                                
                                                 $allSegments = array_merge($segments, $kebabSegments);
                                                 $isIndicatorApproval = in_array(RF::segment(1), $allSegments);
                                             @endphp
@@ -2960,21 +1467,21 @@
                                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                 </a>
                                                 <ul class="dash-submenu {{ $isIndicatorApproval? 'show' : 'collapse' }}">
-                                                    @can(PermissionsConstants::MNG_IND)
+                                                    @can(PMC::MNG_IND)
                                                         @php
-                                                            $indicatorIndexRoute = Route::has(ViewsConstants::IND.'.index')
-                                                                ? route(ViewsConstants::IND.'.index')
+                                                            $indicatorIndexRoute = Route::has(VW::IND.'.index')
+                                                                ? route(VW::IND.'.index')
                                                                 : '#';
-                                                            $linkId = 'indicator-index-link';
+                                                            $indicatorLinkId = 'indicator-index-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::IND,
+                                                                VW::IND,
                                                                 'indicator_index_route_unavailable'
                                                             ) ?? 'Indicator index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <li class="dash-item {{ request()->is('indicator*') ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $indicatorLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $indicatorIndexRoute }}"
                                                                 data-url="{{ $indicatorIndexRoute }}"
@@ -2984,151 +1491,55 @@
                                                                 {{ __('Indicator') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-indicator-index-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role', 'alert');
-                                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('public/assets/js/routes/partials/admin/menu/indicator.js') }}"></script>
                                                         @endpush
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_APR)
+                                                    @can(PMC::MNG_APR)
                                                         @php
-                                                            $appraisalIndexRoute = Route::has(ViewsConstants::APR.'.index')
-                                                                ? route(ViewsConstants::APR.'.index')
+                                                            $appraisalIndexRoute = Route::has(VW::APR.'.index')
+                                                                ? route(VW::APR.'.index')
                                                                 : '#';
-                                                            $linkId = 'appraisal-index-link';
+                                                            $appraisalLinkId = 'appraisal-index-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::APR,
+                                                                VW::APR,
                                                                 'appraisal_index_route_unavailable'
                                                             ) ?? 'Appraisal index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <li class="dash-item {{ request()->is('appraisal*') ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $appraisalLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $indicatorIndexRoute }}"
                                                                 data-url="{{ $appraisalIndexRoute }}"
                                                                 data-sv-localized="true"
                                                                 data-guard-msg="{{ $message }}"
                                                             >
-                                                                {{ __(ViewsConstants::APR) }}
+                                                                {{ __(VW::APR) }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-appraisal-index-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role', 'alert');
-                                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/appraisal.js') }}"></script>
                                                         @endpush
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_GTR)
+                                                    @can(PMC::MNG_GTR)
                                                         @php
-                                                            $goalTrackingRoute = Route::has(ViewsConstants::GL_TRC.'.index')
-                                                                ? route(ViewsConstants::GL_TRC.'.index')
-                                                                : (Route::has(Str::kebab(ViewsConstants::GL_TRC.'.index'))
-                                                                ? route(Str::kebab(ViewsConstants::GL_TRC.'.index'))
+                                                            $goalTrackingRoute = Route::has(VW::GL_TRC.'.index')
+                                                                ? route(VW::GL_TRC.'.index')
+                                                                : (Route::has(Str::kebab(VW::GL_TRC.'.index'))
+                                                                ? route(Str::kebab(VW::GL_TRC.'.index'))
                                                                 : '#');
-                                                            $linkId = 'goal-tracking-index-link';
+                                                            $goalTrackingLinkId = 'goal-tracking-index-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::GL_TRC,
+                                                                VW::GL_TRC,
                                                                 'goal_tracking_index_route_unavailable'
                                                             ) ?? 'Goal Tracking route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <li class="dash-item {{ (request()->is('goal-tracking*') || request()->is('goal_tracking*')) ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $goalTrackingLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $indicatorIndexRoute }}"
                                                                 data-url="{{ $goalTrackingRoute }}"
@@ -3138,64 +1549,16 @@
                                                                 {{ __('Goal Tracking') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-goal-tracking-index-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role', 'alert');
-                                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/goalTracking.js') }}"></script>
                                                         @endpush
                                                     @endcan
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if (Gate::check(PermissionsConstants::MNG_TNG) || Gate::check(PermissionsConstants::MNG_TNR) || Gate::check(PermissionsConstants::SHW_TNG))
+                                        @if (Gate::check(PMC::MNG_TNG) || Gate::check(PMC::MNG_TNR) || Gate::check(PMC::SHW_TNG))
                                             @php
-                                                $isTraining = RF::segment(1) === ViewsConstants::TNR || RF::segment(1) === ViewsConstants::TNG;
+                                                $isTraining = RF::segment(1) === VW::TNR || RF::segment(1) === VW::TNG;
                                             @endphp
                                             <li class="{{ VC::DSH_IT_MN }} {{ $isTraining ? 'active dash-trigger' : '' }}"
                                                 href="#navbar-training" data-toggle="collapse" role="button"
@@ -3204,21 +1567,21 @@
                                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                 </a>
                                                 <ul class="dash-submenu">
-                                                    @can(PermissionsConstants::MNG_TNG)
+                                                    @can(PMC::MNG_TNG)
                                                         @php
-                                                            $trainingIndexRoute = Route::has(ViewsConstants::TNG.'.index')
-                                                                ? route(ViewsConstants::TNG.'.index')
+                                                            $trainingIndexRoute = Route::has(VW::TNG.'.index')
+                                                                ? route(VW::TNG.'.index')
                                                                 : '#';
-                                                            $linkId = 'training-index-link';
+                                                            $trainingLinkId = 'training-index-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::TRAINING,
+                                                                VW::TRAINING,
                                                                 'training_index_route_unavailable'
                                                             ) ?? 'Training list route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <li class="dash-item {{ request()->is('training*') ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $trainingLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $trainingIndexRoute }}"
                                                                 data-url="{{ $trainingIndexRoute }}"
@@ -3228,73 +1591,25 @@
                                                                 {{ __('Training List') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-training-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role', 'alert');
-                                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/training.js') }}"></script>
                                                         @endpush
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_TNR)
+                                                    @can(PMC::MNG_TNR)
                                                         @php
-                                                            $trainerIndexRoute = Route::has(ViewsConstants::TNR.'.index')
-                                                                ? route(ViewsConstants::TNR.'.index')
+                                                            $trainerIndexRoute = Route::has(VW::TNR.'.index')
+                                                                ? route(VW::TNR.'.index')
                                                                 : '#';
-                                                            $linkId = 'trainer-index-link';
+                                                            $trainerLinkId = 'trainer-index-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::TNR,
+                                                                VW::TNR,
                                                                 'trainer_index_route_unavailable'
                                                             ) ?? 'Trainer index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
                                                         <li class="dash-item {{ request()->is('trainer*') ? 'active' : '' }}">
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $trainerLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $trainerIndexRoute }}"
                                                                 data-url="{{ $trainerIndexRoute }}"
@@ -3304,83 +1619,33 @@
                                                                 {{ __('Trainer') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const listenerAttr = 'data-trainer-index-listener-active';
-                                                                    const el = document.getElementById('{{ $linkId }}');
-                                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                    el.setAttribute(listenerAttr, 'true');
-                                                                    el.addEventListener('click', event => {
-                                                                        try {
-                                                                            const url = el.getAttribute('data-url');
-                                                                            const href = el.href;
-                                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                event.preventDefault();
-                                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                const containerId = 'toast-container';
-                                                                                let container = document.getElementById(containerId);
-                                                                                if (!container) {
-                                                                                    container = document.createElement('div');
-                                                                                    container.id = containerId;
-                                                                                    document.body.appendChild(container);
-                                                                                }
-                                                                                if (bootstrapLink && window.bootstrap) {
-                                                                                    const toastEl = document.createElement('div');
-                                                                                    toastEl.className = 'toast';
-                                                                                    toastEl.setAttribute('role', 'alert');
-                                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                                    const body = document.createElement('div');
-                                                                                    body.className = 'toast-body';
-                                                                                    body.textContent = msg;
-                                                                                    toastEl.appendChild(body);
-                                                                                    container.appendChild(toastEl);
-                                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                } else {
-                                                                                    alert(msg);
-                                                                                }
-                                                                                el.setAttribute('data-failed-route', 'true');
-                                                                            }
-                                                                        } catch (error) {}
-                                                                    });
-                                                                    const observer = new MutationObserver(() => {
-                                                                        if (!document.body.contains(el)) {
-                                                                            observer.disconnect();
-                                                                            el.removeEventListener('click', () => {});
-                                                                        }
-                                                                    });
-                                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/trainer.js') }}"></script>
                                                         @endpush
                                                     @endcan
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if (Gate::check(PermissionsConstants::MNG_JB) ||
-                                                Gate::check(PermissionsConstants::CR_JB) ||
-                                                Gate::check(PermissionsConstants::MNG_JB_APL) ||
-                                                Gate::check(PermissionsConstants::MNG_CST_QT) ||
-                                                Gate::check(PermissionsConstants::SHW_ITV_SCHD) ||
-                                                Gate::check(PermissionsConstants::SHW_CRR))
+                                        @if (Gate::check(PMC::MNG_JB) ||
+                                                Gate::check(PMC::CR_JB) ||
+                                                Gate::check(PMC::MNG_JB_APL) ||
+                                                Gate::check(PMC::MNG_CST_QT) ||
+                                                Gate::check(PMC::SHW_ITV_SCHD) ||
+                                                Gate::check(PMC::SHW_CRR))
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::C_JB_APL,
-                                                    ViewsConstants::CRR,
-                                                    ViewsConstants::CST_QT,
-                                                    ViewsConstants::ITV_SCD,
-                                                    ViewsConstants::JB,
-                                                    ViewsConstants::JB_APL,
-                                                    ViewsConstants::JB_OB
+                                                    VW::C_JB_APL,
+                                                    VW::CRR,
+                                                    VW::CST_QT,
+                                                    VW::ITV_SCD,
+                                                    VW::JB,
+                                                    VW::JB_APL,
+                                                    VW::JB_OB
                                                 ];
-                                                
                                                 $kebabSegments = array_map(function($segment) {
                                                     if ($segment === null) return null;
                                                     return str_replace('_', '-', strtolower(preg_replace('/([A-Z])/', '-$1', $segment)));
                                                 }, $segments);
-                                                
                                                 $allSegments = array_merge($segments, $kebabSegments);
                                                 $isRecruitment = in_array(RF::segment(1), $allSegments);
                                             @endphp
@@ -3389,25 +1654,25 @@
                                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                 </a>
                                                 <ul class="dash-submenu">
-                                                    @can(PermissionsConstants::MNG_JB)
+                                                    @can(PMC::MNG_JB)
                                                         @php
                                                             $routeName = RF::route()->getName();
                                                         @endphp
                                                         <li
-                                                            class="dash-item {{ $routeName == ViewsConstants::JB.'.index' || $routeName == ViewsConstants::JB.'.create' || $routeName == ViewsConstants::JB.'.edit' || $routeName == ViewsConstants::JB.'.show' ? 'active' : '' }}">
+                                                            class="dash-item {{ $routeName == VW::JB.'.index' || $routeName == VW::JB.'.create' || $routeName == VW::JB.'.edit' || $routeName == VW::JB.'.show' ? 'active' : '' }}">
                                                             @php
-                                                                $jobsIndexRoute = Route::has(ViewsConstants::JB.'.index')
-                                                                    ? route(ViewsConstants::JB.'.index')
+                                                                $jobsIndexRoute = Route::has(VW::JB.'.index')
+                                                                    ? route(VW::JB.'.index')
                                                                     : '#';
-                                                                $linkId = 'job-index-link';
+                                                                $jobLinkId = 'job-index-link';
                                                                 $message = Utility::fetchLinkMessage(
                                                                     $lang,
-                                                                    ViewsConstants::JB,
+                                                                    VW::JB,
                                                                     'job_index_route_unavailable'
                                                                 ) ?? 'Jobs route is unavailable. Please contact technical support or your domain administrator.';
                                                             @endphp
                                                             <a
-                                                                id="{{ $linkId }}"
+                                                                id="{{ $jobLinkId }}"
                                                                 class="dash-link"
                                                                 href="{{ $jobsIndexRoute }}"
                                                                 data-url="{{ $jobsIndexRoute }}"
@@ -3416,72 +1681,24 @@
                                                             >
                                                                 {{ __('Jobs') }}
                                                             </a>
-                                                            @push(StacksConstants::ADM_SCR_PG)
-                                                                <script defer>
-                                                                    (() => {
-                                                                        const listenerAttr = 'data-job-index-listener-active';
-                                                                        const el = document.getElementById('{{ $linkId }}');
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            if (!document.body.contains(el)) {
-                                                                                observer.disconnect();
-                                                                                el.removeEventListener('click', () => {});
-                                                                            }
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    })();
-                                                                </script>
+                                                            @push(ST::ADM_SCR_PG)
+                                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/job.js') }}"></script>
                                                             @endpush
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::CR_JB)
+                                                    @can(PMC::CR_JB)
                                                         @php
-                                                            $jobCreateRoute = Route::has(ViewsConstants::JB.'.create')
-                                                                ? route(ViewsConstants::JB.'.create')
+                                                            $jobCreateRoute = Route::has(VW::JB.'.create')
+                                                                ? route(VW::JB.'.create')
                                                                 : '#';
                                                             $jobCreateLinkId = 'job-create-link';
                                                             $jobCreateMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::JB,
+                                                                VW::JB,
                                                                 'job_create_route_unavailable'
                                                             ) ?? 'Job Create route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
-                                                        <li class="dash-item {{ RF::route()->getName() == ViewsConstants::JB.'.create' ? 'active' : '' }}">
+                                                        <li class="dash-item {{ RF::route()->getName() == VW::JB.'.create' ? 'active' : '' }}">
                                                             <a
                                                                 id="{{ $jobCreateLinkId }}"
                                                                 class="dash-link"
@@ -3494,17 +1711,17 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_JB_APL)
+                                                    @can(PMC::MNG_JB_APL)
                                                         @php
-                                                            $jobAppRoute = Route::has(ViewsConstants::JB_APL.'.index')
-                                                                ? route(ViewsConstants::JB_APL.'.index')
-                                                                : (Router::has(Str::kebab(ViewsConstants::JB_APL.'.index'))
-                                                                ? route(Str::kebab(ViewsConstants::JB_APL.'.index'))
+                                                            $jobAppRoute = Route::has(VW::JB_APL.'.index')
+                                                                ? route(VW::JB_APL.'.index')
+                                                                : (Router::has(Str::kebab(VW::JB_APL.'.index'))
+                                                                ? route(Str::kebab(VW::JB_APL.'.index'))
                                                                 : '#');
                                                             $jobAppLinkId = 'job-application-link';
                                                             $jobAppMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::JB,
+                                                                VW::JB,
                                                                 'job_application_index_route_unavailable'
                                                             ) ?? 'Job Application route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3521,15 +1738,15 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_JB_APL)
+                                                    @can(PMC::MNG_JB_APL)
                                                         @php
-                                                            $jobCandRoute = Route::has(ViewsConstants::JB.'.application.candidate')
-                                                                ? route(ViewsConstants::JB.'.application.candidate')
+                                                            $jobCandRoute = Route::has(VW::JB.'.application.candidate')
+                                                                ? route(VW::JB.'.application.candidate')
                                                                 : '#';
                                                             $jobCandLinkId = 'job-candidate-link';
                                                             $jobCandMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::JB,
+                                                                VW::JB,
                                                                 'job_candidate_route_unavailable'
                                                             ) ?? 'Job Candidate route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3546,15 +1763,15 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_JB_APL)
+                                                    @can(PMC::MNG_JB_APL)
                                                         @php
-                                                            $jobOnBoardRoute = Route::has(ViewsConstants::JB.'.on.board')
-                                                                ? route(ViewsConstants::JB.'.on.board')
+                                                            $jobOnBoardRoute = Route::has(VW::JB.'.on.board')
+                                                                ? route(VW::JB.'.on.board')
                                                                 : '#';
                                                             $jobOnBoardLinkId = 'job-on-board-link';
                                                             $jobOnBoardMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::JB,
+                                                                VW::JB,
                                                                 'job_on_board_route_unavailable'
                                                             ) ?? 'Job On-boarding route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3571,17 +1788,17 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_CST_QT)
+                                                    @can(PMC::MNG_CST_QT)
                                                         @php
-                                                            $customQRoute = Route::has(ViewsConstants::CST_QT.'.index')
-                                                                ? route(ViewsConstants::CST_QT.'.index')
-                                                                : (Route::has(Str::kebab(ViewsConstants::CST_QT.'.index'))
-                                                                ? route(Str::kebab(ViewsConstants::CST_QT.'.index'))
+                                                            $customQRoute = Route::has(VW::CST_QT.'.index')
+                                                                ? route(VW::CST_QT.'.index')
+                                                                : (Route::has(Str::kebab(VW::CST_QT.'.index'))
+                                                                ? route(Str::kebab(VW::CST_QT.'.index'))
                                                                 : '#');
                                                             $customQLinkId = 'custom-question-link';
                                                             $customQMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::CST_QT,
+                                                                VW::CST_QT,
                                                                 'custom_question_index_route_unavailable'
                                                             ) ?? 'Custom Question route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3598,17 +1815,17 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::SHW_ITV_SCHD)
+                                                    @can(PMC::SHW_ITV_SCHD)
                                                         @php
-                                                            $intvSchedRoute = Route::has(ViewsConstants::ITV_SCD.'.index')
-                                                                ? route(ViewsConstants::ITV_SCD.'.index')
-                                                                : (Route::has(Str::kebab(ViewsConstants::ITV_SCD.'.index'))
-                                                                ? route(Str::kebab(ViewsConstants::ITV_SCD.'.index'))
+                                                            $intvSchedRoute = Route::has(VW::ITV_SCD.'.index')
+                                                                ? route(VW::ITV_SCD.'.index')
+                                                                : (Route::has(Str::kebab(VW::ITV_SCD.'.index'))
+                                                                ? route(Str::kebab(VW::ITV_SCD.'.index'))
                                                                 : '#');
                                                             $intvSchedLinkId = 'interview-schedule-link';
                                                             $intvSchedMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::ITV_SCD,
+                                                                VW::ITV_SCD,
                                                                 'interview_schedule_index_route_unavailable'
                                                             ) ?? 'Interview Schedule route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3625,15 +1842,15 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::SHW_CRR)
+                                                    @can(PMC::SHW_CRR)
                                                         @php
-                                                            $careerRoute = Route::has(ViewsConstants::CRR)
-                                                                ? route(ViewsConstants::CRR, [$user?->creatorId(), $lang])
+                                                            $careerRoute = Route::has(VW::CRR)
+                                                                ? route(VW::CRR, [$user?->creatorId(), $lang])
                                                                 : '#';
                                                             $careerLinkId = 'career-index-link';
                                                             $careerMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::CRR,
+                                                                VW::CRR,
                                                                 'career_index_route_unavailable'
                                                             ) ?? 'Career route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3649,66 +1866,8 @@
                                                                 {{ __('Career') }}
                                                             </a>
                                                         </li>
-                                                        @push(StacksConstants::ADM_SCR_PG)
-                                                            <script defer>
-                                                                (() => {
-                                                                    const bindGuard = (id) => {
-                                                                        const listenerAttr = `data-${id}-listener-active`;
-                                                                        const el = document.getElementById(`${id}`);
-                                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                        el.setAttribute(listenerAttr, 'true');
-                                                                        el.addEventListener('click', event => {
-                                                                            try {
-                                                                                const url = el.getAttribute('data-url');
-                                                                                const href = el.href;
-                                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                                    event.preventDefault();
-                                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                                    const containerId = 'toast-container';
-                                                                                    let container = document.getElementById(containerId);
-                                                                                    if (!container) {
-                                                                                        container = document.createElement('div');
-                                                                                        container.id = containerId;
-                                                                                        document.body.appendChild(container);
-                                                                                    }
-                                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                                        const toastEl = document.createElement('div');
-                                                                                        toastEl.className = 'toast';
-                                                                                        toastEl.setAttribute('role', 'alert');
-                                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                                        const body = document.createElement('div');
-                                                                                        body.className = 'toast-body';
-                                                                                        body.textContent = msg;
-                                                                                        toastEl.appendChild(body);
-                                                                                        container.appendChild(toastEl);
-                                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                                    } else {
-                                                                                        alert(msg);
-                                                                                    }
-                                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                                }
-                                                                            } catch (error) {}
-                                                                        });
-                                                                        const observer = new MutationObserver(() => {
-                                                                            const el = document.getElementById(`${id}`);
-                                                                            if (!el) observer.disconnect();
-                                                                        });
-                                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                                    };
-                                                                    [
-                                                                        'job-index-link',
-                                                                        'job-create-link',
-                                                                        'job-application-link',
-                                                                        'job-candidate-link',
-                                                                        'job-on-board-link',
-                                                                        'custom-question-link',
-                                                                        'interview-schedule-link',
-                                                                        'career-index-link'
-                                                                    ].forEach(bindGuard);
-                                                                })();
-                                                            </script>
+                                                        @push(ST::ADM_SCR_PG)
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/jobApplication.js') }}"></script>
                                                         @endpush
                                                     @endcan
                                                 </ul>
@@ -3716,32 +1875,32 @@
                                         @endif
                                         @php
                                             $permissions = [
-                                                PermissionsConstants::MNG_AWD,
-                                                PermissionsConstants::MNG_TRF,
-                                                PermissionsConstants::MNG_RSG,
-                                                PermissionsConstants::MNG_TRV,
-                                                PermissionsConstants::MNG_PRM,
-                                                PermissionsConstants::MNG_CPT,
-                                                PermissionsConstants::MNG_WRN,
-                                                PermissionsConstants::MNG_TRM,
-                                                PermissionsConstants::MNG_ANC,
-                                                PermissionsConstants::MNG_HLD
+                                                PMC::MNG_AWD,
+                                                PMC::MNG_TRF,
+                                                PMC::MNG_RSG,
+                                                PMC::MNG_TRV,
+                                                PMC::MNG_PRM,
+                                                PMC::MNG_CPT,
+                                                PMC::MNG_WRN,
+                                                PMC::MNG_TRM,
+                                                PMC::MNG_ANC,
+                                                PMC::MNG_HLD
                                             ];
                                             $hasPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                                             $segments = [
-                                                ViewsConstants::ANC,
-                                                ViewsConstants::AWD,
-                                                ViewsConstants::CPN,
-                                                ViewsConstants::CPT,
-                                                ViewsConstants::HLD,
-                                                ViewsConstants::HLD_CLD,
-                                                ViewsConstants::PLC,
-                                                ViewsConstants::PRM,
-                                                ViewsConstants::RSG,
-                                                ViewsConstants::TMN,
-                                                ViewsConstants::TRF,
-                                                ViewsConstants::TRV,
-                                                ViewsConstants::WRN
+                                                VW::ANC,
+                                                VW::AWD,
+                                                VW::CPN,
+                                                VW::CPT,
+                                                VW::HLD,
+                                                VW::HLD_CLD,
+                                                VW::PLC,
+                                                VW::PRM,
+                                                VW::RSG,
+                                                VW::TMN,
+                                                VW::TRF,
+                                                VW::TRV,
+                                                VW::WRN
                                             ];
                                             $kebabSegments = array_map(function($segment) {
                                                 if ($segment === null) return null;
@@ -3757,15 +1916,15 @@
                                                     <span class="dash-arrow">< data-feather="chevron-right"></ i></span>
                                                 </a>
                                                 <ul class="dash-submenu">
-                                                    @can(PermissionsConstants::MNG_AWD)
+                                                    @can(PMC::MNG_AWD)
                                                         @php
-                                                            $awardIndexRoute = Route::has(ViewsConstants::AWD.'.index')
-                                                                ? route(ViewsConstants::AWD.'.index')
+                                                            $awardIndexRoute = Route::has(VW::AWD.'.index')
+                                                                ? route(VW::AWD.'.index')
                                                                 : '#';
                                                             $awardIndexLinkId = 'award-index-link';
                                                             $awardIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::AWD,
+                                                                VW::AWD,
                                                                 'award_index_route_unavailable'
                                                             ) ?? 'Award index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3782,15 +1941,15 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_TRF)
+                                                    @can(PMC::MNG_TRF)
                                                         @php
-                                                            $transferIndexRoute = Route::has(ViewsConstants::TRF.'.index')
-                                                                ? route(ViewsConstants::TRF.'.index')
+                                                            $transferIndexRoute = Route::has(VW::TRF.'.index')
+                                                                ? route(VW::TRF.'.index')
                                                                 : '#';
                                                             $transferIndexLinkId = 'transfer-index-link';
                                                             $transferIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::TRF,
+                                                                VW::TRF,
                                                                 'transfer_index_route_unavailable'
                                                             ) ?? 'Transfer index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3807,15 +1966,15 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_RSG)
+                                                    @can(PMC::MNG_RSG)
                                                         @php
-                                                            $resignationIndexRoute = Route::has(ViewsConstants::RSG.'.index')
-                                                                ? route(ViewsConstants::RSG.'.index')
+                                                            $resignationIndexRoute = Route::has(VW::RSG.'.index')
+                                                                ? route(VW::RSG.'.index')
                                                                 : '#';
                                                             $resignationIndexLinkId = 'resignation-index-link';
                                                             $resignationIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::RSG,
+                                                                VW::RSG,
                                                                 'resignation_index_route_unavailable'
                                                             ) ?? 'Resignation index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3832,15 +1991,15 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_TRV)
+                                                    @can(PMC::MNG_TRV)
                                                         @php
-                                                            $tripIndexRoute = Route::has(ViewsConstants::TRV.'.index')
-                                                                ? route(ViewsConstants::TRV.'.index')
+                                                            $tripIndexRoute = Route::has(VW::TRV.'.index')
+                                                                ? route(VW::TRV.'.index')
                                                                 : '#';
                                                             $tripIndexLinkId = 'trip-index-link';
                                                             $tripIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::TRV,
+                                                                VW::TRV,
                                                                 'travel_index_route_unavailable'
                                                             ) ?? 'Travel index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3857,15 +2016,15 @@
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @can(PermissionsConstants::MNG_PRM)
+                                                    @can(PMC::MNG_PRM)
                                                         @php
-                                                            $promotionIndexRoute = Route::has(ViewsConstants::PRM.'.index')
-                                                                ? route(ViewsConstants::PRM.'.index')
+                                                            $promotionIndexRoute = Route::has(VW::PRM.'.index')
+                                                                ? route(VW::PRM.'.index')
                                                                 : '#';
                                                             $promotionIndexLinkId = 'promotion-index-link';
                                                             $promotionIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::PRM,
+                                                                VW::PRM,
                                                                 'promotion_index_route_unavailable'
                                                             ) ?? 'Promotion index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3883,15 +2042,15 @@
                                                         </li>
                                                     @endcan
                                                 
-                                                    @can(PermissionsConstants::MNG_CPT)
+                                                    @can(PMC::MNG_CPT)
                                                         @php
-                                                            $complaintIndexRoute = Route::has(ViewsConstants::CPL.'.index')
-                                                                ? route(ViewsConstants::CPL.'.index')
+                                                            $complaintIndexRoute = Route::has(VW::CPL.'.index')
+                                                                ? route(VW::CPL.'.index')
                                                                 : '#';
                                                             $complaintIndexLinkId = 'complaint-index-link';
                                                             $complaintIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::CPL,
+                                                                VW::CPL,
                                                                 'complaint_index_route_unavailable'
                                                             ) ?? 'Complaints index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3909,15 +2068,15 @@
                                                         </li>
                                                     @endcan
                                                 
-                                                    @can(PermissionsConstants::MNG_WRN)
+                                                    @can(PMC::MNG_WRN)
                                                         @php
-                                                            $warningIndexRoute = Route::has(ViewsConstants::WRN.'.index')
-                                                                ? route(ViewsConstants::WRN.'.index')
+                                                            $warningIndexRoute = Route::has(VW::WRN.'.index')
+                                                                ? route(VW::WRN.'.index')
                                                                 : '#';
                                                             $warningIndexLinkId = 'warning-index-link';
                                                             $warningIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::WRN,
+                                                                VW::WRN,
                                                                 'warning_index_route_unavailable'
                                                             ) ?? 'Warning index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3935,15 +2094,15 @@
                                                         </li>
                                                     @endcan
                                                 
-                                                    @can(PermissionsConstants::MNG_TRM)
+                                                    @can(PMC::MNG_TRM)
                                                         @php
-                                                            $terminationIndexRoute = Route::has(ViewsConstants::TMN.'.index')
-                                                                ? route(ViewsConstants::TMN.'.index')
+                                                            $terminationIndexRoute = Route::has(VW::TMN.'.index')
+                                                                ? route(VW::TMN.'.index')
                                                                 : '#';
                                                             $terminationIndexLinkId = 'termination-index-link';
                                                             $terminationIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::TMN,
+                                                                VW::TMN,
                                                                 'termination_index_route_unavailable'
                                                             ) ?? 'Termination index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3961,15 +2120,15 @@
                                                         </li>
                                                     @endcan
                                                 
-                                                    @can(PermissionsConstants::MNG_ANC)
+                                                    @can(PMC::MNG_ANC)
                                                         @php
-                                                            $announcementIndexRoute = Route::has(ViewsConstants::ANC.'.index')
-                                                                ? route(ViewsConstants::ANC.'.index')
+                                                            $announcementIndexRoute = Route::has(VW::ANC.'.index')
+                                                                ? route(VW::ANC.'.index')
                                                                 : '#';
                                                             $announcementIndexLinkId = 'announcement-index-link';
                                                             $announcementIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::ANC,
+                                                                VW::ANC,
                                                                 'announcement_index_route_unavailable'
                                                             ) ?? 'Announcement index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -3987,15 +2146,15 @@
                                                         </li>
                                                     @endcan
                                                 
-                                                    @can(PermissionsConstants::MNG_HLD)
+                                                    @can(PMC::MNG_HLD)
                                                         @php
-                                                            $holidaysIndexRoute = Route::has(ViewsConstants::HLD.'.index')
-                                                                ? route(ViewsConstants::HLD.'.index')
+                                                            $holidaysIndexRoute = Route::has(VW::HLD.'.index')
+                                                                ? route(VW::HLD.'.index')
                                                                 : '#';
                                                             $holidaysIndexLinkId = 'holidays-index-link';
                                                             $holidaysIndexMessage = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                ViewsConstants::HLD,
+                                                                VW::HLD,
                                                                 'holidays_index_route_unavailable'
                                                             ) ?? 'Holidays index route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -4013,87 +2172,26 @@
                                                         </li>
                                                     @endcan
                                                 </ul>
-                                                @push(StacksConstants::ADM_SCR_PG)
-                                                    <script defer>
-                                                        (() => {
-                                                            const bindGuard = id => {
-                                                                const listenerAttr = `data-${id}-listener-active`;
-                                                                const el = document.getElementById(id);
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.getElementById(id)) {
-                                                                        observer.disconnect();
-                                                                    }
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            };
-                                                            [
-                                                                'award-index-link',
-                                                                'transfer-index-link',
-                                                                'resignation-index-link',
-                                                                'trip-index-link',
-                                                                'promotion-index-link',
-                                                                'complaint-index-link',
-                                                                'warning-index-link',
-                                                                'termination-index-link',
-                                                                'announcement-index-link',
-                                                                'holidays-index-link'
-                                                            ].forEach(bindGuard);
-                                                        })();
-                                                    </script>
+                                                @push(ST::ADM_SCR_PG)
+                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/info.js') }}"></script>
                                                 @endpush
                                             </li>
                                         @endif
-                                        @can(PermissionsConstants::MNG_EVT)
+                                        @can(PMC::MNG_EVT)
                                             @php
-                                                $eventIndexRoute = Route::has(ViewsConstants::EVT.'.index')
-                                                    ? route(ViewsConstants::EVT.'.index')
+                                                $eventIndexRoute = Route::has(VW::EVT.'.index')
+                                                    ? route(VW::EVT.'.index')
                                                     : '#';
-                                                $linkId = 'event-setup-link';
+                                                $eventLinkId = 'event-setup-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::EVT,
+                                                    VW::EVT,
                                                     'event_index_route_unavailable'
                                                 ) ?? 'Event setup route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ request()->is('event*') ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $eventLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $eventIndexRoute }}"
                                                     data-url="{{ $eventIndexRoute }}"
@@ -4103,73 +2201,25 @@
                                                     {{ __('Event Setup') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-event-setup-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.body.contains(el)) {
-                                                                observer.disconnect();
-                                                                el.removeEventListener('click', () => {});
-                                                            }
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/event.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @can(PermissionsConstants::MNG_MT)
+                                        @can(PMC::MNG_MT)
                                             @php
-                                                $meetingIndexRoute = Route::has(ViewsConstants::MT.'.index')
-                                                    ? route(ViewsConstants::MT.'.index')
+                                                $meetingIndexRoute = Route::has(VW::MT.'.index')
+                                                    ? route(VW::MT.'.index')
                                                     : '#';
-                                                $linkId = 'meeting-index-link';
+                                                $meetingLinkId = 'meeting-index-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::MEETING,
+                                                    VW::MEETING,
                                                     'meeting_index_route_unavailable'
                                                 ) ?? 'Meeting index route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ request()->is('meeting*') ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $meetingLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $meetingIndexRoute }}"
                                                     data-url="{{ $meetingIndexRoute }}"
@@ -4179,75 +2229,27 @@
                                                     {{ __('Meeting') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-meeting-index-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.body.contains(el)) {
-                                                                observer.disconnect();
-                                                                el.removeEventListener('click', () => {});
-                                                            }
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/meeting.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @can(PermissionsConstants::MNG_AST)
+                                        @can(PMC::MNG_AST)
                                             @php
-                                                $assetSetupRoute = Route::has(ViewsConstants::ACT_AST.'.index')
-                                                    ? route(ViewsConstants::ACT_AST.'.index')
-                                                    : (Route::has(Str::kebab(ViewsConstants::ACT_AST.'.index'))
-                                                    ? route(Str::kebab(ViewsConstants::ACT_AST.'.index'))
+                                                $assetSetupRoute = Route::has(VW::ACT_AST.'.index')
+                                                    ? route(VW::ACT_AST.'.index')
+                                                    : (Route::has(Str::kebab(VW::ACT_AST.'.index'))
+                                                    ? route(Str::kebab(VW::ACT_AST.'.index'))
                                                     : '#');
-                                                $linkId = 'employees-asset-setup-link';
+                                                $employeeAssetLinkId = 'employees-asset-setup-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::ACT_AST,
+                                                    VW::ACT_AST,
                                                     'account_asset_setup_unavailable'
                                                 ) ?? 'Account Assets Setup route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ (request()->is('account_assets*') || request()->is('account_assets*')) ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $employeeAssetLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $assetSetupRoute }}"
                                                     data-url="{{ $assetSetupRoute }}"
@@ -4257,75 +2259,27 @@
                                                     {{ __('Employees Asset Setup') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-employees-asset-setup-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.body.contains(el)) {
-                                                                observer.disconnect();
-                                                                el.removeEventListener('click', () => {});
-                                                            }
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/employeeAsset.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @can(PermissionsConstants::MNG_DOC)
+                                        @can(PMC::MNG_DOC)
                                             @php
-                                                $docSetupRoute = Route::has(ViewsConstants::DOC_UP.'.index')
-                                                    ? route(ViewsConstants::DOC_UP.'.index')
-                                                    : (Route::has(Str::kebab(ViewsConstants::DOC_UP.'.index'))
-                                                    ? route(Str::kebab(ViewsConstants::DOC_UP.'.index'))
+                                                $docSetupRoute = Route::has(VW::DOC_UP.'.index')
+                                                    ? route(VW::DOC_UP.'.index')
+                                                    : (Route::has(Str::kebab(VW::DOC_UP.'.index'))
+                                                    ? route(Str::kebab(VW::DOC_UP.'.index'))
                                                     : '#');
-                                                $linkId = 'document-setup-link';
+                                                $documentLinkId = 'document-setup-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::DOC,
+                                                    VW::DOC,
                                                     'document_index_route_unavailable'
                                                 ) ?? 'Document setup route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ (request()->is('document-upload*') || request()->is('document_upload*')) ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $documentLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $docSetupRoute }}"
                                                     data-url="{{ $docSetupRoute }}"
@@ -4335,75 +2289,27 @@
                                                     {{ __('Document Setup') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-document-setup-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.body.contains(el)) {
-                                                                observer.disconnect();
-                                                                el.removeEventListener('click', () => {});
-                                                            }
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/document.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @can(PermissionsConstants::MNG_CPN_PL)
+                                        @can(PMC::MNG_CPN_PL)
                                             @php
-                                                $companyPolicyRoute = Route::has(ViewsConstants::CPN_PL.'.index')
-                                                    ? route(ViewsConstants::CPN_PL.'.index')
-                                                    : (Route::has(Str::kebab(ViewsConstants::CPN_PL.'.index'))
-                                                    ? route(Str::kebab(ViewsConstants::CPN_PL.'.index'))
+                                                $companyPolicyRoute = Route::has(VW::CPN_PL.'.index')
+                                                    ? route(VW::CPN_PL.'.index')
+                                                    : (Route::has(Str::kebab(VW::CPN_PL.'.index'))
+                                                    ? route(Str::kebab(VW::CPN_PL.'.index'))
                                                     : '#');
-                                                $linkId = 'company-policy-link';
+                                                $companyPolicyLinkId = 'company-policy-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::CPN_PL,
+                                                    VW::CPN_PL,
                                                     'company_policy_index_unavailable'
                                                 ) ?? 'Company policy route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ (request()->is('company-policies*') || request()->is('company_policies*')) ? 'active' : '' }}">
                                             <a
-                                                id="{{ $linkId }}"
+                                                id="{{ $companyPolicyLinkId }}"
                                                 class="dash-link"
                                                 href="{{ $companyPolicyRoute }}"
                                                 data-url="{{ $companyPolicyRoute }}"
@@ -4413,100 +2319,50 @@
                                                 {{ __('Company policy') }}
                                             </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                            <script defer>
-                                                (() => {
-                                                const listenerAttr = 'data-company-policy-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                    const url = el.getAttribute('data-url');
-                                                    const href = el.href;
-                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                        event.preventDefault();
-                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        const containerId = 'toast-container';
-                                                        let container = document.getElementById(containerId);
-                                                        if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = containerId;
-                                                        document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                        alert(msg);
-                                                        }
-                                                        el.setAttribute('data-failed-route', 'true');
-                                                    }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.body.contains(el)) {
-                                                    observer.disconnect();
-                                                    el.removeEventListener('click', () => {});
-                                                    }
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                })();
-                                            </script>
+                                            @push(ST::ADM_SCR_PG)
+                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/companyPolicy.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @if ($user[UsersConstants::COL_TP] === PermissionsConstants::CPN || 
+                                        @if ($user[UsersConstants::COL_TP] === PMC::CPN || 
                                             strtolower($user[UsersConstants::COL_TP]) === 'hr' ||
-                                            $user[UsersConstants::COL_TP] === PermissionsConstants::SA)
+                                            $user[UsersConstants::COL_TP] === PMC::SA)
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::ALW_OPT,
-                                                    ViewsConstants::AWD_TP,
-                                                    ViewsConstants::BRC,
-                                                    ViewsConstants::DDT_OPT,
-                                                    ViewsConstants::DOC,
-                                                    ViewsConstants::DPT,
-                                                    ViewsConstants::DSG,
-                                                    ViewsConstants::GL_TP,
-                                                    ViewsConstants::JB_CAT,
-                                                    ViewsConstants::JB_STG,
-                                                    ViewsConstants::LN_OPT,
-                                                    ViewsConstants::LV_TP,
-                                                    ViewsConstants::PFM_TP,
-                                                    ViewsConstants::PY_SLP_TP,
-                                                    ViewsConstants::TMN_TP
+                                                    VW::ALW_OPT,
+                                                    VW::AWD_TP,
+                                                    VW::BRC,
+                                                    VW::DDT_OPT,
+                                                    VW::DOC,
+                                                    VW::DPT,
+                                                    VW::DSG,
+                                                    VW::GL_TP,
+                                                    VW::JB_CAT,
+                                                    VW::JB_STG,
+                                                    VW::LN_OPT,
+                                                    VW::LV_TP,
+                                                    VW::PFM_TP,
+                                                    VW::PY_SLP_TP,
+                                                    VW::TMN_TP
                                                 ];
-                                                
                                                 $kebabSegments = array_map(function($segment) {
                                                     if ($segment === null) return null;
                                                     return str_replace('_', '-', strtolower(preg_replace('/([A-Z])/', '-$1', $segment)));
                                                 }, $segments);
-                                                
                                                 $allSegments = array_merge($segments, $kebabSegments);
                                                 $isHrmSetup = in_array(RF::segment(1), $allSegments);
-                                                $hrmSetupRoute = Route::has(ViewsConstants::BRC.'.index')
-                                                    ? route(ViewsConstants::BRC.'.index')
+                                                $hrmSetupRoute = Route::has(VW::BRC.'.index')
+                                                    ? route(VW::BRC.'.index')
                                                     : '#';
-                                                $linkId = 'hrm-system-setup-link';
+                                                $hrmSystemLinkId = 'hrm-system-setup-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::BRC,
+                                                    VW::BRC,
                                                     'hrm_system_setup_route_unavailable'
                                                 ) ?? 'Human Resources Management System Setup route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ $isHrmSetup ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $hrmSystemLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $hrmSetupRoute }}"
                                                     data-url="{{ $hrmSetupRoute }}"
@@ -4516,81 +2372,33 @@
                                                     {{ __('HRM System Setup') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-hrm-system-setup-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.body.contains(el)) {
-                                                                observer.disconnect();
-                                                                el.removeEventListener('click', () => {});
-                                                            }
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/hrmSystem.js') }}"></script>
                                             @endpush
                                         @endif
                                     </ul>
                                 </li>
                             @endif
                         @endif
-                        @if (!empty($userPlan) &&  $userPlan?->{PlansConstants::COL_ACC} == 1)
+                        @if (!empty($userPlan) &&  $userPlan?->{PLC::COL_ACC} == 1)
                             @php
                                 $permissions = [
-                                    PermissionsConstants::MNG_CST,
-                                    PermissionsConstants::MNG_VD,
-                                    PermissionsConstants::MNG_PPS,
-                                    PermissionsConstants::MNG_BACC,
-                                    PermissionsConstants::MNG_BTF,
-                                    PermissionsConstants::MNG_INV,
-                                    PermissionsConstants::MNG_RVN,
-                                    PermissionsConstants::MNG_CRD,
-                                    PermissionsConstants::MNG_BIL,
-                                    PermissionsConstants::MNG_PMT,
-                                    PermissionsConstants::MNG_DBT,
-                                    PermissionsConstants::MNG_COA,
-                                    PermissionsConstants::MNG_JNL,
-                                    PermissionsConstants::BLC_RPT,
-                                    PermissionsConstants::LDG_RPT,
-                                    PermissionsConstants::TRL_RPT
+                                    PMC::MNG_CST,
+                                    PMC::MNG_VD,
+                                    PMC::MNG_PPS,
+                                    PMC::MNG_BACC,
+                                    PMC::MNG_BTF,
+                                    PMC::MNG_INV,
+                                    PMC::MNG_RVN,
+                                    PMC::MNG_CRD,
+                                    PMC::MNG_BIL,
+                                    PMC::MNG_PMT,
+                                    PMC::MNG_DBT,
+                                    PMC::MNG_COA,
+                                    PMC::MNG_JNL,
+                                    PMC::BLC_RPT,
+                                    PMC::LDG_RPT,
+                                    PMC::TRL_RPT
                                 ];
                                 $hasFinancialPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                             @endphp
@@ -4598,28 +2406,28 @@
                                 @php
                                     $routeNames = ['print_setting'];
                                     $segments = [
-                                        ViewsConstants::BDG,
-                                        ViewsConstants::BIL,
-                                        ViewsConstants::BNK_ACC,
-                                        ViewsConstants::BNK_TRF,
-                                        ViewsConstants::COA,
-                                        ViewsConstants::COA_TP,
-                                        ViewsConstants::CRD_NT,
-                                        ViewsConstants::CST,
-                                        ViewsConstants::CST_FD,
-                                        ViewsConstants::DBT_NT,
-                                        ViewsConstants::EXP,
-                                        ViewsConstants::GL,
-                                        ViewsConstants::INV,
-                                        ViewsConstants::JRN_ET,
-                                        ViewsConstants::PAY,
+                                        VW::BDG,
+                                        VW::BIL,
+                                        VW::BNK_ACC,
+                                        VW::BNK_TRF,
+                                        VW::COA,
+                                        VW::COA_TP,
+                                        VW::CRD_NT,
+                                        VW::CST,
+                                        VW::CST_FD,
+                                        VW::DBT_NT,
+                                        VW::EXP,
+                                        VW::GL,
+                                        VW::INV,
+                                        VW::JRN_ET,
+                                        VW::PAY,
                                         'payment_methods',
-                                        ViewsConstants::PPS,
-                                        ViewsConstants::PRD_SV_CAT,
-                                        ViewsConstants::PRD_SV_UNT,
-                                        ViewsConstants::RVN,
-                                        ViewsConstants::TX,
-                                        ViewsConstants::VND
+                                        VW::PPS,
+                                        VW::PRD_SV_CAT,
+                                        VW::PRD_SV_UNT,
+                                        VW::RVN,
+                                        VW::TX,
+                                        VW::VND
                                     ];
                                     $segment2Values = ['ledger', 'balance_sheet', 'trial_balance', 'profit_loss'];
                                     $kebabSegments = array_map(function($segment) {
@@ -4630,7 +2438,7 @@
                                     $isAccountingModule = in_array(RF::route()->getName(), $routeNames) ||
                                                             in_array(RF::segment(1), $allSegments) ||
                                                             in_array(RF::segment(2), $segment2Values) ||
-                                                            (RF::segment(1) == ViewsConstants::TST &&
+                                                            (RF::segment(1) == VW::TST &&
                                                             !in_array(RF::segment(2), ['ledger', 'balance_sheet', 'trial_balance']));
                                 @endphp
                                 <li
@@ -4648,11 +2456,11 @@
                                         </span>
                                     </a>
                                     <ul class="dash-submenu">
-                                        @if (Gate::check(PermissionsConstants::MNG_BACC) || Gate::check(PermissionsConstants::MNG_BTF))
+                                        @if (Gate::check(PMC::MNG_BACC) || Gate::check(PMC::MNG_BTF))
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::BNK_ACC,
-                                                    ViewsConstants::BNK_TRF
+                                                    VW::BNK_ACC,
+                                                    VW::BNK_TRF
                                                 ];
                                                 $kebabSegments = array_map(function($segment) {
                                                     if ($segment === null) return null;
@@ -4666,32 +2474,32 @@
                                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                 </a>
                                                 @php
-                                                    $bankAccountRoute = Route::has(ViewsConstants::BNK_ACC.'.index')
-                                                        ? route(ViewsConstants::BNK_ACC.'.index')
-                                                        : (Route::has(Str::kebab(ViewsConstants::BNK_ACC.'.index'))
-                                                        ? route(Str::kebab(ViewsConstants::BNK_ACC.'.index'))
+                                                    $bankAccountRoute = Route::has(VW::BNK_ACC.'.index')
+                                                        ? route(VW::BNK_ACC.'.index')
+                                                        : (Route::has(Str::kebab(VW::BNK_ACC.'.index'))
+                                                        ? route(Str::kebab(VW::BNK_ACC.'.index'))
                                                         : '#');
                                                     $bankAccountLinkId = 'bank-account-index-link';
                                                     $bankAccountMessage = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::BNK_ACC,
+                                                        VW::BNK_ACC,
                                                         'bank_account_index_route_unavailable'
                                                     ) ?? 'Bank Account route is unavailable. Please contact technical support or your domain administrator.';
                                                 
-                                                    $bankTransferRoute = Route::has(ViewsConstants::BNK_TRF.'.index')
-                                                        ? route(ViewsConstants::BNK_TRF.'.index')
-                                                        : (Route::has(Str::kebab(ViewsConstants::BNK_TRF.'.index'))
-                                                        ? route(Str::kebab(ViewsConstants::BNK_TRF.'.index'))
+                                                    $bankTransferRoute = Route::has(VW::BNK_TRF.'.index')
+                                                        ? route(VW::BNK_TRF.'.index')
+                                                        : (Route::has(Str::kebab(VW::BNK_TRF.'.index'))
+                                                        ? route(Str::kebab(VW::BNK_TRF.'.index'))
                                                         : '#');
                                                     $bankTransferLinkId = 'bank-transfer-index-link';
                                                     $bankTransferMessage = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::BNK_ACC,
+                                                        VW::BNK_ACC,
                                                         'bank_transfer_index_route_unavailable'
                                                     ) ?? 'Transfer route is unavailable. Please contact technical support or your domain administrator.';
                                                 @endphp
                                                 <ul class="dash-submenu">
-                                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::BNK_ACC.'.index' || RF::route()->getName() == ViewsConstants::BNK_ACC.'.create' || RF::route()->getName() == ViewsConstants::BNK_ACC.'.edit' ? 'active' : '' }}">
+                                                    <li class="dash-item {{ RF::route()->getName() == VW::BNK_ACC.'.index' || RF::route()->getName() == VW::BNK_ACC.'.create' || RF::route()->getName() == VW::BNK_ACC.'.edit' ? 'active' : '' }}">
                                                         <a
                                                             id="{{ $bankAccountLinkId }}"
                                                             class="dash-link"
@@ -4703,7 +2511,7 @@
                                                             {{ __('Account') }}
                                                         </a>
                                                     </li>
-                                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::BNK_TRF.'.index' || RF::route()->getName() == ViewsConstants::BNK_TRF.'.create' || RF::route()->getName() == ViewsConstants::BNK_TRF.'.edit' ? 'active' : '' }}">
+                                                    <li class="dash-item {{ RF::route()->getName() == VW::BNK_TRF.'.index' || RF::route()->getName() == VW::BNK_TRF.'.create' || RF::route()->getName() == VW::BNK_TRF.'.edit' ? 'active' : '' }}">
                                                         <a
                                                             id="{{ $bankTransferLinkId }}"
                                                             class="dash-link"
@@ -4716,81 +2524,29 @@
                                                         </a>
                                                     </li>
                                                 </ul>
-                                                @push(StacksConstants::ADM_SCR_PG)
-                                                    <script defer>
-                                                        (() => {
-                                                            const bindGuard = id => {
-                                                                const listenerAttr = `data-${id}-listener-active`;
-                                                                const el = document.getElementById(id);
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.getElementById(id)) observer.disconnect();
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            };
-                                                
-                                                            [
-                                                                '{{ $bankAccountLinkId }}',
-                                                                '{{ $bankTransferLinkId }}'
-                                                            ].forEach(bindGuard);
-                                                        })();
-                                                    </script>
+                                                @push(ST::ADM_SCR_PG)
+                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/bank.js') }}"></script>
                                                 @endpush
                                             </li>
                                         @endif
                                         @php
                                             $permissions = [
-                                                PermissionsConstants::MNG_CST,
-                                                PermissionsConstants::MNG_PPS,
-                                                PermissionsConstants::MNG_INV,
-                                                PermissionsConstants::MNG_RVN,
-                                                PermissionsConstants::MNG_CRD
+                                                PMC::MNG_CST,
+                                                PMC::MNG_PPS,
+                                                PMC::MNG_INV,
+                                                PMC::MNG_RVN,
+                                                PMC::MNG_CRD
                                             ];
                                             $hasTransactionsPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                                         @endphp
                                         @if ($hasTransactionsPermission)
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::CRD_NT,
-                                                    ViewsConstants::CST,
-                                                    ViewsConstants::INV,
-                                                    ViewsConstants::PPS,
-                                                    ViewsConstants::RVN
+                                                    VW::CRD_NT,
+                                                    VW::CST,
+                                                    VW::INV,
+                                                    VW::PPS,
+                                                    VW::RVN
                                                 ];
                                                 $kebabSegments = array_map(function($segment) {
                                                     if ($segment === null) return null;
@@ -4810,34 +2566,34 @@
                                                         [
                                                             'route'   => 'customer.index',
                                                             'label'   => __('Customer'),
-                                                            'can'     => PermissionsConstants::MNG_CST,
+                                                            'can'     => PMC::MNG_CST,
                                                             'pattern' => 'customer*',
-                                                            'key'     => ViewsConstants::CST
+                                                            'key'     => VW::CST
                                                         ],
                                                         [
-                                                            'route'   => ViewsConstants::PPS . '.index',
+                                                            'route'   => VW::PPS . '.index',
                                                             'label'   => __('Estimate'),
-                                                            'can'     => PermissionsConstants::MNG_PPS,
-                                                            'pattern' => ViewsConstants::PPS . '*',
-                                                            'key'     => ViewsConstants::PPS
+                                                            'can'     => PMC::MNG_PPS,
+                                                            'pattern' => VW::PPS . '*',
+                                                            'key'     => VW::PPS
                                                         ],
                                                         [
-                                                            'route'   => ViewsConstants::INV . '.index',
+                                                            'route'   => VW::INV . '.index',
                                                             'label'   => __('Invoice'),
-                                                            'pattern' => ViewsConstants::INV . '*',
-                                                            'key'     => ViewsConstants::INV
+                                                            'pattern' => VW::INV . '*',
+                                                            'key'     => VW::INV
                                                         ],
                                                         [
-                                                            'route'   => ViewsConstants::RVN . '.index',
+                                                            'route'   => VW::RVN . '.index',
                                                             'label'   => __('Revenue'),
-                                                            'pattern' => ViewsConstants::RVN . '*',
-                                                            'key'     => ViewsConstants::RVN
+                                                            'pattern' => VW::RVN . '*',
+                                                            'key'     => VW::RVN
                                                         ],
                                                         [
                                                             'route'   => 'credit.note',
                                                             'label'   => __('Credit Note'),
                                                             'pattern' => 'credit.note',
-                                                            'key'     => ViewsConstants::CRD_NT
+                                                            'key'     => VW::CRD_NT
                                                         ],
                                                     ];
                                                     $guardIds = [];
@@ -4870,54 +2626,54 @@
                                                         @endif
                                                     @endforeach
                                                 </ul>
-                                                @push(StacksConstants::ADM_SCR_PG)
+                                                @push(ST::ADM_SCR_PG)
                                                 <script defer>
                                                     (() => {
-                                                    const bindGuard = id => {
-                                                        const listenerAttr = `data-${id}-listener-active`;
-                                                        const el = document.getElementById(id);
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                        try {
-                                                            const url  = el.getAttribute('data-url');
-                                                            const href = el.href;
-                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            const containerId   = 'toast-container';
-                                                            let container       = document.getElementById(containerId);
-                                                            if (!container) {
-                                                                container     = document.createElement('div');
-                                                                container.id  = containerId;
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                            }
-                                                        } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                        if (!document.getElementById(id)) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    };
-                                                    @json($guardIds).forEach(bindGuard);
+                                                        const bindGuard = id => {
+                                                            const listenerAttr = `data-${id}-listener-active`;
+                                                            const el = document.getElementById(id);
+                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
+                                                            el.setAttribute(listenerAttr, 'true');
+                                                            el.addEventListener('click', event => {
+                                                            try {
+                                                                const url  = el.getAttribute('data-url');
+                                                                const href = el.href;
+                                                                if ((!url || url === '#') && (!href || href === '#')) {
+                                                                event.preventDefault();
+                                                                const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
+                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                                                                const containerId   = 'toast-container';
+                                                                let container       = document.getElementById(containerId);
+                                                                if (!container) {
+                                                                    container     = document.createElement('div');
+                                                                    container.id  = containerId;
+                                                                    document.body.appendChild(container);
+                                                                }
+                                                                if (bootstrapLink && window.bootstrap) {
+                                                                    const toastEl = document.createElement('div');
+                                                                    toastEl.className = 'toast';
+                                                                    toastEl.setAttribute('role', 'alert');
+                                                                    toastEl.setAttribute('aria-live', 'assertive');
+                                                                    toastEl.setAttribute('aria-atomic', 'true');
+                                                                    const body = document.createElement('div');
+                                                                    body.className = 'toast-body';
+                                                                    body.textContent = msg;
+                                                                    toastEl.appendChild(body);
+                                                                    container.appendChild(toastEl);
+                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                                                } else {
+                                                                    alert(msg);
+                                                                }
+                                                                el.setAttribute('data-failed-route', 'true');
+                                                                }
+                                                            } catch (error) {}
+                                                            });
+                                                            const observer = new MutationObserver(() => {
+                                                            if (!document.getElementById(id)) observer.disconnect();
+                                                            });
+                                                            observer.observe(document.body, { childList: true, subtree: true });
+                                                        };
+                                                        @json($guardIds).forEach(bindGuard);
                                                     })();
                                                 </script>
                                                 @endpush
@@ -4925,21 +2681,21 @@
                                         @endif
                                         @php
                                             $permissions = [
-                                                PermissionsConstants::MNG_VD,
-                                                PermissionsConstants::MNG_BIL,
-                                                PermissionsConstants::MNG_PMT,
-                                                PermissionsConstants::MNG_DBT
+                                                PMC::MNG_VD,
+                                                PMC::MNG_BIL,
+                                                PMC::MNG_PMT,
+                                                PMC::MNG_DBT
                                             ];
                                             $hasVendorPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                                         @endphp
                                         @if ($hasVendorPermission)
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::BIL,
-                                                    ViewsConstants::DBT_NT,
-                                                    ViewsConstants::EXP,
-                                                    ViewsConstants::PAY,
-                                                    ViewsConstants::VND
+                                                    VW::BIL,
+                                                    VW::DBT_NT,
+                                                    VW::EXP,
+                                                    VW::PAY,
+                                                    VW::VND
                                                 ];
                                                 $kebabSegments = array_map(function($segment) {
                                                     if ($segment === null) return null;
@@ -4955,34 +2711,34 @@
                                                 </a>
                                                 @php
                                                     $items = [];
-                                                    if (Gate::check(PermissionsConstants::MNG_VD)) {
-                                                        $route    = ViewsConstants::VND . '.index';
+                                                    if (Gate::check(PMC::MNG_VD)) {
+                                                        $route    = VW::VND . '.index';
                                                         $url      = Route::has($route) ? route($route) : '#';
                                                         $id       = 'vendor-index-link';
                                                         $key      = 'vendor_index_route_unavailable';
-                                                        $message  = Utility::fetchLinkMessage($lang, ViewsConstants::VND, $key)
+                                                        $message  = Utility::fetchLinkMessage($lang, VW::VND, $key)
                                                                     ?? __('Suppiler route is unavailable. Please contact technical support or your domain administrator.');
                                                         $items[]  = $id;
                                                     }
-                                                    $route    = ViewsConstants::BIL . '.index';
+                                                    $route    = VW::BIL . '.index';
                                                     $urlBil   = Route::has($route) ? route($route) : '#';
                                                     $billId   = 'bill-index-link';
                                                     $billKey  = 'bill_index_route_unavailable';
-                                                    $billMsg  = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, $billKey)
+                                                    $billMsg  = Utility::fetchLinkMessage($lang, VW::BIL, $billKey)
                                                                 ?? __('Bill route is unavailable. Please contact technical support or your domain administrator.');
                                                     $items[]  = $billId;
-                                                    $route    = ViewsConstants::EXP . '.index';
+                                                    $route    = VW::EXP . '.index';
                                                     $urlExp   = Route::has($route) ? route($route) : '#';
                                                     $expId    = 'exp-index-link';
                                                     $expKey   = 'expense_index_route_unavailable';
-                                                    $expMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::EXP, $expKey)
+                                                    $expMsg   = Utility::fetchLinkMessage($lang, VW::EXP, $expKey)
                                                                 ?? __('Expense route is unavailable. Please contact technical support or your domain administrator.');
                                                     $items[]  = $expId;
-                                                    $route    = ViewsConstants::PAY . '.index';
+                                                    $route    = VW::PAY . '.index';
                                                     $urlPay   = Route::has($route) ? route($route) : '#';
                                                     $payId    = 'pay-index-link';
                                                     $payKey   = 'payment_index_route_unavailable';
-                                                    $payMsg   = Utility::fetchLinkMessage($lang, ViewsConstants::PAY, $payKey)
+                                                    $payMsg   = Utility::fetchLinkMessage($lang, VW::PAY, $payKey)
                                                                 ?? __('Payment route is unavailable. Please contact technical support or your domain administrator.');
                                                     $items[]  = $payId;
                                                     $route    = 'debit.note';
@@ -4994,7 +2750,7 @@
                                                     $items[]  = $dnId;
                                                 @endphp
                                             <ul class="dash-submenu">
-                                                @if (Gate::check(PermissionsConstants::MNG_VD))
+                                                @if (Gate::check(PMC::MNG_VD))
                                                     <li class="dash-item {{ RF::segment(1) == 'vendor' ? 'active' : '' }}">
                                                         <a
                                                             id="{{ $id }}"
@@ -5008,7 +2764,7 @@
                                                         </a>
                                                     </li>
                                                 @endif
-                                                <li class="dash-item {{ RF::route()->getName() === ViewsConstants::BIL.'.index' ? 'active' : '' }}">
+                                                <li class="dash-item {{ RF::route()->getName() === VW::BIL.'.index' ? 'active' : '' }}">
                                                     <a
                                                         id="{{ $billId }}"
                                                         class="dash-link"
@@ -5020,7 +2776,7 @@
                                                         {{ __('Bill') }}
                                                     </a>
                                                 </li>
-                                                <li class="dash-item {{ RF::route()->getName() === ViewsConstants::EXP.'.index' ? 'active' : '' }}">
+                                                <li class="dash-item {{ RF::route()->getName() === VW::EXP.'.index' ? 'active' : '' }}">
                                                     <a
                                                         id="{{ $expId }}"
                                                         class="dash-link"
@@ -5029,10 +2785,10 @@
                                                         data-sv-localized="true"
                                                         data-guard-msg="{{ $expMsg }}"
                                                     >
-                                                        {{ __(ViewsConstants::EXP) }}
+                                                        {{ __(VW::EXP) }}
                                                     </a>
                                                 </li>
-                                                <li class="dash-item {{ RF::route()->getName() === ViewsConstants::PAY.'.index' ? 'active' : '' }}">
+                                                <li class="dash-item {{ RF::route()->getName() === VW::PAY.'.index' ? 'active' : '' }}">
                                                     <a
                                                         id="{{ $payId }}"
                                                         class="dash-link"
@@ -5057,7 +2813,7 @@
                                                     </a>
                                                 </li>
                                             </ul>
-                                            @push(StacksConstants::ADM_SCR_PG)
+                                            @push(ST::ADM_SCR_PG)
                                                 <script defer>
                                                     (() => {
                                                         const bindGuard = id => {
@@ -5112,19 +2868,19 @@
                                         @endif
                                         @php
                                             $permissions = [
-                                                PermissionsConstants::MNG_COA,
-                                                PermissionsConstants::MNG_JNL,
-                                                PermissionsConstants::BLC_RPT,
-                                                PermissionsConstants::LDG_RPT,
-                                                PermissionsConstants::TRL_RPT
+                                                PMC::MNG_COA,
+                                                PMC::MNG_JNL,
+                                                PMC::BLC_RPT,
+                                                PMC::LDG_RPT,
+                                                PMC::TRL_RPT
                                             ];
                                             $hasChartsPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                                         @endphp
                                         @if ($hasChartsPermission)
                                             @php
                                                 $segments = [
-                                                    ViewsConstants::COA,
-                                                    ViewsConstants::JRN_ET
+                                                    VW::COA,
+                                                    VW::JRN_ET
                                                 ];
                                                 $segment2Values = [
                                                     'balance_sheet',
@@ -5154,11 +2910,11 @@
                                                         $routeName,
                                                         array_merge(
                                                             [
-                                                                ViewsConstants::COA . '.index',
-                                                                ViewsConstants::COA . '.show',
+                                                                VW::COA . '.index',
+                                                                VW::COA . '.show',
                                                             ],
                                                             array_map(
-                                                                fn($r) => Str::kebab(ViewsConstants::COA . '.' . $r),
+                                                                fn($r) => Str::kebab(VW::COA . '.' . $r),
                                                                 ['index', 'show']
                                                             )
                                                         )
@@ -5167,78 +2923,78 @@
                                                         $routeName,
                                                         array_merge(
                                                             [
-                                                                ViewsConstants::JRN_ET . '.index',
-                                                                ViewsConstants::JRN_ET . '.show',
-                                                                ViewsConstants::JRN_ET . '.edit',
-                                                                ViewsConstants::JRN_ET . '.create',
+                                                                VW::JRN_ET . '.index',
+                                                                VW::JRN_ET . '.show',
+                                                                VW::JRN_ET . '.edit',
+                                                                VW::JRN_ET . '.create',
                                                             ],
                                                             array_map(
-                                                                fn($r) => Str::kebab(ViewsConstants::JRN_ET . '.' . $r),
+                                                                fn($r) => Str::kebab(VW::JRN_ET . '.' . $r),
                                                                 ['index', 'show', 'edit', 'create']
                                                             )
                                                         )
                                                     );
-                                                    $coaRoute = Route::has(ViewsConstants::COA.'.index')
-                                                        ? route(ViewsConstants::COA.'.index')
-                                                        : (Route::has(Str::kebab(ViewsConstants::COA.'.index'))
-                                                        ? route(Str::kebab(ViewsConstants::COA.'.index'))
+                                                    $coaRoute = Route::has(VW::COA.'.index')
+                                                        ? route(VW::COA.'.index')
+                                                        : (Route::has(Str::kebab(VW::COA.'.index'))
+                                                        ? route(Str::kebab(VW::COA.'.index'))
                                                         : '#');
                                                     $coaId = 'chart-of-accounts-link';
                                                     $coaMsg = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::COA,
+                                                        VW::COA,
                                                         'coa_index_route_unavailable'
                                                     ) ?? 'Chart of Accounts route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $jrnRoute = Route::has(ViewsConstants::JRN_ET.'.index')
-                                                        ? route(ViewsConstants::JRN_ET.'.index')
-                                                        : (Route::has(Str::kebab(ViewsConstants::JRN_ET.'.index'))
-                                                        ? route(Str::kebab(ViewsConstants::JRN_ET.'.index'))
+                                                    $jrnRoute = Route::has(VW::JRN_ET.'.index')
+                                                        ? route(VW::JRN_ET.'.index')
+                                                        : (Route::has(Str::kebab(VW::JRN_ET.'.index'))
+                                                        ? route(Str::kebab(VW::JRN_ET.'.index'))
                                                         : '#');
                                                     $jrnId = 'journal-account-link';
                                                     $jrnMsg = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::JRN_ET,
+                                                        VW::JRN_ET,
                                                         'jrn_et_index_route_unavailable'
                                                     ) ?? 'Journal Account route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $ledgerRoute = Route::has(ViewsConstants::RPT.'.ledger')
-                                                        ? route(ViewsConstants::RPT.'.ledger', 0)
+                                                    $ledgerRoute = Route::has(VW::RPT.'.ledger')
+                                                        ? route(VW::RPT.'.ledger', 0)
                                                         : '#';
                                                     $ledgerId = 'ledger-summary-link';
                                                     $ledgerMsg = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::RPT,
+                                                        VW::RPT,
                                                         'rpt_ledger_route_unavailable'
                                                     ) ?? 'Ledger Summary route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $balanceRoute = Route::has(ViewsConstants::RPT.'.balance.sheet')
-                                                        ? route(ViewsConstants::RPT.'.balance.sheet')
+                                                    $balanceRoute = Route::has(VW::RPT.'.balance.sheet')
+                                                        ? route(VW::RPT.'.balance.sheet')
                                                         : '#';
                                                     $balanceId = 'balance-sheet-link';
                                                     $balanceMsg = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::RPT,
+                                                        VW::RPT,
                                                         'rpt_balance_sheet_route_unavailable'
                                                     ) ?? 'Balance Sheet route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $profitRoute = Route::has(ViewsConstants::RPT.'.profit.loss')
-                                                        ? route(ViewsConstants::RPT.'.profit.loss')
+                                                    $profitRoute = Route::has(VW::RPT.'.profit.loss')
+                                                        ? route(VW::RPT.'.profit.loss')
                                                         : '#';
                                                     $profitId = 'profit-loss-link';
                                                     $profitMsg = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::RPT,
+                                                        VW::RPT,
                                                         'rpt_profit_loss_route_unavailable'
                                                     ) ?? 'Profit & Loss route is unavailable. Please contact technical support or your domain administrator.';
 
-                                                    $trialRoute = Route::has(ViewsConstants::RPT . '.trial.balance')
-                                                        ? route(ViewsConstants::RPT . '.trial.balance')
+                                                    $trialRoute = Route::has(VW::RPT . '.trial.balance')
+                                                        ? route(VW::RPT . '.trial.balance')
                                                         : '#';
                                                     $trialId = 'trial-balance-link';
                                                     $trialMsg = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::RPT,
+                                                        VW::RPT,
                                                         'trial_balance_route_unavailable'
                                                     ) ?? 'Trial Balance route is unavailable. Please contact technical support or your domain administrator.';
                                                 @endphp
@@ -5267,7 +3023,7 @@
                                                             {{ __('Journal Account') }}
                                                         </a>
                                                     </li>
-                                                    <li class="dash-item {{ $routeName == ViewsConstants::RPT.'.ledger' ? ' active' : '' }}">
+                                                    <li class="dash-item {{ $routeName == VW::RPT.'.ledger' ? ' active' : '' }}">
                                                         <a
                                                             id="{{ $ledgerId }}"
                                                             class="dash-link"
@@ -5279,7 +3035,7 @@
                                                             {{ __('Ledger Summary') }}
                                                         </a>
                                                     </li>
-                                                    <li class="dash-item {{ $routeName == ViewsConstants::RPT.'.balance.sheet' ? ' active' : '' }}">
+                                                    <li class="dash-item {{ $routeName == VW::RPT.'.balance.sheet' ? ' active' : '' }}">
                                                         <a
                                                             id="{{ $balanceId }}"
                                                             class="dash-link"
@@ -5291,7 +3047,7 @@
                                                             {{ __('Balance Sheet') }}
                                                         </a>
                                                     </li>
-                                                    <li class="dash-item {{ $routeName == ViewsConstants::RPT.'.profit.loss' ? ' active' : '' }}">
+                                                    <li class="dash-item {{ $routeName == VW::RPT.'.profit.loss' ? ' active' : '' }}">
                                                         <a
                                                             id="{{ $profitId }}"
                                                             class="dash-link"
@@ -5303,7 +3059,7 @@
                                                             {{ __('Profit & Loss') }}
                                                         </a>
                                                     </li>
-                                                    <li class="dash-item {{ $routeName == ViewsConstants::RPT . '.trial.balance' ? ' active' : '' }}">
+                                                    <li class="dash-item {{ $routeName == VW::RPT . '.trial.balance' ? ' active' : '' }}">
                                                         <a
                                                             id="{{ $trialId }}"
                                                             class="dash-link"
@@ -5316,82 +3072,27 @@
                                                         </a>
                                                     </li>
                                                 </ul>
-                                                @push(StacksConstants::ADM_SCR_PG)
-                                                    <script defer>
-                                                        (() => {
-                                                            const bindGuard = id => {
-                                                                const listenerAttr = `data-${id}-listener-active`;
-                                                                const el = document.getElementById(id);
-                                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                                el.setAttribute(listenerAttr, 'true');
-                                                                el.addEventListener('click', event => {
-                                                                    try {
-                                                                        const url = el.getAttribute('data-url');
-                                                                        const href = el.href;
-                                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                                            event.preventDefault();
-                                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                            const containerId = 'toast-container';
-                                                                            let container = document.getElementById(containerId);
-                                                                            if (!container) {
-                                                                                container = document.createElement('div');
-                                                                                container.id = containerId;
-                                                                                document.body.appendChild(container);
-                                                                            }
-                                                                            if (bootstrapLink && window.bootstrap) {
-                                                                                const toastEl = document.createElement('div');
-                                                                                toastEl.className = 'toast';
-                                                                                toastEl.setAttribute('role', 'alert');
-                                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                                const body = document.createElement('div');
-                                                                                body.className = 'toast-body';
-                                                                                body.textContent = msg;
-                                                                                toastEl.appendChild(body);
-                                                                                container.appendChild(toastEl);
-                                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                            } else {
-                                                                                alert(msg);
-                                                                            }
-                                                                            el.setAttribute('data-failed-route', 'true');
-                                                                        }
-                                                                    } catch (error) {}
-                                                                });
-                                                                const observer = new MutationObserver(() => {
-                                                                    if (!document.getElementById(id)) observer.disconnect();
-                                                                });
-                                                                observer.observe(document.body, { childList: true, subtree: true });
-                                                            };
-                                                            [
-                                                                '{{ $coaId }}',
-                                                                '{{ $jrnId }}',
-                                                                '{{ $ledgerId }}',
-                                                                '{{ $balanceId }}',
-                                                                '{{ $profitId }}',
-                                                                '{{ $trialId }}'
-                                                            ].forEach(bindGuard);
-                                                        })();
-                                                    </script>
+                                                @push(ST::ADM_SCR_PG)
+                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/chart.js') }}"></script>
                                                 @endpush
                                             </li>
                                         @endif
-                                        @if ($user[UsersConstants::COL_TP] == PermissionsConstants::CPN ||
-                                            $user[UsersConstants::COL_TP] == PermissionsConstants::SA)
+                                        @if ($user[UsersConstants::COL_TP] == PMC::CPN ||
+                                            $user[UsersConstants::COL_TP] == PMC::SA)
                                             @php
-                                                $budgetRoute = Route::has(ViewsConstants::BDG.'.index')
-                                                    ? route(ViewsConstants::BDG.'.index')
+                                                $budgetRoute = Route::has(VW::BDG.'.index')
+                                                    ? route(VW::BDG.'.index')
                                                     : '#';
-                                                $linkId = 'budget-planner-link';
+                                                $budgetPlannerLinkId = 'budget-planner-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::BDG,
+                                                    VW::BDG,
                                                     'budget_index_route_unavailable'
                                                 ) ?? 'Budget Planner route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
-                                            <li class="dash-item {{ RF::segment(1) == ViewsConstants::BDG ? 'active' : '' }}">
+                                            <li class="dash-item {{ RF::segment(1) == VW::BDG ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $budgetPlannerLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $budgetRoute }}"
                                                     data-url="{{ $budgetRoute }}"
@@ -5401,70 +3102,25 @@
                                                     {{ __('Budget Planner') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-budget-planner-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('public/assets/js/routes/partials/admin/menu/budgetPlanner.js') }}"></script>
                                             @endpush
                                         @endif
-                                        @if (Gate::check(PermissionsConstants::MNG_GL))
+                                        @if (Gate::check(PMC::MNG_GL))
                                             @php
-                                                $financialGoalRoute = Route::has(ViewsConstants::GL.'.index')
-                                                    ? route(ViewsConstants::GL.'.index')
+                                                $financialGoalRoute = Route::has(VW::GL.'.index')
+                                                    ? route(VW::GL.'.index')
                                                     : '#';
-                                                $linkId = 'financial-goal-index-link';
+                                                $financialGoalLinkId = 'financial-goal-index-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::GL,
+                                                    VW::GL,
                                                     'financial_goal_index_route_unavailable'
                                                 ) ?? 'Financial Goal route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
-                                            <li class="dash-item {{ RF::segment(1) == ViewsConstants::GL ? 'active' : '' }}">
+                                            <li class="dash-item {{ RF::segment(1) == VW::GL ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $financialGoalLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $financialGoalRoute }}"
                                                     data-url="{{ $financialGoalRoute }}"
@@ -5474,74 +3130,29 @@
                                                     {{ __('Financial Goal') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-financial-goal-index-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('public/assets/js/routes/partials/admin/menu/financialGoal.js') }}"></script>
                                             @endpush                                    
                                         @endif
                                         @php
                                             $permissions = [
-                                                PermissionsConstants::MNG_CT_TX,
-                                                PermissionsConstants::MNG_CT_CAT,
-                                                PermissionsConstants::MNG_CT_UNT,
-                                                PermissionsConstants::MNG_CT_PAY,
-                                                PermissionsConstants::MNG_CT_CST_FD
+                                                PMC::MNG_CT_TX,
+                                                PMC::MNG_CT_CAT,
+                                                PMC::MNG_CT_UNT,
+                                                PMC::MNG_CT_PAY,
+                                                PMC::MNG_CT_CST_FD
                                             ];
                                             $hasConstantsPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                                         @endphp
                                         @if ($hasConstantsPermission)
                                             @php
                                                $segments = [
-                                                    ViewsConstants::COA_TP,
-                                                    ViewsConstants::CST_FD,
-                                                    ViewsConstants::PAY_MTD,
-                                                    ViewsConstants::PRD_SV_CAT,
-                                                    ViewsConstants::PRD_SV_UNT,
-                                                    ViewsConstants::TX
+                                                    VW::COA_TP,
+                                                    VW::CST_FD,
+                                                    VW::PAY_MTD,
+                                                    VW::PRD_SV_CAT,
+                                                    VW::PRD_SV_UNT,
+                                                    VW::TX
                                                 ];
                                                 $kebabSegments = array_map(function($segment) {
                                                     if ($segment === null) return null;
@@ -5549,19 +3160,19 @@
                                                 }, $segments);
                                                 $allSegments = array_merge($segments, $kebabSegments);
                                                 $isConstantSettings = in_array(RF::segment(1), $allSegments);
-                                                $accountingSetupRoute = Route::has(ViewsConstants::TX.'.index')
-                                                    ? route(ViewsConstants::TX.'.index')
+                                                $accountingSetupRoute = Route::has(VW::TX.'.index')
+                                                    ? route(VW::TX.'.index')
                                                     : '#';
-                                                $linkId = 'accounting-setup-link';
+                                                $accountLinkId = 'accounting-setup-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::TX,
+                                                    VW::TX,
                                                     'tx_index_route_unavailable'
                                                 ) ?? 'Accounting Setup route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li class="dash-item {{ $isConstantSettings ? 'active dash-trigger' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $accountLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $accountingSetupRoute }}"
                                                     data-url="{{ $accountingSetupRoute }}"
@@ -5571,71 +3182,26 @@
                                                     {{ __('Accounting Setup') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-accounting-setup-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/accountingSetup.js') }}"></script>
                                             @endpush
                                         @endif
-                                        @if (Gate::check(PermissionsConstants::MNG_PRT))
+                                        @if (Gate::check(PMC::MNG_PRT))
                                             @php
                                                 $printSettingRoute = Route::has('print.setting')
                                                     ? route('print.setting')
                                                     : '#';
-                                                $linkId = 'print-setting-link';
+                                                $printSettingLinkId = 'print-setting-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::SET,
+                                                    VW::SET,
                                                     'print_settings_route_unavailable'
                                                 ) ?? 'Print Settings route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
                                             <li
                                                 class="dash-item {{ (RF::route()->getName() == 'print-setting' || RF::route()->getName() == 'print_setting') ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $printSettingLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $printSettingRoute }}"
                                                     data-url="{{ $printSettingRoute }}"
@@ -5645,82 +3211,37 @@
                                                     {{ __('Print Settings') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-print-setting-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/printSettings.js') }}"></script>
                                             @endpush
                                         @endif
                                     </ul>
                                 </li>
                             @endif
                         @endif
-                        @if (!empty($userPlan) &&  $userPlan?->{PlansConstants::COL_CRM} == 1)
+                        @if (!empty($userPlan) &&  $userPlan?->{PLC::COL_CRM} == 1)
                             @php
                                 $permissions = [
-                                    PermissionsConstants::MNG_LD,
-                                    PermissionsConstants::MNG_DL,
-                                    PermissionsConstants::MNG_FM_BD,
-                                    PermissionsConstants::MNG_CTC
+                                    PMC::MNG_LD,
+                                    PMC::MNG_DL,
+                                    PMC::MNG_FM_BD,
+                                    PMC::MNG_CTC
                                 ];
                                 $hasActivityPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                             @endphp
                             @if ($hasActivityPermission)
                                 @php
                                     $segments = [
-                                        ViewsConstants::CTC,
-                                        ViewsConstants::DL,
-                                        ViewsConstants::FM_BD,
-                                        ViewsConstants::FM_RP,
-                                        ViewsConstants::LBL,
-                                        ViewsConstants::LD,
-                                        ViewsConstants::LD_STG,
-                                        ViewsConstants::PPL,
-                                        ViewsConstants::SRC,
-                                        ViewsConstants::STG
+                                        VW::CTC,
+                                        VW::DL,
+                                        VW::FM_BD,
+                                        VW::FM_RP,
+                                        VW::LBL,
+                                        VW::LD,
+                                        VW::LD_STG,
+                                        VW::PPL,
+                                        VW::SRC,
+                                        VW::STG
                                     ];
                                     $kebabSegments = array_map(function($segment) {
                                         if ($segment === null) return null;
@@ -5741,15 +3262,15 @@
                                     </a>
                                     @php
                                         $segments = [
-                                            ViewsConstants::DL,
-                                            ViewsConstants::FM_BD,
-                                            ViewsConstants::FM_RP,
-                                            ViewsConstants::LBL,
-                                            ViewsConstants::LD,
-                                            ViewsConstants::LD_STG,
-                                            ViewsConstants::PPL,
-                                            ViewsConstants::SRC,
-                                            ViewsConstants::STG
+                                            VW::DL,
+                                            VW::FM_BD,
+                                            VW::FM_RP,
+                                            VW::LBL,
+                                            VW::LD,
+                                            VW::LD_STG,
+                                            VW::PPL,
+                                            VW::SRC,
+                                            VW::STG
                                         ];
                                         $kebabSegments = array_map(function($segment) {
                                             if ($segment === null) return null;
@@ -5759,167 +3280,79 @@
                                         $isCrmManagement = in_array(RF::segment(1), $allSegments);
                                     @endphp
                                     <ul class="dash-submenu {{ $isCrmManagement ? 'show' : '' }}">
-                                        @can(PermissionsConstants::MNG_LD)
+                                        @can(PMC::MNG_LD)
                                             @php
-                                                $ldIndexRoute = Route::has(ViewsConstants::LD.'.index')
-                                                    ? route(ViewsConstants::LD.'.index')
+                                                $ldIndexRoute = Route::has(VW::LD.'.index')
+                                                    ? route(VW::LD.'.index')
                                                     : '#';
-                                                $linkId = 'ld-index-link';
+                                                $leadLinkId = 'ld-index-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::LD,
+                                                    VW::LD,
                                                     'lead_index_route_unavailable'
                                                 ) ?? __('Lead setup route is unavailable. Please contact technical support or your domain administrator.');
                                             @endphp
-                                            <li class="dash-item {{ RF::route()->getName() == ViewsConstants::LD.'.list' || RF::route()->getName() == ViewsConstants::LD.'.index' || RF::route()->getName() == ViewsConstants::LD.'.show' ? 'active' : '' }}">
+                                            <li class="dash-item {{ RF::route()->getName() == VW::LD.'.list' || RF::route()->getName() == VW::LD.'.index' || RF::route()->getName() == VW::LD.'.show' ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $leadLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $ldIndexRoute }}"
                                                     data-url="{{ $ldIndexRoute }}"
                                                     data-sv-localized="true"
                                                     data-guard-msg="{{ $message }}"
                                                 >
-                                                    {{ __(ViewsConstants::LD) }}
+                                                    {{ __('Leads') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-ld-index-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/lead.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @can(PermissionsConstants::MNG_DL)
+                                        @can(PMC::MNG_DL)
                                             @php
-                                                $dlIndexRoute = Route::has(ViewsConstants::DL.'.index')
-                                                    ? route(ViewsConstants::DL.'.index')
+                                                $dlIndexRoute = Route::has(VW::DL.'.index')
+                                                    ? route(VW::DL.'.index')
                                                     : '#';
-                                                $linkId = 'dl-index-link';
+                                                $deadLinkId = 'dl-index-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::DL,
+                                                    VW::DL,
                                                     'deal_index_route_unavailable'
                                                 ) ?? __('Deal setup route is unavailable. Please contact technical support or your domain administrator.');
                                             @endphp
-                                            <li class="dash-item {{ RF::route()->getName() == ViewsConstants::DL.'.list' || RF::route()->getName() == ViewsConstants::DL.'.index' || RF::route()->getName() == ViewsConstants::DL.'.show' ? 'active' : '' }}">
+                                            <li class="dash-item {{ RF::route()->getName() == VW::DL.'.list' || RF::route()->getName() == VW::DL.'.index' || RF::route()->getName() == VW::DL.'.show' ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $deadLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $dlIndexRoute }}"
                                                     data-url="{{ $dlIndexRoute }}"
                                                     data-sv-localized="true"
                                                     data-guard-msg="{{ $message }}"
                                                 >
-                                                    {{ __(ViewsConstants::DL) }}
+                                                    {{ __(VW::DL) }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-dl-index-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/deal.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @can(PermissionsConstants::MNG_FM_BD)
+                                        @can(PMC::MNG_FM_BD)
                                             @php
-                                                $formBuilderRoute = Route::has(ViewsConstants::FM_BD.'.index')
-                                                    ? route(ViewsConstants::FM_BD.'.index')
-                                                    : (Route::has(Str::kebab(ViewsConstants::FM_BD.'.index'))
-                                                        ? route(Str::kebab(ViewsConstants::FM_BD.'.index'))
+                                                $formBuilderRoute = Route::has(VW::FM_BD.'.index')
+                                                    ? route(VW::FM_BD.'.index')
+                                                    : (Route::has(Str::kebab(VW::FM_BD.'.index'))
+                                                        ? route(Str::kebab(VW::FM_BD.'.index'))
                                                         : '#');
-                                                $linkId = 'form-builder-link';
+                                                $formBuilderLinkId = 'form-builder-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::FM_BD,
+                                                    VW::FM_BD,
                                                     'form_builder_index_route_unavailable'
                                                 ) ?? 'Form Builder route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
-                                            <li class="dash-item {{ RF::segment(1) == ViewsConstants::FM_BD || RF::segment(1) == Str::kebab(ViewsConstants::FM_BD) || RF::segment(1) == ViewsConstants::FM_RP || RF::segment(1) == Str::kebab(ViewsConstants::FM_RP) ? 'active open' : '' }}">
+                                            <li class="dash-item {{ RF::segment(1) == VW::FM_BD || RF::segment(1) == Str::kebab(VW::FM_BD) || RF::segment(1) == VW::FM_RP || RF::segment(1) == Str::kebab(VW::FM_RP) ? 'active open' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $formBuilderLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $formBuilderRoute }}"
                                                     data-url="{{ $formBuilderRoute }}"
@@ -5929,125 +3362,36 @@
                                                     {{ __('Form Builder') }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-form-builder-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    const containerId = 'toast-container';
-                                                                    let container = document.getElementById(containerId);
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = containerId;
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/formBuilder.js') }}"></script>
                                             @endpush
                                         @endcan
-                                        @can(PermissionsConstants::MNG_CTC)
+                                        @can(PMC::MNG_CTC)
                                             @php
-                                                $ctcIndexRoute = Route::has(ViewsConstants::CTC.'.index')
-                                                    ? route(ViewsConstants::CTC.'.index')
+                                                $ctcIndexRoute = Route::has(VW::CTC.'.index')
+                                                    ? route(VW::CTC.'.index')
                                                     : '#';
-                                                $linkId = 'ctc-index-link';
+                                                $contractLinkId = 'ctc-index-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    ViewsConstants::CTC,
+                                                    VW::CTC,
                                                     'contract_index_route_unavailable'
                                                 ) ?? __('Contract setup route is unavailable. Please contact technical support or your domain administrator.');
                                             @endphp
-                                            <li class="dash-item {{ RF::route()->getName() == ViewsConstants::CTC.'.index' || RF::route()->getName() == ViewsConstants::CTC.'.show' ? 'active' : '' }}">
+                                            <li class="dash-item {{ RF::route()->getName() == VW::CTC.'.index' || RF::route()->getName() == VW::CTC.'.show' ? 'active' : '' }}">
                                                 <a
-                                                    id="{{ $linkId }}"
+                                                    id="{{ $contractLinkId }}"
                                                     class="dash-link"
                                                     href="{{ $ctcIndexRoute }}"
                                                     data-url="{{ $ctcIndexRoute }}"
                                                     data-sv-localized="true"
                                                     data-guard-msg="{{ $message }}"
                                                 >
-                                                    {{ __(ViewsConstants::CTC) }}
+                                                    {{ __(VW::CTC) }}
                                                 </a>
                                             </li>
-                                            @push(StacksConstants::ADM_SCR_PG)
-                                                <script defer>
-                                                    (() => {
-                                                        const listenerAttr = 'data-ctc-index-listener-active';
-                                                        const el = document.getElementById('{{ $linkId }}');
-                                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                        el.setAttribute(listenerAttr, 'true');
-                                                        el.addEventListener('click', event => {
-                                                            try {
-                                                                const url = el.getAttribute('data-url');
-                                                                const href = el.href;
-                                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                                    event.preventDefault();
-                                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                    let container = document.getElementById('toast-container');
-                                                                    if (!container) {
-                                                                        container = document.createElement('div');
-                                                                        container.id = 'toast-container';
-                                                                        document.body.appendChild(container);
-                                                                    }
-                                                                    if (bootstrapLink && window.bootstrap) {
-                                                                        const toastEl = document.createElement('div');
-                                                                        toastEl.className = 'toast';
-                                                                        toastEl.setAttribute('role', 'alert');
-                                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                                        const body = document.createElement('div');
-                                                                        body.className = 'toast-body';
-                                                                        body.textContent = msg;
-                                                                        toastEl.appendChild(body);
-                                                                        container.appendChild(toastEl);
-                                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                    } else {
-                                                                        alert(msg);
-                                                                    }
-                                                                    el.setAttribute('data-failed-route', 'true');
-                                                                }
-                                                            } catch (error) {}
-                                                        });
-                                                        const observer = new MutationObserver(() => {
-                                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                        });
-                                                        observer.observe(document.body, { childList: true, subtree: true });
-                                                    })();
-                                                </script>
+                                            @push(ST::ADM_SCR_PG)
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/contract.js') }}"></script>
                                             @endpush
                                         @endcan
                                     </ul>
@@ -6055,27 +3399,27 @@
                             @endif
                             @php
                                 $permissions = [
-                                    PermissionsConstants::MNG_LD_ST,
-                                    PermissionsConstants::MNG_PPL,
-                                    PermissionsConstants::MNG_SRC,
-                                    PermissionsConstants::MNG_LB,
-                                    PermissionsConstants::MNG_ST
+                                    PMC::MNG_LD_ST,
+                                    PMC::MNG_PPL,
+                                    PMC::MNG_SRC,
+                                    PMC::MNG_LB,
+                                    PMC::MNG_ST
                                 ];
                                 $hasStagesPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                             @endphp
                             @if ($hasStagesPermission)
                                 @php
                                    $segments = [
-                                        ViewsConstants::COA_TP,
-                                        ViewsConstants::CST_FD,
-                                        ViewsConstants::LBL,
-                                        ViewsConstants::LD_STG,
-                                        ViewsConstants::PAY_MTD,
-                                        ViewsConstants::PPL,
-                                        ViewsConstants::PRD_SV_CAT,
-                                        ViewsConstants::PRD_SV_UNT,
-                                        ViewsConstants::SRC,
-                                        ViewsConstants::STG
+                                        VW::COA_TP,
+                                        VW::CST_FD,
+                                        VW::LBL,
+                                        VW::LD_STG,
+                                        VW::PAY_MTD,
+                                        VW::PPL,
+                                        VW::PRD_SV_CAT,
+                                        VW::PRD_SV_UNT,
+                                        VW::SRC,
+                                        VW::STG
                                     ];
                                     $kebabSegments = array_map(function($segment) {
                                         if ($segment === null) return null;
@@ -6083,19 +3427,19 @@
                                     }, $segments);
                                     $allSegments = array_merge($segments, $kebabSegments);
                                     $isCrmSetup = in_array(RF::segment(1), $allSegments);
-                                    $crmSetupRoute = Route::has(ViewsConstants::PPL.'.index')
-                                        ? route(ViewsConstants::PPL.'.index')
+                                    $crmSetupRoute = Route::has(VW::PPL.'.index')
+                                        ? route(VW::PPL.'.index')
                                         : '#';
-                                    $linkId = 'crm-system-setup-link';
+                                    $crmSystemLinkId = 'crm-system-setup-link';
                                     $message = Utility::fetchLinkMessage(
                                         $lang,
-                                        ViewsConstants::PPL,
+                                        VW::PPL,
                                         'pipeline_index_route_unavailable'
                                     ) ?? 'Pipeline setup route is unavailable. Please contact technical support or your domain administrator.';
                                 @endphp
                                 <li class="dash-item {{ $isCrmSetup ? 'active dash-trigger' : '' }}">
                                     <a
-                                        id="{{ $linkId }}"
+                                        id="{{ $crmSystemLinkId }}"
                                         class="dash-link"
                                         href="{{ $crmSetupRoute }}"
                                         data-url="{{ $crmSetupRoute }}"
@@ -6105,53 +3449,8 @@
                                         {{ __('CRM System Setup') }}
                                     </a>
                                 </li>
-                                @push(StacksConstants::ADM_SCR_PG)
-                                    <script defer>
-                                        (() => {
-                                            const listenerAttr = 'data-crm-system-setup-listener-active';
-                                            const el = document.getElementById('{{ $linkId }}');
-                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                            el.setAttribute(listenerAttr, 'true');
-                                            el.addEventListener('click', event => {
-                                                try {
-                                                    const url = el.getAttribute('data-url');
-                                                    const href = el.href;
-                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                        event.preventDefault();
-                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        const containerId = 'toast-container';
-                                                        let container = document.getElementById(containerId);
-                                                        if (!container) {
-                                                            container = document.createElement('div');
-                                                            container.id = containerId;
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        el.setAttribute('data-failed-route', 'true');
-                                                    }
-                                                } catch (error) {}
-                                            });
-                                            const observer = new MutationObserver(() => {
-                                                if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                            });
-                                            observer.observe(document.body, { childList: true, subtree: true });
-                                        })();
-                                    </script>
+                                @push(ST::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/crmSystem.js') }}"></script>
                                 @endpush
                             @endif
                         @endif
@@ -6159,18 +3458,18 @@
                 @endif
                 {{-- <!--------------------- End CRM -----------------------------------> --}}
                 {{-- <!--------------------- Start Project -----------------------------------> --}}
-                @if (!empty($userPlan) && $userPlan?->{PlansConstants::COL_PJ} == 1)
-                    @if (Gate::check(PermissionsConstants::MNG_PRJ))
+                @if (!empty($userPlan) && $userPlan?->{PLC::COL_PJ} == 1)
+                    @if (Gate::check(PMC::MNG_PRJ))
                         @php
                             $segments = [
-                                ViewsConstants::BUG_RPT,
-                                ViewsConstants::BUG_STT,
-                                ViewsConstants::CLD,
-                                ViewsConstants::PRJ,
-                                ViewsConstants::PRJ_TSK_STG,
-                                ViewsConstants::PRJ_RPT,
-                                ViewsConstants::TSKB,
-                                ViewsConstants::TMS_LT
+                                VW::BUG_RPT,
+                                VW::BUG_STT,
+                                VW::CLD,
+                                VW::PRJ,
+                                VW::PRJ_TSK_STG,
+                                VW::PRJ_RPT,
+                                VW::TSKB,
+                                VW::TMS_LT
                             ];
                             $kebabSegments = array_map(function($segment) {
                                 if ($segment === null) return null;
@@ -6191,21 +3490,21 @@
                             </a>
                             <ul class="dash-submenu">
                                 @php
-                                    $projectIndexRoute = Route::has(ViewsConstants::PRJ.'.index')
-                                        ? route(ViewsConstants::PRJ.'.index')
+                                    $projectIndexRoute = Route::has(VW::PRJ.'.index')
+                                        ? route(VW::PRJ.'.index')
                                         : '#';
-                                    $linkId = 'projects-index-link';
+                                    $projectLinkId = 'projects-index-link';
                                     $message = Utility::fetchLinkMessage(
                                         $lang,
-                                        ViewsConstants::PRJ,
+                                        VW::PRJ,
                                         'project_index_route_unavailable'
                                     ) ?? 'Projects route is unavailable. Please contact technical support or your domain administrator.';
                                 @endphp
                                 <li
-                                    class="dash-item {{ RF::segment(1) == ViewsConstants::PRJ || RF::route()->getName() == ViewsConstants::PRJ.'.list' || RF::route()->getName() == ViewsConstants::PRJ.'.index' || RF::route()->getName() == ViewsConstants::PRJ.'.show' || request()->is('projects/*') ? 'active' : '' }}"
+                                    class="dash-item {{ RF::segment(1) == VW::PRJ || RF::route()->getName() == VW::PRJ.'.list' || RF::route()->getName() == VW::PRJ.'.index' || RF::route()->getName() == VW::PRJ.'.show' || request()->is('projects/*') ? 'active' : '' }}"
                                 >
                                     <a
-                                        id="{{ $linkId }}"
+                                        id="{{ $projectLinkId }}"
                                         class="dash-link"
                                         href="{{ $projectIndexRoute }}"
                                         data-url="{{ $projectIndexRoute }}"
@@ -6215,68 +3514,24 @@
                                         {{ __('Projects') }}
                                     </a>
                                 </li>
-                                @push(StacksConstants::ADM_SCR_PG)
-                                    <script defer>
-                                        (() => {
-                                            const listenerAttr = 'data-projects-index-listener-active';
-                                            const el = document.getElementById('{{ $linkId }}');
-                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                            el.setAttribute(listenerAttr, 'true');
-                                            el.addEventListener('click', event => {
-                                                try {
-                                                    const url = el.getAttribute('data-url');
-                                                    const href = el.href;
-                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                        event.preventDefault();
-                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container = document.createElement('div');
-                                                            container.id = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        el.setAttribute('data-failed-route', 'true');
-                                                    }
-                                                } catch (error) {}
-                                            });
-                                            const observer = new MutationObserver(() => {
-                                                if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                            });
-                                            observer.observe(document.body, { childList: true, subtree: true });
-                                        })();
-                                    </script>
+                                @push(ST::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/project.js') }}"></script>
                                 @endpush                            
-                                @can(PermissionsConstants::MNG_PRJ_TSK)
+                                @can(PMC::MNG_PRJ_TSK)
                                     @php
-                                        $tasksRoute = Route::has(ViewsConstants::TSKB.'.view')
-                                            ? route(ViewsConstants::TSKB.'.view', 'list')
+                                        $tasksRoute = Route::has(VW::TSKB.'.view')
+                                            ? route(VW::TSKB.'.view', 'list')
                                             : '#';
-                                        $linkId = 'tasks-link';
+                                        $taskLinkId = 'tasks-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::TSK,
+                                            VW::TSK,
                                             'taskboard_view_route_unavailable'
                                         ) ?? 'Tasks route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
                                     <li class="dash-item {{ request()->is('taskboard*') ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $taskLinkId }}"
                                             class="dash-link"
                                             href="{{ $tasksRoute }}"
                                             data-url="{{ $tasksRoute }}"
@@ -6286,70 +3541,25 @@
                                             {{ __('Tasks') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-tasks-listener-active';
-                                                const el = document.getElementById('tasks-link');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            const containerId = 'toast-container';
-                                                            let container = document.getElementById(containerId);
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = containerId;
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('tasks-link')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/task.js') }}"></script>
                                     @endpush                            
                                 @endcan
-                                @can(PermissionsConstants::MNG_TS)
+                                @can(PMC::MNG_TS)
                                     @php
-                                        $timesheetListRoute = Route::has(ViewsConstants::TMS.'.list')
-                                            ? route(ViewsConstants::TMS.'.list')
+                                        $timesheetListRoute = Route::has(VW::TMS.'.list')
+                                            ? route(VW::TMS.'.list')
                                             : '#';
-                                        $linkId = 'timesheet-list-link';
+                                        $timeSheetLinkId = 'timesheet-list-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::TMS,
+                                            VW::TMS,
                                             'timesheet_list_route_unavailable'
                                         ) ?? 'Timesheet route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
                                     <li class="dash-item {{ (request()->is('timesheet-list*') || request()->is('timesheet_list*')) ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $timeSheetLinkId }}"
                                             class="dash-link"
                                             href="{{ $timesheetListRoute }}"
                                             data-url="{{ $timesheetListRoute }}"
@@ -6359,70 +3569,25 @@
                                             {{ __('Timesheet') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-timesheet-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            const containerId = 'toast-container';
-                                                            let container = document.getElementById(containerId);
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = containerId;
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/timesheet.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @can(PermissionsConstants::MNG_BUG_RPT)
+                                @can(PMC::MNG_BUG_RPT)
                                     @php
-                                        $bugViewRoute = Route::has(ViewsConstants::BUG.'.view')
-                                            ? route(ViewsConstants::BUG.'.view', 'list')
+                                        $bugViewRoute = Route::has(VW::BUG.'.view')
+                                            ? route(VW::BUG.'.view', 'list')
                                             : '#';
-                                        $linkId = 'bug-view-list-link';
+                                        $bugViewLinkId = 'bug-view-list-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::BUG,
+                                            VW::BUG,
                                             'bug_view_route_unavailable'
                                         ) ?? 'Bug route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
                                     <li class="dash-item {{ (request()->is('bugs-report*') || request()->is('bugs_report*')) ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $bugViewLinkId }}"
                                             class="dash-link"
                                             href="{{ $bugViewRoute }}"
                                             data-url="{{ $bugViewRoute }}"
@@ -6432,70 +3597,25 @@
                                             {{ __('Bug') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-bug-view-list-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url  = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            const containerId   = 'toast-container';
-                                                            let container       = document.getElementById(containerId);
-                                                            if (!container) {
-                                                                container     = document.createElement('div');
-                                                                container.id  = containerId;
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/bug.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @can(PermissionsConstants::MNG_PRJ_TSK)
+                                @can(PMC::MNG_PRJ_TSK)
                                     @php
-                                        $taskCalendarRoute = Route::has(ViewsConstants::TSK.'.calendar')
-                                            ? route(ViewsConstants::TSK.'.calendar', ['all'])
+                                        $taskCalendarRoute = Route::has(VW::TSK.'.calendar')
+                                            ? route(VW::TSK.'.calendar', ['all'])
                                             : '#';
-                                        $linkId = 'task-calendar-link';
+                                        $taskCalendarLinkId = 'task-calendar-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::TSK,
+                                            VW::TSK,
                                             'tsk_calendar_route_unavailable'
                                         ) ?? 'Task Calendar route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
                                     <li class="dash-item {{ request()->is('calendar*') ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $taskCalendarLinkId }}"
                                             class="dash-link"
                                             href="{{ $taskCalendarRoute }}"
                                             data-url="{{ $taskCalendarRoute }}"
@@ -6505,69 +3625,25 @@
                                             {{ __('Task Calendar') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-task-calendar-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/taskCalendarLink.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @if ($user[UsersConstants::COL_TP] != PermissionsConstants::SA)
+                                @if ($user[UsersConstants::COL_TP] != PMC::SA)
                                     @php
                                         $trackerRoute = Route::has('time.tracker')
                                             ? route('time.tracker')
                                             : '#';
-                                        $linkId = 'tracker-link';
+                                        $trackerLinkId = 'tracker-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::TMT,
+                                            VW::TMT,
                                             'time_tracker_route_unavailable'
                                         ) ?? 'Tracker route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item {{ (RF::segment(1) == 'time-trackers' || RF::segment(1) == ViewsConstants::TMT) ? 'active open' : '' }}">
+                                    <li class="dash-item {{ (RF::segment(1) == 'time-trackers' || RF::segment(1) == VW::TMT) ? 'active open' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $trackerLinkId }}"
                                             class="dash-link"
                                             href="{{ $trackerRoute }}"
                                             data-url="{{ $trackerRoute }}"
@@ -6577,73 +3653,29 @@
                                             {{ __('Tracker') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-tracker-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/tracker.js') }}"></script>
                                     @endpush
                                 @endif
-                                @if ($user[UsersConstants::COL_TP] == PermissionsConstants::CPN ||
+                                @if ($user[UsersConstants::COL_TP] == PMC::CPN ||
                                     strtolower($user[UsersConstants::COL_TP]) == 'employee' || 
-                                    $user[UsersConstants::COL_TP] == PermissionsConstants::SA)
+                                    $user[UsersConstants::COL_TP] == PMC::SA)
                                     @php
-                                        $projectReportRoute = Route::has(ViewsConstants::PRJ_RPT.'.index')
-                                            ? route(ViewsConstants::PRJ_RPT.'.index')
-                                            : (Route::has(Str::kebab(ViewsConstants::PRJ_RPT.'.index'))
-                                                ? route(Str::kebab(ViewsConstants::PRJ_RPT.'.index'))
+                                        $projectReportRoute = Route::has(VW::PRJ_RPT.'.index')
+                                            ? route(VW::PRJ_RPT.'.index')
+                                            : (Route::has(Str::kebab(VW::PRJ_RPT.'.index'))
+                                                ? route(Str::kebab(VW::PRJ_RPT.'.index'))
                                                 : '#');
-                                        $linkId = 'project-report-index-link';
+                                        $projectReportLinkId = 'project-report-index-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::PRJ_RPT,
+                                            VW::PRJ_RPT,
                                             'project_report_index_route_unavailable'
                                         ) ?? 'Project Report route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::PRJ_RPT.'.index' || RF::route()->getName() == ViewsConstants::PRJ_RPT.'.show' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::PRJ_RPT.'.index' || RF::route()->getName() == VW::PRJ_RPT.'.show' ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $projectReportLinkId }}"
                                             class="dash-link"
                                             href="{{ $projectReportRoute }}"
                                             data-url="{{ $projectReportRoute }}"
@@ -6653,66 +3685,22 @@
                                             {{ __('Project Report') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-project-report-index-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/projectReport.js') }}"></script>
                                     @endpush
                                 @endif
                                 @php
                                     $permissions = [
-                                        PermissionsConstants::MNG_PRJ_TSK_STG,
-                                        PermissionsConstants::MNG_BUG_STT
+                                        PMC::MNG_PRJ_TSK_STG,
+                                        PMC::MNG_BUG_STT
                                     ];
                                     $hasStatusManagementPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                                 @endphp
                                 @if ($hasStatusManagementPermission)
                                     @php
                                        $segments = [
-                                            ViewsConstants::BUG_STT,
-                                            ViewsConstants::PRJ_TSK_STG
+                                            VW::BUG_STT,
+                                            VW::PRJ_TSK_STG
                                         ];
                                         $kebabSegments = array_map(function($segment) {
                                             if ($segment === null) return null;
@@ -6727,23 +3715,23 @@
                                             <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                         </a>
                                         <ul class="dash-submenu">
-                                            @can(PermissionsConstants::MNG_PRJ_TSK_STG)
+                                            @can(PMC::MNG_PRJ_TSK_STG)
                                                 @php
-                                                    $projectTaskStagesRoute = Route::has(ViewsConstants::PRJ_TSK_STG.'.index')
-                                                        ? route(ViewsConstants::PRJ_TSK_STG.'.index')
-                                                        : (Route::has(Str::kebab(ViewsConstants::PRJ_TSK_STG.'.index'))
-                                                            ? route(Str::kebab(ViewsConstants::PRJ_TSK_STG.'.index'))
+                                                    $projectTaskStagesRoute = Route::has(VW::PRJ_TSK_STG.'.index')
+                                                        ? route(VW::PRJ_TSK_STG.'.index')
+                                                        : (Route::has(Str::kebab(VW::PRJ_TSK_STG.'.index'))
+                                                            ? route(Str::kebab(VW::PRJ_TSK_STG.'.index'))
                                                             : '#');
-                                                    $linkId = 'project-task-stages-index-link';
+                                                    $projectTaskStagesLinkId = 'project-task-stages-index-link';
                                                     $message = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::PRJ_TSK_STG,
+                                                        VW::PRJ_TSK_STG,
                                                         'project_task_stages_index_route_unavailable'
                                                     ) ?? 'Project Task Stages route is unavailable. Please contact technical support or your domain administrator.';
                                                 @endphp
-                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::PRJ_TSK_STG.'.index' ? 'active' : '' }}">
+                                                <li class="dash-item {{ RF::route()->getName() == VW::PRJ_TSK_STG.'.index' ? 'active' : '' }}">
                                                     <a
-                                                        id="{{ $linkId }}"
+                                                        id="{{ $projectTaskStagesLinkId }}"
                                                         class="dash-link"
                                                         href="{{ $projectTaskStagesRoute }}"
                                                         data-url="{{ $projectTaskStagesRoute }}"
@@ -6753,71 +3741,27 @@
                                                         {{ __('Project Task Stages') }}
                                                     </a>
                                                 </li>
-                                                @push(StacksConstants::ADM_SCR_PG)
-                                                    <script defer>
-                                                        (() => {
-                                                            const listenerAttr = 'data-project-task-stages-listener-active';
-                                                            const el = document.getElementById('{{ $linkId }}');
-                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                            el.setAttribute(listenerAttr, 'true');
-                                                            el.addEventListener('click', event => {
-                                                                try {
-                                                                    const url = el.getAttribute('data-url');
-                                                                    const href = el.href;
-                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                        event.preventDefault();
-                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                        let container = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container = document.createElement('div');
-                                                                            container.id = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                            const toastEl = document.createElement('div');
-                                                                            toastEl.className = 'toast';
-                                                                            toastEl.setAttribute('role', 'alert');
-                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toastEl.appendChild(body);
-                                                                            container.appendChild(toastEl);
-                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
-                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                    }
-                                                                } catch (error) {}
-                                                            });
-                                                            const observer = new MutationObserver(() => {
-                                                                if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                            });
-                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                        })();
-                                                    </script>
+                                                @push(ST::ADM_SCR_PG)
+                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/projectTaskStages.js') }}"></script>
                                                 @endpush
                                             @endcan
-                                            @can(PermissionsConstants::MNG_BUG_STT)
+                                            @can(PMC::MNG_BUG_STT)
                                                 @php
-                                                    $bugStatusRoute = Route::has(ViewsConstants::BUG_STT.'.index')
-                                                        ? route(ViewsConstants::BUG_STT.'.index')
-                                                        : (Route::has(Str::kebab(ViewsConstants::BUG_STT.'.index'))
-                                                            ? route(Str::kebab(ViewsConstants::BUG_STT.'.index'))
+                                                    $bugStatusRoute = Route::has(VW::BUG_STT.'.index')
+                                                        ? route(VW::BUG_STT.'.index')
+                                                        : (Route::has(Str::kebab(VW::BUG_STT.'.index'))
+                                                            ? route(Str::kebab(VW::BUG_STT.'.index'))
                                                             : '#');
-                                                    $linkId = 'bug-status-index-link';
+                                                    $bugStatusLinkId = 'bug-status-index-link';
                                                     $message = Utility::fetchLinkMessage(
                                                         $lang,
-                                                        ViewsConstants::BUG_STT,
+                                                        VW::BUG_STT,
                                                         'bug_status_index_route_unavailable'
                                                     ) ?? 'Bug Status route is unavailable. Please contact technical support or your domain administrator.';
                                                 @endphp
-                                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::BUG_STT.'.index' ? 'active' : '' }}">
+                                                <li class="dash-item {{ RF::route()->getName() == VW::BUG_STT.'.index' ? 'active' : '' }}">
                                                     <a
-                                                        id="{{ $linkId }}"
+                                                        id="{{ $bugStatusLinkId }}"
                                                         class="dash-link"
                                                         href="{{ $bugStatusRoute }}"
                                                         data-url="{{ $bugStatusRoute }}"
@@ -6827,52 +3771,8 @@
                                                         {{ __('Bug Status') }}
                                                     </a>
                                                 </li>
-                                                @push(StacksConstants::ADM_SCR_PG)
-                                                    <script defer>
-                                                        (() => {
-                                                            const listenerAttr = 'data-bug-status-listener-active';
-                                                            const el = document.getElementById('{{ $linkId }}');
-                                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                            el.setAttribute(listenerAttr, 'true');
-                                                            el.addEventListener('click', event => {
-                                                                try {
-                                                                    const url = el.getAttribute('data-url');
-                                                                    const href = el.href;
-                                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                                        event.preventDefault();
-                                                                        const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                        let container = document.getElementById('toast-container');
-                                                                        if (!container) {
-                                                                            container = document.createElement('div');
-                                                                            container.id = 'toast-container';
-                                                                            document.body.appendChild(container);
-                                                                        }
-                                                                        if (bootstrapLink && window.bootstrap) {
-                                                                            const toastEl = document.createElement('div');
-                                                                            toastEl.className = 'toast';
-                                                                            toastEl.setAttribute('role', 'alert');
-                                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                                            const body = document.createElement('div');
-                                                                            body.className = 'toast-body';
-                                                                            body.textContent = msg;
-                                                                            toastEl.appendChild(body);
-                                                                            container.appendChild(toastEl);
-                                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                        } else {
-                                                                            alert(msg);
-                                                                        }
-                                                                        el.setAttribute('data-failed-route', 'true');
-                                                                    }
-                                                                } catch (error) {}
-                                                            });
-                                                            const observer = new MutationObserver(() => {
-                                                                if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                            });
-                                                            observer.observe(document.body, { childList: true, subtree: true });
-                                                        })();
-                                                    </script>
+                                                @push(ST::ADM_SCR_PG)
+                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/bugStatus.js') }}"></script>
                                                 @endpush
                                             @endcan
                                         </ul>
@@ -6885,11 +3785,11 @@
                 {{-- <!--------------------- End Project -----------------------------------> --}}
                 {{-- <!--------------------- Start User Managaement System -----------------------------------> --}}
                 @php
-                    $userTypes = [PermissionsConstants::SA, PermissionsConstants::ADM];
+                    $userTypes = [PMC::SA, PMC::ADM];
                     $permissions = [
-                        PermissionsConstants::MNG_USER,
-                        PermissionsConstants::MNG_ROLE,
-                        PermissionsConstants::MNG_CLT
+                        PMC::MNG_USER,
+                        PMC::MNG_ROLE,
+                        PMC::MNG_CLT
                     ];
                     $hasUserType = in_array($user[UsersConstants::COL_TP], $userTypes);
                     $hasUserAdminPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
@@ -6897,10 +3797,10 @@
                 @if ($hasUserAdminPermission)
                     @php
                        $segments = [
-                            ViewsConstants::CLT,
-                            ViewsConstants::RL,
-                            ViewsConstants::USR,
-                            ViewsConstants::USR_LG
+                            VW::CLT,
+                            VW::RL,
+                            VW::USR,
+                            VW::USR_LG
                         ];
                         $kebabSegments = array_map(function($segment) {
                             if ($segment === null) return null;
@@ -6920,21 +3820,21 @@
                             </span>
                         </a>
                         <ul class="dash-submenu">
-                            @can(PermissionsConstants::MNG_USER)
+                            @can(PMC::MNG_USER)
                                 @php
-                                    $userIndexRoute = Route::has(ViewsConstants::USR.'.index')
-                                        ? route(ViewsConstants::USR.'.index')
+                                    $userIndexRoute = Route::has(VW::USR.'.index')
+                                        ? route(VW::USR.'.index')
                                         : '#';
-                                    $linkId = 'user-index-link';
+                                    $userLinkId = 'user-index-link';
                                     $message = Utility::fetchLinkMessage(
                                         $lang,
-                                        ViewsConstants::USR,
+                                        VW::USR,
                                         'user_index_route_unavailable'
                                     ) ?? __('User route is unavailable. Please contact technical support or your domain administrator.');
                                 @endphp
-                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::USR.'.index' || RF::route()->getName() == ViewsConstants::USR.'.create' || RF::route()->getName() == ViewsConstants::USR.'.edit' || RF::route()->getName() == ViewsConstants::USR.'.log' ? 'active' : '' }}">
+                                <li class="dash-item {{ RF::route()->getName() == VW::USR.'.index' || RF::route()->getName() == VW::USR.'.create' || RF::route()->getName() == VW::USR.'.edit' || RF::route()->getName() == VW::USR.'.log' ? 'active' : '' }}">
                                     <a
-                                        id="{{ $linkId }}"
+                                        id="{{ $userLinkId }}"
                                         class="dash-link"
                                         href="{{ $userIndexRoute }}"
                                         data-url="{{ $userIndexRoute }}"
@@ -6944,69 +3844,25 @@
                                         {{ __('User') }}
                                     </a>
                                 </li>
-                                @push(StacksConstants::ADM_SCR_PG)
-                                    <script defer>
-                                        (() => {
-                                            const listenerAttr = 'data-user-index-listener-active';
-                                            const el = document.getElementById('{{ $linkId }}');
-                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                            el.setAttribute(listenerAttr, 'true');
-                                            el.addEventListener('click', event => {
-                                                try {
-                                                    const url  = el.getAttribute('data-url');
-                                                    const href = el.href;
-                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                        event.preventDefault();
-                                                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container     = document.createElement('div');
-                                                            container.id  = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        el.setAttribute('data-failed-route', 'true');
-                                                    }
-                                                } catch (error) {}
-                                            });
-                                            const observer = new MutationObserver(() => {
-                                                if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                            });
-                                            observer.observe(document.body, { childList: true, subtree: true });
-                                        })();
-                                    </script>
+                                @push(ST::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/userLink.js') }}"></script>
                                 @endpush
                             @endcan
-                            @can(PermissionsConstants::MNG_ROLE)
+                            @can(PMC::MNG_ROLE)
                                 @php
-                                    $roleIndexRoute = Route::has(ViewsConstants::RL.'.index')
-                                        ? route(ViewsConstants::RL.'.index')
+                                    $roleIndexRoute = Route::has(VW::RL.'.index')
+                                        ? route(VW::RL.'.index')
                                         : '#';
-                                    $linkId = 'role-index-link';
+                                    $roleLinkId = 'role-index-link';
                                     $message = Utility::fetchLinkMessage(
                                         $lang,
-                                        ViewsConstants::RL,
+                                        VW::RL,
                                         'role_index_route_unavailable'
                                     ) ?? 'Role route is unavailable. Please contact technical support or your domain administrator.';
                                 @endphp
-                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::RL.'.index' || RF::route()->getName() == ViewsConstants::RL.'.create' || RF::route()->getName() == ViewsConstants::RL.'.edit' ? 'active' : '' }}">
+                                <li class="dash-item {{ RF::route()->getName() == VW::RL.'.index' || RF::route()->getName() == VW::RL.'.create' || RF::route()->getName() == VW::RL.'.edit' ? 'active' : '' }}">
                                     <a
-                                        id="{{ $linkId }}"
+                                        id="{{ $roleLinkId }}"
                                         class="dash-link"
                                         href="{{ $roleIndexRoute }}"
                                         data-url="{{ $roleIndexRoute }}"
@@ -7016,69 +3872,25 @@
                                         {{ __('Role') }}
                                     </a>
                                 </li>
-                                @push(StacksConstants::ADM_SCR_PG)
-                                    <script defer>
-                                        (() => {
-                                            const listenerAttr = 'data-role-index-listener-active';
-                                            const el = document.getElementById('{{ $linkId }}');
-                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                            el.setAttribute(listenerAttr, 'true');
-                                            el.addEventListener('click', event => {
-                                                try {
-                                                    const url  = el.getAttribute('data-url');
-                                                    const href = el.href;
-                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                        event.preventDefault();
-                                                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container     = document.createElement('div');
-                                                            container.id  = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        el.setAttribute('data-failed-route', 'true');
-                                                    }
-                                                } catch (error) {}
-                                            });
-                                            const observer = new MutationObserver(() => {
-                                                if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                            });
-                                            observer.observe(document.body, { childList: true, subtree: true });
-                                        })();
-                                    </script>
+                                @push(ST::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/role.js') }}"></script>
                                 @endpush
                             @endcan
-                            @can(PermissionsConstants::MNG_CLT)
+                            @can(PMC::MNG_CLT)
                                 @php
-                                    $clientsIndexRoute = Route::has(ViewsConstants::CLT.'.index')
-                                        ? route(ViewsConstants::CLT.'.index')
+                                    $clientsIndexRoute = Route::has(VW::CLT.'.index')
+                                        ? route(VW::CLT.'.index')
                                         : '#';
-                                    $linkId = 'clients-index-link';
+                                    $clientLinkId = 'clients-index-link';
                                     $message = Utility::fetchLinkMessage(
                                         $lang,
-                                        ViewsConstants::CLT,
+                                        VW::CLT,
                                         'client_index_route_unavailable'
                                     ) ?? 'Clients route is unavailable. Please contact technical support or your domain administrator.';
                                 @endphp
-                                <li class="dash-item {{ RF::route()->getName() == ViewsConstants::CLT.'.index' || RF::segment(1) == ViewsConstants::CLT || RF::route()->getName() == ViewsConstants::CLT.'.edit' ? 'active' : '' }}">
+                                <li class="dash-item {{ RF::route()->getName() == VW::CLT.'.index' || RF::segment(1) == VW::CLT || RF::route()->getName() == VW::CLT.'.edit' ? 'active' : '' }}">
                                     <a
-                                        id="{{ $linkId }}"
+                                        id="{{ $clientLinkId }}"
                                         class="dash-link"
                                         href="{{ $clientsIndexRoute }}"
                                         data-url="{{ $clientsIndexRoute }}"
@@ -7088,57 +3900,13 @@
                                         {{ __('Clients') }}
                                     </a>
                                 </li>
-                                @push(StacksConstants::ADM_SCR_PG)
-                                    <script defer>
-                                        (() => {
-                                            const listenerAttr = 'data-clients-index-listener-active';
-                                            const el = document.getElementById('{{ $linkId }}');
-                                            if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                            el.setAttribute(listenerAttr, 'true');
-                                            el.addEventListener('click', event => {
-                                                try {
-                                                    const url  = el.getAttribute('data-url');
-                                                    const href = el.href;
-                                                    if ((!url || url === '#') && (!href || href === '#')) {
-                                                        event.preventDefault();
-                                                        const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                        const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                        let container       = document.getElementById('toast-container');
-                                                        if (!container) {
-                                                            container     = document.createElement('div');
-                                                            container.id  = 'toast-container';
-                                                            document.body.appendChild(container);
-                                                        }
-                                                        if (bootstrapLink && window.bootstrap) {
-                                                            const toastEl = document.createElement('div');
-                                                            toastEl.className = 'toast';
-                                                            toastEl.setAttribute('role', 'alert');
-                                                            toastEl.setAttribute('aria-live', 'assertive');
-                                                            toastEl.setAttribute('aria-atomic', 'true');
-                                                            const body = document.createElement('div');
-                                                            body.className = 'toast-body';
-                                                            body.textContent = msg;
-                                                            toastEl.appendChild(body);
-                                                            container.appendChild(toastEl);
-                                                            bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                        } else {
-                                                            alert(msg);
-                                                        }
-                                                        el.setAttribute('data-failed-route', 'true');
-                                                    }
-                                                } catch (error) {}
-                                            });
-                                            const observer = new MutationObserver(() => {
-                                                if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                            });
-                                            observer.observe(document.body, { childList: true, subtree: true });
-                                        })();
-                                    </script>
+                                @push(ST::ADM_SCR_PG)
+                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/client.js') }}"></script>
                                 @endpush
                             @endcan
-                                {{--                                    @can(PermissionsConstants::MNG_USER) --}}
-                                {{--                                        <li class="dash-item {{ (RF::route()->getName() == ViewsConstants::USR.'.index' || RF::segment(1) == ViewsConstants::USR || RF::route()->getName() == ViewsConstants::USR.'.edit') ? ' active' : '' }}"> --}}
-                                {{--                                            <a class="dash-link" href="{{ routViewsConstants::USR.eusers.userlog') }}">{{__('User Logs')}}</a> --}}
+                                {{--                                    @can(PMC::MNG_USER) --}}
+                                {{--                                        <li class="dash-item {{ (RF::route()->getName() == VW::USR.'.index' || RF::segment(1) == VW::USR || RF::route()->getName() == VW::USR.'.edit') ? ' active' : '' }}"> --}}
+                                {{--                                            <a class="dash-link" href="{{ routVW::USR.eusers.userlog') }}">{{__('User Logs')}}</a> --}}
                                 {{--                                        </li> --}}
                                 {{--                                    @endcan --}}
                         </ul>
@@ -7146,7 +3914,7 @@
                 @endif
                 {{-- <!--------------------- End User Managaement System-----------------------------------> --}}
                 {{-- <!--------------------- Start Products System -----------------------------------> --}}
-                @if (Gate::check(PermissionsConstants::MNG_PRD_SV))
+                @if (Gate::check(PMC::MNG_PRD_SV))
                     <li class="{{ VC::DSH_IT_MN }}">
                         <a href="#!" class="dash-link">
                             <span class="dash-micon">
@@ -7158,31 +3926,31 @@
                             </span>
                         </a>
                         @php
-                            $prodSvRoute = Route::has(ViewsConstants::PRD_SV.'.index')
-                                ? route(ViewsConstants::PRD_SV.'.index')
-                                : (Route::has(Str::kebab(ViewsConstants::PRD_SV.'.index'))
-                                    ? route(Str::kebab(ViewsConstants::PRD_SV.'.index'))
+                            $prodSvRoute = Route::has(VW::PRD_SV.'.index')
+                                ? route(VW::PRD_SV.'.index')
+                                : (Route::has(Str::kebab(VW::PRD_SV.'.index'))
+                                    ? route(Str::kebab(VW::PRD_SV.'.index'))
                                     : '#');
                             $prodSvId = 'product-services-index-link';
                             $prodSvMsg = Utility::fetchLinkMessage(
                                 $lang,
-                                ViewsConstants::PRD_SV,
+                                VW::PRD_SV,
                                 'product_services_index_route_unavailable'
                             ) ?? 'Product & Services route is unavailable. Please contact technical support or your domain administrator.';
-                            $prodStkRoute = Route::has(ViewsConstants::PRD_STK.'.index')
-                                ? route(ViewsConstants::PRD_STK.'.index')
-                                : (Route::has(Str::kebab(ViewsConstants::PRD_STK.'.index'))
-                                    ? route(Str::kebab(ViewsConstants::PRD_STK.'.index'))
+                            $prodStkRoute = Route::has(VW::PRD_STK.'.index')
+                                ? route(VW::PRD_STK.'.index')
+                                : (Route::has(Str::kebab(VW::PRD_STK.'.index'))
+                                    ? route(Str::kebab(VW::PRD_STK.'.index'))
                                     : '#');
                             $prodStkId = 'product-stock-index-link';
                             $prodStkMsg = Utility::fetchLinkMessage(
                                 $lang,
-                                ViewsConstants::PRD_STK,
+                                VW::PRD_STK,
                                 'product_stock_index_route_unavailable'
                             ) ?? 'Product Stock route is unavailable. Please contact technical support or your domain administrator.';
                         @endphp
                         <ul class="dash-submenu">
-                            <li class="dash-item {{ RF::segment(1) == ViewsConstants::PRD_SV || RF::segment(1) == Str::kebab(ViewsConstants::PRD_SV) ? 'active' : '' }}">
+                            <li class="dash-item {{ RF::segment(1) == VW::PRD_SV || RF::segment(1) == Str::kebab(VW::PRD_SV) ? 'active' : '' }}">
                                 <a
                                     id="{{ $prodSvId }}"
                                     class="dash-link"
@@ -7194,7 +3962,7 @@
                                     {{ __('Product & Services') }}
                                 </a>
                             </li>
-                            <li class="dash-item {{ RF::segment(1) == ViewsConstants::PRD_STK || RF::segment(1) == Str::kebab(ViewsConstants::PRD_STK) ? 'active' : '' }}">
+                            <li class="dash-item {{ RF::segment(1) == VW::PRD_STK || RF::segment(1) == Str::kebab(VW::PRD_STK) ? 'active' : '' }}">
                                 <a
                                     id="{{ $prodStkId }}"
                                     class="dash-link"
@@ -7207,80 +3975,33 @@
                                 </a>
                             </li>
                         </ul>
-                        @push(StacksConstants::ADM_SCR_PG)
-                            <script defer>
-                                (() => {
-                                    const bindGuard = id => {
-                                        const listenerAttr = `data-${id}-listener-active`;
-                                        const el = document.getElementById(id);
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById(id)) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    };
-                                    ['{{ $prodSvId }}','{{ $prodStkId }}'].forEach(bindGuard);
-                                })();
-                            </script>
+                        @push(ST::ADM_SCR_PG)
+                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/productService.js') }}"></script>
                         @endpush
                     </li>
                 @endif
                 {{-- <!--------------------- End Products System -----------------------------------> --}}
                 {{-- <!--------------------- Start POs System -----------------------------------> --}}
-                @if (!empty($userPlan) && $userPlan?->{PlansConstants::COL_POS} == 1)
+                @if (!empty($userPlan) && $userPlan?->{PLC::COL_POS} == 1)
                     @php
                         $permissions = [
-                            PermissionsConstants::MNG_WRH,
-                            PermissionsConstants::MNG_PRC,
-                            PermissionsConstants::MNG_POS,
-                            PermissionsConstants::MNG_PRT
+                            PMC::MNG_WRH,
+                            PMC::MNG_PRC,
+                            PMC::MNG_POS,
+                            PMC::MNG_PRT
                         ];
                         $hasPurchasePermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                     @endphp
                     @if ($hasPurchasePermission)
                         @php
                            $segments = [
-                                ViewsConstants::PRC,
-                                ViewsConstants::WRH
+                                VW::PRC,
+                                VW::WRH
                             ];
                             $routeNames = [
-                                ViewsConstants::POS . '.barcode',
-                                ViewsConstants::POS . '.print',
-                                ViewsConstants::POS . '.show'
+                                VW::POS . '.barcode',
+                                VW::POS . '.print',
+                                VW::POS . '.show'
                             ];
                             $kebabSegments = array_map(function($segment) {
                                 if ($segment === null) return null;
@@ -7297,28 +4018,28 @@
                                 <span class="dash-mtext">{{ __('POS System') }}</span>
                                 <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                             </a>
-                            <ul class="dash-submenu {{ RF::segment(1) == ViewsConstants::WRH ||
-                                RF::segment(1) == ViewsConstants::PRC ||
-                                RF::route()->getName() == ViewsConstants::POS . '.barcode' ||
-                                RF::route()->getName() == ViewsConstants::POS . '.print' ||
-                                RF::route()->getName() == ViewsConstants::POS . '.show'
+                            <ul class="dash-submenu {{ RF::segment(1) == VW::WRH ||
+                                RF::segment(1) == VW::PRC ||
+                                RF::route()->getName() == VW::POS . '.barcode' ||
+                                RF::route()->getName() == VW::POS . '.print' ||
+                                RF::route()->getName() == VW::POS . '.show'
                                     ? 'show'
                                     : '' }}">
-                                @can(PermissionsConstants::MNG_WRH)
+                                @can(PMC::MNG_WRH)
                                     @php
-                                        $warehouseIndexRoute = Route::has(ViewsConstants::WRH.'.index')
-                                            ? route(ViewsConstants::WRH.'.index')
+                                        $warehouseIndexRoute = Route::has(VW::WRH.'.index')
+                                            ? route(VW::WRH.'.index')
                                             : '#';
-                                        $linkId = 'warehouse-index-link';
+                                        $warehouseLinkId = 'warehouse-index-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::WRH,
+                                            VW::WRH,
                                             'warehouse_index_route_unavailable'
                                         ) ?? 'Warehouse route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::WRH.'.index' || RF::route()->getName() == ViewsConstants::WRH.'.show' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::WRH.'.index' || RF::route()->getName() == VW::WRH.'.show' ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $warehouseLinkId }}"
                                             class="dash-link"
                                             href="{{ $warehouseIndexRoute }}"
                                             data-url="{{ $warehouseIndexRoute }}"
@@ -7328,69 +4049,25 @@
                                             {{ __('Warehouse') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-warehouse-index-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url  = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container       = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container     = document.createElement('div');
-                                                                container.id  = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/warehouse.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @can(PermissionsConstants::MNG_PRC)
+                                @can(PMC::MNG_PRC)
                                     @php
-                                        $purchaseIndexRoute = Route::has(ViewsConstants::PRC.'.index')
-                                            ? route(ViewsConstants::PRC.'.index')
+                                        $purchaseIndexRoute = Route::has(VW::PRC.'.index')
+                                            ? route(VW::PRC.'.index')
                                             : '#';
-                                        $linkId = 'purchase-index-link';
+                                        $purchaseLinkId = 'purchase-index-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::PRC,
+                                            VW::PRC,
                                             'purchase_index_route_unavailable'
                                         ) ?? 'Purchase route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::PRC.'.index' || RF::route()->getName() == ViewsConstants::PRC.'.create' || RF::route()->getName() == ViewsConstants::PRC.'.edit' || RF::route()->getName() == ViewsConstants::PRC.'.show' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::PRC.'.index' || RF::route()->getName() == VW::PRC.'.create' || RF::route()->getName() == VW::PRC.'.edit' || RF::route()->getName() == VW::PRC.'.show' ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $purchaseLinkId }}"
                                             class="dash-link"
                                             href="{{ $purchaseIndexRoute }}"
                                             data-url="{{ $purchaseIndexRoute }}"
@@ -7400,76 +4077,32 @@
                                             {{ __('Purchase') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-purchase-index-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url  = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container       = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container     = document.createElement('div');
-                                                                container.id  = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/purchase.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @can(PermissionsConstants::MNG_POS)
+                                @can(PMC::MNG_POS)
                                     @php
-                                        $posAddRoute = Route::has(ViewsConstants::POS.'.index')
-                                            ? route(ViewsConstants::POS.'.index')
+                                        $posAddRoute = Route::has(VW::POS.'.index')
+                                            ? route(VW::POS.'.index')
                                             : '#';
-                                        $posReportRoute = Route::has(ViewsConstants::POS.'.report')
-                                            ? route(ViewsConstants::POS.'.report')
+                                        $posReportRoute = Route::has(VW::POS.'.report')
+                                            ? route(VW::POS.'.report')
                                             : '#';
                                         $posAddId = 'pos-add-index-link';
                                         $posReportId = 'pos-report-index-link';
                                         $posAddMsg = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::POS,
+                                            VW::POS,
                                             'pos_index_route_unavailable'
                                         ) ?? __('POS Setup route is unavailable. Please contact technical support or your domain administrator.');
                                         $posReportMsg = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::POS,
+                                            VW::POS,
                                             'pos_report_route_unavailable'
                                         ) ?? __('POS Report route is unavailable. Please contact technical support or your domain administrator.');
                                     @endphp
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::POS.'.index' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::POS.'.index' ? 'active' : '' }}">
                                         <a
                                             id="{{ $posAddId }}"
                                             class="dash-link"
@@ -7481,7 +4114,7 @@
                                             {{ __(' Add POS') }}
                                         </a>
                                     </li>
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::POS.'.report' || RF::route()->getName() == ViewsConstants::POS.'.show' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::POS.'.report' || RF::route()->getName() == VW::POS.'.show' ? 'active' : '' }}">
                                         <a
                                             id="{{ $posReportId }}"
                                             class="dash-link"
@@ -7493,74 +4126,27 @@
                                             {{ __('POS') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const bindGuard = id => {
-                                                    const listenerAttr = `data-${id}-listener-active`;
-                                                    const el = document.getElementById(id);
-                                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                    el.setAttribute(listenerAttr, 'true');
-                                                    el.addEventListener('click', event => {
-                                                        try {
-                                                            const url = el.getAttribute('data-url');
-                                                            const href = el.href;
-                                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                                event.preventDefault();
-                                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                                let container = document.getElementById('toast-container');
-                                                                if (!container) {
-                                                                    container = document.createElement('div');
-                                                                    container.id = 'toast-container';
-                                                                    document.body.appendChild(container);
-                                                                }
-                                                                if (bootstrapLink && window.bootstrap) {
-                                                                    const toastEl = document.createElement('div');
-                                                                    toastEl.className = 'toast';
-                                                                    toastEl.setAttribute('role', 'alert');
-                                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                                    const body = document.createElement('div');
-                                                                    body.className = 'toast-body';
-                                                                    body.textContent = msg;
-                                                                    toastEl.appendChild(body);
-                                                                    container.appendChild(toastEl);
-                                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                                } else {
-                                                                    alert(msg);
-                                                                }
-                                                                el.setAttribute('data-failed-route', 'true');
-                                                            }
-                                                        } catch (error) {}
-                                                    });
-                                                    const observer = new MutationObserver(() => {
-                                                        if (!document.getElementById(id)) observer.disconnect();
-                                                    });
-                                                    observer.observe(document.body, { childList: true, subtree: true });
-                                                };
-                                                [ '{{ $posAddId }}', '{{ $posReportId }}' ].forEach(bindGuard);
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/pos.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @can(PermissionsConstants::MNG_WRH)
+                                @can(PMC::MNG_WRH)
                                     @php
-                                        $warehouseTransferRoute = Route::has(ViewsConstants::WRH_TRF.'.index')
-                                            ? route(ViewsConstants::WRH_TRF.'.index')
-                                            : (Route::has(Str::kebab(ViewsConstants::WRH_TRF.'.index'))
-                                                ? route(Str::kebab(ViewsConstants::WRH_TRF.'.index'))
+                                        $warehouseTransferRoute = Route::has(VW::WRH_TRF.'.index')
+                                            ? route(VW::WRH_TRF.'.index')
+                                            : (Route::has(Str::kebab(VW::WRH_TRF.'.index'))
+                                                ? route(Str::kebab(VW::WRH_TRF.'.index'))
                                                 : '#');
-                                        $linkId = 'warehouse-transfer-index-link';
+                                        $warehouseTransferLinkId = 'warehouse-transfer-index-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::WRH_TRF,
+                                            VW::WRH_TRF,
                                             'wrh_trf_index_route_unavailable'
                                         ) ?? 'Warehouse Transfer route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::WRH_TRF.'.index' || RF::route()->getName() == ViewsConstants::WRH_TRF.'.show' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::WRH_TRF.'.index' || RF::route()->getName() == VW::WRH_TRF.'.show' ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $warehouseTransferLinkId }}"
                                             class="dash-link"
                                             href="{{ $warehouseTransferRoute }}"
                                             data-url="{{ $warehouseTransferRoute }}"
@@ -7570,69 +4156,25 @@
                                             {{ __('Transfer') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-warehouse-transfer-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/warehouseTransfer.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @can(PermissionsConstants::CR_BC)
+                                @can(PMC::CR_BC)
                                     @php
-                                        $posBarcodeRoute = Route::has(ViewsConstants::POS.'.barcode')
-                                            ? route(ViewsConstants::POS.'.barcode')
+                                        $posBarcodeRoute = Route::has(VW::POS.'.barcode')
+                                            ? route(VW::POS.'.barcode')
                                             : '#';
-                                        $linkId = 'pos-barcode-link';
+                                        $posBarcodeLinkId = 'pos-barcode-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::POS,
+                                            VW::POS,
                                             'pos_barcode_route_unavailable'
                                         ) ?? __('POS Barcode route is unavailable. Please contact technical support or your domain administrator.');
                                     @endphp
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::POS.'.barcode' || RF::route()->getName() == ViewsConstants::POS.'.print' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::POS.'.barcode' || RF::route()->getName() == VW::POS.'.print' ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $posBarcodeLinkId }}"
                                             class="dash-link"
                                             href="{{ $posBarcodeRoute }}"
                                             data-url="{{ $posBarcodeRoute }}"
@@ -7642,71 +4184,27 @@
                                             {{ __('Print Barcode') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-pos-barcode-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/posBarcode.js') }}"></script>
                                     @endpush
                                 @endcan
-                                @can(PermissionsConstants::MNG_POS)
+                                @can(PMC::MNG_POS)
                                     @php
-                                        $printSettingRoute = Route::has(ViewsConstants::POS.'.print.setting')
-                                            ? route(ViewsConstants::POS.'.print.setting')
-                                            : (Route::has(Str::kebab(ViewsConstants::POS.'.print.setting'))
-                                                ? route(Str::kebab(ViewsConstants::POS.'.print.setting'))
+                                        $printSettingRoute = Route::has(VW::POS.'.print.setting')
+                                            ? route(VW::POS.'.print.setting')
+                                            : (Route::has(Str::kebab(VW::POS.'.print.setting'))
+                                                ? route(Str::kebab(VW::POS.'.print.setting'))
                                                 : '#');
-                                        $linkId = 'pos-print-setting-link';
+                                        $posPrintLinkId = 'pos-print-setting-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::POS,
+                                            VW::POS,
                                             'pos_print_setting_route_unavailable'
                                         ) ?? 'POS Print Settings route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item {{ RF::route()->getName() == ViewsConstants::POS.'.print.setting' ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::route()->getName() == VW::POS.'.print.setting' ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $posPrintLinkId }}"
                                             class="dash-link"
                                             href="{{ $printSettingRoute }}"
                                             data-url="{{ $printSettingRoute }}"
@@ -7716,79 +4214,35 @@
                                             {{ __('Print Settings') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-pos-print-setting-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
-                                    @endpush                            
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/posPrintSetting.js') }}"></script>
+                                    @endpush
                                 @endcan
                             </ul>
                         </li>
                     @endif
                 @endif
                 {{-- <!--------------------- End POs System -----------------------------------> --}}
-                @if ($user[UsersConstants::COL_TP] != PermissionsConstants::ADM)
+                @if ($user[UsersConstants::COL_TP] != PMC::ADM)
                     @php
-                        $supportRoute = Route::has(ViewsConstants::SPT.'.index')
-                            ? route(ViewsConstants::SPT.'.index')
+                        $supportRoute = Route::has(VW::SPT.'.index')
+                            ? route(VW::SPT.'.index')
                             : '#';
                         $supportId = 'support-system-link';
                         $supportMsg = Utility::fetchLinkMessage(
                             $lang,
-                            ViewsConstants::SPT,
+                            VW::SPT,
                             'support_system_index_route_unavailable'
                         ) ?? 'Support System route is unavailable. Please contact technical support or your domain administrator.';
-                        $zoomRoute = Route::has(ViewsConstants::ZMM.'.index')
-                            ? route(ViewsConstants::ZMM.'.index')
-                            : (Route::has(Str::kebab(ViewsConstants::ZMM.'.index'))
-                                ? route(Str::kebab(ViewsConstants::ZMM.'.index'))
+                        $zoomRoute = Route::has(VW::ZMM.'.index')
+                            ? route(VW::ZMM.'.index')
+                            : (Route::has(Str::kebab(VW::ZMM.'.index'))
+                                ? route(Str::kebab(VW::ZMM.'.index'))
                                 : '#');
                         $zoomId = 'zoom-meeting-link';
                         $zoomMsg = Utility::fetchLinkMessage(
                             $lang,
-                            ViewsConstants::ZMM,
+                            VW::ZMM,
                             'zoom_meeting_index_route_unavailable'
                         ) ?? 'Zoom Meeting route is unavailable. Please contact technical support or your domain administrator.';
                         $messengerRoute = url('chats');
@@ -7799,7 +4253,7 @@
                             'messenger_index_route_unavailable'
                         ) ?? 'Messenger route is unavailable. Please contact technical support or your domain administrator.';
                     @endphp
-                    <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::SPT ? 'active' : '' }}">
+                    <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::SPT ? 'active' : '' }}">
                         <a
                             id="{{ $supportId }}"
                             class="dash-link"
@@ -7812,101 +4266,59 @@
                             <span class="dash-mtext">{{ __('Support System') }}</span>
                         </a>
                     </li>
-                    <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::ZMM || RF::segment(1) == 'zoom-meeting' || RF::segment(1) == 'zoom_meeting_calendar' || RF::segment(1) == 'zoom-meeting-calendar' ? 'active' : '' }}">
+                    <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::ZMM || RF::segment(1) == 'zoom-meeting' || RF::segment(1) == 'zoom_meeting_calendar' || RF::segment(1) == 'zoom-meeting-calendar' ? 'active' : '' }}">
                         <a
                             id="{{ $zoomId }}"
                             class="dash-link"
-                            href="{{ $zoomRoute }}"
-                            data-url="{{ $zoomRoute }}"
+                            {{-- href="{{ $zoomRoute }}" --}}
+                            {{-- data-url="{{ $zoomRoute }}" --}}
+                            data-candidate-url="{{ $zoomRoute }}"
                             data-sv-localized="true"
                             data-guard-msg="{{ $zoomMsg }}"
+                            href="#"
                         >
                             <span class="dash-micon"><i class="ti ti-user-check"></i></span>
                             <span class="dash-mtext">{{ __('Zoom Meeting') }}</span>
                         </a>
+                        @php $disabledRoutes[] = $zoomId; @endphp
                     </li>
                     <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == 'chats' ? 'active' : '' }}">
                         <a
                             id="{{ $messengerId }}"
                             class="dash-link"
-                            href="{{ $messengerRoute }}"
-                            data-url="{{ $messengerRoute }}"
+                            {{-- href="{{ $messengerRoute }}" --}}
+                            {{--data-url="{{ $messengerRoute }}" --}}
+                            data-candidate-url="{{ $messengerRoute }}"
                             data-sv-localized="true"
                             data-guard-msg="{{ $messengerMsg }}"
                         >
                             <span class="dash-micon"><i class="ti ti-message-circle"></i></span>
                             <span class="dash-mtext">{{ __('Messenger') }}</span>
                         </a>
+                        @php $disabledRoutes[] = $messengerId; @endphp
                     </li>
-                    @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                const bindGuard = id => {
-                                    const listenerAttr = `data-${id}-listener-active`;
-                                    const el = document.getElementById(id);
-                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                    el.setAttribute(listenerAttr, 'true');
-                                    el.addEventListener('click', event => {
-                                        try {
-                                            const url = el.getAttribute('data-url');
-                                            const href = el.href;
-                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                event.preventDefault();
-                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                let container = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (bootstrapLink && window.bootstrap) {
-                                                    const toastEl = document.createElement('div');
-                                                    toastEl.className = 'toast';
-                                                    toastEl.setAttribute('role', 'alert');
-                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toastEl.appendChild(body);
-                                                    container.appendChild(toastEl);
-                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                el.setAttribute('data-failed-route', 'true');
-                                            }
-                                        } catch (error) {}
-                                    });
-                                    const observer = new MutationObserver(() => {
-                                        if (!document.getElementById(id)) observer.disconnect();
-                                    });
-                                    observer.observe(document.body, { childList: true, subtree: true });
-                                };
-                                ['{{ $supportId }}', '{{ $zoomId }}', '{{ $messengerId }}'].forEach(bindGuard);
-                            })();
-                        </script>
+                    @push(ST::ADM_SCR_PG)
+                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/calls.js') }}"></script>
                     @endpush
                 @endif
-                @if ($user[UsersConstants::COL_TP] == PermissionsConstants::CPN || 
-                    $user[UsersConstants::COL_TP] == PermissionsConstants::SA)
+                @if ($user[UsersConstants::COL_TP] == PMC::CPN || 
+                    $user[UsersConstants::COL_TP] == PMC::SA)
                     @php
-                        $notifTmpRoute = Route::has(ViewsConstants::NTF_TMP.'.index')
-                            ? route(ViewsConstants::NTF_TMP.'.index')
-                            : (Route::has(Str::kebab(ViewsConstants::NTF_TMP.'.index'))
-                                ? route(Str::kebab(ViewsConstants::NTF_TMP.'.index'))
+                        $notifTmpRoute = Route::has(VW::NTF_TMP.'.index')
+                            ? route(VW::NTF_TMP.'.index')
+                            : (Route::has(Str::kebab(VW::NTF_TMP.'.index'))
+                                ? route(Str::kebab(VW::NTF_TMP.'.index'))
                                 : '#');
-                        $linkId = 'notification-template-index-link';
+                        $ntfTmpLinkId = 'notification-template-index-link';
                         $message = Utility::fetchLinkMessage(
                             $lang,
-                            ViewsConstants::NTF_TMP,
+                            VW::NTF_TMP,
                             'notification_template_index_route_unavailable'
                         ) ?? 'Notification Template route is unavailable. Please contact technical support or your domain administrator.';
                     @endphp
-                    <li class="{{ VC::DSH_IT_MN }} {{ (RF::segment(1) === 'notification-templates' || RF::segment(1) === ViewsConstants::NTF_TMP) ? 'active' : '' }}">
+                    <li class="{{ VC::DSH_IT_MN }} {{ (RF::segment(1) === 'notification-templates' || RF::segment(1) === VW::NTF_TMP) ? 'active' : '' }}">
                         <a
-                            id="{{ $linkId }}"
+                            id="{{ $ntfTmpLinkId }}"
                             class="dash-link"
                             href="{{ $notifTmpRoute }}"
                             data-url="{{ $notifTmpRoute }}"
@@ -7917,63 +4329,18 @@
                             <span class="dash-mtext">{{ __('Notification Template') }}</span>
                         </a>
                     </li>
-                    @push(StacksConstants::ADM_SCR_PG)
-                        <script defer>
-                            (() => {
-                                const listenerAttr = 'data-notification-template-listener-active';
-                                const el = document.getElementById('{{ $linkId }}');
-                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                el.setAttribute(listenerAttr, 'true');
-                                el.addEventListener('click', event => {
-                                    try {
-                                        const url = el.getAttribute('data-url');
-                                        const href = el.href;
-                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                            event.preventDefault();
-                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                            const containerId = 'toast-container';
-                                            let container = document.getElementById(containerId);
-                                            if (!container) {
-                                                container = document.createElement('div');
-                                                container.id = containerId;
-                                                document.body.appendChild(container);
-                                            }
-                                            if (bootstrapLink && window.bootstrap) {
-                                                const toastEl = document.createElement('div');
-                                                toastEl.className = 'toast';
-                                                toastEl.setAttribute('role', 'alert');
-                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                const body = document.createElement('div');
-                                                body.className = 'toast-body';
-                                                body.textContent = msg;
-                                                toastEl.appendChild(body);
-                                                container.appendChild(toastEl);
-                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                            } else {
-                                                alert(msg);
-                                            }
-                                            el.setAttribute('data-failed-route', 'true');
-                                        }
-                                    } catch (error) {}
-                                });
-                                const observer = new MutationObserver(() => {
-                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                });
-                                observer.observe(document.body, { childList: true, subtree: true });
-                            })();
-                        </script>
+                    @push(ST::ADM_SCR_PG)
+                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/notificationTemplate.js') }}"></script>
                     @endpush
                 @endif
                 {{-- <!--------------------- Start System Setup -----------------------------------> --}}
-                @if ($user[UsersConstants::COL_TP] != PermissionsConstants::ADM)
-                    @if (Gate::check(PermissionsConstants::MNG_CP_PL) || Gate::check(PermissionsConstants::MNG_OD) || Gate::check(PermissionsConstants::MNG_CPN_SET))
+                @if ($user[UsersConstants::COL_TP] != PMC::ADM)
+                    @if (Gate::check(PMC::MNG_CP_PL) || Gate::check(PMC::MNG_OD) || Gate::check(PMC::MNG_CPN_SET))
                         <li
-                            class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::SET ||
-                            RF::segment(1) == ViewsConstants::PLN ||
+                            class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::SET ||
+                            RF::segment(1) == VW::PLN ||
                             RF::segment(1) == 'stripe' ||
-                            RF::segment(1) == ViewsConstants::OD
+                            RF::segment(1) == VW::OD
                                 ? ' active dash-trigger'
                                 : '' }}">
                             <a href="#!" class="dash-link">
@@ -7982,93 +4349,49 @@
                                 <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                             </a>
                             <ul class="dash-submenu">
-                                @if (Gate::check(PermissionsConstants::MNG_CPN_SET))
+                                @if (Gate::check(PMC::MNG_CPN_SET))
                                     @php
-                                        $systemSettingsRoute = Route::has(ViewsConstants::SET)
-                                            ? route(ViewsConstants::SET)
+                                        $systemSettingsRoute = Route::has(VW::SET)
+                                            ? route(VW::SET)
                                             : '#';
-                                        $linkId = 'system-settings-link';
-                                        $message = Utility::fetchLinkMessage(
+                                        $systemSettingsLinkId = 'system-settings-link';
+                                        $systemSettingsMessage = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::SET,
+                                            VW::SET,
                                             'system_settings_route_unavailable'
                                         ) ?? 'System Settings route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::SET ? 'active' : '' }}">
+                                    <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::SET ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $systemSettingsLinkId }}"
                                             class="dash-link"
                                             href="{{ $systemSettingsRoute }}"
                                             data-url="{{ $systemSettingsRoute }}"
                                             data-sv-localized="true"
-                                            data-guard-msg="{{ $message }}"
+                                            data-guard-msg="{{ $systemSettingsMessage }}"
                                         >
                                             {{ __('System Settings') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-system-settings-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/systemSettings.js') }}"></script>
                                     @endpush
                                 @endif
-                                @if (Gate::check(PermissionsConstants::MNG_CP_PL))
+                                @if (Gate::check(PMC::MNG_CP_PL))
                                     @php
-                                        $setupSubscriptionPlanRoute = Route::has(ViewsConstants::PLN.'.index')
-                                            ? route(ViewsConstants::PLN.'.index')
+                                        $setupSubscriptionPlanRoute = Route::has(VW::PLN.'.index')
+                                            ? route(VW::PLN.'.index')
                                             : '#';
-                                        $linkId = 'setup-subscription-plan-link';
+                                        $setupSubscriptionLinkId = 'setup-subscription-plan-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::PLN,
+                                            VW::PLN,
                                             'plan_index_route_unavailable'
                                         ) ?? 'Setup Subscription Plan route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item{{ RF::route()->getName() == ViewsConstants::PLN.'.index' || RF::route()->getName() == 'stripe' ? ' active' : '' }}">
+                                    <li class="dash-item{{ RF::route()->getName() == VW::PLN.'.index' || RF::route()->getName() == 'stripe' ? ' active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $setupSubscriptionLinkId }}"
                                             class="dash-link"
                                             href="{{ $setupSubscriptionPlanRoute }}"
                                             data-url="{{ $setupSubscriptionPlanRoute }}"
@@ -8078,69 +4401,25 @@
                                             {{ __('Setup Subscription Plan') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-setup-subscription-plan-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url  = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container       = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container     = document.createElement('div');
-                                                                container.id  = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch (error) {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/setupSubscription.js') }}"></script>
                                     @endpush
                                 @endif
-                                @if (Gate::check(PermissionsConstants::MNG_OD) && ($user[UsersConstants::COL_TP] == PermissionsConstants::CPN || $user[UsersConstants::COL_TP] == PermissionsConstants::SA))
+                                @if (Gate::check(PMC::MNG_OD) && ($user[UsersConstants::COL_TP] == PMC::CPN || $user[UsersConstants::COL_TP] == PMC::SA))
                                     @php
-                                        $orderRoute = Route::has(ViewsConstants::OD.'.index')
-                                            ? route(ViewsConstants::OD.'.index')
+                                        $orderRoute = Route::has(VW::OD.'.index')
+                                            ? route(VW::OD.'.index')
                                             : '#';
-                                        $linkId = 'order-index-link';
+                                        $orderLinkId = 'order-index-link';
                                         $message = Utility::fetchLinkMessage(
                                             $lang,
-                                            ViewsConstants::OD,
+                                            VW::OD,
                                             'order_index_route_unavailable'
                                         ) ?? 'Order route is unavailable. Please contact technical support or your domain administrator.';
                                     @endphp
-                                    <li class="dash-item {{ RF::segment(1) == ViewsConstants::OD ? 'active' : '' }}">
+                                    <li class="dash-item {{ RF::segment(1) == VW::OD ? 'active' : '' }}">
                                         <a
-                                            id="{{ $linkId }}"
+                                            id="{{ $orderLinkId }}"
                                             class="dash-link"
                                             href="{{ $orderRoute }}"
                                             data-url="{{ $orderRoute }}"
@@ -8150,52 +4429,8 @@
                                             {{ __('Order') }}
                                         </a>
                                     </li>
-                                    @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer>
-                                            (() => {
-                                                const listenerAttr = 'data-order-listener-active';
-                                                const el = document.getElementById('{{ $linkId }}');
-                                                if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                                el.setAttribute(listenerAttr, 'true');
-                                                el.addEventListener('click', event => {
-                                                    try {
-                                                        const url  = el.getAttribute('data-url');
-                                                        const href = el.href;
-                                                        if ((!url || url === '#') && (!href || href === '#')) {
-                                                            event.preventDefault();
-                                                            const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                            const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                            let container = document.getElementById('toast-container');
-                                                            if (!container) {
-                                                                container = document.createElement('div');
-                                                                container.id = 'toast-container';
-                                                                document.body.appendChild(container);
-                                                            }
-                                                            if (bootstrapLink && window.bootstrap) {
-                                                                const toastEl = document.createElement('div');
-                                                                toastEl.className = 'toast';
-                                                                toastEl.setAttribute('role', 'alert');
-                                                                toastEl.setAttribute('aria-live', 'assertive');
-                                                                toastEl.setAttribute('aria-atomic', 'true');
-                                                                const body = document.createElement('div');
-                                                                body.className = 'toast-body';
-                                                                body.textContent = msg;
-                                                                toastEl.appendChild(body);
-                                                                container.appendChild(toastEl);
-                                                                bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                            } else {
-                                                                alert(msg);
-                                                            }
-                                                            el.setAttribute('data-failed-route', 'true');
-                                                        }
-                                                    } catch {}
-                                                });
-                                                const observer = new MutationObserver(() => {
-                                                    if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                                });
-                                                observer.observe(document.body, { childList: true, subtree: true });
-                                            })();
-                                        </script>
+                                    @push(ST::ADM_SCR_PG)
+                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/orderLink.js') }}"></script>
                                     @endpush
                                 @endif
                             </ul>
@@ -8203,24 +4438,24 @@
                     @endif
                 @endif
                 {{-- <!--------------------- End System Setup -----------------------------------> --}}
-                @if ($user[UsersConstants::COL_TP] === PermissionsConstants::CL || 
-                $user[UsersConstants::COL_TP] === PermissionsConstants::SA)
+                @if ($user[UsersConstants::COL_TP] === PMC::CL || 
+                $user[UsersConstants::COL_TP] === PMC::SA)
                     <ul class="dash-navbar">
-                        @if (Gate::check(PermissionsConstants::MNG_CLT_DSB))
+                        @if (Gate::check(PMC::MNG_CLT_DSB))
                             @php
-                                $dashboardRoute = Route::has(ViewsConstants::CLT.'.dashboard.view')
-                                    ? route(ViewsConstants::CLT.'.dashboard.view')
+                                $dashboardRoute = Route::has(VW::CLT.'.dashboard.view')
+                                    ? route(VW::CLT.'.dashboard.view')
                                     : '#';
-                                $linkId = 'dashboard-link';
+                                $dashboardViewLinkId = 'dashboard-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::CLT,
+                                    VW::CLT,
                                     'client_dashboard_view_route_unavailable'
                                 ) ?? 'Client Dashboard route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
                             <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == 'dashboard' ? ' active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $dashboardViewLinkId }}"
                                     class="dash-link"
                                     href="{{ $dashboardRoute }}"
                                     data-url="{{ $dashboardRoute }}"
@@ -8231,70 +4466,25 @@
                                     <span class="dash-mtext">{{ __('Dashboard') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-dashboard-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    const containerId = 'toast-container';
-                                                    let container = document.getElementById(containerId);
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = containerId;
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/dashboardViewLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_DL))
+                        @if (Gate::check(PMC::MNG_DL))
                             @php
-                                $dealsRoute = Route::has(ViewsConstants::DL.'.index')
-                                    ? route(ViewsConstants::DL.'.index')
+                                $dealsRoute = Route::has(VW::DL.'.index')
+                                    ? route(VW::DL.'.index')
                                     : '#';
-                                $linkId = 'deals-index-link';
+                                $dealIndexLinkId = 'deals-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::DL,
+                                    VW::DL,
                                     'dl_index_route_unavailable'
                                 ) ?? __('Deals route is unavailable. Please contact technical support or your domain administrator.');
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::DL ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::DL ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $dealIndexLinkId }}"
                                     class="dash-link"
                                     href="{{ $dealsRoute }}"
                                     data-url="{{ $dealsRoute }}"
@@ -8305,69 +4495,25 @@
                                     <span class="dash-mtext">{{ __('Deals') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-deals-index-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/dealIndexLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_CTC))
+                        @if (Gate::check(PMC::MNG_CTC))
                             @php
-                                $contractsRoute = Route::has(ViewsConstants::CTC.'.index')
-                                    ? route(ViewsConstants::CTC.'.index')
+                                $contractsRoute = Route::has(VW::CTC.'.index')
+                                    ? route(VW::CTC.'.index')
                                     : '#';
-                                $linkId = 'contracts-index-link';
+                                $contractIndexLinkId = 'contracts-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::CTC,
+                                    VW::CTC,
                                     'contract_index_route_unavailable'
                                 ) ?? 'Contracts route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::route()->getName() == ViewsConstants::CTC.'.index' || RF::route()->getName() == ViewsConstants::CTC.'.show' ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::route()->getName() == VW::CTC.'.index' || RF::route()->getName() == VW::CTC.'.show' ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $contractIndexLinkId }}"
                                     class="dash-link"
                                     href="{{ $contractsRoute }}"
                                     data-url="{{ $contractsRoute }}"
@@ -8378,69 +4524,25 @@
                                     <span class="dash-mtext">{{ __('Contracts') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-contracts-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container       = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container     = document.createElement('div');
-                                                        container.id  = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/contractIndexLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_PRJ))
+                        @if (Gate::check(PMC::MNG_PRJ))
                             @php
-                                $projectsRoute = Route::has(ViewsConstants::PRJ.'.index')
-                                    ? route(ViewsConstants::PRJ.'.index')
+                                $projectsRoute = Route::has(VW::PRJ.'.index')
+                                    ? route(VW::PRJ.'.index')
                                     : '#';
-                                $linkId = 'projects-link';
+                                $projectIndexLinkId = 'projects-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::PRJ,
+                                    VW::PRJ,
                                     'project_index_route_unavailable'
                                 ) ?? 'Projects route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::PRJ ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::PRJ ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $projectIndexLinkId }}"
                                     class="dash-link"
                                     href="{{ $projectsRoute }}"
                                     data-url="{{ $projectsRoute }}"
@@ -8451,71 +4553,27 @@
                                     <span class="dash-mtext">{{ __('Projects') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-projects-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container       = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container     = document.createElement('div');
-                                                        container.id  = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/projectIndexLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_PRJ))
+                        @if (Gate::check(PMC::MNG_PRJ))
                             @php
-                                $projectReportRoute = Route::has(ViewsConstants::PRJ_RPT.'.index')
-                                    ? route(ViewsConstants::PRJ_RPT.'.index')
-                                    : (Route::has(Str::kebab(ViewsConstants::PRJ_RPT.'.index'))
-                                        ? route(Str::kebab(ViewsConstants::PRJ_RPT.'.index'))
+                                $projectReportRoute = Route::has(VW::PRJ_RPT.'.index')
+                                    ? route(VW::PRJ_RPT.'.index')
+                                    : (Route::has(Str::kebab(VW::PRJ_RPT.'.index'))
+                                        ? route(Str::kebab(VW::PRJ_RPT.'.index'))
                                         : '#');
-                                $linkId = 'project-report-index-link';
+                                $projectReportLinkId = 'project-report-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::PRJ_RPT,
+                                    VW::PRJ_RPT,
                                     'project_report_index_route_unavailable'
                                 ) ?? 'Project Report route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="dash-item {{ RF::route()->getName() == ViewsConstants::PRJ_RPT.'.index' || RF::route()->getName() == ViewsConstants::PRJ_RPT.'.show' ? 'active' : '' }}">
+                            <li class="dash-item {{ RF::route()->getName() == VW::PRJ_RPT.'.index' || RF::route()->getName() == VW::PRJ_RPT.'.show' ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $projectReportLinkId }}"
                                     class="dash-link"
                                     href="{{ $projectReportRoute }}"
                                     data-url="{{ $projectReportRoute }}"
@@ -8526,69 +4584,25 @@
                                     <span class="dash-mtext">{{ __('Project Report') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-project-report-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/projectReportLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_PRJ_TSK))
+                        @if (Gate::check(PMC::MNG_PRJ_TSK))
                             @php
-                                $tasksRoute = Route::has(ViewsConstants::TSKB.'.view')
-                                    ? route(ViewsConstants::TSKB.'.view', 'list')
+                                $tasksRoute = Route::has(VW::TSKB.'.view')
+                                    ? route(VW::TSKB.'.view', 'list')
                                     : '#';
-                                $linkId = 'tasks-link';
+                                $tasksLinkId = 'tasks-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::TSK,
+                                    VW::TSK,
                                     'taskboard_view_route_unavailable'
                                 ) ?? 'Tasks route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::TSKB ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::TSKB ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $tasksLinkId }}"
                                     class="dash-link"
                                     href="{{ $tasksRoute }}"
                                     data-url="{{ $tasksRoute }}"
@@ -8599,69 +4613,25 @@
                                     <span class="dash-mtext">{{ __('Tasks') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-tasks-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/tasksLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_BUG_RPT))
+                        @if (Gate::check(PMC::MNG_BUG_RPT))
                             @php
-                                $bugsRoute = Route::has(ViewsConstants::BUG.'.view')
-                                    ? route(ViewsConstants::BUG.'.view', 'list')
+                                $bugsRoute = Route::has(VW::BUG.'.view')
+                                    ? route(VW::BUG.'.view', 'list')
                                     : '#';
-                                $linkId = 'bugs-link';
+                                $bugViewLinkId = 'bugs-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::BUG,
+                                    VW::BUG,
                                     'bug_view_route_unavailable'
                                 ) ?? __('Bugs route is unavailable. Please contact technical support or your domain administrator.');
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ (RF::segment(1) == ViewsConstants::BUG_RPT || RF::segment(1) == 'bug-reports') ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ (RF::segment(1) == VW::BUG_RPT || RF::segment(1) == 'bug-reports') ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $bugViewLinkId }}"
                                     class="dash-link"
                                     href="{{ $bugsRoute }}"
                                     data-url="{{ $bugsRoute }}"
@@ -8672,69 +4642,25 @@
                                     <span class="dash-mtext">{{ __('Bugs') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-bugs-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container       = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container     = document.createElement('div');
-                                                        container.id  = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/bugsLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_TS))
+                        @if (Gate::check(PMC::MNG_TS))
                             @php
-                                $timesheetListRoute = Route::has(ViewsConstants::TMS.'.list')
-                                    ? route(ViewsConstants::TMS.'.list')
+                                $timesheetListRoute = Route::has(VW::TMS.'.list')
+                                    ? route(VW::TMS.'.list')
                                     : '#';
-                                $linkId = 'timesheet-list-link';
+                                $timesheetListLinkId = 'timesheet-list-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::TMS,
+                                    VW::TMS,
                                     'timesheet_list_route_unavailable'
                                 ) ?? 'Timesheet route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ (RF::segment(1) == ViewsConstants::TMS_LT || RF::segment(1) == 'timesheet-lists') ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ (RF::segment(1) == VW::TMS_LT || RF::segment(1) == 'timesheet-lists') ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $timesheetListLinkId }}"
                                     class="dash-link"
                                     href="{{ $timesheetListRoute }}"
                                     data-url="{{ $timesheetListRoute }}"
@@ -8745,69 +4671,25 @@
                                     <span class="dash-mtext">{{ __('Timesheet') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-timesheet-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container       = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container     = document.createElement('div');
-                                                        container.id  = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/timesheetListLink.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_PRJ_TSK))
+                        @if (Gate::check(PMC::MNG_PRJ_TSK))
                             @php
-                                $taskCalendarRoute = Route::has(ViewsConstants::TSK.'.calendar')
-                                    ? route(ViewsConstants::TSK.'.calendar', ['all'])
+                                $taskCalendarRoute = Route::has(VW::TSK.'.calendar')
+                                    ? route(VW::TSK.'.calendar', ['all'])
                                     : '#';
-                                $linkId = 'task-calendar-link';
+                                $taskCalendarLinkId = 'task-calendar-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::TSK,
+                                    VW::TSK,
                                     'tsk_calendar_route_unavailable'
                                 ) ?? 'Task calendar route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::CLD ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::CLD ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $taskCalendarLinkId }}"
                                     class="dash-link"
                                     href="{{ $taskCalendarRoute }}"
                                     data-url="{{ $taskCalendarRoute }}"
@@ -8818,69 +4700,25 @@
                                     <span class="dash-mtext">{{ __('Task calendar') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-task-calendar-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/taskCalendar.js') }}"></script>
                             @endpush
                         @endif
                         @php
-                            $supportRoute = Route::has(ViewsConstants::SPT.'.index')
-                                ? route(ViewsConstants::SPT.'.index')
+                            $supportRoute = Route::has(VW::SPT.'.index')
+                                ? route(VW::SPT.'.index')
                                 : '#';
-                            $linkId = 'support-link';
+                            $supportLinkId = 'support-link';
                             $message = Utility::fetchLinkMessage(
                                 $lang,
-                                ViewsConstants::SPT,
+                                VW::SPT,
                                 'spt_index_route_unavailable'
                             ) ?? 'Support route is unavailable. Please contact technical support or your domain administrator.';
                         @endphp
                         <li class="{{ VC::DSH_IT_MN }}">
                             <a
-                                id="{{ $linkId }}"
-                                class="dash-link {{ RF::segment(1) == ViewsConstants::SPT ? 'active' : '' }}"
+                                id="{{ $supportLinkId }}"
+                                class="dash-link {{ RF::segment(1) == VW::SPT ? 'active' : '' }}"
                                 href="{{ $supportRoute }}"
                                 data-url="{{ $supportRoute }}"
                                 data-sv-localized="true"
@@ -8890,73 +4728,28 @@
                                 <span class="dash-mtext">{{ __('Support') }}</span>
                             </a>
                         </li>
-                        @push(StacksConstants::ADM_SCR_PG)
-                            <script defer>
-                                (() => {
-                                    const listenerAttr = 'data-support-listener-active';
-                                    const el = document.getElementById('{{ $linkId }}');
-                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                    el.setAttribute(listenerAttr, 'true');
-                                    el.addEventListener('click', event => {
-                                        try {
-                                            const url = el.getAttribute('data-url');
-                                            const href = el.href;
-                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                event.preventDefault();
-                                                const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                const containerId = 'toast-container';
-                                                let container = document.getElementById(containerId);
-                                                if (!container) {
-                                                    container = document.createElement('div');
-                                                    container.id = containerId;
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (bootstrapLink && window.bootstrap) {
-                                                    const toastEl = document.createElement('div');
-                                                    toastEl.className = 'toast';
-                                                    toastEl.setAttribute('role', 'alert');
-                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toastEl.appendChild(body);
-                                                    container.appendChild(toastEl);
-                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                el.setAttribute('data-failed-route', 'true');
-                                            }
-                                        } catch (error) {}
-                                    });
-                                    const observer = new MutationObserver(() => {
-                                        if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                    });
-                                    observer.observe(document.body, { childList: true, subtree: true });
-                                })();
-                            </script>
+                        @push(ST::ADM_SCR_PG)
+                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/support.js') }}"></script>
                         @endpush
                     </ul>
                 @endif
-                @if ($user[UsersConstants::COL_TP] === PermissionsConstants::SA)
+                @if ($user[UsersConstants::COL_TP] === PMC::SA)
                     <ul class="dash-navbar">
-                        @if (Gate::check(PermissionsConstants::MNG_SA_DSB))
+                        @if (Gate::check(PMC::MNG_SA_DSB))
                             @php
-                                $dashboardRoute = Route::has(ViewsConstants::CLT.'.dashboard.view')
-                                    ? route(ViewsConstants::CLT.'.dashboard.view')
+                                $dashboardRoute = Route::has(VW::CLT.'.dashboard.view')
+                                    ? route(VW::CLT.'.dashboard.view')
                                     : '#';
-                                $linkId = 'dashboard-link';
+                                $dashboardViewLinkId2 = 'dashboard-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::CLT,
+                                    VW::CLT,
                                     'client_dashboard_view_route_unavailable'
                                 ) ?? 'Dashboard route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
                             <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == 'dashboard' ? ' active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $dashboardViewLinkId2 }}"
                                     class="dash-link"
                                     href="{{ $dashboardRoute }}"
                                     data-url="{{ $dashboardRoute }}"
@@ -8967,69 +4760,25 @@
                                     <span class="dash-mtext">{{ __('Dashboard') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-dashboard-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/dashboardLink.js') }}"></script>
                             @endpush
                         @endif
-                        @can(PermissionsConstants::MNG_USER)
+                        @can(PMC::MNG_USER)
                             @php
-                                $userIndexRoute = Route::has(ViewsConstants::USR.'.index')
-                                    ? route(ViewsConstants::USR.'.index')
+                                $userIndexRoute = Route::has(VW::USR.'.index')
+                                    ? route(VW::USR.'.index')
                                     : '#';
-                                $linkId = 'user-index-link';
+                                $userLinkId2 = 'user-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::USR,
+                                    VW::USR,
                                     'user_index_route_unavailable'
                                 ) ?? __('User route is unavailable. Please contact technical support or your domain administrator.');
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ (RF::route()->getName() == ViewsConstants::USR.'.index' || RF::route()->getName() == ViewsConstants::USR.'.create' || RF::route()->getName() == ViewsConstants::USR.'.edit') ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ (RF::route()->getName() == VW::USR.'.index' || RF::route()->getName() == VW::USR.'.create' || RF::route()->getName() == VW::USR.'.edit') ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $userLinkId2 }}"
                                     class="dash-link"
                                     href="{{ $userIndexRoute }}"
                                     data-url="{{ $userIndexRoute }}"
@@ -9040,70 +4789,25 @@
                                     <span class="dash-mtext">{{ __('User') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-user-index-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    const containerId = 'toast-container';
-                                                    let container = document.getElementById(containerId);
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = containerId;
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/user.js') }}"></script>
                             @endpush
                         @endcan
-                        @if (Gate::check(PermissionsConstants::MNG_PL))
+                        @if (Gate::check(PMC::MNG_PL))
                             @php
-                                $planRoute = Route::has(ViewsConstants::PLN.'.index')
-                                    ? route(ViewsConstants::PLN.'.index')
+                                $planRoute = Route::has(VW::PLN.'.index')
+                                    ? route(VW::PLN.'.index')
                                     : '#';
-                                $linkId = 'plan-index-link';
+                                $planLinkId2 = 'plan-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::PLN,
+                                    VW::PLN,
                                     'plan_index_route_unavailable'
                                 ) ?? 'Plan route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::PLN ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::PLN ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $planLinkId2 }}"
                                     class="dash-link"
                                     href="{{ $planRoute }}"
                                     data-url="{{ $planRoute }}"
@@ -9114,72 +4818,27 @@
                                     <span class="dash-mtext">{{ __('Plan') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-plan-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    const containerId = 'toast-container';
-                                                    let container = document.getElementById(containerId);
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = containerId;
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/plan.js') }}"></script>
                             @endpush
                         @endif
-                        @if ($user[UsersConstants::COL_TP] === PermissionsConstants::SA)
+                        @if ($user[UsersConstants::COL_TP] === PMC::SA)
                             @php
-                                $planRequestRoute = Route::has(ViewsConstants::PLN_RQ.'.index')
-                                    ? route(ViewsConstants::PLN_RQ.'.index')
-                                    : (Route::has(Str::kebab(ViewsConstants::PLN_RQ.'.index'))
-                                        ? route(Str::kebab(ViewsConstants::PLN_RQ.'.index'))
+                                $planRequestRoute = Route::has(VW::PLN_RQ.'.index')
+                                    ? route(VW::PLN_RQ.'.index')
+                                    : (Route::has(Str::kebab(VW::PLN_RQ.'.index'))
+                                        ? route(Str::kebab(VW::PLN_RQ.'.index'))
                                         : '#');
-                                $linkId = 'plan-request-index-link';
+                                $planRequestLinkId2 = 'plan-request-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::PLN_RQ,
+                                    VW::PLN_RQ,
                                     'plan_request_index_route_unavailable'
                                 ) ?? 'Plan Request route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
                             <li class="{{ VC::DSH_IT_MN }} {{ (request()->is('plan_request*') || request()->is('plan-request*')) ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $planRequestLinkId2 }}"
                                     class="dash-link"
                                     href="{{ $planRequestRoute }}"
                                     data-url="{{ $planRequestRoute }}"
@@ -9190,69 +4849,25 @@
                                     <span class="dash-mtext">{{ __('Plan Request') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-plan-request-listener-active';
-                                        const el = document.getElementById('plan-request-index-link');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('plan-request-index-link')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/planRequest.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_CPN))
+                        @if (Gate::check(PMC::MNG_CPN))
                             @php
-                                $couponRoute = Route::has(ViewsConstants::CPN.'.index')
-                                    ? route(ViewsConstants::CPN.'.index')
+                                $couponRoute = Route::has(VW::CPN.'.index')
+                                    ? route(VW::CPN.'.index')
                                     : '#';
-                                $linkId = 'coupon-index-link';
+                                $couponLinkId2 = 'coupon-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::CPN,
+                                    VW::CPN,
                                     'coupon_index_route_unavailable'
                                 ) ?? 'Coupon route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::CPN ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::CPN ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $couponLinkId2 }}"
                                     class="dash-link"
                                     href="{{ $couponRoute }}"
                                     data-url="{{ $couponRoute }}"
@@ -9263,69 +4878,25 @@
                                     <span class="dash-mtext">{{ __('Coupon') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-coupon-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container = document.createElement('div');
-                                                        container.id = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/coupon.js') }}"></script>
                             @endpush
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_OD))
+                        @if (Gate::check(PMC::MNG_OD))
                             @php
-                                $orderRoute = Route::has(ViewsConstants::OD.'.index')
-                                    ? route(ViewsConstants::OD.'.index')
+                                $orderRoute = Route::has(VW::OD.'.index')
+                                    ? route(VW::OD.'.index')
                                     : '#';
-                                $linkId = 'order-index-link';
+                                $orderLinkId2 = 'order-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::OD,
+                                    VW::OD,
                                     'order_index_route_unavailable'
                                 ) ?? 'Order route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::OD ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::OD ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $orderLinkId2 }}"
                                     class="dash-link"
                                     href="{{ $orderRoute }}"
                                     data-url="{{ $orderRoute }}"
@@ -9336,52 +4907,8 @@
                                     <span class="dash-mtext">{{ __('Order') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-order-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container       = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container     = document.createElement('div');
-                                                        container.id  = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/order.js') }}"></script>
                             @endpush
                         @endif
                         @php
@@ -9390,16 +4917,16 @@
                                 : (Route::has(Str::kebab(VW::EMLS . '.manage.language'))
                                     ? route(Str::kebab(VW::EMLS . '.manage.language'), [$emailTemplate->id, $user?->lang])
                                     : '#');
-                            $linkId = 'email-template-link';
+                            $emailTmpLinkId = 'email-template-link';
                             $message = Utility::fetchLinkMessage(
                                 $lang,
-                                ViewsConstants::EMLS,
+                                VW::EMLS,
                                 'email_template_route_unavailable'
                             ) ?? 'Email Template route is unavailable. Please contact technical support or your domain administrator.';
                         @endphp
-                        <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == ViewsConstants::NTF_TMP ? ' active' : '' }}">
+                        <li class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::NTF_TMP ? ' active' : '' }}">
                             <a
-                                id="{{ $linkId }}"
+                                id="{{ $emailTmpLinkId }}"
                                 class="dash-link"
                                 href="{{ $emailTemplateRoute }}"
                                 data-url="{{ $emailTemplateRoute }}"
@@ -9410,71 +4937,27 @@
                                 <span class="dash-mtext">{{ __('Email Template') }}</span>
                             </a>
                         </li>
-                        @push(StacksConstants::ADM_SCR_PG)
-                            <script defer>
-                                (() => {
-                                    const listenerAttr = 'data-email-template-listener-active';
-                                    const el = document.getElementById('{{ $linkId }}');
-                                    if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                    el.setAttribute(listenerAttr, 'true');
-                                    el.addEventListener('click', event => {
-                                        try {
-                                            const url  = el.getAttribute('data-url');
-                                            const href = el.href;
-                                            if ((!url || url === '#') && (!href || href === '#')) {
-                                                event.preventDefault();
-                                                const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                let container       = document.getElementById('toast-container');
-                                                if (!container) {
-                                                    container     = document.createElement('div');
-                                                    container.id  = 'toast-container';
-                                                    document.body.appendChild(container);
-                                                }
-                                                if (bootstrapLink && window.bootstrap) {
-                                                    const toastEl = document.createElement('div');
-                                                    toastEl.className = 'toast';
-                                                    toastEl.setAttribute('role', 'alert');
-                                                    toastEl.setAttribute('aria-live', 'assertive');
-                                                    toastEl.setAttribute('aria-atomic', 'true');
-                                                    const body = document.createElement('div');
-                                                    body.className = 'toast-body';
-                                                    body.textContent = msg;
-                                                    toastEl.appendChild(body);
-                                                    container.appendChild(toastEl);
-                                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                } else {
-                                                    alert(msg);
-                                                }
-                                                el.setAttribute('data-failed-route', 'true');
-                                            }
-                                        } catch (error) {}
-                                    });
-                                    const observer = new MutationObserver(() => {
-                                        if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                    });
-                                    observer.observe(document.body, { childList: true, subtree: true });
-                                })();
-                            </script>
+                        @push(ST::ADM_SCR_PG)
+                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/emailTemplate.js') }}"></script>
                         @endpush
-                        @if ($user[UsersConstants::COL_TP] == PermissionsConstants::SA)
-                            @include(R::LP.'::'.ViewsConstants::MN.'.'.R::LP)
+                        @if ($user[UsersConstants::COL_TP] == PMC::SA)
+                            @include(R::LP.'::'.VW::MN.'.'.R::LP)
                         @endif
-                        @if (Gate::check(PermissionsConstants::MNG_SYS_ST))
+                        @if (Gate::check(PMC::MNG_SYS_ST))
                             @php
-                                $settingsRoute = Route::has(ViewsConstants::SYS.'.index')
-                                    ? route(ViewsConstants::SYS.'.index')
+                                $settingsRoute = Route::has(VW::SYS.'.index')
+                                    ? route(VW::SYS.'.index')
                                     : '#';
-                                $linkId = 'settings-index-link';
+                                $settingsLinkId = 'settings-index-link';
                                 $message = Utility::fetchLinkMessage(
                                     $lang,
-                                    ViewsConstants::SYS,
+                                    VW::SYS,
                                     'settings_index_route_unavailable'
                                 ) ?? 'Settings route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
-                            <li class="{{ VC::DSH_IT_MN }} {{ RF::route()->getName() == ViewsConstants::SYS.'.index' ? 'active' : '' }}">
+                            <li class="{{ VC::DSH_IT_MN }} {{ RF::route()->getName() == VW::SYS.'.index' ? 'active' : '' }}">
                                 <a
-                                    id="{{ $linkId }}"
+                                    id="{{ $settingsLinkId }}"
                                     class="dash-link"
                                     href="{{ $settingsRoute }}"
                                     data-url="{{ $settingsRoute }}"
@@ -9485,52 +4968,8 @@
                                     <span class="dash-mtext">{{ __('Settings') }}</span>
                                 </a>
                             </li>
-                            @push(StacksConstants::ADM_SCR_PG)
-                                <script defer>
-                                    (() => {
-                                        const listenerAttr = 'data-settings-index-listener-active';
-                                        const el = document.getElementById('{{ $linkId }}');
-                                        if (!el || el.getAttribute(listenerAttr) === 'true') return;
-                                        el.setAttribute(listenerAttr, 'true');
-                                        el.addEventListener('click', event => {
-                                            try {
-                                                const url  = el.getAttribute('data-url');
-                                                const href = el.href;
-                                                if ((!url || url === '#') && (!href || href === '#')) {
-                                                    event.preventDefault();
-                                                    const msg           = el.getAttribute('data-guard-msg') ?? '# ERROR';
-                                                    const bootstrapLink = document.querySelector('link[href*="bootstrap"]');
-                                                    let container       = document.getElementById('toast-container');
-                                                    if (!container) {
-                                                        container     = document.createElement('div');
-                                                        container.id  = 'toast-container';
-                                                        document.body.appendChild(container);
-                                                    }
-                                                    if (bootstrapLink && window.bootstrap) {
-                                                        const toastEl = document.createElement('div');
-                                                        toastEl.className = 'toast';
-                                                        toastEl.setAttribute('role', 'alert');
-                                                        toastEl.setAttribute('aria-live', 'assertive');
-                                                        toastEl.setAttribute('aria-atomic', 'true');
-                                                        const body = document.createElement('div');
-                                                        body.className = 'toast-body';
-                                                        body.textContent = msg;
-                                                        toastEl.appendChild(body);
-                                                        container.appendChild(toastEl);
-                                                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                                    } else {
-                                                        alert(msg);
-                                                    }
-                                                    el.setAttribute('data-failed-route', 'true');
-                                                }
-                                            } catch (error) {}
-                                        });
-                                        const observer = new MutationObserver(() => {
-                                            if (!document.getElementById('{{ $linkId }}')) observer.disconnect();
-                                        });
-                                        observer.observe(document.body, { childList: true, subtree: true });
-                                    })();
-                                </script>
+                            @push(ST::ADM_SCR_PG)
+                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/settings.js') }}"></script>
                             @endpush
                         @endif
                     </ul>
@@ -9567,13 +5006,21 @@
             </div>
         </div>
     </div>
-    <style>
-        .navbar-wrapper {
-            height: 95%;
-            overflow: hidden;
-        }
-        .navbar-wrapper li {
-            list-style: none;
-        }
-    </style>
+    @push(ST::ADM_SCR_PG)
+    <script defer>
+        document.addEventListener("DOMContentLoaded", () => {
+            (@json($disabledRoutes) || []).forEach(route => {
+                    const el = document.getElementById(route);
+                    if (!(el instanceof HTMLAnchorElement)) return;
+                    if (el.dataset.disablerAttached === "true") return;
+                    el.dataset.disablerAttached = "true";
+                    el.addEventListener("click", e => {
+                    e.preventDefault();
+                    displayUnavailableRouteMessage("{{ $lang }}");
+                });
+            });
+        });
+    </script>
+    @endpush
+    <link rel="stylesheet" href="{{ asset('assets/css/routes/partials/admin/menu.css') }}">
 </nav>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Config\Constants\{
   DatabaseConstants,
+  LangsConstants,
   MiddlewaresConstants,
   PermissionsConstants,
   SettingsConstants,
@@ -382,11 +383,13 @@ class AuthenticatedSessionController extends Controller
             })();
           </script>
           HTML;
-        return response()->json([
-          'error'   => "View failed to load due to a Validation Exception",
-          'snippet' => $script,
-          'status'  => $code,
-        ]);
+        $lang = Utility::fetchUserLang();
+        $msgs = !empty(LangsConstants::ERROR_MESSAGES[$lang]) ? LangsConstants::ERROR_MESSAGES[$lang] : LangsConstants::DEFAULT_CLIENT_MESSAGES;
+        $notFoundMsg = !empty($msgs['invalid_user']) ? $msgs['invalid_user'] : 'User not found.';
+        return response()->view('errors.login_error', [
+          'message' => $notFoundMsg,
+          'title' => 'Authentication Error'
+        ], 401);
       } catch (\Throwable $e) {
         Log::error("{$base}::{$action} unexpected exception", array_merge($ctx, [
           'exception' => $e->getMessage(),
@@ -820,7 +823,7 @@ class AuthenticatedSessionController extends Controller
   {
     $method = __METHOD__;
     Log::debug($method . ' - start', ['input' => $req->all()]);
-    return $this->measureProfile($method, fn () => $this->_sendReset($req, DatabaseConstants::TABLE_VENDORS, self::SINGULAR . '.vendorVerify'), ['req' => $req]);
+    return $this->measureProfile($method, fn() => $this->_sendReset($req, DatabaseConstants::TABLE_VENDORS, self::SINGULAR . '.vendorVerify'), ['req' => $req]);
   }
 
   public const SHW_RST_FM = 'showResetForm';

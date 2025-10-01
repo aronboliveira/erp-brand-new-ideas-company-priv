@@ -25,7 +25,7 @@ trait ChecksPermissions
 		?bool $autoBack = true
 	): RedirectResponse|JsonResponse|true {
 		$user = $req->user();
-		$lang = Utility::fetchUserLang($req, $user);
+		$lang = Utility::fetchUserLang($user, $req);
 		$msgs = !empty(LangsConstants::ERROR_MESSAGES[$lang]) ? LangsConstants::ERROR_MESSAGES[$lang] : LangsConstants::DEFAULT_CLIENT_MESSAGES;
 		Log::info(static::class . "::" . __FUNCTION__ . " checking permission '{$perm}' for " . ($user?->type ?? 'guest') . ' ' . ($user?->id), [
 			'ip'          => $req->ip(),

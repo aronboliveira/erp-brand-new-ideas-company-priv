@@ -12,7 +12,7 @@
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'store_route_unavailable') ?? __('Other payment store route is unavailable. Please contact technical support or your domain administrator.');
+    $storeGuard = Utility::fetchLinkMessage($lang, VW::OT_PAY, 'other_payment_store_route_unavailable') ?? __('Other payment store route is unavailable. Please contact technical support or your domain administrator.');
 
     $employeeId = (string) data_get($employee ?? null, 'id', '');
 

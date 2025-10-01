@@ -1,0 +1,33 @@
+2025-09-20 - aron.b.96@gmail.com - 2025-09-20 - refactor leads blades
+2025-09-20 - aron.b.96@gmail.com - 2025-09-20 - refactor pos blades
+2025-09-18 - aron.b.96@gmail.com - 2025-09-18 - refactor job_applications blades
+2025-09-18 - aron.b.96@gmail.com - 2025-09-18 - refactor invoice blades
+2025-09-16 - aron.b.96@gmail.com - 2025-09-16 - refactor blades for products_[services_{,categories,units},stocks],projects[reports,stages,tasks]
+2025-09-12 - aron.b.96@gmail.com - 2025-09-12 - refactor goal_trackings,goal_types,goals,holidays,indicators,interview_schedules,job_applications/templates,job_categories,job_stages,journal_entries,labels blades
+2025-09-11 - aron.b.96@gmail.com - 2025-09-11 - refactor designations,document_uploads,documents,email,email_templates,emails,employees,estimations,expenses,form_builders blades
+2025-09-09 - aron.b.96@gmail.com - 2025-09-09 - refactor deals,debit_notes,deduction_options,departments blades + measure performance for planning controllers
+2025-09-08 - aron.b.96@gmail.com - 2025-09-08 - refactor blades for commisions,company_policies,competencies,complaints,contract_types,contracts,coupons,credit_notes,custom_fields,custom_questions,customers + measure performance for configs,contact,individuals,info,products,ssr controllers (missing only planning & shapes)
+2025-09-06 - aron.b.96@gmail.com - 2025-09-06 - finished refactoring clients, commissions, company_policies,competencies blades + started refactoring complaints blades + measured bugs,charts and companies controllers [folders]
+2025-09-05 - aron.b.96@gmail.com - 2025-09-05 - refactor coa blades and start client blades + measuring performance for expense,invoice,loan,loanoption,otherpayment,payment,payslip,paysliptype,revenue,saturation,tax,transaction controllers
+2025-09-04 - aron.b.96@gmail.com - 2025-09-04 - refactor [for performance] (banktransfers,banktransferpayments,benefitpayments,bills,budgets,cashfree,coupons,creditnotes,debitnotes,deduction) controllers and bills,branches,budgets,bug_status blades
+2025-09-02 - aron.b.96@gmail.com - 2025-09-02 - refactor blades for settings + index for leads, leaves + bulkcreate,create for payslips + paymentwall for plans + print for pos
+2025-09-01 - aron.b.96@gmail.com - 2025-09-01 - refactor chatify,vendors,warehouse_transfers,warehouses,warnings,webhooks,zoom_meetings blades
+2025-08-29 - aron.b.96@gmail.com - 2025-08-29 - refactored trainers,training_type,training,transaction,transfers,travels,users blade [should review pre projects] + measured event,lead,leadstage,meeting controllers
+2025-08-28 - aron.b.96@gmail.com - 2025-08-28 - refactored auth,bank_accounts,bank_transfers,stages,supports,task_stages,tasks,taxes,ai_templates,terminations,time_trackers blades + performance for projec_task_controller
+2025-08-26 - aron.b.96@gmail.com - 2025-08-26 - finish refactoring of report blades
+2025-08-25 - aron.b.96@gmail.com - 2025-08-25 - refactor reports for bills, pos, incomes, ledgers / started payables
+2025-08-24 - aron.b.96@gmail.com - 2025-08-24 - refactor trial balances and warehouse report blades
+2025-08-23 - aron.b.96@gmail.com - 2025-08-23 - fixed pull conflicts
+2025-08-23 - aron.b.96@gmail.com - 2025-08-23 - refactored balance sheet blades
+2025-08-18 - aron.b.96@gmail.com - 2025-08-18 - update project tasks and leave blades
+2025-08-18 - aron.b.96@gmail.com - 2025-08-18 - update project tasks and leave blades
+2025-08-18 - aron.b.96@gmail.com - 2025-08-18 - update project stages blades
+2025-08-18 - aron.b.96@gmail.com - 2025-08-18 - complete proposal blades refactor for safeguarding
+2025-08-16 - aron.b.96@gmail.com - 2025-08-16 - adjust customer proposal blades
+2025-08-15 - aron.b.96@gmail.com - 2025-08-15 - update lasting projects and promotions blades
+2025-08-14 - aron.b.96@gmail.com - 2025-08-14 - safe guard code for bug_create, bug_edit and bug_kanban. started for bug_show.
+2025-08-14 - aron.b.96@gmail.com - 2025-08-14 - update gpt blocks (chunk 2)
+2025-08-14 - aron.b.96@gmail.com - 2025-08-14 - update gpt blocks (chunk 1)
+2025-08-13 - aron.b.96@gmail.com - 2025-08-13 - update milestones
+2025-08-11 - aron.b.96@gmail.com - 2025-08-11 - adjust company blades (chunk 1)
+2025-08-11 - aron.b.96@gmail.com - 2025-08-11 - fresh unix start

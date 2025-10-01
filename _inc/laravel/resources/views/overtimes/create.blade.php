@@ -12,7 +12,7 @@
     $storeKebab = Str::kebab($storeBase);
     $storeRes   = Route::has($storeBase) ? $storeBase : (Route::has($storeKebab) ? $storeKebab : null);
     $storeUrl   = $storeRes ? route($storeRes) : '#';
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::OVT, 'store_route_unavailable') ?? __('Overtime store route is unavailable. Please contact technical support or your domain administrator.');
+    $storeGuard = Utility::fetchLinkMessage($lang, VW::OVT, 'overtime_store_route_unavailable') ?? __('Overtime store route is unavailable. Please contact technical support or your domain administrator.');
 
     $employeeId = (string) data_get($employee ?? null, 'id', '');
 

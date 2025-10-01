@@ -10,7 +10,7 @@
         ? $satDedBaseName
         : (Route::has($satDedKebabName) ? $satDedKebabName : null);
     $satDedUrl          = $satDedResolvedName ? route($satDedResolvedName) : '#';
-    $satDedGuardMsg     = Utility::fetchLinkMessage($lang, VW::STR_DD, 'store_saturation_deduction_unavailable') ?? 'Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
+    $satDedGuardMsg     = Utility::fetchLinkMessage($lang, VW::STR_DD, 'saturation_deduction_store_route_unavailable') ?? 'Store saturation deduction route is unavailable. Please contact technical support or your domain administrator.';
     $satDedFormId       = 'create_saturation_deduction_form';
 @endphp
 

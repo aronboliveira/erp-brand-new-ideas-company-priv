@@ -35,7 +35,7 @@
         $clientIndexResolvedName = Route::has($clientIndexRouteBase) ? $clientIndexRouteBase : (Route::has($clientIndexRouteKebab) ? $clientIndexRouteKebab : null);
         $clientIndexUrl = $clientIndexResolvedName ? route($clientIndexResolvedName) : '#';
         $clientIndexLang = isset($lang) ? $lang : Utility::fetchUserLang();
-        $clientIndexGuardMsg = Utility::fetchLinkMessage($clientIndexLang, VW::CLT, 'index_client_route_unavailable') ?? 'Client index route is unavailable. Please contact technical support or your domain administrator.';
+        $clientIndexGuardMsg = Utility::fetchLinkMessage($clientIndexLang, VW::CLT, 'client_index_route_unavailable') ?? 'Client index route is unavailable. Please contact technical support or your domain administrator.';
         $clientIndexBreadcrumbLinkId = 'breadcrumb-client-index-link';
     @endphp
     <li class="breadcrumb-item">

@@ -13,7 +13,7 @@
     $routeName = VW::LN . '.update';
     $actionUrl = ($hasLoan && Route::has($routeName)) ? route($routeName, $loan->id) : '#';
     $guardMsg  = Utility::fetchLinkMessage($lang, VW::LN, 'update_route_unavailable')
-                 ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
+                 ?? __('Update Loan route is unavailable. Please contact technical support or your domain administrator.');
 @endphp
 
 @if($hasLoan)

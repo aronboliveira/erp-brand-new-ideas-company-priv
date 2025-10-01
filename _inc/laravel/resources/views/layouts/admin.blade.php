@@ -266,6 +266,8 @@
         </div>
         @include('partials.admin.footer')
         @include('Chatify::layouts.footer_links')
+        <script async src="{{ asset('assets/js/routes/generics/lang/utility.js') }}"></script>
+        <script defer src="{{ asset('assets/js/routes/generics/utility.js') }}"></script>
         <script>
             console.log(
                 'Current route:',

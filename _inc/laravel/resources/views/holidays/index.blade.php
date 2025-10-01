@@ -42,7 +42,7 @@
 
             $createRouteName = VW::HLD.'.create';
             $createUrl = Route::has($createRouteName) ? route($createRouteName) : '#';
-            $createMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'create_holiday_route_unavailable') : 'Create holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create holiday route is unavailable. Please contact technical support or your domain administrator.');
+            $createMsg = ($hasFetchLinkMessage ? Utility::fetchLinkMessage($lang, VW::HLD, 'holiday_create_route_unavailable') : 'Create holiday route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create holiday route is unavailable. Please contact technical support or your domain administrator.');
         @endphp
         <div class="{{ VC::FEND }}">
             <a href="{{ $calendarUrl }}"

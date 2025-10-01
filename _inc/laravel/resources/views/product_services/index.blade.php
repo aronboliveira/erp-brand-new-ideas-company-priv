@@ -109,7 +109,7 @@
                         $psIndexResolved         = Route::has($psIndexBase) ? $psIndexBase : (Route::has($psIndexKebab) ? $psIndexKebab : null);
                         $psIndexUrl              = $psIndexResolved ? route($psIndexResolved) : '#';
                         $psFormId                = 'product-service-filter-form';
-                        $psIndexGuardMsg         = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'index_product_service_route_unavailable') ?? 'Product & Service index route is unavailable. Please contact technical support or your domain administrator.';
+                        $psIndexGuardMsg         = Utility::fetchLinkMessage($lang, VW::PRD_SV, 'product_services_index_route_unavailable') ?? 'Product & Service index route is unavailable. Please contact technical support or your domain administrator.';
                         $categoryIsList          = (is_array($category ?? null) && count($category ?? []) > 0) || (($category ?? null) instanceof Collection && $category->isNotEmpty());
                         $categoryOptions         = $categoryIsList ? (is_array($category) ? $category : $category->toArray()) : [];
                         $selectedCategory        = request('category');

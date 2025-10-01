@@ -9,7 +9,7 @@
 
     $lang = Utility::fetchUserLang();
     $storeRouteName = VW::COA_TP;
-    $storeGuard = Utility::fetchLinkMessage($lang, VW::COA_TP, 'store_route_unavailable')
+    $storeGuard = Utility::fetchLinkMessage($lang, VW::COA_TP, 'chart_of_account_type_store_route_unavailable')
         ?? 'Store chart of account type route is unavailable. Please contact technical support or your domain administrator.';
     $formParams = [
         'method' => 'post',

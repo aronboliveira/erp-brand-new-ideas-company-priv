@@ -4,15 +4,17 @@ namespace App\Traits;
 
 use App\Config\Constants\{DatabaseConstants, LangsConstants};
 use App\Models\{User, Utility};
-use Illuminate\{
-	Http\JsonResponse,
-	Http\RedirectResponse,
+use Illuminate\Http\{
+	JsonResponse,
+	RedirectResponse,
+	Response
 };
 use Illuminate\Support\Facades\{
 	Auth,
 	Log
 };
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 trait ChecksLogin
@@ -24,7 +26,7 @@ trait ChecksLogin
 	 *   - Returns the authenticated User model if logged in.
 	 *   - Returns a RedirectResponse to login page if not authenticated.
 	 */
-	protected static function _checkLogin(bool $haltRedirect = false): RedirectResponse|JsonResponse|User|false
+	protected static function _checkLogin(bool $haltRedirect = false): Response|RedirectResponse|JsonResponse|View|User|false
 	{
 		$output = new ConsoleOutput();
 		$function = __FUNCTION__;
@@ -53,43 +55,10 @@ trait ChecksLogin
 				$path = trim(request()->path(), '/');
 				if (preg_match('#^login(/[^/]+)?$#', $path)) {
 					$notFoundMsg = !empty($msgs['invalid_user']) ? $msgs['invalid_user'] : 'User not found.';
-					$uuid = Str::uuid();
-					$msg = addslashes(__($notFoundMsg));
-					$snippet = <<<HTML
-          <script id="{$uuid}">
-            (function() {
-                const toast = document.getElementById('loginToast');
-                if (!toast) {
-                    console.warn('Toast element not found');
-                    return;
-                }
-                const body = toast.querySelector('.toast-body');
-                if (!body) {
-                    console.warn('Toast body element not found');
-                    return;
-                }
-                const delay = 5000;
-                const bs = new bootstrap.Toast(toast, { delay });
-                body.textContent = {$msg};
-                toast.style.display = 'block';
-                bs.show();
-                const handleHidden = function() {
-                    body.textContent = '';
-                    toast.style.display = 'none';
-                    toast.removeEventListener('hidden.bs.toast', handleHidden);
-                };
-                toast.addEventListener('hidden.bs.toast', handleHidden);
-                setTimeout(function() {
-                    document.getElementById('{$uuid}')?.remove();
-                }, delay * 1.25);
-            })();
-          </script>
-          HTML;
-					return response()->json([
-						'error'   => $notFoundMsg,
-						'snippet' => $snippet,
-						'status'  => 401,
-					]);
+					return response()->view('errors.login_error', [
+						'message' => $notFoundMsg,
+						'title' => 'Login Error'
+					], 401);
 				}
 				if ($haltRedirect) return false;
 				Log::notice('[ChecksLogin] redirecting to login...');

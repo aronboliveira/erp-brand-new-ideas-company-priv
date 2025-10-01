@@ -40,7 +40,7 @@
                     $editKebab    = Str::kebab($editBase);
                     $editResolved = Route::has($editBase) ? $editBase : (Route::has($editKebab) ? $editKebab : null);
                     $editUrl      = ($editResolved && $estId) ? route($editResolved, $estId) : '#';
-                    $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'edit_estimate_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
+                    $editGuardMsg = Utility::fetchLinkMessage($lang, VW::EST, 'estimation_edit_route_unavailable') ?? 'Edit estimate route is unavailable. Please contact technical support or your domain administrator.';
                 @endphp
                 <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6 col-6">
                     <a
