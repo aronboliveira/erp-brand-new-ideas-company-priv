@@ -182,7 +182,7 @@
 @endsection
 @section(YieldingConstants::ADM_CTT)
     @php
-        $purchasesSafe = (isset($purchases) && (is_array($purchases) || $purchases instanceof \Illuminate\Support\Collection)) ? $purchases : [];
+        $purchasesSafe = (isset($purchases) && Utility::isFilled($purchases)) ? $purchases : [];
         $fmtDate = function($v,$fb) use($user){ return ($v && $user && method_exists($user,'dateFormat')) ? ($user->dateFormat($v) ?? $fb) : $fb; };
         $statusClass = fn($s) => match((int)$s){0=>'bg-secondary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-primary',default=>'bg-secondary'};
     @endphp

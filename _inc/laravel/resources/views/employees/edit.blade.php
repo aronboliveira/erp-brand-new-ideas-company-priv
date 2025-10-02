@@ -199,7 +199,7 @@
                                             $docsRaw = method_exists($employee, 'documents') ? $employee->documents() : [];
                                             $employeedoc = $docsRaw->isNotEmpty() ? $docsRaw->pluck('document_value', 'document_id') : [];
                                         @endphp
-                                        @if (($employeedoc instanceof Collection && $employeedoc->isNotEmpty()) || (is_array($employeedoc) && count($employeedoc)))
+                                        @if (Utility::isFilled($documents))
                                             @foreach($documents as $key => $document)
                                                 <div class="{{ VC::RW }}">
                                                     <div class="{{ VC::FM_GCB12 }}">

@@ -55,7 +55,7 @@
 
           <div class="{{ VC::FM_GCB6 }}">
               {{ Form::label('client_name', __('Client'), ['class' => VC::FM_LB]) }}
-              @if((is_array($clients) && count($clients)) || ($clients instanceof Collection && $clients->isNotEmpty()))
+              @if(!empty($clients) && ((is_array($clients) && count($clients)) || ($clients instanceof Collection && $clients->isNotEmpty())))
                   {{ Form::select('client_name', $clients, null, ['class' => VC::FM_CT_SL . ' client_select', 'id' => 'client_select']) }}
               @else
                   {{ Form::select('client_name', [__('No clients available')], null, ['class' => VC::FM_CT_SL . ' client_select', 'id' => 'client_select']) }}
@@ -71,7 +71,7 @@
 
           <div class="{{ VC::FM_GCB6 }}">
               {{ Form::label('type', __('Contract Type'), ['class' => VC::FM_LB]) }}
-              @if((is_array($contractTypes) && count($contractTypes)) || ($contractTypes instanceof Collection && $contractTypes->isNotEmpty()))
+              @if(!empty($contractTypes) && ((is_array($contractTypes) && count($contractTypes)) || ($contractTypes instanceof Collection && $contractTypes->isNotEmpty())))
                   {{ Form::select('type', $contractTypes, null, ['class' => VC::FM_CT, 'data-toggle' => 'select', 'required' => 'required']) }}
               @else
                   {{ Form::select('type', [__('No contract types available')], null, ['class' => VC::FM_CT, 'data-toggle' => 'select', 'required' => 'required']) }}

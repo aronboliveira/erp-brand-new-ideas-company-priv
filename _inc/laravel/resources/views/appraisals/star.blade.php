@@ -11,11 +11,11 @@
 <div class="{{ VC::RW }}">
     <div class="col-5 text-end" style="margin-left:51px;"><h5>{{ __('Indicator') }}</h5></div>
     <div class="col-4 text-end"><h5>{{ __('Appraisal') }}</h5></div>
-    @if((is_array($performance_types ?? null) && count($performance_types) > 0) || (($performance_types ?? null) instanceof \Illuminate\Support\Collection && $performance_types->isNotEmpty()))
+    @if(!empty($performance_types) && ((is_array($performance_types ?? null) && count($performance_types) > 0) || (($performance_types ?? null) instanceof \Illuminate\Support\Collection && $performance_types->isNotEmpty())))
         @foreach($performance_types as $performance_type)
             <div class="{{ VC::CM12 }} {{ VC::MT3 }}"><h6>{{ $performance_type->name ?? __('No name found') }}</h6><hr class="mt-0"></div>
             @php $types = $performance_type->types ?? null; @endphp
-            @if((is_array($types) && count($types) > 0) || ($types instanceof \Illuminate\Support\Collection && $types->isNotEmpty()))
+            @if(!empty($types) && ((is_array($types) && count($types) > 0) || ($types instanceof \Illuminate\Support\Collection && $types->isNotEmpty())))
                 @foreach($types as $type)
                     <div class="col-4">{{ $type->name ?? __('No name found') }}</div>
                     <div class="col-4">

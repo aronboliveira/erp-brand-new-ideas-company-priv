@@ -201,8 +201,8 @@
         @endif
         {{ Form::select(
             'default_pipeline_id',
-            @if((is_array($pipelines) && count($pipelines)) || $pipelines instanceof Collection && $pipelines->isNotEmpty()) $pipelines @else [__('No pipelines available')] @endif,
-            @if(!empty($pipeline) && isset($pipeline->id)) $pipeline->id @else '# Unidentified pipeline' @endif,
+            Utility::isFilled($pipelines) ? $pipelines : [__('No pipelines available')],
+            Utility::isFilled($pipeline) ? $pipeline->id : '# Unidentified pipeline',
             [
                 'class' => VC::FM_CT . ' select me-4',
                 'id'    => 'default_pipeline_id'
@@ -330,7 +330,7 @@
         <div class="row kanban-wrapper horizontal-scroll-cards"
              data-containers='@json($containers)'
              data-plugin="dragula">
-            @if ((is_array($stages) && count($stages)) || ($stages instanceof Collection && $stages->isNotEmpty()))
+            @if (Utility::isFilled($stages))
                 @php
                     $isPriceFormatAvailable = method_exists($user ?? null, 'priceFormat');
                 @endphp
@@ -339,8 +339,7 @@
                         $stageId   = isset($stage->id) ? $stage->id : uniqid('stage_');
                         $stageName = !empty($stage->name) ? $stage->name : __('Untitled Stage');
                         $dealsRaw = method_exists($stage, 'deals') ? ($stage->deals() ?? []) : [];
-                        $deals    = (is_array($dealsRaw) && count($dealsRaw) > 0)
-                                    || ($dealsRaw instanceof Collection && $dealsRaw->isNotEmpty())
+                        $deals    = Utility::isFilled($dealsRaw)
                                     ? $dealsRaw
                                     : [];
                     @endphp
@@ -360,11 +359,11 @@
                                             $dealName    = !empty($deal->name) ? $deal->name : __('No deal name available');
                                             $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
                                             $labelsRaw   = method_exists($deal, 'labels')   ? ($deal->labels()   ?? []) : ($deal->labels   ?? []);
-                                            $labels   = (is_array($labelsRaw)   && count($labelsRaw))   || ($labelsRaw   instanceof Collection && $labelsRaw->isNotEmpty())   ? $labelsRaw   : [];
+                                            $labels   = Utility::isFilled($labelsRaw)  ? $labelsRaw   : [];
                                             $productsRaw = method_exists($deal, 'products') ? ($deal->products() ?? []) : ($deal->products ?? []);
-                                            $products = (is_array($productsRaw) && count($productsRaw)) || ($productsRaw instanceof Collection && $productsRaw->isNotEmpty()) ? $productsRaw : [];
+                                            $products = Utility::isFilled($productsRaw) ? $productsRaw : [];
                                             $sourcesRaw  = method_exists($deal, 'sources')  ? ($deal->sources()  ?? []) : ($deal->sources  ?? []);
-                                            $sources  = (is_array($sourcesRaw)  && count($sourcesRaw))  || ($sourcesRaw  instanceof Collection && $sourcesRaw->isNotEmpty())  ? $sourcesRaw  : [];
+                                            $sources  = Utility::isFilled($sourcesRaw)  ? $sourcesRaw  : [];
                                             $dealUsers   = is_array($deal->users ?? null) || ($deal->users ?? null) instanceof \Countable
                                                             ? ($deal->users ?? [])
                                                             : [];

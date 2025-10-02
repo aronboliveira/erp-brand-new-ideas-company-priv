@@ -29,12 +29,12 @@
     $dedLoan       = $payslipDetail['deduction']['loan']      ?? [];
     $dedDeduc      = $payslipDetail['deduction']['deduction'] ?? [];
 
-    $earnAllowanceHas = ($earnAllowance instanceof Collection && $earnAllowance->isNotEmpty()) || (is_array($earnAllowance) && count($earnAllowance) > 0);
-    $earnCommissionHas= ($earnCommission instanceof Collection && $earnCommission->isNotEmpty()) || (is_array($earnCommission) && count($earnCommission) > 0);
-    $earnOtherHas     = ($earnOther instanceof Collection && $earnOther->isNotEmpty()) || (is_array($earnOther) && count($earnOther) > 0);
-    $earnOverHas      = ($earnOver instanceof Collection && $earnOver->isNotEmpty()) || (is_array($earnOver) && count($earnOver) > 0);
-    $dedLoanHas       = ($dedLoan instanceof Collection && $dedLoan->isNotEmpty()) || (is_array($dedLoan) && count($dedLoan) > 0);
-    $dedDeducHas      = ($dedDeduc instanceof Collection && $dedDeduc->isNotEmpty()) || (is_array($dedDeduc) && count($dedDeduc) > 0);
+    $earnAllowanceHas = Utility::isFilled($earnAllowance);
+    $earnCommissionHas= Utility::isFilled($earnCommission);
+    $earnOtherHas     = Utility::isFilled($earnOther);
+    $earnOverHas      = Utility::isFilled($earnOver);
+    $dedLoanHas       = Utility::isFilled($dedLoan);
+    $dedDeducHas      = Utility::isFilled($dedDeduc);
 
     $totalEarning   = $payslipDetail['totalEarning']   ?? 0;
     $totalDeduction = $payslipDetail['totalDeduction'] ?? 0;

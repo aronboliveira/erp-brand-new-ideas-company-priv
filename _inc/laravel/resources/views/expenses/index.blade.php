@@ -148,7 +148,7 @@
                                 $isExpenseNumberFormatAvailable = method_exists($user, 'expenseNumberFormat');
                                 $isDateFormatAvailable          = method_exists($user, 'dateFormat');
                             @endphp
-                            @if((is_array($expenses) && count($expenses)) || ($expenses instanceof Collection && $expenses->isNotEmpty()))
+                            @if(Utility::isFilled($expenses))
                                 @foreach ($expenses as $expense)
                                     @php
                                         $showBase     = VW::PRJ_EXP . '.show';

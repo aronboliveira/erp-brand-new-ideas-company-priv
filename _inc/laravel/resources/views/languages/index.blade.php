@@ -361,16 +361,16 @@
                                                 </div>
 
                                                 @forelse($lvl1 as $label => $value)
-                                                    @if(is_array($value))
+                                                    @if(Utility::isFilled($value))
                                                         @php $lvl2 = $value; @endphp
                                                         @forelse($lvl2 as $label2 => $value2)
-                                                            @if(is_array($value2))
+                                                            @if(Utility::isFilled($value2))
                                                                 @php $lvl3 = $value2; @endphp
                                                                 @forelse($lvl3 as $label3 => $value3)
-                                                                    @if(is_array($value3))
+                                                                    @if(Utility::isFilled($value3))
                                                                         @php $lvl4 = $value3; @endphp
                                                                         @forelse($lvl4 as $label4 => $value4)
-                                                                            @if(is_array($value4))
+                                                                            @if(Utility::isFilled($value4))
                                                                                 @php $lvl5 = $value4; @endphp
                                                                                 @forelse($lvl5 as $label5 => $value5)
                                                                                     @php
@@ -502,8 +502,7 @@
                                         </div>
                                     </form>
                                     @push(StacksConstants::ADM_SCR_PG)
-                                        <script defer src="{{ asset('assets/js/routes/languages/indexFileStore.js') }}">
-                                        </script>
+                                        <script defer src="{{ asset('assets/js/routes/languages/indexFileStore.js') }}"></script>
                                     @endpush
                                 </div>
                             </div>

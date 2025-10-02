@@ -320,7 +320,7 @@ Object.keys(t).forEach(
                     ];
                 @endphp
                 <ul class="{{ VC::NAV_PL }} {{ VC::MB3 }}" id="pills-tab" role="tablist">
-                    @if((is_array($tabs) && count($tabs)) || ($tabs instanceof Collection && $tabs->isNotEmpty()))
+                    @if(Utility::isFilled($tabs))
                         @foreach($tabs as $index => $tab)
                             <li class="{{ VC::NV_IT }}" role="presentation">
                                 <a class="{{ VC::NV_LK }} {{ $index === 0 ? 'active' : '' }}"
@@ -364,7 +364,7 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="{{ $proposalTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Proposal Template') }}</label>
                                                 <select id="{{ $proposalTemplateSelectId }}" class="{{ VC::FM_CT }} select2" name="proposal_template">
-                                                    @if ((is_array($templates) && count($templates)) || ($templates instanceof Collection && $templates->isNotEmpty()))
+                                                    @if (Utility::isFilled($templates))
                                                         @foreach($templates as $key => $template)
                                                             <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_PPS_TMP]) && $settings[BillsConstants::COL_PPS_TMP] == $key) ? 'selected' : '' }}>
                                                                 {{ $template }}
@@ -378,7 +378,7 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @if ((is_array($colors) && count($colors)) || ($colors instanceof Collection && $colors->isNotEmpty()))
+                                                    @if (Utility::isFilled($colors))
                                                         @foreach($colors as $key => $color)
                                                             <div class="{{ VC::C_AT }}">
                                                                 <label class="colorinput">
@@ -464,7 +464,7 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="{{ $invoiceTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Invoice Template') }}</label>
                                                 <select id="{{ $invoiceTemplateSelectId }}" class="{{ VC::FM_CT }} select2" name="invoice_template">
-                                                    @if((is_array($templates) && count($templates)) || ($templates instanceof Collection && $templates->isNotEmpty()))
+                                                    @if(Utility::isFilled($templates))
                                                         @foreach($templates as $key => $template)
                                                             <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_INV_TMP]) && $settings[BillsConstants::COL_INV_TMP] == $key) ? 'selected' : '' }}>
                                                                 {{ $template }}
@@ -478,7 +478,7 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @if((is_array($colors) && count($colors)) || ($colors instanceof Collection && $colors->isNotEmpty()))
+                                                    @if (Utility::isFilled($colors))
                                                         @foreach($colors as $key => $color)
                                                             <div class="{{ VC::C_AT }}">
                                                                 <label class="colorinput">
@@ -572,7 +572,7 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="{{ $billTemplateSelectId }}" class="{{ VC::FM_LB }}">{{ __('Bill Template') }}</label>
                                                 <select id="{{ $billTemplateSelectId }}" class="{{ VC::FM_CT }}" name="bill_template">
-                                                    @if((is_array($templates) && count($templates)) || ($templates instanceof Collection && $templates->isNotEmpty()))
+                                                    @if(Utility::isFilled($templates))
                                                         @foreach($templates as $key => $template)
                                                             <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_POS_TMP]) && $settings[BillsConstants::COL_POS_TMP] == $key) ? 'selected' : '' }}>
                                                                 {{ $template }}
@@ -587,7 +587,7 @@ Object.keys(t).forEach(
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @if((is_array($colors) && count($colors)) || ($colors instanceof Collection && $colors->isNotEmpty()))
+                                                    @if(Utility::isFilled($colors))
                                                         @foreach($colors as $key => $color)
                                                             <div class="{{ VC::C_AT }}">
                                                                 <label class="colorinput">

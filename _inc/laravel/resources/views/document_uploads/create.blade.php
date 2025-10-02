@@ -8,7 +8,7 @@
     $hasChatGPTSettings = method_exists(Utility::class, 'getChatGPTSettings');
     $plan               = $hasChatGPTSettings ? Utility::getChatGPTSettings() : null;
     $aiEnabled          = $plan?->{PlansConstants::COL_GPT} == 1;
-    $rolesIsList        = (is_array($roles) && count($roles) > 0) || ($roles instanceof Collection && $roles->isNotEmpty());
+    $rolesIsList        = Utility::isFilled($roles);
     $roleOptions        = $roles instanceof Collection ? $roles->toArray() : (is_array($roles) ? $roles : []);
     $roleHasError       = $errors->has('role');
     $roleAttrs          = [

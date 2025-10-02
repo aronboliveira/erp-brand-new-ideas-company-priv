@@ -76,7 +76,7 @@
                                                         @php
                                                             $subType = data_get($account,'subType') ?: '';
                                                             $accList = data_get($account,'account',[]);
-                                                            $last = (is_array($accList) && !empty($accList)) ? end($accList) : null;
+                                                            $last = (!empty($accList) && is_array($accList)) ? end($accList) : null;
                                                             $lastName = data_get($last,'account_name') ?? 0;
                                                             $lastNet = (float)(data_get($last,'netAmount',0));
                                                         @endphp
@@ -199,7 +199,7 @@
                                                         @php
                                                             $subType = data_get($account,'subType') ?: '';
                                                             $accList = data_get($account,'account',[]);
-                                                            $last = (is_array($accList) && !empty($accList)) ? end($accList) : null;
+                                                            $last = (!empty($accList) && is_array($accList)) ? end($accList) : null;
                                                             $lastName = data_get($last,'account_name') ?? 0;
                                                             $lastNet = (float)(data_get($last,'netAmount',0));
                                                         @endphp

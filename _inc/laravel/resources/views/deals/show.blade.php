@@ -683,7 +683,7 @@
                         </div>
                     </div>
                     <div class="{{ VC::RW }}">
-                        @if((is_array($stats) && count($stats)) || $stats instanceof Collection && $stats->isNotEmpty())
+                        @if(Utility::isFilled($stats))
                           @foreach($stats as $stat)
                               <div class="{{ VC::CM3 }} col-sm-3">
                                   <div class="{{ VC::CD }}">

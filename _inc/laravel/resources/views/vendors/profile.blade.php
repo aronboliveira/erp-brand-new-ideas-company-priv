@@ -81,7 +81,7 @@
         ],
     ];
 
-    $tabsList = (is_array($tabsRaw) || ($tabsRaw instanceof \Illuminate\Support\Collection)) ? (array) $tabsRaw : [];
+    $tabsList = Utility::isFilled($tabsRaw) ? (array) $tabsRaw : [];
     $tabs = [];
     foreach ($tabsList as $t) {
         $id     = (string) (data_get($t, 'id') ?? '');

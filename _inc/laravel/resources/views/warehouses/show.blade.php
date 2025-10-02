@@ -6,6 +6,7 @@
         YieldingConstants
     };
     use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
 @endphp
 
 @extends(ExtendingLayoutsConstants::ADM)
@@ -44,7 +45,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(is_array($warehouse) && count($warehouse) > 0 || $warehouse instanceof Collection && $warehouse->isNotEmpty())
+                                @if(Utility::isFilled($warehouse))
                                     @foreach ($warehouse as $warehouses)
                                         <tr class="font-style">
                                             @if(!empty($warehouses->product))

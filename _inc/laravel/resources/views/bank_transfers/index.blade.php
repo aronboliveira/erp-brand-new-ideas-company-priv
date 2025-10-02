@@ -170,7 +170,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @php $transfersList=(is_array($transfers)&&!empty($transfers))?$transfers:(($transfers instanceof \Illuminate\Support\Collection&&$transfers->isNotEmpty())?$transfers:[]); @endphp
+                                @php $transfersList=(!empty($transfers) && (is_array($transfers) && count($transfers) ? $transfers : (($transfers instanceof \Illuminate\Support\Collection && $transfers->isNotEmpty()) ? $transfers : []))); @endphp
                                 @forelse($transfersList as $t)
                                     @php
                                         $from=is_callable([$t,'fromBankAccount'])?$t->fromBankAccount():null;

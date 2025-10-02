@@ -146,7 +146,7 @@
                             </tr>
                         </thead>
                         <tbody class="font-style">
-                            @if((is_array($jobs) && count($jobs)) || ($jobs instanceof Collection && $jobs->isNotEmpty()))
+                            @if(Utility::isFilled($jobs))
                                 @foreach($jobs as $job)
                                     @php
                                         $jid = data_get($job,'id');

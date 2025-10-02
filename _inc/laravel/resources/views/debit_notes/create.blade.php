@@ -32,7 +32,7 @@
 ]) }}
     <div class="modal-body">
         <div class="{{ VC::RW }}">
-            @if(is_array($fields) && !empty($fields) || $fields instanceof \Illuminate\Support\Collection && $fields->isNotEmpty())
+            @if(Utility::isFilled($fields))
                 @foreach($fields as $f)
                     @php
                         $name     = $f['name']     ?? '';

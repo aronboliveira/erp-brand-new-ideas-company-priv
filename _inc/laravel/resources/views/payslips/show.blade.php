@@ -84,7 +84,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $al = (is_array($allowances) && count($allowances)) || ($allowances instanceof Collection && $allowances->isNotEmpty()); @endphp
+                                                                            @php $al = Utility::isFilled($allowances); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -124,7 +124,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $cm = (is_array($commissions) && count($commissions)) || ($commissions instanceof Collection && $commissions->isNotEmpty()); @endphp
+                                                                            @php $cm = Utility::isFilled($commissions); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -164,7 +164,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $ln = (is_array($loans) && count($loans)) || ($loans instanceof Collection && $loans->isNotEmpty()); @endphp
+                                                                            @php $ln = Utility::isFilled($loans); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -204,7 +204,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $dd = (is_array($deductions) && count($deductions)) || ($deductions instanceof Collection && $deductions->isNotEmpty()); @endphp
+                                                                            @php $dd = Utility::isFilled($deductions); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -244,9 +244,9 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $op = (is_array($other_payments ?? []) && count($other_payments ?? [])) || (($other_payments ?? null) instanceof Collection && $other_payments->isNotEmpty()); @endphp
+                                                                            @php $op = Utility::isFilled($other_payments); @endphp
                                                                             @php $other = $op ? $other_payments : ( ($p && data_get($p,'other_payment')) ? json_decode(data_get($p,'other_payment')) : [] ); @endphp
-                                                                            @php $opHas = (is_array($other) && count($other)) || ($other instanceof Collection && $other->isNotEmpty()); @endphp
+                                                                            @php $opHas = Utility::isFilled($other); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -286,7 +286,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $ot = (is_array($overtimes) && count($overtimes)) || ($overtimes instanceof Collection && $overtimes->isNotEmpty()); @endphp
+                                                                            @php $ot = Utility::isFilled($overtimes); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">

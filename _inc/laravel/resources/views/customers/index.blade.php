@@ -234,7 +234,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if((is_array($customers) && count($customers)) || ($customers instanceof Collection && $customers->isNotEmpty()))
+                                @if(Utility::isFilled($customers))
                                     @foreach($customers as $customer)
                                         @php
                                             $ns = ViewsConstants::CST;

@@ -12,7 +12,7 @@
     use Illuminate\Support\{Collection, Str};
 
     $profile = Utility::getFile('uploads/avatar');
-
+    $user   = auth()->user();
     $lang = Utility::fetchUserLang();
 
     $dashBase  = 'dashboard';
@@ -31,7 +31,7 @@
     $pwdBase   = VW::USR . '.password.update';
     $pwdKebab  = Str::kebab($pwdBase);
     $pwdName   = Route::has($pwdBase) ? $pwdBase : (Route::has($pwdKebab) ? $pwdKebab : null);
-    $pwdUrl    = $pwdName ? route($pwdName) : '#';
+    $pwdUrl    = $pwdName ? route($pwdName, [$user?->id]) : '#';
     $pwdGuard  = Utility::fetchLinkMessage($lang, VW::USR, 'update_password_route_unavailable')
                  ?? 'Update password route is unavailable. Please contact technical support or your domain administrator.';
     $pwdFormId = 'profile-password-update-form';
@@ -133,7 +133,7 @@
                                     <div class="choose-files">
                                         <label for="avatar">
                                             <div class="{{ VC::BG_P }} profile_update">
-                                                <i class="ti ti-upload {{ VC::PX3 }}"></i>{{ __('Choose file here') }}
+                                                <i class="ti ti-upload {{ VC::PX3 }}" style="padding-left: 0 !important;"></i>{{ __('Choose file here') }}
                                             </div>
                                             <input type="file"
                                                    class="form-control file"

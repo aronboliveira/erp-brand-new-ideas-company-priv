@@ -14,16 +14,16 @@
     $lang = Utility::fetchUserLang(user: $user);
     $canFormatDate = is_callable([$user, 'dateFormat']);
     $skills           = $job->skill ?? [__('No skill available')];
-    $skillsIsList     = is_array($skills) && count($skills) > 0;
+    $skillsIsList     = Utility::isFilled($skills);
 
     $applicant        = $job->applicant ?? [__('No applicant available')];
-    $applicantIsList  = is_array($applicant) && count($applicant) > 0;
+    $applicantIsList  = Utility::isFilled($applicant);
 
     $visibility       = $job->visibility ?? [__('No visibility available')];
-    $visibilityIsList = is_array($visibility) && count($visibility) > 0;
+    $visibilityIsList = Utility::isFilled($visibility);
 
     $questions        = is_callable([$job, 'questions']) ? $job->questions() : [__('No questions available')];
-    $questionsIsList  = ($questions instanceof Collection && $questions->isNotEmpty()) || (is_array($questions) && count($questions) > 0);
+    $questionsIsList  = Utility::isFilled($questions);
 @endphp
 
 @extends(EL::ADM)

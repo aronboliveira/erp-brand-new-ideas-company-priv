@@ -76,7 +76,7 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @if((is_array($jobOnBoards) && count($jobOnBoards)) || $jobOnBoards instanceof Collection && $jobOnBoards->isNotEmpty())
+                                @if(Utility::isFilled($jobOnBoards))
                                     @foreach ($jobOnBoards as $job)
                                         @php
                                             $jobId = data_get($job, 'id');

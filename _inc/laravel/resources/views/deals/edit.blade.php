@@ -122,7 +122,7 @@
             </div>
             <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('pipeline_id', __('Pipeline'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('pipeline_id', @if((is_array($pipelines) && count($pipelines)) || $pipelines instanceof Collection && $pipelines->isNotEmpty()) $pipelines @else [__('No pipelines available')] @endif, null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                {{ Form::select('pipeline_id', Utility::isFilled($pipelines) ? $pipelines : [__('No pipelines available')], null, ['class' => VC::FM_CT, 'required' => 'required']) }}
             </div>
             <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('stage_id', __('Stage'), ['class' => VC::FM_LB]) }}
@@ -130,11 +130,11 @@
             </div>
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('sources', __('Sources'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('sources[]', @if((is_array($sources) && count($sources)) || $sources instanceof Collection && $sources->isNotEmpty()) $sources @else [__('No sources available')] @endif, null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple3', 'required' => 'required']) }}
+                {{ Form::select('sources[]', Utility::isFilled($sources) ? $sources : [__('No sources available')], null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple3', 'required' => 'required']) }}
             </div>
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('products', __('Products'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('products[]', @if((is_array($products) && count($products)) || $products instanceof Collection && $products->isNotEmpty()) $products @else [__('No products available')] @endif, null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple4', 'required' => 'required']) }}
+                {{ Form::select('products[]', Utility::isFilled($products) ? $products : [__('No products available')], null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple4', 'required' => 'required']) }}
             </div>
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('notes', __('Notes'), ['class' => VC::FM_LB]) }}

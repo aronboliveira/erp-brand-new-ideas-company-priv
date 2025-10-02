@@ -34,7 +34,7 @@
     <div class="{{ VC::RW }}">
         <div class="col-5 text-end" style="margin-left:51px;"><h5>{{ __('Indicator') }}</h5></div>
         <div class="col-4 text-end"><h5>{{ __('Appraisal') }}</h5></div>
-        @if(is_array($performance_types) && count($performance_types) > 0 || $performance_types instanceof Collection && $performance_types->isNotEmpty())
+        @if(!empty($performance_types) && ((is_array($performance_types) && count($performance_types) > 0) || ($performance_types instanceof Collection && $performance_types->isNotEmpty())))
             @foreach($performance_types as $pt)
                 <div class="col-md-12 mt-3"><h6>{{ $pt->name ?? __('No name for Performance type group found') }}</h6><hr class="mt-0"></div>
                 @if($pt->types && count($pt->types) > 0 || $pt->types instanceof Collection && $pt->types->isNotEmpty())

@@ -40,7 +40,7 @@
 	$msg = fn(string $ns,string $key,string $fb) => ($canFetchMsg ? (Utility::fetchLinkMessage($lang,$ns,$key) ?? null) : null) ?? __($fb);
 	$lastsegment    = request()->segment(count(request()->segments()));
 	$sessionCart    = session($lastsegment);
-	$cartHasItems   = is_array($sessionCart) && count($sessionCart) > 0;
+	$cartHasItems   = Utility::isFilled($sessionCart);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lang ?? (str_replace('_','-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
@@ -113,7 +113,7 @@
                         <div class="{{ VC::CD }}-header p-2">
                             <div class="{{ VC::RW }}">
                                 <div class="{{ VC::CM6 }}">
-                                    @if((is_array($customers) && count($customers)) || ($customers instanceof Collection && $customers->isNotEmpty()))
+                                    @if(Utility::isFilled($customers))
                                         {{ Form::select('customer_id',$customers,'',['class'=> VC::FM_CT.' select customer_select','id'=>'customer','required'=>'required']) }}
                                     @else
                                         <select class="{{ VC::FM_CT }} select customer_select" id="customer" disabled>
@@ -123,7 +123,7 @@
                                     {{ Form::hidden('vc_name_hidden','',['id'=>'vc_name_hidden']) }}
                                 </div>
                                 <div class="{{ VC::CM6 }}">
-                                    @if((is_array($warehouses) && count($warehouses)) || ($warehouses instanceof Collection && $warehouses->isNotEmpty()))
+                                    @if(Utility::isFilled($warehouses))
                                         {{ Form::select('warehouse_id',$warehouses,'',['class'=> VC::FM_CT.' select warehouse_select','id'=>'warehouse','required'=>'required']) }}
                                     @else
                                         <select class="{{ VC::FM_CT }} select warehouse_select" id="warehouse" disabled>
@@ -187,7 +187,7 @@
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        @if((is_array($taxes) && count($taxes)) || ($taxes instanceof Collection && $taxes->isNotEmpty()))
+                                                        @if(Utility::isFilled($taxes))
                                                             @foreach($taxes as $tax)
                                                                 <span class="{{ VC::BDG }} {{ VC::BG_P }}">{{ data_get($tax,'name',__('No name')) }} ({{ data_get($tax,'rate',0) }}%)</span><br>
                                                             @endforeach

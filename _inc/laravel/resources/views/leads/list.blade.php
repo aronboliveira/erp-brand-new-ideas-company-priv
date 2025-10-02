@@ -109,7 +109,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @if((is_array($leads) && count($leads)) || ($leads instanceof Collection && $leads->isNotEmpty()))
+                                @if(Utility::isFilled($leads))
                                     @foreach ($leads as $lead)
                                         @php
                                             $lid = data_get($lead,'id');

@@ -75,9 +75,9 @@
                         $resetGuard = Utility::fetchLinkMessage($lang, ViewsConstants::CLT, 'client_reset_route_unavailable') ?? __('No reset route available');
                         $avatar = data_get($client,'avatar');
                         $avatarSrc = $avatar ? asset(Storage::url('uploads/avatar/'.$avatar)) : asset(Storage::url('uploads/avatar/avatar.png'));
-                        $dealRel = data_get($client,'clientDeals');
+                        $dealRel = data_get($client,'clientDeals') ?? null;
                         $dealCount = ((is_array($dealRel) && count($dealRel)) || ($dealRel instanceof Collection && $dealRel->isNotEmpty())) ? (is_array($dealRel) ? count($dealRel) : $dealRel->count()) : 0;
-                        $projRel = data_get($client,'clientProjects');
+                        $projRel = data_get($client,'clientProjects') ?? null;
                         $projCount = ((is_array($projRel) && count($projRel)) || ($projRel instanceof Collection && $projRel->isNotEmpty())) ? (is_array($projRel) ? count($projRel) : $projRel->count()) : 0;
                     @endphp
                     <div class="{{ VC::CM3 }}">

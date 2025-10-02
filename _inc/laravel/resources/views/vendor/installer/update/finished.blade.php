@@ -3,7 +3,7 @@
 @section('container')
     @php
         $msg = session('message');
-        $finalMsg = is_array($msg) ? (data_get($msg,'message') ?? __('No update message available')) : ($msg ?? __('No update message available'));
+        $finalMsg = !empty($msg) && is_array($msg) ? (data_get($msg,'message') ?? __('No update message available')) : ($msg ?? __('No update message available'));
     @endphp
     <p class="paragraph text-center">{{ $finalMsg }}</p>
     <div class="buttons">

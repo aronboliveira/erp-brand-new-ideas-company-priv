@@ -36,7 +36,7 @@
         <div class="modal-body">
             <ul class="{{ VC::LGRP }}">
                 <div class="{{ VC::RW }}">
-                    @if((is_array($permissions) && count($permissions) > 0) || ($permissions instanceof Collection && $permissions->isNotEmpty()))
+                    @if(Utility::isFilled($permissions))
                         @foreach($permissions as $key => $permission)
                             <div class="{{ VC::CM6 }} {{ VC::PY2 }} px-2">
                                 <li class="{{ VC::LG_IT }}">

@@ -612,8 +612,8 @@
                                                                 @php 
                                                                     try {
                                                                         $users = $bug->users();
-                                                                        $users = is_array($users) || is_object($users) ? $users : [];
-                                                                    } catch (Exception $e) {
+                                                                        $users = Utility::isFilled($users) ? $users : [];
+                                                                    } catch (\Exception $e) {
                                                                         $users = [];
                                                                     }
                                                                 @endphp

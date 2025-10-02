@@ -165,7 +165,7 @@
         })();
     </script>
 @endpush
-@section(StacksConstants::ADM_CTT)
+@section(YieldingConstants::ADM_CTT)
     <div class="{{ VC::RW }}">
         <div class="{{ VC::CM12 }}">
             <div class="{{ VC::CD }}">

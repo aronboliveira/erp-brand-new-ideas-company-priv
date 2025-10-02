@@ -50,7 +50,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(is_array($productServices) && count($productServices) || $productServices instanceof \Illuminate\Database\Eloquent\Collection && $productServices->isNotEmpty())
+                                @if(Utility::isFilled($productServices))
                                     @foreach ($productServices as $productService)
                                         <tr class="font-style">
                                             <td>{{ !empty($productService->name) ? $productService->name : __('No name available') }}</td>

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Config\Constants\{ViewsConstants as VW};
+use App\Config\Constants\{PermissionsConstants, ViewsConstants as VW};
 use App\Http\Controllers\Controller;
 use App\Models\{Order, Plan, PlanRequest, User, Utility};
 use App\Traits\{ChecksLogin, ChecksPermissions};
@@ -24,10 +24,10 @@ class PlanRequestController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $view, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'view plan requests', 'plan-request.index')) instanceof RedirectResponse) return $redirect;
+            if (($redirect = self::guard($request, PermissionsConstants::VW_PL_RQ, VW::PLN_RQ . '.index')) instanceof RedirectResponse) return $redirect;
             try {
                 $planRequests = PlanRequest::all();
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route('plan-request.index'));
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(VW::PLN_RQ . '.index'));
                 return view($view, compact('planRequests'));
             } catch (\Throwable $e) {
                 Log::error($action . ' failed to list plan requests: ' . $e->getMessage());
@@ -46,12 +46,12 @@ class PlanRequestController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $planId, $view, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'view plan details', 'plan-request.index')) instanceof RedirectResponse) return $redirect;
+            if (($redirect = self::guard($request, PermissionsConstants::VW_PL_DT, VW::PLN_RQ . '.index')) instanceof RedirectResponse) return $redirect;
             try {
                 $id = Crypt::decrypt($planId);
                 $plan = Plan::find($id);
-                if (!$plan) return defaultUndefinedException($request, new \Exception('Plan not found'), $action, route('plan-request.index'));
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route('plan-request.index'));
+                if (!$plan) return defaultUndefinedException($request, new \Exception('Plan not found'), $action, route(VW::PLN_RQ . '.index'));
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(VW::PLN_RQ . '.index'));
                 return view($view, compact('plan'));
             } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $action);
@@ -72,12 +72,12 @@ class PlanRequestController extends Controller
         return $this->measureProfile($action, function () use ($request, $planId, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (($redirect = self::guard($request, 'request plan', 'plan-request.index')) instanceof RedirectResponse) return $redirect;
+            if (($redirect = self::guard($request, PermissionsConstants::RQ_PL, VW::PLN_RQ . '.index')) instanceof RedirectResponse) return $redirect;
             try {
                 if ($user->requested_plan != 0) return redirect()->back()->with('error', __('You already send request to another plan.'));
                 $id = Crypt::decrypt($planId);
                 $plan = Plan::find($id);
-                if (!$plan) return defaultUndefinedException($request, new \Exception('Plan not found'), $action, route('plan-request.index'));
+                if (!$plan) return defaultUndefinedException($request, new \Exception('Plan not found'), $action, route(VW::PLN_RQ . '.index'));
                 $createData = [
                     'user_id'   => $user?->id,
                     'plan_id'   => $id,
@@ -102,10 +102,10 @@ class PlanRequestController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $id, $response, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if (($redirect = self::guard($request, 'accept plan request', 'plan-request.index')) instanceof RedirectResponse) return $redirect;
+            if (($redirect = self::guard($request, PermissionsConstants::AC_PL_RQ, VW::PLN_RQ . '.index')) instanceof RedirectResponse) return $redirect;
             try {
                 $planReq = PlanRequest::find($id);
-                if (!$planReq) return defaultUndefinedException($request, new \Exception('Request not found'), $action, route('plan-request.index'));
+                if (!$planReq) return defaultUndefinedException($request, new \Exception('Request not found'), $action, route(VW::PLN_RQ . '.index'));
                 $user = User::find($planReq->user_id);
                 if ($response === 1) {
                     $user?->update(['requested_plan' => 0, 'plan' => $planReq->plan_id]);

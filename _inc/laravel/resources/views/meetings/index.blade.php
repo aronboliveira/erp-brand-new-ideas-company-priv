@@ -84,7 +84,7 @@
                             </tr>
                             </thead>
                             <tbody class="font-style">
-                            @if(is_array($meetings) && count($meetings) || $meetings instanceof Collection && $meetings->isNotEmpty())
+                            @if(Utility::isFilled($meetings))
                                 @foreach ($meetings as $meeting)
                                     <tr>
                                         <td>{{ !empty($meeting->title) ? $meeting->title : __('Meeting title was not available.') }}</td>

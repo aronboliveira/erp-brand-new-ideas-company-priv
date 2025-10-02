@@ -335,7 +335,7 @@ Object.keys(t).forEach(
                 try{
                     const project_id=$('#project_id').val();
                     const user_id=$(el).attr('data-id');
-                    const url='{{ route(ViewsConstants::PRJ . ".invite.user.member") }}';
+                    const url='{{ route(VW::PRJ . ".invite.user.member") }}';
                     $.ajax({
                     url,
                     method:'POST',

@@ -5,12 +5,11 @@
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use App\Config\Constants\ViewsConstants as VW;
     use Illuminate\Support\Facades\Route;
 
-    $list = (is_array($deductionoptions ?? null) || ($deductionoptions ?? null) instanceof \Illuminate\Support\Collection)
-        ? $deductionoptions
-        : [];
+    $list = Utility::isFilled($deductionoptions) ? $deductionoptions : ['' => __('No deduction options available')];
     $langValue = $lang ?? (class_exists(Utility::class) ? Utility::fetchUserLang() : null);
     $dashboardBaseRouteName     = 'dashboard';
     $dashboardKebabRouteName    = Str::kebab($dashboardBaseRouteName);

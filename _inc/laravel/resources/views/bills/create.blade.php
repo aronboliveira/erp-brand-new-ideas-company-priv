@@ -95,7 +95,7 @@
                                         ) ?? 'Vendor fetch route is unavailable. Please contact technical support or your domain administrator.';
                                     $vendorSelectId = 'vendor_select';
                                 @endphp
-                                @if((is_array($vendors) && count($vendors)) || ($vendors instanceof Collection && $vendors->isNotEmpty()))
+                                @if(!empty($vendors) && ((is_array($vendors) && count($vendors)) || ($vendors instanceof Collection && $vendors->isNotEmpty())))
                                     {{ Form::select('vendor_id', $vendors, $vendorId, [
                                         'class'         => VC::FM_CT_SL,
                                         'id'            => $vendorSelectId,

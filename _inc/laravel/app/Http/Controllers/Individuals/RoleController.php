@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Config\Constants\{DatabaseConstants, PermissionsConstants};
+use App\Config\Constants\{DatabaseConstants, PermissionsConstants, ViewsConstants as VW};
 use App\Models\{Permission, Role};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{
@@ -22,7 +22,7 @@ class RoleController extends Controller
     use ChecksLogin, ChecksPermissions;
 
     private const SINGULAR = 'role';
-    private const REDIRECT_ROUTE = self::SINGULAR . '.index';
+    private const REDIRECT_ROUTE = VW::RL . '.index';
 
     public function index(Request $request): RedirectResponse|View
     {
@@ -34,7 +34,7 @@ class RoleController extends Controller
             if (($c = self::guard($request, PermissionsConstants::MNG_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             try {
                 $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-                $view = self::SINGULAR . '.' . __FUNCTION__;
+                $view = VW::RL . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
                 Log::debug($method . ' loaded', ['count' => $roles->count()]);
                 return ViewFacade::make($view, compact(DatabaseConstants::TABLE_ROLES));
@@ -57,7 +57,7 @@ class RoleController extends Controller
                 $permissions = $user->type == PermissionsConstants::SA
                     ? Permission::pluck('name', 'id')->toArray()
                     : $user?->roles->flatMap->permissions->pluck('name', 'id')->toArray();
-                $view = self::SINGULAR . '.' . __FUNCTION__;
+                $view = VW::RL . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
                 return ViewFacade::make($view, compact(DatabaseConstants::TABLE_PERMISSIONS));
             } catch (\Throwable $e) {
@@ -103,7 +103,7 @@ class RoleController extends Controller
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
-        return $this->measureProfile($action, function () use ($request, $role, $method) {
+        return $this->measureProfile($action, function () use ($request, $role, $method, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::ED_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
@@ -111,7 +111,7 @@ class RoleController extends Controller
                 $permissions = $user->type == PermissionsConstants::SA
                     ? Permission::pluck('name', 'id')->toArray()
                     : $user?->roles->flatMap->permissions->pluck('name', 'id')->toArray();
-                $view = self::SINGULAR . '.' . __FUNCTION__;
+                $view = VW::RL . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
                 return ViewFacade::make($view, compact(self::SINGULAR, DatabaseConstants::TABLE_PERMISSIONS));
             } catch (\Throwable $e) {

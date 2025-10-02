@@ -36,7 +36,7 @@
                 {{ Form::label('clients', __('Clients'), ['class' => VC::FM_LB]) }}
                     {{ Form::select(
                         'clients[' . $client->id . ']',
-                        @if((is_array($clients) && count($clients)) || $clients instanceof Collection && $clients->isNotEmpty()) $clients @else [__('No clients available.')] @endif,
+                        Utility::isFilled($clients) ? $clients : [__('No clients available.')],
                         false,
                         [
                             'class'    => VC::FM_CT . ' select2',

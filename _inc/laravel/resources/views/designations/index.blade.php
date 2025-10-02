@@ -48,7 +48,7 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @if((is_array($designations) && count($designations)) || (($designations ?? null) instanceof Collection && $designations->isNotEmpty()))
+                                @if(Utility::isFilled($designations))
                                     @foreach ($designations as $designation)
                                         @php
                                             $dep = Department::where('id', $designation->department_id)->first();

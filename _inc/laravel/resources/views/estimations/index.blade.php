@@ -102,8 +102,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                                @if((is_array($estimations) && count($estimations)) || ($estimations instanceof Collection && 
-                                $estimations->isNotEmpty()))
+                                @if(Utility::isFilled($estimations))
                                     @php
                                         $isPriceFormatAvailable = method_exists($user, 'priceFormat');
                                         $isDateFormatAvailable  = method_exists($user, 'dateFormat');

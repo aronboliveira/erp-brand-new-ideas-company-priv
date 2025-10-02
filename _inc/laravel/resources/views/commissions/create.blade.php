@@ -37,7 +37,7 @@
             </div>
             <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('type', __('Type'), ['class' => VC::FM_LB]) }}
-                @if((is_array($commissions) && count($commissions)) || ($commissions instanceof \Illuminate\Support\Collection && !$commissions->isEmpty()))
+                @if(!empty($commissions) && ((is_array($commissions) && count($commissions)) || ($commissions instanceof \Illuminate\Support\Collection && !$commissions->isEmpty())))
                     {{ Form::select('type', $commissions, null, ['class' => VC::FM_CT . ' select amount_type', 'required' => 'required']) }}
                 @else
                     {{ Form::select('type', ['' => __('No commission types available')], null, ['class' => VC::FM_CT . ' select amount_type', 'disabled' => 'disabled']) }}

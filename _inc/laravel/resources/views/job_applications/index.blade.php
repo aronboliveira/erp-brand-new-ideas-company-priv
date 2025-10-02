@@ -93,7 +93,7 @@
                             $stageId = data_get($stage,'id');
                             $stageTitle = data_get($stage,'title',__('No stage title available'));
                             $apps = method_exists($stage,'applications') ? $stage->applications($filters) : [];
-                            $appsList = (is_array($apps) && count($apps)) ? $apps : (($apps instanceof \Illuminate\Support\Collection && $apps->isNotEmpty()) ? $apps : []);
+                            $appsList = Utility::isFilled($apps) ? $apps : [];
                             $containerIds[] = 'task-list-'.$stageId;
                         @endphp
                         <div class="col">

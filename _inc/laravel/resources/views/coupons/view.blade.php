@@ -1,6 +1,7 @@
 @php
     use App\Config\Constants\{ExtendingLayoutsConstants, StacksConstants, YieldingConstants};
     use Illuminate\Support\Facades\Route;
+    use App\Models\Utility;
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -27,7 +28,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $list = (($userCoupons ?? null) instanceof Collection || is_array($userCoupons ?? null)) ? $userCoupons : [];
+                                    $list = Utility::isFilled($userCoupons) ? $userCoupons : [];
                                 @endphp
                                 @forelse ($list as $userCoupon)
                                     @php

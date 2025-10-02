@@ -76,7 +76,7 @@
             @if (session('message'))
                 @php $msg = session('message'); @endphp
                 <p class="alert text-center">
-                    <strong>{{ is_array($msg) ? (data_get($msg,'message') ?: __('No message available')) : $msg }}</strong>
+                    <strong>{{ !empty($msg) && is_array($msg) ? (data_get($msg,'message') ?: __('No message available')) : $msg }}</strong>
                 </p>
                 @php(Session::forget('message'))
             @endif

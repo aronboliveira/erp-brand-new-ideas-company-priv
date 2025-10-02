@@ -84,7 +84,7 @@
                 <hr class="my-0">
                 @php
                     $priorities = ProjectTask::$priority;
-                    $isCountable = is_array($priorities) && count($priorities) > 0 || $priorities instanceof Collection && $priorities->isNotEmpty();
+                    $isCountable = Utility::isFilled($priorities);
                 @endphp
                 @if($isCountable)
                     @foreach($priorities as $key => $val)

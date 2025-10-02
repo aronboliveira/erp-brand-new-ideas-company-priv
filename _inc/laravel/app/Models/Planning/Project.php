@@ -42,6 +42,20 @@ class Project extends Model
 
     private static $projectTask = NULL;
 
+    public static $project_status = [
+        'in_progress' => 'In Progress',
+        'on_hold' => 'On Hold',
+        'complete' => 'Complete',
+        'canceled' => 'Canceled'
+    ];
+
+    public static $status_color = [
+        'on_hold' => 'warning',
+        'in_progress' => 'info',
+        'complete' => 'success',
+        'canceled' => 'danger',
+    ];
+
     public function milestones(): HasMany
     {
         return $this->hasMany(\App\Models\Milestone::class, ProjectsConstants::COL_PJ_ID, 'id');

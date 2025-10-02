@@ -54,7 +54,7 @@ if (isset($purchase) && !empty($purchase)) {
 
     // Settings data
     try {
-        $creatorId = is_array($purchase)
+        $creatorId = Utility::isFilled($purchase)
             ? ($purchase[DatabaseConstants::TABLE_CREATOR] ?? null)
             : (data_get($purchase, DatabaseConstants::TABLE_CREATOR) ?? data_get($purchase, 'created_by'));
         $settings_data ??= Utility::settingsById($creatorId);

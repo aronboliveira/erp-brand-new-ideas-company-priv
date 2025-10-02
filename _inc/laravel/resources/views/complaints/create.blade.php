@@ -64,7 +64,7 @@
             <script defer src="{{ asset('assets/js/routes/complaints/generate.js') }}"></script>
         @endif
         @php
-            $isEmployeesEmpty = is_array($employees) && count($employees) === 0 || $employees instanceof Collection && $employees->isEmpty();
+            $isEmployeesEmpty = empty($employees) || (is_array($employees) && count($employees) === 0) || ($employees instanceof Collection && $employees->isEmpty());
         @endphp
         <div class="{{ VC::RW }}">
             @if($user?->{UsersConstants::COL_TP} !== 'employee')

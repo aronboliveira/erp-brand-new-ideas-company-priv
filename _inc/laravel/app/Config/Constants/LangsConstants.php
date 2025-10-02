@@ -7117,97 +7117,129 @@ class LangsConstants
 				'email_template_route_unavailable' => 'مسار قالب البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
 				'email_status_language_route_unavailable' => 'مسار لغة حالة البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
 				'email_template_status_language_route_unavailable' => 'مسار لغة حالة قالب البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
-				'email_settings_route_unavailable' => 'مسار إعدادات البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR
+				'email_settings_route_unavailable' => 'مسار إعدادات البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
+				'email_template_update_route_unavailable' => 'مسار تحديث قالب البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR,
+				'email_template_manage_language_route_unavailable' => 'مسار إدارة لغة قالب البريد الإلكتروني غير متاح. ' . self::DELEGATION_AR
 			],
 			'da' => [
 				'email_template_route_unavailable' => 'E-mail-skabelonrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'email_status_language_route_unavailable' => 'E-mail status sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'email_template_status_language_route_unavailable' => 'E-mail skabelon status sprogrute er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'email_settings_route_unavailable' => 'E-mail indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA
+				'email_settings_route_unavailable' => 'E-mail indstillingsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'email_template_update_route_unavailable' => 'E-mail-skabelonopdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'email_template_manage_language_route_unavailable' => 'E-mail-skabelonstyringssprogrute er ikke tilgængelig. ' . self::DELEGATION_DA
 			],
 			'de' => [
 				'email_template_route_unavailable' => 'E-Mail-Vorlagen-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'email_status_language_route_unavailable' => 'E-Mail-Status-Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'email_template_status_language_route_unavailable' => 'E-Mail-Vorlagen-Status-Sprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'email_settings_route_unavailable' => 'E-Mail-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE
+				'email_settings_route_unavailable' => 'E-Mail-Einstellungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'email_template_update_route_unavailable' => 'E-Mail-Vorlagen-Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'email_template_manage_language_route_unavailable' => 'E-Mail-Vorlagen-Verwaltungssprachenroute ist nicht verfügbar. ' . self::DELEGATION_DE
 			],
 			'en' => [
 				'email_template_route_unavailable' => 'Email Template route is unavailable. ' . self::DELEGATION_EN,
 				'email_status_language_route_unavailable' => 'Email status language route is unavailable. ' . self::DELEGATION_EN,
 				'email_template_status_language_route_unavailable' => 'Email template status language route is unavailable. ' . self::DELEGATION_EN,
-				'email_settings_route_unavailable' => 'Email settings route is unavailable. ' . self::DELEGATION_EN
+				'email_settings_route_unavailable' => 'Email settings route is unavailable. ' . self::DELEGATION_EN,
+				'email_template_update_route_unavailable' => 'Email template update route is unavailable. ' . self::DELEGATION_EN,
+				'email_template_manage_language_route_unavailable' => 'Email template manage language route is unavailable. ' . self::DELEGATION_EN
 			],
 			'es' => [
 				'email_template_route_unavailable' => 'La ruta de plantilla de correo electrónico no está disponible. ' . self::DELEGATION_ES,
 				'email_status_language_route_unavailable' => 'La ruta de idioma de estado de correo electrónico no está disponible. ' . self::DELEGATION_ES,
 				'email_template_status_language_route_unavailable' => 'La ruta de idioma de estado de plantilla de correo electrónico no está disponible. ' . self::DELEGATION_ES,
-				'email_settings_route_unavailable' => 'La ruta de configuración de correo electrónico no está disponible. ' . self::DELEGATION_ES
+				'email_settings_route_unavailable' => 'La ruta de configuración de correo electrónico no está disponible. ' . self::DELEGATION_ES,
+				'email_template_update_route_unavailable' => 'La ruta de actualización de plantilla de correo electrónico no está disponible. ' . self::DELEGATION_ES,
+				'email_template_manage_language_route_unavailable' => 'La ruta de administración de idioma de plantilla de correo electrónico no está disponible. ' . self::DELEGATION_ES
 			],
 			'fr' => [
 				'email_template_route_unavailable' => 'La route du modèle d\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
 				'email_status_language_route_unavailable' => 'La route de langue du statut de l\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
 				'email_template_status_language_route_unavailable' => 'La route de langue du statut du modèle d\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
-				'email_settings_route_unavailable' => 'La route des paramètres e-mail n\'est pas disponible. ' . self::DELEGATION_FR
+				'email_settings_route_unavailable' => 'La route des paramètres e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
+				'email_template_update_route_unavailable' => 'La route de mise à jour du modèle d\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR,
+				'email_template_manage_language_route_unavailable' => 'La route de gestion de la langue du modèle d\'e-mail n\'est pas disponible. ' . self::DELEGATION_FR
 			],
 			'he' => [
 				'email_template_route_unavailable' => 'נתיב תבנית דוא"ל אינו זמין. ' . self::DELEGATION_HE,
 				'email_status_language_route_unavailable' => 'נתיב שפת סטטוס דוא"ל אינו זמין. ' . self::DELEGATION_HE,
 				'email_template_status_language_route_unavailable' => 'נתיב שפת סטטוס תבנית דוא"ל אינו זמין. ' . self::DELEGATION_HE,
-				'email_settings_route_unavailable' => 'נתיב הגדרות דוא"ל אינו זמין. ' . self::DELEGATION_HE
+				'email_settings_route_unavailable' => 'נתיב הגדרות דוא"ל אינו זמין. ' . self::DELEGATION_HE,
+				'email_template_update_route_unavailable' => 'נתיב עדכון תבנית דוא"ל אינו זמין. ' . self::DELEGATION_HE,
+				'email_template_manage_language_route_unavailable' => 'נתיב ניהול שפת תבנית דוא"ל אינו זמין. ' . self::DELEGATION_HE
 			],
 			'it' => [
 				'email_template_route_unavailable' => 'La rotta del modello e-mail non è disponibile. ' . self::DELEGATION_IT,
 				'email_status_language_route_unavailable' => 'La rotta della lingua dello stato dell\'e-mail non è disponibile. ' . self::DELEGATION_IT,
 				'email_template_status_language_route_unavailable' => 'La rotta della lingua dello stato del modello e-mail non è disponibile. ' . self::DELEGATION_IT,
-				'email_settings_route_unavailable' => 'La rotta delle impostazioni e-mail non è disponibile. ' . self::DELEGATION_IT
+				'email_settings_route_unavailable' => 'La rotta delle impostazioni e-mail non è disponibile. ' . self::DELEGATION_IT,
+				'email_template_update_route_unavailable' => 'La rotta di aggiornamento del modello e-mail non è disponibile. ' . self::DELEGATION_IT,
+				'email_template_manage_language_route_unavailable' => 'La rotta di gestione della lingua del modello e-mail non è disponibile. ' . self::DELEGATION_IT
 			],
 			'ja' => [
 				'email_template_route_unavailable' => 'メールテンプレートルートは利用できません。' . self::DELEGATION_JA,
 				'email_status_language_route_unavailable' => 'メールステータス言語ルートは利用できません。' . self::DELEGATION_JA,
 				'email_template_status_language_route_unavailable' => 'メールテンプレートステータス言語ルートは利用できません。' . self::DELEGATION_JA,
-				'email_settings_route_unavailable' => 'メール設定ルートは利用できません。' . self::DELEGATION_JA
+				'email_settings_route_unavailable' => 'メール設定ルートは利用できません。' . self::DELEGATION_JA,
+				'email_template_update_route_unavailable' => 'メールテンプレート更新ルートは利用できません。' . self::DELEGATION_JA,
+				'email_template_manage_language_route_unavailable' => 'メールテンプレート管理言語ルートは利用できません。' . self::DELEGATION_JA
 			],
 			'nl' => [
 				'email_template_route_unavailable' => 'E-mailsjabloonroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'email_status_language_route_unavailable' => 'E-mail status taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
 				'email_template_status_language_route_unavailable' => 'E-mailsjabloon status taalroute is niet beschikbaar. ' . self::DELEGATION_NL,
-				'email_settings_route_unavailable' => 'E-mailinstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL
+				'email_settings_route_unavailable' => 'E-mailinstellingenroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'email_template_update_route_unavailable' => 'E-mailsjabloon update route is niet beschikbaar. ' . self::DELEGATION_NL,
+				'email_template_manage_language_route_unavailable' => 'E-mailsjabloon beheer taalroute is niet beschikbaar. ' . self::DELEGATION_NL
 			],
 			'pl' => [
 				'email_template_route_unavailable' => 'Trasa szablonu e-mail jest niedostępna. ' . self::DELEGATION_PL,
 				'email_status_language_route_unavailable' => 'Trasa języka statusu e-mail jest niedostępna. ' . self::DELEGATION_PL,
 				'email_template_status_language_route_unavailable' => 'Trasa języka statusu szablonu e-mail jest niedostępna. ' . self::DELEGATION_PL,
-				'email_settings_route_unavailable' => 'Trasa ustawień e-mail jest niedostępna. ' . self::DELEGATION_PL
+				'email_settings_route_unavailable' => 'Trasa ustawień e-mail jest niedostępna. ' . self::DELEGATION_PL,
+				'email_template_update_route_unavailable' => 'Trasa aktualizacji szablonu e-mail jest niedostępna. ' . self::DELEGATION_PL,
+				'email_template_manage_language_route_unavailable' => 'Trasa zarządzania językiem szablonu e-mail jest niedostępna. ' . self::DELEGATION_PL
 			],
 			'pt' => [
 				'email_template_route_unavailable' => 'A rota de modelo de e-mail não está disponível. ' . self::DELEGATION_PT,
 				'email_status_language_route_unavailable' => 'A rota de idioma do estado do e-mail não está disponível. ' . self::DELEGATION_PT,
 				'email_template_status_language_route_unavailable' => 'A rota de idioma do estado do modelo de e-mail não está disponível. ' . self::DELEGATION_PT,
-				'email_settings_route_unavailable' => 'A rota de definições de e-mail não está disponível. ' . self::DELEGATION_PT
+				'email_settings_route_unavailable' => 'A rota de definições de e-mail não está disponível. ' . self::DELEGATION_PT,
+				'email_template_update_route_unavailable' => 'A rota de atualização do modelo de e-mail não está disponível. ' . self::DELEGATION_PT,
+				'email_template_manage_language_route_unavailable' => 'A rota de gestão de idioma do modelo de e-mail não está disponível. ' . self::DELEGATION_PT
 			],
 			'pt-br' => [
 				'email_template_route_unavailable' => 'A rota de modelo de e-mail não está disponível. ' . self::DELEGATION_PTBR,
 				'email_status_language_route_unavailable' => 'A rota de idioma do status do e-mail não está disponível. ' . self::DELEGATION_PTBR,
 				'email_template_status_language_route_unavailable' => 'A rota de idioma do status do modelo de e-mail não está disponível. ' . self::DELEGATION_PTBR,
-				'email_settings_route_unavailable' => 'A rota de configurações de e-mail não está disponível. ' . self::DELEGATION_PTBR
+				'email_settings_route_unavailable' => 'A rota de configurações de e-mail não está disponível. ' . self::DELEGATION_PTBR,
+				'email_template_update_route_unavailable' => 'A rota de atualização do modelo de e-mail não está disponível. ' . self::DELEGATION_PTBR,
+				'email_template_manage_language_route_unavailable' => 'A rota de gerenciamento de idioma do modelo de e-mail não está disponível. ' . self::DELEGATION_PTBR
 			],
 			'ru' => [
 				'email_template_route_unavailable' => 'Маршрут шаблона электронной почты недоступен. ' . self::DELEGATION_RU,
 				'email_status_language_route_unavailable' => 'Маршрут языка состояния электронной почты недоступен. ' . self::DELEGATION_RU,
 				'email_template_status_language_route_unavailable' => 'Маршрут языка состояния шаблона электронной почты недоступен. ' . self::DELEGATION_RU,
-				'email_settings_route_unavailable' => 'Маршрут настроек электронной почты недоступен. ' . self::DELEGATION_RU
+				'email_settings_route_unavailable' => 'Маршрут настроек электронной почты недоступен. ' . self::DELEGATION_RU,
+				'email_template_update_route_unavailable' => 'Маршрут обновления шаблона электронной почты недоступен. ' . self::DELEGATION_RU,
+				'email_template_manage_language_route_unavailable' => 'Маршрут управления языком шаблона электронной почты недоступен. ' . self::DELEGATION_RU
 			],
 			'tr' => [
 				'email_template_route_unavailable' => 'E-posta Şablonu rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'email_status_language_route_unavailable' => 'E-posta durum dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'email_template_status_language_route_unavailable' => 'E-posta şablonu durum dil rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'email_settings_route_unavailable' => 'E-posta ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR
+				'email_settings_route_unavailable' => 'E-posta ayarları rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'email_template_update_route_unavailable' => 'E-posta şablonu güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'email_template_manage_language_route_unavailable' => 'E-posta şablonu yönetim dili rotası kullanılamıyor. ' . self::DELEGATION_TR
 			],
 			'zh' => [
 				'email_template_route_unavailable' => '电子邮件模板路由不可用。' . self::DELEGATION_ZH,
 				'email_status_language_route_unavailable' => '邮件状态语言路由不可用。' . self::DELEGATION_ZH,
 				'email_template_status_language_route_unavailable' => '邮件模板状态语言路由不可用。' . self::DELEGATION_ZH,
-				'email_settings_route_unavailable' => '电子邮件设置路由不可用。' . self::DELEGATION_ZH
+				'email_settings_route_unavailable' => '电子邮件设置路由不可用。' . self::DELEGATION_ZH,
+				'email_template_update_route_unavailable' => '电子邮件模板更新路由不可用。' . self::DELEGATION_ZH,
+				'email_template_manage_language_route_unavailable' => '电子邮件模板管理语言路由不可用。' . self::DELEGATION_ZH
 			]
 		],
 		ViewsConstants::EMP => [

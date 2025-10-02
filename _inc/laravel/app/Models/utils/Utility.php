@@ -243,6 +243,10 @@ class Utility extends Model
         ];
     }
 
+    public static function isFilled(mixed $list): bool {
+        return !empty($list) && (is_array($list) ? count($list) : ($list instanceof Collection ? $list->isNotEmpty() : false));
+    }
+
     public static function settings(): array
     {
         $output = new ConsoleOutput();

@@ -56,7 +56,7 @@
                     @else
                         @php
                             $responses = data_get($form, 'response');
-                            $hasResponses = (is_array($responses) && count($responses) > 0) || ($responses instanceof Collection && $responses->isNotEmpty());
+                            $hasResponses = Utility::isFilled($responses);
                         @endphp
                         <div class="table-responsive">
                             <table class="table datatable">

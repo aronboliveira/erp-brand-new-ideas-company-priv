@@ -81,7 +81,7 @@ class ClientController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $function) {
             try {
                 $t = microtime(true);
-                self::_authorize($request, 'create client');
+                self::_authorize($request, PermissionsConstants::CR_CLT);
                 $this->logExecutionTime($t, $action . '::authorize', 'ok');
 
                 $isAjax = method_exists($request, 'ajax') ? $request->ajax() : ($request->ajax ?? false);
@@ -129,7 +129,7 @@ class ClientController extends Controller
                 $creator = $uor;
 
                 $t = microtime(true);
-                self::_authorize($request, 'create client');
+                self::_authorize($request, PermissionsConstants::CR_CLT);
                 $this->logExecutionTime($t, $action . '::authorize', 'ok');
 
                 $t = microtime(true);

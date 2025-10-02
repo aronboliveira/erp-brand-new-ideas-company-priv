@@ -2,7 +2,7 @@
     use App\Config\Constants\{ViewsConstants as VW, ViewClassNamesConstants as VC, StacksConstants};
     use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
-    use Illuminate\Support\{Facades\Route, Str};
+    use Illuminate\Support\{Facades\Route, Str, Collection};
     $lang = Utility::fetchUserLang();
     $satDedBaseName     = VW::STR_DD;
     $satDedKebabName    = Str::kebab($satDedBaseName);
@@ -28,7 +28,7 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::FM_GCB6 }}">
             {{ Form::label('deduction_option', __('Deduction Options'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
-            {{ Form::select('deduction_option', $deduction_options, null, [ 'class' => VC::FM_CT_SL, 'required' => 'required' ]) }}
+            {{ Form::select('deduction_option', (Utility::isFilled($deduction_options)) ? $deduction_options : ['' => ___('No deduction option available')], null, [ 'class' => VC::FM_CT_SL, 'required' => 'required' ]) }}
         </div>
 
         <div class="{{ VC::FM_GCB6 }}">
@@ -38,7 +38,7 @@
 
         <div class="{{ VC::FM_GCB6 }}">
             {{ Form::label('type', __('Type'), [ 'class' => VC::FM_LB ]) }}
-            {{ Form::select('type', $saturationdeduc, null, [ 'class' => VC::FM_CT_SL . ' amount_type', 'required' => 'required' ]) }}
+            {{ Form::select('type', (Utility::isFilled($saturationdeduc)) ? $saturationdeduc : ['' => __('No type available')], null, [ 'class' => VC::FM_CT_SL . ' amount_type', 'required' => 'required' ]) }}
         </div>
 
         <div class="{{ VC::FM_GCB6 }}">

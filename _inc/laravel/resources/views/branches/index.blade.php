@@ -57,7 +57,7 @@
         @endcan
     </div>
 @endsection
-@if(!is_array($branches) && $branches->count() || $branches instanceof Collection && $branches->isNotEmpty())
+@if(!empty($branches) && ((is_array($branches) && $branches->count()) || ($branches instanceof Collection && $branches->isNotEmpty())))
     @section(YieldingConstants::ADM_CTT)
         <div class="{{ VC::RW }}">
             <div class="col-3">

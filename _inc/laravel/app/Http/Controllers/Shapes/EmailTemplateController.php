@@ -132,7 +132,7 @@ class EmailTemplateController extends Controller
         });
     }
 
-    public function show(int $id): RedirectResponse
+    public function show(int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
         $cls    = static::class;
@@ -144,7 +144,7 @@ class EmailTemplateController extends Controller
         });
     }
 
-    public function edit(int $id): RedirectResponse
+    public function edit(int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
         $cls    = static::class;
@@ -156,7 +156,7 @@ class EmailTemplateController extends Controller
         });
     }
 
-    public function update(Request $req, int $id): RedirectResponse
+    public function update(Request $req, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
         $cls    = static::class;
@@ -190,7 +190,7 @@ class EmailTemplateController extends Controller
         });
     }
 
-    public function destroy(int $id): RedirectResponse
+    public function destroy(int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
         $cls    = static::class;
@@ -203,12 +203,12 @@ class EmailTemplateController extends Controller
     }
 
     public const MNG_EM_LNG = 'manageEmailLang';
-    public function manageEmailLang(int $id, string $lang = 'en'): Response|RedirectResponse
+    public function manageEmailLang(int|string $id, string $lang = DatabaseConstants::DEFAULT_LANG): Response|RedirectResponse
     {
         $action   = __FUNCTION__;
         $cls      = static::class;
         $sig      = "$cls::$action";
-        $viewPath = 'email_templates.show';
+        $viewPath = VW::EML_TMP . '.show';
 
         return $this->measureProfile($action, function () use ($id, $lang, $sig, $viewPath) {
             $user = Auth::user();
@@ -245,7 +245,7 @@ class EmailTemplateController extends Controller
     }
 
     public const STR_EM_LNG = 'storeEmailLang';
-    public function storeEmailLang(Request $req, int $id): RedirectResponse
+    public function storeEmailLang(Request $req, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
         $cls    = static::class;

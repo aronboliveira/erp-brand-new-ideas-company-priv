@@ -127,7 +127,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $hasBills  = (is_array($bills ?? null) && count($bills ?? [])) || (($bills ?? null) instanceof Collection && $bills->isNotEmpty());
+                                    $hasBills  = Utility::isFilled($bills);
                                     $__shown   = false;
 
                                     $hasBillNumberFormat = is_object($user ?? null) && method_exists($user, 'billNumberFormat');
@@ -139,7 +139,7 @@
                                     @foreach ($bills as $bill)
                                         @php
                                             $notes    = $bill->debitNote ?? [];
-                                            $hasNotes = (is_array($notes) && count($notes)) || ($notes instanceof Collection && $notes->isNotEmpty());
+                                            $hasNotes = Utility::isFilled($notes);
                                             $vname    = (isset($bill->vendor) && isset($bill->vendor->name)) ? $bill->vendor->name : __('No name available for vendor');
                                         @endphp
                                         @if($hasNotes)

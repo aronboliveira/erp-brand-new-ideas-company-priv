@@ -134,7 +134,7 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
         @php
-            $list = (($contracts ?? null) instanceof Collection || is_array($contracts ?? null)) ? $contracts : [];
+            $list = Utility::isFilled($contracts) ? $contracts : [];
         @endphp
         @forelse($list as $contract)
             @php

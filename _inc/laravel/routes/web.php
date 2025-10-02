@@ -276,7 +276,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post('change-password', [UserController::class, UserController::UPD_PSW])
         ->name(VW::USR . '.password.update');
 
-    Route::any('user-reset-password/{id}', [UserController::class, UserController::USR_PSW])->name(VW::USR . '.reset');
+    Route::match(['GET', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 'user-reset-password/{id}', [UserController::class, UserController::USR_PSW])->name(VW::USR . '.reset');
 
     Route::post('user-reset-password/{id}', [UserController::class, UserController::USR_PSW_RST])->name(VW::USR . '.password.update');
 

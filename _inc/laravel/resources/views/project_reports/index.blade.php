@@ -88,7 +88,7 @@
                                             {{ Form::label('users', __('Users'), ['class' => VC::FM_LB]) }}
                                             <select class="select form-select" name="all_users" id="all_users">
                                                 <option value="">{{ __('All Users') }}</option>
-                                                @if(is_array($usersList) && count($usersList) || ($usersList instanceof Collection && $usersList->isNotEmpty()))
+                                                @if(Utility::isFilled($usersList))
                                                     @foreach ($usersList as $usr)
                                                         <option value="{{ $usr->id }}" {{ (string)request('all_users') === (string)$usr->id ? 'selected' : '' }}>
                                                             {{ $usr->name }}
@@ -158,7 +158,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @if(is_array($projectsList) && count($projectsList) || ($projectsList instanceof Collection && $projectsList->isNotEmpty()))
+                        @if(Utility::isFilled($projectsList))
                             @foreach ($projectsList as $proj)
                                 @php
                                     $projId    = data_get($proj,'id');
@@ -197,7 +197,7 @@
                                     <td>{{ $endTxt }}</td>
                                     <td>
                                         <div class="avatar-group" id="project_{{ $projId }}">
-                                            @if(is_array($usersSafe) && count($usersSafe) || ($usersSafe instanceof Collection && $usersSafe->isNotEmpty()))
+                                            @if(Utility::isFilled($usersSafe))
                                                 @foreach($usersSafe as $idx => $usr)
                                                     @if($idx < 3)
                                                         <a href="#" class="{{ VC::AV_CC }}">

@@ -87,7 +87,7 @@
                 @php
                     $perfName = (string) (data_get($perf, 'name') ?: __('Indicator group name unavailable'));
                     $typesRaw = data_get($perf, 'types');
-                    $typesIsList = (is_array($typesRaw) && count($typesRaw) > 0) || ($typesRaw instanceof Collection && $typesRaw->isNotEmpty());
+                    $typesIsList = Utility::isFilled($typesRaw);
                 @endphp
                 <div class="{{ VC::RW }}">
                     <div class="{{ VC::C12 }} {{ VC::MT3 }}">

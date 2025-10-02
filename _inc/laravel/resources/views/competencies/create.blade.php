@@ -39,7 +39,7 @@
             <div class="{{ VC::C12 }}">
                 <div class="{{ VC::FM_G }}">
                     {{ Form::label('type', __('Type'), ['class' => VC::FM_LB]) }}
-                    @if((is_array($performance) && count($performance)) || ($performance instanceof Collection && $performance->isNotEmpty()))
+                    @if(!empty($performance) && ((is_array($performance) && count($performance)) || ($performance instanceof Collection && $performance->isNotEmpty())))
                         {{ Form::select('type', $performance, null, ['class' => VC::FM_CT . ' select amount_type', 'required' => 'required']) }}
                     @else
                         {{ Form::select('type', [__('No Performance option found')], null, ['class' => VC::FM_CT . ' select amount_type', 'required' => 'required', 'disabled' => 'disabled']) }}
@@ -53,7 +53,7 @@
         <input type="submit" value="{{ __('Create') }}" class="{{ VC::BT_PRM }}">
     </div>
 {{ Form::close() }}
-@if((is_array($competencies) && count($competencies)) || ($competencies instanceof Collection && $competencies->isNotEmpty()))
+@if(!empty($competencies) && ((is_array($competencies) && count($competencies)) || ($competencies instanceof Collection && $competencies->isNotEmpty())))
     @php
         $updateName     = ViewsConstants::CPT . '.update';
         $updateRoute    = Route::has($updateName)
@@ -84,7 +84,7 @@
                 <div class="{{ VC::C12 }}">
                     <div class="{{ VC::FM_G }}">
                         {{ Form::label('type', __('Type'), ['class' => VC::FM_LB]) }}
-                        @if((is_array($performance) && count($performance)) || ($performance instanceof Collection && $performance->isNotEmpty()))
+                        @if(!empty($performance) && ((is_array($performance) && count($performance)) || ($performance instanceof Collection && $performance->isNotEmpty())))
                             {{ Form::select('type', $performance, null, ['class' => VC::FM_CT . ' select amount_type', 'required' => 'required']) }}
                         @else
                             {{ Form::select('type', [__('No Performance option found')], null, ['class' => VC::FM_CT . ' select amount_type', 'required' => 'required', 'disabled' => 'disabled']) }}

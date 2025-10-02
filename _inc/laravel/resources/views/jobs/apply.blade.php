@@ -115,7 +115,7 @@
                                 <h2 class="h1 mb-3">{{ data_get($job,'title',__('No job title available')) }}</h2>
                                 @php $skills = array_filter(array_map('trim',explode(',',(string) data_get($job,'skill','')))); @endphp
                                 <div class="d-flex flex-wrap justify-content-center gap-1 mb-4">
-                                    @if(is_array($skills) && count($skills))
+                                    @if(Utility::isFilled($skills))
                                         @foreach($skills as $skill)
                                             <span class="badge rounded p-2 bg-primary">{{ !empty($skill) ? $skill : __('Undefined skill') }}</span>
                                         @endforeach
@@ -176,7 +176,7 @@
                                             </div>
                                         </div>
 
-                                        @if(is_array($applicantFields) && in_array('dob', $applicantFields, true))
+                                        @if(!empty($applicantFields) && is_array($applicantFields) && in_array('dob', $applicantFields, true))
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     {!! Form::label('dob', __('Date of Birth'), ['class' => 'form-label']) !!}
@@ -185,7 +185,7 @@
                                             </div>
                                         @endif
 
-                                        @if(is_array($applicantFields) && in_array('gender', $applicantFields, true))
+                                        @if(!empty($applicantFields) && is_array($applicantFields) && in_array('gender', $applicantFields, true))
                                             <div class="form-group col-md-6">
                                                 {!! Form::label('gender', __('Gender'), ['class' => 'form-label']) !!}
                                                 <div class="d-flex radio-check">
@@ -201,7 +201,7 @@
                                             </div>
                                         @endif
 
-                                        @if(is_array($applicantFields) && in_array('country', $applicantFields, true))
+                                        @if(!empty($applicantFields) && is_array($applicantFields) && in_array('country', $applicantFields, true))
                                             <div class="form-group col-md-6">
                                                 {!! Form::label('country', __('Country'), ['class' => 'form-label']) !!}
                                                 {!! Form::text('country', null, ['class' => 'form-control', 'required' => 'required', 'autocomplete' => 'off']) !!}
@@ -216,7 +216,7 @@
                                             </div>
                                         @endif
 
-                                        @if(is_array($visibilityFields) && in_array('profile', $visibilityFields, true))
+                                        @if(!empty($visibilityFields) && is_array($visibilityFields) && in_array('profile', $visibilityFields, true))
                                             <div class="form-group col-md-6">
                                                 {!! Form::label('profile', __('Profile'), ['class' => 'col-form-label']) !!}
                                                 <input type="file" class="form-control" name="profile" id="profile" data-filename="profile_create">
@@ -225,7 +225,7 @@
                                             </div>
                                         @endif
 
-                                        @if(is_array($visibilityFields) && in_array('resume', $visibilityFields, true))
+                                        @if(!empty($visibilityFields) && is_array($visibilityFields) && in_array('resume', $visibilityFields, true))
                                             <div class="form-group col-md-6">
                                                 {!! Form::label('resume', __('CV / Resume'), ['class' => 'col-form-label']) !!}
                                                 <input type="file" class="form-control" name="resume" id="resume" data-filename="resume_create" required>
@@ -234,7 +234,7 @@
                                             </div>
                                         @endif
 
-                                        @if(is_array($visibilityFields) && in_array('letter', $visibilityFields, true))
+                                        @if(!empty($visibilityFields) && is_array($visibilityFields) && in_array('letter', $visibilityFields, true))
                                             <div class="form-group col-md-12">
                                                 {!! Form::label('cover_letter', __('Cover Letter'), ['class' => 'form-label']) !!}
                                                 {!! Form::textarea('cover_letter', null, ['class' => 'form-control', 'rows' => 3, 'autocomplete' => 'off']) !!}

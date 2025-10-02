@@ -1,5 +1,5 @@
 @php use Illuminate\Support\Collection; @endphp
-@if((is_array($vendor ?? null) && count($vendor ?? [])) || (($vendor ?? null) instanceof Collection && $vendor->isNotEmpty()))
+@if(!empty($vendor) && ((is_array($vendor ?? null) && count($vendor ?? [])) || (($vendor ?? null) instanceof Collection && $vendor->isNotEmpty())))
     @php
         $v = ($vendor instanceof Collection) ? $vendor->toArray() : $vendor;
 

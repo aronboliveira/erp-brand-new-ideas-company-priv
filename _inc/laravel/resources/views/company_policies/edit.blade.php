@@ -68,7 +68,7 @@
             <div class="{{ VC::RW }}">
                 <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                     {{ Form::label('branch', __('Branch'), ['class' => VC::FM_LB]) }}
-                    @if((is_array($branch) && count($branch)) || ($branch instanceof \Illuminate\Support\Collection && !$branch->isEmpty()))
+                    @if(!empty($branch) && ((is_array($branch) && count($branch)) || ($branch instanceof \Illuminate\Support\Collection && !$branch->isEmpty())))
                         {{ Form::select('branch', $branch, null, ['class' => VC::FM_CT . ' select', 'required' => 'required']) }}
                     @else
                         {{ Form::select('branch', ['' => __('No branches available')], null, ['class' => VC::FM_CT . ' select', 'disabled' => 'disabled']) }}

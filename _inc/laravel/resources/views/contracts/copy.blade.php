@@ -35,7 +35,7 @@
 
                 <div class="form-group col-md-6">
                     {{ Form::label('client', __('Client'), ['class' => VC::FM_LB]) }}
-                    @if((is_array($clients) && count($clients)) || ($clients instanceof Collection && $clients->isNotEmpty()))
+                    @if(!empty($clients) && ((is_array($clients) && count($clients)) || ($clients instanceof Collection && $clients->isNotEmpty())))
                         {{ Form::select('client', $clients, null, ['class' => VC::FM_CT_SL . ' select client_select', 'id' => 'client_select']) }}
                     @else
                         {{ Form::select('client', [__('No clients available')], null, ['class' => VC::FM_CT_SL . ' select client_select', 'id' => 'client_select']) }}
@@ -45,7 +45,7 @@
                 <div class="col-md-6 form-group">
                     {{ Form::label('project', __('Project'), ['class' => VC::FM_LB]) }}
                     <div class="project-div">
-                        @if((is_array($project) && count($project)) || ($project instanceof Collection && $project->isNotEmpty()))
+                        @if(!empty($project) && ((is_array($project) && count($project)) || ($project instanceof Collection && $project->isNotEmpty())))
                             {{ Form::select('project', $project, null, ['class' => VC::FM_CT_SL . ' select project_select', 'id' => 'project_id', 'name' => 'project_id[]']) }}
                         @else
                             {{ Form::select('project', [__('No projects available')], null, ['class' => VC::FM_CT_SL . ' select project_select', 'id' => 'project_id', 'name' => 'project_id[]']) }}
@@ -55,7 +55,7 @@
 
                 <div class="form-group col-md-6">
                     {{ Form::label('type', __('Contract Type'), ['class' => VC::FM_LB]) }}
-                    @if((is_array($contractTypes) && count($contractTypes)) || ($contractTypes instanceof Collection && $contractTypes->isNotEmpty()))
+                    @if(!empty($contractTypes) && ((is_array($contractTypes) && count($contractTypes)) || ($contractTypes instanceof Collection && $contractTypes->isNotEmpty())))
                         {{ Form::select('type', $contractTypes, null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}
                     @else
                         {{ Form::select('type', [__('No contract types available')], null, ['class' => VC::FM_CT_SL, 'required' => 'required']) }}

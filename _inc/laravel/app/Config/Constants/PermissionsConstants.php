@@ -34,6 +34,7 @@ class PermissionsConstants
 	public const MNG_SA_DSB = 'manage super admin dashboard';
 
 	// * CLIENTS
+	public const CR_CLT = 'create client';
 	public const MNG_CLT = 'manage client';
 
 	// * CUSTOMERS
@@ -226,6 +227,10 @@ class PermissionsConstants
 	public const CR_PL = 'create plan';
 	public const ED_PL = 'edit plan';
 	public const MNG_CP_PL = 'manage company plan';
+	public const AC_PL_RQ = 'accept plan request';
+	public const RQ_PL = 'request plan';
+	public const VW_PL_RQ = 'view plan request';
+	public const VW_PL_DT = 'view plan details';
 
 	// * POS
 	public const MNG_POS = 'manage pos';

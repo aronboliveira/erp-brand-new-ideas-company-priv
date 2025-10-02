@@ -38,7 +38,7 @@
                     {{ Form::label('users', __('User'), ['class' => 'form-label']) }}
                     {{ Form::select(
                         'users[' . $deal->id . ']',
-                        @if((is_array($users) && count($users) > 0) || $users instanceof \Illuminate\Support\Collection && $users->isNotEmpty()) $users @else [__('No users available for deals')] @endif,
+                        Utility::isFilled($users) ? $users : [__('No users available for deals')],
                         false,
                         [
                             'class'    => 'form-control select2',

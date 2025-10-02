@@ -252,7 +252,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @if(is_array($projUsers) && count($projUsers) || ($projUsers instanceof Collection && $projUsers->isNotEmpty()))
+                                            @if(Utility::isFilled($projUsers))
                                                 @foreach($projUsers as $usr)
                                                     @php
                                                         $total_user_task = ProjectTask::where(PJ::COL_PJ_ID, $project->id)
@@ -313,7 +313,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @if(is_array($projMilestones) && count($projMilestones) || ($projMilestones instanceof Collection && $projMilestones->isNotEmpty()))
+                                            @if(Utility::isFilled($projMilestones))
                                                 @foreach($projMilestones as $milestone)
                                                     <tr>
                                                         <td>{{ $milestone->title ?? __('(no title)') }}</td>
@@ -427,7 +427,7 @@
                                                 <td>{{ $task->end_date ?? __('No end date available') }}</td>
                                                 <td>
                                                     <div class="avatar-group">
-                                                        @if(is_array($taskUsersArr) && count($taskUsersArr) || ($taskUsersArr instanceof Collection && $taskUsersArr->isNotEmpty()))
+                                                        @if(Utility::isFilled($taskUsersArr))
                                                             @foreach($taskUsersArr as $k=>$tu)
                                                                 @if($k<3)
                                                                     <a href="#" class="{{ VC::AV_CC_SM }}"><img src="{{ $tu->getImgImageAttribute() }}" title="{{ $tu?->name }}"></a>

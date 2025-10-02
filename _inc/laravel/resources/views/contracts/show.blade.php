@@ -725,7 +725,7 @@
         $isClient = $user && $userType === PermissionsConstants::CL;
         $statusText = (isset($contract->status) && $contract->status !== '') ? ucfirst($contract->status) : __('No status available');
         $statusListRaw = Contract::status();
-        $statusList = ((is_array($statusListRaw) && count($statusListRaw)) || ($statusListRaw instanceof Collection && $statusListRaw->isNotEmpty())) ? $statusListRaw : [];
+        $statusList = Utility::isFilled($statusListRaw) ? $statusListRaw : [];
         $msgDownload = Utility::fetchLinkMessage($lang, VW::CTC, 'download_pdf_contracts_route_unavailable')
                         ?? 'Contracts PDF download route is unavailable. Please contact technical support or your domain administrator.';
         $msgPreview  = Utility::fetchLinkMessage($lang, VW::CTC, 'preview_route_unavailable')
@@ -883,7 +883,7 @@
                 @php
                     $statusText = (string) (data_get($contract,'status') ? ucfirst(data_get($contract,'status')) : __('No status available'));
                     $statusListRaw = \App\Models\Contract::status();
-                    $statusList = ((is_array($statusListRaw) && !empty($statusListRaw)) || ($statusListRaw instanceof Collection && $statusListRaw->isNotEmpty())) ? $statusListRaw : [];
+                    $statusList = Utility::isFilled($statusListRaw) ? $statusListRaw : [];
                     $statusName = VW::CTC . '.status';
                     $statusUrl  = ($cid !== '' && Route::has($statusName)) ? route($statusName, $cid) : '#';
                 @endphp
@@ -1010,11 +1010,11 @@
                 $hasPriceFormat = $authUser && method_exists($authUser,'priceFormat');
                 $hasDateFormat = $authUser && method_exists($authUser,'dateFormat');
                 $filesRel = $contract->files ?? [];
-                $filesCount = (is_array($filesRel) && count($filesRel)) || ($filesRel instanceof Collection && $filesRel->isNotEmpty()) ? (is_array($filesRel) ? count($filesRel) : $filesRel->count()) : 0;
+                $filesCount = Utility::isFilled($filesRel) ? (is_array($filesRel) ? count($filesRel) : $filesRel->count()) : 0;
                 $commentsRel = $contract->comment ?? [];
-                $commentsCount = (is_array($commentsRel) && count($commentsRel)) || ($commentsRel instanceof Collection && $commentsRel->isNotEmpty()) ? (is_array($commentsRel) ? count($commentsRel) : $commentsRel->count()) : 0;
+                $commentsCount = Utility::isFilled($commentsRel) ? (is_array($commentsRel) ? count($commentsRel) : $commentsRel->count()) : 0;
                 $notesRel = $contract->note ?? [];
-                $notesCount = (is_array($notesRel) && count($notesRel)) || ($notesRel instanceof Collection && $notesRel->isNotEmpty()) ? (is_array($notesRel) ? count($notesRel) : $notesRel->count()) : 0;
+                $notesCount = Utility::isFilled($notesRel) ? (is_array($notesRel) ? count($notesRel) : $notesRel->count()) : 0;
             @endphp
             <div id="useradd-1">
                 <div class="row">

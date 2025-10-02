@@ -6,7 +6,7 @@
 		ViewsConstants as VW,
 		ViewClassNamesConstants as VC
 	};
-	use App\Models\Utility;
+	use App\Models\{Job, Utility};
 	use Illuminate\Support\Facades\{Log, Route};
 	use Illuminate\Support\{Collection, Str};
 	$data ??= [];
@@ -84,12 +84,12 @@
 				<section class="placedjob-section">
 					<div class="{{ VC::CT }}">
 						<div class="section-title bg-light">
-							@php $totaljob = \App\Models\Job::where('created_by',$id ?? null)->count(); @endphp
+							@php $totaljob = Job::where('created_by',$id ?? null)->count(); @endphp
 							<h2 class="h1 mb-3"><span class="text-primary">+{{ (int) $totaljob }}</span> {{ __('Job openings') }}</h2>
 							<p>{{ __('Always looking for better ways to do things, innovate') }} <br> {{ __('and help people achieve their goals') }}.</p>
 						</div>
 						<div class="row g-4">
-							@if((is_array($jobs ?? null) && count($jobs ?? [])) || (($jobs ?? null) instanceof \Illuminate\Support\Collection && $jobs->isNotEmpty()))
+							@if((is_array($jobs ?? null) && count($jobs ?? [])) || (($jobs ?? null) instanceof Collection && $jobs->isNotEmpty()))
 								@foreach($jobs as $job)
 									@php
 										$branch = data_get($job,'branches.name');
@@ -112,7 +112,7 @@
 												<span class="d-inline-block me-2"><i class="ti ti-circle-plus"></i> {{ $positions }} {{ __('position available') }}</span>
 											</div>
 											<div class="d-flex flex-wrap gap-1 align-items-center">
-												@if(is_array($skills) && count($skills))
+												@if(Utility::isFilled($skills))
 													@foreach($skills as $sk)
 														<span class="badge rounded p-2 bg-primary">{{ $sk }}</span>
 													@endforeach

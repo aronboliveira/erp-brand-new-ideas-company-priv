@@ -22,7 +22,7 @@
     $genUrl     = $genRes ? route($genRes, [$aiCtxId]) : '#';
     $genGuard   = Utility::fetchLinkMessage($lang, VW::MT, 'generate_route_unavailable') ?? __('Generate content route for meetings is unavailable. Please contact technical support or your domain administrator.');
     $branchesList  = $branch ?? [];
-    $branchesIsList = (is_array($branchesList) && count($branchesList) > 0) || ($branchesList instanceof Collection && $branchesList->isNotEmpty());
+    $branchesIsList = Utility::isFilled($branchesList);
     $branchOptions = ['' => __('Select Branch'), '0' => __('All Branch')];
     if ($branchesIsList) {
         if ($branchesList instanceof Collection) {

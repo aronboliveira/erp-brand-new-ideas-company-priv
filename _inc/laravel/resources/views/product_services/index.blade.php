@@ -208,13 +208,10 @@
                                         $taxHtml = '-';
                                         $taxId   = data_get($productService,'tax_id');
                                         if (!empty($taxId)) {
-                                            $taxes = \App\Models\Utility::tax($taxId);
+                                            $taxes = Utility::tax($taxId);
                                             $titems = [];
-                                            if (is_array($taxes) && count($taxes)) {
+                                            if (Utility::isFilled($taxes))
                                                 $titems = $taxes;
-                                            } elseif ($taxes instanceof Collection && $taxes->isNotEmpty()) {
-                                                $titems = $taxes;
-                                            }
                                             if (!empty($titems)) {
                                                 $parts = [];
                                                 foreach ($titems as $tx) {

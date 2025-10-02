@@ -378,7 +378,7 @@
                                                                     $totalRate += $price;
                                                                     $totalDiscount += $disc;
                                                                     $maybeTaxes = Utility::tax($item->tax);
-                                                                    $hasTaxes = (is_array($maybeTaxes) && count($maybeTaxes)) || ($maybeTaxes instanceof Collection && $maybeTaxes->isNotEmpty());
+                                                                    $hasTaxes = (!empty($maybeTaxes) && (is_array($maybeTaxes) && count($maybeTaxes) || $maybeTaxes instanceof Collection && $maybeTaxes->isNotEmpty()));
                                                                     if ($hasTaxes) {
                                                                         foreach ($maybeTaxes as $t) { $taxList[] = $t; }
                                                                     }
@@ -602,7 +602,7 @@
                                             return $both !== '' ? $both : 'No bank account available';
                                         };
                                         $paymentsSource = is_object($bill ?? null) ? ($bill->payments ?? null) : null;
-                                        $hasPayments = (is_array($paymentsSource) && count($paymentsSource)) || ($paymentsSource instanceof \Illuminate\Support\Collection && $paymentsSource->isNotEmpty());
+                                        $hasPayments = (!empty($paymentsSource) && ((is_array($paymentsSource) && count($paymentsSource)) || ($paymentsSource instanceof \Illuminate\Support\Collection && $paymentsSource->isNotEmpty())));
                                     @endphp
                                     @if($hasPayments)
                                         @foreach($paymentsSource as $index => $payment)

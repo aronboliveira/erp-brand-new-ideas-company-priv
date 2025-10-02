@@ -214,6 +214,8 @@ class ViewClassNamesConstants
 	// "{{ ViewClassNamesConstants::TXSM }}"
 	public const TXS = 'text-xs';
 	// "{{ ViewClassNamesConstants::TXS }}"
+	public const TXCT = 'text-center';
+	// "{{ ViewClassNamesConstants::TXCT }}"
 	public const TX_LM = 'text-limit';
 	// "{{ ViewClassNamesConstants::TX_LM }}"
 	public const SNN = 'shadow-none';

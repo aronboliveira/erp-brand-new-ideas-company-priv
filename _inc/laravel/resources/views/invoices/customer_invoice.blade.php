@@ -307,7 +307,7 @@
                                                     </span>
                                                 </small>
                                             </div>
-                                            @if (((is_array($customFields) && count($customFields)) || ($customFields instanceof Collection && $customFields->isNotEmpty())) && (!empty($invoice->customField) && (($invoice->customField instanceof Collection && $invoice->customField->isNotEmpty()) || (is_array($invoice->customField) && count($invoice->customField) > 0))))
+                                            @if (Utility::isFilled($customFields) && Utility::isFilled($invoice->customField))
                                                 @foreach ($customFields as $field)
                                                     <div class="{{ VC::C12 }} {{ VC::CM4 }} col-lg-4 {{ VC::JCE }}">
                                                         <small>
@@ -346,7 +346,7 @@
                                                             $totalDiscount = 0;
                                                             $itemsWithCalculations = [];
                                                         @endphp
-                                                        @if((is_array($items) && count($items)) || ($items instanceof Collection && $items->isNotEmpty()))
+                                                        @if(Utility::isFilled($items))
                                                             @foreach ($items as $key => $item)
                                                                 @php
                                                                     $itemTaxes = [];
@@ -357,8 +357,8 @@
                                                                     
                                                                     if (!empty($item->tax)) {
                                                                         $taxes = is_callable([Utility::class, 'tax']) ? Utility::tax($item->tax) : [];
-                                                                        
-                                                                        if((is_array($taxes) && count($taxes)) || ($taxes instanceof Collection && $taxes->isNotEmpty())) {
+
+                                                                        if(Utility::isFilled($taxes)) {
                                                                             if (!$canTaxRate) {
                                                                                 Log::warning("Cannot calculate tax rate for invoice {$invoice->id} item ID {$item->id} because Utility::taxRate is not callable.");
                                                                             }
@@ -466,7 +466,7 @@
                                                                     {{ $canFormatPrice && is_callable([$invoice, 'getTotalDiscount']) ?Utility::priceFormat($settings, $invoice->getTotalDiscount()) : __('Failed to format total discount')}}
                                                                 </td>
                                                             </tr>
-                                                            @if ((is_array($taxesData) && count($taxesData) || $taxesData instanceof Collection && $taxesData->isNotEmpty()))
+                                                            @if (Utility::isFilled($taxesData))
                                                                 @foreach ($taxesData as $taxName => $taxPrice)
                                                                     <tr>
                                                                         <td colspan="6"></td>
@@ -712,7 +712,7 @@
                                                 </td>
                                             </tr>
                                         @endforelse
-                                        @if((is_array($invoice->bankPayments) && count($invoice->bankPayments)) || ($invoice->bankPayments instanceof Collection && $invoice->bankPayments->isNotEmpty()))
+                                        @if(Utility::isFilled($invoice->bankPayments))
                                             @foreach ($invoice->bankPayments as $bankPayment)
                                                 <tr>
                                                     <td>{{$canFormatDate ? (!empty($bankPayment->date) ? Utility::dateFormat($bankPayment->date) : __('No date for bank payment available')) : __('Failed to format bank payment date')}}</td>

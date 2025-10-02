@@ -515,15 +515,15 @@ class UserController extends AppController
     }
 
     public const USR_PSW = 'userPassword';
-    public function userPassword(Request $request, string $encryptedId)
+    public function userPassword(Request $request, string $id)
     {
         $action = __FUNCTION__;
         $cls = __CLASS__;
-        return $this->measureProfile($action, function () use ($request, $encryptedId, $action, $cls) {
+        return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
-                $id   = Crypt::decrypt($encryptedId);
+                $id   = Crypt::decrypt($id);
                 $user = User::findOrFail($id);
                 $view = ViewsConstants::USR . '.reset';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");

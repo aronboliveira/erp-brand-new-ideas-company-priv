@@ -523,7 +523,7 @@
                                     @endphp
                                     {{ Form::select(
                                         'customer_id',
-                                        (is_array($customers) && count($customers) || ($customers instanceof Collection && $customers->isNotEmpty())) ? $customers : [__('No customer available.')],
+                                        Utility::isFilled($customers) ? $customers : [__('No customer available.')],
                                         $customer_id,
                                         [
                                         'class'         => VC::FM_CT . ' select2',
@@ -642,7 +642,7 @@
                                                     'invoice_product_route_unavailable'
                                                 ) ?? 'Invoice product route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
-                                            {{ Form::select('item', (is_array($product_services) && count($product_services)) || ($product_services instanceof Collection && $product_services->isNotEmpty()) ? $product_services : [__('No product service available.')], '', [
+                                            {{ Form::select('item', Utility::isFilled($product_services) ? $product_services : [__('No product service available.')], '', [
                                                 'class'         => VC::FM_CT . ' select2 item',
                                                 'data-url'      => $productRoute,
                                                 'data-guard-msg'=> $guardMsg,

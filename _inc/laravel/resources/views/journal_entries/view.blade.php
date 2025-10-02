@@ -18,7 +18,7 @@
 
     $lang      = $hasFetchUserLang ? Utility::fetchUserLang(user: $user) : app()->getLocale();
     $settings  = $hasSettingsMethod ? (Utility::settings() ?? []) : [];
-    $hasSettingsData = is_array($settings) && !empty($settings);
+    $hasSettingsData = Utility::isFilled($settings);
 
     $hasJournalNumberFormat = is_object($user) && method_exists($user, 'journalNumberFormat');
     $hasDateFormat          = is_object($user) && method_exists($user, 'dateFormat');

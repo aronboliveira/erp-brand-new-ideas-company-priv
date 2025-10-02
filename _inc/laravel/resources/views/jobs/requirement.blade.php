@@ -117,7 +117,7 @@
                             <div class="section-title text-center">
                                 <p><b>{{ $jobTitle }}</b></p>
                                 <div class="d-flex flex-wrap justify-content-center gap-1 mb-4">
-                                    @if(is_array($skills) && count($skills))
+                                    @if(Utility::isFilled($skills))
                                         @foreach($skills as $skill)
                                             <span class="badge rounded p-2 bg-primary">{{ $skill }}</span>
                                         @endforeach
@@ -170,7 +170,7 @@
         <script async src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
         <script defer src="{{ asset('assets/js/routes/jobs/requirement.js') }}"></script>
     </body>
-    @if(is_array($get_cookie) && data_get($get_cookie,'enable_cookie')==='on')
+    @if(Utility::isFilled($get_cookie) && data_get($get_cookie,'enable_cookie')==='on')
         @includeIf(ExtendingLayoutsConstants::CKC)
     @endif
 </html>

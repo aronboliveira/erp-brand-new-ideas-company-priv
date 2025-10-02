@@ -82,7 +82,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if((is_array($types) && count($types) > 0) || ($types instanceof Collection && $types->isNotEmpty()))
+                                @if(!empty($types) && ((is_array($types) && count($types) > 0) || ($types instanceof Collection && $types->isNotEmpty())))
                                     @foreach($types as $type)
                                         @php
                                             $typeId     = $type->id ?? null;
@@ -183,7 +183,7 @@
                 });
             };
             guardClick('{{ $createBtnId }}');
-            @if((is_array($types) && count($types) > 0) || ($types instanceof Collection && $types->isNotEmpty()))
+            @if(!empty($types) && ((is_array($types) && count($types) > 0) || ($types instanceof Collection && $types->isNotEmpty())))
                 @foreach($types as $type)
                     guardClick('contract-type-edit-btn-{{ $type->id }}');
                     guardClick('contract-type-delete-btn-{{ $type->id }}');

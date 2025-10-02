@@ -238,7 +238,7 @@
                                 <div class="{{ VC::CD }}">
                                     <div class="card-body">
                                         <div class="{{ VC::DFL_AIC_JCB }}">
-                                            <div class="col-auto {{ VC::MB3 }}"><small class="{{ VC::TXT_MT }}">{{ __('Product') }}</small><h3 class="{{ VC::MB0 }}">{{ (is_array($products) ? count($products) : ($products instanceof Collection ? $products->count() : 0)) }}</h3></div>
+                                            <div class="col-auto {{ VC::MB3 }}"><small class="{{ VC::TXT_MT }}">{{ __('Product') }}</small><h3 class="{{ VC::MB0 }}">{{ Utility::isFilled($products) ? (is_array($products) ? count($products) : ($products instanceof Collection ? $products->count() : 0)) : 0 }}</h3></div>
                                             <div class="col-auto"><div class="theme-avatar bg-info"><i class="ti ti-shopping-cart"></i></div></div>
                                         </div>
                                     </div>
@@ -248,7 +248,7 @@
                                 <div class="{{ VC::CD }}">
                                     <div class="card-body">
                                         <div class="{{ VC::DFL_AIC_JCB }}">
-                                            <div class="col-auto {{ VC::MB3 }}"><small class="{{ VC::TXT_MT }}">{{ __('Source') }}</small><h3 class="{{ VC::MB0 }}">{{ (is_array($sources) ? count($sources) : ($sources instanceof Collection ? $sources->count() : 0)) }}</h3></div>
+                                            <div class="col-auto {{ VC::MB3 }}"><small class="{{ VC::TXT_MT }}">{{ __('Source') }}</small><h3 class="{{ VC::MB0 }}">{{ Utility::isFilled($sources) ? (is_array($sources) ? count($sources) : ($sources instanceof Collection ? $sources->count() : 0)) : 0 }}</h3></div>
                                             <div class="col-auto"><div class="theme-avatar {{ VC::BG_P }}"><i class="ti ti-social"></i></div></div>
                                         </div>
                                     </div>
@@ -258,7 +258,7 @@
                                 <div class="{{ VC::CD }}">
                                     <div class="card-body">
                                         <div class="{{ VC::DFL_AIC_JCB }}">
-                                            <div class="col-auto {{ VC::MB3 }}"><small class="{{ VC::TXT_MT }}">{{ __('Files') }}</small><h3 class="{{ VC::MB0 }}">{{ (is_array($lead->files ?? null) ? count($lead->files) : (($lead->files ?? collect()) instanceof Collection ? $lead->files->count() : 0)) }}</h3></div>
+                                            <div class="col-auto {{ VC::MB3 }}"><small class="{{ VC::TXT_MT }}">{{ __('Files') }}</small><h3 class="{{ VC::MB0 }}">{{ Utility::isFilled($lead->files) ? (is_array($lead->files) ? count($lead->files) : ($lead->files instanceof Collection ? $lead->files->count() : 0)) : 0 }}</h3></div>
                                             <div class="col-auto"><div class="theme-avatar bg-warning"><i class="ti ti-file"></i></div></div>
                                         </div>
                                     </div>
@@ -285,7 +285,7 @@
                                                 <table class="table table-hover mb-0">
                                                     <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Action') }}</th></tr></thead>
                                                     <tbody>
-                                                    @if((is_array($usersList) && count($usersList)) || ($usersList instanceof Collection && $usersList->isNotEmpty()))
+                                                    @if(Utility::isFilled($usersList))
                                                         @foreach($usersList as $u)
                                                             @php
                                                                 $uid = (string) ($u->id ?? '');
@@ -346,7 +346,7 @@
                                                 <table class="table table-hover mb-0">
                                                     <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Price') }}</th><th>{{ __('Action') }}</th></tr></thead>
                                                     <tbody>
-                                                    @if((is_array($products) && count($products)) || ($products instanceof Collection && $products->isNotEmpty()))
+                                                    @if(Utility::isFilled($products))
                                                         @foreach($products as $product)
                                                             @php
                                                                 $pid = (string) ($product->id ?? '');
@@ -408,7 +408,7 @@
                                                 <table class="table table-hover mb-0">
                                                     <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Action') }}</th></tr></thead>
                                                     <tbody>
-                                                    @if((is_array($sources) && count($sources)) || ($sources instanceof Collection && $sources->isNotEmpty()))
+                                                    @if(Utility::isFilled($sources))
                                                         @foreach($sources as $source)
                                                             @php
                                                                 $sid = (string) ($source->id ?? '');
@@ -463,7 +463,7 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="{{ VC::LG_FLSH_MT2 }}">
-                                                @if((is_array($emails) && count($emails)) || ($emails instanceof Collection && $emails->isNotEmpty()))
+                                                @if(Utility::isFilled($emails))
                                                     @foreach($emails as $email)
                                                         <li class="list-group-item px-0">
                                                             <div class="d-block d-sm-flex align-items-start">
@@ -506,7 +506,7 @@
                                         </div>
                                         <div class="card-body">
                                             <ul class="{{ VC::LG_FLSH_MT2 }}">
-                                                @if((is_array($discussions) && count($discussions)) || ($discussions instanceof Collection && $discussions->isNotEmpty()))
+                                                @if(Utility::isFilled($discussions))
                                                     @foreach($discussions as $discussion)
                                                         <li class="list-group-item px-0">
                                                             <div class="d-block d-sm-flex align-items-start">
@@ -577,7 +577,7 @@
                                     <table class="table table-hover mb-0">
                                         <thead><tr><th>{{ __('Subject') }}</th><th>{{ __('Call Type') }}</th><th>{{ __('Duration') }}</th><th>{{ __('User') }}</th><th>{{ __('Action') }}</th></tr></thead>
                                         <tbody>
-                                        @if((is_array($calls) && count($calls)) || ($calls instanceof Collection && $calls->isNotEmpty()))
+                                        @if(Utility::isFilled($calls))
                                             @foreach($calls as $call)
                                                 @php
                                                     $cid = (string) ($call->id ?? '');
@@ -640,7 +640,7 @@
                             <div class="card-body">
                                 <div class="{{ VC::RW }} leads-scroll">
                                     <ul class="{{ VC::LG_FLSH_W }}">
-                                        @if((is_array($activities) && count($activities)) || ($activities instanceof Collection && $activities->isNotEmpty()))
+                                        @if(Utility::isFilled($activities))
                                             @foreach($activities as $activity)
                                                 <li class="list-group-item {{ VC::CD }} {{ VC::MB3 }}">
                                                     <div class="{{ VC::DFL_AIC_JCB }}">

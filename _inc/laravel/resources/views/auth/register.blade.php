@@ -106,7 +106,7 @@
                 </span>
             </a>
             <div class="{{ ViewClassNamesConstants::DRP_MN_DSH_END }}">
-                @if((is_array($languages) && count($languages)) || ($languages instanceof Collection && $languages->isNotEmpty()))
+                @if(!empty($languages) && ((is_array($languages) && count($languages)) || ($languages instanceof Collection && $languages->isNotEmpty())))
                     @foreach($languages as $code => $language)
                         @php
                             $registerUrl   = Route::has('register')

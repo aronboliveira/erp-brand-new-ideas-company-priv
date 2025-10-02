@@ -37,8 +37,7 @@
         <div class="col-4 text-end"><h5>{{ __('Appraisal') }}</h5></div>
 
         @if(
-            (is_array($performance_types ?? null) && count($performance_types) > 0)
-            || ($performance_types ?? null) instanceof Collection && ($performance_types)->isNotEmpty()
+            !empty($performance_types) && ((is_array($performance_types) && count($performance_types) > 0) || ($performance_types instanceof Collection && $performance_types->isNotEmpty()))
         )
             @foreach($performance_types as $pt)
                 <div class="col-md-12 mt-3">
@@ -48,8 +47,8 @@
 
                 @php $types = $pt->types ?? null; @endphp
                 @if(
-                    (is_array($types) && count($types) > 0)
-                    || ($types instanceof Collection && $types->isNotEmpty())
+                    !empty($types) && ((is_array($types) && count($types) > 0)
+                    || ($types instanceof Collection && $types->isNotEmpty()))
                 )
                     @foreach($types as $type)
                         <div class="col-4">{{ $type->name ?? __('No name for type found') }}</div>

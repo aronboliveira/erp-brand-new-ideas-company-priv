@@ -21,7 +21,7 @@
     @csrf
     <div class="modal-body">
         <div class="{{ VC::RW }}">
-            @if((is_array($fields) && count($fields)) || ($fields instanceof \Illuminate\Support\Collection && $fields->isNotEmpty()))
+            @if(Utility::isFilled($fields))
                 @foreach($fields as $f)
                     <div class="{{ $f['colClass'] }}">
                         {{ Form::label($f['name'], $f['label'], ['class' => VC::FM_LB]) }}
