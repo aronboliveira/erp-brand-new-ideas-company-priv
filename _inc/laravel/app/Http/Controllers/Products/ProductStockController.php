@@ -23,7 +23,7 @@ final class ProductStockController extends Controller
 
     private const REDIRECT_INDEX = ViewsConstants::PRD_STK . '.index';
 
-    public function index(Request $r): RedirectResponse|View
+    public function index(Request $r): RedirectResponse|View|bool
     {
         $cls = __CLASS__;
         $fn = __FUNCTION__;

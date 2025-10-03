@@ -1784,7 +1784,7 @@ class Utility extends Model
     public static function getCompanyPaymentSetting(string|int $userId): array
     {
         $rows    = DB::table('company_payment_settings')
-            ->where(UsersConstants::COL_USER_ID, $userId)
+            ->where(DatabaseConstants::TABLE_CREATOR, $userId)
             ->get();
         $settings = [];
         foreach ($rows as $row)

@@ -1,6 +1,6 @@
 @php
-	use App\Config\Constants\{DatabaseConstants,
-        ExtendingLayoutsConstants,SettingsConstants,
+	use App\Config\Constants\{DatabaseConstants as DC,
+        ExtendingLayoutsConstants,SettingsConstants as SC,
         StacksConstants,
         ViewsConstants as VW,
         ViewClassNamesConstants as VC,
@@ -22,20 +22,28 @@
 	$siteRtl ??= false;
 	$webhookSetting ??= collect([]);
 	$faviconUrl ??= '';
+    $explang ??= DC::DEFAULT_LANG;
+    $joininglang ??= DC::DEFAULT_LANG;
+    $noclang ??= DC::DEFAULT_LANG;
+    $offerlang ??= DC::DEFAULT_LANG;
+    $explangs ??= [DC::DEFAULT_LANG];
+    $joininglangs ??= [DC::DEFAULT_LANG];
+    $noclangs ??= [DC::DEFAULT_LANG];
+    $offerlangs ??= [DC::DEFAULT_LANG];
 	try {
 		$data=Utility::prepareCommonViewData()?:[];
-		$setting=$data[SettingsConstants::ENTITY]??[];
-		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
-		$logo=$data[SettingsConstants::LOGO]??'';
-		$logo_light=$setting[SettingsConstants::CPN_LG_LT]??'';
-		$logo_dark=$setting[SettingsConstants::CPN_LG_DK]??'';
-		$company_favicon=$setting[SettingsConstants::CPN_FAVICON_K]??'';
-		$color=$data[SettingsConstants::THM_CLR]??'';
-		$siteRtl=$data[SettingsConstants::RTL]??false;
+		$setting=$data[SC::ENTITY]??[];
+		$colorSettings=$data[SC::CLR_STG]??[];
+		$logo=$data[SC::LOGO]??'';
+		$logo_light=$setting[SC::CPN_LG_LT]??'';
+		$logo_dark=$setting[SC::CPN_LG_DK]??'';
+		$company_favicon=$setting[SC::CPN_FAVICON_K]??'';
+		$color=$data[SC::THM_CLR]??'';
+		$siteRtl=$data[SC::RTL]??false;
 		$currentLang=Utility::languages()?:[];
-		$lang=Utility::getValByName(SettingsConstants::DEF_LNG)?:'';
+		$lang=Utility::getValByName(SC::DEF_LNG)?:'';
 		$webhookSetting=WebhookSetting::where(
-			DatabaseConstants::TABLE_CREATOR,
+			DC::TABLE_CREATOR,
 			Auth::user()?->creatorId()
 		)->get()?:collect([]);
 		$faviconUrl=Utility::getCompanyLogo()?:'';
@@ -87,378 +95,6 @@
 @endsection
 @push(StacksConstants::ADM_CSS)
     <link rel="stylesheet" href="{{ asset('css/summernote/summernote-bs4.css') }}">
-@endpush
-@push(StacksConstants::ADM_SCR_PG)
-    <script src="{{ asset('css/summernote/summernote-bs4.js') }}"></script>
-    <script async src="{{ asset('assets/js/routes/settings/companies/lang/notes.js') }}"></script>
-    <script defer>
-        (() => {
-            const ERR = "# ERROR";
-            const D_CLIENT = "data-client-localized";
-            const D_MSG = "data-guard-msg";
-            const D_BOUND = "data-settings-bound";
-            const once = (el, ev, fn, opt) => {
-                if (!el) return;
-                const h = e => fn(e);
-                el.addEventListener(ev, h, { once: true, ...(opt || {}) });
-                const mo = new MutationObserver((_, o) => {
-                if (!document.body.contains(el)) {
-                    el.removeEventListener(ev, h);
-                    o.disconnect();
-                }
-                });
-                mo.observe(document.body, { childList: true, subtree: true });
-            };
-            const langKey = () => {
-                let l = (
-                window.sessionStorage.getItem("erp-np-lang") ||
-                document.documentElement.lang ||
-                "en"
-                )
-                .toLowerCase()
-                .replace(/_/g, "-");
-                return l === "pt-br" ? l : l.slice(0, 2);
-            };
-            const t = (k, el) => {
-                let v = ERR;
-                if (
-                el?.getAttribute("data-sv-localized") === "true" ||
-                el?.getAttribute(D_CLIENT) === "true"
-                ) {
-                v = el.getAttribute(D_MSG) || ERR;
-                } else {
-                v =
-                    window.translations?.[langKey()]?.[k] ||
-                    el?.getAttribute(D_MSG) ||
-                    window.translations?.en?.[k] ||
-                    ERR;
-                if (v !== ERR) {
-                    el?.setAttribute(D_MSG, v);
-                    el?.setAttribute(D_CLIENT, "true");
-                }
-                }
-                return v;
-            };
-            const toast = msg => {
-                const hasBs =
-                document.querySelector('link[href*="bootstrap"]') &&
-                window.bootstrap?.Toast;
-                if (hasBs) {
-                let el = document.querySelector("#err-toast");
-                if (!el) {
-                    el = document.createElement("div");
-                    el.id = "err-toast";
-                    el.className = "toast align-items-center text-bg-danger border-0";
-                    el.setAttribute("role", "alert");
-                    el.setAttribute("aria-live", "assertive");
-                    el.setAttribute("aria-atomic", "true");
-                    el.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
-                    document.body.appendChild(el);
-                }
-                new bootstrap.Toast(el).show();
-                } else {
-                alert(msg);
-                }
-            };
-            const showOn = (origin, key, ev = "pointerup") =>
-                once(document, ev, () => toast(t(key, origin)));
-            const safeUrl = u =>
-                typeof u === "string" && u.trim() !== "" && u.trim() !== "#";
-            const $ = (...a) =>
-                window.jQuery?.apply?.(window.jQuery, a) ?? window.jQuery(...a);
-            if (typeof jQuery === "undefined") {
-                console.error("jQuery failed to load");
-                return;
-            }
-
-            // 1) Summernote blur handlers (4 templates + footer notes) with reuse
-            const bindSummernoteSave = (selector, urlKey) => {
-                const $els = $(selector);
-                if (!$els.length) {
-                return;
-                }
-                if (!$.fn?.summernote) {
-                console.error("Summernote not available");
-                showOn(document.body, "summernote_unavailable");
-                return;
-                }
-                $els
-                .off("summernote.blur.__guard")
-                .on("summernote.blur.__guard", function () {
-                    const el = this;
-                    const url = urlKey();
-                    if (!safeUrl(url)) {
-                    showOn(el, "save_failed");
-                    return;
-                    }
-                    $.ajax({
-                    url: url,
-                    type: "POST",
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr("content") || "",
-                        content: $(el).val() ?? "",
-                    },
-                    success: res => {
-                        if (res?.is_success) {
-                        if (typeof show_toastr === "function")
-                            show_toastr("success", res.success, "success");
-                        } else {
-                        showOn(el, "save_failed");
-                        }
-                    },
-                    error: xhr => {
-                        const r = xhr?.responseJSON;
-                        const ok = r?.is_success === true;
-                        if (!ok) {
-                        showOn(el, "save_failed");
-                        }
-                    },
-                    });
-                });
-            };
-
-            bindSummernoteSave(
-                ".summernote-simple0",
-                () => "{{ route('offer_letter.update', $offerlang) }}"
-            );
-            bindSummernoteSave(
-                ".summernote-simple1",
-                () => "{{ route('joining_letter.update', $joininglang) }}"
-            );
-            bindSummernoteSave(
-                ".summernote-simple2",
-                () => "{{ route('experience_certificate.update', $explang) }}"
-            );
-            bindSummernoteSave(
-                ".summernote-simple3",
-                () => "{{ route('noc.update', $noclang) }}"
-            );
-            bindSummernoteSave(
-                ".summernote-simple4",
-                () => "{{ route('systems.settings.footernote') }}"
-            ); // footer notes
-
-            // 2) Theme switches
-            const darkChk = document.querySelector("#cust-darklayout");
-            if (darkChk && !darkChk.getAttribute(D_BOUND)) {
-                darkChk.setAttribute(D_BOUND, "1");
-                darkChk.addEventListener("click", () => {
-                try {
-                    const styleEl = document.querySelector("#style");
-                    const logo = $(".dash-sidebar .main-logo a img");
-                    const darkHref =
-                    "{{ env('APP_URL') }}" + "/public/assets/css/style-dark.css";
-                    const lightHref =
-                    "{{ env('APP_URL') }}" + "/public/assets/css/style.css";
-                    if (darkChk.checked) {
-                    styleEl?.setAttribute("href", darkHref);
-                    if (logo.length) {
-                        logo.attr("src", "{{ $logo . $logo_light }}");
-                    }
-                    } else {
-                    styleEl?.setAttribute("href", lightHref);
-                    if (logo.length) {
-                        logo.attr("src", "{{ $logo . $logo_dark }}");
-                    }
-                    }
-                } catch {
-                    showOn(darkChk, "theme_switch_failed", "click");
-                }
-                });
-            }
-            const bgChk = document.querySelector("#cust-theme-bg");
-            if (bgChk && !bgChk.getAttribute(D_BOUND)) {
-                bgChk.setAttribute(D_BOUND, "1");
-                bgChk.addEventListener("click", () => {
-                try {
-                    const sb = document.querySelector(".dash-sidebar");
-                    const hd = document.querySelector(".dash-header:not(.dash-mob-header)");
-                    if (bgChk.checked) {
-                    sb?.classList.add("transprent-bg");
-                    hd?.classList.add("transprent-bg");
-                    } else {
-                    sb?.classList.remove("transprent-bg");
-                    hd?.classList.remove("transprent-bg");
-                    }
-                } catch {
-                    showOn(bgChk, "theme_switch_failed", "click");
-                }
-                });
-            }
-
-            // 3) Live previews (invoice / proposal / bill)
-            $(document).on(
-                "change",
-                "select[name='invoice_template'], input[name='invoice_color']",
-                function () {
-                try {
-                    const template = $("select[name='invoice_template']").val() ?? "";
-                    const color = $("input[name='invoice_color']:checked").val() ?? "";
-                    const src = `{{ url('/invoices/preview') }}/${template}/${color}`;
-                    if (document.querySelector("#invoice_frame"))
-                    $("#invoice_frame").attr("src", src);
-                } catch {
-                    showOn(this, "preview_update_failed", "click");
-                }
-                }
-            );
-            $(document).on(
-                "change",
-                "select[name='proposal_template'], input[name='proposal_color']",
-                function () {
-                try {
-                    const template = $("select[name='proposal_template']").val() ?? "";
-                    const color = $("input[name='proposal_color']:checked").val() ?? "";
-                    const src = `{{ url('/'.VW::PPS.'/preview') }}/${template}/${color}`;
-                    if (document.querySelector("#proposal_frame"))
-                    $("#proposal_frame").attr("src", src);
-                } catch {
-                    showOn(this, "preview_update_failed", "click");
-                }
-                }
-            );
-            $(document).on(
-                "change",
-                "select[name='bill_template'], input[name='bill_color']",
-                function () {
-                try {
-                    const template = $("select[name='bill_template']").val() ?? "";
-                    const color = $("input[name='bill_color']:checked").val() ?? "";
-                    const src = `{{ url('/bill/preview') }}/${template}/${color}`;
-                    if (document.querySelector("#bill_frame"))
-                    $("#bill_frame").attr("src", src);
-                } catch {
-                    showOn(this, "preview_update_failed", "click");
-                }
-                }
-            );
-
-            // 4) ScrollSpy (Bootstrap)
-            try {
-                if (window.bootstrap?.ScrollSpy) {
-                new bootstrap.ScrollSpy(document.body, {
-                    target: "#useradd-sidenav",
-                    offset: 300,
-                });
-                } else {
-                /* no bootstrap: silently ignore */
-                }
-            } catch {
-                showOn(document.body, "scrollspy_failed", "click");
-            }
-
-            // 5) Theme color radio sync
-            $(document).on("click", ".themes-color-change", function () {
-                try {
-                const color = $(this).data("value");
-                $(".theme-color").prop("checked", false);
-                $(".themes-color-change").removeClass("active_color");
-                $(this).addClass("active_color");
-                $(`input[value=${color}]`).prop("checked", true);
-                } catch {
-                /* non-critical */
-                }
-            });
-
-            // 6) Image previews on file inputs (IDs may be constants)
-            const bindPreview = (inputId, imgId) => {
-                const i = document.getElementById(inputId);
-                const img = document.getElementById(imgId);
-                if (!i || !img) return;
-                if (i.getAttribute(D_BOUND) === "1") return;
-                i.setAttribute(D_BOUND, "1");
-                i.addEventListener("change", () => {
-                try {
-                    const f = i.files?.[0];
-                    if (!f) return;
-                    const src = URL.createObjectURL(f);
-                    img.src = src;
-                } catch {
-                    showOn(i, "image_preview_failed", "click");
-                }
-                });
-            };
-            bindPreview(String("{{SettingsConstants::CPN_LG_DK}}"), "image");
-            bindPreview("company_logo_light", "image1");
-            bindPreview(String("{{SettingsConstants::CPN_FAVICON_K}}"), "image2");
-
-            // 7) VAT/GST toggle
-            $(document).on("change", "#vat_gst_number_switch", function () {
-                try {
-                $(this).is(":checked")
-                    ? $(".tax_type_div").removeClass("d-none")
-                    : $(".tax_type_div").addClass("d-none");
-                } catch {
-                showOn(this, "tax_toggle_failed", "click");
-                }
-            });
-
-            // 8) Mail dialog + test send
-            $(document).on("click", ".send_email", function (e) {
-                e.preventDefault();
-                const el = this;
-                const title = $(el).attr("data-title") || "";
-                const size = "md";
-                const url = $(el).attr("data-url") || "";
-                if (!safeUrl(url)) {
-                showOn(el, "send_email_failed");
-                return;
-                }
-                try {
-                $("#commonModal .modal-title").html(title);
-                $("#commonModal .modal-dialog").addClass("modal-" + size);
-                $("#commonModal").modal("show");
-                $.post(
-                    url,
-                    {
-                    _token: "{{ csrf_token() }}",
-                    mail_driver: $("#mail_driver").val(),
-                    mail_host: $("#mail_host").val(),
-                    mail_port: $("#mail_port").val(),
-                    mail_username: $("#mail_username").val(),
-                    mail_password: $("#mail_password").val(),
-                    mail_encryption: $("#mail_encryption").val(),
-                    mail_from_address: $("#mail_from_address").val(),
-                    mail_from_name: $("#mail_from_name").val(),
-                    },
-                    data => {
-                    $("#commonModal .body").html(data);
-                    }
-                ).fail(() => showOn(el, "send_email_failed"));
-                } catch {
-                showOn(el, "send_email_failed");
-                }
-            });
-
-            $(document).on("submit", "#test_email", function (e) {
-                e.preventDefault();
-                const form = this;
-                const url = $(form).attr("action") || "";
-                if (!safeUrl(url)) {
-                showOn(form, "test_email_failed");
-                return;
-                }
-                const post = $(form).serialize();
-                $.ajax({
-                type: "post",
-                url,
-                data: post,
-                cache: false,
-                beforeSend: () =>
-                    $("#test_email .btn-create").attr("disabled", "disabled"),
-                success: data => {
-                    if (data?.success) {
-                    show_toastr?.("success", data.message, "success");
-                    } else {
-                    showOn(form, "test_email_failed");
-                    }
-                    $("#commonModal").modal("hide");
-                },
-                complete: () => $("#test_email .btn-create").removeAttr("disabled"),
-                }).fail(() => showOn(form, "test_email_failed"));
-            });
-        })();
-    </script>
 @endpush
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
@@ -521,9 +157,9 @@
                             $businessSettingGuardMsg=Utility::fetchLinkMessage($langValue,'business','business_setting_route_unavailable')??__('Business setting route is unavailable. Please contact technical support or your domain administrator.');
                             $businessSettingFormId='business-setting-form';
                             $logoBase=isset($logo)&&is_string($logo)?rtrim($logo,'/'):asset('storage');
-                            $logoDarkFile=!empty($logo_dark)?$logo_dark:SettingsConstants::CPN_LG_DK_DEF;
-                            $logoLightFile=!empty($logo_light)?$logo_light:SettingsConstants::CPN_LG_LT_DEF;
-                            $faviconFile=!empty($favicon??null)?$favicon:(SettingsConstants::CPN_FAV_DEF??'favicon.png');
+                            $logoDarkFile=!empty($logo_dark)?$logo_dark:SC::CPN_LG_DK_DEF;
+                            $logoLightFile=!empty($logo_light)?$logo_light:SC::CPN_LG_LT_DEF;
+                            $faviconFile=!empty($favicon??null)?$favicon:(SC::CPN_FAVICON_DEF??'favicon.png');
                             $t=time();
                             $logoDarkUrl=$logoBase.'/'.$logoDarkFile.'?t='.$t;
                             $logoLightUrl=$logoBase.'/'.$logoLightFile.'?t='.$t;
@@ -615,15 +251,15 @@
                                             @enderror
                                         </div>
                                         <div class="col-md-3 {{ VC::FM_G }}">
-                                            {{ Form::label(SettingsConstants::FT_TXT, __('Footer Text'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text(SettingsConstants::FT_TXT, Utility::getValByName(SettingsConstants::FT_TXT)??__('No footer text available'), ['class'=>VC::FM_CT,'placeholder'=>__('Enter Footer Text')]) }}
-                                            @error(SettingsConstants::FT_TXT)
+                                            {{ Form::label(SC::FT_TXT, __('Footer Text'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::FT_TXT, Utility::getValByName(SC::FT_TXT)??__('No footer text available'), ['class'=>VC::FM_CT,'placeholder'=>__('Enter Footer Text')]) }}
+                                            @error(SC::FT_TXT)
                                                 <span class="invalid-footer_text" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="col-md-3">
                                             <div class="{{ VC::FM_G }}">
-                                                {{ Form::label(SettingsConstants::DEF_LNG, __('Default Language'), ['class'=>VC::FM_LB.' text-dark']) }}
+                                                {{ Form::label(SC::DEF_LNG, __('Default Language'), ['class'=>VC::FM_LB.' text-dark']) }}
                                                 <div class="changeLanguage">
                                                     <select name="default_language" id="default_language" class="{{ VC::FM_CT_SL }}">
                                                         @if(Utility::isFilled($langs))
@@ -635,7 +271,7 @@
                                                         @endif
                                                     </select>
                                                 </div>
-                                                @error(SettingsConstants::DEF_LNG)
+                                                @error(SC::DEF_LNG)
                                                     <span class="invalid-default_language" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                                 @enderror
                                             </div>
@@ -668,15 +304,15 @@
                                                     <h6 class="{{ VC::MT1 }}"><i data-feather="layout" class="me-2"></i>{{ __('Sidebar settings') }}</h6>
                                                     <hr class="{{ VC::MT1 }}" />
                                                     <div class="form-check form-switch">
-                                                        <input type="checkbox" class="form-check-input" id="cust-theme-bg" name="cust_theme_bg" {{ (data_get($setting??[],SettingsConstants::CST_BG,'')==='on')?'checked':'' }} />
+                                                        <input type="checkbox" class="form-check-input" id="cust-theme-bg" name="cust_theme_bg" {{ (data_get($setting??[],SC::CST_BG,'')==='on')?'checked':'' }} />
                                                         <label class="form-check-label {{ VC::FW600 }} ps-1" for="cust-theme-bg">{{ __('Transparent layout') }}</label>
                                                     </div>
                                                 </div>
                                                 <div class="{{ VC::CL_XL4 }}">
                                                     <h6 class="{{ VC::MT1 }}"><i data-feather="sun" class="me-2"></i>{{ __('Layout settings') }}</h6>
                                                     <hr class="{{ VC::MT1 }}" />
-                                                    <div class="form-check form-switch {{ VC::MT2 }}">
-                                                        <input type="checkbox" class="form-check-input" id="cust-darklayout" name="cust_darklayout" {{ (data_get($colorSettings??[],SettingsConstants::CST_DRK,'')==='on')?'checked':'' }} />
+                                                    <div class="form-check form-switch mt-2">
+                                                        <input type="checkbox" class="form-check-input" id="cust-darklayout" name="cust_darklayout" {{ (data_get($colorSettings??[],SC::CST_DRK,'')==='on')?'checked':'' }} />
                                                         <label class="form-check-label {{ VC::FW600 }} ps-1" for="cust-darklayout">{{ __('Dark Layout') }}</label>
                                                     </div>
                                                 </div>
@@ -948,11 +584,11 @@
                                         </div>
                                         <div class="{{ VC::FM_G }} col-md-4">
                                             <label class="{{ VC::FM_LB }}" for="ip_restrict">{{ __('Ip Restrict') }}</label>
-                                            <div class="custom-control custom-switch {{ VC::MT2 }}">
+                                            <div class="custom-control custom-switch mt-2">
                                                 <input type="checkbox" class="form-check-input" data-toggle="switchbutton" data-onstyle="primary" name="ip_restrict" id="ip_restrict" {{ (data_get($setting??[], 'ip_restrict',''))==='on'?'checked':'' }}>
                                             </div>
                                         </div>
-                                        <div class="{{ VC::FM_G }} col-md-12 {{ VC::MT2 }}">
+                                        <div class="{{ VC::FM_G }} col-md-12 mt-2">
                                             {{ Form::label('timezone', __('Timezone'), ['class'=>VC::FM_LB]) }}
                                             <select name="timezone" class="{{ VC::FM_CT }} custom-select" id="timezone">
                                                 <option value="">{{ __('Select Timezone') }}</option>
@@ -1750,12 +1386,12 @@
                                                     $offerLetterLangGuardMsg=Utility::fetchLinkMessage($langValue, VW::SET, 'offer_letter_language_route_unavailable')??__('Offer letter language route is unavailable. Please contact technical support or your domain administrator.');
                                                 @endphp
                                                 @if(is_iterable($currentLang??[]))
-                                                    @foreach($currentLang as $code=>$offerlangs)
+                                                    @foreach($currentLang as $code=>$offerlang)
                                                         @php
-                                                            $offerLetterLangParams=['noclangs'=>$noclang??null,'explangs'=>$explang??null,'offerlangs'=>$code,'joininglangs'=>$joininglang??null];
+                                                            $offerLetterLangParams=['noclangs'=>$noclang??null,'explangs'=>$explang??null,'offerlang'=>$code,'joininglangs'=>$joininglang??null];
                                                             $offerLetterLangUrl=$offerLetterLangRouteName?route($offerLetterLangRouteName,$offerLetterLangParams):'#';
                                                         @endphp
-                                                        <a id="offer-letter-language-link-{{ $code }}" href="{{ $offerLetterLangUrl }}" data-url="{{ $offerLetterLangUrl }}" data-guard-msg="{{ $offerLetterLangGuardMsg }}" class="dropdown-item ms-1 offer-letter-language-link {{ ((isset($offerlang)&&$offerlang===$code)?'text-primary':'') }}">{{ ucfirst($offerlangs) }}</a>
+                                                        <a id="offer-letter-language-link-{{ $code }}" href="{{ $offerLetterLangUrl }}" data-url="{{ $offerLetterLangUrl }}" data-guard-msg="{{ $offerLetterLangGuardMsg }}" class="dropdown-item ms-1 offer-letter-language-link {{ ((isset($offerlang)&&$offerlang===$code)?'text-primary':'') }}">{{ ucfirst($offerlang) }}</a>
                                                     @endforeach
                                                 @endif
                                                 @push(StacksConstants::ADM_SCR_PG)
@@ -1838,12 +1474,12 @@
                                                     $joiningLetterLangGuardMsg=Utility::fetchLinkMessage($langValue, VW::SET, 'joining_letter_language_route_unavailable')??__('Joining letter language route is unavailable. Please contact technical support or your domain administrator.');
                                                 @endphp
                                                 @if(is_iterable($currentLang??[]))
-                                                    @foreach($currentLang as $code=>$joininglangs)
+                                                    @foreach($currentLang as $code=>$joininglang)
                                                         @php
-                                                            $joiningLetterParams=['noclangs'=>$noclang??null,'explangs'=>$explang??null,'offerlangs'=>$offerlang??null,'joininglangs'=>$code];
+                                                            $joiningLetterParams=['noclangs'=>$noclang??null,'explangs'=>$explang??null,'offerlangs'=>$joininglang??null,'joininglangs'=>$code];
                                                             $joiningLetterLangUrl=$joiningLetterLangRouteName?route($joiningLetterLangRouteName,$joiningLetterParams):'#';
                                                         @endphp
-                                                        <a id="joining-letter-language-link-{{ $code }}" href="{{ $joiningLetterLangUrl }}" data-url="{{ $joiningLetterLangUrl }}" data-guard-msg="{{ $joiningLetterLangGuardMsg }}" class="dropdown-item joining-letter-language-link {{ ($joininglangs==$code)?'text-primary':'' }}">{{ (is_string($joininglangs)&&$joininglangs!=='')?ucfirst($joininglangs):__('No language label available') }}</a>
+                                                        <a id="joining-letter-language-link-{{ $code }}" href="{{ $joiningLetterLangUrl }}" data-url="{{ $joiningLetterLangUrl }}" data-guard-msg="{{ $joiningLetterLangGuardMsg }}" class="dropdown-item joining-letter-language-link {{ ($joininglang==$code)?'text-primary':'' }}">{{ (is_string($joininglang)&&$joininglang!=='')?ucfirst($joininglang):__('No language label available') }}</a>
                                                     @endforeach
                                                 @else
                                                     <span class="text-muted">{{ __('No languages found for Joining letters') }}</span>
@@ -1923,12 +1559,12 @@
                                                     $experienceCertificateLangGuard=Utility::fetchLinkMessage($langValue, VW::SET, 'experience_certificate_language_route_unavailable')??__('Experience certificate language route is unavailable. Please contact technical support or your domain administrator.');
                                                 @endphp
                                                 @if(is_iterable($currentLang??[]))
-                                                    @foreach($currentLang as $code=>$explangs)
+                                                    @foreach($currentLang as $code=>$explang)
                                                         @php
-                                                            $experienceCertificateParams=['noclangs'=>$noclang??null,'explangs'=>$code,'offerlangs'=>$offerlang??null,'joininglangs'=>$joininglang??null];
+                                                            $experienceCertificateParams=['noclangs'=>$noclang??null,'explangs'=>$code,'offerlangs'=>$explang??null,'joininglangs'=>$joininglang??null];
                                                             $experienceCertificateLangUrl=$experienceCertificateLangName?route($experienceCertificateLangName,$experienceCertificateParams):'#';
                                                         @endphp
-                                                        <a id="experience-certificate-language-link-{{ $code }}" href="{{ $experienceCertificateLangUrl }}" data-url="{{ $experienceCertificateLangUrl }}" data-guard-msg="{{ $experienceCertificateLangGuard }}" class="dropdown-item experience-certificate-language-link {{ ($explangs==$code)?'text-primary':'' }}">{{ (is_string($explangs)&&$explangs!=='')?ucfirst($explangs):__('No language label available') }}</a>
+                                                        <a id="experience-certificate-language-link-{{ $code }}" href="{{ $experienceCertificateLangUrl }}" data-url="{{ $experienceCertificateLangUrl }}" data-guard-msg="{{ $experienceCertificateLangGuard }}" class="dropdown-item experience-certificate-language-link {{ ($explang==$code)?'text-primary':'' }}">{{ (is_string($explang)&&$explang!=='')?ucfirst($explang):__('No language label available') }}</a>
                                                     @endforeach
                                                 @else
                                                     <span class="text-muted">{{ __('No languages found for Experience Certificates') }}</span>
@@ -2323,3 +1959,375 @@
         </div>
     </div>
 @endsection
+@push(StacksConstants::ADM_SCR_PG)
+    <script src="{{ asset('css/summernote/summernote-bs4.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/settings/companies/lang/notes.js') }}"></script>
+    <script defer>
+        (() => {
+            const ERR = "# ERROR";
+            const D_CLIENT = "data-client-localized";
+            const D_MSG = "data-guard-msg";
+            const D_BOUND = "data-settings-bound";
+            const once = (el, ev, fn, opt) => {
+                if (!el) return;
+                const h = e => fn(e);
+                el.addEventListener(ev, h, { once: true, ...(opt || {}) });
+                const mo = new MutationObserver((_, o) => {
+                if (!document.body.contains(el)) {
+                    el.removeEventListener(ev, h);
+                    o.disconnect();
+                }
+                });
+                mo.observe(document.body, { childList: true, subtree: true });
+            };
+            const langKey = () => {
+                let l = (
+                window.sessionStorage.getItem("erp-np-lang") ||
+                document.documentElement.lang ||
+                "en"
+                )
+                .toLowerCase()
+                .replace(/_/g, "-");
+                return l === "pt-br" ? l : l.slice(0, 2);
+            };
+            const t = (k, el) => {
+                let v = ERR;
+                if (
+                el?.getAttribute("data-sv-localized") === "true" ||
+                el?.getAttribute(D_CLIENT) === "true"
+                ) {
+                v = el.getAttribute(D_MSG) || ERR;
+                } else {
+                v =
+                    window.translations?.[langKey()]?.[k] ||
+                    el?.getAttribute(D_MSG) ||
+                    window.translations?.en?.[k] ||
+                    ERR;
+                if (v !== ERR) {
+                    el?.setAttribute(D_MSG, v);
+                    el?.setAttribute(D_CLIENT, "true");
+                }
+                }
+                return v;
+            };
+            const toast = msg => {
+                const hasBs =
+                document.querySelector('link[href*="bootstrap"]') &&
+                window.bootstrap?.Toast;
+                if (hasBs) {
+                let el = document.querySelector("#err-toast");
+                if (!el) {
+                    el = document.createElement("div");
+                    el.id = "err-toast";
+                    el.className = "toast align-items-center text-bg-danger border-0";
+                    el.setAttribute("role", "alert");
+                    el.setAttribute("aria-live", "assertive");
+                    el.setAttribute("aria-atomic", "true");
+                    el.innerHTML = `<div class="d-flex"><div class="toast-body">${msg}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+                    document.body.appendChild(el);
+                }
+                new bootstrap.Toast(el).show();
+                } else {
+                alert(msg);
+                }
+            };
+            const showOn = (origin, key, ev = "pointerup") =>
+                once(document, ev, () => toast(t(key, origin)));
+            const safeUrl = u =>
+                typeof u === "string" && u.trim() !== "" && u.trim() !== "#";
+            const $ = (...a) =>
+                window.jQuery?.apply?.(window.jQuery, a) ?? window.jQuery(...a);
+            if (typeof jQuery === "undefined") {
+                console.error("jQuery failed to load");
+                return;
+            }
+
+            // 1) Summernote blur handlers (4 templates + footer notes) with reuse
+            const bindSummernoteSave = (selector, urlKey) => {
+                const $els = $(selector);
+                if (!$els.length) {
+                return;
+                }
+                if (!$.fn?.summernote) {
+                console.error("Summernote not available");
+                showOn(document.body, "summernote_unavailable");
+                return;
+                }
+                $els
+                .off("summernote.blur.__guard")
+                .on("summernote.blur.__guard", function () {
+                    const el = this;
+                    const url = urlKey();
+                    if (!safeUrl(url)) {
+                    showOn(el, "save_failed");
+                    return;
+                    }
+                    $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr("content") || "",
+                        content: $(el).val() ?? "",
+                    },
+                    success: res => {
+                        if (res?.is_success) {
+                        if (typeof show_toastr === "function")
+                            show_toastr("success", res.success, "success");
+                        } else {
+                        showOn(el, "save_failed");
+                        }
+                    },
+                    error: xhr => {
+                        const r = xhr?.responseJSON;
+                        const ok = r?.is_success === true;
+                        if (!ok) {
+                        showOn(el, "save_failed");
+                        }
+                    },
+                    });
+                });
+            };
+
+            bindSummernoteSave(
+                ".summernote-simple0",
+                () => "{{ route('offer_letter.update', $offerlang) }}"
+            );
+            bindSummernoteSave(
+                ".summernote-simple1",
+                () => "{{ route('joining_letter.update', $joininglang) }}"
+            );
+            bindSummernoteSave(
+                ".summernote-simple2",
+                () => "{{ route('experience_certificate.update', $explang) }}"
+            );
+            bindSummernoteSave(
+                ".summernote-simple3",
+                () => "{{ route('noc.update', $noclang) }}"
+            );
+            bindSummernoteSave(
+                ".summernote-simple4",
+                () => "{{ route('systems.settings.footernote') }}"
+            ); // footer notes
+
+            // 2) Theme switches
+            const darkChk = document.querySelector("#cust-darklayout");
+            if (darkChk && !darkChk.getAttribute(D_BOUND)) {
+                darkChk.setAttribute(D_BOUND, "1");
+                darkChk.addEventListener("click", () => {
+                try {
+                    const styleEl = document.querySelector("#style");
+                    const logo = $(".dash-sidebar .main-logo a img");
+                    const darkHref =
+                    "{{ env('APP_URL') }}" + "/public/assets/css/style-dark.css";
+                    const lightHref =
+                    "{{ env('APP_URL') }}" + "/public/assets/css/style.css";
+                    if (darkChk.checked) {
+                    styleEl?.setAttribute("href", darkHref);
+                    if (logo.length) {
+                        logo.attr("src", "{{ $logo . $logo_light }}");
+                    }
+                    } else {
+                    styleEl?.setAttribute("href", lightHref);
+                    if (logo.length) {
+                        logo.attr("src", "{{ $logo . $logo_dark }}");
+                    }
+                    }
+                } catch {
+                    showOn(darkChk, "theme_switch_failed", "click");
+                }
+                });
+            }
+            const bgChk = document.querySelector("#cust-theme-bg");
+            if (bgChk && !bgChk.getAttribute(D_BOUND)) {
+                bgChk.setAttribute(D_BOUND, "1");
+                bgChk.addEventListener("click", () => {
+                try {
+                    const sb = document.querySelector(".dash-sidebar");
+                    const hd = document.querySelector(".dash-header:not(.dash-mob-header)");
+                    if (bgChk.checked) {
+                    sb?.classList.add("transprent-bg");
+                    hd?.classList.add("transprent-bg");
+                    } else {
+                    sb?.classList.remove("transprent-bg");
+                    hd?.classList.remove("transprent-bg");
+                    }
+                } catch {
+                    showOn(bgChk, "theme_switch_failed", "click");
+                }
+                });
+            }
+
+            // 3) Live previews (invoice / proposal / bill)
+            $(document).on(
+                "change",
+                "select[name='invoice_template'], input[name='invoice_color']",
+                function () {
+                try {
+                    const template = $("select[name='invoice_template']").val() ?? "";
+                    const color = $("input[name='invoice_color']:checked").val() ?? "";
+                    const src = `{{ url('/invoices/preview') }}/${template}/${color}`;
+                    if (document.querySelector("#invoice_frame"))
+                    $("#invoice_frame").attr("src", src);
+                } catch {
+                    showOn(this, "preview_update_failed", "click");
+                }
+                }
+            );
+            $(document).on(
+                "change",
+                "select[name='proposal_template'], input[name='proposal_color']",
+                function () {
+                try {
+                    const template = $("select[name='proposal_template']").val() ?? "";
+                    const color = $("input[name='proposal_color']:checked").val() ?? "";
+                    const src = `{{ url('/'.VW::PPS.'/preview') }}/${template}/${color}`;
+                    if (document.querySelector("#proposal_frame"))
+                    $("#proposal_frame").attr("src", src);
+                } catch {
+                    showOn(this, "preview_update_failed", "click");
+                }
+                }
+            );
+            $(document).on(
+                "change",
+                "select[name='bill_template'], input[name='bill_color']",
+                function () {
+                try {
+                    const template = $("select[name='bill_template']").val() ?? "";
+                    const color = $("input[name='bill_color']:checked").val() ?? "";
+                    const src = `{{ url('/bill/preview') }}/${template}/${color}`;
+                    if (document.querySelector("#bill_frame"))
+                    $("#bill_frame").attr("src", src);
+                } catch {
+                    showOn(this, "preview_update_failed", "click");
+                }
+                }
+            );
+
+            // 4) ScrollSpy (Bootstrap)
+            try {
+                if (window.bootstrap?.ScrollSpy) {
+                new bootstrap.ScrollSpy(document.body, {
+                    target: "#useradd-sidenav",
+                    offset: 300,
+                });
+                } else {
+                /* no bootstrap: silently ignore */
+                }
+            } catch {
+                showOn(document.body, "scrollspy_failed", "click");
+            }
+
+            // 5) Theme color radio sync
+            $(document).on("click", ".themes-color-change", function () {
+                try {
+                const color = $(this).data("value");
+                $(".theme-color").prop("checked", false);
+                $(".themes-color-change").removeClass("active_color");
+                $(this).addClass("active_color");
+                $(`input[value=${color}]`).prop("checked", true);
+                } catch {
+                /* non-critical */
+                }
+            });
+
+            // 6) Image previews on file inputs (IDs may be constants)
+            const bindPreview = (inputId, imgId) => {
+                const i = document.getElementById(inputId);
+                const img = document.getElementById(imgId);
+                if (!i || !img) return;
+                if (i.getAttribute(D_BOUND) === "1") return;
+                i.setAttribute(D_BOUND, "1");
+                i.addEventListener("change", () => {
+                try {
+                    const f = i.files?.[0];
+                    if (!f) return;
+                    const src = URL.createObjectURL(f);
+                    img.src = src;
+                } catch {
+                    showOn(i, "image_preview_failed", "click");
+                }
+                });
+            };
+            bindPreview(String("{{SC::CPN_LG_DK}}"), "image");
+            bindPreview("company_logo_light", "image1");
+            bindPreview(String("{{SC::CPN_FAVICON_K}}"), "image2");
+
+            // 7) VAT/GST toggle
+            $(document).on("change", "#vat_gst_number_switch", function () {
+                try {
+                $(this).is(":checked")
+                    ? $(".tax_type_div").removeClass("d-none")
+                    : $(".tax_type_div").addClass("d-none");
+                } catch {
+                showOn(this, "tax_toggle_failed", "click");
+                }
+            });
+
+            // 8) Mail dialog + test send
+            $(document).on("click", ".send_email", function (e) {
+                e.preventDefault();
+                const el = this;
+                const title = $(el).attr("data-title") || "";
+                const size = "md";
+                const url = $(el).attr("data-url") || "";
+                if (!safeUrl(url)) {
+                showOn(el, "send_email_failed");
+                return;
+                }
+                try {
+                $("#commonModal .modal-title").html(title);
+                $("#commonModal .modal-dialog").addClass("modal-" + size);
+                $("#commonModal").modal("show");
+                $.post(
+                    url,
+                    {
+                    _token: "{{ csrf_token() }}",
+                    mail_driver: $("#mail_driver").val(),
+                    mail_host: $("#mail_host").val(),
+                    mail_port: $("#mail_port").val(),
+                    mail_username: $("#mail_username").val(),
+                    mail_password: $("#mail_password").val(),
+                    mail_encryption: $("#mail_encryption").val(),
+                    mail_from_address: $("#mail_from_address").val(),
+                    mail_from_name: $("#mail_from_name").val(),
+                    },
+                    data => {
+                    $("#commonModal .body").html(data);
+                    }
+                ).fail(() => showOn(el, "send_email_failed"));
+                } catch {
+                showOn(el, "send_email_failed");
+                }
+            });
+
+            $(document).on("submit", "#test_email", function (e) {
+                e.preventDefault();
+                const form = this;
+                const url = $(form).attr("action") || "";
+                if (!safeUrl(url)) {
+                showOn(form, "test_email_failed");
+                return;
+                }
+                const post = $(form).serialize();
+                $.ajax({
+                type: "post",
+                url,
+                data: post,
+                cache: false,
+                beforeSend: () =>
+                    $("#test_email .btn-create").attr("disabled", "disabled"),
+                success: data => {
+                    if (data?.success) {
+                    show_toastr?.("success", data.message, "success");
+                    } else {
+                    showOn(form, "test_email_failed");
+                    }
+                    $("#commonModal").modal("hide");
+                },
+                complete: () => $("#test_email .btn-create").removeAttr("disabled"),
+                }).fail(() => showOn(form, "test_email_failed"));
+            });
+        })();
+    </script>
+@endpush

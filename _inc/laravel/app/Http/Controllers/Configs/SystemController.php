@@ -7,7 +7,7 @@ use App\Config\Constants\{
     PermissionsConstants,
     SettingsConstants,
     UsersConstants,
-    ViewsConstants
+    ViewsConstants as VW
 };
 use App\Mail\TestMail;
 use App\Models\{
@@ -33,8 +33,8 @@ class SystemController extends Controller
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_INDEX = ViewsConstants::SYS . '.index';
-    private const REDIRECT_COMPANY = ViewsConstants::SYS . '.' . PermissionsConstants::CPN;
+    private const REDIRECT_INDEX = VW::SET . '.index';
+    private const REDIRECT_COMPANY = VW::SET . '.' . PermissionsConstants::CPN;
 
     public function index(Request $request): View|RedirectResponse|null
     {
@@ -51,7 +51,7 @@ class SystemController extends Controller
                 foreach (File::allFiles(storage_path('framework')) as $f) $totalBytes += $f->getSize();
                 $fileSize = number_format($totalBytes / 1_000_000, 4);
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'fileSizeMB' => $fileSize]);
-                $view = ViewsConstants::SYS . '.' . $action;
+                $view = VW::SET . '.' . $action;
                 if (ViewFacade::exists($view)) {
                     return ViewFacade::make($view, compact(DatabaseConstants::TABLE_SETTINGS, 'adminPaymentSetting', 'fileSize'));
                 }
@@ -280,11 +280,11 @@ class SystemController extends Controller
                     foreach (['SITE_RTL', 'custThemeBg', 'custDarklayout'] as $b) $data[$b] = $request->has($b) ? 'on' : 'off';
                     $this->saveSettings($data, $user?->creatorId());
                 });
-                Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::debug($action . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return redirect()->back()->with('success', __('Brand setting successfully updated.'));
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __METHOD__, route(self::REDIRECT_INDEX)); // ! ALERT
+                Log::error($action . ' failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX)); // ! ALERT
             }
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
@@ -297,7 +297,7 @@ class SystemController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage company ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_COMPANY)) !== true) return $redirect;
-            Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::debug($action . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $offer = $request->input('offerlangs', 'en');
                 $joining = $request->input('joininglangs', 'en');
@@ -320,16 +320,16 @@ class SystemController extends Controller
                     'nocCertificates' => Noc::all(),
                     'currNocCert' => Noc::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->where('lang', $noc)->first(),
                 ]);
-                Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
-                $view = DatabaseConstants::TABLE_SETTINGS . '.company';
+                Log::debug($action . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
+                $view = VW::SET . '.company';
                 if (ViewFacade::exists($view)) {
                     return ViewFacade::make($view, $viewData);
                 }
-                Log::warning(__METHOD__ . ' view missing', ['view' => $view]);
-                return defaultUndefinedException($request, new \RuntimeException('View not found'), __METHOD__, route(self::REDIRECT_COMPANY)); // ! ALERT
+                Log::warning($action . ' view missing', ['view' => $view]);
+                return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_COMPANY)); // ! ALERT
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __METHOD__, route(self::REDIRECT_COMPANY)); // ! ALERT
+                Log::error($action . ' failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_COMPANY)); // ! ALERT
             }
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
@@ -342,7 +342,7 @@ class SystemController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage company ' . DatabaseConstants::TABLE_SETTINGS, self::REDIRECT_COMPANY)) !== true) return $redirect;
-            Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::debug($action . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 DB::transaction(function () use ($request, $user) {
                     $methods = [
@@ -375,11 +375,11 @@ class SystemController extends Controller
                         }
                     }
                 });
-                Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::debug($action . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return redirect()->back()->with('success', __('Payment setting successfully updated.'));
             } catch (\Throwable $e) {
-                Log::error(__METHOD__ . ' failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
-                return defaultUndefinedException($request, $e, __METHOD__, route(self::REDIRECT_COMPANY)); // ! ALERT
+                Log::error($action . ' failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_COMPANY)); // ! ALERT
             }
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
@@ -404,7 +404,7 @@ class SystemController extends Controller
                     'mail_from_address',
                     'mail_from_name'
                 ]);
-                $view = DatabaseConstants::TABLE_SETTINGS . '.test_mail';
+                $view = VW::SET . '.test_mail';
                 if (ViewFacade::exists($view)) {
                     Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                     return ViewFacade::make($view, compact('data'));
@@ -474,7 +474,7 @@ class SystemController extends Controller
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $settings = Utility::settings();
-                $view = DatabaseConstants::TABLE_SETTINGS . '.print';
+                $view = VW::SET . '.print';
                 if (ViewFacade::exists($view)) {
                     Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                     return ViewFacade::make($view, compact('' . DatabaseConstants::TABLE_SETTINGS));
@@ -499,7 +499,7 @@ class SystemController extends Controller
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $settings = Utility::settings();
-                $view = DatabaseConstants::TABLE_SETTINGS . '.pos';
+                $view = VW::SET . '.pos';
                 if (ViewFacade::exists($view)) {
                     Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                     return ViewFacade::make($view, compact('' . DatabaseConstants::TABLE_SETTINGS));

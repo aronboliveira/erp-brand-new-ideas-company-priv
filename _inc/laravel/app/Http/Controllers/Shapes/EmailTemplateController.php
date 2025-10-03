@@ -7,7 +7,8 @@ use App\Config\Constants\{
     EmailsConstants,
     MiddlewaresConstants,
     PermissionsConstants,
-    ViewsConstants as VW
+    ViewsConstants as VW,
+    ViewsConstants
 };
 use App\Models\{
     EmailTemplate,
@@ -46,7 +47,7 @@ class EmailTemplateController extends Controller
         $action   = __FUNCTION__;
         $cls      = static::class;
         $sig      = "$cls::$action";
-        $viewPath = DatabaseConstants::TABLE_SETTINGS . '.company';
+        $viewPath = ViewsConstants::SET . '.company';
 
         return $this->measureProfile($action, function () use ($sig, $viewPath) {
             Log::info("$sig start", ['user_id' => Auth::id()]);
