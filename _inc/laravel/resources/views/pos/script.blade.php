@@ -39,14 +39,18 @@
 
         if (p && typeof p.then === "function") {
           p.then(closeScript).catch((e) => {
-            if (console && console.error) console.error("html2pdf_save_error", e);
+            if (console && console.error && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+              console.error("html2pdf_save_error", e);
+            }
             closeScript();
           });
         } else {
           closeScript();
         }
       } catch (err) {
-        if (console && console.error) console.error("export_error", err);
+        if (console && console.error && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+          console.error("export_error", err);
+        }
       }
     };
 
@@ -54,7 +58,9 @@
       try {
         exportAsPdf();
       } catch (err) {
-        if (console && console.error) console.error("onload_error", err);
+        if (console && console.error && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+          console.error("onload_error", err);
+        }
       }
     };
 

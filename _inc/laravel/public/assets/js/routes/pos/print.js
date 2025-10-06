@@ -108,7 +108,11 @@
     });
   } else {
     try {
-      console.error("jQuery not found while initializing print handler");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery not found while initializing print handler");
     } catch {}
   }
 })();

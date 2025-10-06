@@ -11,3 +11,6 @@
 .toast-body .d-flex {
   z-index: 9;
 }
+a {
+  text-decoration: none;
+}

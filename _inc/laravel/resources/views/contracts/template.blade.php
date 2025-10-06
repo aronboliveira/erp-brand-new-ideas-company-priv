@@ -243,7 +243,10 @@
                     typeof window.html2pdf !== "object"
                     ) {
                     try {
-                        console.error("html2pdf unavailable");
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("html2pdf unavailable");
                     } catch (_) {}
                     schedulePointerupError(localize(body, "pdf_unavailable"));
                     return;
@@ -275,7 +278,10 @@
                 $(window).on("load", run);
                 } else {
                 try {
-                    console.error("jQuery unavailable");
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery unavailable");
                 } catch (_) {}
                 if (document.readyState === "complete") {
                     run();

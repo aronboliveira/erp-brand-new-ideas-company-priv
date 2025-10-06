@@ -761,7 +761,13 @@
                 };
 
                 try {
-                if (typeof $ === "undefined") { console.error("jQuery failed to load"); return; }
+                if (typeof $ === "undefined") { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery unavailable");
+                    return; 
+                }
 
                 const leadId = {{$lead->id ?? 'null'}};
                 const uploadUrl = "{{ route(ViewsConstants::LD.'.file.upload', $lead->id) }}";
@@ -775,7 +781,10 @@
                 }
 
                 if (!window.Dropzone) {
-                    console.error("Dropzone failed to load");
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("Dropzone unavailable");
                     guardOnce(document.body, "dropzone_unavailable");
                 } else {
                     try { window.Dropzone.autoDiscover = false; } catch {}

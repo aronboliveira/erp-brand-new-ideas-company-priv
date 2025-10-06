@@ -27,7 +27,12 @@
 <script defer>
   (function () {
     const $ = window.jQuery;
-    if (!$) { try { console.error("jQuery unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
+    if (!$) { try { 
+      if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+      ) console.error("jQuery unavailable");
+     } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
     const qs = (s, r = document) => r.querySelector(s);
     const errFb = "# ERROR";
     const dataClientLocalized = "data-client-localized";
@@ -109,7 +114,12 @@
           jsPDF: { unit: "in", format: "A4" }
         };
         try {
-          if (typeof window.html2pdf !== "function") { try { console.error("html2pdf unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(element, "plugin_unavailable")); return; }
+          if (typeof window.html2pdf !== "function") { try { 
+              if (
+                  window.location.hostname === "localhost" ||
+                  window.location.hostname === "127.0.0.1"
+              ) console.error("html2pdf unavailable");
+           } catch (_) {} scheduleInteractiveError(getMsg(element, "plugin_unavailable")); return; }
           window.html2pdf().set(opt).from(element).save().then(closeScript);
         } catch (_) {
           scheduleInteractiveError(getMsg(element, "pdf_unavailable"));

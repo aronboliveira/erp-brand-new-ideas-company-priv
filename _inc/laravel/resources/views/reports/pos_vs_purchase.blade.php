@@ -113,7 +113,12 @@
         if (!target || target.getAttribute(dataChartGuard) === "true") { return; }
         target.setAttribute(dataChartGuard, "true");
         try {
-            if (!window.ApexCharts) { try { console.error("ApexCharts unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(target, "plugin_unavailable"), false); return; }
+            if (!window.ApexCharts) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("ApexCharts unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg(target, "plugin_unavailable"), false); return; }
             const chartBarOptions = {
             series: [{ name: '{{ __("Profit") }}', data: {!! json_encode($profits) !!} }],
             chart: { height: 300, type: 'area', dropShadow: { enabled: true, color: '#000', top: 18, left: 7, blur: 10, opacity: 0.2 }, toolbar: { show: false } },
@@ -139,7 +144,12 @@
         const name = ((window.jQuery && $("#filename").val()) ?? "").toString().trim() || "export";
         const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
         try {
-            if (typeof window.html2pdf !== "function") { try { console.error("html2pdf unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable"), true); return; }
+            if (typeof window.html2pdf !== "function") { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("html2pdf unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable"), true); return; }
             window.html2pdf().set(opt).from(area).save();
         } catch (_) { scheduleInteractiveError(getMsg(area, "pdf_unavailable"), true); }
         };

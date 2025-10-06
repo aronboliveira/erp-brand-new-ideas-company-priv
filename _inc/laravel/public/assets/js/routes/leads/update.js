@@ -76,7 +76,11 @@
         var $ = window.jQuery;
         if (!$) {
           try {
-            console.error("jQuery not found for leads/update");
+            if (
+              window.location.hostname === "localhost" ||
+              window.location.hostname === "127.0.0.1"
+            )
+              console.error("jQuery not found for leads/update");
           } catch (_) {}
           return;
         }
@@ -115,7 +119,11 @@
       var $ = window.jQuery;
       if (!$) {
         try {
-          console.error("Failed to initialize leads/update");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("Failed to initialize leads/update");
         } catch (_) {}
         return;
       }
@@ -124,7 +132,15 @@
       });
     } catch (_) {
       try {
-        console.error("Failed to run leads/update");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("Failed to run leads/update");
       } catch (__) {}
     }
   })();
@@ -203,7 +219,11 @@
       var $ = window.jQuery;
       if (!$) {
         try {
-          console.error("jQuery not found for aiGenerateGuard");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("jQuery not found for aiGenerateGuard");
         } catch (_) {}
         return;
       }
@@ -240,7 +260,11 @@
     var $ = window.jQuery;
     if (!$) {
       try {
-        console.error("Failed to initialize aiGenerateGuard");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("Failed to initialize aiGenerateGuard");
       } catch (_) {}
       return;
     }
@@ -249,7 +273,11 @@
     });
   } catch (_) {
     try {
-      console.error("Failed to run aiGenerateGuard");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("Failed to run aiGenerateGuard");
     } catch (__) {}
   }
 })();

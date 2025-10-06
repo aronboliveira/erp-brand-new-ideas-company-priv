@@ -2,7 +2,11 @@
   const $ = window.jQuery;
   if (!$ || !$.fn) {
     try {
-      console.error("jQuery unavailable");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery unavailable");
     } catch (_) {}
     return;
   }
@@ -131,7 +135,11 @@
     try {
       if (typeof window.html2pdf !== "function") {
         try {
-          console.error("html2pdf unavailable");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("html2pdf unavailable");
         } catch (_) {}
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;

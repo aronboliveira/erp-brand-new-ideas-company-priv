@@ -86,7 +86,11 @@
 
   try {
     if (typeof $ === "undefined") {
-      console.error("jQuery failed to load");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery failed to load");
       return;
     }
 
@@ -130,6 +134,10 @@
       guardOnce(document.body, "attachment_preview_unavailable");
     }
   } catch (e) {
-    console.error("Initialization failed", e);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Initialization failed", e);
   }
 })();

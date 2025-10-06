@@ -55,12 +55,20 @@
       el.addEventListener("click", () => {
         try {
           if (typeof $ !== "function") {
-            console.error("jQuery not loaded");
+            if (
+              window.location.hostname === "localhost" ||
+              window.location.hostname === "127.0.0.1"
+            )
+              console.error("jQuery not loaded");
             showError("date_picker_unavailable");
             return;
           }
           if (typeof $.fn.daterangepicker !== "function") {
-            console.error("daterangepicker plugin unavailable");
+            if (
+              window.location.hostname === "localhost" ||
+              window.location.hostname === "127.0.0.1"
+            )
+              console.error("daterangepicker plugin unavailable");
             showError("date_picker_unavailable");
             return;
           }
@@ -69,12 +77,20 @@
             locale: { format: "YYYY-MM-DD" },
           });
         } catch (err) {
-          console.error("Error initializing date picker on click:", err);
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("Error initializing date picker on click:", err);
           showError("date_picker_unavailable");
         }
       });
     });
   } catch (err) {
-    console.error("Error binding datepicker listeners:", err);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Error binding datepicker listeners:", err);
   }
 })();

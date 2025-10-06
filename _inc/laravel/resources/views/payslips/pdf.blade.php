@@ -371,7 +371,12 @@
             } catch {
             showError(el);
             if (typeof html2pdf === "undefined") {
-                try { console.error("html2pdf library failed to load"); } catch {}
+                try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("html2pdf library failed to load");
+                } catch {_}
             }
             }
         };

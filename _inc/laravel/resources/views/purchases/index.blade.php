@@ -106,7 +106,13 @@
             };
 
             try{
-            if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
+            if(typeof $==="undefined"){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
+                return; 
+            }
 
             const SUCCESS_KEY="copy_success";
 
@@ -146,7 +152,12 @@
             });
             mo.observe(document.body,{childList:true,subtree:true});
             }catch(e){
-            console.error("Initialization failed",e);
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("Initialization failed", e);
+                }
             }
         })();
     </script>

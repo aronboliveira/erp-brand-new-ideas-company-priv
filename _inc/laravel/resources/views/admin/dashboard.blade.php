@@ -901,7 +901,10 @@
                         showErrorUI(msg);
                     });
                 } catch (e) {
-                    console.error("jQuery or AJAX unavailable", e);
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery or AJAX unavailable", e);
                 }
                 };
             

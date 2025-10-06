@@ -50,7 +50,11 @@
         e.preventDefault();
         const href = el.getAttribute("href") ?? "";
         if (!href) {
-          console.error("No href to copy");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("No href to copy");
           showError("copy_link_unavailable");
           return;
         }
@@ -69,12 +73,20 @@
             "success"
           );
         } catch (err) {
-          console.error("Copy command failed:", err);
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("Copy command failed:", err);
           showError("copy_link_unavailable");
         }
       });
     });
   } catch (err) {
-    console.error("Failed to bind copy_link handlers:", err);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Failed to bind copy_link handlers:", err);
   }
 })();

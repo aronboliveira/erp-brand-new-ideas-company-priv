@@ -323,9 +323,12 @@ Object.keys(t).forEach(
                 };
 
                 try {
-                if (typeof $ === "undefined") {
-                    console.error("jQuery failed to load");
-                    return;
+                if(typeof $==="undefined"){ 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery unavailable");     
+                    return; 
                 }
 
                 const $doc = $(document);
@@ -523,7 +526,12 @@ Object.keys(t).forEach(
                 });
 
                 } catch (e) {
-                console.error("Initialization failed", e);
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Initialization failed", e);
+                    }
                 }
             })();
         </script>

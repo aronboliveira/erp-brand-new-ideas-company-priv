@@ -52,18 +52,26 @@
 
         f.setAttribute("data-failed-route", "true");
       } catch (err) {
-        console.error(
-          "[assets/js/routes/terminations/update.js] Submit handler error:",
-          err?.constructor?.name ?? "Error",
-          err?.message ?? "Unknown error"
-        );
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error(
+            "[assets/js/routes/terminations/update.js] Submit handler error:",
+            err?.constructor?.name ?? "Error",
+            err?.message ?? "Unknown error"
+          );
       }
     });
   } catch (error) {
-    console.error(
-      "[assets/js/routes/terminations/update.js] Initialization error:",
-      error?.constructor?.name ?? "Error",
-      error?.message ?? "Unknown error"
-    );
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error(
+        "[assets/js/routes/terminations/update.js] Initialization error:",
+        error?.constructor?.name ?? "Error",
+        error?.message ?? "Unknown error"
+      );
   }
 })();

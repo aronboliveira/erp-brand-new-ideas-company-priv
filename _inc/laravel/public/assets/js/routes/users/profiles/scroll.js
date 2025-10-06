@@ -108,7 +108,11 @@
     try {
       if (!window.bootstrap || !window.bootstrap.ScrollSpy) {
         try {
-          console.error("bootstrap.ScrollSpy unavailable");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("bootstrap.ScrollSpy unavailable");
         } catch (_) {}
         scheduleClickError(getMsg(target, "scrollspy_unavailable"));
         return;
@@ -133,7 +137,11 @@
     root.setAttribute(dataClickGuard, "true");
     if (!$ || !$.fn) {
       try {
-        console.error("jQuery unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery unavailable");
       } catch (_) {}
       return;
     }

@@ -75,14 +75,24 @@ Object.keys(t).forEach(
 
                 const guardOnce=(el,key,ev="pointerup")=>{ if(!el||el.getAttribute(DATA_LISTENER_ADDED)==="true") return; const handler=()=>showError(el,key,ev); el.addEventListener(ev,handler,{once:true}); el.setAttribute(DATA_LISTENER_ADDED,"true"); const mo=new MutationObserver((_,o)=>{ if(!document.body.contains(el)){ el.removeEventListener(ev,handler); o.disconnect(); }}); mo.observe(document.body,{childList:true,subtree:true}); };
 
-                const renderChart=(selector,options,key)=>{try{ if(typeof ApexCharts==="undefined"){ console.error("ApexCharts failed to load"); guardOnce(document.querySelector(selector)||document.body,key,"click"); return; } const el=document.querySelector(selector); if(!el){ guardOnce(document.body,key,"click"); return; } if(el.getAttribute(DATA_RENDERED)==="true") return; const chart=new ApexCharts(el,options); chart.render(); el.setAttribute(DATA_RENDERED,"true"); }catch{ guardOnce(document.querySelector(selector)||document.body,key,"click"); }};
+                const renderChart=(selector,options,key)=>{try{ if(typeof ApexCharts==="undefined"){ 
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("ApexCharts unavailable"); guardOnce(document.querySelector(selector)||document.body,key,"click"); return; } const el=document.querySelector(selector); if(!el){ guardOnce(document.body,key,"click"); return; } if(el.getAttribute(DATA_RENDERED)==="true") return; const chart=new ApexCharts(el,options); chart.render(); el.setAttribute(DATA_RENDERED,"true"); }catch{ guardOnce(document.querySelector(selector)||document.body,key,"click"); }};
 
                 const routeGuard=(element)=>{ const url=element?.getAttribute?.("data-url"); const href=element?.getAttribute?.("action")||element?.getAttribute?.("href"); return (!url||url==="#") && (!href||href==="#"); };
 
                 const loadProjectUser=()=>{const $main=$("#project_users"); const el=$main.get(0); try{ if(routeGuard(el)){ guardOnce(el,"users_load_unavailable"); return; } $.ajax({ url:'{{ route(ViewsConstants::PRJ.'.user') }}', data:{ project_id:'{{$project->id}}' }, beforeSend:()=>{ $('#project_users').html('<tr><th colspan="2" class="h6 text-center pt-5">{{__("Loading...")}}</th></tr>'); }, success:(data)=>{ $main.html(data?.html ?? ""); $('[id^=fire-modal]').remove(); }, error:()=>guardOnce(el,"users_load_unavailable") }); }catch{ guardOnce(el,"users_load_unavailable"); }};
 
                 try{
-                if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
+                if(typeof $==="undefined"){ 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery unavailable");     
+                    return; 
+                }
 
                 // Charts (safe to defer; render after DOM parsed)
                 (function(){const options={chart:{type:"area",height:60,sparkline:{enabled:true}},colors:["#ffa21d"],dataLabels:{enabled:false},stroke:{curve:"smooth",width:2},series:[{name:"Bandwidth",data:{{ json_encode(array_map('intval',$project_data['timesheet_chart']['chart'])) }} }],tooltip:{followCursor:false,fixed:{enabled:false},x:{show:false},y:{title:{formatter:()=>""}},marker:{show:false}}}; renderChart("#timesheet_chart",options,"timesheet_chart_unavailable");})();
@@ -113,7 +123,14 @@ Object.keys(t).forEach(
 
                 // Clipboard helper (click-triggered)
                 window.copyToClipboard=(element)=>{try{ const text=element?.id ?? ""; if(!navigator?.clipboard){ throw new Error("Clipboard API unavailable"); } navigator.clipboard.writeText(text).then(()=>{ if(typeof show_toastr==="function") show_toastr("success","Url copied to clipboard","success"); }).catch(()=>{ guardOnce(element||document.body,"copy_unavailable","click"); }); }catch{ guardOnce(element||document.body,"copy_unavailable","click"); }};
-                }catch(e){ console.error("Initialization failed",e); }
+                }catch(e){ 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Initialization failed", e);
+                    }
+                 }
             })();
         </script>
     @endpush

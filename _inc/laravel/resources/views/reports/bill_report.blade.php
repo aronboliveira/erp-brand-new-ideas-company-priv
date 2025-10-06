@@ -42,7 +42,12 @@
             const dataSvLocalized = "data-sv-localized";
             const dataErrGuard = "data-error-guard";
             const dataInitGuard = "data-analytics-init-bound";
-            if (!$) { try { console.error("jQuery unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
+            if (!$) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
             const ensureToastContainer = () => {
             const id = "np-toast-container";
             let c = qs("#" + id);
@@ -102,7 +107,12 @@
             const initChart = () => {
             const container = qs("#chart-sales");
             if (!container) { return; }
-            if (typeof window.ApexCharts !== "function") { try { console.error("ApexCharts unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(container, "plugin_unavailable")); return; }
+            if (typeof window.ApexCharts !== "function") { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("ApexCharts unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg(container, "plugin_unavailable")); return; }
             try {
                 const chartBarOptions = {
                 series: [{ name: '{{ __("Bill") }}', data: {!! json_encode($billTotal) !!} }],
@@ -126,7 +136,12 @@
             const name = ($("#filename").val() ?? "").toString().trim() || "export";
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
-                if (typeof window.html2pdf !== "function") { try { console.error("html2pdf unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable")); return; }
+                if (typeof window.html2pdf !== "function") { try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("html2pdf unavailable");
+                 } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable")); return; }
                 window.html2pdf().set(opt).from(area).save();
             } catch (_) { scheduleInteractiveError(getMsg(area, "pdf_unavailable")); }
             };
@@ -134,10 +149,20 @@
             const initDataTable = () => {
             const table = $("#report-dataTable");
             if (!table.length) { return; }
-            if (!$.fn.DataTable) { try { console.error("DataTables unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(table.get(0), "plugin_unavailable")); return; }
+            if (!$.fn.DataTable) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("DataTables unavailable");
+            } catch (_) {} scheduleInteractiveError(getMsg(table.get(0), "plugin_unavailable")); return; }
             const filename = ($("#filename").val() ?? "").toString().trim() || "export";
             let useButtons = true;
-            if (!$.fn.dataTable || !$.fn.DataTable.Buttons) { useButtons = false; try { console.error("DataTables Buttons unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(table.get(0), "datatable_unavailable")); }
+            if (!$.fn.dataTable || !$.fn.DataTable.Buttons) { useButtons = false; try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("DataTables Buttons unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg(table.get(0), "datatable_unavailable")); }
             try {
                 table.DataTable(useButtons ? {
                 dom: "lBfrtip",

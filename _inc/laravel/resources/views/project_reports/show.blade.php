@@ -524,7 +524,12 @@
 
             const renderChart=(selector, options, key)=>{
             try{
-                if(typeof ApexCharts==='undefined'){ console.error('ApexCharts not loaded'); attachGuardOnce(document.querySelector(selector)||document.body,key); return; }
+                if(typeof ApexCharts==='undefined'){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("ApexCharts unavailable");
+                attachGuardOnce(document.querySelector(selector)||document.body,key); return; }
                 const el=document.querySelector(selector);
                 if(!el){ attachGuardOnce(document.body,key); return; }
                 if(el.getAttribute(dataRendered)==='true') return;

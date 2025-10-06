@@ -9,7 +9,11 @@
   const dataListenerGuard = "data-listener-guard";
   if (!$) {
     try {
-      console.error("jQuery unavailable");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery unavailable");
     } catch (_) {}
   }
   const ensureToastContainer = () => {
@@ -135,7 +139,11 @@
         });
       } else {
         try {
-          console.error("Bootstrap ScrollSpy unavailable");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("Bootstrap ScrollSpy unavailable");
         } catch (_) {}
         scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       }
@@ -181,7 +189,11 @@
     try {
       if (typeof window.html2pdf !== "function") {
         try {
-          console.error("html2pdf unavailable");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("html2pdf unavailable");
         } catch (_) {}
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;

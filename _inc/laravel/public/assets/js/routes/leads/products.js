@@ -71,7 +71,11 @@
       var $ = window.jQuery;
       if (!$) {
         try {
-          console.error("jQuery not found for leads/productsUpdate");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("jQuery not found for leads/productsUpdate");
         } catch (_) {}
         return;
       }
@@ -110,7 +114,11 @@
     var $ = window.jQuery;
     if (!$) {
       try {
-        console.error("Failed to initialize leads/productsUpdate");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("Failed to initialize leads/productsUpdate");
       } catch (_) {}
       return;
     }
@@ -119,7 +127,11 @@
     });
   } catch (_) {
     try {
-      console.error("Failed to run leads/productsUpdate");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("Failed to run leads/productsUpdate");
     } catch (__) {}
   }
 })();

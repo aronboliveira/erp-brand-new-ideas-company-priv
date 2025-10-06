@@ -265,7 +265,10 @@
             const initSortable = () => {
                 if (!$ || !$.fn || typeof $.fn.sortable !== "function") {
                 try {
-                    console.error("jQuery UI sortable unavailable");
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery UI Sortable unavailable");
                 } catch (_) {}
                 schedulePointerupError(document.body, "sort_unavailable");
                 return;

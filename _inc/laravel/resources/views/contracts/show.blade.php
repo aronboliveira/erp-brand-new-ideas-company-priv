@@ -149,7 +149,10 @@
                 const ensureJq = () => {
                     if (!$ || !$.fn) {
                     try {
-                        console.error("jQuery unavailable");
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("jQuery unavailable");
                     } catch (_) {}
                     scheduleClickError(localize(document.body, "plugin_unavailable"));
                     return false;
@@ -159,7 +162,10 @@
                 const ensureDropzone = () => {
                     if (!window.Dropzone) {
                     try {
-                        console.error("Dropzone unavailable");
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("Dropzone unavailable");
                     } catch (_) {}
                     scheduleClickError(localize(document.body, "plugin_unavailable"));
                     return false;
@@ -481,10 +487,16 @@
                         offset: 300,
                         });
                     } else {
-                        console.error("Bootstrap ScrollSpy unavailable");
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("Bootstrap ScrollSpy unavailable");
                     }
                     } catch (_) {
-                    console.error("Bootstrap ScrollSpy unavailable");
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("Bootstrap ScrollSpy unavailable");
                     }
                     $(document).on("click", ".list-group-item", function () {
                     const id = this.getAttribute("href") ?? "";
@@ -625,7 +637,10 @@
                 const ensureJq = () => {
                     if (!$ || !$.fn) {
                     try {
-                        console.error("jQuery unavailable");
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("jQuery unavailable");
                     } catch (_) {}
                     schedulePointerupError(getMsg(document.body, "plugin_unavailable"));
                     return false;

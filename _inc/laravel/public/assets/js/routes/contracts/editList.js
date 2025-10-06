@@ -104,7 +104,11 @@
 
   try {
     if (typeof $ === "undefined") {
-      console.error("jQuery failed to load");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery failed to load");
       return;
     }
 
@@ -113,7 +117,11 @@
       if (!$ms.length) return;
 
       if (typeof window.Choices !== "function") {
-        console.error("Choices failed to load");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("Choices failed to load");
         showFeedback(document.body, "choices_unavailable");
         return;
       }
@@ -201,6 +209,10 @@
       getParent(client_id, this);
     });
   } catch (e) {
-    console.error("Initialization failed", e);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Initialization failed", e);
   }
 })();

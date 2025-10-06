@@ -97,7 +97,13 @@
         };
     
         try{
-          if(typeof $==='undefined'){ console.error('jQuery is required'); return; }
+          if(typeof $==='undefined'){ 
+            if (
+                window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1"
+            ) console.error("jQuery unavailable");            
+            return;
+          }
           $(document).on('click','.cattype',function(){
             try{
               const type=$(this).val() ?? '';
@@ -132,7 +138,14 @@
             }catch{ attachPointerGuard(el,'get_account_unavailable'); }
           });
     
-        }catch(e){ console.error('Initialization failed',e); }
+        }catch(e){ 
+            if (
+                window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1"
+            ) {
+                console.error("Initialization failed", e);
+            }
+         }
       })();
     </script>
 {{ Form::close() }}

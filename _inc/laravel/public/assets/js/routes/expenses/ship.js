@@ -97,7 +97,11 @@
       const $ = window.jQuery;
       if (!$ || !$.ajax) {
         try {
-          console.error("jQuery or $.ajax unavailable");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("jQuery or $.ajax unavailable");
         } catch (_) {}
         notifyError(document.body, localize(el, "shipping_unavailable"));
         return;

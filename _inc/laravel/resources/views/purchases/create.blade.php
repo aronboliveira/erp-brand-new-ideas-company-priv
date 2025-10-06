@@ -49,7 +49,14 @@
     <script defer>
         (function () {
             const $ = window.jQuery;
-            if (!$) { try { console.error("jQuery unavailable"); } catch (_) { } return; }
+            if (!$) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("jQuery unavailable");
+                }
+             } catch (_) { } return; }
             const qs = (s, r = document) => r.querySelector(s);
             const errFb = "# ERROR";
             const dataClientLocalized = "data-client-localized";
@@ -150,7 +157,14 @@
             const attachRepeater = () => {
             const selector = "body";
             if (!$(selector + " .repeater").length) { return; }
-            if (!$.fn.sortable || !$.fn.repeater) { try { console.error("Required plugins missing: sortable or repeater"); } catch (_) { } scheduleInteractiveError(getMsgFor(document.body, "plugin_unavailable")); }
+            if (!$.fn.sortable || !$.fn.repeater) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("jQuery Sortable or Repeater unavailable");
+                }
+            } catch (_) { } scheduleInteractiveError(getMsgFor(document.body, "plugin_unavailable")); }
             const $dragAndDrop = $("body .repeater tbody").sortable ? $("body .repeater tbody").sortable({ handle: ".sort-handler" }) : $("body .repeater tbody");
             const $repeater = $.fn.repeater ? $(selector + " .repeater").repeater({
                 initEmpty: false,
@@ -161,9 +175,23 @@
                 if (fileUploads.length) {
                     if ($.fn.MultiFile) {
                     try { $(this).find("input.multi").MultiFile({ max: 3, accept: "png|jpg|jpeg", max_size: {{ SettingsConstants::MAX_U_SIZE_DEF }} }); } catch (_) { scheduleInteractiveError(getMsgFor(this, "plugin_unavailable")); }
-                    } else { try { console.error("MultiFile plugin missing"); } catch (_) { } scheduleInteractiveError(getMsgFor(this, "plugin_unavailable")); }
+                    } else { try { 
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) {
+                            console.error("MultiFile unavailable");
+                        }
+                     } catch (_) { } scheduleInteractiveError(getMsgFor(this, "plugin_unavailable")); }
                 }
-                if ($.fn.select2) { $(".select2").select2(); } else { try { console.error("select2 plugin missing"); } catch (_) { } }
+                if ($.fn.select2) { $(".select2").select2(); } else { try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Select2 unavailable");
+                    }
+                } catch (_) { } }
                 },
                 hide: function (deleteElement) {
                 if (window.confirm("Are you sure you want to delete this element?")) {

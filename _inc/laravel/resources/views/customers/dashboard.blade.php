@@ -126,7 +126,10 @@
             }
             if (!window.ApexCharts) {
             try {
-                console.error("ApexCharts unavailable");
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("ApexCharts unavailable");
             } catch (_) {}
             schedulePointerupError(localize(body, "plugin_unavailable"));
             return;

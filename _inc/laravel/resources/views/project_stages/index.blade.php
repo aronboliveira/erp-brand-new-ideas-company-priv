@@ -74,7 +74,13 @@
             };
 
             try{
-            if(typeof $==='undefined' || !$.fn.sortable){ console.error('jQuery UI sortable is required'); return; }
+            if(typeof $==='undefined' || !$.fn.sortable){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery Sortable unavailable");
+                return;
+             }
 
             $('.sortable').each(function(){
                 const listEl=this;

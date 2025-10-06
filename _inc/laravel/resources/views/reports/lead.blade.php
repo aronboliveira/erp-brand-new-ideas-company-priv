@@ -203,7 +203,12 @@
             const dataErrGuard = "data-error-guard";
             const dataListenerGuard = "data-leads-guard";
 
-            if (!$) { try { console.error("jQuery unavailable"); } catch (_) {} }
+            if (!$) { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
+            } catch (_) {} }
 
             const ensureToastContainer = () => {
             const id = "np-toast-container";
@@ -297,7 +302,12 @@
             const target = qs(selector);
             if (!target) { return; }
             if (typeof window.ApexCharts !== "function") {
-                try { console.error("ApexCharts unavailable"); } catch (_) {}
+                try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("ApexCharts unavailable");
+                } catch (_) {}
                 scheduleInteractiveError(getMsg(target, "plugin_unavailable"));
                 return;
             }
@@ -314,7 +324,12 @@
             const target = qs(selector);
             if (!target) { return; }
             if (typeof window.ApexCharts !== "function") {
-                try { console.error("ApexCharts unavailable"); } catch (_) {}
+                try {
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("ApexCharts unavailable");
+                } catch (_) {}
                 scheduleInteractiveError(getMsg(target, "plugin_unavailable"));
                 return;
             }

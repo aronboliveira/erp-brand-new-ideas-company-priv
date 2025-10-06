@@ -351,7 +351,7 @@ function addscroller() {
   // Menu scrollbar start
   if (document.querySelector(".navbar-content")) {
     var px = new SimpleBar(document.querySelector(".navbar-content"), {
-      autoHide: true
+      autoHide: true,
     });
     // var px = new PerfectScrollbar(".navbar-content", {
     //   wheelSpeed: 0.5,
@@ -604,9 +604,8 @@ function scrolltargetmenu(value) {
         document.querySelector(".navbar-content").scrollTop = t - 300;
       }
     }
-  })
+  });
 }
-
 
 // Menu click for tab Layout start
 var tablayclick = document.querySelector(".tab-sidemenu > ul > li");
@@ -804,6 +803,7 @@ for (var t = 0; t < tc.length; t++) {
 // =======================================================
 // =======================================================
 let slideUp = (target, duration = 0) => {
+  if (!target) return;
   target.style.transitionProperty = "height, margin, padding";
   target.style.transitionDuration = duration + "ms";
   target.style.boxSizing = "border-box";
@@ -817,6 +817,7 @@ let slideUp = (target, duration = 0) => {
   target.style.marginBottom = 0;
 };
 let slideDown = (target, duration = 0) => {
+  if (!target) return;
   target.style.removeProperty("display");
   let display = window.getComputedStyle(target).display;
 

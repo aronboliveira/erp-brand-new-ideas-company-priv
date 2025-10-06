@@ -4,6 +4,14 @@
 </script>
 <script src="<?php echo e(asset('js/chatify/code.js')); ?>"></script>
 <?php if (! (app()->environment('production'))): ?>
+  <script>
+      if (!window.pusherConfig || !Object.entries(window.pusherConfig || []).length)
+        window.pusherConfig = {
+            key: "<?php echo e(config('chatify.pusher.key')); ?>",
+            cluster: "<?php echo e(config('chatify.pusher.options.cluster')); ?>",
+            wsHost: "ws-<?php echo e(config('chatify.pusher.options.cluster')); ?>.pusher.com"
+        };
+  </script>
   <script src="<?php echo e(asset('assets/js/routes/vendors/chatify/lang/pusher.js')); ?>"></script>
   <script src="<?php echo e(asset('assets/js/routes/vendors/chatify/pusher.js')); ?>"></script>
 <?php endif; ?>

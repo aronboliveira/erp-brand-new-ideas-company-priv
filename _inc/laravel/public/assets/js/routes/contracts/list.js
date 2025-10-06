@@ -93,7 +93,11 @@
 
   try {
     if (typeof $ === "undefined") {
-      console.error("jQuery failed to load");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery failed to load");
       return;
     }
 
@@ -101,7 +105,11 @@
       if (!$(".multi-select").length) return;
       if (typeof window.Choices !== "function") {
         showFeedback(document.body, "choices_unavailable");
-        console.error("Choices library failed to load");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("Choices library failed to load");
         return;
       }
       $(".multi-select").each((_, element) => {
@@ -181,6 +189,10 @@
     initChoices();
     $(document).on("change", ".client_select", onClientChange);
   } catch (e) {
-    console.error("Initialization failed", e);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Initialization failed", e);
   }
 })();

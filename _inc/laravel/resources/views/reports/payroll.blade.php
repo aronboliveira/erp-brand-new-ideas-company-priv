@@ -114,7 +114,12 @@
             const name = (($ && $("#filename").val()) ?? "").toString().trim() || "export";
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
-                if (typeof window.html2pdf !== "function") { try { console.error("html2pdf unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable"), false); return; }
+                if (typeof window.html2pdf !== "function") { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("html2pdf unavailable");
+                } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable"), false); return; }
                 window.html2pdf().set(opt).from(area).save();
             } catch (_) { scheduleInteractiveError(getMsg(area, "pdf_unavailable"), false); }
             };
@@ -152,12 +157,22 @@
             const initDataTable = () => {
             const $table = $("#report-dataTable");
             if (!$table.length) { return; }
-            if (!$.fn || !$.fn.DataTable) { try { console.error("DataTables unavailable"); } catch (_) {} scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"), false); return; }
+            if (!$.fn || !$.fn.DataTable) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("DataTables unavailable");
+            } catch (_) {} scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"), false); return; }
             if ($.fn.DataTable.isDataTable($table)) { return; }
             const title = (($ && $("#filename").val()) ?? "").toString().trim() || "export";
             const hasButtons = $.fn.dataTable && $.fn.dataTable.Buttons;
             const opts = hasButtons ? { dom: "lBfrtip", buttons: [{ extend: "pdf", title }, { extend: "excel", title }, { extend: "csv", title }] } : {};
-            if (!hasButtons) { try { console.error("DataTables Buttons unavailable"); } catch (_) {} scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"), false); }
+            if (!hasButtons) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("DataTables Buttons unavailable");
+            } catch (_) {} scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"), false); }
             try { $table.DataTable(opts); } catch (_) { scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"), false); }
             };
 

@@ -104,19 +104,13 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       var tempsdbr = document.querySelector(".dash-sidebar");
       var tem = document.querySelector("body");
-        if (tem) {
-            if (
-                document
-                    .querySelector("body")
-                    .classList.contains("no-scroll")
-            ){
-                rmmenu();
-            } else {
-                document
-                    .querySelector("body")
-                    .classList.add("no-scroll");
-            }
+      if (tem) {
+        if (document.querySelector("body").classList.contains("no-scroll")) {
+          rmmenu();
+        } else {
+          document.querySelector("body").classList.add("no-scroll");
         }
+      }
       if (tempsdbr) {
         if (
           document
@@ -475,12 +469,10 @@ function rmthead() {
 
 function rmmenu() {
   var tempov = document.querySelector(".dash-sidebar");
-    var tem = document.querySelector("body");
-    if (tem) {
-        document
-            .querySelector("body")
-            .classList.remove("no-scroll");
-    }
+  var tem = document.querySelector("body");
+  if (tem) {
+    document.querySelector("body").classList.remove("no-scroll");
+  }
   if (tempov) {
     document
       .querySelector(".dash-sidebar")
@@ -621,9 +613,8 @@ function scrolltargetmenu(value) {
         document.querySelector(".navbar-content").scrollTop = t - 300;
       }
     }
-  })
+  });
 }
-
 
 // Menu click for tab Layout start
 var tablayclick = document.querySelector(".tab-sidemenu > ul > li");
@@ -837,6 +828,7 @@ for (var t = 0; t < tc.length; t++) {
 // =======================================================
 // =======================================================
 let slideUp = (target, duration = 0) => {
+  if (!target) return;
   target.style.transitionProperty = "height, margin, padding";
   target.style.transitionDuration = duration + "ms";
   target.style.boxSizing = "border-box";
@@ -850,6 +842,7 @@ let slideUp = (target, duration = 0) => {
   target.style.marginBottom = 0;
 };
 let slideDown = (target, duration = 0) => {
+  if (!target) return;
   target.style.removeProperty("display");
   let display = window.getComputedStyle(target).display;
 

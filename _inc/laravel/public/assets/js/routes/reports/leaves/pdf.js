@@ -144,7 +144,11 @@
     try {
       if (typeof window.html2pdf !== "function") {
         try {
-          console.error("html2pdf unavailable");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("html2pdf unavailable");
         } catch (_) {}
         scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
         return;
@@ -164,7 +168,11 @@
     }
     if (!$.fn || !$.fn.DataTable) {
       try {
-        console.error("DataTables unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("DataTables unavailable");
       } catch (_) {}
       scheduleInteractiveError(getMsg($table.get(0), "plugin_unavailable"));
       return;
@@ -187,7 +195,11 @@
       : {};
     if (!hasButtons) {
       try {
-        console.error("DataTables Buttons unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("DataTables Buttons unavailable");
       } catch (_) {}
       scheduleInteractiveError(getMsg($table.get(0), "datatable_unavailable"));
     }

@@ -153,7 +153,11 @@
       initSelection();
       ["employee", "customer", "vendor"].forEach(setupAjax);
     } catch {
-      console.error("Initialization error");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("Initialization error");
     }
   });
 })();

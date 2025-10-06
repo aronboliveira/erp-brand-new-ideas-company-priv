@@ -335,7 +335,7 @@ unset($__errorArgs, $__bag); ?>
 
 <?php $__env->startPush(StacksConstants::AUTH_CST_SCR); ?>
     <script src="<?php echo e(asset('js/jquery.min.js')); ?>"></script>
-    <script async src="<?php echo e(asset('js/routes/auth/login/lang/submit.js')); ?>"></script>
-    <script async src="<?php echo e(asset('js/routes/auth/login/submit.js')); ?>"></script>
+    <script async src="<?php echo e(asset('assets/js/routes/auth/login/lang/submit.js')); ?>"></script>
+    <script async src="<?php echo e(asset('assets/js/routes/auth/login/submit.js')); ?>"></script>
 <?php $__env->stopPush(); ?>
 <?php echo $__env->make(ExtendingLayoutsConstants::AUTH, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/resources/views/auth/login.blade.php ENDPATH**/ ?>

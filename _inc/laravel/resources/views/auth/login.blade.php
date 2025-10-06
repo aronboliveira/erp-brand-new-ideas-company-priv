@@ -360,6 +360,6 @@
 @endsection --}}
 @push(StacksConstants::AUTH_CST_SCR)
     <script src="{{ asset('js/jquery.min.js') }}"></script>
-    <script async src="{{ asset('js/routes/auth/login/lang/submit.js') }}"></script>
-    <script async src="{{ asset('js/routes/auth/login/submit.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/auth/login/lang/submit.js') }}"></script>
+    <script async src="{{ asset('assets/js/routes/auth/login/submit.js') }}"></script>
 @endpush

@@ -1346,7 +1346,11 @@
     var div = doc.createElement("div");
     div.innerHTML = html;
     if (!div.hasChildNodes() || div.childNodes.length > 1) {
-      console.error("HTML does not have a single root node", html);
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("HTML does not have a single root node", html);
       throw new Error("HTML must have a single root node");
     }
     return fromDom$2(div.childNodes[0]);
@@ -1929,14 +1933,18 @@
     if (isString$1(value) || isBoolean(value) || isNumber(value)) {
       dom.setAttribute(key, value + "");
     } else {
-      console.error(
-        "Invalid call to Attribute.set. Key ",
-        key,
-        ":: Value ",
-        value,
-        ":: Element ",
-        dom
-      );
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error(
+          "Invalid call to Attribute.set. Key ",
+          key,
+          ":: Value ",
+          value,
+          ":: Element ",
+          dom
+        );
       throw new Error("Attribute value was not simple");
     }
   };
@@ -1976,14 +1984,18 @@
 
   var internalSet = function (dom, property, value) {
     if (!isString$1(value)) {
-      console.error(
-        "Invalid call to CSS.set. Property ",
-        property,
-        ":: Value ",
-        value,
-        ":: Element ",
-        dom
-      );
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error(
+          "Invalid call to CSS.set. Property ",
+          property,
+          ":: Value ",
+          value,
+          ":: Element ",
+          dom
+        );
       throw new Error("CSS value must be a string: " + value);
     }
     if (isSupported(dom)) {
@@ -23798,7 +23810,11 @@
   };
   var logError = function (editor, errorType, msg) {
     fireError(editor, errorType, { message: msg });
-    console.error(msg);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error(msg);
   };
   var createLoadError = function (type, url, name) {
     return name
@@ -24352,9 +24368,13 @@
               }
               if (imagesToRemove.length > 0) {
                 if (isRtc(editor)) {
-                  console.error(
-                    "Removing images on failed uploads is currently unsupported for RTC"
-                  );
+                  if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                  )
+                    console.error(
+                      "Removing images on failed uploads is currently unsupported for RTC"
+                    );
                 } else {
                   editor.undoManager.transact(function () {
                     each$k(imagesToRemove, function (element) {
@@ -33405,7 +33425,11 @@
     try {
       newMode.activate();
     } catch (e) {
-      console.error("problem while activating editor mode " + mode + ":", e);
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("problem while activating editor mode " + mode + ":", e);
       return;
     }
     oldMode.deactivate();
@@ -33442,10 +33466,14 @@
           try {
             api.deactivate();
           } catch (e) {
-            console.error(
-              "problem while deactivating editor mode " + mode + ":",
-              e
-            );
+            if (
+              window.location.hostname === "localhost" ||
+              window.location.hostname === "127.0.0.1"
+            )
+              console.error(
+                "problem while deactivating editor mode " + mode + ":",
+                e
+              );
           }
         },
       })),

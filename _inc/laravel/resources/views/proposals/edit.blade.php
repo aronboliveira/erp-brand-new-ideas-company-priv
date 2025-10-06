@@ -128,7 +128,13 @@ Object.keys(t).forEach(
             };
 
             try{
-            if(typeof $==='undefined'){ console.error('jQuery is required'); return; }
+            if(typeof $==="undefined"){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");     
+                return; 
+            }
             const body=document.body;
             if(body.getAttribute(DATA_BOUND)==='true') return;
             body.setAttribute(DATA_BOUND,'true');
@@ -310,7 +316,14 @@ Object.keys(t).forEach(
                 }catch{ guardError(btn,'delete_unavailable'); }
             });
 
-            }catch(e){ console.error('Initialization failed',e); }
+            }catch(e){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("Initialization failed", e);
+                }
+             }
         })();
     </script>
 @endpush

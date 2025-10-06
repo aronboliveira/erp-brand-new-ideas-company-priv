@@ -468,7 +468,10 @@
                                                                 }
                                                             });
                                                         } catch (e) {
-                                                            console.error(e);
+                                                            if (
+                                                                window.location.hostname === "localhost" ||
+                                                                window.location.hostname === "127.0.0.1"
+                                                            ) console.error(e);
                                                         }
                                                     });
                                                 });

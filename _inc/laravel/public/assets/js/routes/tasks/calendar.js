@@ -114,7 +114,11 @@
     try {
       if (!window.FullCalendar || !window.FullCalendar.Calendar) {
         try {
-          console.error("FullCalendar unavailable");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("FullCalendar unavailable");
         } catch (_) {}
         scheduleInteractiveError(getMsg(el, "plugin_unavailable"));
         return;
@@ -168,7 +172,11 @@
   const getData = () => {
     if (!window.jQuery || !$.ajax) {
       try {
-        console.error("jQuery unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery unavailable");
       } catch (_) {}
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;

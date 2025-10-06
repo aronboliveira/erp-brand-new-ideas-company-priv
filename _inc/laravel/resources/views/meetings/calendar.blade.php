@@ -432,7 +432,10 @@
             }
             if (!window.FullCalendar || !window.FullCalendar.Calendar) {
             try {
-                console.error("FullCalendar missing");
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("FullCalendar unavailable");
             } catch (_) {}
             schedulePointerupError("calendar_unavailable");
             return;
@@ -596,7 +599,10 @@
         const start = () => {
             if (!$ || !$.ajax) {
             try {
-                console.error("jQuery unavailable");
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
             } catch (_) {}
             schedulePointerupError("request_failed");
             return;

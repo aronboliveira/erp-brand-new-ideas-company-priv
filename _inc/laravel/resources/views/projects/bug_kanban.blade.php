@@ -221,7 +221,13 @@
                 const guardRoute=(url)=>!url||url==="#"||url==="";
 
                 try{
-                if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
+                if(typeof $==="undefined"){ 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery unavailable");     
+                    return; 
+                }
 
                 const token=$('meta[name="csrf-token"]').attr('content') ?? "";
 

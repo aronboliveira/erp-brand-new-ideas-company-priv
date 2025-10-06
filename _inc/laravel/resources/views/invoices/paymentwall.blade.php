@@ -76,7 +76,10 @@
 
       try {
           if (typeof $ === 'undefined') {
-              console.error('jQuery is required');
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
               return;
           }
           const containerId = 'payment-form-container';

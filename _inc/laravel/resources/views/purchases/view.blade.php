@@ -48,7 +48,12 @@
         <script defer>
             (function () {
                 const $ = window.jQuery;
-                if (!$) { try { console.error("jQuery unavailable"); } catch (_) { } return; }
+                if (!$) { try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("jQuery unavailable");
+                 } catch (_) { } return; }
                 const qs = (s, r = document) => r.querySelector(s);
                 const errFb = "# ERROR";
                 const dataClientLocalized = "data-client-localized";

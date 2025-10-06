@@ -127,7 +127,12 @@
             if (!target || target.getAttribute(dataChartGuard) === "true") { return; }
             target.setAttribute(dataChartGuard, "true");
             if (typeof window.ApexCharts !== "function") {
-                try { console.error("ApexCharts unavailable"); } catch (_) {}
+                try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("ApexCharts unavailable");
+                 } catch (_) {}
                 scheduleInteractiveError(getMsg(target, "plugin_unavailable"));
                 return;
             }
@@ -162,7 +167,12 @@
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
                 if (typeof window.html2pdf !== "function") {
-                try { console.error("html2pdf unavailable"); } catch (_) {}
+                try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("html2pdf unavailable");
+                 } catch (_) {}
                 scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
                 return;
                 }
@@ -176,7 +186,12 @@
             const $table = $("#report-dataTable");
             if (!$table.length) { return; }
             if (!$.fn || !$.fn.DataTable) {
-                try { console.error("DataTables unavailable"); } catch (_) {}
+                try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("DataTables unavailable");
+                } catch (_) {}
                 scheduleInteractiveError(getMsg($table.get(0), "plugin_unavailable"));
                 return;
             }

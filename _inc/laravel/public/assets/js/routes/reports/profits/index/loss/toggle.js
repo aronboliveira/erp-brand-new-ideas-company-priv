@@ -110,7 +110,11 @@
   const bindFilterToggle = () => {
     if (!$ || !$.fn) {
       try {
-        console.error("jQuery unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery unavailable");
       } catch (_) {}
       scheduleInteractiveError(getMsg(document.body, "toggle_unavailable"));
       return;

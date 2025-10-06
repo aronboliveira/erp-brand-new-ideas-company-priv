@@ -35,7 +35,12 @@
             const dataGuardMsg = "data-guard-msg";
             const dataSvLocalized = "data-sv-localized";
             const dataErrGuard = "data-error-guard";
-            if (!$) { try { console.error("jQuery unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
+            if (!$) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
             const ensureToastContainer = () => {
             const id = "np-toast-container";
             let c = qs("#" + id);
@@ -98,7 +103,12 @@
             const name = ($("#filename").val() ?? "").toString().trim() || "export";
             const opt = { margin: 0.3, filename: name, image: { type: "jpeg", quality: 1 }, html2canvas: { scale: 4, dpi: 72, letterRendering: true }, jsPDF: { unit: "in", format: "A2" } };
             try {
-                if (typeof window.html2pdf !== "function") { try { console.error("html2pdf unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable")); return; }
+                if (typeof window.html2pdf !== "function") { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("html2pdf unavailable");
+                } catch (_) {} scheduleInteractiveError(getMsg(area, "plugin_unavailable")); return; }
                 window.html2pdf().set(opt).from(area).save();
             } catch (_) { scheduleInteractiveError(getMsg(area, "pdf_unavailable")); }
             };
@@ -106,7 +116,12 @@
             const initChart = () => {
             const container = qs("#warehouse_report");
             if (!container) { return; }
-            if (typeof window.ApexCharts !== "function") { try { console.error("ApexCharts unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(container, "plugin_unavailable")); return; }
+            if (typeof window.ApexCharts !== "function") { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("ApexCharts unavailable");
+            } catch (_) {} scheduleInteractiveError(getMsg(container, "plugin_unavailable")); return; }
             try {
                 const chartBarOptions = {
                 series: [{ name: '{{ __("Product") }}', data: {!! json_encode($warehouseProductData) !!} }],

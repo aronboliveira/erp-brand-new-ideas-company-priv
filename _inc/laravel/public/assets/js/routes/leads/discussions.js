@@ -2,7 +2,10 @@
   const $ = window.jQuery;
   if (!$) {
     try {
-      console.error("jQuery not found for discussionGuard.js");
+            if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )console.error("jQuery not found for discussionGuard.js");
     } catch (_) {}
     return;
   }

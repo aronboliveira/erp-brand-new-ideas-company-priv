@@ -139,7 +139,10 @@
         const BrickCtor = window.Brick;
         if (typeof BrickCtor !== "function") {
           try {
-            console.error("Brick library unavailable");
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("BrickCtor unavailable");
           } catch (_) {}
           schedulePointerupError(localize(document.body, "plugin_unavailable"));
           return;

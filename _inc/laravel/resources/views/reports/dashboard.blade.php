@@ -410,7 +410,12 @@
             const dataSvLocalized = "data-sv-localized";
             const dataErrGuard = "data-error-guard";
             const dataListenerGuard = "data-cal-listener";
-            if (!$) { try { console.error("jQuery unavailable"); } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
+            if (!$) { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg(document.body, "plugin_unavailable")); return; }
             const ensureToastContainer = () => {
             const id = "np-toast-container";
             let c = qs("#" + id);
@@ -481,7 +486,12 @@
             const initCalendar = () => {
             const $cal = $('[data-toggle="event_calendar"]');
             if (!$cal.length) { return; }
-            if (typeof $.fn.fullCalendar !== "function" || typeof window.moment !== "function") { try { console.error("fullCalendar or moment unavailable"); } catch (_) {} scheduleInteractiveError(getMsg($cal.get(0), "plugin_unavailable")); return; }
+            if (typeof $.fn.fullCalendar !== "function" || typeof window.moment !== "function") { try { 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("FullCalendar or Moment unavailable");
+             } catch (_) {} scheduleInteractiveError(getMsg($cal.get(0), "plugin_unavailable")); return; }
             try {
                 const opts = {
                 header: { right: "", center: "", left: "" },

@@ -96,7 +96,10 @@
                         new bootstrap.Toast(toast).show();
                     }
                     } else {
-                    console.error(msg);
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error(msg);
                     }
                 };
                 

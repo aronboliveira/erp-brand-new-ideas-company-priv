@@ -2038,7 +2038,10 @@
             const $ = (...a) =>
                 window.jQuery?.apply?.(window.jQuery, a) ?? window.jQuery(...a);
             if (typeof jQuery === "undefined") {
-                console.error("jQuery failed to load");
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
                 return;
             }
 
@@ -2046,12 +2049,15 @@
             const bindSummernoteSave = (selector, urlKey) => {
                 const $els = $(selector);
                 if (!$els.length) {
-                return;
+                    return;
                 }
                 if (!$.fn?.summernote) {
-                console.error("Summernote not available");
-                showOn(document.body, "summernote_unavailable");
-                return;
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("Summernote unavailable");
+                    showOn(document.body, "summernote_unavailable");
+                    return;
                 }
                 $els
                 .off("summernote.blur.__guard")

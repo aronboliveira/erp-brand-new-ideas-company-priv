@@ -186,7 +186,13 @@
             };
 
             try{
-            if(typeof $==="undefined"){ console.error("jQuery failed to load"); return; }
+            if(typeof $==="undefined"){
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
+                return; 
+            }
 
             const csrf=$('meta[name="csrf-token"]').attr('content') ?? "";
             const POS_URL='{{route(VW::POS.".get.product")}}';
@@ -206,7 +212,13 @@
             };
 
             const applyChoices=(selector)=>{
-                if(typeof Choices!=="function"){ console.error("Choices failed to load"); return null; }
+                if(typeof Choices!=="function"){ 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("Choices unavailable");
+                    return null; 
+                }
                 const el=document.querySelector(selector);
                 if(!el) return null;
                 if(el.getAttribute("data-choices-initialized")==="true") return null;
@@ -298,7 +310,12 @@
                 }
             };
             }catch(e){
-            console.error("Initialization failed",e);
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("Initialization failed", e);
+                }
             }
         })();
     </script>

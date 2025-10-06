@@ -140,7 +140,11 @@
       } else {
         if (!$ || !$.fn) {
           try {
-            console.error("jQuery unavailable");
+            if (
+              window.location.hostname === "localhost" ||
+              window.location.hostname === "127.0.0.1"
+            )
+              console.error("jQuery unavailable");
           } catch (_) {}
           scheduleInteractiveError(getMsg(host, "plugin_unavailable"));
           return;
@@ -288,7 +292,11 @@
   const init = () => {
     if (!$ || !$.fn) {
       try {
-        console.error("jQuery unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery unavailable");
       } catch (_) {}
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;

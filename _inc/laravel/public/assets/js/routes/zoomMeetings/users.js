@@ -88,7 +88,11 @@
 
   try {
     if (typeof $ === "undefined") {
-      console.error("jQuery failed to load");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery failed to load");
       return;
     }
     const BASE = "{{ url('zoom-meeting/projects/select') }}";
@@ -111,7 +115,11 @@
     const choicesKey = "_npChoicesInstance";
     const ensureChoices = sel => {
       if (typeof window.Choices !== "function") {
-        console.error("Choices failed to load");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("Choices failed to load");
         return null;
       }
       if (sel[0][choicesKey]) {
@@ -171,6 +179,10 @@
       document.body.setAttribute("data-zoom-users-bound", "true");
     }
   } catch (e) {
-    console.error("Initialization failed", e);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Initialization failed", e);
   }
 })();

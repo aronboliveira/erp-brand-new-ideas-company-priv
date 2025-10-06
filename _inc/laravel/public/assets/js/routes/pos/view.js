@@ -104,7 +104,11 @@
     const $ = window.jQuery;
     if (!$) {
       try {
-        console.error("jQuery not found for detailGuards");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery not found for detailGuards");
       } catch (_) {}
       return;
     }
@@ -120,7 +124,11 @@
     });
   } catch (_) {
     try {
-      console.error("Failed to initialize detailGuards");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("Failed to initialize detailGuards");
     } catch (__) {}
   }
 })();

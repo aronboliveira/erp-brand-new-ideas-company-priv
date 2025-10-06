@@ -115,7 +115,11 @@
     const $ = window.jQuery;
     if (!$) {
       try {
-        console.error("jQuery not found for formGuard");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery not found for formGuard");
       } catch (_) {}
       return;
     }
@@ -131,7 +135,11 @@
     });
   } catch (_) {
     try {
-      console.error("Failed to initialize formGuard");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("Failed to initialize formGuard");
     } catch (__) {}
   }
   (function () {
@@ -174,7 +182,11 @@
       const $ = window.jQuery;
       if (!$) {
         try {
-          console.error("jQuery not found for barcodeSetting");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("jQuery not found for barcodeSetting");
         } catch (_) {}
         return;
       }
@@ -194,7 +206,11 @@
       });
     } catch (_) {
       try {
-        console.error("Failed to initialize barcodeSetting");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("Failed to initialize barcodeSetting");
       } catch (__) {}
     }
   })();

@@ -116,14 +116,22 @@
   const initSortable = () => {
     if (!$ || !$.fn) {
       try {
-        console.error("jQuery unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery unavailable");
       } catch (_) {}
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;
     }
     if (!$.fn.sortable) {
       try {
-        console.error("jQuery UI sortable unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery UI sortable unavailable");
       } catch (_) {}
       scheduleInteractiveError(getMsg(document.body, "plugin_unavailable"));
       return;

@@ -182,8 +182,11 @@ Object.keys(t).forEach(
 
         try {
             if (typeof $ === "undefined") {
-            console.error("jQuery failed to load");
-            return;
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery unavailable");
+                return;
             }
 
             try {
@@ -298,7 +301,12 @@ Object.keys(t).forEach(
             );
             bindLocalLogoPreview("bill_logo", "bill_image", "bill_logo_unavailable");
         } catch (e) {
-            console.error("Initialization failed", e);
+            if (
+                window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1"
+            ) {
+                console.error("Initialization failed", e);
+            }
         }
         })();
     </script>

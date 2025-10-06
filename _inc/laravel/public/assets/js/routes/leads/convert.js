@@ -119,7 +119,11 @@
       var $ = window.jQuery;
       if (!$) {
         try {
-          console.error("jQuery not found for convertDeal");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("jQuery not found for convertDeal");
         } catch (_) {}
         return;
       }
@@ -158,7 +162,11 @@
     var $ = window.jQuery;
     if (!$) {
       try {
-        console.error("Failed to initialize convertDeal: jQuery missing");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("Failed to initialize convertDeal: jQuery missing");
       } catch (_) {}
       return;
     }
@@ -168,7 +176,11 @@
     });
   } catch (_) {
     try {
-      console.error("Failed to initialize convertDeal");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("Failed to initialize convertDeal");
     } catch (__) {}
   }
 })();

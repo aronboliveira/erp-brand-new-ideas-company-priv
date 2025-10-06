@@ -254,7 +254,10 @@ Object.keys(t).forEach(
             };
 
             if (typeof $ === "undefined") {
-            console.error("jQuery failed to load");
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) console.error("jQuery failed to load");
             return;
             }
 
@@ -464,7 +467,10 @@ Object.keys(t).forEach(
                     document.body.setAttribute("data-np-scrollspy","true");
                 }
                 } else {
-                console.error("Bootstrap ScrollSpy not available");
+                      if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error("Bootstrap ScrollSpy not available");
                 showDeferredError("scrollspy_unavailable", document.body, "click");
                 }
             } catch { showDeferredError("scrollspy_unavailable", document.body, "click"); }

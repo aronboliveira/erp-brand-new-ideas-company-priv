@@ -119,7 +119,18 @@
                 const ctn = qs("#" + containerId);
                 if (!ctn) { schedulePointerupError(localize(document.body, "payment_init_unavailable")); return; }
                 const BrickCtor = window.Brick;
-                if (typeof BrickCtor !== "function") { try { console.error("Brick library unavailable"); } catch (_) {} schedulePointerupError(localize(document.body, "plugin_unavailable")); return; }
+                if (typeof BrickCtor !== "function") { 
+                    try { 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Brick library unavailable");
+                    }
+                } catch (_) {}
+                schedulePointerupError(localize(document.body, "plugin_unavailable"));
+                return;
+                }
                 const action = '{{route(ViewsConstants::PLN.".pay.with.paymentwall",[$data["plan_id"],$data["coupon"]])}}' ?? "";
                 if (!verifyRoute(action)) { schedulePointerupError(localize(document.body, "route_unavailable")); return; }
                 const brick = new BrickCtor({

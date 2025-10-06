@@ -73,7 +73,11 @@
   try {
     const jq = window.jQuery || (window.$?.fn ? window.$ : null);
     if (!jq) {
-      console.error("jQuery not found for leads list");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery not found for leads list");
       return;
     }
     jq(() => {

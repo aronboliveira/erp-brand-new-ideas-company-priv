@@ -131,7 +131,10 @@
             @if(!empty($company_payment_setting))
                 try {
                     if (typeof $ === 'undefined') {
-                        console.error('jQuery is required');
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) console.error("jQuery unavailable");
                         return;
                     }
 
@@ -322,7 +325,10 @@
                     });
 
                 } catch (e) {
-                    console.error('Initialization failed', e);
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) console.error('Initialization failed', e);
                 }
             @endif
         })();

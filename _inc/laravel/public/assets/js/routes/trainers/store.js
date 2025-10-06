@@ -60,7 +60,10 @@
 
         f.setAttribute("data-failed-route", "true");
       } catch (err) {
-        console.error(
+              if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )console.error(
           "[assets/js/routes/trainers/store.js] Submit handler error:",
           err?.constructor?.name ?? "Error",
           err?.message ?? "Unknown error"
@@ -68,7 +71,10 @@
       }
     });
   } catch (error) {
-    console.error(
+          if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )console.error(
       "[assets/js/routes/trainers/store.js] Initialization error:",
       error?.constructor?.name ?? "Error",
       error?.message ?? "Unknown error"

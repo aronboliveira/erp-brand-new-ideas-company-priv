@@ -97,7 +97,11 @@
     } catch (e) {
       toast(localizeGuard(btn));
       try {
-        console.error("html2pdf unavailable or printable area missing");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("html2pdf unavailable or printable area missing");
       } catch (_) {}
     }
   };

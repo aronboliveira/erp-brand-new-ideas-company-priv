@@ -81,14 +81,22 @@
 
   try {
     if (typeof $ === "undefined") {
-      console.error("jQuery failed to load");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery failed to load");
       return;
     }
     $(window).on("load", () => {
       try {
         const el = document.getElementById("boxes");
         if (!el || typeof html2pdf === "undefined") {
-          console.error("html2pdf not available or target missing");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("html2pdf not available or target missing");
           showErrorOnPointer("proposal_pdf_unavailable");
           return;
         }
@@ -110,6 +118,10 @@
       }
     });
   } catch (e) {
-    console.error("Initialization failed", e);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Initialization failed", e);
   }
 })();

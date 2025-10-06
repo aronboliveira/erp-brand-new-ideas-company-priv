@@ -71,7 +71,11 @@
 
   try {
     if (typeof $ === "undefined") {
-      console.error("jQuery is required");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery is required");
       return;
     }
 
@@ -91,7 +95,11 @@
         };
         html2pdf().set(opt).from(el).save();
       } catch (e) {
-        console.error("PDF generation failed: library or target missing", e);
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("PDF generation failed: library or target missing", e);
         attachPointerGuard(el || document.body, "report_pdf_unavailable");
       }
     };
@@ -101,7 +109,11 @@
       if (!$table.length) return;
       try {
         if (!$.fn.DataTable) {
-          console.error("DataTables library is required");
+          if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+          )
+            console.error("DataTables library is required");
           attachPointerGuard($table.get(0), "datatable_unavailable");
           return;
         }
@@ -124,6 +136,10 @@
       }
     });
   } catch (e) {
-    console.error("Initialization failed", e);
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    )
+      console.error("Initialization failed", e);
   }
 })();

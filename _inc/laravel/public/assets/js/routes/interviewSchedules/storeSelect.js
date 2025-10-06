@@ -35,13 +35,21 @@
 
   try {
     if (!window.jQuery) {
-      console.error("jQuery is not available");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("jQuery is not available");
       return;
     }
     const candidate = jQuery("select#candidate");
     const el = candidate.get(0);
     if (!el) {
-      console.error("Select#candidate element not found");
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      )
+        console.error("Select#candidate element not found");
       return;
     }
     const url = el.getAttribute("data-url");

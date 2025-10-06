@@ -105,7 +105,11 @@
   const ensureJq = () => {
     if (!$ || !$.fn) {
       try {
-        console.error("jQuery unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("jQuery unavailable");
       } catch (_) {}
       schedulePointerupError(localize(document.body, "plugin_unavailable"));
       return false;
@@ -159,7 +163,11 @@
     }
     if (typeof window.deleteAjax !== "function") {
       try {
-        console.error("deleteAjax unavailable");
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        )
+          console.error("deleteAjax unavailable");
       } catch (_) {}
       schedulePointerupError(localize(targetEl, "plugin_unavailable"));
       return;
