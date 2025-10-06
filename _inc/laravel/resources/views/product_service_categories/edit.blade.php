@@ -146,7 +146,14 @@
             } catch { attachPointerGuard(el,'get_account_unavailable'); }
           });
           $(function(){ try { $type.trigger('change'); } catch { attachPointerGuard($type.get(0),'get_account_unavailable'); } });
-        } catch(e) { console.error('Initialization failed', e); }
+        } catch(e) { 
+            if (
+                window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1"
+            ) {
+                console.error("Initialization failed", e);
+            }
+         }
       })();
     </script>
     <script defer>

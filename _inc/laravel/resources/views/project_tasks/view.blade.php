@@ -594,7 +594,12 @@
 
             try{
             if(typeof $==='undefined' || !$.fn?.colorPick){
-                console.error('Color picker dependency failed to load');
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("jQuery ColorPick plugin is not loaded");
+                }
                 return;
             }
 
@@ -640,7 +645,12 @@
             });
 
             }catch(e){
-            console.error('Initialization failed', e);
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("Initialization failed", e);
+                }
             }
         })();
     </script>

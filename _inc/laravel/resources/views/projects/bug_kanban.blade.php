@@ -232,7 +232,14 @@
                 const token=$('meta[name="csrf-token"]').attr('content') ?? "";
 
                 const initDragula=()=>{
-                    if(typeof dragula!=="function"){ console.error("Dragula failed to load"); showFeedback("dragula_unavailable"); return; }
+                    if(typeof dragula!=="function"){ 
+                        if (
+                            window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1"
+                        ) {
+                            console.error("Dragula unavailable", e);
+                        }
+                    showFeedback("dragula_unavailable"); return; }
                     $('[data-plugin="dragula"]').each(function(){
                     const $root=$(this);
                     const ids=$root.data("containers");
@@ -389,7 +396,12 @@
                 bindComments();
                 bindFiles();
                 }catch(e){
-                console.error("Initialization failed",e);
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Initialization failed", e);
+                    }
                 }
             })();
         </script>

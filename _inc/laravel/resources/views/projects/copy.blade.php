@@ -228,7 +228,14 @@ Object.keys(t).forEach(
         try{ $('.bug').prop('checked',false); }catch{ attachGuardOnce(this,'cascade_bug_unavailable'); }
         });
 
-    }catch(e){ console.error('Initialization failed',e); }
+    }catch(e){ 
+        if (
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1"
+        ) {
+            console.error("Initialization failed", e);
+        }
+     }
     })();
 </script>
 <script defer>

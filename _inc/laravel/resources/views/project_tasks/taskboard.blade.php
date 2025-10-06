@@ -272,7 +272,14 @@
                 if(searchEl) attachGuardOnce(searchEl,'task_search_unavailable','pointerup');
             });
 
-            }catch(e){ console.error('Initialization failed',e); }
+            }catch(e){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("Initialization failed", e);
+                }
+            }
         })();
     </script>
 @endpush

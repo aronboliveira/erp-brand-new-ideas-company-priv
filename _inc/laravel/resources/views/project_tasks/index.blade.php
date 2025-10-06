@@ -124,7 +124,14 @@ Object.keys(t).forEach(
                 const ids=$(root).data('containers')||[];
                 const containers=ids.length?ids.map(id=>document.getElementById(id)).filter(Boolean):[root];
                 const handleClass=$(root).data('handleclass');
-                if(typeof dragula==='undefined'){ console.error('Dragula is required'); attachPointerGuard(root,'dragula_unavailable'); return; }
+                if(typeof dragula==='undefined'){ 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Dragula unavailable", e);
+                    }
+                    attachPointerGuard(root,'dragula_unavailable'); return; }
                 const drake=dragula(containers, handleClass?{ moves:(_el,_src,handle)=>handle.classList.contains(handleClass) }:undefined);
                 drake.on('drop',(el,target,source)=>{
                     try{
@@ -385,7 +392,14 @@ Object.keys(t).forEach(
                 }, target||document.body,'task_load_unavailable');
             };
 
-            }catch(e){ console.error('Initialization failed',e); }
+            }catch(e){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("Initialization failed", e);
+                }
+             }
         })();
     </script>
 @endpush

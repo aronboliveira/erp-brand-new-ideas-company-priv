@@ -94,7 +94,14 @@ Object.keys(t).forEach(
 
             const renderChart=(selector, options, key)=>{
             try{
-                if(typeof ApexCharts==='undefined'){ console.error('ApexCharts library missing'); attachGuardOnce(document.querySelector(selector)||document.body,key); return; }
+                if(typeof ApexCharts==='undefined'){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("ApexCharts unavailable");
+                }
+                attachGuardOnce(document.querySelector(selector)||document.body,key); return; }
                 const el=document.querySelector(selector);
                 if(!el){ attachGuardOnce(document.body,key); return; }
                 if(el.getAttribute(DATA_RENDERED)==='true') return;
@@ -178,7 +185,14 @@ Object.keys(t).forEach(
             try{
                 if(window.bootstrap?.ScrollSpy){
                 new bootstrap.ScrollSpy(document.body,{ target:'#useradd-sidenav', offset:300 });
-                }else{ console.error('Bootstrap ScrollSpy not available'); }
+                }else{ 
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Bootstrap ScrollSpy unavailable");
+                    }
+                 }
             }catch{ attachGuardOnce(document.body,'scrollspy_unavailable','click'); }
 
             window.check_theme=(color_val)=>{ try{ $('#theme_color').prop('checked',false); $(`input[value="${color_val}"]`).prop('checked',true); }catch{} };
@@ -286,7 +300,15 @@ Object.keys(t).forEach(
             // Swiper gallery helpers (user-triggered; large GET => pointerup)
             const init_slider=()=>{
                 if(!$('.product-left').length) return;
-                if(typeof Swiper==='undefined'){ console.error('Swiper library missing'); return; }
+                if(typeof Swiper==='undefined'){
+                    if (
+                        window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1"
+                    ) {
+                        console.error("Swiper unavailable");
+                    }
+                    return;
+                }
                 const productSlider=new Swiper('.product-slider',{ spaceBetween:0, centeredSlides:false, loop:false, direction:'horizontal', loopedSlides:5, navigation:{ nextEl:'.swiper-button-next', prevEl:'.swiper-button-prev' }, resizeObserver:true });
                 const productThumbs=new Swiper('.product-thumbs',{ spaceBetween:0, centeredSlides:true, loop:false, slideToClickedSlide:true, direction:'horizontal', slidesPerView:7, loopedSlides:5 });
                 // eslint-disable-next-line no-unused-expressions
@@ -335,7 +357,14 @@ Object.keys(t).forEach(
                 }catch{ attachGuardOnce(el,'image_remove_unavailable'); }
             };
 
-            }catch(e){ console.error('Initialization failed', e); }
+            }catch(e){ 
+                if (
+                    window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1"
+                ) {
+                    console.error("Initialization failed", e);
+                }
+             }
         })();
     </script>
 @endpush
