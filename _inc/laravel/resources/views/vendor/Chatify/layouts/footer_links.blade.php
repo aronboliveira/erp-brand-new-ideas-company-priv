@@ -1,5 +1,23 @@
 <script src="https://js.pusher.com/7.0.3/pusher.min.js"></script>
 <script>
+  if (window?.console) {
+    const originalConsoleLog = window.console.log;
+    window.console.log = function(...args) {
+      if (args[0]?.includes?.('Pusher')) return;
+      originalConsoleLog.apply(console, args);
+    };
+  }
+</script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", function() {
+    const originalConsoleLog = console.log;
+    console.log = function(...args) {
+      if (args[0]?.includes?.('Pusher')) return;
+      originalConsoleLog.apply(console, args);
+    };
+  });
+</script>
+<script>
   messenger = "{{ @$id ?? '0' }}";
 </script>
 <script src="{{ asset('js/chatify/code.js') }}"></script>

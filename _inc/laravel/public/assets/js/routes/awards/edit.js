@@ -14,6 +14,9 @@
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
         if (bootstrapLink && window.bootstrap) {
@@ -51,6 +54,9 @@
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
         if (bootstrapLink && window.bootstrap) {

@@ -288,7 +288,7 @@
                 @endif
                 @if (!empty($setting[SC::RCPT_MDL]) && $setting[SC::RCPT_MDL] == 'on')
                     <div class="form-group col-lg-12 col-md-12 mt-3">
-                        {!! Anhskohbo\NoCaptcha\Facades\NoCaptcha::display(
+                        {!! class_exists(Anhskohbo\NoCaptcha\Facades\NoCaptcha::class) && Anhskohbo\NoCaptcha\Facades\NoCaptcha::display(
                             $colorSettings[SC::CST_DRK] == 'on'
                                 ? ['data-theme' => 'dark']
                                 : []

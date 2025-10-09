@@ -774,7 +774,7 @@
                         </div>
                         <div class="col-lg-6 col-sm-12 text-end">
 
-                            <p class="text-body">Copyright © 2023 | Design By ERPGo</p>
+                            <p class="text-body">Copyright © 2025 | Design by Prestech</p>
                         </div>
                     </div>
                 </div>
@@ -812,7 +812,7 @@
                 @includeIf(ExtendingLayoutsConstants::CKC)
             @endif
             <script>
-                console.log(
+                (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(
                     'Current route:',
                     '{{ Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() }}'
                 );

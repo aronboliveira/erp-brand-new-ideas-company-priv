@@ -1,6 +1,8 @@
 (() => {
   try {
-    const fm = document.querySelector('form[id^="job-update-form-"][data-url][data-guard-msg]');
+    const fm = document.querySelector(
+      'form[id^="job-update-form-"][data-url][data-guard-msg]'
+    );
     if (!fm) return;
     if (fm.getAttribute("data-submit-guarded") === "true") return;
     fm.setAttribute("data-submit-guarded", "true");
@@ -10,12 +12,19 @@
         const url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
         if (url !== "#" && action !== "#") return;
         e.preventDefault();
-        const msg = fm.getAttribute("data-guard-msg") ?? "Job update route is unavailable. Please contact technical support or your domain administrator.";
-        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+        const msg =
+          fm.getAttribute("data-guard-msg") ??
+          "Job update route is unavailable. Please contact technical support or your domain administrator.";
+        const hasBootstrap = !!(
+          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
+        );
         let container = document.getElementById("toast-container");
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
         if (hasBootstrap) {
@@ -42,7 +51,7 @@
 (() => {
   try {
     const anchors = document.querySelectorAll(
-      'a.ai-btn[data-ajax-popup-over][data-url][data-guard-msg], a.grammar-btn[data-ajax-popup-over][data-url][data-guard-msg]'
+      "a.ai-btn[data-ajax-popup-over][data-url][data-guard-msg], a.grammar-btn[data-ajax-popup-over][data-url][data-guard-msg]"
     );
     if (!anchors.length) return;
     anchors.forEach(a => {
@@ -54,12 +63,20 @@
           const url = (a.getAttribute("data-url") ?? href ?? "#").trim();
           if (url !== "#" && href !== "#") return;
           e.preventDefault();
-          const msg = a.getAttribute("data-guard-msg") ?? "Requested route is unavailable. Please contact technical support or your domain administrator.";
-          const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
+          const msg =
+            a.getAttribute("data-guard-msg") ??
+            "Requested route is unavailable. Please contact technical support or your domain administrator.";
+          const hasBootstrap = !!(
+            document.querySelector('link[href*="bootstrap"]') &&
+            window.bootstrap
+          );
           let container = document.getElementById("toast-container");
           if (!container) {
             container = document.createElement("div");
             container.id = "toast-container";
+            container.className =
+              "toast-container position-fixed top-0 end-0 p-3";
+            container.style.zIndex = "1080";
             document.body.appendChild(container);
           }
           if (hasBootstrap) {

@@ -34,7 +34,10 @@
         let toastContainer = document.getElementById("toast-container");
         if (!toastContainer) {
           toastContainer = document.createElement("div");
-          toastContainer.id = "toast-container";
+          toast          container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
           document.body.appendChild(toastContainer);
         }
 

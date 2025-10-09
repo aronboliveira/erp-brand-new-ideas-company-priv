@@ -6,7 +6,9 @@
   el.addEventListener("click", event => {
     try {
       const url = el.getAttribute("data-url");
-      const href = el.href;
+      const href = el.href
+        .replace(window.location.origin, "")
+        .replace(window.location.pathname, "");
       if ((!url || url === "#") && (!href || href === "#")) {
         event.preventDefault();
         const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -15,26 +17,34 @@
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
           document.body.appendChild(container);
         }
         if (bootstrapLink && window.bootstrap) {
+          console.log(container);
           const toastEl = document.createElement("div");
           toastEl.className = "toast";
           toastEl.setAttribute("role", "alert");
           toastEl.setAttribute("aria-live", "assertive");
           toastEl.setAttribute("aria-atomic", "true");
+          console.log(toastEl);
           const body = document.createElement("div");
           body.className = "toast-body";
           body.textContent = msg;
           toastEl.appendChild(body);
           container.appendChild(toastEl);
+          console.log(body);
           bootstrap.Toast.getOrCreateInstance(toastEl).show();
         } else {
           alert(msg);
         }
         el.setAttribute("data-failed-route", "true");
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   });
   const observer = new MutationObserver(() => {
     if (!document.getElementById("project-report-index-link"))

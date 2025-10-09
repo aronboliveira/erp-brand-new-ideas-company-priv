@@ -304,7 +304,7 @@ unset($__errorArgs, $__bag); ?>
                 <?php endif; ?>
                 <?php if(!empty($setting[SC::RCPT_MDL]) && $setting[SC::RCPT_MDL] == 'on'): ?>
                     <div class="form-group col-lg-12 col-md-12 mt-3">
-                        <?php echo Anhskohbo\NoCaptcha\Facades\NoCaptcha::display(
+                        <?php echo class_exists(Anhskohbo\NoCaptcha\Facades\NoCaptcha::class) && Anhskohbo\NoCaptcha\Facades\NoCaptcha::display(
                             $colorSettings[SC::CST_DRK] == 'on'
                                 ? ['data-theme' => 'dark']
                                 : []

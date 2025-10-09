@@ -10,6 +10,9 @@
         if (!container) {
           container = document.createElement("div");
           container.id = "toast-container";
+          container.className =
+            "toast-container position-fixed top-0 end-0 p-3";
+          container.style.zIndex = "1080";
           container.style.position = "fixed";
           container.style.top = "1rem";
           container.style.right = "1rem";

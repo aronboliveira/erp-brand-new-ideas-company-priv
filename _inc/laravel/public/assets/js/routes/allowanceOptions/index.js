@@ -7,7 +7,9 @@
     el.addEventListener("click", event => {
       try {
         const url = el.getAttribute("data-url");
-        const href = el.href;
+        const href = el.href
+          .replace(window.location.origin, "")
+          .replace(window.location.pathname, "");
         if ((!url || url === "#") && (!href || href === "#")) {
           event.preventDefault();
           const msg = el.getAttribute("data-guard-msg") ?? "# ERROR";
@@ -18,6 +20,9 @@
           if (!container) {
             container = document.createElement("div");
             container.id = "toast-container";
+            container.className =
+              "toast-container position-fixed top-0 end-0 p-3";
+            container.style.zIndex = "1080";
             document.body.appendChild(container);
           }
           if (bootstrapLink && window.bootstrap) {

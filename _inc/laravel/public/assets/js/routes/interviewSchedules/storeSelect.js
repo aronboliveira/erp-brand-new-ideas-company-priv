@@ -53,7 +53,9 @@
       return;
     }
     const url = el.getAttribute("data-url");
-    const href = el.href;
+    const href = el.href
+      .replace(window.location.origin, "")
+      .replace(window.location.pathname, "");
     if ((!url || url === "#") && (!href || href === "#")) {
       return;
     }

@@ -269,10 +269,13 @@
         <script async src="{{ asset('assets/js/routes/generics/lang/utility.js') }}"></script>
         <script defer src="{{ asset('assets/js/routes/generics/utility.js') }}"></script>
         <script>
-            console.log(
+            (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(
                 'Current route:',
                 '{{ Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() }}'
             );
+            window.sessionStorage.setItem('logPusher', 'false');
+            window.sessionStorage.setItem('warnPusher', 'true');
+            window.sessionStorage.setItem('errorPusher', 'true');
         </script>
     </body>
 </html>

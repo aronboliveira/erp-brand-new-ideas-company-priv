@@ -20,7 +20,7 @@
         {{-- Laravel Vite - JS File --}}
         {{-- {{ module_vite('build-landingpage', 'Resources/assets/js/app.js') }} --}}
         <script>
-            console.log(
+            (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(
                 'Current route:',
                 '{{ Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction() }}'
             );

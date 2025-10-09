@@ -372,7 +372,7 @@
         </script>
         <?php echo $__env->yieldPushContent(StacksConstants::AUTH_CST_SCR); ?>
         <script>
-            console.log(
+           (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(
                 'Current route:',
                 '<?php echo e(Illuminate\Support\Facades\Route::currentRouteName() ?? Illuminate\Support\Facades\Route::currentRouteAction()); ?>'
             );
