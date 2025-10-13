@@ -1320,7 +1320,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         function () {
             Route::get(VW::CTC . '/{id}/description', [ContractController::class, 'description'])->name(VW::CTC . '.description');
             Route::get(VW::CTC . '/grid', [ContractController::class, 'grid'])->name(VW::CTC . '.grid');
-            Route::resource('contract', ContractController::class);
+            Route::resource(VW::CTC, ContractController::class);
         }
     );
     Route::post(VW::CTC . '/{id}/file', [ContractController::class, 'fileUpload'])->name(VW::CTC . '.file.upload')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -1646,14 +1646,14 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     //Project Reports
 
-    Route::resource('/project_report', ProjectReportController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::resource(VW::PRJ_RPT, ProjectReportController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     // TODO METHOD NOT IMPLEMENTED
-    Route::post('/project_report_data', [ProjectReportController::class, 'ajax_data'])->name(VW::PRJ . '.ajax')
+    Route::post(VW::PRJ_RPT . '/data', [ProjectReportController::class, 'ajax_data'])->name(VW::PRJ_RPT . '.ajax')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     // TODO METHOD NOT IMPLEMENTED
-    Route::post('/project_report/tasks/{id}', [ProjectReportController::class, 'ajax_tasks_report'])->name('tasks.report.ajaxdata')
+    Route::post(VW::PRJ_RPT . '/tasks/{id}', [ProjectReportController::class, 'ajax_tasks_report'])->name(VW::PRJ_RPT . '.tasks.ajaxdata')
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get('export/task_report/{id}', [ProjectReportController::class, 'export'])->name('project_report.export');
+    Route::get(VW::PRJ_RPT . '/export/{id}', [ProjectReportController::class, 'export'])->name(VW::PRJ_RPT . '.export');
 
     //project copy module
     Route::get('/project/copy/{id}', [ProjectController::class, 'copyproject'])->name(VW::PRJ . '.copy')
