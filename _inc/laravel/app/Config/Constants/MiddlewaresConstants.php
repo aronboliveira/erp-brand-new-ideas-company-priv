@@ -14,4 +14,5 @@ class MiddlewaresConstants
 	public const SGN = 'signed';
 	public const TRT = 'throttle';
 	public const PSR = 'pusher';
+	public const SET = 'set';
 }

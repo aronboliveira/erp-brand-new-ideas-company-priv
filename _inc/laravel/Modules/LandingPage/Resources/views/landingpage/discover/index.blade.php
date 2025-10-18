@@ -65,11 +65,11 @@
     </li>
 @endsection
 @push(StacksConstants::ADM_CSS)
-    <link rel="stylesheet" href=" {{ Module::asset('LandingPage:css/summernote/summernote-bs4.css')}}" />
+    <link rel="stylesheet" href=" {{ asset('Modules/landingpage/css/summernote/summernote-bs4.css')}}" />
 @endpush
 
 @push(StacksConstants::ADM_SCR_PG)
-    <script src="{{ Module::asset('LandingPage:js/plugins/summernote-bs4.js')}}" referrerpolicy="origin"></script>
+    <script src="{{ asset('Modules/landingpage/js/plugins/summernote-bs4.js')}}" referrerpolicy="origin"></script>
 @endpush
 
 @section(YieldingConstants::ADM_BDC)

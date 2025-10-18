@@ -8,7 +8,7 @@
     $avatarBase = '/'.$avatarFolder.'/';
     $avatarUrl = function($u) use ($avatarBase,$avatarFolder){
         $file = (string) (data_get($u,'avatar') ?: 'avatar.png');
-        $url = \App\Models\Utility::get_file($avatarBase.$file);
+        $url = \App\Models\Utility::getFile($avatarBase.$file);
         return $url ?: asset('/storage/'.$avatarFolder.'/'.$file);
     };
 @endphp

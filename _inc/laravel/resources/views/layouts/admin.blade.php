@@ -1,5 +1,5 @@
 @php
-	use App\Config\Constants\{DatabaseConstants,SettingsConstants,
+	use App\Config\Constants\{DatabaseConstants,SettingsConstants as SC,
         StacksConstants,ViewClassNamesConstants,YieldingConstants};
 	use App\Models\Utility;
 	use Illuminate\Support\Facades\Log;
@@ -20,16 +20,16 @@
 	$filePath??='';
 	try {
 		$data=Utility::prepareCommonViewData()?:[];
-		$setting=$data[SettingsConstants::ENTITY]??[];
-		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
-		$logo=$data[SettingsConstants::LOGO]??'';
-		$company_favicon=$data[SettingsConstants::FAV_ICN]??'';
-		$color=$data[SettingsConstants::THM_CLR]??'';
-		$siteRtl=$data[SettingsConstants::RTL]??false;
-		$meta_title=$data[SettingsConstants::MT_TTL_K]??'';
-		$meta_desc=$data[SettingsConstants::MT_DESC_LONG]??'';
-		$meta_image=$data[SettingsConstants::MT_IMG_K]??'';
-		$meta_logo=$data[SettingsConstants::MT_LOGO]??'';
+		$setting=$data[SC::ENTITY]??[];
+		$colorSettings=$data[SC::CLR_STG]??[];
+		$logo=$data[SC::LOGO]??'';
+		$company_favicon=$data[SC::FAV_ICN]??'';
+		$color=$data[SC::THM_CLR]??'';
+		$siteRtl=$data[SC::RTL]??false;
+		$meta_title=$data[SC::MT_TTL_K]??'';
+		$meta_desc=$data[SC::MT_DESC_LONG]??'';
+		$meta_image=$data[SC::MT_IMG_K]??'';
+		$meta_logo=$data[SC::MT_LOGO]??'';
 		$faviconUrl=Utility::getCompanyLogo()?:'';
 		$filePath=collect(
 			array_column(

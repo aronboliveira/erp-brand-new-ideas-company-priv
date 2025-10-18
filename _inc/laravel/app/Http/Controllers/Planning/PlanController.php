@@ -50,7 +50,6 @@ class PlanController extends Controller
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
         $view = VW::PLN . '.index';
-
         return $this->measureProfile($action, function () use ($request, $view, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, PermissionsConstants::MNG_PL, self::SINGULAR . '.index')) instanceof RedirectResponse) return $guard;

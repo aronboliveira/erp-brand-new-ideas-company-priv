@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Config\Constants\PermissionsConstants;
-use App\Models\Coupon;
-use App\Models\Customer;
-use App\Models\Invoice;
-use App\Models\InvoicePayment;
-use App\Models\Order;
-use App\Models\Plan;
-use App\Models\Transaction;
-use App\Models\UserCoupon;
-use App\Models\{User, Utility};
+use App\Config\Constants\{
+    PermissionsConstants,
+    ViewsConstants as VW
+};
+use App\Models\{
+    Coupon,
+    Customer,
+    Invoice,
+    InvoicePayment,
+    Order,
+    Plan,
+    Transaction,
+    User,
+    UserCoupon,
+    Utility
+};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Crypt, DB};
 use Session;
@@ -20,7 +26,6 @@ use Stripe;
 class StripePaymentController extends Controller
 {
     public $settings;
-
 
     public function index()
     {
@@ -36,9 +41,8 @@ class StripePaymentController extends Controller
                 'users.name as user_name',
             ])->join('users', 'orders.user_id', '=', 'users.id')->orderBy('orders.created_at', 'DESC')->where('users.id', '=', $objUser->id)->with('totalCouponUsed.couponDetail')->with(['totalCouponUsed.couponDetail'])->get();
         }
-        return view('order.index', compact('orders'));
+        return view(VW::OD . '.index', compact('orders'));
     }
-
 
     public function stripe($code)
     {

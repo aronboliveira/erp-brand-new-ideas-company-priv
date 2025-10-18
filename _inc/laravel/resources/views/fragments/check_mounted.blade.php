@@ -1,0 +1,1 @@
+<script defer src="{{ asset('assets/js/generic/checkMounted.js') }}"></script>

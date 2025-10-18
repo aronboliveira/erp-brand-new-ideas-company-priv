@@ -38,7 +38,7 @@ class SupportController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        $viewPath = self::ENTITY . '.' . $action;
+        $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'owner_id' => $user?->creatorId(), 'method' => $method]);
@@ -82,14 +82,18 @@ class SupportController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        $viewPath = self::ENTITY . '.' . $action;
+        $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'create support', self::INDEX_ROUTE)) return $denial;
             $listsStart = microtime(true);
-            $priority = Support::priorityList();
-            $status = Support::statusList();
+            $prioListAvailable = is_callable([Support::class, 'priorityList']);
+            $priority = $prioListAvailable ? Support::priorityList() : [];
+            if (!$prioListAvailable) Log::warning("[{$base}::{$action}] priority list method missing", []);
+            $statusListAvailable = is_callable([Support::class, 'statusList']);
+            $status = $statusListAvailable ? Support::statusList() : [];
+            if (!$statusListAvailable) Log::warning("[{$base}::{$action}] status list method missing", []);
             $this->logExecutionTime($listsStart, $action, 'loadLists');
             $usersStart = microtime(true);
             $users = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
@@ -114,7 +118,7 @@ class SupportController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        $viewPath = self::ENTITY . '.' . $action;
+        $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'support_id' => $support->id, 'method' => $method]);
@@ -195,7 +199,7 @@ class SupportController extends Controller
                 $this->logExecutionTime($txnStart, $action, 'transaction');
                 $settingStart = microtime(true);
                 $setting = Utility::settings($user?->creatorId());
-                $prioLabel = Support::$priority[$support[ProjectsConstants::COL_PRT]] ?? $support[ProjectsConstants::COL_PRT];
+                $prioLabel = Support::$priority?->{$support[ProjectsConstants::COL_PRT]} ?? $support[ProjectsConstants::COL_PRT];
                 $targetUser = User::find($support[SupportsConstants::COL_USR]);
                 $notifyPayload = ['support_priority' => $prioLabel, 'support_user_name' => $targetUser[UsersConstants::COL_NM]];
                 $this->logExecutionTime($settingStart, $action, 'prepareNotifications');
@@ -254,15 +258,19 @@ class SupportController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        $viewPath = self::ENTITY . '.' . $action;
+        $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $support, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) return $denial;
             if ($support[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
             $listsStart = microtime(true);
-            $priority = Support::priorityList();
-            $status = Support::statusList();
+            $prioListAvailable = is_callable([Support::class, 'priorityList']);
+            $priority = $prioListAvailable ? Support::priorityList() : [];
+            if (!$prioListAvailable) Log::warning("[{$base}::{$action}] priority list method missing", []);
+            $statusListAvailable = is_callable([Support::class, 'statusList']);
+            $status = $statusListAvailable ? Support::statusList() : [];
+            if (!$statusListAvailable) Log::warning("[{$base}::{$action}] status list method missing", []);
             $this->logExecutionTime($listsStart, $action, 'loadLists');
             $usersStart = microtime(true);
             $users = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
@@ -387,7 +395,7 @@ class SupportController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        $viewPath = self::ENTITY . '.' . $action;
+        $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $encryptedId, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, 'encrypted_id' => $encryptedId, 'method' => $method]);
@@ -482,7 +490,7 @@ class SupportController extends Controller
         $class  = static::class;
         $base   = class_basename($class);
         $req    = $request;
-        $viewPath = self::ENTITY . '.' . $action;
+        $viewPath = self::ENTITY . 's.' . $action;
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base, $viewPath) {
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, 'method' => $method]);
@@ -490,7 +498,7 @@ class SupportController extends Controller
                 $ownerId = $user?->creatorId();
                 $buildStart = microtime(true);
                 $query = Support::with([ProjectsConstants::COL_ASGN, DatabaseConstants::TABLE_CREATOR])->where(DatabaseConstants::TABLE_CREATOR, $ownerId);
-                if ($user[UsersConstants::COL_TP] === PermissionsConstants::CL || $user[UsersConstants::COL_TP] === 'Employee') $query->where(function ($q) use ($user) {
+                if ($user[UsersConstants::COL_TP] === PermissionsConstants::CL || strtolower($user[UsersConstants::COL_TP]) === 'employee') $query->where(function ($q) use ($user) {
                     $q->where(SupportsConstants::COL_USR, $user?->id)->orWhere(SupportsConstants::COL_TKT_CR, $user?->id);
                 });
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
@@ -519,6 +527,6 @@ class SupportController extends Controller
     {
         return self::_checkLogin() instanceof RedirectResponse
             ? self::_checkLogin()
-            : self::_checkLogin();
+            : $r->user();
     }
 }

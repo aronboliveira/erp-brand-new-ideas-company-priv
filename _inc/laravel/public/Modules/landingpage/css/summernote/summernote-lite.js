@@ -3958,7 +3958,7 @@
           window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1"
         )
-          "Impossible to identify start Cell point.", startPoint;
+          console.error("Impossible to identify start Cell point.", startPoint);
         return;
       }
       _startPoint.colPos = startPoint.cellIndex;

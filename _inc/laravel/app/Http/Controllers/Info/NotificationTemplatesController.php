@@ -14,6 +14,7 @@ use App\Models\{
     Utility
 };
 use App\Traits\ChecksLogin;
+use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{
     RedirectResponse,
@@ -29,7 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class NotificationTemplatesController extends Controller
 {
-    use ChecksLogin;
+    use ChecksLogin, ChecksPermissions;
 
     public function __construct()
     {
@@ -45,14 +46,11 @@ class NotificationTemplatesController extends Controller
         return $this->measureProfile("$cls::$action", function () use ($request, $id, $lang, $cls, $action, $view) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if (($resp = $this->_authorize($request, 'manage notification template')) !== true) return $resp;
-
+                if (!($denial = $this->guard($request, 'manage notification template'))) return $denial;
                 $template = $id ? NotificationTemplates::find($id) : NotificationTemplates::first();
                 if (!$template) return redirect()->back()->with('error', __('Not exists in notification template.'));
-
                 $languages  = Utility::languages();
                 $langName   = Language::where('code', $lang)->first();
-
                 $translation = NotificationTemplateLangs::where('parent_id', $template->id)
                     ->where('lang', $lang)
                     ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
@@ -101,7 +99,7 @@ class NotificationTemplatesController extends Controller
         return $this->measureProfile("$cls::$action", function () use ($request, $id, $cls, $action, $route) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if (($resp = $this->_authorize($request, 'edit notification template')) !== true) return $resp;
+                if (!($resp = $this->guard($request, 'edit notification template'))) return $resp;
 
                 $v = Validator::make($request->all(), ['content' => 'required']);
                 if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());

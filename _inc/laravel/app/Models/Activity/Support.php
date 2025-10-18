@@ -19,15 +19,24 @@ class Support extends Model
     use ChecksLogin, HasFactory, UsesUuids;
 
     protected $fillable = [
-        SupportsConstants::COL_SBJ, SupportsConstants::COL_USR, ProjectsConstants::COL_PRT, ProjectsConstants::COL_E_DT,
-        SupportsConstants::COL_TKT_CD, SupportsConstants::COL_TKT_CR, ActivitiesConstants::COL_TSK_STT,
-        DatabaseConstants::TABLE_CREATOR, SupportsConstants::COL_ATC, ActivitiesConstants::COL_DESC
+        SupportsConstants::COL_SBJ,
+        SupportsConstants::COL_USR,
+        ProjectsConstants::COL_PRT,
+        ProjectsConstants::COL_E_DT,
+        SupportsConstants::COL_TKT_CD,
+        SupportsConstants::COL_TKT_CR,
+        ActivitiesConstants::COL_TSK_STT,
+        DatabaseConstants::TABLE_CREATOR,
+        SupportsConstants::COL_ATC,
+        ActivitiesConstants::COL_DESC
     ];
 
     public static array $priority = ['Low', 'Medium', 'High', 'Critical'];
 
     public static array $status = [
-        'Open' => 'Open', 'Close' => 'Close', 'On Hold' => 'On Hold'
+        'Open' => 'Open',
+        'Close' => 'Close',
+        'On Hold' => 'On Hold'
     ];
 
     public static function status(): array
@@ -60,5 +69,15 @@ class Support extends Model
             : SupportReply::where(SupportsConstants::COL_SPT_ID, $this->id)
             ->where(MessagesConstants::COL_IS_RD, 0)
             ->count('id');
+    }
+
+    public function priorityList(): array
+    {
+        return self::$priority;
+    }
+
+    public function statusList(): array
+    {
+        return self::$status;
     }
 }

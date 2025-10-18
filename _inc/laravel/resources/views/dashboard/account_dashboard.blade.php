@@ -11,19 +11,20 @@
         ViewClassNamesConstants as VC,
         YieldingConstants,
     };
-    use App\Models\{Bill, Goal, Invoice, Plan, Utility};
+    use App\Models\{Bill, Goal, Invoice, Plan, User, Utility};
     use Illuminate\Database\{Eloquent\ModelNotFoundException, QueryException};
     use Illuminate\Support\Facades\{Auth, Log, Route};
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
     $plan ??= Plan::find(DatabaseConstants::DEFAULT_PLAN);
+    $canAv = method_exists($user, 'can');
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Dashboard')}}
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    @if($user?->can(PermissionsConstants::SHW_ACC_DSB) || $user[UsersConstants::COL_TP] == PermissionsConstants::SA)
+    @if($canAv && ($user?->can(PermissionsConstants::SHW_ACC_DSB) || $user[UsersConstants::COL_TP] == PermissionsConstants::SA))
         @php
             if (!$user?->can(PermissionsConstants::SHW_ACC_DSB) && $user[UsersConstants::COL_TP] == PermissionsConstants::SA) 
                 Log::notice(
@@ -244,10 +245,10 @@
             <div class="row">
                 @php
                     $metrics=[
-                        ['bg'=>'bg-primary','icon'=>VC::TI_USRS,'label'=>__('Customers'),'value'=>$user->countCustomers()],
-                        ['bg'=>'bg-info','icon'=>VC::TI_USRS,'label'=>__('Vendors'),'value'=>$user->countVendors()],
-                        ['bg'=>'bg-warning','icon'=>'ti ti-report-money','label'=>__('Invoices'),'value'=>$user->countInvoices()],
-                        ['bg'=>'bg-danger','icon'=>'ti ti-report-money','label'=>__('Bills'),'value'=>$user->countBills()]
+                        ['bg'=>'bg-primary','icon'=>VC::TI_USRS,'label'=>__('Customers'),'value'=> is_callable($user, 'countCustomers') ? $user->countCustomers() : 0],
+                        ['bg'=>'bg-info','icon'=>VC::TI_USRS,'label'=>__('Vendors'),'value'=> is_callable($user, 'countVendors') ? $user->countVendors() : 0],
+                        ['bg'=>'bg-warning','icon'=>'ti ti-report-money','label'=>__('Invoices'),'value'=> is_callable($user, 'countInvoices') ? $user->countInvoices() : 0],
+                        ['bg'=>'bg-danger','icon'=>'ti ti-report-money','label'=>__('Bills'),'value'=> is_callable($user, 'countBills') ? $user->countBills() : 0]
                     ];
                     $currentYear ??= (string) now()->format('Y');
                     $bankAccountDetail ??= [];

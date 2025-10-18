@@ -2,7 +2,7 @@
     use App\Config\Constants\ViewClassNamesConstants as VC;
     use App\Models\Utility;
     use Illuminate\Support\Facades\Auth;
-    $profile = Utility::get_file('uploads/avatar/');
+    $profile = Utility::getFile('uploads/avatar/');
     $avatarUrl = !empty($user?->avatar)
         ? ($profile . '/' . $user->avatar)
         : asset('/storage/' . config('chatify.user_avatar.folder') . '/avatar.png');

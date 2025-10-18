@@ -35,7 +35,7 @@ use App\Models\{
     UserDeal,
     UserLead,
     Utility,
-    WebhookSetting
+    WebhookSettings
 };
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{

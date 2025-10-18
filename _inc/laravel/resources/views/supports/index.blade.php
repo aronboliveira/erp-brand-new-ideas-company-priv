@@ -68,7 +68,7 @@
         </a>
     </div>
     @push(StacksConstants::ADM_SCR_PG)
-        <script src="{{ asset('assets/js/routes/supports/index/grid.js') }}" defer></script>
+        <script src="{{ asset('assets/js/routes/supports/grid.js') }}" defer></script>
         <script src="{{ asset('assets/js/routes/supports/create.js') }}" defer></script>
     @endpush
 @endsection

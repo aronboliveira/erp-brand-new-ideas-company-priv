@@ -34,8 +34,8 @@ class RoleController extends Controller
             if (($c = self::guard($request, PermissionsConstants::MNG_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             try {
                 $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-                $view = VW::RL . $action;
-                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
+                $view = VW::RL . '.' . $action;
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View ' . $view . ' not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
                 Log::debug($method . ' loaded', ['count' => $roles->count()]);
                 return ViewFacade::make($view, compact(DatabaseConstants::TABLE_ROLES));
             } catch (\Throwable $e) {

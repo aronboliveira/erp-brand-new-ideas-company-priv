@@ -18,7 +18,7 @@
 @section(YieldingConstants::ADM_PG_TTL)
     {{__('Support')}}
 @endsection
-@section('title')
+@section(YieldingConstants::ADM_PG_TTL)
     <div class="d-inline-block">
         <h5 class="h4 d-inline-block font-weight-400 mb-0 ">{{__('Support')}}</h5>
     </div>
@@ -34,17 +34,17 @@
 @endsection
 @section(YieldingConstants::ADM_ACT_BTN)
     @php
-        $sptIndexBase = ViewsConstants::SPT.'.index';
+        $sptIndexBase = VW::SPT.'.index';
         $sptIndexKebab = Str::kebab($sptIndexBase);
         $sptIndexResolved = Route::has($sptIndexBase) ? $sptIndexBase : (Route::has($sptIndexKebab) ? $sptIndexKebab : null);
         $sptIndexUrl = $sptIndexResolved ? route($sptIndexResolved) : '#';
-        $sptCreateBase = ViewsConstants::SPT.'.create';
+        $sptCreateBase = VW::SPT.'.create';
         $sptCreateKebab = Str::kebab($sptCreateBase);
         $sptCreateResolved = Route::has($sptCreateBase) ? $sptCreateBase : (Route::has($sptCreateKebab) ? $sptCreateKebab : null);
         $sptCreateUrl = $sptCreateResolved ? route($sptCreateResolved) : '#';
         $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-        $listGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::SPT, 'list_support_route_unavailable') ?? 'List support route is unavailable. Please contact technical support or your domain administrator.';
-        $createGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::SPT, 'create_support_route_unavailable') ?? 'Create support route is unavailable. Please contact technical support or your domain administrator.';
+        $listGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'list_support_route_unavailable') ?? 'List support route is unavailable. Please contact technical support or your domain administrator.';
+        $createGuardMsg = Utility::fetchLinkMessage($langValue, VW::SPT, 'create_support_route_unavailable') ?? 'Create support route is unavailable. Please contact technical support or your domain administrator.';
     @endphp
     <div class="{{ VC::FEND }}">
         <a href="{{ $sptIndexUrl }}"
@@ -84,13 +84,13 @@
 					<div class="card-header">
 						<div class="{{ VC::R_ALC }}">
 							<div class="{{ VC::C_AT }}">
-								@php
-									$avatarFile = data_get($support,'createdBy.avatar');
-									$avatarSrc = !empty($avatarFile)
-										? asset(Storage::url('uploads/avatar')).'/'.$avatarFile
-										: asset(Storage::url('uploads/avatar')).'/avatar.png';
-									$unread = (is_object($support) && method_exists($support,'replyUnread')) ? (int)($support->replyUnread() ?? 0) : 0;
-								@endphp
+                                @php
+                                    $avatarFile = data_get($support,'createdBy.avatar');
+                                    $avatarSrc = !empty($avatarFile)
+                                        ? Storage::url('uploads/avatar/'.$avatarFile)
+                                        : Storage::url('uploads/avatar/avatar.png');
+                                    $unread = (is_object($support) && method_exists($support,'replyUnread')) ? (int)($support->replyUnread() ?? 0) : 0;
+                                @endphp
 								<a href="#" class="{{ VC::AV_CC }}">
 									<img alt="" src="{{ $avatarSrc }}">
 									@if($unread > 0)
@@ -124,10 +124,10 @@
 								<span class="{{ VC::DBL }} {{ VC::TXSM }}">{{ __('Priority') }}</span>
 							</div>
 							<div class="col text-center">
-								@php
-									$attachment = data_get($support,'attachment');
-									$attachUrl = asset(Storage::url('uploads/supports')).'/'.$attachment;
-								@endphp
+                                @php
+                                    $attachment = data_get($support,'attachment');
+                                    $attachUrl = !empty($attachment) ? Storage::url('uploads/supports/'.$attachment) : null;
+                                @endphp
 								<span class="{{ VC::H6 }} {{ VC::MB0 }}">
 									@if(!empty($attachment))
 										<a href="{{ $attachUrl }}" download class="{{ VC::BT_SM }} btn-secondary btn-icon rounded-pill" target="_blank">

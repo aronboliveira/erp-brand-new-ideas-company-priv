@@ -1,6 +1,7 @@
 @php
     use App\Config\Constants\{
         ExtendingLayoutsConstants as EL,
+        ViewsConstants as VW,
         YieldingConstants as YW
     };
     use App\Models\Utility;

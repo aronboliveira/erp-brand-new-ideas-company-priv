@@ -7,9 +7,12 @@ use Carbon\Carbon;
 use App\Config\Constants\{MiddlewaresConstants, RoutesKeysConstants};
 use App\Http\Middleware\{
     Authenticate,
+    CheckMount,
+    DebugRouteToConsole,
     EncryptCookies,
     PreventRequestsDuringMaintenance,
     PusherConfig,
+    RecordLanding,
     RedirectIfAuthenticated,
     RevalidateBackHistory,
     SecureHeaders,
@@ -64,14 +67,19 @@ class Kernel extends HttpKernel
             VerifyCsrfToken::class,
             SubstituteBindings::class,
             SecureHeaders::class,
-            \App\Http\Middleware\DebugRouteToConsole::class,
-            \App\Http\Middleware\RecordLanding::class,
+            DebugRouteToConsole::class,
+            RecordLanding::class,
+            CheckMount::class,
             // StripHtmlComments::class
         ],
         MiddlewaresConstants::API => [
             MiddlewaresConstants::TRT . ':' . RoutesKeysConstants::API_KEY,
             SubstituteBindings::class,
         ],
+        MiddlewaresConstants::SET => [
+            RecordLanding::class,
+            CheckMount::class,
+        ]
     ];
     protected $routeMiddleware = [
         MiddlewaresConstants::TRT               => ThrottleRequests::class,
@@ -87,6 +95,7 @@ class Kernel extends HttpKernel
         'password.confirm'                      => RequirePassword::class,
         'cache.headers'                         => SetCacheHeaders::class,
         MiddlewaresConstants::SGN               => ValidateSignature::class,
+        'check.mount'                         => CheckMount::class,
     ];
     public function handle($request)
     {

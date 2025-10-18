@@ -6,7 +6,7 @@
         ViewClassNamesConstants as VC,
         YieldingConstants
     };
-	use App\Models\{Utility,WebhookSetting};
+	use App\Models\{Utility,WebhookSettings};
     use Collective\Html\FormFacade as Form;
 	use Illuminate\Support\Facades\{Auth,Log,Route,URL};
     use Illuminate\Support\{Collection, Str};
@@ -42,7 +42,7 @@
 		$siteRtl=$data[SC::RTL]??false;
 		$currentLang=Utility::languages()?:[];
 		$lang=Utility::getValByName(SC::DEF_LNG)?:'';
-		$webhookSetting=WebhookSetting::where(
+		$webhookSetting=WebhookSettings::where(
 			DC::TABLE_CREATOR,
 			Auth::user()?->creatorId()
 		)->get()?:collect([]);

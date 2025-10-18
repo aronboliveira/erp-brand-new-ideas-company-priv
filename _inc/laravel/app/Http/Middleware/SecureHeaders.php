@@ -21,7 +21,7 @@ final class SecureHeaders
 		// ! ALERT !! // TODO ADJUST LATER AND INCLUDE NONCE !!!
 		// 'Strict-Transport-Security'  => 'max-age=31536000; includeSubDomains',
 		'Content-Security-Policy' =>
-		"default-src 'self'; connect-src 'self' wss://*.pusher.com https://*.pusher.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.pusher.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com;",
+		"default-src 'self'; connect-src 'self' wss://*.pusher.com https://*.pusher.com https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.pusher.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net data: https://fonts.gstatic.com;",
 		// ! ALERT !! // TODO REMOVE LATER AND INCLUDE NONCE !!!
 	];
 

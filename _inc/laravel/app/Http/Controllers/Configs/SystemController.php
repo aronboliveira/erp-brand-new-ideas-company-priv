@@ -21,7 +21,7 @@ use App\Models\{
     Noc,
     User,
     Utility,
-    WebhookSetting
+    WebhookSettings
 };
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
@@ -1001,7 +1001,7 @@ class SystemController extends Controller
             if (($redirect = self::guard($request, 'create webhook', self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
-                $webhookSettings = WebhookSetting::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $webhookSettings = WebhookSettings::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
                 $view = 'webhook.index';
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'count' => $webhookSettings->count()]);
                 return ViewFacade::exists($view)
@@ -1024,8 +1024,8 @@ class SystemController extends Controller
             if (($redirect = self::guard($request, 'create webhook', self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
-                $modules = WebhookSetting::$modules;
-                $methods = WebhookSetting::$method;
+                $modules = WebhookSettings::$modules;
+                $methods = WebhookSettings::$method;
                 $view = 'webhook.create';
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return ViewFacade::exists($view)
@@ -1053,7 +1053,7 @@ class SystemController extends Controller
                 'method' => 'required'
             ]);
             try {
-                WebhookSetting::create([
+                WebhookSettings::create([
                     'module'                         => $data['module'],
                     'url'                            => $data['url'],
                     'method'                         => $data['method'],
@@ -1078,9 +1078,9 @@ class SystemController extends Controller
             if (($redirect = self::guard($request, PermissionsConstants::ED_WHK, self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'id' => $id]);
             try {
-                $webhook = WebhookSetting::findOrFail($id);
-                $modules = WebhookSetting::$modules;
-                $methods = WebhookSetting::$method;
+                $webhook = WebhookSettings::findOrFail($id);
+                $modules = WebhookSettings::$modules;
+                $methods = WebhookSettings::$method;
                 $view = 'webhook.edit';
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return ViewFacade::exists($view)
@@ -1108,7 +1108,7 @@ class SystemController extends Controller
                 'method' => 'required'
             ]);
             try {
-                $wh = WebhookSetting::findOrFail($id);
+                $wh = WebhookSettings::findOrFail($id);
                 $wh->update([
                     'module' => $data['module'],
                     'url'    => $data['url'],
@@ -1133,7 +1133,7 @@ class SystemController extends Controller
             if (($redirect = self::guard($request, PermissionsConstants::DEL_WHK, self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'id' => $id]);
             try {
-                WebhookSetting::findOrFail($id)->delete();
+                WebhookSettings::findOrFail($id)->delete();
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return redirect()->back()->with('success', __('Webhook successfully deleted.'));
             } catch (\Throwable $e) {

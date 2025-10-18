@@ -64,8 +64,8 @@
     </li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-<script src="{{ Module::asset('LandingPage:js/plugins/tinymce.js')}}" referrerpolicy="origin"></script>
-
+<script src="{{ asset('Modules/landingpage/js/plugins/tinymce.min.js')}}" referrerpolicy="origin"></script>
+<script src="{{ asset('Modules/landingpage/js/plugins/tinymce/tinymce.js')}}" referrerpolicy="origin"></script>
 @endpush
 
 @section('breadcrumb')

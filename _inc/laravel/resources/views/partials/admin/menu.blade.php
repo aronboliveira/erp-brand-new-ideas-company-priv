@@ -4291,6 +4291,7 @@
                             data-candidate-url="{{ $messengerRoute }}"
                             data-sv-localized="true"
                             data-guard-msg="{{ $messengerMsg }}"
+                            style="cursor: pointer;"
                         >
                             <span class="dash-micon"><i class="ti ti-message-circle"></i></span>
                             <span class="dash-mtext">{{ __('Messenger') }}</span>
@@ -4912,11 +4913,14 @@
                             @endpush
                         @endif
                         @php
-                            $emailTemplateRoute = Route::has(VW::EMLS . '.manage.language')
-                                ? route(VW::EMLS . '.manage.language', [$emailTemplate->id, $user?->lang])
-                                : (Route::has(Str::kebab(VW::EMLS . '.manage.language'))
-                                    ? route(Str::kebab(VW::EMLS . '.manage.language'), [$emailTemplate->id, $user?->lang])
-                                    : '#');
+                            if (!empty($emailTemplate?->id))
+                                $emailTemplateRoute = Route::has(VW::EMLS . '.manage.language')
+                                    ? route(VW::EMLS . '.manage.language', [$emailTemplate->id, $user?->lang])
+                                    : (Route::has(Str::kebab(VW::EMLS . '.manage.language'))
+                                        ? route(Str::kebab(VW::EMLS . '.manage.language'), [$emailTemplate->id, $user?->lang])
+                                        : '#');
+                            else
+                                $emailTemplateRoute = "#";
                             $emailTmpLinkId = 'email-template-link';
                             $message = Utility::fetchLinkMessage(
                                 $lang,

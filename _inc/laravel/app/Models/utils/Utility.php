@@ -243,7 +243,8 @@ class Utility extends Model
         ];
     }
 
-    public static function isFilled(mixed $list): bool {
+    public static function isFilled(mixed $list): bool
+    {
         return !empty($list) && (is_array($list) ? count($list) : ($list instanceof Collection ? $list->isNotEmpty() : false));
     }
 
@@ -1771,14 +1772,20 @@ class Utility extends Model
 
     public static function getAdminPaymentSetting(): array
     {
-        $query   = DB::table('admin_payment_settings');
-        if (Auth::check())
-            $query->where(UsersConstants::COL_USER_ID, 1);
-        $rows    = $query->get();
-        $settings = [];
-        foreach ($rows as $row)
-            $settings[$row->name] = $row->value;
-        return $settings;
+        try {
+            $query   = DB::table('admin_payment_settings');
+            $user = Auth::user();
+            if (Auth::check())
+                $query->where(DatabaseConstants::TABLE_CREATOR, $user?->{UsersConstants::COL_TP} === PermissionsConstants::SA ? $user->id : DatabaseConstants::DEFAULT_UUID);
+            $rows    = $query->get();
+            $settings = [];
+            foreach ($rows as $row)
+                $settings[$row->name] = $row->value;
+            return $settings;
+        } catch (\Throwable $e) {
+            Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed fetching admin payment settings: {$e->getMessage()}");
+            return [];
+        }
     }
 
     public static function getCompanyPaymentSetting(string|int $userId): array
@@ -2550,7 +2557,7 @@ class Utility extends Model
     {
         $user = $userId ? User::find($userId) : Auth::user();
         if (!$user) return false;
-        $webhook = WebhookSetting::where('module', $module)
+        $webhook = WebhookSettings::where('module', $module)
             ->where(UsersConstants::COL_USER_ID, $user?->id)
             ->first();
         if (!$webhook) return false;

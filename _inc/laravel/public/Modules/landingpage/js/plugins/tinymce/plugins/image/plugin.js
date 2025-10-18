@@ -1450,8 +1450,8 @@
               window.location.hostname === "localhost" ||
               window.location.hostname === "127.0.0.1"
             )
-              return console.error(e);
-            return;
+              console.error(e);
+            else return;
           });
       } else {
         api.setData({

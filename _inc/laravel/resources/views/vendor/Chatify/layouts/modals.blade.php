@@ -1,11 +1,13 @@
 @php
     use Illuminate\Support\Collection;
     use App\Config\Constants\ViewClassNamesConstants as VC;
-    use Illuminate\Support\Facades\Auth;
+    use App\Models\Utility;
+    use Illuminate\Support\Str;
+    use Illuminate\Support\Facades\{Auth, Route};
     $auth = Auth::user();
     $avatarFolder = config('chatify.user_avatar.folder','uploads/avatar');
     $avatarFile = data_get($auth,'avatar') ?: 'avatar.png';
-    $avatarPathTmp = \App\Models\Utility::get_file('/'.$avatarFolder.'/'.$avatarFile);
+    $avatarPathTmp = Utility::getFile('/'.$avatarFolder.'/'.$avatarFile);
     $avatarPath = $avatarPathTmp ?: asset('/storage/'.$avatarFolder.'/avatar.png');
     $darkMode = (int) (data_get($auth,'dark_mode',0)) > 0 ? 1 : 0;
     $appName = config('chatify.name') ?: __('Messenger');

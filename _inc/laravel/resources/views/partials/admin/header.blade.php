@@ -20,6 +20,8 @@
     $langName = cache()->remember('full_language_data_' . $lang, now()->addHours(24), function () use ($lang) {
         return \App\Models\Language::languageData($lang);
     });
+    if (!Utility::isFilled($langName) || !isset($langName->full_name))
+        $langName = (object) ['full_name' => DatabaseConstants::DEFAULT_LANG_LONG];
     $settings = Utility::settings();
     $unseenCounter = ($user instanceof User) ? App\Models\ChMessage::where('to_id', $user?->id)->where('seen', 0)->count() : 0;
     Log::debug('Loading admin header template...')

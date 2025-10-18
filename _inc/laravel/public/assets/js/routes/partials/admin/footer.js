@@ -210,7 +210,7 @@
         linkEl.setAttribute("href", '{{ asset("assets/css/style.css") }}');
         logoEl.setAttribute(
           "src",
-          '{{ asset("/storage/uploads/logo/logo-dark.webp") }}'
+          '{{ asset("/uploads/logo/2-logo-dark.png") }}'
         );
       }
     } catch {

@@ -13,7 +13,7 @@
             $attType  = data_get($attachment ?? [], 2);
             $isFile   = ($attType === 'file');
             $isImage  = ($attType === 'image');
-            $imgUrl   = $attName ? Utility::get_file((string) config('chatify.attachments.folder').'/'.$attName) : null;
+            $imgUrl   = $attName ? Utility::getFile((string) config('chatify.attachments.folder').'/'.$attName) : null;
             $msgBody  = (is_null($message ?? null) && !empty($attachment) && !$isFile)
                         ? (e($attLabel) ?: __('No attachment label available'))
                         : (nl2br(e(($message ?? '') !== '' ? $message : __('No message content available'))));
@@ -56,7 +56,7 @@
         $attType  = data_get($attachment ?? [], 2);
         $isFile   = ($attType === 'file');
         $isImage  = ($attType === 'image');
-        $imgUrl   = $attName ? Utility::get_file((string) config('chatify.attachments.folder').'/'.$attName) : null;
+        $imgUrl   = $attName ? Utility::getFile((string) config('chatify.attachments.folder').'/'.$attName) : null;
         $msgBody  = (is_null($message ?? null) && !empty($attachment) && !$isFile)
                     ? (e($attLabel) ?: __('No attachment label available'))
                     : (nl2br(e(($message ?? '') !== '' ? $message : __('No message content available'))));
