@@ -121,7 +121,7 @@ class HomeController extends AppController
             $guardStart = microtime(true);
             $g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX);
             $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
-            if ($g instanceof RedirectResponse) {
+            if ($g !== true) {
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id]);
                 Log::debug("[$action] lacking MNG_LP permission", ['user_id' => $user?->id]);
                 return $g;
@@ -131,7 +131,7 @@ class HomeController extends AppController
         }, ['user_id' => Auth::id()]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|bool
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user_id' => Auth::id()]);
@@ -140,7 +140,7 @@ class HomeController extends AppController
             if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) {
+            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) {
                 Log::warning($method . ' permission denied', ['user_id' => Auth::id()]);
                 return $g;
             }
@@ -191,8 +191,13 @@ class HomeController extends AppController
             $data[self::ENTITY . 'Logo'] = implode(',', $logos);
             Log::debug($method . ' total logos', ['user_id' => Auth::id(), 'count' => count($logos)]);
             $fields = [
-                self::ENTITY . 'Status', self::ENTITY . 'OfferText', self::ENTITY . 'Title', self::ENTITY . 'Heading',
-                self::ENTITY . 'Description', self::ENTITY . 'TrustedBy', self::ENTITY . 'LiveDemoLink',
+                self::ENTITY . 'Status',
+                self::ENTITY . 'OfferText',
+                self::ENTITY . 'Title',
+                self::ENTITY . 'Heading',
+                self::ENTITY . 'Description',
+                self::ENTITY . 'TrustedBy',
+                self::ENTITY . 'LiveDemoLink',
                 self::ENTITY . 'BuyNowLink'
             ];
             foreach ($fields as $field) {
@@ -204,7 +209,7 @@ class HomeController extends AppController
             }
             try {
                 $stepStart = microtime(true);
-                DB::transaction(fn () => collect($data)->each(fn ($v, $k) => LandingPageSetting::updateOrCreate(
+                DB::transaction(fn() => collect($data)->each(fn($v, $k) => LandingPageSetting::updateOrCreate(
                     ['name' => Str::snake($k)],
                     ['value' => $v]
                 )));

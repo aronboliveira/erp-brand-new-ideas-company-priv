@@ -43,6 +43,19 @@ final class Handler extends ExceptionHandler
         $class = __CLASS__;
         $this->reportable(function (Throwable $e) use ($function, $class) {
             try {
+                if (str_contains($e->getMessage(), '.js.map could not be found.') || str_contains($e->getMessage(), '.well-known/appspecific/com.chrome.devtools.json')) {
+                    Log::debug('min.js.map error redirected to debug channel');
+                    Log::debug(
+                        'min.js.map not found',
+                        [
+                            'exception_class' => get_class($e),
+                            'message'         => $e->getMessage(),
+                            'file'            => $e->getFile(),
+                            'line'            => $e->getLine(),
+                        ]
+                    );
+                    return true;
+                }
                 if (function_exists('request'))
                     $request = request();
                 elseif (class_exists(RequestFacade::class))
@@ -87,10 +100,11 @@ final class Handler extends ExceptionHandler
                 $exceptionContext,
                 ['request' => $requestContext]
             );
-            Log::critical(
-                sprintf('%s::%s reportable triggered', $class, $function),
-                $mergedCtx
-            );
+            if (!(str_contains($e->getMessage(), '.js.map could not be found.') || str_contains($e->getMessage(), '.well-known/appspecific/com.chrome.devtools.json')))
+                Log::critical(
+                    sprintf('%s::%s reportable triggered', $class, $function),
+                    $mergedCtx
+                );
             Log::channel(SettingsConstants::CRT_TRACE)->debug(
                 sprintf('%s::%s reportable triggered', $class, $function),
                 array_merge($mergedCtx, [
@@ -106,6 +120,19 @@ final class Handler extends ExceptionHandler
         $this->renderable(function (Throwable $e, HttpRequest $request) use ($function, $class) {
             if (!($request instanceof HttpRequest)) {
                 try {
+                    if (str_contains($e->getMessage(), '.js.map could not be found.')) {
+                        Log::debug('min.js.map error redirected to debug channel');
+                        Log::debug(
+                            'min.js.map exception outside HTTP request context',
+                            [
+                                'exception_class' => get_class($e),
+                                'message'         => $e->getMessage(),
+                                'file'            => $e->getFile(),
+                                'line'            => $e->getLine(),
+                            ]
+                        );
+                        return response('', 404);
+                    }
                     if (function_exists('request'))
                         $request = request();
                     elseif (class_exists(RequestFacade::class))
@@ -151,10 +178,11 @@ final class Handler extends ExceptionHandler
                 $exceptionContext,
                 ['request' => $requestContext]
             );
-            Log::critical(
-                sprintf('%s::%s reportable triggered', $class, $function),
-                $mergedCtx
-            );
+            if (!(str_contains($e->getMessage(), '.js.map could not be found.') || str_contains($e->getMessage(), '.well-known/appspecific/com.chrome.devtools.json')))
+                Log::critical(
+                    sprintf('%s::%s reportable triggered', $class, $function),
+                    $mergedCtx
+                );
             Log::channel(SettingsConstants::CRT_TRACE)->debug(
                 sprintf('%s::%s reportable triggered', $class, $function),
                 array_merge($mergedCtx, [
@@ -673,6 +701,7 @@ final class Handler extends ExceptionHandler
                     </div>
 
                     <div class="error-content">
+                    <img src="/assets/images/404-art.webp" alt="404 Error" loading="lazy" decoding="async" />
                     <div class="text-center mb-4">
                         <p class="text-muted" id="error-description">
                         We encountered a technical issue while processing your request. Don\'t worry, we\'re working to fix it!

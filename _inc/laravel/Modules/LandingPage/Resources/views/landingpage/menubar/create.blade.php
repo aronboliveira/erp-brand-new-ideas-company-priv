@@ -1,7 +1,7 @@
 @php
     use Collective\Html\FormFacade as Form;
     use App\Config\Constants\{ViewClassNamesConstants, ViewsConstants};
-    use Module\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
+    use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
     $radioOptions = [
         ['id'=>'page_content', 'value'=>'page_content', 'label'=>__('Page Content')],
         ['id'=>'page_url',     'value'=>'page_url',     'label'=>__('Page URL')],

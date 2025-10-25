@@ -8484,6 +8484,104 @@ class LangsConstants
 				'show_expense_route_unavailable' => '显示费用路由不可用。' . self::DELEGATION_ZH
 			]
 		],
+		ViewsConstants::FT => [
+			'ar' => [
+				'feature_store_route_unavailable' => 'مسار تخزين الميزة غير متاح. ' . self::DELEGATION_AR,
+				'feature_update_route_unavailable' => 'مسار تحديث الميزة غير متاح. ' . self::DELEGATION_AR,
+				'feature_destroy_route_unavailable' => 'مسار حذف الميزة غير متاح. ' . self::DELEGATION_AR,
+				'feature_index_route_unavailable' => 'مسار فهرس الميزة غير متاح. ' . self::DELEGATION_AR,
+			],
+			'da' => [
+				'feature_store_route_unavailable' => 'Funktionslagringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'feature_update_route_unavailable' => 'Funktionsopdateringsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'feature_destroy_route_unavailable' => 'Funktionssletningsrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'feature_index_route_unavailable' => 'Funktionsindeksrute er ikke tilgængelig. ' . self::DELEGATION_DA,
+			],
+			'de' => [
+				'feature_store_route_unavailable' => 'Feature-Speicherroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'feature_update_route_unavailable' => 'Feature-Aktualisierungsroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'feature_destroy_route_unavailable' => 'Feature-Löschroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'feature_index_route_unavailable' => 'Feature-Indexroute ist nicht verfügbar. ' . self::DELEGATION_DE,
+			],
+			'en' => [
+				'feature_store_route_unavailable' => 'Feature store route is unavailable. ' . self::DELEGATION_EN,
+				'feature_update_route_unavailable' => 'Feature update route is unavailable. ' . self::DELEGATION_EN,
+				'feature_destroy_route_unavailable' => 'Feature destroy route is unavailable. ' . self::DELEGATION_EN,
+				'feature_index_route_unavailable' => 'Feature index route is unavailable. ' . self::DELEGATION_EN,
+			],
+			'es' => [
+				'feature_store_route_unavailable' => 'La ruta de almacenamiento de funciones no está disponible. ' . self::DELEGATION_ES,
+				'feature_update_route_unavailable' => 'La ruta de actualización de funciones no está disponible. ' . self::DELEGATION_ES,
+				'feature_destroy_route_unavailable' => 'La ruta de eliminación de funciones no está disponible. ' . self::DELEGATION_ES,
+				'feature_index_route_unavailable' => 'La ruta de índice de funciones no está disponible. ' . self::DELEGATION_ES,
+			],
+			'fr' => [
+				'feature_store_route_unavailable' => 'La route de stockage des fonctionnalités n\'est pas disponible. ' . self::DELEGATION_FR,
+				'feature_update_route_unavailable' => 'La route de mise à jour des fonctionnalités n\'est pas disponible. ' . self::DELEGATION_FR,
+				'feature_destroy_route_unavailable' => 'La route de suppression des fonctionnalités n\'est pas disponible. ' . self::DELEGATION_FR,
+				'feature_index_route_unavailable' => 'La route d\'index des fonctionnalités n\'est pas disponible. ' . self::DELEGATION_FR,
+			],
+			'he' => [
+				'feature_store_route_unavailable' => 'נתיב אחסון התכונה אינו זמין. ' . self::DELEGATION_HE,
+				'feature_update_route_unavailable' => 'נתיב עדכון התכונה אינו זמין. ' . self::DELEGATION_HE,
+				'feature_destroy_route_unavailable' => 'נתיב מחיקת התכונה אינו זמין. ' . self::DELEGATION_HE,
+				'feature_index_route_unavailable' => 'נתיב אינדקס התכונה אינו זמין. ' . self::DELEGATION_HE,
+			],
+			'it' => [
+				'feature_store_route_unavailable' => 'La rotta di memorizzazione delle funzionalità non è disponibile. ' . self::DELEGATION_IT,
+				'feature_update_route_unavailable' => 'La rotta di aggiornamento delle funzionalità non è disponibile. ' . self::DELEGATION_IT,
+				'feature_destroy_route_unavailable' => 'La rotta di eliminazione delle funzionalità non è disponibile. ' . self::DELEGATION_IT,
+				'feature_index_route_unavailable' => 'La rotta di indice delle funzionalità non è disponibile. ' . self::DELEGATION_IT,
+			],
+			'ja' => [
+				'feature_store_route_unavailable' => '機能保存ルートは利用できません。' . self::DELEGATION_JA,
+				'feature_update_route_unavailable' => '機能更新ルートは利用できません。' . self::DELEGATION_JA,
+				'feature_destroy_route_unavailable' => '機能削除ルートは利用できません。' . self::DELEGATION_JA,
+				'feature_index_route_unavailable' => '機能インデックスルートは利用できません。' . self::DELEGATION_JA,
+			],
+			'nl' => [
+				'feature_store_route_unavailable' => 'Functie opslagroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'feature_update_route_unavailable' => 'Functie update route is niet beschikbaar. ' . self::DELEGATION_NL,
+				'feature_destroy_route_unavailable' => 'Functie verwijderingsroute is niet beschikbaar. ' . self::DELEGATION_NL,
+				'feature_index_route_unavailable' => 'Functie index route is niet beschikbaar. ' . self::DELEGATION_NL,
+			],
+			'pl' => [
+				'feature_store_route_unavailable' => 'Trasa przechowywania funkcji jest niedostępna. ' . self::DELEGATION_PL,
+				'feature_update_route_unavailable' => 'Trasa aktualizacji funkcji jest niedostępna. ' . self::DELEGATION_PL,
+				'feature_destroy_route_unavailable' => 'Trasa usuwania funkcji jest niedostępna. ' . self::DELEGATION_PL,
+				'feature_index_route_unavailable' => 'Trasa indeksu funkcji jest niedostępna. ' . self::DELEGATION_PL,
+			],
+			'pt' => [
+				'feature_store_route_unavailable' => 'A rota de armazenamento de recursos não está disponível. ' . self::DELEGATION_PT,
+				'feature_update_route_unavailable' => 'A rota de atualização de recursos não está disponível. ' . self::DELEGATION_PT,
+				'feature_destroy_route_unavailable' => 'A rota de exclusão de recursos não está disponível. ' . self::DELEGATION_PT,
+				'feature_index_route_unavailable' => 'A rota de índice de recursos não está disponível. ' . self::DELEGATION_PT,
+			],
+			'pt-br' => [
+				'feature_store_route_unavailable' => 'A rota de armazenamento de recursos não está disponível. ' . self::DELEGATION_PTBR,
+				'feature_update_route_unavailable' => 'A rota de atualização de recursos não está disponível. ' . self::DELEGATION_PTBR,
+				'feature_destroy_route_unavailable' => 'A rota de exclusão de recursos não está disponível. ' . self::DELEGATION_PTBR,
+				'feature_index_route_unavailable' => 'A rota de índice de recursos não está disponível. ' . self::DELEGATION_PTBR,
+			],
+			'ru' => [
+				'feature_store_route_unavailable' => 'Маршрут хранения функции недоступен. ' . self::DELEGATION_RU,
+				'feature_update_route_unavailable' => 'Маршрут обновления функции недоступен. ' . self::DELEGATION_RU,
+				'feature_destroy_route_unavailable' => 'Маршрут удаления функции недоступен. ' . self::DELEGATION_RU,
+				'feature_index_route_unavailable' => 'Маршрут индекса функции недоступен. ' . self::DELEGATION_RU,
+			],
+			'tr' => [
+				'feature_store_route_unavailable' => 'Özellik depolama rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'feature_update_route_unavailable' => 'Özellik güncelleme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'feature_destroy_route_unavailable' => 'Özellik silme rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'feature_index_route_unavailable' => 'Özellik indeks rotası kullanılamıyor. ' . self::DELEGATION_TR,
+			],
+			'zh' => [
+				'feature_store_route_unavailable' => '功能存储路由不可用。' . self::DELEGATION_ZH,
+				'feature_update_route_unavailable' => '功能更新路由不可用。' . self::DELEGATION_ZH,
+				'feature_destroy_route_unavailable' => '功能删除路由不可用。' . self::DELEGATION_ZH,
+				'feature_index_route_unavailable' => '功能索引路由不可用。' . self::DELEGATION_ZH,
+			]
+		],
 		ViewsConstants::FM => [
 			'ar' => [
 				'view_store_route_unavailable' => 'مسار إرسال النموذج غير متاح. ' . self::DELEGATION_AR,

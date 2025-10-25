@@ -104,9 +104,9 @@
 			$setting[SettingsConstants::CPN_LG_LT]??'';
 		$company_logo_lt=$setting[SettingsConstants::CPN_LG_LT]??
 			$setting[SettingsConstants::CPN_LG_DK]??'';
-		$company_favicon=$data[SettingsConstants::FAV_ICN]??
+		$company_favicon=$data[SettingsConstants::FAV_ICN]? asset($data[SettingsConstants::FAV_ICN]) :
 			asset('favicon.ico');
-		$logo=$data[SettingsConstants::LOGO]??asset('favicon.ico');
+		$logo=$data[SettingsConstants::LOGO]? asset($data[SettingsConstants::LOGO]) : asset('favicon.ico');
 		$color=$data[SettingsConstants::THM_CLR]??
 			SettingsConstants::THM_CLR_DEF;
 		$siteRtl=$data[SettingsConstants::RTL]??'off';

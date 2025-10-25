@@ -68,7 +68,7 @@ class CustomPageController extends AppController
         });
     }
 
-    public function show(Request $request, int $key): View|RedirectResponse|null
+    public function show(Request $request, int|string $key): View|RedirectResponse|null
     {
         $function = __FUNCTION__;
         $action = class_basename(static::class) . '@' . __FUNCTION__;
@@ -98,7 +98,7 @@ class CustomPageController extends AppController
                 if (!isset($pages[$key])) {
                     Log::warning("[$action] page not found", ['user_id' => $user?->id, 'key' => $key]);
                     Log::debug("[$action] available pages keys", ['pages' => array_keys($pages)]);
-                    return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Page not found'));
+                    return redirect()->back()->with('error', __('Page not found'));
                 }
                 $page = $pages[$key];
                 Log::info("[$action] succeeded", ['user_id' => $user?->id, 'key' => $key]);
@@ -135,7 +135,7 @@ class CustomPageController extends AppController
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|bool
     {
         $action = __METHOD__;
         return $this->measureProfile($action, function () use ($request, $action) {
@@ -144,7 +144,7 @@ class CustomPageController extends AppController
                 return $ur;
             }
             $user = $ur;
-            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) {
+            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX) !== true) {
                 Log::warning("{$action} • access denied, redirecting");
                 return $g;
             }
@@ -170,7 +170,7 @@ class CustomPageController extends AppController
             }
             $pages[] = $item;
             try {
-                DB::transaction(fn () => LandingPageSetting::updateOrCreate(
+                DB::transaction(fn() => LandingPageSetting::updateOrCreate(
                     ['name'  => self::MB . '_page'],
                     ['value' => json_encode($pages)]
                 ));
@@ -191,7 +191,7 @@ class CustomPageController extends AppController
         });
     }
 
-    public function edit(Request $request, int $key): View|RedirectResponse|null
+    public function edit(Request $request, int|string $key): View|RedirectResponse|null
     {
         $function = __FUNCTION__;
         $action = class_basename(static::class) . '@' . __FUNCTION__;
@@ -233,7 +233,7 @@ class CustomPageController extends AppController
         }, ['key' => $key]);
     }
 
-    public function update(Request $request, int $key): RedirectResponse
+    public function update(Request $request, int|string $key): RedirectResponse|bool
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user_id' => $request->user()?->id, 'key' => $key]);
@@ -274,7 +274,7 @@ class CustomPageController extends AppController
             $pages[$key] = $item;
             try {
                 $stepStart = microtime(true);
-                DB::transaction(fn () => LandingPageSetting::updateOrCreate(
+                DB::transaction(fn() => LandingPageSetting::updateOrCreate(
                     ['name' => self::MB . '_page'],
                     ['value' => json_encode($pages)]
                 ));
@@ -289,7 +289,7 @@ class CustomPageController extends AppController
         }, ['user_id' => $request->user()?->id, 'key' => $key]);
     }
 
-    public function destroy(Request $request, int $key): RedirectResponse
+    public function destroy(Request $request, int|string $key): RedirectResponse|bool
     {
         $action = __METHOD__;
         return $this->measureProfile($action, function () use ($request, $key, $action) {
@@ -311,7 +311,7 @@ class CustomPageController extends AppController
             }
             unset($pages[$key]);
             try {
-                DB::transaction(fn () => LandingPageSetting::updateOrCreate(
+                DB::transaction(fn() => LandingPageSetting::updateOrCreate(
                     ['name'  => self::MB . '_page'],
                     ['value' => json_encode($pages)]
                 ));
@@ -335,7 +335,7 @@ class CustomPageController extends AppController
     }
 
     public const CT_STR = 'customStore';
-    public function customStore(Request $request): RedirectResponse
+    public function customStore(Request $request): RedirectResponse|bool
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request) {
@@ -371,7 +371,7 @@ class CustomPageController extends AppController
             $data[LandingPageSettingsConstants::SD_K] = $request->input(LandingPageSettingsConstants::SD_K, '');
             try {
                 $dbStart = microtime(true);
-                DB::transaction(fn () => collect($data)->each(fn ($v, $k) => LandingPageSetting::updateOrCreate(['name' => Str::snake($k)], ['value' => $v])));
+                DB::transaction(fn() => collect($data)->each(fn($v, $k) => LandingPageSetting::updateOrCreate(['name' => Str::snake($k)], ['value' => $v])));
                 $this->logExecutionTime($dbStart, $action . '::transaction', 'completed');
                 Log::info("[$action] succeeded", ['user_id' => $user?->id]);
                 Log::debug("[$action] debug saved data", ['data' => $data]);

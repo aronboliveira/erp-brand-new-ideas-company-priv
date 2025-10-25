@@ -133,7 +133,7 @@ class JoinUsController extends AppController
             DB::beginTransaction();
             $stepStart = microtime(true);
             try {
-                collect($settings)->each(fn ($v, $k) => LandingPageSetting::updateOrCreate(['name' => Str::snake($k)], ['value' => $v]));
+                collect($settings)->each(fn($v, $k) => LandingPageSetting::updateOrCreate(['name' => Str::snake($k)], ['value' => $v]));
                 DB::commit();
                 $this->logExecutionTime($stepStart, 'settings update', 'completed');
                 Log::info("$action succeeded", [UsersConstants::COL_USER_ID => $user?->id]);
@@ -175,7 +175,7 @@ class JoinUsController extends AppController
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                 Log::warning("[$action] entry not found", ['id' => $id]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
-                return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Entry not found'));
+                return redirect()->back()->with('error', __('Entry not found'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage(), 'id' => $id]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);

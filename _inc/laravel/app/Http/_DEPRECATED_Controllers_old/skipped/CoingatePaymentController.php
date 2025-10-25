@@ -160,7 +160,7 @@ class CoingatePaymentController extends Controller
             if ($order) {
                 return redirect($order->payment_url);
             } else {
-                return redirect()->back()->with('error', __('opps something wren wrong.'));
+                return redirect()->back()->with('error', __('Ops, something went wrong!.'));
             }
         } else {
             return redirect()->back()->with('error', 'Plan is deleted.');
@@ -345,7 +345,7 @@ class CoingatePaymentController extends Controller
                 if ($order) {
                     return redirect($order->payment_url);
                 } else {
-                    return redirect()->back()->with('error', __('opps something wren wrong.'));
+                    return redirect()->back()->with('error', __('Ops, something went wrong!.'));
                 }
             } else {
                 $res['msg'] = __("Enter valid amount.");

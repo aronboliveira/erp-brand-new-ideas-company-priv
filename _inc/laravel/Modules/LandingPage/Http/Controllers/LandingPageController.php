@@ -14,6 +14,7 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Validation\ValidationException;
 use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
 use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
@@ -88,49 +89,95 @@ class LandingPageController extends AppController
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $function) {
             $method = static::class . '::' . $function;
-            if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            $payload = $request->validate([
-                static::TP . 'Status'          => 'boolean',
-                static::TP . 'NotificationMsg' => 'nullable|string'
-            ]);
-            DB::beginTransaction();
             try {
-                $settings = [
-                    static::TP . 'Status'          => $payload[static::TP . 'Status'] ? 'on' : 'off',
-                    static::TP . 'NotificationMsg' => $payload[static::TP . 'NotificationMsg'] ?? ''
-                ];
-                foreach ($settings as $name => $value) {
-                    $startUpdate = microtime(true);
-                    LandingPageSetting::updateOrCreate(
-                        [LandingPageConstants::COL_LPS_NM => $name, DatabaseConstants::TABLE_CREATOR => $user?->id],
-                        [LandingPageConstants::COL_LPS_V => $value]
-                    );
-                    $this->logExecutionTime($startUpdate, $function . '::updateOrCreate', 'completed');
-                    Log::info(ucfirst(static::TP) . ' settings saved', [
-                        UsersConstants::COL_USER_ID => $user?->id,
-                        'setting'                  => $name,
-                        LandingPageConstants::COL_LPS_V => $value
-                    ]);
-                }
-                DB::commit();
-                return redirect()->route(static::ROUTE_INDEX)
-                    ->with('success', __(ucfirst(static::TP) . ' settings updated successfully'));
-            } catch (\Throwable $e) {
-                $errorTime = microtime(true);
-                DB::rollBack();
-                $this->logExecutionTime($errorTime, $function . '::exception', 'failed');
-                Log::error($method . ' failed to store ' . static::TP . ' settings', [
-                    UsersConstants::COL_USER_ID => $user?->id,
-                    'payload'                  => $payload,
-                    'error'                    => $e->getMessage()
+                if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user = $userOrRedirect;
+
+                $payload = $request->validate([
+                    static::TP . '_status' => [
+                        'required',
+                        'in:on,off,checked,unchecked,0,1,true,false'
+                    ],
+                    static::TP . '_notification_msg' => 'nullable|string'
                 ]);
-                Log::debug($method . ' debug exception', ['exception' => $e, 'trace' => $e->getTraceAsString()]);
-                return defaultUndefinedException($request, $e, $method, route(static::ROUTE_INDEX));
+
+                DB::beginTransaction();
+                try {
+                    $statusValue = $payload[static::TP . '_status'];
+                    $normalizedStatus = in_array($statusValue, ['on', 'checked', '1', 'true', true, 1], true)
+                        ? 'on'
+                        : 'off';
+
+                    $settings = [
+                        static::TP . '_status'          => $normalizedStatus,
+                        static::TP . '_notification_msg' => $payload[static::TP . '_notification_msg'] ?? ''
+                    ];
+
+                    foreach ($settings as $name => $value) {
+                        $startUpdate = microtime(true);
+                        LandingPageSetting::updateOrCreate(
+                            [
+                                LandingPageConstants::COL_LPS_NM => $name,
+                                DatabaseConstants::TABLE_CREATOR => $user?->id
+                            ],
+                            [
+                                LandingPageConstants::COL_LPS_V => $value
+                            ]
+                        );
+                        $this->logExecutionTime($startUpdate, $function . '::updateOrCreate', 'completed');
+
+                        Log::info(ucfirst(static::TP) . ' settings saved', [
+                            UsersConstants::COL_USER_ID => $user?->id,
+                            'setting'                   => $name,
+                            LandingPageConstants::COL_LPS_V => $value
+                        ]);
+                    }
+
+                    DB::commit();
+
+                    return redirect()->route(static::ROUTE_INDEX)
+                        ->with('success', __(ucfirst(static::TP) . ' settings updated successfully'));
+                } catch (\Throwable $e) {
+                    $errorTime = microtime(true);
+                    DB::rollBack();
+                    $this->logExecutionTime($errorTime, $function . '::exception', 'failed');
+
+                    Log::error($method . ' failed to store ' . static::TP . ' settings', [
+                        UsersConstants::COL_USER_ID => $user?->id,
+                        'payload'                   => $payload,
+                        'error'                     => $e->getMessage()
+                    ]);
+                    Log::debug($method . ' debug exception', [
+                        'exception' => $e,
+                        'trace'     => $e->getTraceAsString()
+                    ]);
+
+                    return defaultUndefinedException($request, $e, $method, route(static::ROUTE_INDEX));
+                }
+            } catch (ValidationException $e) {
+                $validationTime = microtime(true);
+                $this->logExecutionTime($validationTime, $function . '::validationException', 'failed');
+
+                Log::error($method . ' failed to store ' . static::TP . ' settings due to validation error', [
+                    'request' => $request->all(),
+                    'errors'  => $e->errors()
+                ]);
+
+                return redirect()->route(static::ROUTE_INDEX)
+                    ->withErrors($e->errors())
+                    ->withInput();
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed to store ' . static::TP . ' settings', [
+                    'error' => $e->getMessage()
+                ]);
+
+                // Added missing return statement
+                return redirect()->route(static::ROUTE_INDEX)
+                    ->with('error', __('An unexpected error occurred'))
+                    ->withInput();
             }
         }, func_get_args());
     }
-
     /**
      * Update a single setting by ID.
      */

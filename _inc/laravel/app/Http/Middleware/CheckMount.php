@@ -38,6 +38,7 @@ class CheckMount
 			$hasBodyEnd = stripos($content, '</body>') !== false;
 			$hasHeadEnd = stripos($content, '</head>') !== false;
 			$hasHtmlTag = stripos($content, '<html') !== false;
+			$isPartialHtml = $this->isPartialHtml($content);
 
 			$injected = false;
 
@@ -98,6 +99,54 @@ class CheckMount
 				}
 			}
 
+			if (!$injected && $isPartialHtml) {
+				Log::debug('CheckMount: Partial HTML detected, trying modal injection', [
+					'url' => $request->fullUrl()
+				]);
+
+				if (preg_match('~<form[^>]*>~i', $content)) {
+					$content = preg_replace('~(<form[^>]*>)~i', '$1' . $scriptHtml, $content, 1, $count);
+					if ($count > 0) {
+						$injected = true;
+						Log::info('CheckMount: Injected after <form> tag in modal');
+					}
+				}
+
+				if (!$injected && preg_match('~<[^>]+class=["\'][^"\']*modal-body[^"\']*["\'][^>]*>~i', $content)) {
+					$content = preg_replace(
+						'~(<[^>]+class=["\'][^"\']*modal-body[^"\']*["\'][^>]*>)~i',
+						$scriptHtml . '$1',
+						$content,
+						1,
+						$count
+					);
+					if ($count > 0) {
+						$injected = true;
+						Log::info('CheckMount: Injected before modal-body element');
+					}
+				}
+
+				if (!$injected && preg_match('~<[^>]+class=["\'][^"\']*modal-header[^"\']*["\'][^>]*>~i', $content)) {
+					$content = preg_replace(
+						'~(<[^>]+class=["\'][^"\']*modal-header[^"\']*["\'][^>]*>)~i',
+						$scriptHtml . '$1',
+						$content,
+						1,
+						$count
+					);
+					if ($count > 0) {
+						$injected = true;
+						Log::info('CheckMount: Injected before modal-header element');
+					}
+				}
+
+				if (!$injected) {
+					$content = $scriptHtml . $content;
+					$injected = true;
+					Log::info('CheckMount: Injected at start of partial HTML');
+				}
+			}
+
 			if ($injected) {
 				$response->setContent($content);
 			} else {
@@ -106,6 +155,7 @@ class CheckMount
 					'has_html_tag' => $hasHtmlTag,
 					'has_head_end' => $hasHeadEnd,
 					'has_body_end' => $hasBodyEnd,
+					'is_partial_html' => $isPartialHtml,
 					'content_start' => substr($content, 0, 200)
 				]);
 			}
@@ -115,7 +165,27 @@ class CheckMount
 				'trace' => $e->getTraceAsString()
 			]);
 		}
-
 		return $response;
+	}
+
+	/**
+	 * Check if the content is partial HTML (modal/AJAX response)
+	 */
+	private function isPartialHtml(string $content): bool
+	{
+		$trimmed = trim($content);
+
+		if (preg_match('~^<(form|div|section|article|main|aside|nav|header|footer|table|ul|ol|dl|fieldset|select|input|textarea|button|span|p|h[1-6])~i', $trimmed)) {
+			return true;
+		}
+
+		$hasDoctype = stripos($trimmed, '<!DOCTYPE') !== false;
+		$hasHtmlTag = stripos($trimmed, '<html') !== false;
+
+		if (!$hasDoctype && !$hasHtmlTag) {
+			return true;
+		}
+
+		return false;
 	}
 }

@@ -53,11 +53,9 @@ final class ProductServiceController extends Controller
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
         $view = ViewsConstants::PRD_SV . '.' . $fn;
-
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
         if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
-
         return $this->measureProfile($action, function () use ($req, $user, $view) {
             $category = ProductServiceCategory::whereCreatedBy($user?->creatorId())
                 ->whereType('product & service')
@@ -528,12 +526,10 @@ final class ProductServiceController extends Controller
         $fn = __FUNCTION__;
         $action = "$cls::$fn";
         $view = ViewsConstants::PRD_SV . '.show';
-
         Log::info($action, ['user_id' => Auth::id(), 'product_service_id' => $productService->id]);
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
         $user = $ur;
         if ($c = self::guard($req, 'view product & service', self::REDIRECT_INDEX)) return $c;
-
         return $this->measureProfile($action, function () use ($productService, $user, $view) {
             $collections = self::formCollections($user?->creatorId());
             $productService->tax_id = explode(',', $productService->tax_id);

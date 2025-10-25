@@ -14,7 +14,7 @@ class CreateLandingPageSettingsTable extends Migration
         if (!Schema::hasTable(self::TABLE)) {
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary(); // ! CHANGED
-                $table->string(LandingPageConstants::COL_LPS_NM)->unique();
+                $table->string(LandingPageConstants::COL_LPS_NM);
                 $table->longtext(LandingPageConstants::COL_LPS_V)->nullable();
                 $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
                 $table->timestamps();

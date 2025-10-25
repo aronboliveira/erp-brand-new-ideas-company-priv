@@ -10,11 +10,18 @@
 </script>
 <script defer>
   document.addEventListener("DOMContentLoaded", function() {
-    const originalConsoleLog = console.log;
-    console.log = function(...args) {
-      if (args[0]?.includes?.('Pusher')) return;
-      originalConsoleLog.apply(console, args);
-    };
+  const suppressPatterns = ['Pusher', 'Bootstrap', 'bootstrap', 'Popper', 'popper'];
+    ['warn', 'info', 'error', 'log'].forEach(method => {
+      const original = console[method];
+      console[method] = function(...args) {
+        const firstArg = args[0];
+        const shouldSuppress = method === 'log' || (window.location.origin.startsWith('http://localhost') || window.location.origin.startsWith('https://localhost') || window.location.origin.startsWith('http://127.0.0.1') || window.location.origin.startsWith('https://127.0.0.1')) ? suppressPatterns.some(pattern => 
+          firstArg?.includes?.(pattern)
+        ) : false;
+        if (shouldSuppress) return;
+        original.apply(console, args);
+      };
+    });
   });
 </script>
 <script>

@@ -92,7 +92,7 @@ class SourceController extends Controller
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $source, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($redirect = self::guard($req, 'view source', self::REDIRECT_INDEX)) return $redirect;
+            if (($redirect = self::guard($req, 'view source', self::REDIRECT_INDEX)) !== true) return $redirect;
             if ($source[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             Log::info("[{$class}::{$action}] start", ['source_id' => $source->id, 'user_id' => $req->user()->id, 'method' => $method]);
             try {

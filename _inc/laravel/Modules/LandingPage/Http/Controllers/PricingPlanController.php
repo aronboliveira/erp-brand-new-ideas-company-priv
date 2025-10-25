@@ -17,8 +17,8 @@ use Modules\LandingPage\{
     Config\Constants\RoutesResourcesConstants,
     Entities\LandingPageSetting
 };
-use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
-use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
+use Modules\LandingPage\Config\Constants\SettingsConstants as LSC;
+use function App\Http\Controllers\{defaultUndefinedException};
 
 class PricingPlanController extends AppController
 {
@@ -267,10 +267,10 @@ class PricingPlanController extends AppController
         try {
             DB::beginTransaction();
             $data = [
-                LandingPageSettingsConstants::PN_STT_K      => $validated[LandingPageSettingsConstants::PN_STT_K] ?? 'off',
-                LandingPageSettingsConstants::PN_TTL_K       => $validated[LandingPageSettingsConstants::PN_TTL_K] ?? LandingPageSettingsConstants::PN_TTL_DEF,
-                LandingPageSettingsConstants::PN_HDG_K     => $validated[LandingPageSettingsConstants::PN_HDG_K] ?? LandingPageSettingsConstants::PN_HDG_DEF,
-                LandingPageSettingsConstants::PN_DESC_K => $validated[LandingPageSettingsConstants::PN_DESC_K] ?? '',
+                LSC::PN_STT_K      => $validated[LSC::PN_STT_K] ?? 'off',
+                LSC::PN_TTL_K       => $validated[LSC::PN_TTL_K] ?? LSC::PN_TTL_DEF,
+                LSC::PN_HDG_K     => $validated[LSC::PN_HDG_K] ?? LSC::PN_HDG_DEF,
+                LSC::PN_DESC_K => $validated[LSC::PN_DESC_K] ?? '',
             ];
             // if updating single key
             if ($mode === 'update' && $key) {

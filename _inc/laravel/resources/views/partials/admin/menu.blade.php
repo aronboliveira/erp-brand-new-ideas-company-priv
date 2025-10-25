@@ -101,10 +101,10 @@
             <a href="#" class="b-brand">
                 {{--                <img src="{{ asset(Storage::url('uploads/logo/'.$logo)) }}" alt="{{ env('APP_NAME') }}" class="{{ VC::LOGO_LG }}" /> --}}
                 @if ($colorSettings[SC::CST_DRK] && $colorSettings[SC::CST_DRK] == 'on')
-                    <img src="{{ (isset($company_logos) && !empty($company_logos) ? $company_logos : SC::CPN_LG_DK_DEF) }}"
+                    <img src="{{ (isset($company_logos) && !empty($company_logos) ? asset($company_logos) : asset(SC::CPN_LG_DK_DEF)) }}"
                         alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO_LG }}">
                 @else
-                    <img src="{{ (isset($company_logo) && !empty($company_logo) ? $company_logo : SC::CPN_LG_LT_DEF) }}"
+                    <img src="{{ (isset($company_logo) && !empty($company_logo) ? asset($company_logo) : asset(SC::CPN_LG_LT_DEF)) }}"
                         alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO_LG }}">
                 @endif
             </a>

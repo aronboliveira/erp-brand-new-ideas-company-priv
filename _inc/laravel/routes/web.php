@@ -365,12 +365,15 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
 
     //================================= Product Services ====================================//
     #region
-    Route::resource(VW::PRD_SV, ProductServiceController::class)
-        ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     Route::get(VW::PRD_SV . '/index', [ProductServiceController::class, 'index'])
         ->name(VW::PRD_SV . '.index');
     Route::get(VW::PRD_SV . '/{id}/detail', [ProductServiceController::class, ProductServiceController::WRH_DTL])
         ->name(VW::PRD_SV . '.detail');
+    Route::get(VW::PRD_SV . '/export', [ProductServiceController::class, 'export'])->name(VW::PRD_SV . '.export');
+    Route::post(VW::PRD_SV . '/import', [ProductServiceController::class, 'import'])->name(VW::PRD_SV . '.import');
+    // Route::get('import'.VW::PRD_SV.//file', [ProductServiceController::class, 'importFile'])->name(VW::PRD_SV . '.file.import');
+    Route::resource(VW::PRD_SV, ProductServiceController::class)
+        ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS, MiddlewaresConstants::REV]);
     Route::post('empty-cart', [ProductServiceController::class, ProductServiceController::EMP_CRT])
         ->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post('warehouse-empty-cart', [ProductServiceController::class, ProductServiceController::WRH_EMP_CRT])
@@ -1401,10 +1404,6 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     //QR Code Module
 
     // Import/Export Data Route
-
-    Route::get(VW::PRD_SV . '/export', [ProductServiceController::class, 'export'])->name(VW::PRD_SV . '.export');
-    // Route::get('import'.VW::PRD_SV.//file', [ProductServiceController::class, 'importFile'])->name(VW::PRD_SV . '.file.import');
-    Route::post(VW::PRD_SV . '/import', [ProductServiceController::class, 'import'])->name(VW::PRD_SV . '.import');
     Route::get(VW::CST . '/export', [CustomerController::class, 'export'])->name(VW::CST . '.export');
     Route::get(VW::CST . '/import/file', [CustomerController::class, CustomerController::IMP_F])->name(VW::CST . '.file.import');
     Route::post(VW::CST . '/import/index', [CustomerController::class, 'import'])->name(VW::CST . '.import');
@@ -1762,6 +1761,14 @@ Route::group(
         Route::post('/stripe', [StripePaymentController::class, 'stripePost'])->name('stripe.post');
     }
 );
+
+Route::get('.well-known/appspecific/com.chrome.devtools.json', function () {
+    return response()->json([
+        'crx' => [
+            'webstore' => null
+        ]
+    ]);
+});
 
 //================================= OUT ====================================//
             // Route::post('{id}/pay-with-paypal', [PaypalController::class, 'customerPayWithPaypal'])->name(VW::CST.'.pay.with.paypal');
