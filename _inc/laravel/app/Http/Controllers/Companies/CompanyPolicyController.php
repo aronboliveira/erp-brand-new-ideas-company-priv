@@ -37,7 +37,7 @@ final class CompanyPolicyController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'manage company policy', self::REDIRECT_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($r, 'manage company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $r->user()?->id, 'method' => $method]);
             try {
                 $qStart = microtime(true);
@@ -65,7 +65,7 @@ final class CompanyPolicyController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'create company policy', self::REDIRECT_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($r, 'create company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $r->user()?->id, 'method' => $method]);
             $branch = self::branches($u->creatorId());
             $viewPath = ViewsConstants::CPN_PL . '.' . $action;
@@ -85,7 +85,7 @@ final class CompanyPolicyController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'create company policy', self::REDIRECT_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($r, 'create company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             if ($c = self::v($r, ['branch' => 'required', 'title' => 'required'])) return $c;
             try {
                 $uplStart = microtime(true);
@@ -140,7 +140,7 @@ final class CompanyPolicyController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'edit company policy', self::REDIRECT_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($r, 'edit company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             $branch = self::branches($u->creatorId());
             $viewPath = ViewsConstants::CPN_PL . '.' . $action;
             if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -159,7 +159,7 @@ final class CompanyPolicyController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'edit company policy', self::REDIRECT_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($r, 'edit company policy', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             if ($c = self::v($r, ['branch' => 'required', 'title' => 'required'])) return $c;
             try {
                 $data = [
@@ -195,7 +195,7 @@ final class CompanyPolicyController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($r, $companyPolicy, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'delete document', self::REDIRECT_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($r, 'delete document', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
             if ($companyPolicy->created_by !== $u->creatorId()) return back()->with('error', __('Permission denied.'));
             try {
                 if ($companyPolicy->attachment) {

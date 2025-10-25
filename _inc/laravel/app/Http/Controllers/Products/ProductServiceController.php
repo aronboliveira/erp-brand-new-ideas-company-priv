@@ -55,7 +55,7 @@ final class ProductServiceController extends Controller
         $view = ViewsConstants::PRD_SV . '.' . $fn;
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
         return $this->measureProfile($action, function () use ($req, $user, $view) {
             $category = ProductServiceCategory::whereCreatedBy($user?->creatorId())
                 ->whereType('product & service')
@@ -78,7 +78,7 @@ final class ProductServiceController extends Controller
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($user, $view) {
             $collections = self::formCollections($user?->creatorId());
@@ -95,7 +95,7 @@ final class ProductServiceController extends Controller
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, 'create product & service', self::REDIRECT_INDEX)) !== true) return $c;
 
         $rules = [
             'name' => 'required',
@@ -154,7 +154,7 @@ final class ProductServiceController extends Controller
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($id, $user, $view) {
             $product = ProductService::whereCreatedBy($user?->creatorId())->findOrFail($id);
@@ -174,7 +174,7 @@ final class ProductServiceController extends Controller
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
 
         $rules = [
             'name' => 'required',
@@ -235,7 +235,7 @@ final class ProductServiceController extends Controller
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
-        if ($c = self::guard($req, 'delete product & service', self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, 'delete product & service', self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($id, $user) {
             $product = ProductService::whereCreatedBy($user?->creatorId())->findOrFail($id);
@@ -334,7 +334,7 @@ final class ProductServiceController extends Controller
         Log::info($action . ' start', ['user_id' => Auth::id(), 'id' => $id]);
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
         $user = $u;
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($id, $user, $view, $action) {
             Log::info($action . ' loading warehouse products', ['id' => $id]);
@@ -351,7 +351,7 @@ final class ProductServiceController extends Controller
         $action = "$cls::$fn";
 
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-        if ($c = self::guard($req, PermissionsConstants::MNG_POS, self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, PermissionsConstants::MNG_POS, self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($req) {
             $key = $req->session_key;
@@ -409,7 +409,7 @@ final class ProductServiceController extends Controller
 
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
         if (!$req->ajax()) return response()->json(['code' => 404], 404);
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($id, $key) {
             $product = ProductService::find($id);
@@ -451,7 +451,7 @@ final class ProductServiceController extends Controller
 
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
         if (!$req->ajax()) return response()->json(['code' => 404], 404);
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($req) {
             ['id' => $id, 'quantity' => $qty, 'discount' => $disc, 'session_key' => $key] = $req->only(['id', 'quantity', 'discount', 'session_key']);
@@ -478,7 +478,7 @@ final class ProductServiceController extends Controller
         $action = "$cls::$fn";
 
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($req) {
             $key = $req->session_key;
@@ -508,7 +508,7 @@ final class ProductServiceController extends Controller
         $action = "$cls::$fn";
 
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-        if ($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
 
         return $this->measureProfile($action, function () use ($req) {
             $key = $req->session_key;
@@ -529,7 +529,7 @@ final class ProductServiceController extends Controller
         Log::info($action, ['user_id' => Auth::id(), 'product_service_id' => $productService->id]);
         if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
         $user = $ur;
-        if ($c = self::guard($req, 'view product & service', self::REDIRECT_INDEX)) return $c;
+        if (($c = self::guard($req, 'view product & service', self::REDIRECT_INDEX)) !== true) return $c;
         return $this->measureProfile($action, function () use ($productService, $user, $view) {
             $collections = self::formCollections($user?->creatorId());
             $productService->tax_id = explode(',', $productService->tax_id);

@@ -66,7 +66,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'view purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'view purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
             try {
                 $fetchStart = microtime(true);
@@ -99,7 +99,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $vendorId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'create purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'create purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'vendor_id' => $vendorId, 'method' => $method]);
             try {
                 $loadStart = microtime(true);
@@ -134,7 +134,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'create purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'create purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", [UsersConstants::COL_USER_ID => $user?->id]);
@@ -196,7 +196,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $ids, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'show purchase', self::ROUTE_SHOW)) return $r;
+            if (($r = self::guard($request, 'show purchase', self::ROUTE_SHOW)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
             try {
                 $decryptStart = microtime(true);
@@ -284,7 +284,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $purchase, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'edit purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'edit purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method, 'purchase_id' => $purchase->id]);
             try {
                 if ($purchase[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
@@ -348,7 +348,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $purchase, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'delete purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'delete purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $purchase->id, 'method' => $method]);
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", ['purchase_id' => $purchase->id]);
@@ -401,7 +401,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'send purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'send purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $id, 'method' => $method]);
             try {
                 $updateStart = microtime(true);
@@ -447,7 +447,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'send purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'send purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $id, 'method' => $method]);
             try {
                 $prepStart = microtime(true);
@@ -485,7 +485,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $purchaseId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'show purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'show purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id_enc' => $purchaseId, 'method' => $method]);
             try {
                 $decryptStart = microtime(true);
@@ -734,7 +734,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $purchaseId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'create payment purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'create payment purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $purchaseId, 'method' => $method]);
             try {
                 $loadStart = microtime(true);
@@ -767,7 +767,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $purchaseId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'create payment purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'create payment purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $purchaseId, 'method' => $method]);
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", ['purchase_id' => $purchaseId]);
@@ -860,7 +860,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $purchaseId, $paymentId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'delete payment purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'delete payment purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $purchaseId, 'payment_id' => $paymentId, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
@@ -913,7 +913,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'view purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'view purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'vendor_id' => $request->id, 'method' => $method]);
             try {
                 $loadStart = microtime(true);
@@ -941,7 +941,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'view purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'view purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'product_id' => $request->product_id, 'method' => $method]);
             try {
                 $loadStart = microtime(true);
@@ -977,7 +977,7 @@ class PurchaseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($r = self::guard($request, 'delete purchase', self::ROUTE_INDEX)) return $r;
+            if (($r = self::guard($request, 'delete purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'item_id' => $request->id, 'method' => $method]);
             try {
                 $txnStart = microtime(true);

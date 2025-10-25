@@ -144,7 +144,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $view, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", ['view' => $view, UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 if ($view === 'list') {
@@ -220,7 +220,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $view, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", ['view' => $view, UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $creatorId = $user?->creatorId();
@@ -254,7 +254,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId, UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $allowProgress = Project::whereKey($projectId)->value('task_progress');
@@ -281,7 +281,7 @@ class ProjectTaskController extends Controller
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $project = Project::findOrFail($projectId);
@@ -309,7 +309,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId, 'input' => $req->all()]);
             $valStart = microtime(true);
             $data = $req->validate([ProjectsConstants::COL_NM => 'required|string', ProjectsConstants::COL_E_HRS => 'required|numeric', ProjectsConstants::COL_PRT => 'required|string']);
@@ -342,7 +342,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'delete project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'delete project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             DB::beginTransaction();
             try {
@@ -395,7 +395,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
@@ -425,7 +425,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
@@ -451,7 +451,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId, ProjectsConstants::COL_PGR => $req->progress]);
             try {
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
@@ -477,7 +477,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $valStart = microtime(true);
@@ -507,7 +507,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $checklistId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, 'checklistId' => $checklistId]);
             try {
                 $check = TaskChecklist::findOrFail($checklistId);
@@ -536,7 +536,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $checklistId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, 'checklistId' => $checklistId]);
             try {
                 $check = TaskChecklist::findOrFail($checklistId);
@@ -564,7 +564,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $valStart = microtime(true);
@@ -596,7 +596,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $fileId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, 'fileId' => $fileId]);
             try {
                 $tf = TaskFile::findOrFail($fileId);
@@ -625,7 +625,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $commentId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, 'commentId' => $commentId]);
             try {
                 $c = TaskComment::findOrFail($commentId);
@@ -653,7 +653,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $valStart = microtime(true);
@@ -684,7 +684,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, 'sort' => $req->sort]);
             try {
                 $txnStart = microtime(true);
@@ -714,7 +714,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
@@ -764,7 +764,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $taskBy, $projectId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", ['taskBy' => $taskBy, ProjectsConstants::COL_PJ_ID => $projectId]);
             try {
                 $creatorId = $user?->creatorId();
@@ -798,7 +798,7 @@ class ProjectTaskController extends Controller
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
                 $task = ProjectTask::findOrFail($taskId);
@@ -820,7 +820,7 @@ class ProjectTaskController extends Controller
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ActivitiesConstants::COL_TSK_ID => $taskId, 'start' => $req->start, 'end' => $req->end]);
             try {
                 $task = ProjectTask::findOrFail($taskId);
@@ -847,7 +847,7 @@ class ProjectTaskController extends Controller
         return $this->measureProfile($action, function () use ($req, $projectId, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", ['calendarType' => $req->get('calendar_type'), ProjectsConstants::COL_PJ_ID => $projectId]);
             try {
                 if ($req->get('calendar_type') === 'google_calendar') $arrayJson = Utility::getCalendarData('task');
@@ -887,7 +887,7 @@ class ProjectTaskController extends Controller
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'edit project task', self::REDIRECT_INDEX)) !== true) return $resp;
             $taskId = $req->input(ActivitiesConstants::COL_TSK_ID);
             $color = $req->input(ProjectsConstants::COL_CL);
             Log::info("[{$class}::{$action}] start", [ActivitiesConstants::COL_TSK_ID => $taskId, ProjectsConstants::COL_CL => $color]);

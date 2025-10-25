@@ -35,7 +35,7 @@ class CustomQuestionController extends Controller
             Log::info("$sig start", ['user' => Auth::id()]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::MNG_CST_QT, self::REDIRECT_ROUTE)) {
+            if (($c = self::guard($request, PermissionsConstants::MNG_CST_QT, self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -69,7 +69,7 @@ class CustomQuestionController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $cls, $sig) {
             Log::info("$sig start", ['user' => Auth::id()]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'create custom question', self::REDIRECT_ROUTE)) {
+            if (($c = self::guard($request, 'create custom question', self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -103,7 +103,7 @@ class CustomQuestionController extends Controller
             Log::info("$sig start", ['input' => $request->only('question', 'is_required')]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'create custom question', self::REDIRECT_ROUTE)) {
+            if (($c = self::guard($request, 'create custom question', self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -146,7 +146,7 @@ class CustomQuestionController extends Controller
         return $this->measureProfile($action, function () use ($customQuestion, $request, $action, $cls, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'view custom question', self::REDIRECT_ROUTE)) {
+            if (($c = self::guard($request, 'view custom question', self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -176,7 +176,7 @@ class CustomQuestionController extends Controller
         return $this->measureProfile($action, function () use ($customQuestion, $request, $action, $cls, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'edit custom question', self::REDIRECT_ROUTE)) {
+            if (($c = self::guard($request, 'edit custom question', self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -214,7 +214,7 @@ class CustomQuestionController extends Controller
         return $this->measureProfile($action, function () use ($request, $customQuestion, $action, $cls, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id, 'input' => $request->only('question', 'is_required')]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'edit custom question', self::REDIRECT_ROUTE)) {
+            if (($c = self::guard($request, 'edit custom question', self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
@@ -259,7 +259,7 @@ class CustomQuestionController extends Controller
         return $this->measureProfile($action, function () use ($customQuestion, $request, $action, $cls, $sig) {
             Log::info("$sig start", ['id' => $customQuestion->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'delete custom question', self::REDIRECT_ROUTE)) {
+            if (($c = self::guard($request, 'delete custom question', self::REDIRECT_ROUTE)) !== true) {
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }

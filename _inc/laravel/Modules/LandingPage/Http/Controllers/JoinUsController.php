@@ -118,7 +118,7 @@ class JoinUsController extends AppController
         return $this->measureProfile($action, function () use ($request, $action) {
             if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
             $user = $ur;
-            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) return $g;
+            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
             Log::info("$action started", [UsersConstants::COL_USER_ID => $user?->id]);
             $data = $request->validate([
                 LandingPageSettingsConstants::JU_STT_K => 'nullable',
@@ -194,7 +194,7 @@ class JoinUsController extends AppController
             $user = $ur;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
-            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) return $g;
+            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             Log::info($method . ' - started', ['user_id' => $user?->id, 'id' => $id]);
             $stepStart = microtime(true);

@@ -44,7 +44,7 @@ final class GoalTrackingController extends Controller
         return $this->measureProfile($action, function () use ($request, $view, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::guard($request, PermissionsConstants::MNG_GTR, self::REDIRECT_INDEX)) return $resp;
+                if (($resp = self::guard($request, PermissionsConstants::MNG_GTR, self::REDIRECT_INDEX)) !== true) return $resp;
                 $user = $userOrRedirect;
                 $goalTrackings = strtolower($user[UsersConstants::COL_TP]) === 'employee'
                     ? GoalTracking::with(['goal_type', 'branches'])
@@ -72,7 +72,7 @@ final class GoalTrackingController extends Controller
         return $this->measureProfile($action, function () use ($request, $view, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::guard($request, 'create goal tracking', self::REDIRECT_INDEX)) return $resp;
+                if (($resp = self::guard($request, 'create goal tracking', self::REDIRECT_INDEX)) !== true) return $resp;
                 $user = $userOrRedirect;
                 $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
                     ->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Branch', '');
@@ -96,7 +96,7 @@ final class GoalTrackingController extends Controller
         return $this->measureProfile($action, function () use ($request, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::guard($request, 'create goal tracking', self::REDIRECT_INDEX)) return $resp;
+                if (($resp = self::guard($request, 'create goal tracking', self::REDIRECT_INDEX)) !== true) return $resp;
                 if ($err = self::validateInput($request, [
                     'branch'     => 'required',
                     'goal_type'  => 'required',
@@ -136,7 +136,7 @@ final class GoalTrackingController extends Controller
             Log::info("$action started", [UsersConstants::COL_USER_ID => $request->user()->id, 'goal_tracking_id' => $goalTracking->id]);
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($request, 'view goal tracking', self::REDIRECT_INDEX)) {
+            if (($resp = self::guard($request, 'view goal tracking', self::REDIRECT_INDEX)) !== true) {
                 Log::warning("$action permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
                 return $resp;
             }
@@ -165,7 +165,7 @@ final class GoalTrackingController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $view, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::guard($request, 'edit goal tracking', self::REDIRECT_INDEX)) return $resp;
+                if (($resp = self::guard($request, 'edit goal tracking', self::REDIRECT_INDEX)) !== true) return $resp;
                 $user = $userOrRedirect;
                 $goalTracking = GoalTracking::findOrFail($id);
                 if ($goalTracking[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
@@ -193,7 +193,7 @@ final class GoalTrackingController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::guard($request, 'edit goal tracking', self::REDIRECT_INDEX)) return $resp;
+                if (($resp = self::guard($request, 'edit goal tracking', self::REDIRECT_INDEX)) !== true) return $resp;
                 if ($err = self::validateInput($request, [
                     'branch'     => 'required',
                     'goal_type'  => 'required',
@@ -237,7 +237,7 @@ final class GoalTrackingController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($resp = self::guard($request, 'delete goal tracking', self::REDIRECT_INDEX)) return $resp;
+                if (($resp = self::guard($request, 'delete goal tracking', self::REDIRECT_INDEX)) !== true) return $resp;
                 $user = $userOrRedirect;
 
                 $gt = GoalTracking::findOrFail($id);

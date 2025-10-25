@@ -30,7 +30,7 @@ class TimeTrackerController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($request, 'manage time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'manage time tracker', self::REDIRECT_INDEX)) !== true) return $resp;
             try {
                 Log::info($action . ' called', ['user' => $user?->id]);
                 $trackers = TimeTracker::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->get();
@@ -196,7 +196,7 @@ class TimeTrackerController extends Controller
         return $this->measureProfile($action, function () use ($request, $trackerId, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($request, 'delete time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'delete time tracker', self::REDIRECT_INDEX)) !== true) return $resp;
             try {
                 return DB::transaction(fn() => $this->performDestroy($request, $user, $trackerId));
             } catch (\Throwable $e) {
@@ -215,7 +215,7 @@ class TimeTrackerController extends Controller
         return $this->measureProfile($action, function () use ($request, $view, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($request, 'manage time tracker', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'manage time tracker', self::REDIRECT_INDEX)) !== true) return $resp;
             try {
                 $id = $request->input('id');
                 $tracker = TimeTracker::findOrFail($id);
@@ -239,7 +239,7 @@ class TimeTrackerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
                 return response()->json(['error' => 'Permission denied.'], 403);
             }
-            if ($resp = self::guard($request, 'delete time tracker', self::REDIRECT_INDEX)) {
+            if (($resp = self::guard($request, 'delete time tracker', self::REDIRECT_INDEX)) !== true) {
                 return response()->json(['error' => 'Permission denied.'], 403);
             }
             try {
@@ -268,7 +268,7 @@ class TimeTrackerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
                 return response()->json(['error' => 'Permission denied.'], 403);
             }
-            if ($resp = self::guard($request, 'delete time tracker', self::REDIRECT_INDEX)) {
+            if (($resp = self::guard($request, 'delete time tracker', self::REDIRECT_INDEX)) !== true) {
                 return response()->json(['error' => 'Permission denied.'], 403);
             }
             try {

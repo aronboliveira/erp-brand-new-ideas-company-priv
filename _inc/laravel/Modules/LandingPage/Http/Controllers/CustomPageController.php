@@ -243,7 +243,7 @@ class CustomPageController extends AppController
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             $stepStart = microtime(true);
             $user = $ur;
-            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) return $g;
+            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             Log::info($method . ' - starting update', ['user_id' => $user->id, 'key' => $key]);
             $stepStart = microtime(true);
@@ -298,7 +298,7 @@ class CustomPageController extends AppController
                 return $ur;
             }
             $user = $ur;
-            if ($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) {
+            if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) {
                 Log::warning("{$action} • authorization failed", ['user_id' => $user->id, 'key' => $key]);
                 return $g;
             }

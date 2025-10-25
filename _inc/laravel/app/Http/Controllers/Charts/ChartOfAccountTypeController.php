@@ -40,7 +40,7 @@ final class ChartOfAccountTypeController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) !== true) return $c;
 
             try {
                 $t = microtime(true);
@@ -65,7 +65,7 @@ final class ChartOfAccountTypeController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) !== true) return $c;
 
             $view = self::SINGULAR . '.' . $func;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
@@ -82,7 +82,7 @@ final class ChartOfAccountTypeController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::CR_COA_TYPE, self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
 
             try {
@@ -110,7 +110,7 @@ final class ChartOfAccountTypeController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::MNG_COA_TYPE, self::REDIRECT_INDEX)) !== true) return $c;
 
             return redirect()->route(self::SINGULAR . '.index');
         }, ['type_id' => $chartOfAccountType->id ?? null]);
@@ -125,7 +125,7 @@ final class ChartOfAccountTypeController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) !== true) return $c;
 
             $view = self::SINGULAR . '.' . $func;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
@@ -142,7 +142,7 @@ final class ChartOfAccountTypeController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, 'edit constant chart of account type', self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
 
             try {
@@ -167,7 +167,7 @@ final class ChartOfAccountTypeController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $chartOfAccountType, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, 'delete constant chart of account type', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, 'delete constant chart of account type', self::REDIRECT_INDEX)) !== true) return $c;
 
             try {
                 $t = microtime(true);

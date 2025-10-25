@@ -52,7 +52,7 @@ final class PipelineController extends Controller
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($req, $action) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($req, PermissionsConstants::MNG_PPL, self::REDIRECT_INDEX)) return $c;
+      if (($c = self::guard($req, PermissionsConstants::MNG_PPL, self::REDIRECT_INDEX)) !== true) return $c;
       $pipelines = Pipeline::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
       Log::info($action . ' fetched', ['count' => $pipelines->count(), UsersConstants::COL_USER_ID => $u->id]);
       return ViewFacade::make(ViewsConstants::PPL . '.' . $action, compact('pipelines'));
@@ -65,7 +65,7 @@ final class PipelineController extends Controller
     $function = __FUNCTION__;
     return $this->measureProfile($action, function () use ($req, $function) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($req, 'create pipeline', self::REDIRECT_INDEX)) return $c;
+      if (($c = self::guard($req, 'create pipeline', self::REDIRECT_INDEX)) !== true) return $c;
       return ViewFacade::make(ViewsConstants::PPL . '.' . $function);
     }, ['uri' => $req->getRequestUri(), 'ip' => $req->ip()]);
   }
@@ -76,7 +76,7 @@ final class PipelineController extends Controller
     return $this->measureProfile($action, function () use ($request, $pipeline, $action) {
       Log::info("$action start", [ProjectsConstants::COL_PPL_ID => $pipeline->id, UsersConstants::COL_USER_ID => Auth::id()]);
       if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-      if ($c = self::guard($request, PermissionsConstants::MNG_PPL, self::REDIRECT_INDEX)) {
+      if (($c = self::guard($request, PermissionsConstants::MNG_PPL, self::REDIRECT_INDEX)) !== true) {
         Log::warning("$action permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
         return $c;
       }
@@ -94,7 +94,7 @@ final class PipelineController extends Controller
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($req) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($req, 'create pipeline', self::REDIRECT_INDEX)) return $c;
+      if (($c = self::guard($req, 'create pipeline', self::REDIRECT_INDEX)) !== true) return $c;
       if ($c = self::v($req, [ProjectsConstants::COL_PPL_NM => 'required|max:20'])) return $c;
       Pipeline::create([
         ProjectsConstants::COL_PPL_NM => $req->name,
@@ -110,7 +110,7 @@ final class PipelineController extends Controller
     $function = __FUNCTION__;
     return $this->measureProfile($action, function () use ($req, $pipeline, $function) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($req, 'edit pipeline', self::REDIRECT_INDEX)) return $c;
+      if (($c = self::guard($req, 'edit pipeline', self::REDIRECT_INDEX)) !== true) return $c;
       if ($pipeline[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'));
       return ViewFacade::make(ViewsConstants::PPL . '.' . $function, compact('pipeline'));
     }, ['uri' => $req->getRequestUri(), 'ip' => $req->ip()]);
@@ -121,7 +121,7 @@ final class PipelineController extends Controller
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($req, $pipeline) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($req, 'edit pipeline', self::REDIRECT_INDEX)) return $c;
+      if (($c = self::guard($req, 'edit pipeline', self::REDIRECT_INDEX)) !== true) return $c;
       if ($pipeline[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return redirect()->back()->with('error', __('Permission Denied.'));
       if ($c = self::v($req, [ProjectsConstants::COL_PPL_NM => 'required|max:20'])) return $c;
       $pipeline->update([ProjectsConstants::COL_PPL_NM => $req->name]);
@@ -134,7 +134,7 @@ final class PipelineController extends Controller
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     return $this->measureProfile($action, function () use ($req, $pipeline) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($req, 'delete pipeline', self::REDIRECT_INDEX)) return $c;
+      if (($c = self::guard($req, 'delete pipeline', self::REDIRECT_INDEX)) !== true) return $c;
       if ($pipeline[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return redirect()->back()->with('error', __('Permission Denied.'));
       if ($pipeline->stages->isNotEmpty()) return redirect()->route(ViewsConstants::PPL . '.index')->with('error', __('There are stages or deals in this pipeline, remove them first!'));
       foreach ($pipeline->stages as $stage)

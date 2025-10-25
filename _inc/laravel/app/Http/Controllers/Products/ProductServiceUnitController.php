@@ -37,7 +37,7 @@ class ProductServiceUnitController extends Controller
         $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        if ($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $resp;
+        if (($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $resp;
         try {
             return $this->measureProfile($action, function () use ($userOrRedirect, $view) {
                 $units = ProductServiceUnit::where(DatabaseConstants::TABLE_CREATOR, $userOrRedirect->creatorId())->get();
@@ -57,7 +57,7 @@ class ProductServiceUnitController extends Controller
         $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        if ($resp = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $resp;
+        if (($resp = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $resp;
         return $this->measureProfile($action, fn() => view($view));
     }
 
@@ -68,7 +68,7 @@ class ProductServiceUnitController extends Controller
         $action = "$cls::$fn";
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        if ($resp = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $resp;
+        if (($resp = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $resp;
         $v = Validator::make($req->all(), ['name' => 'required|max:20']);
         if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
         try {
@@ -93,7 +93,7 @@ class ProductServiceUnitController extends Controller
         $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        if ($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $resp;
+        if (($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $resp;
         return $this->measureProfile($action, fn() => view($view, compact('unit')));
     }
 
@@ -105,7 +105,7 @@ class ProductServiceUnitController extends Controller
         $view = ViewsConstants::PRD_SV_UNT . '.' . $fn;
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        if ($resp = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $resp;
+        if (($resp = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $resp;
         return $this->measureProfile($action, fn() => view($view, compact('unit')));
     }
 
@@ -116,7 +116,7 @@ class ProductServiceUnitController extends Controller
         $action = "$cls::$fn";
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        if ($resp = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $resp;
+        if (($resp = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $resp;
         $v = Validator::make($req->all(), ['name' => 'required|max:20']);
         if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
         try {
@@ -137,7 +137,7 @@ class ProductServiceUnitController extends Controller
         $action = "$cls::$fn";
 
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-        if ($resp = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) return $resp;
+        if (($resp = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) !== true) return $resp;
         if ($unit->created_by !== $userOrRedirect->creatorId())
             return defaultPermissionDenial($req, new AuthorizationException(), $action);
         try {

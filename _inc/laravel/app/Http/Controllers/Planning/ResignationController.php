@@ -27,7 +27,7 @@ class ResignationController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if ($resp = self::guard($request, PermissionsConstants::MNG_RSG, self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, PermissionsConstants::MNG_RSG, self::REDIRECT_INDEX)) !== true) return $resp;
 
             try {
                 $query = Resignation::with('employee')
@@ -58,7 +58,7 @@ class ResignationController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $action, $view) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if ($resp = self::guard($request, 'create resignation', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'create resignation', self::REDIRECT_INDEX)) !== true) return $resp;
 
             try {
                 $employees = $user[UsersConstants::COL_TP] === PermissionsConstants::CPN
@@ -83,7 +83,7 @@ class ResignationController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $resignation, $action, $view) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if ($resp = self::guard($request, 'view resignation', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'view resignation', self::REDIRECT_INDEX)) !== true) return $resp;
 
             try {
                 if ($resignation[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
@@ -107,7 +107,7 @@ class ResignationController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if ($resp = self::guard($request, 'create resignation', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'create resignation', self::REDIRECT_INDEX)) !== true) return $resp;
 
             $request->validate([
                 'notice_date'       => 'required|date',
@@ -164,7 +164,7 @@ class ResignationController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $id, $action, $view) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if ($resp = self::guard($request, 'edit resignation', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'edit resignation', self::REDIRECT_INDEX)) !== true) return $resp;
 
             try {
                 $resignation = Resignation::findOrFail($id);
@@ -192,7 +192,7 @@ class ResignationController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $id, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if ($resp = self::guard($request, 'edit resignation', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'edit resignation', self::REDIRECT_INDEX)) !== true) return $resp;
 
             $request->validate([
                 'notice_date'       => 'required|date',
@@ -234,7 +234,7 @@ class ResignationController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $id, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            if ($resp = self::guard($request, 'delete resignation', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($request, 'delete resignation', self::REDIRECT_INDEX)) !== true) return $resp;
 
             DB::beginTransaction();
             try {

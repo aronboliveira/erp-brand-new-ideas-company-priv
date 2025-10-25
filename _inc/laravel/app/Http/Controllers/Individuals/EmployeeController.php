@@ -51,7 +51,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, PermissionsConstants::MNG_EMP, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, PermissionsConstants::MNG_EMP, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] fetch employees", ['creator' => $u->creatorId(), 'type' => $u[UsersConstants::COL_TP]]);
             $t = microtime(true);
             $employees = strtolower($u[UsersConstants::COL_TP]) === 'employee'
@@ -70,7 +70,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'create employee', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'create employee', self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] preload form data", ['creator' => $u->creatorId()]);
             $t = microtime(true);
             $settings    = Utility::settings();
@@ -101,7 +101,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'create employee', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'create employee', self::REDIRECT_INDEX)) !== true) return $c;
             $rules = [
                 'name' => 'required',
                 'dob' => 'required',
@@ -180,7 +180,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $encId, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'edit employee', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'edit employee', self::REDIRECT_INDEX)) !== true) return $c;
             try {
                 $id = Crypt::decrypt($encId);
                 Log::debug("[$base::$action] load employee", ['id' => $id]);
@@ -218,7 +218,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $id, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'edit employee', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'edit employee', self::REDIRECT_INDEX)) !== true) return $c;
             $rules = [
                 UsersConstants::COL_NM => 'required',
                 'dob' => 'required',
@@ -251,7 +251,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $id, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'delete employee', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'delete employee', self::REDIRECT_INDEX)) !== true) return $c;
             try {
                 Log::debug("[$base::$action] deleting", ['id' => $id]);
                 $t = microtime(true);
@@ -276,7 +276,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $encId, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'view employee', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'view employee', self::REDIRECT_INDEX)) !== true) return $c;
             try {
                 $id = Crypt::decrypt($encId);
                 Log::debug("[$base::$action] load employee", ['id' => $id]);
@@ -320,7 +320,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'manage employee profile', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'manage employee profile', self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] filters", $r->only(['branch', 'department', 'designation']));
             $t = microtime(true);
             $employeesQ = Employee::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
@@ -500,7 +500,7 @@ class EmployeeController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($r, $action, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($r, 'create employee', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'create employee', self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($r, ['file' => 'required|mimes:csv,txt'])) return $c;
             try {
                 Log::debug("[$base::$action] import start");

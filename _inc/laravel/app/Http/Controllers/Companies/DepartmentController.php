@@ -35,7 +35,7 @@ final class DepartmentController extends Controller
     $base = class_basename($class);
     return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($r, 'manage department', self::REDIRECT_INDEX)) return $c; // ! ALERT
+      if (($c = self::guard($r, 'manage department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $r->user()?->id, 'method' => $method]);
       try {
         $qStart = microtime(true);
@@ -63,7 +63,7 @@ final class DepartmentController extends Controller
     $base = class_basename($class);
     return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($r, 'create department', self::REDIRECT_INDEX)) return $c; // ! ALERT
+      if (($c = self::guard($r, 'create department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $r->user()?->id, 'method' => $method]);
       try {
         $branch = self::branches($u->creatorId());
@@ -89,7 +89,7 @@ final class DepartmentController extends Controller
     $base = class_basename($class);
     return $this->measureProfile($action, function () use ($r, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($r, 'create department', self::REDIRECT_INDEX)) return $c; // ! ALERT
+      if (($c = self::guard($r, 'create department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($c = self::v($r, [CompaniesConstants::COL_BRC_ID => 'required', CompaniesConstants::COL_DEP_NM => 'required|max:20'])) return $c;
       Log::debug("[{$base}::{$action}] validated", ['input' => $r->only([CompaniesConstants::COL_BRC_ID, CompaniesConstants::COL_DEP_NM])]);
       try {
@@ -117,7 +117,7 @@ final class DepartmentController extends Controller
     $base = class_basename($class);
     return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) return $c; // ! ALERT
+      if (($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($department[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
       try {
         $branch = self::branches($u->creatorId());
@@ -143,7 +143,7 @@ final class DepartmentController extends Controller
     $base = class_basename($class);
     return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) return $c; // ! ALERT
+      if (($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($department[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
       if ($c = self::v($r, [CompaniesConstants::COL_BRC_ID => 'required', CompaniesConstants::COL_DEP_NM => 'required|max:20'])) return $c;
       try {
@@ -170,7 +170,7 @@ final class DepartmentController extends Controller
     $base = class_basename($class);
     return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-      if ($c = self::guard($r, 'delete department', self::REDIRECT_INDEX)) return $c; // ! ALERT
+      if (($c = self::guard($r, 'delete department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
       if ($department[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
       try {
         $delStart = microtime(true);

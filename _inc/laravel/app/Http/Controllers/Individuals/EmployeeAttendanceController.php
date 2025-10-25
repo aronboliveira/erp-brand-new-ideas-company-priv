@@ -54,7 +54,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if ($c = self::guard($req, PermissionsConstants::MNG_ATD, self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, PermissionsConstants::MNG_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -117,7 +117,7 @@ final class EmployeeAttendanceController extends Controller
       $user = $userOrRedirect;
 
       $t = microtime(true);
-      if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -152,7 +152,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -236,7 +236,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if ($c = self::guard($req, 'edit attendance', self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, 'edit attendance', self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -270,7 +270,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if ($c = self::guard($req, 'edit attendance', self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, 'edit attendance', self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -402,7 +402,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -443,7 +443,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }
@@ -520,7 +520,7 @@ final class EmployeeAttendanceController extends Controller
 
       // guard
       $t = microtime(true);
-      if ($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) {
+      if (($c = self::guard($req, PermissionsConstants::CR_ATD, self::REDIRECT_INDEX)) !== true) {
         $this->logExecutionTime($t, $action . '::guard', 'redirect');
         return $c;
       }

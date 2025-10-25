@@ -22,7 +22,7 @@ class PermissionController extends Controller
         $function = __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $function) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::MNG_PERM, self::ROUTE_INDEX)) return $c;
+            if (($c = self::guard($request, PermissionsConstants::MNG_PERM, self::ROUTE_INDEX)) !== true) return $c;
             $permissions = Permission::all();
             return view(self::SINGULAR . '.' . $function, compact(DatabaseConstants::TABLE_PERMISSIONS)); // ! ALERT
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
@@ -34,7 +34,7 @@ class PermissionController extends Controller
         $function = __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $function) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::CR_PERM, self::ROUTE_INDEX)) return $c;
+            if (($c = self::guard($request, PermissionsConstants::CR_PERM, self::ROUTE_INDEX)) !== true) return $c;
             $roles = Role::all();
             return view(self::SINGULAR . '.' . $function, compact(DatabaseConstants::TABLE_ROLES)); // ! ALERT
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
@@ -46,7 +46,7 @@ class PermissionController extends Controller
         return $this->measureProfile($action, function () use ($request, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, PermissionsConstants::CR_PERM, self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, PermissionsConstants::CR_PERM, self::ROUTE_INDEX)) !== true) return $c;
 
                 $data = $request->validate([
                     'name'                          => 'required|string|max:40',
@@ -73,7 +73,7 @@ class PermissionController extends Controller
         $function = __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $permission, $action, $function) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::ED_PERM, self::ROUTE_INDEX)) return $c;
+            if (($c = self::guard($request, PermissionsConstants::ED_PERM, self::ROUTE_INDEX)) !== true) return $c;
 
             $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $userOrRedirect?->creatorId())->get();
 
@@ -87,7 +87,7 @@ class PermissionController extends Controller
         return $this->measureProfile($action, function () use ($request, $permission, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, PermissionsConstants::ED_PERM, self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, PermissionsConstants::ED_PERM, self::ROUTE_INDEX)) !== true) return $c;
 
                 $data = $request->validate([
                     'name' => 'required|string|max:40',
@@ -108,7 +108,7 @@ class PermissionController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, PermissionsConstants::DEL_PERM, self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, PermissionsConstants::DEL_PERM, self::ROUTE_INDEX)) !== true) return $c;
 
                 $permission = Permission::findOrFail($id);
                 $permission->delete();

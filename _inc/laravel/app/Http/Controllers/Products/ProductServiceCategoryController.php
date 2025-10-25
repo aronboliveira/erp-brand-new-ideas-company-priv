@@ -44,7 +44,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
             $categories = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
             return view($view, compact('categories'));
         });
@@ -60,7 +60,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'create constant category', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, 'create constant category', self::REDIRECT_INDEX)) !== true) return $c;
             $types = ['' => __('Select Category Type')] + ProductServiceCategory::$catTypes;
             $chartAccounts = ChartOfAccount::select(DB::raw('CONCAT(code," - ",name) AS code_name'), 'id')
                 ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
@@ -79,7 +79,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'create constant category', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, 'create constant category', self::REDIRECT_INDEX)) !== true) return $c;
             $validator = Validator::make($request->all(), [
                 'name'  => 'required|max:200',
                 'type'  => 'required',
@@ -109,7 +109,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $view) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'edit constant category', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, 'edit constant category', self::REDIRECT_INDEX)) !== true) return $c;
             $category = ProductServiceCategory::findOrFail($id);
             if ($category->created_by !== $user?->creatorId()) return redirect()->back()->with('error', __('Permission denied.'));
             $types = ProductServiceCategory::$catTypes;
@@ -126,7 +126,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request, $id) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'edit constant category', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, 'edit constant category', self::REDIRECT_INDEX)) !== true) return $c;
             $category = ProductServiceCategory::findOrFail($id);
             if ($category->created_by !== $user?->creatorId()) return redirect()->back()->with('error', __('Permission denied.'));
             $validator = Validator::make($request->all(), [
@@ -156,7 +156,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request, $id) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'delete constant category', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, 'delete constant category', self::REDIRECT_INDEX)) !== true) return $c;
             $category = ProductServiceCategory::findOrFail($id);
             if ($category->created_by !== $user?->creatorId()) return redirect()->back()->with('error', __('Permission denied.'));
             $existsCheck = match ($category->type) {
@@ -180,7 +180,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
 
             $html = '<div class="mb-3 mr-2 zoom-in ">
         <div class="' . ViewClassNamesConstants::CD . ' rounded-10 card-stats mb-0 cat-active overflow-hidden" data-id="0">
@@ -220,7 +220,7 @@ final class ProductServiceCategoryController extends Controller
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
 
             $map = [
                 'income'             => 'Income',

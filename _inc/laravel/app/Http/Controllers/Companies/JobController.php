@@ -71,7 +71,7 @@ final class JobController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
             $qStart = microtime(true);
             $jobs = Job::with([DatabaseConstants::TABLE_BRANCHES, DatabaseConstants::TABLE_CREATOR])
@@ -102,7 +102,7 @@ final class JobController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'method' => $method]);
             ${DatabaseConstants::TABLE_JOB_CATS} = JobCategory::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
             ${DatabaseConstants::TABLE_BRANCHES} = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
@@ -125,7 +125,7 @@ final class JobController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $c;
             $v = Validator::make($req->all(), self::$jobRules);
             if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
             try {
@@ -149,7 +149,7 @@ final class JobController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] start", [UsersConstants::COL_USER_ID => $req->user()?->id, 'job_id' => $job->id, 'method' => $method]);
             $job->applicant = explode(',', (string) $job->applicant);
             $job->customQuestion = explode(',', (string) $job->custom_question);
@@ -173,7 +173,7 @@ final class JobController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
             ${DatabaseConstants::TABLE_BRANCHES} = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('All', 0);
             ${DatabaseConstants::TABLE_JOB_CATS} = JobCategory::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('title', 'id')->prepend('--', '');
@@ -200,7 +200,7 @@ final class JobController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, self::PERM_EDIT, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
             $v = Validator::make($req->all(), self::$jobRules);
             if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
@@ -225,7 +225,7 @@ final class JobController extends Controller
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $job, $action, $method, $class, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) !== true) return $c;
             if ($job->created_by !== $u->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::SINGULAR . '.index')); // ! ALERT
             try {
                 $delStart = microtime(true);

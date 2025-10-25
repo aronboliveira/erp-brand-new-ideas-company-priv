@@ -39,7 +39,7 @@ class VendorController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
-                if ($c = self::guard($request, PermissionsConstants::MNG_VD, self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, PermissionsConstants::MNG_VD, self::ROUTE_INDEX)) !== true) return $c;
                 Log::debug("[$base::$action] start", ['user' => $request->user()->id]);
                 $t = microtime(true);
                 $data['billChartData'] = $request->user()->billChartData();
@@ -62,7 +62,7 @@ class VendorController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
-                if ($c = self::guard($request, PermissionsConstants::MNG_VD, self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, PermissionsConstants::MNG_VD, self::ROUTE_INDEX)) !== true) return $c;
                 $t = microtime(true);
                 $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
                 $this->logExecutionTime($t, $action, 'loadVendors');
@@ -84,7 +84,7 @@ class VendorController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($request, 'create vendor', self::ROUTE_INDEX)) return $c;
+            if (($c = self::guard($request, 'create vendor', self::ROUTE_INDEX)) !== true) return $c;
             $t = microtime(true);
             $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
                 ->where('module', 'vendor')
@@ -104,7 +104,7 @@ class VendorController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
-                if ($c = self::guard($request, 'create vendor', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'create vendor', self::ROUTE_INDEX)) !== true) return $c;
                 Log::debug("[$base::$action] start", ['input' => $request->all()]);
                 $rules = [
                     'name'    => 'required',
@@ -185,7 +185,7 @@ class VendorController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($request, $vendor, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) return $c;
+            if (($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) !== true) return $c;
             $user = $request->user();
             if ($vendor[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $base . '::' . $action, route(self::ROUTE_INDEX));
@@ -210,7 +210,7 @@ class VendorController extends Controller
         return $this->measureProfile($action, function () use ($request, $vendor, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
-                if ($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) !== true) return $c;
                 $user = $request->user();
                 if ($vendor[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new \Exception('owner');
                 $rules = [
@@ -250,7 +250,7 @@ class VendorController extends Controller
         return $this->measureProfile($action, function () use ($request, $vendor, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             try {
-                if ($c = self::guard($request, 'delete vendor', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'delete vendor', self::ROUTE_INDEX)) !== true) return $c;
                 $user = $request->user();
                 if ($vendor[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new \Exception('owner');
                 DB::transaction(fn() => $vendor->delete());
@@ -285,7 +285,7 @@ class VendorController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($c = self::guard($request, 'manage vendor payment', self::ROUTE_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($request, 'manage vendor payment', self::ROUTE_INDEX)) !== true) return $c; // ! ALERT
             Log::debug("[$base::$action] start", ['user_id' => $user?->id]);
             $category = ['Bill' => 'Bill', 'Deposit' => 'Deposit', 'Sales' => 'Sales'];
             $t = microtime(true);
@@ -313,7 +313,7 @@ class VendorController extends Controller
         $base = class_basename(static::class);
         return $this->measureProfile($action, function () use ($request, $action, $method, $base) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = self::guard($request, 'manage vendor transaction', self::ROUTE_INDEX)) return $c; // ! ALERT
+            if (($c = self::guard($request, 'manage vendor transaction', self::ROUTE_INDEX)) !== true) return $c; // ! ALERT
             Log::debug("[$base::$action] start", ['user_id' => auth()->id()]);
             $category = ['Bill' => 'Bill', 'Deposit' => 'Deposit', 'Sales' => 'Sales'];
             $t = microtime(true);

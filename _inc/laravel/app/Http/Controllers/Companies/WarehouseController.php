@@ -23,7 +23,7 @@ class WarehouseController extends Controller
         $method = __METHOD__;
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, PermissionsConstants::MNG_WRH, self::ROUTE_INDEX)) return $c;
+            if (($c = self::guard($request, PermissionsConstants::MNG_WRH, self::ROUTE_INDEX)) !== true) return $c;
             $warehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
             Log::debug(__METHOD__ . ' fetched warehouses', ['count' => $warehouses->count()]);
             return ViewFacade::make(ViewsConstants::WRH . '.index', compact('warehouses'));
@@ -36,7 +36,7 @@ class WarehouseController extends Controller
         $method = __METHOD__;
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            if ($c = self::guard($request, 'create warehouse', self::ROUTE_INDEX)) return $c;
+            if (($c = self::guard($request, 'create warehouse', self::ROUTE_INDEX)) !== true) return $c;
             return ViewFacade::make(ViewsConstants::WRH . '.create');
         }, ['method' => $method, 'class' => class_basename(static::class)]);
     }
@@ -48,7 +48,7 @@ class WarehouseController extends Controller
         return $this->measureProfile($action, function () use ($request, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, 'create warehouse', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'create warehouse', self::ROUTE_INDEX)) !== true) return $c;
 
                 $data = $request->validate([
                     'name'     => 'required|string|max:255',
@@ -83,7 +83,7 @@ class WarehouseController extends Controller
         return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, 'show warehouse', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'show warehouse', self::ROUTE_INDEX)) !== true) return $c;
                 if ($warehouse->created_by !== $request->user()->creatorId()) return defaultPermissionDenial($request, null, __METHOD__, route(self::ROUTE_INDEX));
 
                 $products = WarehouseProduct::where('warehouse_id', $warehouse->id)
@@ -108,7 +108,7 @@ class WarehouseController extends Controller
         return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, 'edit warehouse', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'edit warehouse', self::ROUTE_INDEX)) !== true) return $c;
                 if ($warehouse->created_by !== $request->user()->creatorId()) return defaultPermissionDenial($request, null, __METHOD__, route(self::ROUTE_INDEX));
 
                 return ViewFacade::make(ViewsConstants::WRH . '.edit', compact('warehouse'));
@@ -126,7 +126,7 @@ class WarehouseController extends Controller
         return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, 'edit warehouse', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'edit warehouse', self::ROUTE_INDEX)) !== true) return $c;
                 if ($warehouse->created_by !== $request->user()->creatorId()) return defaultPermissionDenial($request, null, __METHOD__, route(self::ROUTE_INDEX));
 
                 $data = $request->validate([
@@ -159,7 +159,7 @@ class WarehouseController extends Controller
         return $this->measureProfile($action, function () use ($request, $warehouse, $action) {
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-                if ($c = self::guard($request, 'delete warehouse', self::ROUTE_INDEX)) return $c;
+                if (($c = self::guard($request, 'delete warehouse', self::ROUTE_INDEX)) !== true) return $c;
                 if ($warehouse->created_by !== $request->user()->creatorId()) return defaultPermissionDenial($request, null, __METHOD__, route(self::ROUTE_INDEX));
 
                 DB::transaction(function () use ($warehouse) {

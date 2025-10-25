@@ -41,7 +41,7 @@ class PromotionController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, PermissionsConstants::MNG_PRM, self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, PermissionsConstants::MNG_PRM, self::REDIRECT_INDEX)) !== true) return $resp;
 
             Log::info("[{$class}::{$action}] start");
             try {
@@ -91,7 +91,7 @@ class PromotionController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'create promotion', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'create promotion', self::REDIRECT_INDEX)) !== true) return $resp;
 
             Log::info("[{$class}::{$action}] start");
             try {
@@ -140,7 +140,7 @@ class PromotionController extends Controller
         return $this->measureProfile($action, function () use ($req, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'create promotion', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'create promotion', self::REDIRECT_INDEX)) !== true) return $resp;
 
             Log::info("[{$class}::{$action}] start");
             try {
@@ -269,7 +269,7 @@ class PromotionController extends Controller
         return $this->measureProfile($action, function () use ($req, $promotion, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'edit promotion', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'edit promotion', self::REDIRECT_INDEX)) !== true) return $resp;
             if ($promotion->created_by !== $user?->creatorId())
                 return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
 
@@ -322,7 +322,7 @@ class PromotionController extends Controller
         return $this->measureProfile($action, function () use ($req, $promotion, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'edit promotion', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'edit promotion', self::REDIRECT_INDEX)) !== true) return $resp;
             if ($promotion->created_by !== $user?->creatorId())
                 return defaultPermissionDenial($req, new AuthorizationException($promotion->getKey()), $class . '::' . $action, route(self::REDIRECT_INDEX));
 
@@ -391,7 +391,7 @@ class PromotionController extends Controller
         return $this->measureProfile($action, function () use ($req, $promotion, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if ($resp = self::guard($req, 'delete promotion', self::REDIRECT_INDEX)) return $resp;
+            if (($resp = self::guard($req, 'delete promotion', self::REDIRECT_INDEX)) !== true) return $resp;
             if ($promotion->created_by !== $user?->creatorId())
                 return defaultPermissionDenial($req, new AuthorizationException($promotion->getKey()), $class . '::' . $action, route(self::REDIRECT_INDEX));
 

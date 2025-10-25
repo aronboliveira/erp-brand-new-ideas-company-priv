@@ -327,7 +327,7 @@ class TimesheetController extends Controller
             }
             $user = $userOrRedirect;
 
-            if ($redirect = self::guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) {
+            if (($redirect = self::guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) !== true) {
                 return $redirect;
             }
 
@@ -443,7 +443,7 @@ class TimesheetController extends Controller
             }
             $user = $userOrRedirect;
 
-            if ($redirect = self::guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) {
+            if (($redirect = self::guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) !== true) {
                 return $redirect;
             }
 

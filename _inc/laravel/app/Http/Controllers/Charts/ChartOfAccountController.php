@@ -37,7 +37,7 @@ final class ChartOfAccountController extends Controller
         return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
-            if ($c = self::guard($req, PermissionsConstants::MNG_COA, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::MNG_COA, self::REDIRECT_INDEX)) !== true) return $c;
 
             try {
                 [$start, $end] = $req->filled(['start_date', 'end_date'])
@@ -88,7 +88,7 @@ final class ChartOfAccountController extends Controller
         return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
-            if ($c = self::guard($req, PermissionsConstants::CR_COA, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::CR_COA, self::REDIRECT_INDEX)) !== true) return $c;
 
             try {
                 $t = microtime(true);
@@ -117,7 +117,7 @@ final class ChartOfAccountController extends Controller
         return $this->measureProfile($action, function () use ($req, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
-            if ($c = self::guard($req, PermissionsConstants::CR_COA, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::CR_COA, self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($req, [
                 ChartsConstants::COL_NM    => 'required|string|max:255',
                 ChartsConstants::COL_CD    => 'required|integer',
@@ -158,7 +158,7 @@ final class ChartOfAccountController extends Controller
         return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
             $user = $uor;
-            if ($c = self::guard($req, PermissionsConstants::LDG_RPT, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::LDG_RPT, self::REDIRECT_INDEX)) !== true) return $c;
 
             try {
                 [$start, $end] = $req->filled(['start_date', 'end_date'])
@@ -229,7 +229,7 @@ final class ChartOfAccountController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, 'edit chart of account', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, 'edit chart of account', self::REDIRECT_INDEX)) !== true) return $c;
 
             try {
                 $t = microtime(true);
@@ -255,7 +255,7 @@ final class ChartOfAccountController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, 'edit chart of account', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, 'edit chart of account', self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($req, [ChartsConstants::COL_NM => 'required'])) return $c;
 
             try {
@@ -284,7 +284,7 @@ final class ChartOfAccountController extends Controller
 
         return $this->measureProfile($action, function () use ($req, $chartOfAccount, $cls, $meth, $func, $action) {
             if (($uor = self::_checkLogin()) instanceof RedirectResponse) return $uor;
-            if ($c = self::guard($req, PermissionsConstants::DEL_COA, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($req, PermissionsConstants::DEL_COA, self::REDIRECT_INDEX)) !== true) return $c;
 
             try {
                 $t = microtime(true);
