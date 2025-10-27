@@ -168,7 +168,7 @@
                     </h5>
                     <div class="py-2 mt-3 border-top">
                         <div class="row align-items-center ms-2">
-                            @if(Utility::isFilled($stages))
+                            @if(Utility::isFilled($stages) ?? [])
                                 @foreach($stages as $stage)
                                     <div class="{{ ViewClassNamesConstants::FM_CHK_IL_GP }}">
                                         <input type="radio"
@@ -404,7 +404,7 @@
                 <script defer src="{{ asset('assets/js/routes/jobs/applications/noteStore.js') }}"></script>
             {{ Form::close() }}
             <div class="{{ ViewClassNamesConstants::LG_FLSH_MB4 }}">
-                @if(Utility::isFilled($notes))
+                @if(Utility::isFilled($notes) ?? [])
                     @foreach($notes as $note)
                         <div class="list-group-item px-0">
                             <div class="row align-items-center">

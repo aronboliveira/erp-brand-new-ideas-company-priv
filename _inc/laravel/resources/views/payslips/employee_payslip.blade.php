@@ -59,7 +59,7 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        @if(Utility::isFilled($payslips))
+                                        @if(Utility::isFilled($payslips) ?? [])
                                             @foreach($payslips as $row)
                                                 @php
                                                     $empId = data_get($row,'employee_id');

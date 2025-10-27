@@ -442,7 +442,7 @@
                             <div class="{{ VC::CM6 }}">
                                 <div class="{{ VC::FM_G }}" id="customer-box">
                                     {{ Form::label('customer_id', __('Customer'), ['class' => VC::FM_LB]) }}
-                                    {{ Form::select('customer_id', Utility::isFilled($customers) ? $customers : [__('No costumers available')], null, [
+                                    {{ Form::select('customer_id', Utility::isFilled($customers) ? $customers : [__('No costumers available' ?? [])], null, [
                                         'class'    => VC::FM_CT_SL,
                                         'id'       => 'customer',
                                         'data-url' => route(ViewsConstants::INV.'.customer'),
@@ -488,7 +488,7 @@
                                     </div>
                                     <div class="{{ VC::CM6 }}">
                                         {{ Form::label('category_id', __('Category'), ['class' => VC::FM_LB]) }}
-                                        {{ Form::select('category_id', Utility::isFilled($category) ? $category : [__('No category available')], null, [
+                                        {{ Form::select('category_id', Utility::isFilled($category) ? $category : [__('No category available' ?? [])], null, [
                                             'class'    => VC::FM_CT_SL,
                                             'required' => 'required'
                                         ]) }}
@@ -504,7 +504,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    @if(Utility::isFilled($customFields))
+                                    @if(Utility::isFilled($customFields) ?? [])
                                         <div class="{{ VC::CM6 }}">
                                             <div class="tab-pane fade show" id="tab-2" role="tabpanel">
                                                 @include(ViewsConstants::CST_FD . '.formBuilder')

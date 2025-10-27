@@ -102,14 +102,15 @@ class DiscoverController extends AppController
     public function create(Request $request): Renderable|RedirectResponse
     {
         $method = __METHOD__;
+        $function = __FUNCTION__;
         Log::debug($method . ' - start', ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
-        return $this->measureProfile($method, function () use ($request, $method) {
+        return $this->measureProfile($method, function () use ($request, $method, $function) {
             $stepStart = microtime(true);
             if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
             $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
             Log::info($method . ' - rendering create view', ['user_id' => $ur?->id]);
             $stepStart = microtime(true);
-            $view = view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . __FUNCTION__);
+            $view = view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function);
             $this->logExecutionTime($stepStart, 'renderCreateView', 'completed');
             return $view;
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);

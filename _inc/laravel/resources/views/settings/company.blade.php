@@ -125,7 +125,7 @@
                             ];
                         @endphp
                         <div class="list-group list-group-flush" id="useradd-sidenav">
-                            @if (Utility::isFilled($anchors))
+                            @if (Utility::isFilled($anchors) ?? [])
                                 @foreach($anchors as $anchor)
                                     @php
                                         $label = preg_replace('/-+/', ' ', $anchor);
@@ -165,7 +165,7 @@
                             $logoLightUrl=$logoBase.'/'.$logoLightFile.'?t='.$t;
                             $faviconUrl=(isset($faviconUrl)&&is_string($faviconUrl)?$faviconUrl:($logoBase.'/'.$faviconFile)).'?t='.$t;
                             $langs=Utility::languages();
-                            $currLang=Utility::isFilled($langs)?($langs[$langValue]??ucfirst((string)$langValue)):(is_object($langs)&&isset($langs->{$langValue})?$langs->{$langValue}:ucfirst((string)$langValue));
+                            $currLang=Utility::isFilled($langs)?($langs[$langValue]??ucfirst((string)$langValue)):(is_object($langs)&&isset($langs->{$langValue})?$langs->{$langValue}:ucfirst((string)$langValue) ?? []);
                             $color=$color??'theme-1';
                         @endphp
                         <div id="brand-settings" class="card">
@@ -262,7 +262,7 @@
                                                 {{ Form::label(SC::DEF_LNG, __('Default Language'), ['class'=>VC::FM_LB.' text-dark']) }}
                                                 <div class="changeLanguage">
                                                     <select name="default_language" id="default_language" class="{{ VC::FM_CT_SL }}">
-                                                        @if(Utility::isFilled($langs))
+                                                        @if(Utility::isFilled($langs) ?? [])
                                                             @foreach($langs as $code=>$language)
                                                                 <option value="{{ $code }}" @selected($langValue===$code)>{{ ucfirst((string)$language) }}</option>
                                                             @endforeach
@@ -1064,7 +1064,7 @@
                                         <h5 class="small-title">{{ __('Module Settings') }}</h5>
                                     </div>
                                     <div class="{{ VC::RW }}">
-                                        @foreach(Utility::isFilled($groups) && is_array($groups)?array_chunk($groups,2):[] as $chunk)
+                                        @foreach(Utility::isFilled($groups) && is_array($groups)?array_chunk($groups,2):[] as $chunk ?? [])
                                             <div class="{{ VC::CM3 }}">
                                                 <ul class="{{ VC::LGRP }}">
                                                     @foreach(($chunk[0]??[]) as $item)
@@ -1165,7 +1165,7 @@
                                         <h5 class="small-title">{{ __('Module Settings') }}</h5>
                                     </div>
                                     <div class="{{ VC::RW }}">
-                                        @foreach(Utility::isFilled($groups) && is_array($groups) ?array_chunk($groups,2):[] as $chunk)
+                                        @foreach(Utility::isFilled($groups) && is_array($groups) ?array_chunk($groups,2):[] as $chunk ?? [])
                                             <div class="{{ VC::CM3 }}">
                                                 <ul class="{{ VC::LGRP }}">
                                                     @foreach(($chunk[0]??[]) as $item)
@@ -1321,7 +1321,7 @@
                                     <div class="card-body">
                                         <div class="{{ VC::RW }}">
                                             @php
-                                                $hasTemplates= Utility::isFilled($emailTemplates);
+                                                $hasTemplates= Utility::isFilled($emailTemplates ?? []);
                                             @endphp
                                             @if($hasTemplates)
                                                 @foreach($emailTemplates as $emailTemplate)

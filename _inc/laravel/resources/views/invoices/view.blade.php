@@ -1261,7 +1261,7 @@
                                 @php
                                     $path = Utility::getFile('uploads/order');
                                 @endphp
-                                @if(Utility::isFilled($invoice->payments))
+                                @if(Utility::isFilled($invoice->payments) ?? [])
                                     @foreach($invoice->payments as $key =>$payment)
                                         <tr>
                                             <td>
@@ -1572,7 +1572,7 @@
                                         <td colspan="{{ (Gate::check('delete invoice product') ? '10' : '9') }}" class="text-center text-dark"><p>{{__('No Data Found for Payments')}}</p></td>
                                     </tr>
                                 @endif
-                                @if(Utility::isFilled($invoice->bankPayments))
+                                @if(Utility::isFilled($invoice->bankPayments) ?? [])
                                     @foreach($invoice->bankPayments as $key =>$bankPayment)
                                         <tr>
                                             <td>-</td>

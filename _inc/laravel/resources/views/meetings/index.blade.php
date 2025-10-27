@@ -84,7 +84,7 @@
                             </tr>
                             </thead>
                             <tbody class="font-style">
-                            @if(Utility::isFilled($meetings))
+                            @if(Utility::isFilled($meetings) ?? [])
                                 @foreach ($meetings as $meeting)
                                     <tr>
                                         <td>{{ !empty($meeting->title) ? $meeting->title : __('Meeting title was not available.') }}</td>

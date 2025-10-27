@@ -243,9 +243,9 @@ class Utility extends Model
         ];
     }
 
-    public static function isFilled(mixed $list): bool
+    public static function isFilled(mixed $list = null): bool
     {
-        return !empty($list) && (is_array($list) ? count($list) : ($list instanceof Collection ? $list->isNotEmpty() : false));
+        return isset($list) && !empty($list) && (is_array($list) ? count($list) : ($list instanceof Collection ? $list->isNotEmpty() : false));
     }
 
     public static function settings(): array

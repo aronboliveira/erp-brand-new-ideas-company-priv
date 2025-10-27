@@ -134,7 +134,7 @@
 @section(YieldingConstants::ADM_CTT)
     <div class="row">
         @php
-            $list = Utility::isFilled($contracts) ? $contracts : [];
+            $list = Utility::isFilled($contracts ?? []) ? $contracts : [];
         @endphp
         @forelse($list as $contract)
             @php

@@ -146,7 +146,7 @@
                             </tr>
                         </thead>
                         <tbody class="font-style">
-                            @if(Utility::isFilled($jobs))
+                            @if(Utility::isFilled($jobs) ?? [])
                                 @foreach($jobs as $job)
                                     @php
                                         $jid = data_get($job,'id');

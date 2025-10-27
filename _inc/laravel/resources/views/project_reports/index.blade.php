@@ -88,7 +88,7 @@
                                             {{ Form::label('users', __('Users'), ['class' => VC::FM_LB]) }}
                                             <select class="select form-select" name="all_users" id="all_users">
                                                 <option value="">{{ __('All Users') }}</option>
-                                                @if(Utility::isFilled($usersList))
+                                                @if(Utility::isFilled($usersList) ?? [])
                                                     @foreach ($usersList as $usr)
                                                         <option value="{{ $usr->id }}" {{ (string)request('all_users') === (string)$usr->id ? 'selected' : '' }}>
                                                             {{ $usr->name }}
@@ -158,7 +158,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @if(Utility::isFilled($projectsList))
+                        @if(Utility::isFilled($projectsList) ?? [])
                             @foreach ($projectsList as $proj)
                                 @php
                                     $projId    = data_get($proj,'id');
@@ -197,7 +197,7 @@
                                     <td>{{ $endTxt }}</td>
                                     <td>
                                         <div class="avatar-group" id="project_{{ $projId }}">
-                                            @if(Utility::isFilled($usersSafe))
+                                            @if(Utility::isFilled($usersSafe) ?? [])
                                                 @foreach($usersSafe as $idx => $usr)
                                                     @if($idx < 3)
                                                         <a href="#" class="{{ VC::AV_CC }}">

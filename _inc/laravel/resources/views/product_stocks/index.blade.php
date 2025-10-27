@@ -50,7 +50,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(Utility::isFilled($productServices))
+                                @if(Utility::isFilled($productServices) ?? [])
                                     @foreach ($productServices as $productService)
                                         <tr class="font-style">
                                             <td>{{ !empty($productService->name) ? $productService->name : __('No name available') }}</td>

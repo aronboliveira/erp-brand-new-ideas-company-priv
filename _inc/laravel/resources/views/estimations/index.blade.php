@@ -102,7 +102,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                                @if(Utility::isFilled($estimations))
+                                @if(Utility::isFilled($estimations) ?? [])
                                     @php
                                         $isPriceFormatAvailable = method_exists($user, 'priceFormat');
                                         $isDateFormatAvailable  = method_exists($user, 'dateFormat');

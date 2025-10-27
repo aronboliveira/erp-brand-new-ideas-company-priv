@@ -14,7 +14,7 @@ use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use function App\Http\Controllers\defaultUndefinedException;
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\{DB, File, Log};
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
@@ -46,13 +46,13 @@ class CustomPageController extends AppController
             try {
                 $settings = LandingPageSetting::landingPageSetting();
                 $pages    = json_decode($settings[self::MB . '_page'], true);
-                Log::info("{$action} • retrieved pages", ['count' => count($pages)]);
-                $view = view(
-                    self::LP . '::' . self::LP . '.' . self::MB . '.' . $action,
-                    compact('pages', DatabaseConstants::TABLE_SETTINGS)
-                );
-                Log::info("{$action} • rendering view", ['view' => self::LP . '::' . self::LP . '.' . self::MB . '.' . $action]);
-                return $view;
+                $view = self::getFirstExistingView(self::MB . '.' . $action);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::MB . '.' . $action]);
+                    throw new \RuntimeException("View not found: " . self::MB . '.' . $action);
+                }
+                Log::debug("[$action] resolved view", ['view' => $view]);
+                return view($view, compact('pages', DatabaseConstants::TABLE_SETTINGS));
             } catch (\Throwable $e) {
                 Log::error("{$action} • failed", [
                     UsersConstants::COL_USER_ID => $user->id,
@@ -152,7 +152,7 @@ class CustomPageController extends AppController
             $settings = LandingPageSetting::settings();
             $pages    = json_decode($settings[self::MB . '_page'], true);
             $v        = $request->validate([
-                self::MB . '_page_name'    => 'required|string',
+                self::MB . '_page_name'    => 'nullable|string',
                 self::MB . '_page_content' => 'nullable|string',
                 'template_name'            => 'required|string',
                 'page_url'                 => 'nullable|url',

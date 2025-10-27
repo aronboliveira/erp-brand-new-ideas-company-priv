@@ -122,7 +122,7 @@
             </div>
             <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('pipeline_id', __('Pipeline'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('pipeline_id', Utility::isFilled($pipelines) ? $pipelines : [__('No pipelines available')], null, ['class' => VC::FM_CT, 'required' => 'required']) }}
+                {{ Form::select('pipeline_id', Utility::isFilled($pipelines) ? $pipelines : [__('No pipelines available')], null, ['class' => VC::FM_CT, 'required' => 'required'] ?? []) }}
             </div>
             <div class="{{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('stage_id', __('Stage'), ['class' => VC::FM_LB]) }}
@@ -130,11 +130,11 @@
             </div>
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('sources', __('Sources'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('sources[]', Utility::isFilled($sources) ? $sources : [__('No sources available')], null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple3', 'required' => 'required']) }}
+                {{ Form::select('sources[]', Utility::isFilled($sources) ? $sources : [__('No sources available')], null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple3', 'required' => 'required'] ?? []) }}
             </div>
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('products', __('Products'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('products[]', Utility::isFilled($products) ? $products : [__('No products available')], null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple4', 'required' => 'required']) }}
+                {{ Form::select('products[]', Utility::isFilled($products) ? $products : [__('No products available')], null, ['class' => VC::FM_CT . ' select2', 'multiple' => '', 'id' => 'choices-multiple4', 'required' => 'required'] ?? []) }}
             </div>
             <div class="{{ VC::C12 }} {{ VC::FM_G }}">
                 {{ Form::label('notes', __('Notes'), ['class' => VC::FM_LB]) }}

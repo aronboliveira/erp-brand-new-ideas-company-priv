@@ -102,7 +102,8 @@ Route::middleware([
     MiddlewaresConstants::TRT . ':20,1',
 ])
     ->group(function () {
-        Route::post(RoutesResourcesConstants::CT_PG . '/store/', [CustomPageController::class, CustomPageController::CT_STR])->name(RoutesResourcesConstants::CT_PG . '.store');
+        Route::post(RoutesResourcesConstants::CT_PG . '/store/', [CustomPageController::class, 'store'])->name(RoutesResourcesConstants::CT_PG . '.store');
+        Route::post(RoutesResourcesConstants::CT_PG . '/custom-store/', [CustomPageController::class, CustomPageController::CT_STR])->name(RoutesResourcesConstants::CT_PG . '.custom.store');
         Route::post(RoutesResourcesConstants::FT . '/store/', [FeaturesController::class, FeaturesController::FTR_STR])->name(RoutesResourcesConstants::FT . '.store');
         Route::post(RoutesResourcesConstants::FT . '/update/{key}', [FeaturesController::class, FeaturesController::FTR_UPD])->name(RoutesResourcesConstants::FT . '.update');
         Route::post(RoutesResourcesConstants::FT . '/highlight/store/', [FeaturesController::class, FeaturesController::FTR_HGL])->name(RoutesResourcesConstants::FT . '.highlight.store');

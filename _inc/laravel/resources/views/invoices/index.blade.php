@@ -125,13 +125,13 @@
                                 <div class="{{ VC::CL_POS3 }}">
                                         <div class="btn-box">
                                             {{ Form:::label('customer', __('Customer'),['class'=>'form-label'])}}
-                                            {{ Form:::select('customer', Utility::isFilled($customer) ? $customer : [__('No customer available')], isset($_GET['customer']) ? $_GET['customer'] : '', ['class' => 'form-control select']) }}
+                                            {{ Form:::select('customer', Utility::isFilled($customer) ? $customer : [__('No customer available')], isset($_GET['customer']) ? $_GET['customer'] : '', ['class' => 'form-control select'] ?? []) }}
                                         </div>
                                     </div>
                                 <div class="{{ VC::CL_XLG4 }}">
                                     <div class="btn-box">
                                         {{ Form:::label('status', __('Status'),['class'=>'form-label'])}}
-                                        {{ Form:::select('status', [''=>'Select Status'] + (Utility::isFilled($customer) ? $status : [__('No status available')]),isset($_GET['status'])?$_GET['status']:'', array('class' => 'form-control select')) }}
+                                        {{ Form:::select('status', [''=>'Select Status'] + (Utility::isFilled($customer) ? $status : [__('No status available')]),isset($_GET['status'])?$_GET['status']:'', array('class' => 'form-control select') ?? []) }}
                                     </div>
                                 </div>
                                 <div class="{{ VC::C_AT_FEND }}">
@@ -256,7 +256,7 @@
                                     $canPriceFormat = is_callable([$user, 'priceFormat']);
                                     $due = is_callable([$invoice, 'getDue']) ? $invoice->getDue() : null;
                                 @endphp
-                                @if(Utility::isFilled($invoices))
+                                @if(Utility::isFilled($invoices) ?? [])
                                     @foreach ($invoices as $invoice)
                                         <tr>
                                             <td class="Id">

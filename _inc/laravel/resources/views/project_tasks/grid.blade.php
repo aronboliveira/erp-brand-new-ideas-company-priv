@@ -139,7 +139,7 @@
                                 $endDateText = (!empty($endDate) && $endDate !== '0000-00-00') ? (Utility::getDateFormated($endDate) ?? '') : '';
                                 $isOverdue = $endDateText && (strtotime((string)$endDate) < time());
                                 $usersRel = method_exists($task,'users') ? $task->users() : [];
-                                $usersArr = Utility::isFilled($usersRel) ? $usersRel : [];
+                                $usersArr = Utility::isFilled($usersRel ?? []) ? $usersRel : [];
                                 $usersCount = is_countable($usersArr) ? count($usersArr) : 0;
                             @endphp
                             <div class="{{ VC::CLMS3 }}">

@@ -196,7 +196,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(Utility::isFilled($invoices))
+                                @if(Utility::isFilled($invoices) ?? [])
                                     @php
                                         $hasPriceFormat = $user && method_exists($user,'priceFormat');
                                         $hasDateFormat = $user && method_exists($user,'dateFormat');
@@ -205,7 +205,7 @@
                                     @foreach($invoices as $invoice)
                                         @php
                                             $cnRaw = $invoice->creditNote ?? null;
-                                            $creditNotes = Utility::isFilled($cnRaw) ? $cnRaw : [];
+                                            $creditNotes = Utility::isFilled($cnRaw ?? []) ? $cnRaw : [];
                                         @endphp
                                         @if(!empty($creditNotes))
                                             @foreach($creditNotes as $creditNote)

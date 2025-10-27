@@ -30,7 +30,7 @@ final class ProductStockController extends Controller
         $action = "$cls::$fn";
         return $this->measureProfile($action, function () use ($r) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = $this->guard($r, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
             $productServices = ProductService::query()
                 ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
                 ->where('type', 'product')
@@ -46,7 +46,7 @@ final class ProductStockController extends Controller
         $action = "$cls::$fn";
         return $this->measureProfile($action, function () use ($r) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = $this->guard($r, 'edit product & service', self::REDIRECT_INDEX)) return $c;
+            if (($c = $this->guard($r, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
             $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
                 ->where('type', 'product')
                 ->pluck('name', 'id');
@@ -61,7 +61,7 @@ final class ProductStockController extends Controller
         $action = "$cls::$fn";
         return $this->measureProfile($action, function () use ($r, $action) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = $this->guard($r, 'edit product & service', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($r, [
                 'product_id' => 'required|exists:product_services,id',
                 'quantity'   => 'required|integer|min:1',
@@ -92,7 +92,7 @@ final class ProductStockController extends Controller
         $action = "$cls::$fn";
         return $this->measureProfile($action, function () use ($r, $id, $action) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = $this->guard($r, 'edit product & service', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
             $productService = ProductService::whereKey($id)
                 ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
                 ->firstOrFail();
@@ -107,7 +107,7 @@ final class ProductStockController extends Controller
         $action = "$cls::$fn";
         return $this->measureProfile($action, function () use ($r, $id, $action) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = $this->guard($r, 'edit product & service', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
             if ($c = self::v($r, ['quantity' => 'required|integer|min:1'])) return $c;
             try {
                 $p = ProductService::whereKey($id)
@@ -135,7 +135,7 @@ final class ProductStockController extends Controller
         $action = "$cls::$fn";
         return $this->measureProfile($action, function () use ($r, $id, $action) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-            if ($c = $this->guard($r, 'delete product & service', self::REDIRECT_INDEX)) return $c;
+            if (($c = self::guard($r, 'delete product & service', self::REDIRECT_INDEX)) !== true) return $c;
             try {
                 $product = ProductService::whereKey($id)
                     ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())

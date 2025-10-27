@@ -69,7 +69,7 @@
                 </div>
                 <div class="{{ VC::FM_GCB6 }}">
                     {{ Form::label('user_id', __('User'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
-                    {{ Form::select('user_id', Utility::isFilled($users)? $users : ['' => __('No user available')], null, [ 'class' => VC::FM_CT_SL . ' select', 'required' => 'required' ]) }}
+                    {{ Form::select('user_id', Utility::isFilled($users)? $users : ['' => __('No user available')], null, [ 'class' => VC::FM_CT_SL . ' select', 'required' => 'required' ] ?? []) }}
                 </div>
                 <div class="{{ VC::FM_GCB6 }}">
                     {{ Form::label('name', __('Name'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
@@ -85,7 +85,7 @@
                 </div>
                 <div class="{{ VC::FM_GCB6 }}">
                     {{ Form::label('pipeline_id', __('Pipeline'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
-                    {{ Form::select('pipeline_id', Utility::isFilled($pipelines) ? $pipelines : ['' => __('No pipeline available')], null, [ 'class' => VC::FM_CT_SL . ' select', 'required' => 'required' ]) }}
+                    {{ Form::select('pipeline_id', Utility::isFilled($pipelines) ? $pipelines : ['' => __('No pipeline available')], null, [ 'class' => VC::FM_CT_SL . ' select', 'required' => 'required' ] ?? []) }}
                 </div>
                 <div class="{{ VC::FM_GCB6 }}">
                     {{ Form::label('stage_id', __('Stage'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
@@ -93,11 +93,11 @@
                 </div>
                 <div class="{{ VC::FM_GCB12 }}">
                     {{ Form::label('sources', __('Sources'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
-                    {{ Form::select('sources[]', Utility::isFilled($sources) ? $sources : ['' => __('No source available')], null, [ 'class' => VC::FM_CT_SL . ' select2', 'id' => 'choices-multiple1', 'multiple' => 'multiple', 'required' => 'required' ]) }}
+                    {{ Form::select('sources[]', Utility::isFilled($sources) ? $sources : ['' => __('No source available')], null, [ 'class' => VC::FM_CT_SL . ' select2', 'id' => 'choices-multiple1', 'multiple' => 'multiple', 'required' => 'required' ] ?? []) }}
                 </div>
                 <div class="{{ VC::FM_GCB12 }}">
                     {{ Form::label('products', __('Products'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
-                    {{ Form::select('products[]', Utility::isFilled($products) ? $products : ['' => __('No product available')], null, [ 'class' => VC::FM_CT_SL . ' select2', 'id' => 'choices-multiple2', 'multiple' => 'multiple', 'required' => 'required' ]) }}
+                    {{ Form::select('products[]', Utility::isFilled($products) ? $products : ['' => __('No product available')], null, [ 'class' => VC::FM_CT_SL . ' select2', 'id' => 'choices-multiple2', 'multiple' => 'multiple', 'required' => 'required' ] ?? []) }}
                 </div>
                 <div class="{{ VC::FM_GCB12 }}">
                     {{ Form::label('notes', __('Notes'), [ 'class' => VC::FM_LB ]) }}

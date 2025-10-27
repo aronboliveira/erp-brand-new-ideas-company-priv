@@ -421,7 +421,7 @@
         @endpush
         <input type="hidden" id="token" value="{{ csrf_token() }}">
         @php
-            $mainSafe = (isset($mainField) && Utility::isFilled($mainField)) ? $mainField : [];
+            $mainSafe = (isset($mainField) && Utility::isFilled($mainField) ?? []) ? $mainField : [];
             $mainName = data_get($mainSafe,'name','vendor_id');
             $mainLabel = data_get($mainSafe,'label') ?? __('No vendor label available');
             $mainOptions = (array)(data_get($mainSafe,'options',[]));

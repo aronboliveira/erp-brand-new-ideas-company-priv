@@ -25,9 +25,8 @@ use App\Models\{
 };
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\{Request, JsonResponse, RedirectResponse};
-use Illuminate\Support\Facades\{Auth, DB, Log, View as ViewFacade};
-use Illuminate\Support\Arr;
+use Illuminate\Http\{Request, RedirectResponse};
+use Illuminate\Support\Facades\{DB, Log, View as ViewFacade};
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -45,11 +44,8 @@ class ProjectReportController extends Controller
         return $this->measureProfile($action, function () use ($request, $action, $method) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $user = $u;
-
-            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.' . $action)) {
+            if (($r = self::guard($request, 'view project report', self::SINGULAR . '.' . $action)) !== true)
                 return $r;
-            }
-
             try {
                 $cid = $user?->creatorId() ?: $user?->id;
 
@@ -146,11 +142,8 @@ class ProjectReportController extends Controller
         return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $user = $u;
-
-            if ($r = self::guard($request, 'view project report', self::SINGULAR . '.show')) {
+            if (($r = self::guard($request, 'view project report', self::SINGULAR . '.show')) !== true)
                 return $r;
-            }
-
             try {
                 $cid = $user?->creatorId() ?: $user?->id;
 
@@ -313,11 +306,8 @@ class ProjectReportController extends Controller
         return $this->measureProfile($action, function () use ($id, $action, $method) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             $request = request();
-
-            if ($r = self::guard($request, 'export project report', self::SINGULAR . '.' . $action)) {
+            if (($r = self::guard($request, 'export project report', self::SINGULAR . '.' . $action)) !== true)
                 return $r;
-            }
-
             try {
                 $name = 'task_report_' . date('Y-m-d_H:i:s');
                 return Excel::download(new \App\Exports\task_reportExport($id), $name . '.xlsx');

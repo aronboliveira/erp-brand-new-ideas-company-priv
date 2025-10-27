@@ -120,7 +120,7 @@
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="address" class="{{ VC::FM_LB }}">{{ __('Purchase Template') }}</label>
                                                 <select class="{{ VC::FM_CT }}" name="purchase_template">
-                                                    @if (Utility::isFilled($templates))
+                                                    @if (Utility::isFilled($templates) ?? [])
                                                         @foreach($templates as $key => $template)
                                                             <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_PRC_TMP]) && $settings[BillsConstants::COL_PRC_TMP] == $key) ? 'selected' : '' }}>
                                                                 {{ $template }}
@@ -134,7 +134,7 @@
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @if (Utility::isFilled($colors))
+                                                    @if (Utility::isFilled($colors) ?? [])
                                                         @foreach($colors as $key => $color)
                                                             <div class="{{ VC::C_AT }}">
                                                                 <label class="colorinput">
@@ -221,7 +221,7 @@
                                             <div class="{{ VC::FM_G }}">
                                                 <label for="address" class="{{ VC::FM_LB }}">{{ __('POS Template') }}</label>
                                                 <select class="{{ VC::FM_CT }}" name="pos_template">
-                                                    @if (Utility::isFilled($templates))
+                                                    @if (Utility::isFilled($templates) ?? [])
                                                         @foreach($templates as $key => $template)
                                                             <option value="{{ $key }}" {{ (isset($settings[BillsConstants::COL_BL_]) && $settings[BillsConstants::COL_BL_] == $key) ? 'selected' : '' }}>
                                                                 {{ $template }}
@@ -235,7 +235,7 @@
                                             <div class="{{ VC::FM_G }}">
                                                 <label class="{{ VC::FM_LB }}">{{ __('Color Input') }}</label>
                                                 <div class="{{ VC::RW }} gutters-xs">
-                                                    @if (Utility::isFilled($colors))
+                                                    @if (Utility::isFilled($colors) ?? [])
                                                         @foreach($colors as $key => $color)
                                                             <div class="{{ VC::C_AT }}">
                                                                 <label class="colorinput">

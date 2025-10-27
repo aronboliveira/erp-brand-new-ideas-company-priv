@@ -112,13 +112,13 @@
             </div>
             <div class="col-6 {{ VC::FM_G }}">
                 {{ Form::label('clients', __('Clients'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('clients', Utility::isFilled($clients) ? $clients : [__('No clients available.')], null, [
+                {{ Form::select('clients', Utility::isFilled($clients) ? $clients : [__('No clients available.' ?? [])], null, [
                     'class'    => VC::FM_CT . ' select2',
                     'multiple' => '',
                     'id'       => 'choices-multiple1',
                     'required' => 'required'
                 ]) }}
-                @if(Utility::isFilled($clients) && strtolower($user?->{UsersConstants::COL_TP}) == 'owner')
+                @if(Utility::isFilled($clients) && strtolower($user?->{UsersConstants::COL_TP}) == 'owner' ?? [])
                     @php
                         $clientsIndexRoute = Route::has(VW::CLT.'.index')
                             ? route(VW::CLT.'.index')

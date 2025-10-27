@@ -32,7 +32,7 @@
 ]) }}
     <div class="modal-body">
         <div class="{{ VC::RW }}">
-            @if(Utility::isFilled($fields))
+            @if(Utility::isFilled($fields) ?? [])
                 @foreach($fields as $f)
                     @php
                         $name     = $f['name']     ?? '';

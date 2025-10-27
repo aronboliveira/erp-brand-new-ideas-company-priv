@@ -76,7 +76,7 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @if(Utility::isFilled($jobOnBoards))
+                                @if(Utility::isFilled($jobOnBoards) ?? [])
                                     @foreach ($jobOnBoards as $job)
                                         @php
                                             $jobId = data_get($job, 'id');

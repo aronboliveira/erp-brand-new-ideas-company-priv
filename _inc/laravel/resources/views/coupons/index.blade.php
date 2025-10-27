@@ -215,7 +215,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(Utility::isFilled($coupons))
+                                @if(Utility::isFilled($coupons) ?? [])
                                     @foreach($coupons as $coupon)
                                         @php
                                             $name     = !empty($coupon->name) ? $coupon->name : __('No coupon name available');

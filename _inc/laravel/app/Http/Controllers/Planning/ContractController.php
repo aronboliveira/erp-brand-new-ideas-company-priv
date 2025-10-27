@@ -33,7 +33,7 @@ class ContractController extends Controller
 {
     use ChecksLogin;
 
-    private const ENTITY = 'contract';
+    private const ENTITY = 'contracts';
     public function index(Request $request): RedirectResponse|View
     {
         $function = __FUNCTION__;
@@ -58,7 +58,7 @@ class ContractController extends Controller
                         ->whereBetween(ProjectsConstants::COL_S_DT, [now()->startOfWeek(), now()->endOfWeek()])->get();
                     $last30 = Contract::where(DatabaseConstants::TABLE_CREATOR, $creator)
                         ->whereDate(ProjectsConstants::COL_S_DT, '>', now()->subDays(30))->get();
-                    $summarize = fn ($set) => \App\Models\Contract::getContractSummary($set);
+                    $summarize = fn($set) => \App\Models\Contract::getContractSummary($set);
                     $cnt = [
                         'total' => $summarize($all),
                         'this_month' => $summarize($byMonth),
@@ -79,7 +79,7 @@ class ContractController extends Controller
                         ->whereBetween(ProjectsConstants::COL_S_DT, [now()->startOfWeek(), now()->endOfWeek()])->get();
                     $last30 = Contract::where('client_name', $user?->id)
                         ->whereDate(ProjectsConstants::COL_S_DT, '>', now()->subDays(30))->get();
-                    $summarize = fn ($set) => \App\Models\Contract::getContractSummary($set);
+                    $summarize = fn($set) => \App\Models\Contract::getContractSummary($set);
                     $cnt = [
                         'total' => $summarize($all),
                         'this_month' => $summarize($byMonth),
@@ -194,21 +194,23 @@ class ContractController extends Controller
                     'user_name'           => $user?->name,
                 ];
 
-                foreach ([
-                    'new_contract'                   => fn () => Utility::sendEmailTemplate(
-                        'new_contract',
-                        [$client->id => $client->email],
-                        $payload
-                    ),
-                    'contract_notification'          => fn () => Utility::sendSlackMsg(
-                        'new_contract',
-                        $payload
-                    ),
-                    'telegram_contract_notification' => fn () => Utility::sendTelegramMsg(
-                        'new_contract',
-                        $payload
-                    ),
-                ] as $flag => $action)
+                foreach (
+                    [
+                        'new_contract'                   => fn() => Utility::sendEmailTemplate(
+                            'new_contract',
+                            [$client->id => $client->email],
+                            $payload
+                        ),
+                        'contract_notification'          => fn() => Utility::sendSlackMsg(
+                            'new_contract',
+                            $payload
+                        ),
+                        'telegram_contract_notification' => fn() => Utility::sendTelegramMsg(
+                            'new_contract',
+                            $payload
+                        ),
+                    ] as $flag => $action
+                )
                     if (!empty($settings[$flag])) $action();
 
                 if ($hook = Utility::webhookSetting('New Contract')) {
@@ -320,8 +322,14 @@ class ContractController extends Controller
             try {
                 $c = Contract::findOrFail($id);
                 $c->update($request->only([
-                    'client_name', 'subject', 'project_id', 'type', 'value',
-                    ProjectsConstants::COL_S_DT, 'end_date', 'description'
+                    'client_name',
+                    'subject',
+                    'project_id',
+                    'type',
+                    'value',
+                    ProjectsConstants::COL_S_DT,
+                    'end_date',
+                    'description'
                 ]));
                 $this->logExecutionTime($stepStart, 'updateContract', 'completed');
                 return redirect()->route(self::ENTITY . '.index')
@@ -396,17 +404,16 @@ class ContractController extends Controller
             $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
             if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            if (!in_array($user?->type, [PermissionsConstants::CPN, PermissionsConstants::CL]))
+            if (!in_array($user?->type, [PermissionsConstants::SA, PermissionsConstants::CPN, PermissionsConstants::CL]))
                 return defaultPermissionDenial($request, null, $action);
-
             try {
                 $qryStart = microtime(true);
                 $qry = Contract::query();
                 $qry->where(
-                    $user->type == PermissionsConstants::CPN
+                    ($user->type == PermissionsConstants::CPN || $user->type == PermissionsConstants::SA)
                         ? DatabaseConstants::TABLE_CREATOR
-                        : 'client_name',
-                    $user->type == PermissionsConstants::CPN
+                        : 'client_id',
+                    ($user->type == PermissionsConstants::CPN || $user->type == PermissionsConstants::SA)
                         ? $user?->creatorId()
                         : $user?->id
                 );
@@ -714,8 +721,9 @@ class ContractController extends Controller
                 $startFetch = microtime(true);
                 $projects = Project::where('client_id', $clientId)->get();
                 $this->logExecutionTime($startFetch, $function . '::fetchProjects', 'completed');
-                $out = $projects->map(fn ($p) => [
-                    'id' => $p->id, 'name' => $p->project_name
+                $out = $projects->map(fn($p) => [
+                    'id' => $p->id,
+                    'name' => $p->project_name
                 ]);
                 return response()->json($out, 200);
             } catch (\Throwable $e) {

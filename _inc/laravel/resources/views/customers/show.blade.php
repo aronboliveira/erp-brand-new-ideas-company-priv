@@ -332,7 +332,7 @@
         @foreach($secList as $section)
             @php
                 $title  = isset($section['title']) && $section['title'] !== '' ? __($section['title']) : __('No section title available');
-                $fields = Utility::isFilled($section['fields']) ? $section['fields'] : [];
+                $fields = Utility::isFilled($section['fields'] ?? []) ? $section['fields'] : [];
             @endphp
             <div class="{{ VC::CL4 }} {{ VC::MB4 }}">
                 <div class="{{ VC::CD }}">
@@ -407,7 +407,7 @@
                                     $hasPriceFormat = method_exists($user,'priceFormat');
                                     $hasProposalNumber = method_exists($user,'proposalNumberFormat');
                                     $propRaw = (isset($customer) && method_exists($customer,'customerProposal')) ? $customer->customerProposal($customer->id) : [];
-                                    $proposals = Utility::isFilled($propRaw) ? $propRaw : [];
+                                    $proposals = Utility::isFilled($propRaw ?? []) ? $propRaw : [];
                                     $statusBadgeClasses = [0=>'bg-primary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-primary'];
                                 @endphp
                                 @forelse($proposals as $proposal)
@@ -469,7 +469,7 @@
                                 @php
                                     $hasInvoiceNumber = method_exists($user,'invoiceNumberFormat');
                                     $invRaw = (isset($customer) && method_exists($customer,'customerInvoice')) ? $customer->customerInvoice($customer->id) : [];
-                                    $invoices = Utility::isFilled($invRaw) ? $invRaw : [];
+                                    $invoices = Utility::isFilled($invRaw ?? []) ? $invRaw : [];
                                     $statusBadgeClasses = [0=>'bg-primary',1=>'bg-warning',2=>'bg-danger',3=>'bg-info',4=>'bg-primary'];
                                 @endphp
                                 @forelse($invoices as $invoice)

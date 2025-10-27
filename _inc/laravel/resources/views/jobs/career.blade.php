@@ -112,7 +112,7 @@
 												<span class="d-inline-block me-2"><i class="ti ti-circle-plus"></i> {{ $positions }} {{ __('position available') }}</span>
 											</div>
 											<div class="d-flex flex-wrap gap-1 align-items-center">
-												@if(Utility::isFilled($skills))
+												@if(Utility::isFilled($skills) ?? [])
 													@foreach($skills as $sk)
 														<span class="badge rounded p-2 bg-primary">{{ $sk }}</span>
 													@endforeach

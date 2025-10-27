@@ -56,7 +56,7 @@
                     @else
                         @php
                             $responses = data_get($form, 'response');
-                            $hasResponses = Utility::isFilled($responses);
+                            $hasResponses = Utility::isFilled($responses ?? []);
                         @endphp
                         <div class="table-responsive">
                             <table class="table datatable">

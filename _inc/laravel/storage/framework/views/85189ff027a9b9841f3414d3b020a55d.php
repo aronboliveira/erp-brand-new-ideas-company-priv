@@ -1,8 +1,9 @@
 <?php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants,ViewsConstants,YieldingConstants};
+	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,ViewsConstants,YieldingConstants};
 	use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
 	use Illuminate\Support\Facades\{File,Log,Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LandingPageSettingsConstants};
+	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LPC};
     use Nwidart\Modules\Facades\Module;
     Log::debug('Loaded settings for Menubar blade...');
 	$lpSettings ??= [];
@@ -66,12 +67,8 @@
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
-    <script>
-        document.getElementById('site_logo').onchange = function () {
-                var src = URL.createObjectURL(this.files[0])
-                document.getElementById('image').src = src
-            }
-    </script>
+    <script async src="<?php echo e(asset('assets/js/routes/menubar/lang/change.js')); ?>"></script>
+    <script defer src="<?php echo e(asset('assets/js/routes/menubar/change.js')); ?>"></script>
     <script src="<?php echo e(asset('Modules/landingpage/js/plugins/summernote-bs4.js')); ?>" referrerpolicy="origin"></script>
 <?php $__env->stopPush(); ?>
 
@@ -94,8 +91,8 @@
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-xl-3">
-                    <div class="<?php echo e(ViewClassNamesConstants::CD_STK); ?>" style="top:30px">
-                        <div class="<?php echo e(ViewClassNamesConstants::LG_FLSH); ?>" id="useradd-sidenav">
+                    <div class="<?php echo e(VC::CD_STK); ?>" style="top:30px">
+                        <div class="<?php echo e(VC::LG_FLSH); ?>" id="useradd-sidenav">
                             <?php echo $__env->make(R::LP.'::'.E::LOS.'.tab', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
                         </div>
                     </div>
@@ -105,18 +102,18 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="row">
-                                <div class="<?php echo e(ViewClassNamesConstants::CLMS10); ?>">
+                                <div class="<?php echo e(VC::CLMS10); ?>">
                                     <h5><?php echo e(__('Custom Page')); ?></h5>
                                 </div>
                             </div>
                         </div>
-                        <?php echo e(Collective\Html\FormFacade::open(array('route' => 'custom_pages.store', 'method'=>'post', 'enctype' => "multipart/form-data"))); ?>
+                        <?php echo e(Form::open(array('route' => 'custom_pages.custom.store', 'method'=>'post', 'enctype' => "multipart/form-data"))); ?>
 
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <?php echo e(Collective\Html\FormFacade::label('Site Logo', __('Site Logo'), ['class' => 'form-label'])); ?>
+                                            <?php echo e(Form::label('Site Logo', __('Site Logo'), ['class' => 'form-label'])); ?>
 
                                             <div class="logo-content mt-4">
                                                 <img
@@ -130,7 +127,7 @@
                                             </div>
                                             <div class="choose-files mt-5">
                                                 <label for="site_logo">
-                                                    <div class="<?php echo e(ViewClassNamesConstants::BG_P); ?> company_logo_update" style="cursor: pointer;">
+                                                    <div class="<?php echo e(VC::BG_P); ?> company_logo_update" style="cursor: pointer;">
                                                         <i class="ti ti-upload px-1"></i><?php echo e(__('Choose file here')); ?>
 
                                                     </div>
@@ -155,9 +152,9 @@ unset($__errorArgs, $__bag); ?>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <?php echo e(Collective\Html\FormFacade::label('Site Description', __('Site Description'), ['class' => 'form-label'])); ?>
+                                            <?php echo e(Form::label('Site Description', __('Site Description'), ['class' => 'form-label'])); ?>
 
-                                            <?php echo e(Collective\Html\FormFacade::text(LandingPageSettingsConstants::SD_K, $lpSettings[LandingPageSettingsConstants::SD_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')])); ?>
+                                            <?php echo e(Form::text(LPC::SD_K, $lpSettings[LPC::SD_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')])); ?>
 
                                             <?php $__errorArgs = ['mail_port'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -176,18 +173,18 @@ unset($__errorArgs, $__bag); ?>
                                 </div>
                             </div>
                             <div class="card-footer text-end">
-                                <input class="<?php echo e(ViewClassNamesConstants::BT_PR_PRM10); ?>" type="submit" value="<?php echo e(__('Save Changes')); ?>">
+                                <input class="<?php echo e(VC::BT_PR_PRM10); ?>" type="submit" value="<?php echo e(__('Save Changes')); ?>">
                             </div>
-                        <?php echo e(Collective\Html\FormFacade::close()); ?>
+                        <?php echo e(Form::close()); ?>
 
                     </div>
                         <div class="card">
                             <div class="card-header">
                                 <div class="row align-items-center">
-                                    <div class="<?php echo e(ViewClassNamesConstants::CLMS9); ?>">
+                                    <div class="<?php echo e(VC::CLMS9); ?>">
                                         <h5><?php echo e(__('Menu Bar')); ?></h5>
                                     </div>
-                                    <div class="<?php echo e(ViewClassNamesConstants::CLMS_JCE3); ?>">
+                                    <div class="<?php echo e(VC::CLMS_JCE3); ?>">
                                         <?php
                                             Log::debug('Loading creation route for custom pages...');
                                             $createRoute     = R::CT_PG . '.create';
@@ -207,7 +204,7 @@ unset($__errorArgs, $__bag); ?>
                                             <?php echo e($canCreate ? '' : 'aria-disabled="true"'); ?>
 
                                         >
-                                            <i class="<?php echo e(ViewClassNamesConstants::TI_PLS_LG); ?>"></i>
+                                            <i class="<?php echo e(VC::TI_PLS_LG); ?>"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -230,13 +227,13 @@ unset($__errorArgs, $__bag); ?>
                                                 <?php $__currentLoopData = $pages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <tr>
                                                         <td><?php echo e($no++); ?></td>
-                                                        <td><?php echo e($value[LandingPageSettingsConstants::MB_PG_NM]); ?></td>
+                                                        <td><?php echo e($value[LPC::MB_PG_NM]); ?></td>
                                                         <td>
                                                             <?php
                                                                 Log::debug('Loading routes for stateful routes for custom pages...');
                                                                 $editRoute     = R::CT_PG . '.edit';
                                                                 $destroyRoute  = R::CT_PG . '.destroy';
-                                                                $slug          = $value[LandingPageSettingsConstants::PG_SLG] ?? '';
+                                                                $slug          = $value[LPC::PG_SLG] ?? '';
                                                                 $canEdit       = Route::has($editRoute);
                                                                 $canDestroy    = Route::has($destroyRoute)
                                                                                 && ! in_array($slug, ['terms_and_conditions','about_us','privacy_policy']);
@@ -247,7 +244,7 @@ unset($__errorArgs, $__bag); ?>
                                                                     ]);
                                                             ?>
                                                             <span>
-                                                                <div class="action-btn <?php echo e(ViewClassNamesConstants::BG_P); ?> ms-2">
+                                                                <div class="action-btn <?php echo e(VC::BG_P); ?> ms-2">
                                                                     <?php if($canEdit): ?>
                                                                         <a href="#"
                                                                         class="mx-3 btn btn-sm align-items-center"
@@ -258,28 +255,28 @@ unset($__errorArgs, $__bag); ?>
                                                                         data-bs-toggle="tooltip"
                                                                         title="<?php echo e(__('Edit')); ?>"
                                                                         data-original-title="<?php echo e(__('Edit')); ?>">
-                                                                            <i class="<?php echo e(ViewClassNamesConstants::TI_PC_WT); ?>"></i>
+                                                                            <i class="<?php echo e(VC::TI_PC_WT); ?>"></i>
                                                                         </a>
                                                                     <?php else: ?>
                                                                         <a href="#"
-                                                                        class="<?php echo e(ViewClassNamesConstants::BT_SM_CT_DSB); ?>"
+                                                                        class="<?php echo e(VC::BT_SM_CT_DSB); ?>"
                                                                         aria-disabled="true"
                                                                         data-bs-toggle="tooltip"
                                                                         title="<?php echo e(__('Edit')); ?>">
-                                                                            <i class="<?php echo e(ViewClassNamesConstants::TI_PC_WT); ?>"></i>
+                                                                            <i class="<?php echo e(VC::TI_PC_WT); ?>"></i>
                                                                         </a>
                                                                     <?php endif; ?>
                                                                 </div>
-                                                                <div class="<?php echo e(ViewClassNamesConstants::ACT_BTN_DNG_2); ?>">
+                                                                <div class="<?php echo e(VC::ACT_BTN_DNG_2); ?>">
                                                                     <?php if($canDestroy): ?>
-                                                                        <?php echo Collective\Html\FormFacade::open([
+                                                                        <?php echo Form::open([
                                                                             'method' => 'DELETE',
                                                                             'route'  => [$destroyRoute, $key],
                                                                             'id'     => 'delete-form-' . $key
                                                                         ]); ?>
 
                                                                             <a href="#"
-                                                                            class="<?php echo e(ViewClassNamesConstants::BT_SM_CT_PR); ?>"
+                                                                            class="<?php echo e(VC::BT_SM_CT_PR); ?>"
                                                                             data-bs-toggle="tooltip"
                                                                             title="<?php echo e(__('Delete')); ?>"
                                                                             data-original-title="<?php echo e(__('Delete')); ?>"
@@ -287,11 +284,11 @@ unset($__errorArgs, $__bag); ?>
                                                                             data-confirm-yes="document.getElementById('delete-form-<?php echo e($key); ?>').submit();">
                                                                                 <i class="ti ti-trash text-white"></i>
                                                                             </a>
-                                                                        <?php echo Collective\Html\FormFacade::close(); ?>
+                                                                        <?php echo Form::close(); ?>
 
                                                                     <?php else: ?>
                                                                         <a href="#"
-                                                                        class="<?php echo e(ViewClassNamesConstants::BT_SM_CT_DSB); ?>"
+                                                                        class="<?php echo e(VC::BT_SM_CT_DSB); ?>"
                                                                         aria-disabled="true"
                                                                         data-bs-toggle="tooltip"
                                                                         title="<?php echo e(__('Delete')); ?>">

@@ -210,7 +210,7 @@
                                         if (!empty($taxId)) {
                                             $taxes = Utility::tax($taxId);
                                             $titems = [];
-                                            if (Utility::isFilled($taxes))
+                                            if (Utility::isFilled($taxes) ?? [])
                                                 $titems = $taxes;
                                             if (!empty($titems)) {
                                                 $parts = [];

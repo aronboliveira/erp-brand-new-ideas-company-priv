@@ -306,7 +306,7 @@
                                             <div class="form-group">
                                                 {{ Collective\Html\FormFacade::label('Logo', __('Logo'), ['class' => 'form-label']) }}
                                                 <div class="logo-content mt-4">
-                                                    <img id="image1" src="{{ $logo.'/'. $lpSettings['highlight_feature_image'] }}"
+                                                    <img id="image1" src="{{ asset($logo.'/'. $lpSettings['highlight_feature_image']) }}"
                                                         class="big-logo img_setting">
                                                 </div>
                                                 <div class="choose-files mt-5">

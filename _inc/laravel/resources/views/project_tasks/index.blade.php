@@ -579,7 +579,7 @@ Object.keys(t).forEach(
                                         $commentsCount = is_countable($commentsRel) ? count($commentsRel) : ((is_object($commentsRel) && method_exists($commentsRel,'count')) ? $commentsRel->count() : 0);
                                         $checklistTotal = method_exists($taskDetail,'countTaskChecklist') ? (int)$taskDetail->countTaskChecklist() : 0;
                                         $usersRel = method_exists($taskDetail,'users') ? $taskDetail->users() : collect();
-                                        $usersIter = Utility::isFilled($usersRel) ? $usersRel : [];
+                                        $usersIter = Utility::isFilled($usersRel ?? []) ? $usersRel : [];
                                     @endphp
                                     <div class="{{ VC::CD }} draggable-item" id="{{ $taskId ?? 'x' }}">
                                         <div class="pt-3 ps-3">

@@ -234,7 +234,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(Utility::isFilled($customers))
+                                @if(Utility::isFilled($customers) ?? [])
                                     @foreach($customers as $customer)
                                         @php
                                             $ns = ViewsConstants::CST;

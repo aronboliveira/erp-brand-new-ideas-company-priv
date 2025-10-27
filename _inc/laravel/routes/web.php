@@ -1729,13 +1729,10 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
             Route::any(VW::EXP . '/customer', [ExpenseController::class, 'customer'])->name(VW::EXP . '.customer');
             Route::post(VW::EXP . '/vendor', [ExpenseController::class, 'vendor'])->name(VW::EXP . '.vendor');
             Route::post(VW::EXP . '/employee', [ExpenseController::class, 'employee'])->name(VW::EXP . '.employee');
-
             Route::post(VW::EXP . '/product/destroy', [ExpenseController::class, ExpenseController::PRD_DST])->name(VW::EXP . '.product.destroy');
-
             Route::post(VW::EXP . '/product', [ExpenseController::class, 'product'])->name(VW::EXP . '.product');
             Route::get(VW::EXP . '/{id}/payment', [ExpenseController::class, 'payment'])->name(VW::EXP . '.payment');
             Route::get(VW::EXP . '/items', [ExpenseController::class, 'items'])->name(VW::EXP . '.items');
-
             Route::get(VW::EXP . '/create/{cid}', [ExpenseController::class, 'create'])->name(VW::EXP . '.create');
             Route::resource(VW::EXP, ExpenseController::class);
         }

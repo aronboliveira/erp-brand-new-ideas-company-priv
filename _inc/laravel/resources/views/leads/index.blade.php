@@ -55,7 +55,7 @@
         ]) }}
             {{ Form::select(
                 'default_pipeline_id',
-                Utility::isFilled($pipelines) ? $pipelines : ['' => __('No pipeline available')],
+                Utility::isFilled($pipelines) ? $pipelines : ['' => __('No pipeline available' ?? [])],
                 data_get($pipeline,'id',''),
                 ['class'=> VC::FM_CT_SL.' me-4','id'=>'default_pipeline_id']
             ) }}

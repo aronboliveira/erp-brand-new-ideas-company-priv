@@ -201,8 +201,8 @@
         @endif
         {{ Form::select(
             'default_pipeline_id',
-            Utility::isFilled($pipelines) ? $pipelines : [__('No pipelines available')],
-            Utility::isFilled($pipeline) ? $pipeline->id : '# Unidentified pipeline',
+            Utility::isFilled($pipelines) ? $pipelines : [__('No pipelines available' ?? [])],
+            Utility::isFilled($pipeline ?? []) ? $pipeline->id : '# Unidentified pipeline',
             [
                 'class' => VC::FM_CT . ' select me-4',
                 'id'    => 'default_pipeline_id'
@@ -330,7 +330,7 @@
         <div class="row kanban-wrapper horizontal-scroll-cards"
              data-containers='@json($containers)'
              data-plugin="dragula">
-            @if (Utility::isFilled($stages))
+            @if (Utility::isFilled($stages) ?? [])
                 @php
                     $isPriceFormatAvailable = method_exists($user ?? null, 'priceFormat');
                 @endphp
@@ -339,7 +339,7 @@
                         $stageId   = isset($stage->id) ? $stage->id : uniqid('stage_');
                         $stageName = !empty($stage->name) ? $stage->name : __('Untitled Stage');
                         $dealsRaw = method_exists($stage, 'deals') ? ($stage->deals() ?? []) : [];
-                        $deals    = Utility::isFilled($dealsRaw)
+                        $deals    = Utility::isFilled($dealsRaw ?? [])
                                     ? $dealsRaw
                                     : [];
                     @endphp
@@ -359,11 +359,11 @@
                                             $dealName    = !empty($deal->name) ? $deal->name : __('No deal name available');
                                             $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
                                             $labelsRaw   = method_exists($deal, 'labels')   ? ($deal->labels()   ?? []) : ($deal->labels   ?? []);
-                                            $labels   = Utility::isFilled($labelsRaw)  ? $labelsRaw   : [];
+                                            $labels   = Utility::isFilled($labelsRaw ?? [])  ? $labelsRaw   : [];
                                             $productsRaw = method_exists($deal, 'products') ? ($deal->products() ?? []) : ($deal->products ?? []);
-                                            $products = Utility::isFilled($productsRaw) ? $productsRaw : [];
+                                            $products = Utility::isFilled($productsRaw ?? []) ? $productsRaw : [];
                                             $sourcesRaw  = method_exists($deal, 'sources')  ? ($deal->sources()  ?? []) : ($deal->sources  ?? []);
-                                            $sources  = Utility::isFilled($sourcesRaw)  ? $sourcesRaw  : [];
+                                            $sources  = Utility::isFilled($sourcesRaw ?? [])  ? $sourcesRaw  : [];
                                             $dealUsers   = is_array($deal->users ?? null) || ($deal->users ?? null) instanceof \Countable
                                                             ? ($deal->users ?? [])
                                                             : [];

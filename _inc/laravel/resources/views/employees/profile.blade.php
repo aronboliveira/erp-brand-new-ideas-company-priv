@@ -55,7 +55,7 @@
 				<div class="all-select-box">
 					<div class="btn-box">
 						{{ Form::label('branch', __('Branch'), ['class'=>'text-type']) }}
-						{{ Form::select('branch', Utility::isFilled($branches) ? $branches : [__('No branches available')], isset($_GET['branch']) ? (string)$_GET['branch'] : '', ['class'=>'select-box select2']) }}
+						{{ Form::select('branch', Utility::isFilled($branches) ? $branches : [__('No branches available')], isset($_GET['branch']) ? (string)$_GET['branch'] : '', ['class'=>'select-box select2'] ?? []) }}
 					</div>
 				</div>
 			</div>
@@ -63,7 +63,7 @@
 				<div class="all-select-box">
 					<div class="btn-box">
 						{{ Form::label('department', __('Department'), ['class'=>'text-type']) }}
-						{{ Form::select('department', Utility::isFilled($departments) ? $departments : [__('No departments available')], isset($_GET['department']) ? (string)$_GET['department'] : '', ['class'=>'select-box select2']) }}
+						{{ Form::select('department', Utility::isFilled($departments) ? $departments : [__('No departments available')], isset($_GET['department']) ? (string)$_GET['department'] : '', ['class'=>'select-box select2'] ?? []) }}
 					</div>
 				</div>
 			</div>

@@ -98,7 +98,7 @@
                                         <td>-</td>
                                         <td class="text-end">{{ $canPriceFormat ? $user?->priceFormat($basicSalary) : $basicSalary }}</td>
                                     </tr>
-                                    @if(Utility::isFilled($allowances))
+                                    @if(Utility::isFilled($allowances) ?? [])
                                         @foreach($allowances as $allowance)
                                             <tr>
                                                 <td>{{ __('Allowance') }}</td>
@@ -109,7 +109,7 @@
                                     @else
                                         <tr><td>{{ __('Allowance') }}</td><td colspan="2" class="text-end">{{ __('No allowance available') }}</td></tr>
                                     @endif
-                                    @if(Utility::isFilled($commissions))
+                                    @if(Utility::isFilled($commissions) ?? [])
                                         @foreach($commissions as $commission)
                                             <tr>
                                                 <td>{{ __('Commission') }}</td>
@@ -120,7 +120,7 @@
                                     @else
                                         <tr><td>{{ __('Commission') }}</td><td colspan="2" class="text-end">{{ __('No commission available') }}</td></tr>
                                     @endif
-                                    @if(Utility::isFilled($otherPayments))
+                                    @if(Utility::isFilled($otherPayments) ?? [])
                                         @foreach($otherPayments as $otherPayment)
                                             <tr>
                                                 <td>{{ __('Other Payment') }}</td>
@@ -131,7 +131,7 @@
                                     @else
                                         <tr><td>{{ __('Other Payment') }}</td><td colspan="2" class="text-end">{{ __('No other payment available') }}</td></tr>
                                     @endif
-                                    @if(Utility::isFilled($overTimes))
+                                    @if(Utility::isFilled($overTimes) ?? [])
                                         @foreach($overTimes as $overTime)
                                             <tr>
                                                 <td>{{ __('OverTime') }}</td>
@@ -153,7 +153,7 @@
                                         <th>{{ __('Title') }}</th>
                                         <th class="text-end">{{ __('Amount') }}</th>
                                     </tr>
-                                    @if(Utility::isFilled($loans))
+                                    @if(Utility::isFilled($loans) ?? [])
                                         @foreach($loans as $loan)
                                             <tr>
                                                 <td>{{ __('Loan') }}</td>
@@ -164,7 +164,7 @@
                                     @else
                                         <tr><td>{{ __('Loan') }}</td><td colspan="2" class="text-end">{{ __('No loan deduction available') }}</td></tr>
                                     @endif
-                                    @if(Utility::isFilled($deductions))
+                                    @if(Utility::isFilled($deductions) ?? [])
                                         @foreach($deductions as $deduction)
                                             <tr>
                                                 <td>{{ __('Saturation Deduction') }}</td>

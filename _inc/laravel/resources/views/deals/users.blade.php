@@ -38,7 +38,7 @@
                     {{ Form::label('users', __('User'), ['class' => 'form-label']) }}
                     {{ Form::select(
                         'users[' . $deal->id . ']',
-                        Utility::isFilled($users) ? $users : [__('No users available for deals')],
+                        Utility::isFilled($users) ? $users : [__('No users available for deals' ?? [])],
                         false,
                         [
                             'class'    => 'form-control select2',

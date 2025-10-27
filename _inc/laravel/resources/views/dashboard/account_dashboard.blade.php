@@ -781,8 +781,8 @@
                     }
 
                     try {
-                        $weeklyInvoice = Utility::isFilled($weeklyInvoice) ? $weeklyInvoice : [];
-                        $monthlyInvoice = Utility::isFilled($monthlyInvoice) ? $monthlyInvoice : [];
+                        $weeklyInvoice = Utility::isFilled($weeklyInvoice ?? []) ? $weeklyInvoice : [];
+                        $monthlyInvoice = Utility::isFilled($monthlyInvoice ?? []) ? $monthlyInvoice : [];
                     } catch (\Throwable $e) {
                         Log::error('invoice stats validation error', ['file'=>__FILE__, 'line'=>__LINE__, 'class'=>$e::class, 'message'=>$e->getMessage()]);
                         $weeklyInvoice = [];

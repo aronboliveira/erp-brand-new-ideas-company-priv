@@ -28,7 +28,7 @@
     <div class="{{ VC::RW }}">
         <div class="{{ VC::FM_GCB6 }}">
             {{ Form::label('deduction_option', __('Deduction Options'), [ 'class' => VC::FM_LB ]) }}<span class="text-danger">*</span>
-            {{ Form::select('deduction_option', (Utility::isFilled($deduction_options)) ? $deduction_options : ['' => ___('No deduction option available')], null, [ 'class' => VC::FM_CT_SL, 'required' => 'required' ]) }}
+            {{ Form::select('deduction_option', (Utility::isFilled($deduction_options)) ? $deduction_options : ['' => ___('No deduction option available')], null, [ 'class' => VC::FM_CT_SL, 'required' => 'required' ] ?? []) }}
         </div>
 
         <div class="{{ VC::FM_GCB6 }}">
@@ -38,7 +38,7 @@
 
         <div class="{{ VC::FM_GCB6 }}">
             {{ Form::label('type', __('Type'), [ 'class' => VC::FM_LB ]) }}
-            {{ Form::select('type', (Utility::isFilled($saturationdeduc)) ? $saturationdeduc : ['' => __('No type available')], null, [ 'class' => VC::FM_CT_SL . ' amount_type', 'required' => 'required' ]) }}
+            {{ Form::select('type', (Utility::isFilled($saturationdeduc)) ? $saturationdeduc : ['' => __('No type available')], null, [ 'class' => VC::FM_CT_SL . ' amount_type', 'required' => 'required' ] ?? []) }}
         </div>
 
         <div class="{{ VC::FM_GCB6 }}">

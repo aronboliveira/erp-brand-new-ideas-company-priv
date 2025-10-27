@@ -28,7 +28,7 @@
                             </thead>
                             <tbody>
                                 @php
-                                    $list = Utility::isFilled($userCoupons) ? $userCoupons : [];
+                                    $list = Utility::isFilled($userCoupons ?? []) ? $userCoupons : [];
                                 @endphp
                                 @forelse ($list as $userCoupon)
                                     @php

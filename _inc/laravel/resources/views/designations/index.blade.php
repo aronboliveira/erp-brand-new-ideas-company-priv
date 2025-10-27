@@ -48,7 +48,7 @@
                                 </tr>
                             </thead>
                             <tbody class="font-style">
-                                @if(Utility::isFilled($designations))
+                                @if(Utility::isFilled($designations) ?? [])
                                     @foreach ($designations as $designation)
                                         @php
                                             $dep = Department::where('id', $designation->department_id)->first();

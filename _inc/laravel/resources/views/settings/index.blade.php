@@ -663,7 +663,7 @@
                                         <div class="changeLanguage">
                                             <select name="default_language" id="default_language" class="{{ VC::FM_CT }} select">
                                                 @php $langs = Utility::languages(); @endphp
-                                                @if (Utility::isFilled($langs))
+                                                @if (Utility::isFilled($langs) ?? [])
                                                     @foreach ($langs as $code => $language)
                                                         <option @if ($lang == $code) selected @endif value="{{ $code }}">{{ ucFirst($language) }}</option>
                                                     @endforeach

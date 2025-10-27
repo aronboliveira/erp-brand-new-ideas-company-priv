@@ -84,7 +84,7 @@
                 <hr class="my-0">
                 @php
                     $priorities = ProjectTask::$priority;
-                    $isCountable = Utility::isFilled($priorities);
+                    $isCountable = Utility::isFilled($priorities ?? []);
                 @endphp
                 @if($isCountable)
                     @foreach($priorities as $key => $val)

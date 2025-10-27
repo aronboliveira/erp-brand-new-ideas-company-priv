@@ -7,12 +7,12 @@ use App\Http\Controllers\Controller as AppController;
 use App\Models\User;
 use App\Traits\ChecksLogin;
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\{Auth, DB, Log};
+use Illuminate\Support\Facades\{Auth, DB, Log, View};
 use Modules\LandingPage\{
     Config\Constants\RoutesResourcesConstants,
     Entities\LandingPageSetting
 };
-use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
+use Modules\LandingPage\Config\Constants\SettingsConstants as LPC;
 use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
 final class FeaturesController extends AppController
@@ -21,7 +21,7 @@ final class FeaturesController extends AppController
 
     public const ENTITY = RoutesResourcesConstants::FT;
     private const LP = RoutesResourcesConstants::LP;
-    private const VIEW_BASE   = self::LP . '::' . self::LP . '.features.';
+    private const VIEW_BASE   = self::LP . '::' . self::LP . '.' . self::ENTITY;
     private const DIR         = 'uploads/landing_page_image';
     private const FEATURE_NAME = 'feature_of_features';
     private const OTHER_NAME  = 'other_features';
@@ -48,7 +48,12 @@ final class FeaturesController extends AppController
                 $others = json_decode($settings[self::OTHER_NAME] ?? '[]', true) ?: [];
                 $this->logExecutionTime($decodeOthersStart, $action . '::decodeOthers', 'completed');
                 Log::info("[$action] retrieved counts", ['features' => count($features), 'others' => count($others)]);
-                return view(self::VIEW_BASE . 'index', ['settings' => $settings, 'feature_of_features' => $features, 'other_features' => $others]);
+                $baseView = self::getFirstExistingView(self::ENTITY . '.index');
+                if (!$baseView) {
+                    Log::warning("[$action] view not found", ['view' => $baseView]);
+                    throw new \RuntimeException("View not found: $baseView");
+                }
+                return view($baseView, ['settings' => $settings, 'feature_of_features' => $features, 'other_features' => $others]);
             } catch (\Throwable $e) {
                 Log::error("[$action] error", ['error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -78,13 +83,18 @@ final class FeaturesController extends AppController
                 $this->logExecutionTime($stepStart, 'findSetting', 'completed');
                 Log::info($method . ' loaded setting', ['id' => $id, 'name' => $setting->name]);
                 $stepStart = microtime(true);
-                $view = view(self::VIEW_BASE . $function, compact('setting'));
+                $baseView = self::getFirstExistingView(self::VIEW_BASE . '.' . $function);
+                if (!$baseView) {
+                    Log::warning("[$function] view not found", ['attempted' => self::VIEW_BASE . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.' . $function);
+                }
+                Log::debug("[$function] resolved view", ['view' => $baseView]);
                 $this->logExecutionTime($stepStart, 'renderView', 'completed');
-                return $view;
+                return view($baseView, compact('setting'));
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                 Log::warning($method . ' setting not found', ['id' => $id]);
                 Log::debug($method . ' - exception details', ['exception' => get_class($e), 'message' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'id' => $id]);
-                return redirect()->route(self::VIEW_BASE . 'index')->with('error', __('Setting not found'));
+                return redirect()->route(self::VIEW_BASE . '.index')->with('error', __('Setting not found'));
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
                 Log::debug($method . ' - exception details', ['exception' => get_class($e), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
@@ -100,9 +110,14 @@ final class FeaturesController extends AppController
             $method = static::class . '::' . $function;
             Log::info($method, [UsersConstants::COL_USER_ID => Auth::id()]);
             $startView = microtime(true);
-            $view = view(static::VIEW_BASE . 'create');
+            $view = self::getFirstExistingView(static::VIEW_BASE . '.create');
+            if (!$view) {
+                Log::warning("[create] view not found", ['attempted' => static::VIEW_BASE . '.create']);
+                throw new \RuntimeException("View not found: " . static::VIEW_BASE . '.create');
+            }
+            Log::debug("[create] resolved view", ['view' => $view]);
             $this->logExecutionTime($startView, $function . '::view', 'completed');
-            return $view;
+            return view($view);
         }, func_get_args());
     }
 
@@ -117,11 +132,11 @@ final class FeaturesController extends AppController
             $stepStart = microtime(true);
             try {
                 $fields = [
-                    LandingPageSettingsConstants::FT_STT_K => 'on' ?? LandingPageSettingsConstants::FT_STT_DEF,
-                    LandingPageSettingsConstants::FT_TTL_K => $request[LandingPageSettingsConstants::FT_TTL_K] ?? LandingPageSettingsConstants::FT_TTL_DEF,
-                    LandingPageSettingsConstants::FT_HDG_K => $request[LandingPageSettingsConstants::FT_HDG_K] ?? LandingPageSettingsConstants::FT_HDG_DEF,
-                    LandingPageSettingsConstants::FT_DESC_K => $request[LandingPageSettingsConstants::FT_DESC_K] ?? LandingPageSettingsConstants::FT_DESC_DEF,
-                    LandingPageSettingsConstants::FT_BUY_LNK_K => $request[LandingPageSettingsConstants::FT_BUY_LNK_K] ?? LandingPageSettingsConstants::FT_BUY_LNK_DEF
+                    LPC::FT_STT_K => 'on' ?? LPC::FT_STT_DEF,
+                    LPC::FT_TTL_K => $request[LPC::FT_TTL_K] ?? LPC::FT_TTL_DEF,
+                    LPC::FT_HDG_K => $request[LPC::FT_HDG_K] ?? LPC::FT_HDG_DEF,
+                    LPC::FT_DESC_K => $request[LPC::FT_DESC_K] ?? LPC::FT_DESC_DEF,
+                    LPC::FT_BUY_LNK_K => $request[LPC::FT_BUY_LNK_K] ?? LPC::FT_BUY_LNK_DEF
                 ];
                 foreach ($fields as $name => $value) {
                     LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value]);
@@ -166,11 +181,17 @@ final class FeaturesController extends AppController
                 $setting = LandingPageSetting::findOrFail($id);
                 $this->logExecutionTime($findStart, $action . '::findOrFail', 'completed');
                 Log::info("[$action] loaded setting for edit", ['id' => $id, 'name' => $setting->name]);
-                return view(self::VIEW_BASE . 'edit', compact('setting'));
+                $view = self::getFirstExistingView(self::VIEW_BASE . '.edit');
+                if (!$view) {
+                    Log::warning("[edit] view not found", ['attempted' => self::VIEW_BASE . '.edit']);
+                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.edit');
+                }
+                Log::debug("[edit] resolved view", ['view' => $view]);
+                return view($view, compact('setting'));
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                 Log::warning("[$action] setting not found", ['id' => $id]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
-                return redirect()->route(self::VIEW_BASE . 'index')->with('error', __('Setting not found'));
+                return redirect()->route(self::VIEW_BASE . '.index')->with('error', __('Setting not found'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -250,7 +271,13 @@ final class FeaturesController extends AppController
                 LandingPageSetting::settings();
                 $this->logExecutionTime($stepStart, 'settings', 'completed');
                 Log::info("$action completed");
-                return view(self::VIEW_BASE . 'create');
+                $view = self::getFirstExistingView(self::VIEW_BASE . '.create');
+                if (!$view) {
+                    Log::warning("[create] view not found", ['attempted' => self::VIEW_BASE . '.create']);
+                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.create');
+                }
+                Log::debug("[create] resolved view", ['view' => $view]);
+                return view($view);
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", ['exception' => $e]);
                 Log::error("$action failed", ['error' => $e->getMessage()]);
@@ -318,9 +345,14 @@ final class FeaturesController extends AppController
             $this->logExecutionTime($stepStart, 'decodeFeatureList', 'completed');
             Log::debug($method . ' - feature list loaded', ['count' => count($list)]);
             $stepStart = microtime(true);
-            $view = view(self::VIEW_BASE . 'edit', ['feature' => $list[$key] ?? null, 'key' => $key]);
+            $view = self::getFirstExistingView(self::VIEW_BASE . '.edit');
+            if (!$view) {
+                Log::warning("[edit] view not found", ['attempted' => self::VIEW_BASE . '.edit']);
+                throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.edit');
+            }
+            Log::debug("[edit] resolved view", ['view' => $view]);
             $this->logExecutionTime($stepStart, 'renderEditView', 'completed');
-            return $view;
+            return view($view, ['feature' => $list[$key] ?? null, 'key' => $key]);
         }, ['user_id' => Auth::id(), 'key' => $key]);
     }
 
@@ -460,9 +492,14 @@ final class FeaturesController extends AppController
             LandingPageSetting::settings();
             $this->logExecutionTime($stepStart, 'loadSettings', 'completed');
             $stepStart = microtime(true);
-            $view = view(self::VIEW_BASE . 'features_create');
+            $view = self::getFirstExistingView(self::VIEW_BASE . '.features_create');
+            if (!$view) {
+                Log::warning("[features_create] view not found", ['attempted' => self::VIEW_BASE . '.features_create']);
+                throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.features_create');
+            }
+            Log::debug("[features_create] resolved view", ['view' => $view]);
             $this->logExecutionTime($stepStart, 'renderView', 'completed');
-            return $view;
+            return view($view);
         }, ['user_id' => Auth::id()]);
     }
 
@@ -532,7 +569,13 @@ final class FeaturesController extends AppController
                 $list = json_decode(LandingPageSetting::settings()[self::OTHER_NAME], true) ?? [];
                 $this->logExecutionTime($stepStart, 'settings', 'completed');
                 Log::info("$action completed", ['key' => $key]);
-                return view(self::VIEW_BASE . 'features_edit', ['other_features' => $list[$key], 'key' => $key]);
+                $view = self::getFirstExistingView(self::VIEW_BASE . '.features_edit');
+                if (!$view) {
+                    Log::warning("[features_edit] view not found", ['attempted' => self::VIEW_BASE . '.features_edit']);
+                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.features_edit');
+                }
+                Log::debug("[features_edit] resolved view", ['view' => $view]);
+                return view($view, ['other_features' => $list[$key], 'key' => $key]);
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", ['exception' => $e, 'key' => $key]);
                 Log::error("$action failed", ['error' => $e->getMessage(), 'key' => $key]);

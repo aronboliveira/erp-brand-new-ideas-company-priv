@@ -57,16 +57,8 @@
     </li>
 @endsection
 @push(StacksConstants::ADM_SCR_PG)
-    <script>
-        document.getElementById("home_banner").onchange = function () {
-                var src = URL.createObjectURL(this.files[0])
-                document.getElementById('image').src = src
-            }
-            document.getElementById("home_logo").onchange = function () {
-                var src = URL.createObjectURL(this.files[0])
-                document.getElementById('image1').src = src
-            }
-    </script>
+    <script async src="{{ asset('assets/js/routes/joinUs/lang/change.js') }}"></script>
+    <script defer src="{{ asset('assets/js/routes/joinUs/change.js') }}"></script>
 @endpush
 
 @section(YieldingConstants::ADM_BDC)

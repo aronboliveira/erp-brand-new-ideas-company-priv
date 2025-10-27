@@ -9,7 +9,7 @@
     use App\Config\Constants\ViewsConstants as VW;
     use Illuminate\Support\Facades\Route;
 
-    $list = Utility::isFilled($deductionoptions) ? $deductionoptions : ['' => __('No deduction options available')];
+    $list = Utility::isFilled($deductionoptions) ? $deductionoptions : ['' => __('No deduction options available' ?? [])];
     $langValue = $lang ?? (class_exists(Utility::class) ? Utility::fetchUserLang() : null);
     $dashboardBaseRouteName     = 'dashboard';
     $dashboardKebabRouteName    = Str::kebab($dashboardBaseRouteName);

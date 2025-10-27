@@ -36,7 +36,7 @@
                 {{ Form::label('clients', __('Clients'), ['class' => VC::FM_LB]) }}
                     {{ Form::select(
                         'clients[' . $client->id . ']',
-                        Utility::isFilled($clients) ? $clients : [__('No clients available.')],
+                        Utility::isFilled($clients) ? $clients : [__('No clients available.' ?? [])],
                         false,
                         [
                             'class'    => VC::FM_CT . ' select2',

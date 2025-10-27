@@ -128,7 +128,7 @@
                             <tr>
                                 <th scope="col">{{ __('#') }}</th>
                                 <th scope="col">{{ __('Subject') }}</th>
-                                @if(($user?->{UsersConstants::COL_TP} ?? '') !== UsersConstants::CL)
+                                @if(($user?->{UsersConstants::COL_TP} ?? '') !== PermissionsConstants::CL)
                                     <th scope="col">{{ __('Client') }}</th>
                                 @endif
                                 <th scope="col">{{ __('Project') }}</th>
@@ -174,7 +174,7 @@
                                         </a>
                                     </td>
                                     <td>{{ $subject }}</td>
-                                    @if(($user?->{UsersConstants::COL_TP} ?? '') !== UsersConstants::CL)
+                                    @if(($user?->{UsersConstants::COL_TP} ?? '') !== PermissionsConstants::CL)
                                         <td>{{ $clientName }}</td>
                                     @endif
                                     <td>{{ $project }}</td>

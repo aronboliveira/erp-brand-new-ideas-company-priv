@@ -31,7 +31,7 @@
         <div class="modal-body">
             @php
                 $labelsRaw    = $labels ?? [];
-                $labelsList   = Utility::isFilled($labelsRaw)
+                $labelsList   = Utility::isFilled($labelsRaw ?? [])
                                 ? $labelsRaw
                                 : [];
                 $selectedRaw  = $selected ?? [];

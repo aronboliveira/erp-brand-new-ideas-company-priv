@@ -78,7 +78,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(Utility::isFilled($categories))
+                                @if(Utility::isFilled($categories) ?? [])
                                     @foreach ($categories as $category)
                                         <tr>
                                             <td class="font-style">{{ !empty($category->name) ? $category->name : __('No name available for category') }}</td>

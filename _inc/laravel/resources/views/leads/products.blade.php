@@ -18,7 +18,7 @@
     $updateUrl      = ($updateResolved && $hasLead) ? route($updateResolved, $lead->id) : '#';
     $updateGuard    = Utility::fetchLinkMessage($lang, VW::LD, 'update_route_unavailable') ?? __('Update route is unavailable. Please contact technical support or your domain administrator.');
 
-    $productsOptions = Utility::isFilled($products) ? $products : ['' => __('No product available')];
+    $productsOptions = Utility::isFilled($products) ? $products : ['' => __('No product available' ?? [])];
 @endphp
 
 @if(!$hasLead)

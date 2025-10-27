@@ -148,7 +148,7 @@
                                 $isExpenseNumberFormatAvailable = method_exists($user, 'expenseNumberFormat');
                                 $isDateFormatAvailable          = method_exists($user, 'dateFormat');
                             @endphp
-                            @if(Utility::isFilled($expenses))
+                            @if(Utility::isFilled($expenses) ?? [])
                                 @foreach ($expenses as $expense)
                                     @php
                                         $showBase     = VW::PRJ_EXP . '.show';

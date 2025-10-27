@@ -14,7 +14,7 @@
         $fields = [
             ['name'=>'date','type'=>'date','label'=>__('Date'),'cols'=>6,'attrs'=>['class'=>'form-control','required'=>'required']],
             ['name'=>'amount','type'=>'number','label'=>__('Amount'),'value'=> is_callable([$invoice, 'getDue']) ? $invoice->getDue() : [__('No due invoice available')],'cols'=>6,'attrs'=>['class'=>'form-control','required'=>'required','step'=>'0.01']],
-            ['name'=>'account_id','type'=>'select','label'=>__('Account'),'options'=> Utility::isFilled($accounts) ? $accounts : [__('No account available')],'cols'=>6,'attrs'=>['class'=>'form-control select','required'=>'required']],
+            ['name'=>'account_id','type'=>'select','label'=>__('Account'),'options'=> Utility::isFilled($accounts) ? $accounts : [__('No account available' ?? [])],'cols'=>6,'attrs'=>['class'=>'form-control select','required'=>'required']],
             ['name'=>'reference','type'=>'text','label'=>__('Reference'),'cols'=>6,'attrs'=>['class'=>'form-control']],
             ['name'=>'description','type'=>'textarea','label'=>__('Description'),'cols'=>12,'attrs'=>['class'=>'form-control','rows'=>3]],
             ['name'=>'add_receipt','type'=>'file','label'=>__('Payment Receipt'),'cols'=>6,'attrs'=>['class'=>'form-control']],

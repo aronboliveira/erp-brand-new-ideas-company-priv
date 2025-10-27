@@ -194,7 +194,7 @@
             <div class="col-6 {{ VC::FM_G }}">
                 {{ Form::label('user_id', __('Assignee'), ['class' => VC::FM_LB]) }}
                 <select name="user_id" id="choices-multiple2" class="{{ VC::FM_CT }} select2" required>
-                    @if(Utility::isFilled($users))
+                    @if(Utility::isFilled($users) ?? [])
                         @foreach($users as $usr)
                             @php
                                 $isUsrDeal = $usr instanceof UserDeal && method_exists($usr, 'getDealUser');

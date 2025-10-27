@@ -612,7 +612,7 @@
                                                                 @php 
                                                                     try {
                                                                         $users = $bug->users();
-                                                                        $users = Utility::isFilled($users) ? $users : [];
+                                                                        $users = Utility::isFilled($users ?? []) ? $users : [];
                                                                     } catch (\Exception $e) {
                                                                         $users = [];
                                                                     }

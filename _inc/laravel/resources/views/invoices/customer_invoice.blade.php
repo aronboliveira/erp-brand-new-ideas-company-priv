@@ -307,7 +307,7 @@
                                                     </span>
                                                 </small>
                                             </div>
-                                            @if (Utility::isFilled($customFields) && Utility::isFilled($invoice->customField))
+                                            @if (Utility::isFilled($customFields) && Utility::isFilled($invoice->customField) ?? [])
                                                 @foreach ($customFields as $field)
                                                     <div class="{{ VC::C12 }} {{ VC::CM4 }} col-lg-4 {{ VC::JCE }}">
                                                         <small>
@@ -346,7 +346,7 @@
                                                             $totalDiscount = 0;
                                                             $itemsWithCalculations = [];
                                                         @endphp
-                                                        @if(Utility::isFilled($items))
+                                                        @if(Utility::isFilled($items) ?? [])
                                                             @foreach ($items as $key => $item)
                                                                 @php
                                                                     $itemTaxes = [];
@@ -358,7 +358,7 @@
                                                                     if (!empty($item->tax)) {
                                                                         $taxes = is_callable([Utility::class, 'tax']) ? Utility::tax($item->tax) : [];
 
-                                                                        if(Utility::isFilled($taxes)) {
+                                                                        if(Utility::isFilled($taxes) ?? []) {
                                                                             if (!$canTaxRate) {
                                                                                 Log::warning("Cannot calculate tax rate for invoice {$invoice->id} item ID {$item->id} because Utility::taxRate is not callable.");
                                                                             }
@@ -466,7 +466,7 @@
                                                                     {{ $canFormatPrice && is_callable([$invoice, 'getTotalDiscount']) ?Utility::priceFormat($settings, $invoice->getTotalDiscount()) : __('Failed to format total discount')}}
                                                                 </td>
                                                             </tr>
-                                                            @if (Utility::isFilled($taxesData))
+                                                            @if (Utility::isFilled($taxesData) ?? [])
                                                                 @foreach ($taxesData as $taxName => $taxPrice)
                                                                     <tr>
                                                                         <td colspan="6"></td>
@@ -712,7 +712,7 @@
                                                 </td>
                                             </tr>
                                         @endforelse
-                                        @if(Utility::isFilled($invoice->bankPayments))
+                                        @if(Utility::isFilled($invoice->bankPayments) ?? [])
                                             @foreach ($invoice->bankPayments as $bankPayment)
                                                 <tr>
                                                     <td>{{$canFormatDate ? (!empty($bankPayment->date) ? Utility::dateFormat($bankPayment->date) : __('No date for bank payment available')) : __('Failed to format bank payment date')}}</td>

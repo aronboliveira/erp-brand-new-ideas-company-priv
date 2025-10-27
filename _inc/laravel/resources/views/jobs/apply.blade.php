@@ -115,7 +115,7 @@
                                 <h2 class="h1 mb-3">{{ data_get($job,'title',__('No job title available')) }}</h2>
                                 @php $skills = array_filter(array_map('trim',explode(',',(string) data_get($job,'skill','')))); @endphp
                                 <div class="d-flex flex-wrap justify-content-center gap-1 mb-4">
-                                    @if(Utility::isFilled($skills))
+                                    @if(Utility::isFilled($skills) ?? [])
                                         @foreach($skills as $skill)
                                             <span class="badge rounded p-2 bg-primary">{{ !empty($skill) ? $skill : __('Undefined skill') }}</span>
                                         @endforeach

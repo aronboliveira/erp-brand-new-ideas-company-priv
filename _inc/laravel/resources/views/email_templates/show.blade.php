@@ -50,7 +50,7 @@
                                 <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                             </a>
                             <div class="{{ VC::DRP_MN_DSH_END }}" aria-labelledby="dropdownLanguage">
-                                @if(Utility::isFilled($languages) && !empty($currEmailLang) && isset($currEmailLang->lang) && !empty($emailTemplate) && isset($emailTemplate->id))
+                                @if(Utility::isFilled($languages) && !empty($currEmailLang) && isset($currEmailLang->lang) && !empty($emailTemplate) && isset($emailTemplate->id) ?? [])
                                     @php
                                         $tplIdStr                = (string) data_get($emailTemplate ?? null, 'id', '');
                                         $manageBase              = VW::EMLS . '.manage.language';

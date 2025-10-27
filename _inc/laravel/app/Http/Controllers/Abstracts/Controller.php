@@ -12,7 +12,7 @@ use Illuminate\Foundation\{
 };
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Support\Facades\{Log, Route};
+use Illuminate\Support\Facades\{Log, Route, View};
 use Illuminate\Support\Str;
 use Illuminate\Validation\{ValidationException, Validator};
 
@@ -360,5 +360,90 @@ abstract class Controller extends BaseController
         if ($executionTime > self::NOTICE_THRESHOLD_MS) {
             Log::info("{$class}::{$action} above expected (> {$context['thresholds_ms']['notice']} ms)", $context);
         }
+    }
+
+    /**
+     * Get the first existing view from provided path(s)
+     * 
+     * @param string|array $viewPath Single view path or array of view paths
+     * @return string|null The first existing view path or null if none found
+     * @throws \InvalidArgumentException If input validation fails
+     */
+    protected static function getFirstExistingView(string|array $viewPath, array $data = []): ?string
+    {
+        if (is_string($viewPath)) {
+            $viewPath = static::sanitizeViewPath($viewPath);
+            $bases = ['landing_page', 'landing-page', 'landingpage', 'LandingPage', 'landingPage', 'Landingpage', 'LANDINGPAGE'];
+            $viewPaths = [$viewPath];
+            $trimmedPath = ltrim($viewPath, '.');
+            foreach ($bases as $base1) {
+                $viewPaths[] = "$base1::$trimmedPath";
+                foreach ($bases as $base2)
+                    $viewPaths[] = "$base1::$base2.$trimmedPath";
+            }
+        } elseif (is_array($viewPath)) {
+            if (empty($viewPath))
+                throw new \InvalidArgumentException('View path array cannot be empty');
+            $viewPaths = array_map(function ($path) {
+                if (!is_string($path))
+                    throw new \InvalidArgumentException('All view paths must be strings, ' . gettype($path) . ' given');
+                return static::sanitizeViewPath($path);
+            }, $viewPath);
+        } else
+            throw new \InvalidArgumentException(
+                'Argument must be a string or an array of strings, ' . gettype($viewPath) . ' given'
+            );
+        $viewPaths = array_values(array_filter(array_unique($viewPaths), fn($path) => !empty($path)));
+        if (count($viewPaths) > 254)
+            throw new \InvalidArgumentException('Too many view paths provided (max 50)');
+        foreach ($viewPaths as $path) {
+            try {
+                if (View::exists($path)) {
+                    Log::debug('View resolved', ['path' => $path]);
+                    return $path;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Error checking view existence', [
+                    'path' => $path,
+                    'error' => $e->getMessage()
+                ]);
+                continue;
+            }
+        }
+        Log::warning('No existing view found', ['attempted_paths' => $viewPaths]);
+        return null;
+    }
+
+    /**
+     * Sanitize view path to prevent path traversal and injection attacks
+     * 
+     * @param string $path The view path to sanitize
+     * @return string Sanitized view path
+     * @throws \InvalidArgumentException If path is invalid
+     */
+    protected static function sanitizeViewPath(string $path): string
+    {
+        $path = trim($path);
+        if (strlen($path) > 255)
+            throw new \InvalidArgumentException('View path too long (max 255 characters)');
+        if (empty($path))
+            throw new \InvalidArgumentException('View path cannot be empty');
+        if (preg_match('#(\.\.|/\.|\\\\)#', $path))
+            throw new \InvalidArgumentException('Invalid view path: path traversal detected');
+        if (!preg_match('/^[a-zA-Z0-9._:\-]+$/', $path))
+            throw new \InvalidArgumentException('Invalid view path: contains illegal characters');
+        if (substr_count($path, '::') > 1)
+            throw new \InvalidArgumentException('Invalid view path: multiple namespace separators');
+        if (str_contains($path, '::')) {
+            $parts = explode('::', $path, 2);
+            if (empty($parts[0]) || empty($parts[1]))
+                throw new \InvalidArgumentException('Invalid view path: malformed namespace');
+        }
+        if (str_contains($path, '..'))
+            throw new \InvalidArgumentException('Invalid view path: consecutive dots not allowed');
+        $path = str_replace(['/', '\\'], '.', $path);
+        $path = preg_replace('/\.+/', '.', $path);
+        $path = trim($path, '.');
+        return $path;
     }
 }

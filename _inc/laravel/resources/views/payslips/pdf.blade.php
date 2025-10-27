@@ -29,12 +29,12 @@
     $dedLoan       = $payslipDetail['deduction']['loan']      ?? [];
     $dedDeduc      = $payslipDetail['deduction']['deduction'] ?? [];
 
-    $earnAllowanceHas = Utility::isFilled($earnAllowance);
-    $earnCommissionHas= Utility::isFilled($earnCommission);
-    $earnOtherHas     = Utility::isFilled($earnOther);
-    $earnOverHas      = Utility::isFilled($earnOver);
-    $dedLoanHas       = Utility::isFilled($dedLoan);
-    $dedDeducHas      = Utility::isFilled($dedDeduc);
+    $earnAllowanceHas = Utility::isFilled($earnAllowance ?? []);
+    $earnCommissionHas= Utility::isFilled($earnCommission ?? []);
+    $earnOtherHas     = Utility::isFilled($earnOther ?? []);
+    $earnOverHas      = Utility::isFilled($earnOver ?? []);
+    $dedLoanHas       = Utility::isFilled($dedLoan ?? []);
+    $dedDeducHas      = Utility::isFilled($dedDeduc ?? []);
 
     $totalEarning   = $payslipDetail['totalEarning']   ?? 0;
     $totalDeduction = $payslipDetail['totalDeduction'] ?? 0;

@@ -86,7 +86,7 @@
                 @foreach($performances as $perf)
                     @php
                         $types = data_get($perf, 'types');
-                        $typesIsList = Utility::isFilled($types);
+                        $typesIsList = Utility::isFilled($types ?? []);
                     @endphp
                     <div class="row">
                         <div class="{{ VC::FM_GCB12 }} mt-3">

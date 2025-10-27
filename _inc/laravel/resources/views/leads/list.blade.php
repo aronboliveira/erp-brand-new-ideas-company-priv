@@ -109,7 +109,7 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                @if(Utility::isFilled($leads))
+                                @if(Utility::isFilled($leads) ?? [])
                                     @foreach ($leads as $lead)
                                         @php
                                             $lid = data_get($lead,'id');

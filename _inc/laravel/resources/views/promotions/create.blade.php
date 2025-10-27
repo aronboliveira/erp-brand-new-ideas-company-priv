@@ -70,7 +70,7 @@
         <div class="{{ VC::RW }}">
             <div class="col-lg-6 {{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('employee_id', __('Employee'), ['class' => VC::FM_LB]) }}
-                @if(isset($employees) && Utility::isFilled($employees))
+                @if(isset($employees) && Utility::isFilled($employees) ?? [])
                     {{ Form::select('employee_id', $employees, null, ['class' => VC::FM_CT_SL, 'required' => true]) }}
                 @else
                     <select name="employee_id" class="{{ VC::FM_CT_SL }}" required disabled>
@@ -81,7 +81,7 @@
 
             <div class="col-lg-6 {{ VC::CM6 }} {{ VC::FM_G }}">
                 {{ Form::label('designation_id', __('Designation'), ['class' => VC::FM_LB]) }}
-                @if(isset($designations) && Utility::isFilled($designations))
+                @if(isset($designations) && Utility::isFilled($designations) ?? [])
                     {{ Form::select('designation_id', $designations, null, ['class' => VC::FM_CT_SL]) }}
                 @else
                     <select name="designation_id" class="{{ VC::FM_CT_SL }}" disabled>

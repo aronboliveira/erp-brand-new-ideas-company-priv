@@ -84,7 +84,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $al = Utility::isFilled($allowances); @endphp
+                                                                            @php $al = Utility::isFilled($allowances ?? []); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -124,7 +124,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $cm = Utility::isFilled($commissions); @endphp
+                                                                            @php $cm = Utility::isFilled($commissions ?? []); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -164,7 +164,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $ln = Utility::isFilled($loans); @endphp
+                                                                            @php $ln = Utility::isFilled($loans ?? []); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -204,7 +204,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $dd = Utility::isFilled($deductions); @endphp
+                                                                            @php $dd = Utility::isFilled($deductions ?? []); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -244,9 +244,9 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $op = Utility::isFilled($other_payments); @endphp
+                                                                            @php $op = Utility::isFilled($other_payments ?? []); @endphp
                                                                             @php $other = $op ? $other_payments : ( ($p && data_get($p,'other_payment')) ? json_decode(data_get($p,'other_payment')) : [] ); @endphp
-                                                                            @php $opHas = Utility::isFilled($other); @endphp
+                                                                            @php $opHas = Utility::isFilled($other ?? []); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Type') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">
@@ -286,7 +286,7 @@
                                                                 <div class="col-lg-12">
                                                                     <div class="card bg-none mb-0">
                                                                         <div class="table-responsive">
-                                                                            @php $ot = Utility::isFilled($overtimes); @endphp
+                                                                            @php $ot = Utility::isFilled($overtimes ?? []); @endphp
                                                                             <table class="table align-items-center">
                                                                                 <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Amount') }}</th></tr></thead>
                                                                                 <tbody class="list">

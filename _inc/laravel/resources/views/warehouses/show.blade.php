@@ -45,7 +45,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if(Utility::isFilled($warehouse))
+                                @if(Utility::isFilled($warehouse) ?? [])
                                     @foreach ($warehouse as $warehouses)
                                         <tr class="font-style">
                                             @if(!empty($warehouses->product))
