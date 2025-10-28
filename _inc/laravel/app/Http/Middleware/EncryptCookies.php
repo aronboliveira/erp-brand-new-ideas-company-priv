@@ -50,7 +50,10 @@ final class EncryptCookies extends Middleware
         try {
             $response = parent::handle($request, $next);
             $headers = $response->headers->all();
-            Log::info("{$class}::{$method} - Cookies encrypted successfully", [
+            Log::info("{$class}::{$method} cookies_encrypted", [
+                'uri'       => $request->getRequestUri(),
+            ]);
+            Log::debug("{$class}::{$method} - Cookies encrypted successfully with params:", [
                 'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                 'user'   => $request->user()?->id ?? 'guest',
                 'email'  => $request->user()?->email ?? 'n/a',
@@ -59,7 +62,7 @@ final class EncryptCookies extends Middleware
                 'status' => $response instanceof Response ? $response->getStatusCode() : 'n/a',
                 'common_headers' => array_filter(
                     $headers,
-                    fn ($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
+                    fn($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
                     ARRAY_FILTER_USE_BOTH
                 ),
                 'cookies_headers' => $response->headers->getCookies(),

@@ -86,7 +86,8 @@ final class XSS
             }
             $this->logExecutionTime($authStart, 'authentication');
             if ($user instanceof User) {
-                Log::info("{$class} auth succeeded", [
+                Log::info("{$class} auth succeeded", ['uri' => $request->getPathInfo()]);
+                Log::debug("{$class} auth succeeded", [
                     UsersConstants::COL_USER_ID => $user->id,
                     SettingsConstants::LCL      => $user[UsersConstants::COL_LG],
                     'status'                   => 100
@@ -106,9 +107,10 @@ final class XSS
             $raw = $request->all();
             $count = count($raw, COUNT_RECURSIVE);
             Log::debug("{$class} sanitization start", ['fields' => $count]);
-            array_walk_recursive($raw, fn (&$v) => is_string($v) ? $v = strip_tags($v) : null);
+            array_walk_recursive($raw, fn(&$v) => is_string($v) ? $v = strip_tags($v) : null);
             $request->merge($raw);
-            Log::info("{$class} sanitization done", [
+            Log::debug("{$class} sanitization complete", ['url' => $request->fullUrl()]);
+            Log::debug("{$class} sanitization done", [
                 'uri' => $request->getPathInfo(),
                 'fields' => $count,
                 'next'   => $this->searchForNext($request)

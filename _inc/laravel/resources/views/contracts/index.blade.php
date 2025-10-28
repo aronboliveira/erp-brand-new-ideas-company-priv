@@ -187,12 +187,12 @@
                                     <td>{{ $startRaw ? ($user?->dateFormat($startRaw) ?? __('Failed to format date')) : __('No start date available') }}</td>
                                     <td>{{ $endRaw   ? ($user?->dateFormat($endRaw)   ?? __('Failed to format date')) : __('No end date available') }}</td>
                                     <td class="action">
-                                        @if(($user?->{UsersConstants::COL_TP} ?? '') === PermissionsConstants::CPN && $status === 'accept')
+                                        @if((($user?->{UsersConstants::COL_TP} ?? '') === PermissionsConstants::CPN || ($user?->{UsersConstants::COL_TP} ?? '') === PermissionsConstants::SA) && $status === 'accept')
                                             @php
                                                 $copyHref   = '#';
                                                 $copyGuard  = Utility::fetchLinkMessage($lang, VW::CTC, 'copy_route_unavailable')
                                                             ?? 'Copy route is unavailable. Please contact technical support or your domain administrator.';
-                                                if(($user?->{UsersConstants::COL_TP} ?? '') === PermissionsConstants::CPN && $status === 'accept') {
+                                                if((($user?->{UsersConstants::COL_TP} === PermissionsConstants::CPN || $user->{UsersConstants::COL_TP} === PermissionsConstants::SA) && $status === 'accept')) {
                                                     $copyRoute = VW::CTC . '.copy';
                                                     $copyHref  = (Route::has($copyRoute) && $cid !== '') ? route($copyRoute, $cid) : '#';
                                                 }

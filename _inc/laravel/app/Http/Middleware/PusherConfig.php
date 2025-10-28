@@ -38,12 +38,14 @@ final class PusherConfig
         try {
             $settings = Utility::settingsById(1);
             if (is_array($settings) && $settings) {
-                foreach ([
-                    'chatify.pusher.key'             => 'pusher_app_key',
-                    'chatify.pusher.secret'          => 'pusher_app_secret',
-                    'chatify.pusher.app_id'          => 'pusher_app_id',
-                    'chatify.pusher.options.cluster' => 'pusher_app_cluster',
-                ] as $configKey => $settingKey) {
+                foreach (
+                    [
+                        'chatify.pusher.key'             => 'pusher_app_key',
+                        'chatify.pusher.secret'          => 'pusher_app_secret',
+                        'chatify.pusher.app_id'          => 'pusher_app_id',
+                        'chatify.pusher.options.cluster' => 'pusher_app_cluster',
+                    ] as $configKey => $settingKey
+                ) {
                     $value = $settings[$settingKey] ?? null;
                     config([$configKey => $value]);
                     Log::debug("{$class}::{$method} set config", [
@@ -51,13 +53,13 @@ final class PusherConfig
                         'value'      => $value,
                     ]);
                 }
-                Log::info("{$class}::{$method} settings applied", [
+                Log::debug("{$class}::{$method} settings applied", [
                     'uri'      => $request->getRequestUri(),
                     'settings' => $settings,
                 ]);
                 $output->writeln("[$class] Pusher settings applied successfully");
             } else {
-                Log::info("{$class}::{$method} no settings found", [
+                Log::debug("{$class}::{$method} no settings found", [
                     'uri' => $request->getRequestUri(),
                 ]);
                 $output->writeln("[$class] No Pusher settings to apply");

@@ -70,7 +70,10 @@ final class SecureHeaders
 						throw $e;
 					}
 				}
-				Log::info("{$class}::{$method} applied", [
+				Log::info("{$class}::{$method} secure_headers_set", [
+					'uri'       => $request->getRequestUri(),
+				]);
+				Log::debug("{$class}::{$method} applied", [
 					'ip'        => $request->ip(),
 					'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
 					'headers'   => array_keys(self::HEADERS),

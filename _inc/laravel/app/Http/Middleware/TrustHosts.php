@@ -45,7 +45,10 @@ final class TrustHosts extends Middleware
                 if ($response->getStatusCode() >= 400) throw new \RuntimeException(
                     "Failed response status: {$response->getStatusCode()}"
                 );
-                Log::info("{$class}::{$method} applied successfully", [
+                Log::info("{$class}::{$method} succeeded", [
+                    'uri' => $request->getRequestUri(),
+                ]);
+                Log::debug("{$class}::{$method} applied successfully", [
                     'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                     'uri' => $request->getRequestUri(),
                     'status' => $response->getStatusCode() ?? 'n/a',

@@ -58,7 +58,8 @@ final class CheckForMaintenanceMode extends Middleware
                 "Failed response status: {$response->getStatusCode()}"
             );
             else {
-                Log::info("{$base}::" . __FUNCTION__ . " check_passed", [
+                Log::info("{$base}::" . __FUNCTION__ . " check_passed");
+                Log::debug("{$base}::" . __FUNCTION__ . " check_passed with the following props:", [
                     'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                     'uri'    => $request->getRequestUri(),
                     'method' => $request->getMethod(),

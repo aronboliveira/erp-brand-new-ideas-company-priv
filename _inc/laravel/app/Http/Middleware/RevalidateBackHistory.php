@@ -79,8 +79,10 @@ final class RevalidateBackHistory
                 ]);
             }
         }
-
-        Log::info("{$class}::{$method} CORS headers applied", [
+        Log::info("{$class}::{$method} CORS headers applied successfully", [
+            'uri'     => $request->getRequestUri(),
+        ]);
+        Log::debug("{$class}::{$method} CORS headers applied", [
             'uri'     => $request->getRequestUri(),
             'headers' => array_keys($headers),
             'status'  => $response->getStatusCode(),

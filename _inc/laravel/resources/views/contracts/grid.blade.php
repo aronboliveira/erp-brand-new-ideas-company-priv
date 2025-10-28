@@ -63,7 +63,7 @@
         @push(StacksConstants::ADM_SCR_PG)
             <script defer src="{{ asset('assets/js/routes/contracts/index.js') }}"></script>
         @endpush
-        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
+        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA)
             @php
                 $createRoute = VW::CTC . '.create';
                 $createHref  = Route::has($createRoute) ? route($createRoute) : '#';
@@ -160,7 +160,7 @@
                            data-guard-msg="{{ $showGuard }}">
                             {{ $subject }}
                         </a>
-                        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN)
+                        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA)
                             @php
                                 $editRoute   = VW::CTC . '.edit';
                                 $editHref    = (Route::has($editRoute) && $cid !== '') ? route($editRoute, $cid) : '#';

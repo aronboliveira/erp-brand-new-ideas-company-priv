@@ -25,9 +25,9 @@ final class VerifyCsrfToken extends Middleware
         $xsrf = '# NO TOKEN';
         try {
             $xsrf = collect($request->cookies->all())
-                ->flatMap(fn ($cookie, $name) => str_replace('_', '-', strtolower($name)) === 'xsrf-token'
+                ->flatMap(fn($cookie, $name) => str_replace('_', '-', strtolower($name)) === 'xsrf-token'
                     ? [$name => $cookie] : [])
-                ->filter(fn ($v) => !is_null($v) && $v !== '')
+                ->filter(fn($v) => !is_null($v) && $v !== '')
                 ->all();
         } catch (\Throwable) {
             $xsrf = '# FAILED TO PARSE COOKIES';
@@ -52,7 +52,10 @@ final class VerifyCsrfToken extends Middleware
         try {
             $response = parent::handle($request, $next);
             $headers = $response->headers->all();
-            Log::info('CSRF token validated', [
+            Log::info('CSRF token validated successfully', [
+                'uri' => $request->getRequestUri(),
+            ]);
+            Log::debug('CSRF token validated', [
                 'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                 'method' => $request->getMethod(),
                 'uri' => $request->getRequestUri(),
@@ -63,7 +66,7 @@ final class VerifyCsrfToken extends Middleware
                 'next'   => $this->searchForNext($request),
                 'common_headers' => array_filter(
                     $headers,
-                    fn ($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
+                    fn($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
                     ARRAY_FILTER_USE_BOTH
                 ),
                 'cookie_data' => $this->parseCookies($response),
@@ -78,7 +81,7 @@ final class VerifyCsrfToken extends Middleware
                 'info'   => '419',
                 'common_headers' => array_filter(
                     $headers,
-                    fn ($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
+                    fn($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
                     ARRAY_FILTER_USE_BOTH
                 ),
                 'cookie_data' => $this->parseCookies($response),
@@ -99,7 +102,7 @@ final class VerifyCsrfToken extends Middleware
                 'status'    => '403',
                 'common_headers' => array_filter(
                     $headers,
-                    fn ($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
+                    fn($_, $key) => str_replace("_", "-", strtolower($key)) !== 'set-cookie',
                     ARRAY_FILTER_USE_BOTH
                 ),
                 'cookie_data' => $this->parseCookies($response),

@@ -24,7 +24,7 @@ class StripHtmlComments
 		$startTime = microtime(true);
 		$class = class_basename(static::class);
 		try {
-			Log::info($class . ' middleware started', [
+			Log::debug($class . ' middleware started', [
 				'url' => $request->fullUrl(),
 				'method' => $request->method(),
 				'user_agent' => $request->userAgent(),
@@ -63,7 +63,7 @@ class StripHtmlComments
 				$this->logExecutionTime($startTime, 'skipped');
 				return $response;
 			}
-			Log::info('Processing HTML content for comment removal', [
+			Log::debug('Processing HTML content for comment removal', [
 				'content_type' => $contentType,
 				'status_code' => $response->getStatusCode()
 			]);
@@ -97,7 +97,7 @@ class StripHtmlComments
 			$response->setContent($cleanContent);
 			$bytesRemoved = strlen($originalContent) - strlen($cleanContent);
 			$compressionRatio = $bytesRemoved > 0 ? round(($bytesRemoved / strlen($originalContent)) * 100, 2) : 0;
-			Log::info('HTML comments successfully stripped', [
+			Log::debug('HTML comments successfully stripped', [
 				'original_length' => strlen($originalContent),
 				'cleaned_length' => strlen($cleanContent),
 				'bytes_removed' => $bytesRemoved,

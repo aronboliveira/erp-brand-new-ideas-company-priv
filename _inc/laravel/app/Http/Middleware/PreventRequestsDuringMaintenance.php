@@ -60,6 +60,9 @@ final class PreventRequestsDuringMaintenance extends Middleware
                 );
             }
             Log::info("{$class}::{$method} passed maintenance check", [
+                'uri'    => $ctx['uri'],
+            ]);
+            Log::debug("{$class}::{$method} passed maintenance check", [
                 'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                 'uri'    => $ctx['uri'],
                 'status' => $response instanceof Response ? $response->getStatusCode() : 'n/a',

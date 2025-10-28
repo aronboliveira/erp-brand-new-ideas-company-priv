@@ -54,6 +54,9 @@ final class TrimStrings extends Middleware
                 $response = parent::handle($request, $next);
                 Log::info("{$class}::{$method} succeeded", [
                     'uri' => $request->getRequestUri(),
+                ]);
+                Log::debug("{$class}::{$method} succeeded", [
+                    'uri' => $request->getRequestUri(),
                     'method' => $request->getMethod(),
                     'status' => $response->getStatusCode() ?? 'n/a',
                     'next'   => $this->searchForNext($request)
@@ -62,7 +65,9 @@ final class TrimStrings extends Middleware
                 return $response;
             } catch (\Throwable $e) {
                 $errCtx = [
-                    'exception' => get_class($e), 'message' => $e->getMessage(), 'uri' => $request->getRequestUri(),
+                    'exception' => get_class($e),
+                    'message' => $e->getMessage(),
+                    'uri' => $request->getRequestUri(),
                     'method' => $request->getMethod()
                 ];
                 Log::error("{$class}::{$method} failed", $errCtx);

@@ -75,6 +75,9 @@ final class TrustProxies extends Middleware
                     throw $e;
                 }
                 Log::info("{$class}::{$method} succeeded", [
+                    'uri' => $request->getRequestUri(),
+                ]);
+                Log::debug("{$class}::{$method} succeeded", [
                     'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                     'uri' => $request->getRequestUri(),
                     'status' => $response instanceof Response ? $response->getStatusCode() : 'n/a',

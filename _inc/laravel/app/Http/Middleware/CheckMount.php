@@ -46,13 +46,13 @@ class CheckMount
 				$content = preg_replace('~</body>~i', $scriptHtml . '</body>', $content, 1, $count);
 				if ($count > 0) {
 					$injected = true;
-					Log::info('CheckMount: Injected before </body>');
+					Log::debug('CheckMount: Injected before </body>');
 				}
 			} elseif ($hasHeadEnd) {
 				$content = preg_replace('~</head>~i', $scriptHtml . '</head>', $content, 1, $count);
 				if ($count > 0) {
 					$injected = true;
-					Log::info('CheckMount: Injected before </head>');
+					Log::debug('CheckMount: Injected before </head>');
 				}
 			}
 
@@ -66,14 +66,14 @@ class CheckMount
 					$content = preg_replace('~<html~i', $scriptHtml . '<html', $content, 1, $count);
 					if ($count > 0) {
 						$injected = true;
-						Log::info('CheckMount: Emergency injected before <html>');
+						Log::debug('CheckMount: Emergency injected before <html>');
 					}
 				}
 
 				if (!$injected) {
 					$content = $scriptHtml . $content;
 					$injected = true;
-					Log::info('CheckMount: Emergency injected at start of content');
+					Log::debug('CheckMount: Emergency injected at start of content');
 				}
 			}
 
@@ -86,7 +86,7 @@ class CheckMount
 					$content = preg_replace('~(<head[^>]*>)~i', '$1' . $scriptHtml, $content, 1, $count);
 					if ($count > 0) {
 						$injected = true;
-						Log::info('CheckMount: Injected after <head>');
+						Log::debug('CheckMount: Injected after <head>');
 					}
 				}
 
@@ -94,7 +94,7 @@ class CheckMount
 					$content = preg_replace('~(<body[^>]*>)~i', '$1' . $scriptHtml, $content, 1, $count);
 					if ($count > 0) {
 						$injected = true;
-						Log::info('CheckMount: Injected after <body>');
+						Log::debug('CheckMount: Injected after <body>');
 					}
 				}
 			}
@@ -108,7 +108,7 @@ class CheckMount
 					$content = preg_replace('~(<form[^>]*>)~i', '$1' . $scriptHtml, $content, 1, $count);
 					if ($count > 0) {
 						$injected = true;
-						Log::info('CheckMount: Injected after <form> tag in modal');
+						Log::debug('CheckMount: Injected after <form> tag in modal');
 					}
 				}
 
@@ -122,7 +122,7 @@ class CheckMount
 					);
 					if ($count > 0) {
 						$injected = true;
-						Log::info('CheckMount: Injected before modal-body element');
+						Log::debug('CheckMount: Injected before modal-body element');
 					}
 				}
 
@@ -136,18 +136,21 @@ class CheckMount
 					);
 					if ($count > 0) {
 						$injected = true;
-						Log::info('CheckMount: Injected before modal-header element');
+						Log::debug('CheckMount: Injected before modal-header element');
 					}
 				}
 
 				if (!$injected) {
 					$content = $scriptHtml . $content;
 					$injected = true;
-					Log::info('CheckMount: Injected at start of partial HTML');
+					Log::debug('CheckMount: Injected at start of partial HTML');
 				}
 			}
 
 			if ($injected) {
+				Log::info('CheckMount: Script injection successful', [
+					'url' => $request->fullUrl()
+				]);
 				$response->setContent($content);
 			} else {
 				Log::error('CheckMount: Failed to inject script anywhere', [

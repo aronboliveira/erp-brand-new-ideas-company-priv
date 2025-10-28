@@ -33,7 +33,10 @@ final class RedirectIfAuthenticated
             $output = new ConsoleOutput();
             try {
                 if (!($request->isMethod('get') && $request->routeIs('login'))) {
-                    Log::info("{$class}::{$method} not suitable for the route + method. Skipping login guard checks.", [
+                    Log::info("{$class}::{$method} skipping redirect check", [
+                        'uri' => $request->getRequestUri(),
+                    ]);
+                    Log::debug("{$class}::{$method} not suitable for the route + method. Skipping login guard checks.", [
                         'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                         'uri' => $request->getRequestUri(),
                         'method' => $request->getMethod(),

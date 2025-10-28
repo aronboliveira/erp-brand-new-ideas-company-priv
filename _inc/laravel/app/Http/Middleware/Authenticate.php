@@ -60,7 +60,7 @@ final class Authenticate extends Middleware
                     $this->logExecutionTime($start, __METHOD__ . ' user_not_active');
                     throw new AuthorizationException('User is not active.');
                 }
-                Log::info(__METHOD__ . ' success', ['guard' => $guard, 'user_id' => $user->id]);
+                Log::debug(__METHOD__ . ' success', ['guard' => $guard, 'user_id' => $user->id]);
                 $this->auth->shouldUse($guard);
                 $this->logExecutionTime($start, __METHOD__ . ' success');
                 return;
@@ -108,7 +108,8 @@ final class Authenticate extends Middleware
             app()->runningInConsole() ? $output->writeln("<question> {$msg} </question>") : $output->writeln($msg);
             $this->_authenticate($request, $guards);
             $user = $request->user();
-            Log::info("{$base}::" . __FUNCTION__ . " user_authenticated", [
+            Log::info("{$base}::" . __FUNCTION__ . " user_authenticated");
+            Log::debug("{$base}::" . __FUNCTION__ . " user_authenticated", [
                 'referrer'  => $request->header('Referer') ?? $request->headers->get('referer') ?? request()->server('HTTP_REFERER') ?? '# UNIDENTIFIED' . " - Previous: " . url()->previous(),
                 'route' => $request->route()?->getName() ?? '# UNIDENTIFIED',
                 'action_method' => $request->route()?->getActionMethod() ?? '# UNIDENTIFIED',
