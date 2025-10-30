@@ -40,7 +40,6 @@ class PricingPlanController extends AppController
             $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
             if ($ur instanceof User) $userId = $ur->id;
             Log::info("[$action] start", ['user_id' => $userId]);
-
             try {
                 $settingsStart = microtime(true);
                 $settings = LandingPageSetting::settings();
@@ -104,27 +103,33 @@ class PricingPlanController extends AppController
     {
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $function) {
-            $method = static::class . '::' . $function;
-            $startLogin = microtime(true);
-            if (($user = static::_checkLogin()) instanceof RedirectResponse) {
-                $this->logExecutionTime($startLogin, $function . '::login', 'failed');
-                return $user;
+            try {
+                $method = static::class . '::' . $function;
+                $startLogin = microtime(true);
+                if (($user = static::_checkLogin()) instanceof RedirectResponse) {
+                    $this->logExecutionTime($startLogin, $function . '::login', 'failed');
+                    return $user;
+                }
+                $this->logExecutionTime($startLogin, $function . '::login', 'completed');
+                $startGuard = microtime(true);
+                if (($redirect = static::guard($request, 'manage pricing plan', static::REDIRECT_INDEX)) !== true) {
+                    Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
+                    $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
+                    return $redirect;
+                }
+                $this->logExecutionTime($startGuard, $function . '::guard', 'completed');
+                $startView = microtime(true);
+                $view = view(static::LP . '::' . static::LP . '.pricing_plan_form');
+                $this->logExecutionTime($startView, $function . '::view', 'completed');
+                return $view;
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::' . $function . ' exception', ['error' => $e->getMessage()]);
+                Log::debug(static::class . '::' . $function . ' exception', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return defaultUndefinedException($request, $e, static::class . '::' . $function, route(static::REDIRECT_INDEX));
             }
-            $this->logExecutionTime($startLogin, $function . '::login', 'completed');
-
-            $startGuard = microtime(true);
-            if (($redirect = static::guard($request, 'manage pricing plan', static::REDIRECT_INDEX)) !== true) {
-                Log::warning($method . ' permission denied', ['user_id' => $user?->id]);
-                $this->logExecutionTime($startGuard, $function . '::guard', 'failed');
-                return $redirect;
-            }
-            $this->logExecutionTime($startGuard, $function . '::guard', 'completed');
-
-            $startView = microtime(true);
-            $view = view(static::LP . '::' . static::LP . '.pricing_plan_form');
-            $this->logExecutionTime($startView, $function . '::view', 'completed');
-
-            return $view;
         }, func_get_args());
     }
 
@@ -148,33 +153,39 @@ class PricingPlanController extends AppController
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request, $key) {
-            $checkStart = microtime(true);
-            $user = self::_checkLogin();
-            $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
-            if ($user instanceof RedirectResponse) return $user;
-
-            $guardStart = microtime(true);
-            $redirect = self::guard($request, 'manage pricing plan', self::REDIRECT_INDEX);
-            $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
-            if ($redirect instanceof RedirectResponse) {
-                Log::warning("[$action] permission denied", ['user_id' => $user?->id, 'key' => $key]);
-                Log::debug("[$action] lacks manage pricing plan permission", ['user_id' => $user?->id, 'key' => $key]);
-                return $redirect;
+            try {
+                $checkStart = microtime(true);
+                $user = self::_checkLogin();
+                $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
+                if ($user instanceof RedirectResponse) return $user;
+                $guardStart = microtime(true);
+                $redirect = self::guard($request, 'manage pricing plan', self::REDIRECT_INDEX);
+                $this->logExecutionTime($guardStart, $action . '::guard', 'completed');
+                if ($redirect instanceof RedirectResponse) {
+                    Log::warning("[$action] permission denied", ['user_id' => $user?->id, 'key' => $key]);
+                    Log::debug("[$action] lacks manage pricing plan permission", ['user_id' => $user?->id, 'key' => $key]);
+                    return $redirect;
+                }
+                $settingsStart = microtime(true);
+                $settings = LandingPageSetting::settings();
+                $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
+                if (!isset($settings[$key])) {
+                    Log::warning("[$action] missing key", ['key' => $key]);
+                    return redirect()->route(self::REDIRECT_INDEX)->with('error', "Setting '{$key}' not found");
+                }
+                Log::info("[$action] rendering form", ['key' => $key]);
+                return view(self::LP . '::' . self::LP . '.pricing_plan_form', [
+                    'key' => $key,
+                    'value' => $settings[$key],
+                ]);
+            } catch (\Throwable $e) {
+                Log::error("[$action] exception", ['error' => $e->getMessage()]);
+                Log::debug("[$action] exception", [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
-
-            $settingsStart = microtime(true);
-            $settings = LandingPageSetting::settings();
-            $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
-            if (!isset($settings[$key])) {
-                Log::warning("[$action] missing key", ['key' => $key]);
-                return redirect()->route(self::REDIRECT_INDEX)->with('error', "Setting '{$key}' not found");
-            }
-
-            Log::info("[$action] rendering form", ['key' => $key]);
-            return view(self::LP . '::' . self::LP . '.pricing_plan_form', [
-                'key' => $key,
-                'value' => $settings[$key],
-            ]);
         }, ['key' => $key]);
     }
 

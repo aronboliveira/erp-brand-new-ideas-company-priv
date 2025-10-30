@@ -354,11 +354,11 @@ abstract class Controller extends BaseController
             return;
         }
         if ($executionTime > self::WARNING_THRESHOLD_MS) {
-            Log::notice("{$class}::{$action} slow (> {$context['thresholds_ms']['warning']} ms)", $context);
+            Log::info("{$class}::{$action} slow (> {$context['thresholds_ms']['warning']} ms)", $context);
             return;
         }
         if ($executionTime > self::NOTICE_THRESHOLD_MS) {
-            Log::info("{$class}::{$action} above expected (> {$context['thresholds_ms']['notice']} ms)", $context);
+            Log::debug("{$class}::{$action} above expected (> {$context['thresholds_ms']['notice']} ms)", $context);
         }
     }
 

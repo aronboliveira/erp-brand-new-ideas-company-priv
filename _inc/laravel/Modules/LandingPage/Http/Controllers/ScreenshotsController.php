@@ -18,7 +18,8 @@ final class ScreenshotsController extends AppController
 
     public const ENTITY = 'screenshot';
     private const LP = RoutesResourcesConstants::LP;
-    private const VIEW_BASE = self::LP . '::' . self::LP . '.' . self::ENTITY . 's.';
+    private const PLURAL = self::ENTITY . 's';
+    private const VIEW_BASE = self::LP . '::' . self::LP . '.' . self::PLURAL;
     private const DIR      = 'uploads/landing_page_image';
     private const NAME     = RoutesResourcesConstants::SST;
 
@@ -40,8 +41,13 @@ final class ScreenshotsController extends AppController
                 $screenshotsStart = microtime(true);
                 $screenshots = json_decode($settings[self::NAME] ?? '[]', true) ?? [];
                 $this->logExecutionTime($screenshotsStart, $action . '::decodeScreenshots', 'completed');
+                $view = self::getFirstExistingView(self::PLURAL . '.index');
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::PLURAL . '.index']);
+                    throw new \RuntimeException("View not found: " . self::PLURAL . '.index');
+                }
                 Log::info("[$action] rendering view", ['count' => count($screenshots), 'user' => $userId]);
-                return view(self::VIEW_BASE . 'index', [
+                return view($view, [
                     DatabaseConstants::TABLE_SETTINGS => $settings,
                     'screenshots' => $screenshots
                 ]);
@@ -59,8 +65,19 @@ final class ScreenshotsController extends AppController
         $function = __FUNCTION__;
         Log::debug($method . ' - start', ['user_id' => Auth::id(), 'id' => $id]);
         return $this->measureProfile($method, function () use ($id, $method, $function) {
-            Log::info($method . ' called', ['user_id' => Auth::id(), 'id' => $id]);
-            return view(self::VIEW_BASE . '.' . $function);
+            try {
+                Log::info($method . ' called', ['user_id' => Auth::id(), 'id' => $id]);
+                $view = self::getFirstExistingView(self::PLURAL . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$method] view not found", ['attempted' => self::PLURAL . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::PLURAL . '.' . $function);
+                }
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'id' => $id]);
+                throw $e;
+            }
         }, ['user_id' => Auth::id(), 'id' => $id]);
     }
 
@@ -71,9 +88,13 @@ final class ScreenshotsController extends AppController
             $method = static::class . '::' . $function;
             $startView = microtime(true);
             Log::info($method . ' called', ['user_id' => Auth::id()]);
-            $view = view(static::VIEW_BASE . 'create');
+            $view = self::getFirstExistingView(self::PLURAL . '.' . $function);
+            if (!$view) {
+                Log::warning("[$method] view not found", ['attempted' => self::PLURAL . '.' . $function]);
+                throw new \RuntimeException("View not found: " . self::PLURAL . '.' . $function);
+            }
             $this->logExecutionTime($startView, $function . '::view', 'completed');
-            return $view;
+            return view($view);
         }, func_get_args());
     }
 
@@ -111,8 +132,19 @@ final class ScreenshotsController extends AppController
         $function = __FUNCTION__;
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $id, $function) {
-            Log::info("[$action] called", ['user_id' => Auth::id(), 'id' => $id]);
-            return view(self::VIEW_BASE . $function);
+            try {
+                Log::info("[$action] called", ['user_id' => Auth::id(), 'id' => $id]);
+                $view = self::getFirstExistingView(self::PLURAL . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::PLURAL . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::PLURAL . '.' . $function);
+                }
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error("[$action] failed", ['error' => $e->getMessage()]);
+                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
+                throw $e;
+            }
         }, ['id' => $id]);
     }
 
@@ -181,7 +213,12 @@ final class ScreenshotsController extends AppController
             $stepStart = microtime(true);
             try {
                 $this->logExecutionTime($stepStart, 'view render', 'completed');
-                return view(self::VIEW_BASE . 'create');
+                $view = self::getFirstExistingView(self::PLURAL . '.create');
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::PLURAL . '.create']);
+                    throw new \RuntimeException("View not found: " . self::PLURAL . '.create');
+                }
+                return view($view);
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", ['exception' => $e]);
                 Log::error("$action failed", ['error' => $e->getMessage()]);
@@ -235,19 +272,30 @@ final class ScreenshotsController extends AppController
     public function screenshotsEdit(string|int $key): mixed
     {
         $method = __METHOD__;
+        $function = __FUNCTION__;
         Log::debug($method . ' - start', ['user_id' => Auth::id(), 'key' => $key]);
-        return $this->measureProfile($method, function () use ($key, $method) {
-            $stepStart = microtime(true);
-            Log::info($method . ' called', ['user_id' => Auth::id(), 'key' => $key]);
-            $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
-            $stepStart = microtime(true);
-            $items = json_decode(LandingPageSetting::settings()[self::NAME] ?? '[]', true) ?? [];
-            $screenshot = $items[$key] ?? [];
-            $this->logExecutionTime($stepStart, 'decodeItems', 'completed');
-            $stepStart = microtime(true);
-            $view = view(self::VIEW_BASE . 'edit', ['' . self::ENTITY => $screenshot, 'key' => $key]);
-            $this->logExecutionTime($stepStart, 'renderView', 'completed');
-            return $view;
+        return $this->measureProfile($method, function () use ($key, $method, $function) {
+            try {
+                $stepStart = microtime(true);
+                Log::info($method . ' called', ['user_id' => Auth::id(), 'key' => $key]);
+                $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
+                $stepStart = microtime(true);
+                $items = json_decode(LandingPageSetting::settings()[self::NAME] ?? '[]', true) ?? [];
+                $screenshot = $items[$key] ?? [];
+                $this->logExecutionTime($stepStart, 'decodeItems', 'completed');
+                $stepStart = microtime(true);
+                $view = self::getFirstExistingView(self::PLURAL . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$method] view not found", ['attempted' => self::PLURAL . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::PLURAL . '.' . $function);
+                }
+                $this->logExecutionTime($stepStart, 'renderView', 'completed');
+                return view($view, [self::ENTITY => $screenshot, 'key' => $key]);
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                Log::debug($method . ' - exception details', ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'key' => $key]);
+                throw $e;
+            }
         }, ['user_id' => Auth::id(), 'key' => $key]);
     }
 

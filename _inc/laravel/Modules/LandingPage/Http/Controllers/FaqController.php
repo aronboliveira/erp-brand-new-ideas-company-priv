@@ -15,7 +15,7 @@ use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\LandingPage\Config\Constants\{
-    RoutesResourcesConstants,
+    RoutesResourcesConstants as RRC,
     SettingsConstants as LandingPageSettingsConstants
 };
 use Modules\LandingPage\Entities\LandingPageSetting;
@@ -28,8 +28,9 @@ class FaqController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
 
-    public const ENTITY = RoutesResourcesConstants::FQ;
-    private const LP = RoutesResourcesConstants::LP;
+    public const ENTITY = RRC::FQ;
+    private const SINGULAR = 'faq';
+    private const LP = RRC::LP;
     private const REDIRECT_INDEX = self::ENTITY . '.index';
 
     public function index(Request $request): Renderable|RedirectResponse|null
@@ -41,7 +42,7 @@ class FaqController extends AppController
             $ur = self::_checkLogin(haltRedirect: true);
             if ($ur instanceof User) $user = $ur;
             if (isset($user)) $userId = $user->id;
-            Log::info("[$action] start", ['user_id' => $userId]);
+            Log::debug("[$action] start", ['user_id' => $userId]);
             try {
                 $settingsStart = microtime(true);
                 $settings = LandingPageSetting::landingPageSetting();
@@ -49,8 +50,14 @@ class FaqController extends AppController
                 $decodeStart = microtime(true);
                 $faqs = json_decode($settings[self::ENTITY] ?? '[]', true) ?: [];
                 $this->logExecutionTime($decodeStart, $action . '::decodeFAQs', 'completed');
-                Log::info("[$action] loaded FAQs", ['count' => count($faqs)]);
-                return view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function, compact(DatabaseConstants::TABLE_SETTINGS, self::ENTITY));
+                Log::debug("[$action] loaded FAQs", ['count' => count($faqs)]);
+                $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
+                }
+                Log::debug("[$action] rendering view", ['user_id' => $userId]);
+                return view($view, compact(DatabaseConstants::TABLE_SETTINGS, self::ENTITY));
             } catch (\Throwable $e) {
                 $this->logExecutionTime(isset($settingsStart) ? $settingsStart : microtime(true), $action . '::exception', 'error');
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
@@ -66,24 +73,34 @@ class FaqController extends AppController
         $function = __FUNCTION__;
         Log::debug($method . ' - start', ['uri' => $request->getRequestUri(), 'key' => $key]);
         return $this->measureProfile($method, function () use ($request, $key, $method, $function) {
-            $stepStart = microtime(true);
-            $settings = LandingPageSetting::settings();
-            $this->logExecutionTime($stepStart, 'loadSettings', 'completed');
-            $stepStart = microtime(true);
-            $faqs = json_decode($settings[self::ENTITY] ?? '[]', true);
-            $this->logExecutionTime($stepStart, 'decodeFaqs', 'completed');
-            if (!isset($faqs[$key])) {
-                Log::warning($method . ' - FAQ not found', ['key' => $key]);
-                Log::debug($method . ' - available FAQ keys', ['keys' => array_keys($faqs)]);
-                return redirect()->route(self::REDIRECT_INDEX)->with('error', __('FAQ not found'));
+            try {
+                $stepStart = microtime(true);
+                $settings = LandingPageSetting::settings();
+                $this->logExecutionTime($stepStart, 'loadSettings', 'completed');
+                $stepStart = microtime(true);
+                $faqs = json_decode($settings[self::ENTITY] ?? '[]', true);
+                $this->logExecutionTime($stepStart, 'decodeFaqs', 'completed');
+                if (!isset($faqs[$key])) {
+                    Log::warning($method . ' - FAQ not found', ['key' => $key]);
+                    Log::debug($method . ' - available FAQ keys', ['keys' => array_keys($faqs)]);
+                    return redirect()->route(self::REDIRECT_INDEX)->with('error', __('FAQ not found'));
+                }
+                $stepStart = microtime(true);
+                Log::info($method . ' - showing FAQ', ['key' => $key]);
+                $this->logExecutionTime($stepStart, 'logShowing', 'completed');
+                $stepStart = microtime(true);
+                $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning($method . ' - view not found', ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
+                }
+                $this->logExecutionTime($stepStart, 'renderView', 'completed');
+                return view($view, [self::ENTITY => $faqs[$key], 'key' => $key]);
+            } catch (\Throwable $e) {
+                Log::error($method . ' - failed', ['error' => $e->getMessage(), 'key' => $key]);
+                Log::debug($method . ' - exception trace', ['trace' => $e->getTraceAsString()]);
+                return defaultUndefinedException($request, $e, $method, route(self::REDIRECT_INDEX));
             }
-            $stepStart = microtime(true);
-            Log::info($method . ' - showing FAQ', ['key' => $key]);
-            $this->logExecutionTime($stepStart, 'logShowing', 'completed');
-            $stepStart = microtime(true);
-            $view = view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function, [self::ENTITY => $faqs[$key], 'key' => $key]);
-            $this->logExecutionTime($stepStart, 'renderView', 'completed');
-            return $view;
         }, ['uri' => $request->getRequestUri(), 'key' => $key]);
     }
 
@@ -91,6 +108,12 @@ class FaqController extends AppController
     {
         $function = __FUNCTION__;
         return $this->measureProfile(__FUNCTION__, function () use ($request, $function) {
+            try {
+            } catch (\Throwable $e) {
+                Log::error(static::class . '::' . $function . ' failed', ['error' => $e->getMessage()]);
+                Log::debug(static::class . '::' . $function . ' exception trace', ['trace' => $e->getTraceAsString()]);
+                return defaultUndefinedException($request, $e, static::class . '::' . $function, route(static::REDIRECT_INDEX));
+            }
             $method = static::class . '::' . $function;
             if (($user = static::_checkLogin()) instanceof RedirectResponse) return $user;
             $startGuard = microtime(true);
@@ -100,7 +123,14 @@ class FaqController extends AppController
                 Log::debug($method . ' debug guard', ['redirect' => $redirect]);
                 return $redirect;
             }
-            return view(static::LP . '::' . static::LP . '.' . static::ENTITY . '.' . DatabaseConstants::TABLE_SETTINGS);
+            $view = self::getFirstExistingView(static::ENTITY . '.' . $function);
+            if (!$view) {
+                Log::warning($method . ' - view not found', ['attempted' => static::ENTITY . '.' . $function]);
+                throw new \RuntimeException("View not found: " . static::ENTITY . '.' . $function);
+            }
+            $this->logExecutionTime($startGuard, $function . '::guard', 'completed');
+            Log::debug($method . ' - rendering create view', ['user_id' => $user?->id]);
+            return view($view, compact(DatabaseConstants::TABLE_SETTINGS));
         }, func_get_args());
     }
 
@@ -113,19 +143,19 @@ class FaqController extends AppController
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             if (($redirect = self::guard($request, 'manage faq', self::REDIRECT_INDEX)) !== true) return $redirect;
             $data = $request->validate([
-                self::ENTITY . 'Status' => 'nullable|in:on,off',
-                self::ENTITY . 'Title' => 'required|string',
-                self::ENTITY . 'Heading' => 'required|string',
-                self::ENTITY . 'Description' => 'nullable|string'
+                self::SINGULAR . '_status' => 'nullable|in:on,off',
+                self::SINGULAR . '_title' => 'required|string',
+                self::SINGULAR . '_heading' => 'required|string',
+                self::SINGULAR . '_description' => 'nullable|string'
             ]);
             DB::beginTransaction();
             $stepStart = microtime(true);
             try {
                 $payload = [
-                    LandingPageSettingsConstants::FAQ_STT_K => $data[self::ENTITY . 'Status'] ?? 'off',
-                    LandingPageSettingsConstants::FAQ_TTL_K => $data[self::ENTITY . 'Title'],
-                    LandingPageSettingsConstants::FAQ_HDG_K => $data[self::ENTITY . 'Heading'],
-                    LandingPageSettingsConstants::FAQ_DESC_K => $data[self::ENTITY . 'Description'] ?? ''
+                    LandingPageSettingsConstants::FAQ_STT_K => $data[self::SINGULAR . '_status'] ?? 'off',
+                    LandingPageSettingsConstants::FAQ_TTL_K => $data[self::SINGULAR . '_title'],
+                    LandingPageSettingsConstants::FAQ_HDG_K => $data[self::SINGULAR . '_heading'],
+                    LandingPageSettingsConstants::FAQ_DESC_K => $data[self::SINGULAR . '_description'] ?? ''
                 ];
                 foreach ($payload as $name => $value) LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value]);
                 DB::commit();
@@ -171,8 +201,13 @@ class FaqController extends AppController
                     Log::debug("[$action] available keys", ['keys' => array_keys($faqs)]);
                     return redirect()->route(self::REDIRECT_INDEX)->with('error', __('FAQ not found'));
                 }
-                Log::info("[$action] loaded edit form", ['key' => $key]);
-                return view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function, [self::ENTITY => $faqs[$key], 'key' => $key]);
+                $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
+                }
+                Log::debug("[$action] loaded edit form", ['key' => $key]);
+                return view($view, [self::ENTITY => $faqs[$key], 'key' => $key]);
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage(), 'key' => $key]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -194,8 +229,8 @@ class FaqController extends AppController
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             $stepStart = microtime(true);
             $data = $request->validate([
-                self::ENTITY . 'Questions' => 'required|string',
-                self::ENTITY . 'Answer' => 'required|string',
+                self::SINGULAR . '_questions' => 'required|string',
+                self::SINGULAR . '_answer' => 'required|string',
             ]);
             $this->logExecutionTime($stepStart, 'validation', 'completed');
             $stepStart = microtime(true);
@@ -211,8 +246,8 @@ class FaqController extends AppController
             }
             $stepStart = microtime(true);
             $faqs[$key] = [
-                self::ENTITY . 'Questions' => $data[self::ENTITY . 'Questions'],
-                self::ENTITY . 'Answer' => $data[self::ENTITY . 'Answer'],
+                self::SINGULAR . '_questions' => $data[self::SINGULAR . '_questions'],
+                self::SINGULAR . '_answer' => $data[self::SINGULAR . '_answer'],
             ];
             $this->logExecutionTime($stepStart, 'buildFaqItem', 'completed');
             try {
@@ -372,7 +407,8 @@ class FaqController extends AppController
                 return $response;
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", [
-                    'exception' => $e, 'request' => $request->all(),
+                    'exception' => $e,
+                    'request' => $request->all(),
                     'key' => $key
                 ]);
                 Log::error("$action failed", ['error' => $e->getMessage(), 'key' => $key]);

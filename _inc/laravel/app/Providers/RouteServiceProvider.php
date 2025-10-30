@@ -84,7 +84,7 @@ final class RouteServiceProvider extends ServiceProvider
             $this->mapApiRoutes();
             $this->mapWebRoutes();
             $this->mapFortifyRoutes();
-            Log::info(__CLASS__ . '::' . __FUNCTION__ . ' completed successfully');
+            Log::debug(__CLASS__ . '::' . __FUNCTION__ . ' completed successfully');
             $output->writeln('Main application routes mapped successfully');
         } catch (Throwable $e) {
             Log::critical(__CLASS__ . '::' . __FUNCTION__ . ' failed', ['message' => $e->getMessage()]);

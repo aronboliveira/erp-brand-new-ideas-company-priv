@@ -46,6 +46,7 @@ Route::middleware([
         Route::get(RoutesResourcesConstants::FQ . '/delete/{key}', [FaqController::class, FaqController::FQ_DEL])->name(RoutesResourcesConstants::FQ . '.delete');
         Route::get(RoutesResourcesConstants::FT . '/create/', [FeaturesController::class, FeaturesController::FTR_CRT])->name(RoutesResourcesConstants::FT . '.create');
         Route::get(RoutesResourcesConstants::FT . '/edit/{key}', [FeaturesController::class, FeaturesController::FTR_EDT])->name(RoutesResourcesConstants::FT . '.edit');
+        Route::get(RoutesResourcesConstants::FT . '/update/{key}', [FeaturesController::class, FeaturesController::FTR_UPD])->name(RoutesResourcesConstants::FT . '.update');
         Route::get(RoutesResourcesConstants::FT . '/delete/{key}', [FeaturesController::class, FeaturesController::FTR_DEL])->name(RoutesResourcesConstants::FT . '.delete');
         Route::get(RoutesResourcesConstants::SST . '/create/', [ScreenshotsController::class, ScreenshotsController::SST_CRT])->name(RoutesResourcesConstants::SST . '.create');
         Route::get(RoutesResourcesConstants::SST . '/edit/{key}', [ScreenshotsController::class, ScreenshotsController::SST_EDT])->name(RoutesResourcesConstants::SST . '.edit');
@@ -60,7 +61,7 @@ Route::middleware([
         Route::resource(
             RoutesResourcesConstants::HM,
             HomeController::class
-        )->only(['show']);
+        )->only(['index', 'show']);
         Route::resource(
             RoutesResourcesConstants::CT_PG,
             CustomPageController::class

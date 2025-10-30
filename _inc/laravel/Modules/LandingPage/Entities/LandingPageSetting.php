@@ -9,11 +9,11 @@ use App\Config\Constants\{
 };
 use App\Models\Utility;
 use App\Traits\UsesUuids;
-use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
+use Modules\LandingPage\Config\Constants\SettingsConstants as LPC;
 use Database\Factories\LandingPageSettingFactory;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Storage, Validator};
+use Illuminate\Support\Facades\{Log, Storage, Validator};
 
 class LandingPageSetting extends Model
 {
@@ -22,6 +22,7 @@ class LandingPageSetting extends Model
     private static $settings = null;
     protected $table = DatabaseConstants::TABLE_LPS;
     protected $fillable = [
+        "query_key",
         LandingPageConstants::COL_LPS_NM,
         LandingPageConstants::COL_LPS_V
     ];
@@ -33,12 +34,40 @@ class LandingPageSetting extends Model
 
     public static function settings(): array
     {
-        $defaults = LandingPageSettingsConstants::LANDING_PAGE_SETTINGS;
-        $overrides = LandingPageSetting::pluck(
-            LandingPageConstants::COL_LPS_V,
-            LandingPageConstants::COL_LPS_NM
-        )->toArray();
+        Log::debug('[LandingPageSetting Model] Loading landing page settings', ['method' => __METHOD__]);
+        $defaults = LPC::LANDING_PAGE_SETTINGS;
+        $uuidSettings = [
+            LPC::FT_OF_FTS_K,
+            LPC::OT_FTS_K,
+            LPC::MB_PG_K,
+            LPC::SC_SHTS_K,
+            LPC::FAQ_FQS_K,
+            LPC::TM_TMS_K,
+            'discovers'
+        ];
+        $overrides = self::whereNotIn(LandingPageConstants::COL_LPS_NM, $uuidSettings)
+            ->pluck(
+                LandingPageConstants::COL_LPS_V,
+                LandingPageConstants::COL_LPS_NM
+            )->toArray();
+        foreach ($uuidSettings as $key) {
+            $items = self::where(LandingPageConstants::COL_LPS_NM, $key)
+                ->whereNotNull('query_key')
+                ->get();
+            if ($items->isNotEmpty())
+                $overrides[$key] = json_encode($items->mapWithKeys(function ($item) {
+                    return [$item->query_key => json_decode($item->value, true)];
+                })->toArray());
+        }
         return array_merge($defaults, $overrides);
+    }
+
+    public static function landingPageSetting(): array
+    {
+        Log::debug('[LandingPageSetting Model] Fetching landing page settings', ['method' => __METHOD__]);
+        if (self::$settings === null) self::$settings = self::settings();
+        Log::debug(self::$settings);
+        return self::$settings;
     }
 
     public static function uploadFile(
@@ -73,18 +102,12 @@ class LandingPageSetting extends Model
         }
     }
 
-    public static function landingPageSetting(): array
-    {
-        if (self::$settings === null) self::$settings = self::settings();
-        return self::$settings;
-    }
-
     public static function keyWiseUploadFile(
         Request $request,
         string  $keyName,
         string  $name,
         string  $path,
-        int     $dataKey,
+        int|string     $dataKey,
         array   $customValidation = []
     ): array {
         try {

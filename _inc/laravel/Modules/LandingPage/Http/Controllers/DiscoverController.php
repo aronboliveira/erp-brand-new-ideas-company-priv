@@ -30,8 +30,8 @@ class DiscoverController extends AppController
     public function index(Request $request): Renderable|RedirectResponse
     {
         $function = __FUNCTION__;
-        return $this->measureProfile(__METHOD__, function () use ($request, $function) {
-            $action = __METHOD__;
+        $action = __METHOD__;
+        return $this->measureProfile(__METHOD__, function () use ($request, $function, $action) {
             $userId = '#UNAUTHENTICATED';
             if (($ur = self::_checkLogin(haltRedirect: true)) instanceof User) {
                 $user    = $ur;
@@ -42,9 +42,14 @@ class DiscoverController extends AppController
                 Log::debug("{$action} • retrieving landing page settings", ['user_id' => $userId]);
                 $settings = LandingPageSetting::landingPageSetting();
                 $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true);
+                $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning("{$action} • view not found", ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
+                }
                 Log::info("{$action} • rendering view", ['features_count' => count($features), 'user_id' => $userId]);
                 return view(
-                    self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function,
+                    $view,
                     [
                         DatabaseConstants::TABLE_SETTINGS => $settings,
                         'features'                       => $features,
@@ -73,26 +78,37 @@ class DiscoverController extends AppController
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $id) {
-            $checkStart = microtime(true);
-            $ur = self::_checkLogin(haltRedirect: true);
-            $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
-            if ($ur instanceof User) $user = $ur;
-            Log::info("[$action] access attempt", ['key' => $id, 'user_id' => $user?->id ?? '#UNAUTHENTICATED']);
-            $settingsStart = microtime(true);
-            $settings = LandingPageSetting::settings();
-            $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
-            $decodeStart = microtime(true);
-            $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true) ?: [];
-            $this->logExecutionTime($decodeStart, $action . '::decodeFeatures', 'completed');
-            if (!isset($features[$id])) {
-                Log::warning("[$action] invalid key", ['key' => $id]);
-                Log::debug("[$action] available keys", ['keys' => array_keys($features)]);
-                return redirect()->route(self::ROUTE_INDEX)->with('error', __('Feature not found.'));
+            try {
+                $checkStart = microtime(true);
+                $ur = self::_checkLogin(haltRedirect: true);
+                $this->logExecutionTime($checkStart, $action . '::_checkLogin', 'completed');
+                if ($ur instanceof User) $user = $ur;
+                Log::info("[$action] access attempt", ['key' => $id, 'user_id' => $user?->id ?? '#UNAUTHENTICATED']);
+                $settingsStart = microtime(true);
+                $settings = LandingPageSetting::settings();
+                $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
+                $decodeStart = microtime(true);
+                $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true) ?: [];
+                $this->logExecutionTime($decodeStart, $action . '::decodeFeatures', 'completed');
+                if (!isset($features[$id])) {
+                    Log::warning("[$action] invalid key", ['key' => $id]);
+                    Log::debug("[$action] available keys", ['keys' => array_keys($features)]);
+                    return redirect()->route(self::ROUTE_INDEX)->with('error', __('Feature not found.'));
+                }
+                $feature = $features[$id];
+                $key = $id;
+                $view = self::getFirstExistingView(self::ENTITY . '.show');
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::ENTITY . '.show']);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.show');
+                }
+                Log::info("[$action] rendering feature", ['key' => $key]);
+                return view($view, compact('feature', 'key'));
+            } catch (\Throwable $e) {
+                Log::error("[$action] Error in {$action}", ['error' => $e->getMessage(), 'key' => $id]);
+                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
+                throw $e;
             }
-            $feature = $features[$id];
-            $key = $id;
-            Log::info("[$action] rendering feature", ['key' => $key]);
-            return view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.show', compact('feature', 'key'));
         }, ['key' => $id]);
     }
 
@@ -105,14 +121,24 @@ class DiscoverController extends AppController
         $function = __FUNCTION__;
         Log::debug($method . ' - start', ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
         return $this->measureProfile($method, function () use ($request, $method, $function) {
-            $stepStart = microtime(true);
-            if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-            $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
-            Log::info($method . ' - rendering create view', ['user_id' => $ur?->id]);
-            $stepStart = microtime(true);
-            $view = view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function);
-            $this->logExecutionTime($stepStart, 'renderCreateView', 'completed');
-            return $view;
+            try {
+                $stepStart = microtime(true);
+                if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
+                $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
+                Log::info($method . ' - rendering create view', ['user_id' => $ur?->id]);
+                $stepStart = microtime(true);
+                $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning($method . ' - view not found', ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
+                }
+                $this->logExecutionTime($stepStart, 'renderCreateView', 'completed');
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error($method . ' - failed', ['error' => $e->getMessage()]);
+                Log::debug($method . ' - exception trace', ['trace' => $e->getTraceAsString()]);
+                throw $e;
+            }
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
 
@@ -126,19 +152,19 @@ class DiscoverController extends AppController
             if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             $payload = $request->validate([
-                static::ENTITY . 'Heading'     => 'string|nullable',
-                static::ENTITY . 'Description' => 'string|nullable',
-                static::ENTITY . 'LiveDemoLink' => 'url|nullable',
-                static::ENTITY . 'BuyNowLink'  => 'url|nullable'
+                static::ENTITY . '_heading'     => 'string|nullable',
+                static::ENTITY . '_description' => 'string|nullable',
+                static::ENTITY . '_live_demo_link' => 'url|nullable',
+                static::ENTITY . '_buy_now_link'  => 'url|nullable'
             ]);
             DB::beginTransaction();
             try {
                 $update = [
-                    static::ENTITY . 'Status'      => 'on',
-                    static::ENTITY . 'Heading'     => $payload[static::ENTITY . 'Heading']     ?? '',
-                    static::ENTITY . 'Description' => $payload[static::ENTITY . 'Description'] ?? '',
-                    static::ENTITY . 'LiveDemoLink' => $payload[static::ENTITY . 'LiveDemoLink'] ?? '',
-                    static::ENTITY . 'BuyNowLink'  => $payload[static::ENTITY . 'BuyNowLink']   ?? ''
+                    static::ENTITY . '_status'      => 'on',
+                    static::ENTITY . '_heading'     => $payload[static::ENTITY . '_heading']     ?? '',
+                    static::ENTITY . '_description' => $payload[static::ENTITY . '_description'] ?? '',
+                    static::ENTITY . '_live_demo_link' => $payload[static::ENTITY . '_live_demo_link'] ?? '',
+                    static::ENTITY . '_buy_now_link'  => $payload[static::ENTITY . '_buy_now_link']   ?? ''
                 ];
                 foreach ($update as $name => $value)
                     LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value, DatabaseConstants::TABLE_CREATOR => $user?->id]);
@@ -167,25 +193,36 @@ class DiscoverController extends AppController
     {
         $action = __METHOD__;
         return $this->measureProfile(__METHOD__, function () use ($id, $action) {
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
-                Log::notice("{$action} • unauthenticated, redirecting");
-                return $userOrRedirect;
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) {
+                    Log::notice("{$action} • unauthenticated, redirecting");
+                    return $userOrRedirect;
+                }
+                Log::debug("{$action} • loading settings");
+                $settings = LandingPageSetting::settings();
+                $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true);
+                if (!isset($features[$id])) {
+                    Log::warning("{$action} • invalid feature key", ['key' => $id]);
+                    return redirect()->route(self::ROUTE_INDEX)
+                        ->with('error', __('Feature not found.'));
+                }
+                $feature = $features[$id];
+                $key     = $id;
+                $view = self::getFirstExistingView(self::ENTITY . '.edit');
+                if (!$view) {
+                    Log::warning("{$action} • view not found", ['attempted' => self::ENTITY . '.edit']);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.edit');
+                }
+                Log::info("{$action} • rendering edit view", ['key' => $key]);
+                return view(
+                    $view,
+                    compact('feature', 'key')
+                );
+            } catch (\Throwable $e) {
+                Log::error("{$action} • Error in {$action}", ['error' => $e->getMessage(), 'id' => $id]);
+                Log::debug("{$action} • exception trace", ['trace' => $e->getTraceAsString()]);
+                throw $e;
             }
-            Log::debug("{$action} • loading settings");
-            $settings = LandingPageSetting::settings();
-            $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true);
-            if (!isset($features[$id])) {
-                Log::warning("{$action} • invalid feature key", ['key' => $id]);
-                return redirect()->route(self::ROUTE_INDEX)
-                    ->with('error', __('Feature not found.'));
-            }
-            $feature = $features[$id];
-            $key     = $id;
-            Log::info("{$action} • rendering edit view", ['key' => $key]);
-            return view(
-                self::LP . '::' . self::LP . '.' . self::ENTITY . '.edit',
-                compact('feature', 'key')
-            );
         });
     }
 
@@ -240,18 +277,29 @@ class DiscoverController extends AppController
     {
         $method = static::class . '::' . __FUNCTION__;
         return $this->measureProfile(__FUNCTION__, function () use ($request, $key, $method) {
-            if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $settings = LandingPageSetting::settings();
-            $features = json_decode($settings[static::ENTITY . 'OfFeatures'] ?? '[]', true);
-            if (!isset($features[$key])) {
-                $time = microtime(true);
-                Log::warning($method . ' invalid key', ['key' => $key]);
-                $this->logExecutionTime($time, explode("::", $method)[1] . '::invalidKey', 'failed');
-                Log::debug($method . ' debug data', ['settings' => $settings, 'features' => $features]);
-                return redirect()->route(static::ROUTE_INDEX)->with('error', __('Feature not found.'));
+            try {
+                if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $settings = LandingPageSetting::settings();
+                $features = json_decode($settings[static::ENTITY . 'OfFeatures'] ?? '[]', true);
+                if (!isset($features[$key])) {
+                    $time = microtime(true);
+                    Log::warning($method . ' invalid key', ['key' => $key]);
+                    $this->logExecutionTime($time, explode("::", $method)[1] . '::invalidKey', 'failed');
+                    Log::debug($method . ' debug data', ['settings' => $settings, 'features' => $features]);
+                    return redirect()->route(static::ROUTE_INDEX)->with('error', __('Feature not found.'));
+                }
+                $feature = $features[$key];
+                $view = self::getFirstExistingView(static::ENTITY . '.edit');
+                if (!$view) {
+                    Log::warning($method . ' - view not found', ['attempted' => static::ENTITY . '.edit']);
+                    throw new \RuntimeException("View not found: " . static::ENTITY . '.edit');
+                }
+                return view($view, compact('feature', 'key'));
+            } catch (\Throwable $e) {
+                Log::error($method . ' • failed', ['error' => $e->getMessage(), 'key' => $key]);
+                Log::debug($method . ' • exception trace', ['trace' => $e->getTraceAsString()]);
+                throw $e;
             }
-            $feature = $features[$key];
-            return view(static::LP . '::' . static::LP . '.' . static::ENTITY . '.edit', compact('feature', 'key'));
         }, func_get_args());
     }
 
@@ -364,14 +412,34 @@ class DiscoverController extends AppController
         $method = __METHOD__;
         Log::debug($method . ' - start', ['uri' => request()->getRequestUri(), 'ip' => request()->ip()]);
         return $this->measureProfile($method, function () use ($method) {
-            $stepStart = microtime(true);
-            if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-            $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
-            Log::info($method . ' - rendering discoverCreate view', ['user_id' => $ur?->id]);
-            $stepStart = microtime(true);
-            $view = view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.create');
-            $this->logExecutionTime($stepStart, 'renderDiscoverCreate', 'completed');
-            return $view;
+            try {
+                $stepStart = microtime(true);
+                if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
+                $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
+                Log::info($method . ' - rendering discoverCreate view', ['user_id' => $ur?->id]);
+                $stepStart = microtime(true);
+                $view = self::getFirstExistingView(self::ENTITY . '.create');
+                if (!$view) {
+                    Log::error($method . ' - view not found', ['view' => self::ENTITY . '.create']);
+                    return redirect()->route(static::ROUTE_INDEX)->with('error', __('View not found.'));
+                }
+                $this->logExecutionTime($stepStart, 'renderDiscoverCreate', 'completed');
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error($method . ' - unexpected error', [
+                    'error' => $e->getMessage(),
+                    'type' => get_class($e),
+                    'uri' => request()->getRequestUri(),
+                ]);
+                Log::debug($method . ' - exception trace', [
+                    'trace' => $e->getTraceAsString(),
+                    'request' => [
+                        'uri' => request()->getRequestUri(),
+                        'ip' => request()->ip()
+                    ],
+                    'user_id' => request()->user()?->id
+                ]);
+            }
         }, ['uri' => request()->getRequestUri(), 'ip' => request()->ip()]);
     }
 

@@ -6,6 +6,7 @@ use App\Config\Constants\{PermissionsConstants, UsersConstants};
 use App\Http\Controllers\Controller as AppController;
 use App\Models\User;
 use App\Traits\ChecksLogin;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log, View};
 use Modules\LandingPage\{
@@ -65,7 +66,7 @@ final class FeaturesController extends AppController
     /**
      * GET /landingpage/features/{id}
      */
-    public function show(Request $request, int $id): mixed
+    public function show(Request $request, string|int $id): mixed
     {
         $method = __METHOD__;
         $function = __FUNCTION__;
@@ -83,18 +84,18 @@ final class FeaturesController extends AppController
                 $this->logExecutionTime($stepStart, 'findSetting', 'completed');
                 Log::info($method . ' loaded setting', ['id' => $id, 'name' => $setting->name]);
                 $stepStart = microtime(true);
-                $baseView = self::getFirstExistingView(self::VIEW_BASE . '.' . $function);
+                $baseView = self::getFirstExistingView(self::ENTITY . '.' . $function);
                 if (!$baseView) {
-                    Log::warning("[$function] view not found", ['attempted' => self::VIEW_BASE . '.' . $function]);
-                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.' . $function);
+                    Log::warning("[$function] view not found", ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
                 }
                 Log::debug("[$function] resolved view", ['view' => $baseView]);
                 $this->logExecutionTime($stepStart, 'renderView', 'completed');
                 return view($baseView, compact('setting'));
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            } catch (ModelNotFoundException $e) {
                 Log::warning($method . ' setting not found', ['id' => $id]);
                 Log::debug($method . ' - exception details', ['exception' => get_class($e), 'message' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'id' => $id]);
-                return redirect()->route(self::VIEW_BASE . '.index')->with('error', __('Setting not found'));
+                return redirect()->back()->with('error', __('Setting not found'));
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
                 Log::debug($method . ' - exception details', ['exception' => get_class($e), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
@@ -107,17 +108,23 @@ final class FeaturesController extends AppController
     {
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($function) {
-            $method = static::class . '::' . $function;
-            Log::info($method, [UsersConstants::COL_USER_ID => Auth::id()]);
-            $startView = microtime(true);
-            $view = self::getFirstExistingView(static::VIEW_BASE . '.create');
-            if (!$view) {
-                Log::warning("[create] view not found", ['attempted' => static::VIEW_BASE . '.create']);
-                throw new \RuntimeException("View not found: " . static::VIEW_BASE . '.create');
+            try {
+                $method = static::class . '::' . $function;
+                Log::info($method, [UsersConstants::COL_USER_ID => Auth::id()]);
+                $startView = microtime(true);
+                $view = self::getFirstExistingView(static::VIEW_BASE . '.create');
+                if (!$view) {
+                    Log::warning("[create] view not found", ['attempted' => static::VIEW_BASE . '.create']);
+                    throw new \RuntimeException("View not found: " . static::VIEW_BASE . '.create');
+                }
+                Log::debug("[create] resolved view", ['view' => $view]);
+                $this->logExecutionTime($startView, $function . '::view', 'completed');
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error("[$function] failed", ['error' => $e->getMessage()]);
+                Log::debug("[$function] exception trace", ['trace' => $e->getTraceAsString()]);
+                throw $e;
             }
-            Log::debug("[create] resolved view", ['view' => $view]);
-            $this->logExecutionTime($startView, $function . '::view', 'completed');
-            return view($view);
         }, func_get_args());
     }
 
@@ -158,7 +165,7 @@ final class FeaturesController extends AppController
     /**
      * GET /landingpage/features/{id}/edit
      */
-    public function edit(Request $request, int $id): mixed
+    public function edit(Request $request, string|int $id): mixed
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request, $id) {
@@ -178,20 +185,20 @@ final class FeaturesController extends AppController
             $this->logExecutionTime($permStart, $action . '::permission', 'completed');
             try {
                 $findStart = microtime(true);
-                $setting = LandingPageSetting::findOrFail($id);
+                $setting = LandingPageSetting::queryByKey($id);
                 $this->logExecutionTime($findStart, $action . '::findOrFail', 'completed');
                 Log::info("[$action] loaded setting for edit", ['id' => $id, 'name' => $setting->name]);
-                $view = self::getFirstExistingView(self::VIEW_BASE . '.edit');
+                $view = self::getFirstExistingView(self::ENTITY . '.edit');
                 if (!$view) {
-                    Log::warning("[edit] view not found", ['attempted' => self::VIEW_BASE . '.edit']);
-                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.edit');
+                    Log::warning("[edit] view not found", ['attempted' => self::ENTITY . '.edit']);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.edit');
                 }
                 Log::debug("[edit] resolved view", ['view' => $view]);
                 return view($view, compact('setting'));
-            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-                Log::warning("[$action] setting not found", ['id' => $id]);
-                Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
-                return redirect()->route(self::VIEW_BASE . '.index')->with('error', __('Setting not found'));
+            } catch (ModelNotFoundException $e) {
+                Log::warning("[$action] setting not found", ['id' => $id, 'error' => ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'type' => get_class($e)], 'uri' => $request->getRequestUri()]);
+                Log::debug("[$action] exception trace", ['id' => $id, 'request' => ['method' => $request->getMethod(), 'uri' => $request->getRequestUri(), 'headers' => $request->headers->all()], 'error' => ['message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine(), 'type' => get_class($e)], 'trace' => $e->getTraceAsString()]);
+                return redirect()->back()->with('error', __('Setting not found'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -271,17 +278,17 @@ final class FeaturesController extends AppController
                 LandingPageSetting::settings();
                 $this->logExecutionTime($stepStart, 'settings', 'completed');
                 Log::info("$action completed");
-                $view = self::getFirstExistingView(self::VIEW_BASE . '.create');
+                $view = self::getFirstExistingView(self::ENTITY . '.create');
                 if (!$view) {
-                    Log::warning("[create] view not found", ['attempted' => self::VIEW_BASE . '.create']);
-                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.create');
+                    Log::warning("[create] view not found", ['attempted' => self::ENTITY . '.create']);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.create');
                 }
                 Log::debug("[create] resolved view", ['view' => $view]);
                 return view($view);
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", ['exception' => $e]);
                 Log::error("$action failed", ['error' => $e->getMessage()]);
-                throw $e;
+                return redirect()->back()->with('error', 'An error occurred while loading the feature creation form.');
             }
         });
     }
@@ -337,22 +344,28 @@ final class FeaturesController extends AppController
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user_id' => Auth::id(), 'key' => $key]);
         return $this->measureProfile($method, function () use ($key, $method) {
-            $stepStart = microtime(true);
-            Log::info($method, ['user_id' => Auth::id(), 'key' => $key]);
-            $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
-            $stepStart = microtime(true);
-            $list = json_decode(LandingPageSetting::settings()[self::FEATURE_NAME] ?? '[]', true) ?: [];
-            $this->logExecutionTime($stepStart, 'decodeFeatureList', 'completed');
-            Log::debug($method . ' - feature list loaded', ['count' => count($list)]);
-            $stepStart = microtime(true);
-            $view = self::getFirstExistingView(self::VIEW_BASE . '.edit');
-            if (!$view) {
-                Log::warning("[edit] view not found", ['attempted' => self::VIEW_BASE . '.edit']);
-                throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.edit');
+            try {
+                $stepStart = microtime(true);
+                Log::info($method, ['user_id' => Auth::id(), 'key' => $key]);
+                $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
+                $stepStart = microtime(true);
+                $list = json_decode(LandingPageSetting::settings()[self::FEATURE_NAME] ?? '[]', true) ?: [];
+                $this->logExecutionTime($stepStart, 'decodeFeatureList', 'completed');
+                Log::debug($method . ' - feature list loaded', ['count' => count($list)]);
+                $stepStart = microtime(true);
+                $view = self::getFirstExistingView(self::ENTITY . '.edit');
+                if (!$view) {
+                    Log::warning("[edit] view not found", ['attempted' => self::ENTITY . '.edit']);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.edit');
+                }
+                Log::debug("[edit] resolved view", ['view' => $view]);
+                $this->logExecutionTime($stepStart, 'renderEditView', 'completed');
+                return view($view, ['feature' => $list[$key] ?? null, 'key' => $key]);
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                Log::debug($method . ' exception trace', ['trace' => $e->getTraceAsString()]);
+                return redirect()->back()->with('error', 'An error occurred while loading the feature edit form.');
             }
-            Log::debug("[edit] resolved view", ['view' => $view]);
-            $this->logExecutionTime($stepStart, 'renderEditView', 'completed');
-            return view($view, ['feature' => $list[$key] ?? null, 'key' => $key]);
         }, ['user_id' => Auth::id(), 'key' => $key]);
     }
 
@@ -485,21 +498,27 @@ final class FeaturesController extends AppController
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user_id' => Auth::id()]);
         return $this->measureProfile($method, function () use ($method) {
-            $stepStart = microtime(true);
-            Log::info($method, ['user_id' => Auth::id()]);
-            $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
-            $stepStart = microtime(true);
-            LandingPageSetting::settings();
-            $this->logExecutionTime($stepStart, 'loadSettings', 'completed');
-            $stepStart = microtime(true);
-            $view = self::getFirstExistingView(self::VIEW_BASE . '.features_create');
-            if (!$view) {
-                Log::warning("[features_create] view not found", ['attempted' => self::VIEW_BASE . '.features_create']);
-                throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.features_create');
+            try {
+                $stepStart = microtime(true);
+                Log::info($method, ['user_id' => Auth::id()]);
+                $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
+                $stepStart = microtime(true);
+                LandingPageSetting::settings();
+                $this->logExecutionTime($stepStart, 'loadSettings', 'completed');
+                $stepStart = microtime(true);
+                $view = self::getFirstExistingView(self::ENTITY . '.features_create');
+                if (!$view) {
+                    Log::warning("[features_create] view not found", ['attempted' => self::ENTITY . '.features_create']);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.features_create');
+                }
+                Log::debug("[features_create] resolved view", ['view' => $view]);
+                $this->logExecutionTime($stepStart, 'renderView', 'completed');
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                Log::debug($method . ' exception trace', ['trace' => $e->getTraceAsString()]);
+                return redirect()->back()->with('error', 'An error occurred while loading the features creation form.');
             }
-            Log::debug("[features_create] resolved view", ['view' => $view]);
-            $this->logExecutionTime($stepStart, 'renderView', 'completed');
-            return view($view);
         }, ['user_id' => Auth::id()]);
     }
 
@@ -569,17 +588,17 @@ final class FeaturesController extends AppController
                 $list = json_decode(LandingPageSetting::settings()[self::OTHER_NAME], true) ?? [];
                 $this->logExecutionTime($stepStart, 'settings', 'completed');
                 Log::info("$action completed", ['key' => $key]);
-                $view = self::getFirstExistingView(self::VIEW_BASE . '.features_edit');
+                $view = self::getFirstExistingView(self::ENTITY . '.features_edit');
                 if (!$view) {
-                    Log::warning("[features_edit] view not found", ['attempted' => self::VIEW_BASE . '.features_edit']);
-                    throw new \RuntimeException("View not found: " . self::VIEW_BASE . '.features_edit');
+                    Log::warning("[features_edit] view not found", ['attempted' => self::ENTITY . '.features_edit']);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.features_edit');
                 }
                 Log::debug("[features_edit] resolved view", ['view' => $view]);
                 return view($view, ['other_features' => $list[$key], 'key' => $key]);
             } catch (\Throwable $e) {
                 Log::debug("$action exception trace", ['exception' => $e, 'key' => $key]);
                 Log::error("$action failed", ['error' => $e->getMessage(), 'key' => $key]);
-                throw $e;
+                return redirect()->back()->with('error', 'An error occurred while loading the other feature edit form.');
             }
         });
     }

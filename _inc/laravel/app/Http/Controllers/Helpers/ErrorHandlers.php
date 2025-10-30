@@ -46,7 +46,7 @@ function defaultUndefinedException(
 	bool $autoBack = true,
 ): RedirectResponse|JsonResponse {
 	$errMsg = 'Internal Server error (Http 5xx). Please notify the development team and/or your administrator.';
-	Log::error("$ref raised undefined error", ['error' => $err]);
+	Log::debug("$ref raised undefined error", ['error' => $err]);
 	session()->flash('error', 'An unexpected error occurred.');
 	$redirectPath = $redirectPath !== '/' && str_starts_with($redirectPath, '/') && Utility::isValidRouteUrl($redirectPath) ? $redirectPath : '/';
 	if (!Auth::check())

@@ -15,7 +15,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator};
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants, SettingsConstants as LandingPageSettingsConstants};
+use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants as RRC, SettingsConstants as LandingPageSettingsConstants};
 use Modules\LandingPage\Entities\{JoinUs, LandingPageSetting};
 use function App\Http\Controllers\{defaultUndefinedException};
 
@@ -23,8 +23,8 @@ class JoinUsController extends AppController
 {
     use ChecksLogin, ChecksPermissions;
 
-    private const LP = RoutesResourcesConstants::LP;
-    private const JU = RoutesResourcesConstants::JU;
+    private const LP = RRC::LP;
+    private const JU = RRC::JU;
     private const REDIRECT_INDEX = self::JU . '.index';
 
     public function index(Request $request): View|RedirectResponse|null
@@ -41,8 +41,13 @@ class JoinUsController extends AppController
                 $fetchStart = microtime(true);
                 $entries = JoinUs::all();
                 $this->logExecutionTime($fetchStart, $action . '::fetchEntries', 'completed');
+                $view = self::getFirstExistingView(self::JU);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::JU . '.index']);
+                    throw new \RuntimeException("View not found: " . self::JU . '.index');
+                }
                 Log::info("[$action] succeeded", ['user_id' => $userId, 'count' => count($entries)]);
-                return view(self::LP . '::' . self::LP . '.' . self::JU, compact('entries'));
+                return view($view, compact('entries'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['user_id' => $userId, 'error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -67,7 +72,12 @@ class JoinUsController extends AppController
                 $this->logExecutionTime($stepStart, 'findEntry', 'completed');
                 Log::info($method . ' - succeeded', ['user_id' => $userId, 'id' => $id]);
                 $stepStart = microtime(true);
-                $view = view(self::LP . '::' . self::LP . '.' . self::JU . '.' . __FUNCTION__, compact('entry'));
+                $view = self::getFirstExistingView(self::JU . '.show');
+                if (!$view) {
+                    Log::warning($method . ' - view not found', ['attempted' => self::JU . '.show']);
+                    throw new \RuntimeException("View not found: " . self::JU . '.show');
+                }
+                $view = view($view, compact('entry'));
                 $this->logExecutionTime($stepStart, 'renderView', 'completed');
                 return $view;
             } catch (\Throwable $e) {
@@ -104,7 +114,12 @@ class JoinUsController extends AppController
             $this->logExecutionTime($startSettings, $function . '::settingsFetch', 'completed');
             Log::info($method . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
             $startView = microtime(true);
-            $view = view(static::LP . '::' . static::LP . '.' . static::JU . '.' . DatabaseConstants::TABLE_SETTINGS, compact(DatabaseConstants::TABLE_SETTINGS));
+            $view = self::getFirstExistingView(static::JU . '.' . $function);
+            if (!$view) {
+                Log::warning("[$function] view not found", ['attempted' => static::JU . '.' . $function]);
+                throw new \RuntimeException("View not found: " . static::JU . '.' . $function);
+            }
+            $view = view($view, compact(DatabaseConstants::TABLE_SETTINGS));
             $this->logExecutionTime($startView, $function . '::view', 'completed');
             return $view;
         }, func_get_args());
@@ -171,7 +186,12 @@ class JoinUsController extends AppController
                 $entry = JoinUs::findOrFail($id);
                 $this->logExecutionTime($findStart, $action . '::findOrFail', 'completed');
                 Log::info("[$action] succeeded", ['user_id' => $user?->id, 'id' => $id]);
-                return view(self::LP . '::' . self::LP . '.' . self::JU . '.' . $function, compact('entry'));
+                $view = self::getFirstExistingView(self::JU . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::JU . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::JU . '.' . $function);
+                }
+                return view($view, compact('entry'));
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                 Log::warning("[$action] entry not found", ['id' => $id]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);

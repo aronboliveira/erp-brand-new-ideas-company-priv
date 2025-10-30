@@ -52,7 +52,7 @@ final class RouteServiceProvider extends ServiceProvider
         try {
             $this->mapWebRoutes();
             $this->mapApiRoutes();
-            Log::info("{$tag} — all Landing Page routes mapped");
+            Log::debug("{$tag} — all Landing Page routes mapped");
             $output->writeln("[{$tag}] Landing Page Routes mapped successfully");
         } catch (Throwable $e) {
             Log::critical("{$tag} failed to map Landing Page routes", ['message' => $e->getMessage()]);

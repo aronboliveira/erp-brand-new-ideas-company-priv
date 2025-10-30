@@ -116,22 +116,41 @@ class CustomPageController extends AppController
         $method = __METHOD__;
         Log::debug($method . ' - start', ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
         return $this->measureProfile($method, function () use ($request, $method) {
-            $stepStart = microtime(true);
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
-                return $userOrRedirect;
-            $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
-            $stepStart = microtime(true);
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true)
-                return $redirect;
-            $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
-            Log::info($method . ' - initializing create', ['user_id' => $user?->id]);
-            Log::debug($method . ' - view params', ['LP' => self::LP, 'MB' => self::MB, 'method' => $method]);
-            $stepStart = microtime(true);
-            $view = view(self::LP . '::' . self::LP . '.' . self::MB . '.' . explode("::", $method)[1]);
-            $this->logExecutionTime($stepStart, 'renderCreateView', 'completed');
-            Log::info($method . ' - succeeded', ['user_id' => $user?->id]);
-            return $view;
+            try {
+                $stepStart = microtime(true);
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+                    return $userOrRedirect;
+                $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
+                $stepStart = microtime(true);
+                $user = $userOrRedirect;
+                if (($redirect = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true)
+                    return $redirect;
+                $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
+                Log::info($method . ' - initializing create', ['user_id' => $user?->id]);
+                Log::debug($method . ' - view params', ['LP' => self::LP, 'MB' => self::MB, 'method' => $method]);
+                $stepStart = microtime(true);
+                $view = self::getFirstExistingView(self::MB . '.' . explode("::", $method)[1]);
+                $this->logExecutionTime($stepStart, 'findView', 'completed');
+                if (!$view) {
+                    Log::warning($method . ' - view not found', ['attempted' => self::MB . '.' . explode("::", $method)[1]]);
+                    throw new \RuntimeException("View not found: " . self::MB . '.' . explode("::", $method)[1]);
+                }
+                $this->logExecutionTime($stepStart, 'renderCreateView', 'completed');
+                Log::info($method . ' - succeeded', ['user_id' => $user?->id]);
+                return view($view);
+            } catch (\Throwable $e) {
+                Log::error($method . ' - failed', [
+                    'error' => $e->getMessage(),
+                    'uri'   => $request->getRequestUri(),
+                    'ip'    => $request->ip()
+                ]);
+                return defaultUndefinedException(
+                    $request,
+                    $e,
+                    $method,
+                    route(self::REDIRECT_INDEX)
+                );
+            }
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
 
@@ -223,8 +242,13 @@ class CustomPageController extends AppController
                     return redirect()->back()->with('error', __('Page not found'));
                 }
                 $page = $pages[$key];
+                $view = self::getFirstExistingView(self::MB . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::MB . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::MB . '.' . $function);
+                }
                 Log::info("[$action] succeeded", ['user_id' => $user?->id, 'key' => $key]);
-                return view(self::LP . '::' . self::LP . '.' . self::MB . '.' . $function, compact('page', 'key'));
+                return view($view, compact('page', 'key'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['user_id' => $user?->id, 'key' => $key, 'error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -404,11 +428,20 @@ class CustomPageController extends AppController
             }
             $stepStart = microtime(true);
             foreach ($pages as $page) {
-                if (($page[LandingPageSettingsConstants::PG_SLG] ?? '') === $slug) {
-                    Log::info($method . ' - rendering custom page', ['slug' => $slug, 'title' => $page['page_title'] ?? null]);
-                    $this->logExecutionTime($stepStart, 'findPage', 'completed');
-                    return view(self::LP . '::' . ViewsConstants::SET_LOS . '.' .
-                        strtolower(explode('::', $method)[1]), compact('page', DatabaseConstants::TABLE_SETTINGS));
+                try {
+                    if (($page[LandingPageSettingsConstants::PG_SLG] ?? '') === $slug) {
+                        Log::info($method . ' - rendering custom page', ['slug' => $slug, 'title' => $page['page_title'] ?? null]);
+                        $view = self::getFirstExistingView(ViewsConstants::SET_LOS . '.' . strtolower(explode('::', $method)[1]));
+                        if (!$view) {
+                            Log::warning($method . ' - view not found', ['attempted' => ViewsConstants::SET_LOS . '.' . strtolower(explode('::', $method)[1])]);
+                            throw new \RuntimeException("View not found: " . ViewsConstants::SET_LOS . '.' . strtolower(explode('::', $method)[1]));
+                        }
+                        $this->logExecutionTime($stepStart, 'findPage', 'completed');
+                        return view($view, compact('page', DatabaseConstants::TABLE_SETTINGS));
+                    }
+                } catch (\Throwable $e) {
+                    Log::error($method . ' - exception during page iteration', ['error' => $e->getMessage(), 'page' => $page]);
+                    continue;
                 }
             }
             $this->logExecutionTime($stepStart, 'findPage', 'completed');

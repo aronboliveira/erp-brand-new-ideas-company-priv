@@ -179,8 +179,8 @@
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
                             </h2>
                             <p class="mb-sm-4 wow animate__fadeInLeft" data-wow-delay="0.6s">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                             <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
                                 @php
@@ -253,8 +253,8 @@
                                 {{__(' All In One Business ERP With Project, Account, HRM, CRM')}}
                             </h2>
                             <p class="mb-sm-4 wow animate__fadeInLeft" data-wow-delay="0.6s">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                             <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
                                 <a href="#" class="btn btn-primary" target="_blank"
@@ -291,8 +291,8 @@
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
                             </h2>
                             <p class="mb-sm-4 wow animate__fadeInRight" data-wow-delay="0.6s">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                             <div class="my-4 wow animate__fadeInRight" data-wow-delay="0.8s">
                                 <a href="#" class="btn btn-primary" target="_blank"
@@ -312,8 +312,8 @@
                                 system
                             </h2>
                             <p class="m-0">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                         </div>
                     </div>
@@ -335,8 +335,8 @@
                                     <h6 class="text-muted mt-4">ABOUT</h6>
                                     <h4 class="my-3 f-w-600">Feature</h4>
                                     <p class="mb-0">
-                                        Use these awesome forms to login or create new account in your
-                                        project for free.
+                                        {{ __('Use these awesome forms to login or create new account in your
+                                        project for free.')}}
                                     </p>
                                 </div>
                             </div>
@@ -358,8 +358,8 @@
                                     <h6 class="text-muted mt-4">ABOUT</h6>
                                     <h4 class="my-3 f-w-600">Feature</h4>
                                     <p class="mb-0">
-                                        Use these awesome forms to login or create new account in your
-                                        project for free.
+                                        {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                                     </p>
                                 </div>
                             </div>
@@ -381,8 +381,8 @@
                                     <h6 class="text-muted mt-4">ABOUT</h6>
                                     <h4 class="my-3 f-w-600">Feature</h4>
                                     <p class="mb-0">
-                                        Use these awesome forms to login or create new account in your
-                                        project for free.
+                                        {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                                     </p>
                                 </div>
                             </div>
@@ -404,8 +404,8 @@
                                     <h6 class="text-muted mt-4">ABOUT</h6>
                                     <h4 class="my-3 f-w-600">Feature</h4>
                                     <p class="mb-0">
-                                        Use these awesome forms to login or create new account in your
-                                        project for free.
+                                        {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                                     </p>
                                 </div>
                             </div>
@@ -433,8 +433,8 @@
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
                             </h2>
                             <p class="mb-sm-4 wow animate__fadeInLeft" data-wow-delay="0.6s">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                             <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
                                 <a href="#" class="btn btn-primary" target="_blank"
@@ -471,8 +471,8 @@
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
                             </h2>
                             <p class="mb-sm-4 wow animate__fadeInRight" data-wow-delay="0.6s">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                             <div class="my-4 wow animate__fadeInRight" data-wow-delay="0.8s">
                                 <a href="#" class="btn btn-primary" target="_blank"
@@ -492,8 +492,8 @@
                                 system
                             </h2>
                             <p class="m-0">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                         </div>
                     </div>
@@ -590,8 +590,8 @@
                         <div class="col-xl-6 col-md-9 title">
                             <h2><span>Frequently Asked Questions </span></h2>
                             <p class="m-0">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                         </div>
                     </div>
@@ -722,8 +722,8 @@
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
                             </h2>
                             <p class="mb-sm-4 wow animate__fadeInLeft" data-wow-delay="0.6s">
-                                Use these awesome forms to login or create new account in your
-                                project for free.
+                                {{ __('Use these awesome forms to login or create new account in your
+                                project for free.')}}
                             </p>
                             <div class="my-4 wow animate__fadeInLeft" data-wow-delay="0.8s">
                                 <a href="#" class="btn btn-primary" target="_blank"

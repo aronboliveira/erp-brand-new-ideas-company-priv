@@ -37,4 +37,9 @@ trait UsesUuids
 	{
 		return 'string';
 	}
+
+	public static function queryByKey(string $uuid): ?self
+	{
+		return static::where('query_key', $uuid)->firstOrFail();
+	}
 }

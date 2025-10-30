@@ -251,7 +251,9 @@
 }
 
 .img_setting {
-  filter: drop-shadow(2px 3px 7px #011c4b);
+    filter: drop-shadow(2px 4px 8px #0002);
+    object-fit: contain;
+    border-radius: 8px;
 }
 .btn-apply {
   font-size: 31px;

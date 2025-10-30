@@ -8,6 +8,7 @@
     Log::debug('Loaded settings for Menubar blade...');
 	$lpSettings ??= [];
 	$logo ??= '';
+    $lang = Utility::fetchUserLang();
 	try {
 		$lpSettings=\Modules\LandingPage\Entities\LandingPageSetting::landingPageSetting()?:[];
 		$logo=Utility::getFile('uploads/landing_page_image')?:'';
@@ -201,7 +202,7 @@
                                                 @foreach ($pages as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
-                                                        <td>{{ $value[LPC::MB_PG_NM] }}</td>
+                                                        <td>{{ !empty($value[LPC::MB_PG_NM]) ? $value[LPC::MB_PG_NM] : __('Name not available for page') }}</td>
                                                         <td>
                                                             @php
                                                                 Log::debug('Loading routes for stateful routes for custom pages...');

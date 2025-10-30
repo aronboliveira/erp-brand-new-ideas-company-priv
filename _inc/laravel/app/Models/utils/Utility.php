@@ -362,7 +362,7 @@ class Utility extends Model
             $settings = self::DEFAULT_SETTINGS_BY_ID;
             foreach ($data as $name => $value)
                 $settings[$name] = $value;
-            Log::info("{$tag} settings assembled", [
+            Log::debug("{$tag} settings assembled", [
                 UsersConstants::COL_USER_ID => $userId,
                 'settings'                 => $settings,
             ]);

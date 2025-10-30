@@ -35,7 +35,7 @@ trait ChecksLogin
 		app()->runningInConsole() ?
 			$output->writeln('<comment> ' . $msg . ' </comment>') :
 			$output->writeln("## CHECK-LOGIN: {$msg}");
-		Log::info('[ChecksLogin] Starting authentication check: ' . $msg, ['method' => __METHOD__]);
+		Log::debug('[ChecksLogin] Starting authentication check: ' . $msg, ['method' => __METHOD__]);
 		$lang = DatabaseConstants::DEFAULT_LANG;
 		try {
 			/** @var User|null $user */
@@ -47,7 +47,7 @@ trait ChecksLogin
 				app()->runningInConsole() ?
 					$output->writeln('<error> ' . $failMsg . ' </error>') :
 					$output->writeln("## CHECK-LOGIN: {$failMsg}");
-				Log::notice('[ChecksLogin] User not authenticated in ' . __FUNCTION__, [
+				Log::debug('[ChecksLogin] User not authenticated in ' . __FUNCTION__, [
 					'ip' => request()->ip(),
 					'session_id' => session()->getId(),
 					'user_agent' => request()->userAgent()
@@ -70,7 +70,7 @@ trait ChecksLogin
 			app()->runningInConsole() ?
 				$output->writeln('<info> ' . $successMsg . ' </info>') :
 				$output->writeln("## AUTH: {$successMsg}");
-			Log::info('[ChecksLogin] User authenticated successfully in ' . __FUNCTION__, [
+			Log::debug('[ChecksLogin] User authenticated successfully in ' . __FUNCTION__, [
 				'user_id' => $user?->id,
 				'email' => $user?->email ?? 'no_email',
 				'session_id' => session()->getId()
@@ -81,7 +81,7 @@ trait ChecksLogin
 			app()->runningInConsole() ?
 				$output->writeln('<error> ' . $errorMsg . ' </error>') :
 				$output->writeln("## CHECK-LOGIN: {$errorMsg}");
-			Log::error('[ChecksLogin] Exception during authentication check in ' . __FUNCTION__, [
+			Log::notice('[ChecksLogin] Exception during authentication check in ' . __FUNCTION__, [
 				'error' => $e->getMessage(),
 				'file' => $e->getFile(),
 				'line' => $e->getLine(),
@@ -128,7 +128,7 @@ trait ChecksLogin
 				]);
 			}
 			if ($haltRedirect) return false;
-			Log::notice('[ChecksLogin] redirecting to login...');
+			Log::debug('[ChecksLogin] redirecting to login...');
 			return redirect()
 				->route('login')
 				->with('error', __(!empty($msgs['internal_error']) ? $msgs['internal_error'] : 'An internal error occurred. Please try again later.'));

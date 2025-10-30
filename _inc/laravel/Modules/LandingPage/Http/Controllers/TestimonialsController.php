@@ -34,13 +34,16 @@ final class TestimonialsController extends AppController
                 $settingsStart = microtime(true);
                 $settings = LandingPageSetting::landingPageSetting();
                 $this->logExecutionTime($settingsStart, $action . '::landingPageSetting', 'completed');
-
                 $itemsStart = microtime(true);
                 $items = json_decode($settings[self::ENTITY] ?? '[]', true);
                 $this->logExecutionTime($itemsStart, $action . '::decodeItems', 'completed');
-
+                $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
+                }
                 Log::info("[$action] loaded", ['count' => count($items)]);
-                return view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function, [
+                return view($view, [
                     DatabaseConstants::TABLE_SETTINGS => $settings,
                     self::ENTITY => $items
                 ]);
@@ -85,9 +88,13 @@ final class TestimonialsController extends AppController
 
             try {
                 $startView = microtime(true);
-                $view = view(static::LP . '::' . static::LP . '.' . static::ENTITY . '.' . $function);
+                $view = self::getFirstExistingView(static::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$method] view not found", ['attempted' => static::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . static::ENTITY . '.' . $function);
+                }
                 $this->logExecutionTime($startView, $function . '::view', 'completed');
-                return $view;
+                return view($view);
             } catch (\Throwable $e) {
                 $timeError = microtime(true);
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
@@ -108,13 +115,13 @@ final class TestimonialsController extends AppController
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             if (($redirect = self::guard($request, PermissionsConstants::MNG_TT, self::REDIRECT_INDEX)) !== true) return $redirect;
             $request->validate([
-                self::ENTITY . 'Heading' => 'required|string',
-                self::ENTITY . 'Description' => 'required|string',
-                self::ENTITY . 'LongDescription' => 'nullable|string',
-                self::ENTITY . 'User' => 'required|string',
-                self::ENTITY . 'Designation' => 'required|string',
-                self::ENTITY . 'Star' => 'required|integer|min:1|max:5',
-                self::ENTITY . 'UserAvatar' => 'nullable|image',
+                self::ENTITY . '_heading' => 'required|string',
+                self::ENTITY . '_description' => 'required|string',
+                self::ENTITY . '_long_description' => 'nullable|string',
+                self::ENTITY . '_user' => 'required|string',
+                self::ENTITY . '_designation' => 'required|string',
+                self::ENTITY . '_star' => 'required|integer|min:1|max:5',
+                self::ENTITY . '_user_avatar' => 'nullable|image',
             ]);
             DB::beginTransaction();
             $stepStart = microtime(true);
@@ -122,12 +129,12 @@ final class TestimonialsController extends AppController
                 $settings = LandingPageSetting::settings();
                 $list = json_decode($settings[self::ENTITY] ?? '[]', true);
                 $item = [
-                    self::ENTITY . 'Heading' => $request->input(self::ENTITY . 'Heading'),
-                    self::ENTITY . 'Description' => $request->input(self::ENTITY . 'Description'),
-                    self::ENTITY . 'LongDescription' => $request->input(self::ENTITY . 'LongDescription', ''),
-                    self::ENTITY . 'User' => $request->input(self::ENTITY . 'User'),
-                    self::ENTITY . 'Designation' => $request->input(self::ENTITY . 'Designation'),
-                    self::ENTITY . 'Star' => $request->input(self::ENTITY . 'Star'),
+                    self::ENTITY . '_heading' => $request->input(self::ENTITY . '_heading'),
+                    self::ENTITY . '_description' => $request->input(self::ENTITY . '_description'),
+                    self::ENTITY . '_long_description' => $request->input(self::ENTITY . '_long_description', ''),
+                    self::ENTITY . '_user' => $request->input(self::ENTITY . '_user'),
+                    self::ENTITY . '_designation' => $request->input(self::ENTITY . '_designation'),
+                    self::ENTITY . '_star' => $request->input(self::ENTITY . '_star'),
                 ];
                 if ($request->hasFile(self::ENTITY . 'UserAvatar')) {
                     $file = time() . '-avatar.' . $request->file(self::ENTITY . 'UserAvatar')->getClientOriginalExtension();
@@ -184,8 +191,13 @@ final class TestimonialsController extends AppController
                     Log::warning("[$action] not found", ['key' => $key]);
                     return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Testimonial not found'));
                 }
+                $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
+                if (!$view) {
+                    Log::warning("[$action] view not found", ['attempted' => self::ENTITY . '.' . $function]);
+                    throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
+                }
                 Log::info("[$action] loaded", ['key' => $key]);
-                return view(self::LP . '::' . self::LP . '.' . self::ENTITY . '.' . $function, ['testimonial' => $list[$key], 'key' => $key]);
+                return view($view, ['testimonial' => $list[$key], 'key' => $key]);
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage(), 'key' => $key]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -208,13 +220,13 @@ final class TestimonialsController extends AppController
             $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
             $stepStart = microtime(true);
             $request->validate([
-                self::ENTITY . 'Heading' => 'required|string',
-                self::ENTITY . 'Description' => 'required|string',
-                self::ENTITY . 'LongDescription' => 'nullable|string',
-                self::ENTITY . 'User' => 'required|string',
-                self::ENTITY . 'Designation' => 'required|string',
-                self::ENTITY . 'Star' => 'required|integer|min:1|max:5',
-                self::ENTITY . 'UserAvatar' => 'nullable|image',
+                self::ENTITY . '_heading' => 'required|string',
+                self::ENTITY . '_description' => 'required|string',
+                self::ENTITY . '_long_description' => 'nullable|string',
+                self::ENTITY . '_user' => 'required|string',
+                self::ENTITY . '_designation' => 'required|string',
+                self::ENTITY . '_star' => 'required|integer|min:1|max:5',
+                self::ENTITY . '_user_avatar' => 'nullable|image',
             ]);
             $this->logExecutionTime($stepStart, 'validateRequest', 'completed');
             DB::beginTransaction();
@@ -228,22 +240,24 @@ final class TestimonialsController extends AppController
                     DB::rollBack();
                     return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Testimonial not found'));
                 }
-                foreach ([
-                    self::ENTITY . 'Heading',
-                    self::ENTITY . 'Description',
-                    self::ENTITY . 'LongDescription',
-                    self::ENTITY . 'User',
-                    self::ENTITY . 'Designation',
-                    self::ENTITY . 'Star'
-                ] as $field)
+                foreach (
+                    [
+                        self::ENTITY . '_heading',
+                        self::ENTITY . '_description',
+                        self::ENTITY . '_long_description',
+                        self::ENTITY . '_user',
+                        self::ENTITY . '_designation',
+                        self::ENTITY . '_star'
+                    ] as $field
+                )
                     $list[$key][$field] = $request->input($field);
                 $this->logExecutionTime($stepStart, 'updateFields', 'completed');
-                if ($request->hasFile(self::ENTITY . 'UserAvatar')) {
+                if ($request->hasFile(self::ENTITY . '_user_avatar')) {
                     $stepStart = microtime(true);
-                    $file = time() . '-avatar.' . $request->file(self::ENTITY . 'UserAvatar')->getClientOriginalExtension();
+                    $file = time() . '-avatar.' . $request->file(self::ENTITY . '_user_avatar')->getClientOriginalExtension();
                     $upload = LandingPageSetting::uploadFile(
                         $request,
-                        self::ENTITY . 'UserAvatar',
+                        self::ENTITY . '_user_avatar',
                         $file,
                         self::UPLOAD_DIR,
                         []

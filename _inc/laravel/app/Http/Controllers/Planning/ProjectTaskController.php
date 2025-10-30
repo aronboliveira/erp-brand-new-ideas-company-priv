@@ -44,7 +44,7 @@ class ProjectTaskController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        $viewPath = self::SINGULAR . '.index';
+        $viewPath = self::SINGULAR . 's.index';
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -72,7 +72,7 @@ class ProjectTaskController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        $viewPath = self::SINGULAR . '.create';
+        $viewPath = self::SINGULAR . 's.create';
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $stageId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -148,19 +148,27 @@ class ProjectTaskController extends Controller
             Log::info("[{$class}::{$action}] start", ['view' => $view, UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 if ($view === 'list') {
-                    $viewPath = self::SINGULAR . '.taskboard';
-                    if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                    $viewPath = self::SINGULAR . 's.taskboard';
+                    if (!ViewFacade::exists($viewPath)) {
+                        Log::debug("[{$class}::{$action}] view not found", ['view' => $viewPath]);
+                        return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                    }
                     return view($viewPath, compact('view'));
                 }
                 $creatorId = $user?->creatorId();
-                $userProjects = $user->type == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
+                $userProjects = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
                 $tasks = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects);
-                if ($user->type != PermissionsConstants::CPN) $tasks = $user->type == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
-                else $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                if (($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN && $user->{UsersConstants::COL_TP} != PermissionsConstants::SA))
+                    $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                else
+                    $tasks = $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
                 $tasks = $tasks->get();
                 Log::info("[{$class}::{$action}] fetched tasks", ['count' => $tasks->count()]);
-                $viewPath = self::SINGULAR . '.grid';
-                if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                $viewPath = self::SINGULAR . 's.grid';
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::debug("[{$class}::{$action}] view not found", ['view' => $viewPath]);
+                    return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
                 return view($viewPath, compact(DatabaseConstants::TABLE_TASKS, 'view'));
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['error' => $e->getMessage()]);
@@ -184,10 +192,10 @@ class ProjectTaskController extends Controller
             Log::info("[{$class}::{$action}] start", $req->only('sort', 'keyword', ActivitiesConstants::COL_TSK_ID));
             try {
                 $creatorId = $user?->creatorId();
-                $userProjects = $user->type == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
+                $userProjects = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
                 [$col, $dir] = explode('-', $req->sort);
                 $tasks = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects)->orderBy($col, $dir);
-                if ($user->type != PermissionsConstants::CPN) $tasks = $user->type == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                if ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
                 else $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
                 if ($keyword = $req->keyword) $tasks->where(ProjectsConstants::COL_NM, 'LIKE', "$keyword%");
                 if ($statuses = (array)$req[ActivitiesConstants::COL_TSK_ID]) {
@@ -225,8 +233,8 @@ class ProjectTaskController extends Controller
             try {
                 $creatorId = $user?->creatorId();
                 $bug_status = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-                if ($user->type == PermissionsConstants::CPN) $bugs = Bug::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::TABLE_CREATOR, 'project_bug'])->get();
-                elseif ($user->type == PermissionsConstants::CL) {
+                if ($user->{UsersConstants::COL_TP} == PermissionsConstants::CPN) $bugs = Bug::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::TABLE_CREATOR, 'project_bug'])->get();
+                elseif ($user->{UsersConstants::COL_TP} == PermissionsConstants::CL) {
                     $ids = Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray();
                     $bugs = Bug::whereIn(ProjectsConstants::COL_PJ_ID, $ids)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::TABLE_CREATOR])->get();
                 } else $bugs = Bug::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")")->with([self::ENTITY, DatabaseConstants::TABLE_CREATOR])->get();
@@ -249,7 +257,7 @@ class ProjectTaskController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        $viewPath = self::SINGULAR . '.view';
+        $viewPath = self::SINGULAR . 's.view';
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -277,7 +285,7 @@ class ProjectTaskController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        $viewPath = self::SINGULAR . '.edit';
+        $viewPath = self::SINGULAR . 's.edit';
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -709,7 +717,7 @@ class ProjectTaskController extends Controller
         $action = __FUNCTION__;
         $method = __METHOD__;
         $class = static::class;
-        $viewPath = self::SINGULAR . '.partials.card';
+        $viewPath = self::SINGULAR . 's.partials.card';
         $req = $request;
         return $this->measureProfile($action, function () use ($req, $projectId, $taskId, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
@@ -855,10 +863,10 @@ class ProjectTaskController extends Controller
                     $creatorId = $user?->creatorId();
                     $q = ProjectTask::query();
                     if ($projectId) $q->where(ProjectsConstants::COL_PJ_ID, $projectId);
-                    if ($user->type == PermissionsConstants::CL) {
+                    if ($user->{UsersConstants::COL_TP} == PermissionsConstants::CL) {
                         $proj = Project::where('client_id', $user?->id)->pluck('id');
                         $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj);
-                    } elseif ($user->type != PermissionsConstants::CPN) {
+                    } elseif ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) {
                         $proj = $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID);
                         $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
                     } else $q->where(DatabaseConstants::TABLE_CREATOR, $creatorId);

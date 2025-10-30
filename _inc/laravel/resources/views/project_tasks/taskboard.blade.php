@@ -2,19 +2,19 @@
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
-        ViewsConstants,
+        ViewsConstants as VW,
         ViewClassNamesConstants as VC,
         YieldingConstants
     };
-    use App\Models\{ProjectTask,{ProjectTask,Utility}};
+    use App\Models\{ProjectTask,Utility};
     use Illuminate\Support\Facades\Route;
-    use Illuminate\Support\{Collection,{Collection,Str}};
+    use Illuminate\Support\{Collection,Str};
     $lang = Utility::fetchUserLang();
-    $projectIndexBaseName = ViewsConstants::PRJ . '.index';
+    $projectIndexBaseName = VW::PRJ . '.index';
     $projectIndexKebabName = Str::kebab($projectIndexBaseName);
     $projectIndexResolvedName = Route::has($projectIndexBaseName) ? $projectIndexBaseName : (Route::has($projectIndexKebabName) ? $projectIndexKebabName : null);
     $projectIndexUrl = $projectIndexResolvedName ? route($projectIndexResolvedName) : '#';
-    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
+    $projectIndexGuardMsg = Utility::fetchLinkMessage($lang, VW::PRJ, 'project_index_route_unavailable') ?? 'Project index route is unavailable. Please contact technical support or your domain administrator.';
 @endphp
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
@@ -103,11 +103,11 @@
         </div>
         @if($view == 'grid')
             @php
-                $taskboardViewBaseName = ViewsConstants::TSKB . '.view';
+                $taskboardViewBaseName = VW::TSKB . '.view';
                 $taskboardViewKebabName = Str::kebab($taskboardViewBaseName);
                 $taskboardViewResolvedName = Route::has($taskboardViewBaseName) ? $taskboardViewBaseName : (Route::has($taskboardViewKebabName) ? $taskboardViewKebabName : null);
                 $taskboardViewUrl = $taskboardViewResolvedName ? route($taskboardViewResolvedName, 'list') : '#';
-                $taskboardViewGuardMsg = Utility::fetchLinkMessage($lang, ViewsConstants::TSK, 'taskboard_view_route_unavailable') ?? 'Taskboard view route is unavailable. Please contact technical support or your domain administrator.';
+                $taskboardViewGuardMsg = Utility::fetchLinkMessage($lang, VW::TSK, 'taskboard_view_route_unavailable') ?? 'Taskboard view route is unavailable. Please contact technical support or your domain administrator.';
                 $taskboardViewBtnId = 'taskboard-view-list-btn';
             @endphp
             <a
@@ -126,7 +126,7 @@
             @endpush
         @else
             @php
-                $taskboardViewRouteName        = ViewsConstants::TSKB . '.view';
+                $taskboardViewRouteName        = VW::TSKB . '.view';
                 $taskboardViewKebabName        = Str::kebab($taskboardViewRouteName);
                 $taskboardViewResolvedName     = Route::has($taskboardViewRouteName)
                     ? $taskboardViewRouteName
@@ -136,7 +136,7 @@
                     : '#';
                 $taskboardGridViewGuardMsg     = Utility::fetchLinkMessage(
                     $lang,
-                    ViewsConstants::TSK,
+                    VW::TSK,
                     'taskboard_view_grid_route_unavailable'
                 ) ?? 'Taskboard grid view route is unavailable. Please contact technical support or your domain administrator.';
                 $taskboardGridViewBtnId        = 'taskboard-grid-view-btn';
@@ -213,7 +213,7 @@
             const container=document.querySelector('.task-filter-actions');
             const urlAttr=container?.getAttribute('data-url')||'';
             const href=container?.getAttribute('action')||'';
-            const endpoint = (urlAttr && urlAttr!=='#') ? urlAttr : '{{ route(ViewsConstants::PRJ.".taskboard.view") }}';
+            const endpoint = (urlAttr && urlAttr!=='#') ? urlAttr : '{{ route(VW::PRJ.".taskboard.view") }}';
             if((!urlAttr||urlAttr==='#') && (!href||href==='#')){ attachGuardOnce(container||document.body,'taskboard_unavailable'); return; }
             const view='{{$view}}';
             const data={ view, sort: task_sort, keyword, status };

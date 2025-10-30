@@ -92,7 +92,12 @@ class LandingPageController extends AppController
             try {
                 if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
-
+                $request->merge([
+                    static::TP . '_status' => $request->has(static::TP . '_status')
+                        && in_array($request->{static::TP . '_status'}, ['on', 'off', 'checked', 'unchecked', '0', '1', 'true', 'false'], true)
+                        ? 'on'
+                        : 'off'
+                ]);
                 $payload = $request->validate([
                     static::TP . '_status' => [
                         'required',
@@ -100,48 +105,51 @@ class LandingPageController extends AppController
                     ],
                     static::TP . '_notification_msg' => 'nullable|string'
                 ]);
-
                 DB::beginTransaction();
                 try {
                     $statusValue = $payload[static::TP . '_status'];
                     $normalizedStatus = in_array($statusValue, ['on', 'checked', '1', 'true', true, 1], true)
                         ? 'on'
                         : 'off';
-
                     $settings = [
                         static::TP . '_status'          => $normalizedStatus,
-                        static::TP . '_notification_msg' => $payload[static::TP . '_notification_msg'] ?? ''
+                        static::TP . '_notification_msg' => $payload[static::TP . '_notification_msg' ?? ''] ?? ''
                     ];
-
+                    Log::notice($settings);
                     foreach ($settings as $name => $value) {
                         $startUpdate = microtime(true);
-                        LandingPageSetting::updateOrCreate(
-                            [
-                                LandingPageConstants::COL_LPS_NM => $name,
-                                DatabaseConstants::TABLE_CREATOR => $user?->id
-                            ],
-                            [
+                        $existingSetting = LandingPageSetting::where([
+                            LandingPageConstants::COL_LPS_NM => $name,
+                            DatabaseConstants::TABLE_CREATOR => $user?->id
+                        ])->first();
+                        if ($existingSetting)
+                            $existingSetting->update([
                                 LandingPageConstants::COL_LPS_V => $value
-                            ]
-                        );
+                            ]);
+                        else
+                            LandingPageSetting::create([
+                                LandingPageConstants::COL_LPS_NM => $name,
+                                LandingPageConstants::COL_LPS_V => $value,
+                                DatabaseConstants::TABLE_CREATOR => $user?->id
+                            ]);
                         $this->logExecutionTime($startUpdate, $function . '::updateOrCreate', 'completed');
-
                         Log::info(ucfirst(static::TP) . ' settings saved', [
                             UsersConstants::COL_USER_ID => $user?->id,
-                            'setting'                   => $name,
+                            'setting' => $name,
                             LandingPageConstants::COL_LPS_V => $value
                         ]);
                     }
-
                     DB::commit();
-
+                    $savedSettings = LandingPageSetting::where(DatabaseConstants::TABLE_CREATOR, $user?->id);
+                    Log::notice('Verified saved settings from DB', [
+                        'saved' => $savedSettings->pluck(LandingPageConstants::COL_LPS_V, LandingPageConstants::COL_LPS_NM)->toArray()
+                    ]);
                     return redirect()->route(static::ROUTE_INDEX)
                         ->with('success', __(ucfirst(static::TP) . ' settings updated successfully'));
                 } catch (\Throwable $e) {
                     $errorTime = microtime(true);
                     DB::rollBack();
                     $this->logExecutionTime($errorTime, $function . '::exception', 'failed');
-
                     Log::error($method . ' failed to store ' . static::TP . ' settings', [
                         UsersConstants::COL_USER_ID => $user?->id,
                         'payload'                   => $payload,
@@ -151,7 +159,6 @@ class LandingPageController extends AppController
                         'exception' => $e,
                         'trace'     => $e->getTraceAsString()
                     ]);
-
                     return defaultUndefinedException($request, $e, $method, route(static::ROUTE_INDEX));
                 }
             } catch (ValidationException $e) {
@@ -178,6 +185,7 @@ class LandingPageController extends AppController
             }
         }, func_get_args());
     }
+
     /**
      * Update a single setting by ID.
      */
@@ -279,18 +287,24 @@ class LandingPageController extends AppController
         $method = __METHOD__;
         Log::debug($method . ' - start', ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
         return $this->measureProfile($method, function () use ($request, $method) {
-            $stepStart = microtime(true);
-            if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
-            $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
-            $stepStart = microtime(true);
-            $user = $ur;
-            if (($redirect = self::guard($request, PermissionsConstants::MNG_LP, self::ROUTE_INDEX)) !== true) return $redirect;
-            $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
-            Log::info($method . ' - rendering create form', ['user_id' => $user?->id]);
-            $stepStart = microtime(true);
-            $view = view(self::SINGULAR . '::' . self::SINGULAR . '.create');
-            $this->logExecutionTime($stepStart, 'renderView', 'completed');
-            return $view;
+            try {
+                $stepStart = microtime(true);
+                if (($ur = self::_checkLogin()) instanceof RedirectResponse) return $ur;
+                $this->logExecutionTime($stepStart, 'checkLogin', 'completed');
+                $stepStart = microtime(true);
+                $user = $ur;
+                if (($redirect = self::guard($request, PermissionsConstants::MNG_LP, self::ROUTE_INDEX)) !== true) return $redirect;
+                $this->logExecutionTime($stepStart, 'authorizationGuard', 'completed');
+                Log::info($method . ' - rendering create form', ['user_id' => $user?->id]);
+                $stepStart = microtime(true);
+                $view = view(self::SINGULAR . '::' . self::SINGULAR . '.create');
+                $this->logExecutionTime($stepStart, 'renderView', 'completed');
+                return $view;
+            } catch (\Throwable $e) {
+                Log::error($method . ' exception', ['error' => $e->getMessage()]);
+                Log::debug($method . ' - exception details', ['trace' => $e->getTraceAsString()]);
+                return defaultUndefinedException($request, $e, $method);
+            }
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
     }
 

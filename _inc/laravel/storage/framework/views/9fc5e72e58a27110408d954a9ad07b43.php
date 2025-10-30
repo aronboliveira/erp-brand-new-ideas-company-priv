@@ -1,38 +1,36 @@
 <?php
-
-use App\Models\{User, Utility};
-use App\Config\Constants\{
-    DatabaseConstants,
-    PermissionsConstants,
-    SettingsConstants,
-    UsersConstants,
-    ViewsConstants,
-    ViewClassNamesConstants
-};
-use Illuminate\Support\Facades\{Auth, File, Log};
-
-Log::debug('Loading admin header data...');
-$user = Auth::user();
-$profile = Utility::getFile('uploads/avatar/');
-$languages = Utility::languages();
-$lang = isset($user[UsersConstants::COL_LG]) ? $user[UsersConstants::COL_LG] : Utility::fetchUserLang(user: $user);
-if (empty($lang)) $lang = DatabaseConstants::DEFAULT_LANG;
-// $langName = \App\Models\Language::where('code',$lang)->first();
-// $langName =\App\Models\Language::languageData($lang);
-$langName = cache()->remember('full_language_data_' . $lang, now()->addHours(24), function () use ($lang) {
-    return \App\Models\Language::languageData($lang);
-});
-if (!Utility::isFilled($langName) || !isset($langName->full_name) ?? [])
-    $langName = (object) ['full_name' => DatabaseConstants::DEFAULT_LANG_LONG];
-$settings = Utility::settings();
-$unseenCounter = ($user instanceof User) ? App\Models\ChMessage::where('to_id', $user?->id)->where('seen', 0)->count() : 0;
-Log::debug('Loading admin header template...')
+    use App\Models\{User, Utility};
+    use App\Config\Constants\{
+        DatabaseConstants,
+        PermissionsConstants, 
+        SettingsConstants,
+        UsersConstants,
+        ViewsConstants,
+        ViewClassNamesConstants
+    };
+    use Illuminate\Support\Facades\{Auth, File, Log};
+    Log::debug('Loading admin header data...');
+    $user=Auth::user();
+    $profile=Utility::getFile('uploads/avatar/');
+    $languages=Utility::languages();
+    $lang = isset($user[UsersConstants::COL_LG])?$user[UsersConstants::COL_LG]: Utility::fetchUserLang(user:$user);
+    if (empty($lang)) $lang = DatabaseConstants::DEFAULT_LANG;
+    // $langName = \App\Models\Language::where('code',$lang)->first();
+    // $langName =\App\Models\Language::languageData($lang);
+    $langName = cache()->remember('full_language_data_' . $lang, now()->addHours(24), function () use ($lang) {
+        return \App\Models\Language::languageData($lang);
+    });
+    if (!Utility::isFilled($langName) || !isset($langName->full_name) ?? [])
+        $langName = (object) ['full_name' => DatabaseConstants::DEFAULT_LANG_LONG];
+    $settings = Utility::settings();
+    $unseenCounter = ($user instanceof User) ? App\Models\ChMessage::where('to_id', $user?->id)->where('seen', 0)->count() : 0;
+    Log::debug('Loading admin header template...')
 ?>
-<?php if (isset($settings[SettingsConstants::CST_BG]) && $settings[SettingsConstants::CST_BG] == 'on'): ?>
+<?php if(isset($settings[SettingsConstants::CST_BG]) && $settings[SettingsConstants::CST_BG] == 'on'): ?>
     <header class="<?php echo e(ViewClassNamesConstants::DSH); ?> transparent-bg">
-    <?php else: ?>
-        <header class="<?php echo e(ViewClassNamesConstants::DSH); ?>">
-        <?php endif; ?>
+<?php else: ?>
+    <header class="<?php echo e(ViewClassNamesConstants::DSH); ?>">
+<?php endif; ?>
         <div class="header-wrapper">
             <div class="me-auto dash-mob-drp">
                 <ul class="list-unstyled">
@@ -46,11 +44,11 @@ Log::debug('Loading admin header template...')
                         </a>
                     </li>
                     <li class="<?php echo e(ViewClassNamesConstants::DRP_DSH); ?> drp-company">
-                        <?php if ($user instanceof User): ?>
+                        <?php if($user instanceof User): ?> 
                             <a class="<?php echo e(ViewClassNamesConstants::DRP_NO_ARROW); ?>" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
                                 <span class="theme-avatar" style="transform: scale(1.1);">
                                     <img
-                                        src="<?php echo e(asset(($user?->avatar && File::exists($user->avatar)) ? $user->avatar : 'assets/images/user/defaults/fictional_tech_lead.webp')); ?>"
+                                        src="<?php echo e(asset( ($user?->avatar && File::exists($user->avatar)) ? $user->avatar : 'assets/images/user/defaults/fictional_tech_lead.webp')); ?>"
                                         alt="User Avatar"
                                         data-reload-attempt="0"
                                         height="40px"
@@ -58,33 +56,34 @@ Log::debug('Loading admin header template...')
                                         loading="lazy"
                                         decoding="async"
                                         fetchpriority="high"
-                                        style="border-radius: 40%;">
+                                        style="border-radius: 40%;"
+                                    >
                                 </span>
                                 <span class="hide-mob ms-2"><?php echo e(__('Hi, ')); ?><?php echo e($user?->name); ?>!</span>
                                 <i class="ti ti-chevron-down drp-arrow nocolor hide-mob"></i>
                             </a>
                         <?php endif; ?>
                         <?php
-                        $profileRoute = Route::has('profile')
-                            ? route('profile')
-                            : '#';
-                        $profileLinkId = 'profile-link';
-                        $profileMsg = Utility::fetchLinkMessage(
-                            $lang,
-                            ViewsConstants::USR,
-                            'profile_route_unavailable'
-                        ) ?? 'Profile route is unavailable. Please contact technical support or your domain administrator.';
-
-                        $logoutRoute = Route::has('logout')
-                            ? route('logout')
-                            : '#';
-                        $logoutLinkId = 'logout-link';
-                        $logoutMsg = Utility::fetchLinkMessage(
-                            $lang,
-                            ViewsConstants::USR,
-                            'logout_route_unavailable'
-                        ) ?? 'Logout route is unavailable. Please contact technical support or your domain administrator.';
-                        $guardIds = [$profileLinkId, $logoutLinkId];
+                            $profileRoute = Route::has('profile')
+                                ? route('profile')
+                                : '#';
+                            $profileLinkId = 'profile-link';
+                            $profileMsg = Utility::fetchLinkMessage(
+                                $lang,
+                                ViewsConstants::USR,
+                                'profile_route_unavailable'
+                            ) ?? 'Profile route is unavailable. Please contact technical support or your domain administrator.';
+                        
+                            $logoutRoute = Route::has('logout')
+                                ? route('logout')
+                                : '#';
+                            $logoutLinkId = 'logout-link';
+                            $logoutMsg = Utility::fetchLinkMessage(
+                                $lang,
+                                ViewsConstants::USR,
+                                'logout_route_unavailable'
+                            ) ?? 'Logout route is unavailable. Please contact technical support or your domain administrator.';
+                            $guardIds = [$profileLinkId, $logoutLinkId];
                         ?>
                         <div class="<?php echo e(ViewClassNamesConstants::DRP_DSH_MN); ?>">
                             <a
@@ -93,7 +92,8 @@ Log::debug('Loading admin header template...')
                                 class="dropdown-item"
                                 data-url="<?php echo e($profileRoute); ?>"
                                 data-sv-localized="true"
-                                data-guard-msg="<?php echo e($profileMsg); ?>">
+                                data-guard-msg="<?php echo e($profileMsg); ?>"
+                            >
                                 <i class="ti ti-user text-dark"></i>
                                 <span><?php echo e(__('Profile')); ?></span>
                             </a>
@@ -104,7 +104,8 @@ Log::debug('Loading admin header template...')
                                 class="dropdown-item"
                                 data-url="<?php echo e($logoutRoute); ?>"
                                 data-sv-localized="true"
-                                data-guard-msg="<?php echo e($logoutMsg); ?>">
+                                data-guard-msg="<?php echo e($logoutMsg); ?>"
+                            >
                                 <i class="ti ti-power text-dark"></i>
                                 <span><?php echo e(__('Logout')); ?></span>
                             </a>
@@ -118,15 +119,13 @@ Log::debug('Loading admin header template...')
             </div>
             <div class="ms-auto" style="margin-right: 1rem;">
                 <ul class="list-unstyled">
-                    <?php if (
-                        $user instanceof User && $user[UsersConstants::COL_TP] != PermissionsConstants::CL
-                        && $user[UsersConstants::COL_TP] != PermissionsConstants::SA
-                    ): ?>
+                    <?php if($user instanceof User && $user[UsersConstants::COL_TP] != PermissionsConstants::CL 
+                        && $user[UsersConstants::COL_TP] != PermissionsConstants::SA ): ?>
                         <li class="<?php echo e(ViewClassNamesConstants::DRP_DSH); ?> drp-notification">
                             <a class="<?php echo e(ViewClassNamesConstants::DSH_NO_ARROW); ?>" href="<?php echo e(url('chats')); ?>" aria-haspopup="false"
-                                aria-expanded="false" style="transform: translateY(-2px);">
+                            aria-expanded="false" style="transform: translateY(-2px);">
                                 <i class="ti ti-brand-hipchat"></i>
-                                <span class="bg-danger dash-h-badge message-toggle-msg  message-counter custom_messanger_counter beep">
+                                <span class="bg-danger dash-h-badge message-toggle-msg  message-counter custom_messanger_counter beep"> 
                                     <?php echo e($unseenCounter); ?>
 
                                     <span class="sr-only"></span>
@@ -141,74 +140,71 @@ Log::debug('Loading admin header template...')
                             href="#"
                             role="button"
                             aria-haspopup="false"
-                            aria-expanded="false">
+                            aria-expanded="false"
+                        >
                             <i class="ti ti-world nocolor"></i>
                             <span class="drp-text hide-mob"><?php echo e(ucfirst($langName->full_name)); ?></span>
                             <i class="ti ti-chevron-down drp-arrow nocolor"></i>
                         </a>
                         <?php
-                        $changeIds = [];
-                        foreach ($languages as $code => $language) {
-                            $route = Route::has('languages.change')
-                                ? route('languages.change', $code)
-                                : '#';
-                            $id = "language-change-{$code}-link";
-                            $message = Utility::fetchLinkMessage(
-                                $lang,
-                                ViewsConstants::LNG,
-                                'language_change_route_unavailable'
-                            ) ?? 'Language change route is unavailable. Please contact technical support or your domain administrator.';
-                            $changeIds[] = $id;
-                            $changeLinks[] = compact('code', 'language', 'route', 'id', 'message');
-                        }
-                        if ($user instanceof User && $user[UsersConstants::COL_TP] == PermissionsConstants::SA) {
-                            $createRoute = Route::has('languages.create')
-                                ? route('languages.create')
-                                : '#';
-                            $createId = 'language-create-link';
-                            $createMsg = Utility::fetchLinkMessage(
-                                $lang,
-                                ViewsConstants::LNG,
-                                'language_create_route_unavailable'
-                            ) ?? 'Create Language route is unavailable. Please contact technical support or your domain administrator.';
-                            $changeIds[] = $createId;
-                            $createLink = compact('createRoute', 'createId', 'createMsg');
-
-                            $manageRoute = Route::has('languages.manage')
-                                ? route('languages.manage', [isset($lang) ? $lang : 'english'])
-                                : '#';
-                            $manageId = 'language-manage-link';
-                            $manageMsg = Utility::fetchLinkMessage(
-                                $lang,
-                                ViewsConstants::LNG,
-                                'language_manage_route_unavailable'
-                            ) ?? 'Manage Language route is unavailable. Please contact technical support or your domain administrator.';
-                            $changeIds[] = $manageId;
-                            $manageLink = compact('manageRoute', 'manageId', 'manageMsg');
-                        }
+                            $changeIds = [];
+                            foreach ($languages as $code => $language) {
+                                $route = Route::has('languages.change')
+                                    ? route('languages.change', $code)
+                                    : '#';
+                                $id = "language-change-{$code}-link";
+                                $message = Utility::fetchLinkMessage(
+                                    $lang,
+                                    ViewsConstants::LNG,
+                                    'language_change_route_unavailable'
+                                ) ?? 'Language change route is unavailable. Please contact technical support or your domain administrator.';
+                                $changeIds[] = $id;
+                                $changeLinks[] = compact('code', 'language', 'route', 'id', 'message');
+                            }
+                            if ($user instanceof User && $user[UsersConstants::COL_TP] == PermissionsConstants::SA) {
+                                $createRoute = Route::has('languages.create')
+                                    ? route('languages.create')
+                                    : '#';
+                                $createId = 'language-create-link';
+                                $createMsg = Utility::fetchLinkMessage(
+                                    $lang,
+                                    ViewsConstants::LNG,
+                                    'language_create_route_unavailable'
+                                ) ?? 'Create Language route is unavailable. Please contact technical support or your domain administrator.';
+                                $changeIds[] = $createId;
+                                $createLink = compact('createRoute', 'createId', 'createMsg');
+                        
+                                $manageRoute = Route::has('languages.manage')
+                                    ? route('languages.manage', [isset($lang) ? $lang : 'english'])
+                                    : '#';
+                                $manageId = 'language-manage-link';
+                                $manageMsg = Utility::fetchLinkMessage(
+                                    $lang,
+                                    ViewsConstants::LNG,
+                                    'language_manage_route_unavailable'
+                                ) ?? 'Manage Language route is unavailable. Please contact technical support or your domain administrator.';
+                                $changeIds[] = $manageId;
+                                $manageLink = compact('manageRoute', 'manageId', 'manageMsg');
+                            }
                         ?>
                         <div class="<?php echo e(ViewClassNamesConstants::DRP_MN_DSH_END); ?>">
-                            <?php $__currentLoopData = $changeLinks;
-                            $__env->addLoop($__currentLoopData);
-                            foreach ($__currentLoopData as $link): $__env->incrementLoopIndices();
-                                $loop = $__env->getLastLoop(); ?>
+                            <?php $__currentLoopData = $changeLinks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $link): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <a
                                     id="<?php echo e($link['id']); ?>"
                                     href="<?php echo e($link['route']); ?>"
                                     class="dropdown-item <?php echo e($lang === $link['code'] ? 'text-primary' : ''); ?>"
                                     data-url="<?php echo e($link['route']); ?>"
                                     data-sv-localized="true"
-                                    data-guard-msg="<?php echo e($link['message']); ?>">
+                                    data-guard-msg="<?php echo e($link['message']); ?>"
+                                >
                                     <span><?php echo e(ucfirst($link['language'])); ?></span>
                                     <div class="float-end">
                                         <i class="<?php echo e(ViewClassNamesConstants::TI_CHV_RT); ?>"></i>
                                     </div>
                                 </a>
-                            <?php endforeach;
-                            $__env->popLoop();
-                            $loop = $__env->getLastLoop(); ?>
-
-                            <?php if (!empty($createLink)): ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        
+                            <?php if(!empty($createLink)): ?>
                                 <a
                                     id="<?php echo e($createLink['createId']); ?>"
                                     href="<?php echo e($createLink['createRoute']); ?>"
@@ -217,20 +213,22 @@ Log::debug('Loading admin header template...')
                                     data-title="<?php echo e(__('Create New Language')); ?>"
                                     data-url="<?php echo e($createLink['createRoute']); ?>"
                                     data-sv-localized="true"
-                                    data-guard-msg="<?php echo e($createLink['createMsg']); ?>">
+                                    data-guard-msg="<?php echo e($createLink['createMsg']); ?>"
+                                >
                                     <?php echo e(__('Create Language')); ?>
 
                                 </a>
                             <?php endif; ?>
-
-                            <?php if (!empty($manageLink)): ?>
+                        
+                            <?php if(!empty($manageLink)): ?>
                                 <a
                                     id="<?php echo e($manageLink['manageId']); ?>"
                                     href="<?php echo e($manageLink['manageRoute']); ?>"
                                     class="dropdown-item text-primary"
                                     data-url="<?php echo e($manageLink['manageRoute']); ?>"
                                     data-sv-localized="true"
-                                    data-guard-msg="<?php echo e($manageLink['manageMsg']); ?>">
+                                    data-guard-msg="<?php echo e($manageLink['manageMsg']); ?>"
+                                >
                                     <?php echo e(__('Manage Language')); ?>
 
                                 </a>
@@ -284,10 +282,7 @@ Log::debug('Loading admin header template...')
                     const observer = new MutationObserver(() => {
                         if (!document.getElementById(id)) observer.disconnect();
                     });
-                    observer.observe(document.body, {
-                        childList: true,
-                        subtree: true
-                    });
+                    observer.observe(document.body, { childList: true, subtree: true });
                 });
             })();
         </script>
@@ -335,14 +330,11 @@ Log::debug('Loading admin header template...')
                     const observer = new MutationObserver(() => {
                         if (!document.getElementById(id)) observer.disconnect();
                     });
-                    observer.observe(document.body, {
-                        childList: true,
-                        subtree: true
-                    });
+                    observer.observe(document.body, { childList: true, subtree: true });
                 });
             })();
         </script>
         <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/header.js')); ?>">
         </script>
-        </header>
-        <?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/resources/views/partials/admin/header.blade.php ENDPATH**/ ?>
+    </header>
+<?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/resources/views/partials/admin/header.blade.php ENDPATH**/ ?>

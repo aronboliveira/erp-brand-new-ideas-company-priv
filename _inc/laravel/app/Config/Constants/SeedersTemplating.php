@@ -293,6 +293,12 @@ class SeedersTemplating
 		['name' => 'edit expense'],
 		['name' => 'delete expense'],
 	];
+	public const FAQ_PERMS = [
+		['name' => 'manage faq'],
+		['name' => 'create faq'],
+		['name' => 'edit faq'],
+		['name' => 'delete faq'],
+	];
 	public const FM_BD_PERMS = [
 		['name' => PC::MNG_FM_BD],
 		['name' => 'create form builder'],
@@ -488,6 +494,12 @@ class SeedersTemplating
 		['name' => 'show proposal'],
 		['name' => 'send proposal'],
 		['name' => 'delete proposal product']
+	];
+	public const PRC_PLN_PERMS = [
+		['name' => 'manage pricing plan'],
+		['name' => 'create pricing plan'],
+		['name' => 'edit pricing plan'],
+		['name' => 'delete pricing plan'],
 	];
 	public const PRC_PERMS = [
 		['name' => PC::MNG_PRC],
@@ -711,6 +723,7 @@ class SeedersTemplating
 		...self::SHOW_DSB_PERMS,
 		['name' => PC::SHW_ACC_DSB],
 		...self::EXP_PERMS,
+		...self::FAQ_PERMS,
 		...self::INV_PERMS,
 		['name' => 'duplicate invoice'],
 		...self::TAX_CONST_PERMS,
@@ -818,6 +831,7 @@ class SeedersTemplating
 		...self::BDG_PERMS,
 		...self::WRH_PERMS,
 		...self::PRC_PERMS,
+		...self::PRC_PLN_PERMS,
 		...self::SPT_PERMS,
 		['name' => PC::MNG_POS],
 		...self::CTC_PERMS,
@@ -935,6 +949,7 @@ class SeedersTemplating
 		...self::SHOW_DSB_PERMS,
 		['name' => PC::SHW_ACC_DSB], // * ACC, CP
 		...self::EXP_PERMS,
+		...self::FAQ_PERMS,
 		...self::INV_PERMS,
 		...self::PROD_SERV_PERMS,
 		...self::TAX_CONST_PERMS,
@@ -1047,6 +1062,7 @@ class SeedersTemplating
 		...self::BDG_PERMS,
 		...self::WRH_PERMS,
 		...self::PRC_PERMS,
+		...self::PRC_PLN_PERMS,
 		['name' => PC::MNG_POS],
 		...self::CTC_PERMS,
 		['name' => PC::CR_BC],
