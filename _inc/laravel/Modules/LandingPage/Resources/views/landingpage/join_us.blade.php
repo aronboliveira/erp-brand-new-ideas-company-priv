@@ -1,11 +1,13 @@
 @php
-	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants,YieldingConstants};
+	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants};
     use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
 	use Illuminate\Support\Facades\{Log, Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LandingPageSettingsConstants};
+	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants as LPC};
 	$lpSettings ??= [];
 	$logo ??= '';
     $lang = Utility::fetchUserLang();
+    $join_us ??= [];
 	try {
 		$lpSettings=\Modules\LandingPage\Entities\LandingPageSetting::settings()?:[];
 		$logo= Utility::getFile('uploads/landing_page_image')?:'';
@@ -78,69 +80,68 @@
         <div class="col-sm-12">
             <div class="row">
                 <div class="col-xl-3">
-                    <div class="{{ ViewClassNamesConstants::CD_STK }}" style="top:30px">
-                        <div class="{{ ViewClassNamesConstants::LG_FLSH }}" id="useradd-sidenav">
+                    <div class="{{ VC::CD_STK }}" style="top:30px">
+                        <div class="{{ VC::LG_FLSH }}" id="useradd-sidenav">
                             @include(R::LP.'::'.E::LOS.'.tab')
                         </div>
                     </div>
                 </div>
                 <div class="col-xl-9">
                     {{--  Start for all settings tab --}}
-                    {{Collective\Html\FormFacade::model(null, array('route' => array('join_us.store'), 'method' => 'POST')) }}
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <h5 class="mb-2">{{ __('Join User') }}</h5>
-                                </div>
-                                <div class="col switch-width text-end">
-                                    <div class="form-group mb-0">
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox" data-toggle="switchbutton" data-onstyle="primary" class="" name="joinus_status"
-                                                id="joinus_status"  {{ $lpSettings[LandingPageSettingsConstants::JU_STT_K] == 'on' ? 'checked="checked"' : '' }}>
-                                            <label class="custom-control-label" for="joinus_status"></label>
+                    {{Form::model(null, array('route' => array(R::JU.'.store'), 'method' => 'POST')) }}
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row align-items-center">
+                                    <div class="col-6">
+                                        <h5 class="mb-2">{{ __('Join User') }}</h5>
+                                    </div>
+                                    <div class="col switch-width text-end">
+                                        <div class="form-group mb-0">
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" data-toggle="switchbutton" data-onstyle="primary" class="" name="joinus_status"
+                                                    id="joinus_status"  {{ $lpSettings[LPC::JU_STT_K] == 'on' ? 'checked="checked"' : '' }}>
+                                                <label class="custom-control-label" for="joinus_status"></label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ Collective\Html\FormFacade::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                        {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::JU_HDG_K, $lpSettings[LandingPageSettingsConstants::JU_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
-                                        @error('mail_port')
-                                        <span class="invalid-mail_port" role="alert">
-                                                <strong class="text-danger">{{ $message }}</strong>
-                                            </span>
-                                        @enderror
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ Form::label('Heading', __('Heading'), ['class' => 'form-label']) }}
+                                            {{ Form::text(LPC::JU_HDG_K, $lpSettings[LPC::JU_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                            @error('mail_port')
+                                                <span class="invalid-mail_port" role="alert">
+                                                        <strong class="text-danger">{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ Form::label('Description', __('Description'), ['class' => 'form-label']) }}
+                                            {{ Form::text(LPC::JU_DESC_K, $lpSettings[LPC::JU_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                            @error('mail_port')
+                                                <span class="invalid-mail_port" role="alert">
+                                                        <strong class="text-danger">{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ Collective\Html\FormFacade::label('Description', __('Description'), ['class' => 'form-label']) }}
-                                        {{ Collective\Html\FormFacade::text(LandingPageSettingsConstants::JU_DESC_K, $lpSettings[LandingPageSettingsConstants::JU_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
-                                        @error('mail_port')
-                                        <span class="invalid-mail_port" role="alert">
-                                                <strong class="text-danger">{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                </div>
-
+                            </div>
+                            <div class="card-footer text-end">
+                                <input class="{{ VC::BT_PR_PRM10 }}" type="submit" value="{{ __('Save Changes') }}">
                             </div>
                         </div>
-                        <div class="card-footer text-end">
-                            <input class="{{ ViewClassNamesConstants::BT_PR_PRM10 }}" type="submit" value="{{ __('Save Changes') }}">
-                        </div>
-                    </div>
-                {{ Collective\Html\FormFacade::close() }}
+                    {{ Form::close() }}
                     <div class="card">
                         <div class="card-header">
                             <div class="row align-items-center">
-                                <div class="{{ ViewClassNamesConstants::CLMS9 }}">
+                                <div class="{{ VC::CLMS9 }}">
                                     <h5>{{ __('Join Us User') }}</h5>
                                 </div>
                             </div>
@@ -155,29 +156,32 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    @if(!empty($join_us))
-                                        @if (is_array($join_us) || is_object($join_us))
+                                        @if(Utility::isFilled($join_us))
+                                            @php
+                                                Log::warning('JOIN US DATA', $join_us);
+                                            @endphp
                                             @foreach ($join_us as $key => $value)
                                                 <tr>
-                                                    <td>{{ $value->email }}</td>
+                                                    <td>{{ !empty($value->email) ? $value->email : __('No email available for joining') }}</td>
                                                     <td>
                                                         <span>
-                                                                <div class="{{ ViewClassNamesConstants::ACT_BTN_DNG_2 }}">
-                                                                {!! Collective\Html\FormFacade::open(['method' => 'DELETE', 'route' => ['join_us.destroy', $value->id],'id'=>'delete-form-'.$value->id]) !!}
-
-                                                                    <a href="#" class="{{ ViewClassNamesConstants::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$value->id}}').submit();">
+                                                            <div class="{{ VC::ACT_BTN_DNG_2 }}">
+                                                            {!! Form::open(['method' => 'DELETE', 'route' => [R::JU.'.destroy', $value->id],'id'=>'delete-form-'.$value->id]) !!}
+                                                                <a href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$value->id}}').submit();">
                                                                     <i class="ti ti-trash text-white"></i>
-                                                                    </a>
-                                                                    {!! Collective\Html\FormFacade::close() !!}
-                                                                </div>
-                                                            </span>
+                                                                </a>
+                                                                {!! Form::close() !!}
+                                                            </div>
+                                                        </span>
                                                     </td>
                                                 </tr>
                                             @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="2">{{ __('No Data Found') }}</td>
+                                            </tr>
                                         @endif
-                                    @endif
                                     </tbody>
-
                                 </table>
                             </div>
                         </div>

@@ -2,13 +2,16 @@
 
 namespace Modules\LandingPage\Database\Seeders;
 
+use App\Config\Constants\DatabaseConstants;
 use Illuminate\Database\{Eloquent\Model, Seeder};
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Illuminate\Support\{Collection, Str};
 use Modules\LandingPage\{
+    Config\Constants\RoutesResourcesConstants as RRC,
     Config\Constants\SettingsConstants as LPC,
     Entities\LandingPageSetting
 };
+use Modules\LandingPage\Entities\JoinUs;
 
 class LandingPageDataTableSeeder extends Seeder
 {
@@ -89,6 +92,7 @@ class LandingPageDataTableSeeder extends Seeder
             LPC::JU_STT_K => LPC::JU_STT_DEF,
             LPC::JU_HDG_K => 'Join Our Community',
             LPC::JU_DESC_K => 'We build modern web tools to help you jump-start your daily business work.',
+            "email" => "desenvolvimento@prestech.com.br"
         ];
         $jsonFiles = [
             [
@@ -111,14 +115,14 @@ class LandingPageDataTableSeeder extends Seeder
             ],
             [
                 'file' => 'discover.json',
-                'key' => 'discovers',
-                'name' => 'discover',
+                'key' => LPC::DC_OF_FTS_K,
+                'name' => RRC::DV,
                 'uuid' => true
             ],
             [
                 'file' => 'screenshots.json',
                 'key' => LPC::SC_SHTS_K,
-                'name' => 'screenshots',
+                'name' => RRC::SST,
                 'uuid' => true
             ],
             [
@@ -131,6 +135,12 @@ class LandingPageDataTableSeeder extends Seeder
                 'file' => 'testimonials.json',
                 'key' => LPC::TM_TMS_K,
                 'name' => 'testimonials',
+                'uuid' => true
+            ],
+            [
+                'file' => 'join_us.json',
+                'key' => 'email',
+                'name' => RRC::JU,
                 'uuid' => true
             ]
         ];
@@ -150,11 +160,19 @@ class LandingPageDataTableSeeder extends Seeder
                         while (LandingPageSetting::where('query_key', $itemKey)->exists() && (microtime(true) - $startTime) < 20);
                         LandingPageSetting::updateOrCreate(
                             ['query_key' => $itemKey],
+                            ['created_by' => DatabaseConstants::DEFAULT_UUID],
                             [
                                 'name' => $config['key'],
                                 'value' => json_encode($item, JSON_THROW_ON_ERROR)
                             ]
                         );
+                        $rest = is_array($item) ? collect($item)->except('email')->toArray() : ($item instanceof Collection ? $item->except('email')->toArray() : []);
+                        $config['key'] === 'email' && JoinUs::create([
+                            'query_key' => $itemKey,
+                            'created_by' => DatabaseConstants::DEFAULT_UUID,
+                            'email' => $item['email'],
+                            ...$rest,
+                        ]);
                     }
                 } else $data[$config['key']] = $rawData;
             } catch (\JsonException $e) {

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Traits\ChecksLogin;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, Log};
+use Illuminate\Support\Collection;
 use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
 use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
@@ -40,6 +41,7 @@ final class ScreenshotsController extends AppController
                 $this->logExecutionTime($settingsStart, $action . '::landingPageSetting', 'completed');
                 $screenshotsStart = microtime(true);
                 $screenshots = json_decode($settings[self::NAME] ?? '[]', true) ?? [];
+                $screenshots = is_array($screenshots) ? collect($screenshots)->sortByDesc('created_at')->toArray() : ($screenshots instanceof Collection ? $screenshots->sortByDesc('created_at')->toArray() : $screenshots);
                 $this->logExecutionTime($screenshotsStart, $action . '::decodeScreenshots', 'completed');
                 $view = self::getFirstExistingView(self::PLURAL . '.index');
                 if (!$view) {
@@ -281,6 +283,7 @@ final class ScreenshotsController extends AppController
                 $this->logExecutionTime($stepStart, 'logInvocation', 'completed');
                 $stepStart = microtime(true);
                 $items = json_decode(LandingPageSetting::settings()[self::NAME] ?? '[]', true) ?? [];
+                $items = is_array($items) ? collect($items)->sortByDesc('created_at')->toArray() : ($items instanceof Collection ? $items->sortByDesc('created_at')->toArray() : $items);
                 $screenshot = $items[$key] ?? [];
                 $this->logExecutionTime($stepStart, 'decodeItems', 'completed');
                 $stepStart = microtime(true);

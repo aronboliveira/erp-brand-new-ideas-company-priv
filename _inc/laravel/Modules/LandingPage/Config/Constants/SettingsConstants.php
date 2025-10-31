@@ -211,6 +211,9 @@ class SettingsConstants
 		self::JU_HDG_K  => self::JU_HDG_DEF,
 		self::JU_DESC_K => self::JU_DESC_DEF,
 	];
+	public const JU_USR_SETTINGS = [
+		'email' => 'comercial@prestech.com.br',
+	];
 	public const PG_SLG = 'page_slug';
 	public const LANDING_PAGE_SETTINGS = [
 		...self::TOPBAR_SETTINGS,
@@ -226,7 +229,8 @@ class SettingsConstants
 		...self::FAQ_SETTINGS,
 		...self::TESTIMONIALS_SETTINGS,
 		...self::FOOTER_SETTINGS,
-		...self::JU_SETTINGS
+		...self::JU_SETTINGS,
+		...self::JU_USR_SETTINGS,
 	];
 	public const CPN_FAVICON_K = 'company_favicon';
 	public const URI_FAVICON = 'https://prestech.com.br/site/wp-content/uploads/2024/10/Favicon-Prestech-Fundo-Branco.svg';

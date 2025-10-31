@@ -216,6 +216,40 @@
       "@php artisan route:list --sort=uri",
       "@php artisan serve"
     ],
+    "artisan-reset-sh--soft": [
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear",
+      "@php artisan cache:clear",
+      "@php artisan optimize:clear",
+      "@php artisan route:clear",
+      "@php artisan view:clear",
+      "@php artisan clear-compiled",
+      "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed",
+      "@php artisan route:list --sort=uri",
+      "@php artisan serve"
+    ],
+    "artisan-reset-sh--hard": [
+      "@php artisan db:wipe",
+      "@php artisan migrate",
+      "@php artisan permission:cache-reset",
+      "@php artisan config:clear",
+      "@php artisan cache:clear",
+      "@php artisan optimize:clear",
+      "@php artisan route:clear",
+      "@php artisan view:clear",
+      "@php artisan clear-compiled",
+      "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
+      "@composer dump-autoload -o",
+      "@php artisan migrate:status",
+      "@php artisan migrate:reset",
+      "@php artisan migrate:fresh --seed",
+      "@php artisan route:list --sort=uri",
+      "@php artisan serve"
+    ],
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
       "@php artisan package:discover --ansi"

@@ -15,7 +15,7 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use function App\Http\Controllers\defaultUndefinedException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
-use Illuminate\Support\Str;
+use Illuminate\Support\{Collection, Str};
 use Illuminate\View\View;
 use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
 use Modules\LandingPage\Config\Constants\SettingsConstants as LandingPageSettingsConstants;
@@ -46,6 +46,7 @@ class CustomPageController extends AppController
             try {
                 $settings = LandingPageSetting::landingPageSetting();
                 $pages    = json_decode($settings[self::MB . '_page'], true);
+                $pages = is_array($pages) ? collect($pages)->sortByDesc('created_at')->toArray() : ($pages instanceof Collection ? $pages->sortByDesc('created_at')->toArray() : $pages);
                 $view = self::getFirstExistingView(self::MB . '.' . $action);
                 if (!$view) {
                     Log::warning("[$action] view not found", ['attempted' => self::MB . '.' . $action]);

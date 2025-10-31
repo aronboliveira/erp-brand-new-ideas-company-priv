@@ -13,6 +13,7 @@ use App\Traits\ChecksPermissions;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Collection;
 use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
 use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedException};
 
@@ -36,6 +37,7 @@ final class TestimonialsController extends AppController
                 $this->logExecutionTime($settingsStart, $action . '::landingPageSetting', 'completed');
                 $itemsStart = microtime(true);
                 $items = json_decode($settings[self::ENTITY] ?? '[]', true);
+                $items = is_array($items) ? collect($items)->sortByDesc('created_at')->toArray() : ($items instanceof Collection ? $items->sortByDesc('created_at')->toArray() : $items);
                 $this->logExecutionTime($itemsStart, $action . '::decodeItems', 'completed');
                 $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
                 if (!$view) {

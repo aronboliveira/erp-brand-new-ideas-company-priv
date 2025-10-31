@@ -9,7 +9,10 @@ use App\Config\Constants\{
 };
 use App\Models\Utility;
 use App\Traits\UsesUuids;
-use Modules\LandingPage\Config\Constants\SettingsConstants as LPC;
+use Modules\LandingPage\Config\Constants\{
+    RoutesResourcesConstants as RRC,
+    SettingsConstants as LPC
+};
 use Database\Factories\LandingPageSettingFactory;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 use Illuminate\Http\Request;
@@ -43,7 +46,7 @@ class LandingPageSetting extends Model
             LPC::SC_SHTS_K,
             LPC::FAQ_FQS_K,
             LPC::TM_TMS_K,
-            'discovers'
+            LPC::DC_OF_FTS_K
         ];
         $overrides = self::whereNotIn(LandingPageConstants::COL_LPS_NM, $uuidSettings)
             ->pluck(

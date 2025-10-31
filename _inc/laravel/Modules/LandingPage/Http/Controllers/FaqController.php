@@ -12,8 +12,8 @@ use App\Models\User;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Collection;
 use Modules\LandingPage\Config\Constants\{
     RoutesResourcesConstants as RRC,
     SettingsConstants as LandingPageSettingsConstants
@@ -49,6 +49,7 @@ class FaqController extends AppController
                 $this->logExecutionTime($settingsStart, $action . '::landingPageSetting', 'completed');
                 $decodeStart = microtime(true);
                 $faqs = json_decode($settings[self::ENTITY] ?? '[]', true) ?: [];
+                $faqs = is_array($faqs) ? collect($faqs)->sortByDesc('created_at')->toArray() : ($faqs instanceof Collection ? $faqs->sortByDesc('created_at')->toArray() : $faqs);
                 $this->logExecutionTime($decodeStart, $action . '::decodeFAQs', 'completed');
                 Log::debug("[$action] loaded FAQs", ['count' => count($faqs)]);
                 $view = self::getFirstExistingView(self::ENTITY . '.' . $function);

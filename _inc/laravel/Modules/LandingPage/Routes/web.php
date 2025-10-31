@@ -2,22 +2,22 @@
 
 use App\Config\Constants\ViewsConstants;
 use Modules\LandingPage\Config\Constants\{
-    MiddlewaresConstants,
-    RoutesResourcesConstants
+    MiddlewaresConstants as MC,
+    RoutesResourcesConstants as R
 };
 use Modules\LandingPage\Http\Controllers\{
-    CustomPageController,
-    DiscoverController,
-    FaqController,
-    FeaturesController,
-    HomeController,
-    JoinUsController,
-    LandingPageController,
-    PricingPlanController,
-    ScreenshotsController,
-    TestimonialsController
+    CustomPageController as CPC,
+    DiscoverController as DC,
+    FaqController as FQC,
+    FeaturesController as FTC,
+    HomeController as HC,
+    JoinUsController as JUC,
+    LandingPageController as LPC,
+    PricingPlanController as PPC,
+    ScreenshotsController as SSC,
+    TestimonialsController as TTC
 };
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route as RF;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 $output = new ConsoleOutput();
@@ -25,152 +25,156 @@ $msg = 'Mappig web landing routes...';
 app()->runningInConsole() ?
     $output->writeln('<question> ' . $msg . ' </question>') : $output->writeln($msg);
 
-Route::middleware([
-    MiddlewaresConstants::WEB,
-    MiddlewaresConstants::AUTH,
-    MiddlewaresConstants::TRT . ':100,1',
+RF::middleware([
+    MC::WEB,
+    MC::AUTH,
+    MC::TRT . ':100,1',
 ])
     ->group(function () {
-        Route::get(
+        RF::get(
             ViewsConstants::HM,
-            [HomeController::class, 'index']
-        )->name(RoutesResourcesConstants::HM . '.index');
-        Route::get(RoutesResourcesConstants::CT_PG . '/create/', [CustomPageController::class, 'create'])->name(RoutesResourcesConstants::CT_PG . '.create');
-        Route::get(RoutesResourcesConstants::CT_PG . '/edit/{key}', [CustomPageController::class, 'edit'])->name(RoutesResourcesConstants::CT_PG . '.edit');
-        Route::get(RoutesResourcesConstants::CT_PG . '/delete/{key}', [CustomPageController::class, 'delete'])->name(RoutesResourcesConstants::CT_PG . '.delete');
-        Route::get(RoutesResourcesConstants::DV . '/create/', [DiscoverController::class, DiscoverController::DCV_CRT])->name(RoutesResourcesConstants::DV . '.create');
-        Route::get(RoutesResourcesConstants::DV . '/edit/{key}', [DiscoverController::class, DiscoverController::DCV_EDT])->name(RoutesResourcesConstants::DV . '.edit');
-        Route::get(RoutesResourcesConstants::DV . '/delete/{key}', [DiscoverController::class, DiscoverController::DCV_DEL])->name(RoutesResourcesConstants::DV . '.delete');
-        Route::get(RoutesResourcesConstants::FQ . '/create/', [FaqController::class, FaqController::FQ_CRT])->name(RoutesResourcesConstants::FQ . '.create');
-        Route::get(RoutesResourcesConstants::FQ . '/edit/{key}', [FaqController::class, FaqController::FQ_EDT])->name(RoutesResourcesConstants::FQ . '.edit');
-        Route::get(RoutesResourcesConstants::FQ . '/delete/{key}', [FaqController::class, FaqController::FQ_DEL])->name(RoutesResourcesConstants::FQ . '.delete');
-        Route::get(RoutesResourcesConstants::FT . '/create/', [FeaturesController::class, FeaturesController::FTR_CRT])->name(RoutesResourcesConstants::FT . '.create');
-        Route::get(RoutesResourcesConstants::FT . '/edit/{key}', [FeaturesController::class, FeaturesController::FTR_EDT])->name(RoutesResourcesConstants::FT . '.edit');
-        Route::get(RoutesResourcesConstants::FT . '/update/{key}', [FeaturesController::class, FeaturesController::FTR_UPD])->name(RoutesResourcesConstants::FT . '.update');
-        Route::get(RoutesResourcesConstants::FT . '/delete/{key}', [FeaturesController::class, FeaturesController::FTR_DEL])->name(RoutesResourcesConstants::FT . '.delete');
-        Route::get(RoutesResourcesConstants::SST . '/create/', [ScreenshotsController::class, ScreenshotsController::SST_CRT])->name(RoutesResourcesConstants::SST . '.create');
-        Route::get(RoutesResourcesConstants::SST . '/edit/{key}', [ScreenshotsController::class, ScreenshotsController::SST_EDT])->name(RoutesResourcesConstants::SST . '.edit');
-        Route::get(RoutesResourcesConstants::SST . '/delete/{key}', [ScreenshotsController::class, ScreenshotsController::SST_DEL])->name(RoutesResourcesConstants::SST . '.delete');
-        Route::get(RoutesResourcesConstants::TTMN . '/create/', [TestimonialsController::class, TestimonialsController::TTM_CRT])->name(RoutesResourcesConstants::TTMN . '.create');
-        Route::get(RoutesResourcesConstants::TTMN . '/edit/{key}', [TestimonialsController::class, TestimonialsController::TTM_EDT])->name(RoutesResourcesConstants::TTMN . '.edit');
-        Route::get(RoutesResourcesConstants::TTMN . '/delete/{key}', [TestimonialsController::class, TestimonialsController::TTM_DEL])->name(RoutesResourcesConstants::TTMN . '.delete');
-        Route::resource(
-            RoutesResourcesConstants::LP,
-            LandingPageController::class
+            [HC::class, 'index']
+        )->name(R::HM . '.index');
+        RF::get(R::CT_PG . '/create/', [CPC::class, 'create'])->name(R::CT_PG . '.create');
+        RF::get(R::CT_PG . '/edit/{key}', [CPC::class, 'edit'])->name(R::CT_PG . '.edit');
+        RF::get(R::CT_PG . '/delete/{key}', [CPC::class, 'delete'])->name(R::CT_PG . '.delete');
+        RF::get(R::DV . '/create/', [DC::class, DC::DCV_CRT])->name(R::DV . '.create');
+        RF::get(R::DV . '/edit/{key}', [DC::class, DC::DCV_EDT])->name(R::DV . '.edit');
+        RF::get(R::DV . '/delete/{key}', [DC::class, DC::DCV_DEL])->name(R::DV . '.delete');
+        RF::get(R::FQ . '/create/', [FQC::class, FQC::FQ_CRT])->name(R::FQ . '.create');
+        RF::get(R::FQ . '/edit/{key}', [FQC::class, FQC::FQ_EDT])->name(R::FQ . '.edit');
+        RF::get(R::FQ . '/delete/{key}', [FQC::class, FQC::FQ_DEL])->name(R::FQ . '.delete');
+        RF::get(R::FT . '/create/', [FTC::class, FTC::FTR_CRT])->name(R::FT . '.create');
+        RF::get(R::FT . '/edit/{key}', [FTC::class, FTC::FTR_EDT])->name(R::FT . '.edit');
+        RF::get(R::FT . '/update/{key}', [FTC::class, FTC::FTR_UPD])->name(R::FT . '.update');
+        RF::get(R::FT . '/delete/{key}', [FTC::class, FTC::FTR_DEL])->name(R::FT . '.delete');
+        RF::get(R::SST . '/create/', [SSC::class, SSC::SST_CRT])->name(R::SST . '.create');
+        RF::get(R::SST . '/edit/{key}', [SSC::class, SSC::SST_EDT])->name(R::SST . '.edit');
+        RF::get(R::SST . '/delete/{key}', [SSC::class, SSC::SST_DEL])->name(R::SST . '.delete');
+        RF::get(R::TTMN . '/create/', [TTC::class, TTC::TTM_CRT])->name(R::TTMN . '.create');
+        RF::get(R::TTMN . '/edit/{key}', [TTC::class, TTC::TTM_EDT])->name(R::TTMN . '.edit');
+        RF::get(R::TTMN . '/delete/{key}', [TTC::class, TTC::TTM_DEL])->name(R::TTMN . '.delete');
+        RF::resource(
+            R::LP,
+            LPC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::HM,
-            HomeController::class
+        RF::resource(
+            R::HM,
+            HC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::CT_PG,
-            CustomPageController::class
+        RF::resource(
+            R::CT_PG,
+            CPC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::FT,
-            FeaturesController::class
+        RF::resource(
+            R::FT,
+            FTC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::DV,
-            DiscoverController::class
+        RF::resource(
+            R::DV,
+            DC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::SST,
-            ScreenshotsController::class
+        RF::resource(
+            R::SST,
+            SSC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::PRC_PLN,
-            PricingPlanController::class
+        RF::resource(
+            R::PRC_PLN,
+            PPC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::FQ,
-            FaqController::class
+        RF::resource(
+            R::FQ,
+            FQC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::TTMN,
-            TestimonialsController::class
+        RF::resource(
+            R::TTMN,
+            TTC::class
         )->only(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::JU,
-            JoinUsController::class
+        RF::resource(
+            R::JU,
+            JUC::class
         )->only(['index', 'show']);
     });
 
-Route::middleware([
-    MiddlewaresConstants::WEB,
-    MiddlewaresConstants::AUTH,
-    MiddlewaresConstants::XSS,
-    MiddlewaresConstants::TRT . ':20,1',
+RF::middleware([
+    MC::WEB,
+    MC::AUTH,
+    MC::XSS,
+    MC::TRT . ':20,1',
 ])
     ->group(function () {
-        Route::post(RoutesResourcesConstants::CT_PG . '/store/', [CustomPageController::class, 'store'])->name(RoutesResourcesConstants::CT_PG . '.store');
-        Route::post(RoutesResourcesConstants::CT_PG . '/custom-store/', [CustomPageController::class, CustomPageController::CT_STR])->name(RoutesResourcesConstants::CT_PG . '.custom.store');
-        Route::post(RoutesResourcesConstants::FT . '/store/', [FeaturesController::class, FeaturesController::FTR_STR])->name(RoutesResourcesConstants::FT . '.store');
-        Route::post(RoutesResourcesConstants::FT . '/update/{key}', [FeaturesController::class, FeaturesController::FTR_UPD])->name(RoutesResourcesConstants::FT . '.update');
-        Route::post(RoutesResourcesConstants::FT . '/highlight/store/', [FeaturesController::class, FeaturesController::FTR_HGL])->name(RoutesResourcesConstants::FT . '.highlight.store');
-        Route::post(
-            RoutesResourcesConstants::JU . '/store',
-            [JoinUsController::class, JoinUsController::JU_U_ST]
-        )->name(RoutesResourcesConstants::JU . '.store');
-        Route::post(RoutesResourcesConstants::DV . '/store/', [DiscoverController::class, DiscoverController::DCV_CRT])->name(RoutesResourcesConstants::DV . '.store');
-        Route::post(RoutesResourcesConstants::DV . '/update/{key}', [DiscoverController::class, DiscoverController::DCV_UPD])->name(RoutesResourcesConstants::DV . '.update');
-        Route::post(RoutesResourcesConstants::SST . '/store/', [ScreenshotsController::class, ScreenshotsController::SST_STR])->name(RoutesResourcesConstants::SST . '.store');
-        Route::post(RoutesResourcesConstants::SST . '/update/{key}', [ScreenshotsController::class, ScreenshotsController::SST_UPD])->name(RoutesResourcesConstants::SST . '.update');
-        Route::post(RoutesResourcesConstants::FQ . '/store/', [FaqController::class, FaqController::FQ_STR])->name(RoutesResourcesConstants::FQ . '.store');
-        Route::post(RoutesResourcesConstants::FQ . '/update/{key}', [FaqController::class, FaqController::FQ_UPD])->name(RoutesResourcesConstants::FQ . '.update');
-        Route::post(RoutesResourcesConstants::TTMN . '/store/', [TestimonialsController::class, TestimonialsController::TTM_STR])->name(RoutesResourcesConstants::TTMN . '.store');
-        Route::post(RoutesResourcesConstants::TTMN . '/update/{key}', [TestimonialsController::class, TestimonialsController::TTM_UPD])->name(RoutesResourcesConstants::TTMN . '.update');
-        Route::post(RoutesResourcesConstants::PRC_PLN . '/store/', [PricingPlanController::class, 'create'])->name(RoutesResourcesConstants::PRC_PLN . '.store');
-        Route::resource(
-            RoutesResourcesConstants::LP,
-            LandingPageController::class
+        RF::post(R::CT_PG . '/store/', [CPC::class, 'store'])->name(R::CT_PG . '.store');
+        RF::post(R::CT_PG . '/custom-store/', [CPC::class, CPC::CT_STR])->name(R::CT_PG . '.custom.store');
+        RF::post(R::FT . '/store/', [FTC::class, FTC::FTR_STR])->name(R::FT . '.store');
+        RF::post(R::FT . '/update/{key}', [FTC::class, FTC::FTR_UPD])->name(R::FT . '.update');
+        RF::post(R::FT . '/highlight/store/', [FTC::class, FTC::FTR_HGL])->name(R::FT . '.highlight.store');
+        RF::post(
+            R::JU . '/store',
+            [JUC::class, 'store']
+        )->name(R::JU . '.store');
+        RF::post(
+            R::JU . '/user-store',
+            [JUC::class, JUC::JU_U_ST]
+        )->name(R::JU . '.user.store');
+        RF::post(R::DV . '/store/', [DC::class, DC::DCV_CRT])->name(R::DV . '.store');
+        RF::post(R::DV . '/update/{key}', [DC::class, DC::DCV_UPD])->name(R::DV . '.update');
+        RF::post(R::SST . '/store/', [SSC::class, SSC::SST_STR])->name(R::SST . '.store');
+        RF::post(R::SST . '/update/{key}', [SSC::class, SSC::SST_UPD])->name(R::SST . '.update');
+        RF::post(R::FQ . '/store/', [FQC::class, FQC::FQ_STR])->name(R::FQ . '.store');
+        RF::post(R::FQ . '/update/{key}', [FQC::class, FQC::FQ_UPD])->name(R::FQ . '.update');
+        RF::post(R::TTMN . '/store/', [TTC::class, TTC::TTM_STR])->name(R::TTMN . '.store');
+        RF::post(R::TTMN . '/update/{key}', [TTC::class, TTC::TTM_UPD])->name(R::TTMN . '.update');
+        RF::post(R::PRC_PLN . '/store/', [PPC::class, 'create'])->name(R::PRC_PLN . '.store');
+        RF::resource(
+            R::LP,
+            LPC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::HM,
-            HomeController::class
+        RF::resource(
+            R::HM,
+            HC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::CT_PG,
-            CustomPageController::class
+        RF::resource(
+            R::CT_PG,
+            CPC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::HM,
-            HomeController::class
+        RF::resource(
+            R::HM,
+            HC::class
         )->except(['index']);
-        Route::resource(
-            RoutesResourcesConstants::FT,
-            FeaturesController::class
+        RF::resource(
+            R::FT,
+            FTC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::DV,
-            DiscoverController::class
+        RF::resource(
+            R::DV,
+            DC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::SST,
-            ScreenshotsController::class
+        RF::resource(
+            R::SST,
+            SSC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::PRC_PLN,
-            PricingPlanController::class
+        RF::resource(
+            R::PRC_PLN,
+            PPC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::FQ,
-            FaqController::class
+        RF::resource(
+            R::FQ,
+            FQC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::TTMN,
-            TestimonialsController::class
+        RF::resource(
+            R::TTMN,
+            TTC::class
         )->except(['index', 'show']);
-        Route::resource(
-            RoutesResourcesConstants::JU,
-            JoinUsController::class
+        RF::resource(
+            R::JU,
+            JUC::class
         )->except(['index', 'show', 'store']);
     });
 
-Route::middleware([MiddlewaresConstants::WEB])
+RF::middleware([MC::WEB])
     ->group(function () {
-        Route::get('pages/{slug}', [
-            CustomPageController::class,
-            CustomPageController::CT_PG
+        RF::get('pages/{slug}', [
+            CPC::class,
+            CPC::CT_PG
         ])->name('custom.page');
     });

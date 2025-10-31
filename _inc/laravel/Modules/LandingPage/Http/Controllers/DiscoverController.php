@@ -14,15 +14,19 @@ use function App\Http\Controllers\{defaultPermissionDenial, defaultUndefinedExce
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{DB, Log};
-use Modules\LandingPage\{Config\Constants\RoutesResourcesConstants, Entities\LandingPageSetting};
+use Modules\LandingPage\{
+    Config\Constants\RoutesResourcesConstants as RRC,
+    Config\Constants\SettingsConstants as LPC,
+    Entities\LandingPageSetting
+};
 
 class DiscoverController extends AppController
 {
     use ChecksLogin;
 
-    public const ENTITY = RoutesResourcesConstants::DV;
+    public const ENTITY = RRC::DV;
     private const ROUTE_INDEX = self::ENTITY . '.index';
-    private const LP = RoutesResourcesConstants::LP;
+    private const LP = RRC::LP;
 
     /**
      * Display discover settings.
@@ -36,23 +40,32 @@ class DiscoverController extends AppController
             if (($ur = self::_checkLogin(haltRedirect: true)) instanceof User) {
                 $user    = $ur;
                 $userId  = $user->id;
-                Log::info("{$action} • authenticated user", ['user_id' => $userId]);
+                Log::debug("{$action} • authenticated user", ['user_id' => $userId]);
             }
             try {
                 Log::debug("{$action} • retrieving landing page settings", ['user_id' => $userId]);
                 $settings = LandingPageSetting::landingPageSetting();
-                $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true);
+                $discover_of_features = json_decode(!empty($settings[LPC::DC_OF_FTS_K]) ? $settings[LPC::DC_OF_FTS_K] : (!empty(RRC::DV) ? RRC::DV : '[]'), true);
+                if (!empty($discover_of_features) && is_array($discover_of_features)) {
+                    if (count($discover_of_features) === 1 && isset($discover_of_features[0]) && is_array($discover_of_features[0])) {
+                        $firstElement = $discover_of_features[0];
+                        $firstKey = array_key_first($firstElement);
+                        if ($firstKey && !is_numeric($firstKey))
+                            $discover_of_features = $firstElement;
+                    }
+                } else $discover_of_features = [];
+                $discover_of_features = is_array($discover_of_features) && !empty($discover_of_features) ? collect($discover_of_features)->sortByDesc('created_at')->toArray() : [];
                 $view = self::getFirstExistingView(self::ENTITY . '.' . $function);
                 if (!$view) {
                     Log::warning("{$action} • view not found", ['attempted' => self::ENTITY . '.' . $function]);
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
                 }
-                Log::info("{$action} • rendering view", ['features_count' => count($features), 'user_id' => $userId]);
+                Log::info("{$action} • rendering view", ['features_count' => count($discover_of_features), 'features' => $discover_of_features, 'user_id' => $userId]);
                 return view(
                     $view,
                     [
                         DatabaseConstants::TABLE_SETTINGS => $settings,
-                        'features'                       => $features,
+                        'discover_of_features' => $discover_of_features,
                     ]
                 );
             } catch (\Throwable $e) {
@@ -88,7 +101,7 @@ class DiscoverController extends AppController
                 $settings = LandingPageSetting::settings();
                 $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
                 $decodeStart = microtime(true);
-                $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true) ?: [];
+                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true) ?: [];
                 $this->logExecutionTime($decodeStart, $action . '::decodeFeatures', 'completed');
                 if (!isset($features[$id])) {
                     Log::warning("[$action] invalid key", ['key' => $id]);
@@ -200,7 +213,7 @@ class DiscoverController extends AppController
                 }
                 Log::debug("{$action} • loading settings");
                 $settings = LandingPageSetting::settings();
-                $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true);
+                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true);
                 if (!isset($features[$id])) {
                     Log::warning("{$action} • invalid feature key", ['key' => $id]);
                     return redirect()->route(self::ROUTE_INDEX)
@@ -233,7 +246,7 @@ class DiscoverController extends AppController
      * @param  int      $id
      * @return RedirectResponse
      */
-    public function update(Request $request, $id): RedirectResponse
+    public function update(Request $request, string|int $id): RedirectResponse
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request, $id) {
@@ -257,7 +270,7 @@ class DiscoverController extends AppController
      * @param  int  $id
      * @return RedirectResponse
      */
-    public function destroy($id): RedirectResponse
+    public function destroy(string|int $id): RedirectResponse
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['uri' => request()->getRequestUri(), 'id' => $id]);
@@ -273,14 +286,14 @@ class DiscoverController extends AppController
      * Show form for editing a single feature.
      */
     public const DCV_EDT = 'discoverEdit';
-    public function discoverEdit(Request $request, int $key): Renderable|RedirectResponse
+    public function discoverEdit(Request $request, int|string $key): Renderable|RedirectResponse
     {
         $method = static::class . '::' . __FUNCTION__;
         return $this->measureProfile(__FUNCTION__, function () use ($request, $key, $method) {
             try {
                 if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $settings = LandingPageSetting::settings();
-                $features = json_decode($settings[static::ENTITY . 'OfFeatures'] ?? '[]', true);
+                $features = json_decode($settings[static::ENTITY . '_of_features'] ?? '[]', true);
                 if (!isset($features[$key])) {
                     $time = microtime(true);
                     Log::warning($method . ' invalid key', ['key' => $key]);
@@ -307,7 +320,7 @@ class DiscoverController extends AppController
      * Update a single discover feature.
      */
     public const DCV_UPD = 'discoverUpdate';
-    public function discoverUpdate(Request $request, int $key): RedirectResponse
+    public function discoverUpdate(Request $request, int|string $key): RedirectResponse
     {
         return $this->measureProfile(__METHOD__, function () use ($request, $key) {
             $action = __METHOD__;
@@ -324,7 +337,7 @@ class DiscoverController extends AppController
             DB::beginTransaction();
             try {
                 $settings = LandingPageSetting::settings();
-                $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true);
+                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true);
                 if (!isset($features[$key])) {
                     DB::rollBack();
                     Log::warning("{$action} • feature not found", ['user_id' => $user->id, 'key' => $key]);
@@ -344,7 +357,7 @@ class DiscoverController extends AppController
                 $features[$key][self::ENTITY . 'Heading']     = $payload[self::ENTITY . 'Heading']     ?? $features[$key][self::ENTITY . 'Heading'];
                 $features[$key][self::ENTITY . 'Description'] = $payload[self::ENTITY . 'Description'] ?? $features[$key][self::ENTITY . 'Description'];
                 LandingPageSetting::updateOrCreate(
-                    ['name'   => self::ENTITY . 'OfFeatures'],
+                    ['name'   => LPC::DC_OF_FTS_K],
                     ['value'  => json_encode(array_values($features)), DatabaseConstants::TABLE_CREATOR => $user->id]
                 );
                 DB::commit();
@@ -364,7 +377,7 @@ class DiscoverController extends AppController
      * Delete a single discover feature.
      */
     public const DCV_DEL = 'discoverDelete';
-    public function discoverDelete(Request $request, int $key): RedirectResponse
+    public function discoverDelete(Request $request, int|string $key): RedirectResponse
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($action, $request, $key) {
@@ -379,7 +392,7 @@ class DiscoverController extends AppController
                 $settings = LandingPageSetting::settings();
                 $this->logExecutionTime($settingsStart, $action . '::settings', 'completed');
                 $decodeStart = microtime(true);
-                $features = json_decode($settings[self::ENTITY . 'OfFeatures'] ?? '[]', true) ?: [];
+                $features = json_decode($settings[LPC::DC_OF_FTS_K] ?? '[]', true) ?: [];
                 $this->logExecutionTime($decodeStart, $action . '::decodeFeatures', 'completed');
                 if (!isset($features[$key])) {
                     Log::warning("[$action] feature not found", ['user_id' => $user?->id, 'key' => $key]);
@@ -389,7 +402,7 @@ class DiscoverController extends AppController
                 }
                 unset($features[$key]);
                 $updateStart = microtime(true);
-                LandingPageSetting::updateOrCreate(['name' => self::ENTITY . 'OfFeatures'], ['value' => json_encode(array_values($features)), DatabaseConstants::TABLE_CREATOR => $user?->id]);
+                LandingPageSetting::updateOrCreate(['name' => LPC::DC_OF_FTS_K], ['value' => json_encode(array_values($features)), DatabaseConstants::TABLE_CREATOR => $user?->id]);
                 $this->logExecutionTime($updateStart, $action . '::updateOrCreate', 'completed');
                 DB::commit();
                 Log::info("[$action] feature deleted", ['user_id' => $user?->id, 'key' => $key]);
@@ -450,18 +463,19 @@ class DiscoverController extends AppController
     public function discoverStore(Request $request): RedirectResponse
     {
         $method = static::class . '::' . __FUNCTION__;
-        return $this->measureProfile(__FUNCTION__, function () use ($request, $method) {
+        $function = __FUNCTION__;
+        return $this->measureProfile($method, function () use ($request, $method, $function) {
             if (($userOrRedirect = static::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             $settings = LandingPageSetting::settings();
-            $data = json_decode($settings[static::ENTITY . 'OfFeatures'] ?? '[]', true);
+            $data = json_decode($settings[static::ENTITY . '_of_features'] ?? '[]', true);
             $new = [];
             if ($request->hasFile(static::ENTITY . 'Logo')) {
                 $startFile = microtime(true);
                 $fileName = time() . '-discover_logo.' . $request->discoverLogo->getClientOriginalExtension();
                 $dir = 'uploads/landing_page_image';
                 $res = LandingPageSetting::uploadFile($request, static::ENTITY . 'Logo', $fileName, $dir, []);
-                $this->logExecutionTime($startFile, __FUNCTION__ . '::uploadFile', $res['flag'] === 0 ? 'failed' : 'completed');
+                $this->logExecutionTime($startFile, $function . '::uploadFile', $res['flag'] === 0 ? 'failed' : 'completed');
                 if ($res['flag'] === 0) {
                     Log::error($method . ' file upload failed', ['flag' => $res['flag'], 'msg' => $res['msg']]);
                     Log::debug($method . ' debug upload response', ['response' => $res]);
@@ -474,7 +488,7 @@ class DiscoverController extends AppController
             $data[] = $new;
             $startUpdate = microtime(true);
             LandingPageSetting::updateOrCreate(
-                ['name' => static::ENTITY . 'OfFeatures'],
+                ['name' => static::ENTITY . '_of_features'],
                 ['value' => json_encode(array_values($data)), DatabaseConstants::TABLE_CREATOR => $user->id]
             );
             $this->logExecutionTime($startUpdate, explode("::", $method)[1] . '::updateOrCreate', 'completed');

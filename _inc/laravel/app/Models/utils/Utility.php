@@ -254,7 +254,7 @@ class Utility extends Model
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
-        Log::info("{$tag} start");
+        Log::debug("{$tag} start");
         $output->writeln("## {$tag} -- Retrieving settings…");
         try {
             $userOrRedirect = self::_checkLogin(haltRedirect: true);
@@ -287,7 +287,7 @@ class Utility extends Model
                 'captcha.sitekey' => $settings[SettingsConstants::G_RCPT_K]    ?? '',
                 'options'         => ['timeout' => 30],
             ]);
-            Log::info("{$tag} complete");
+            Log::debug("{$tag} complete");
             $output->writeln("## {$tag} -- Settings loaded successfully");
             return $settings;
         } catch (\Throwable $e) {
@@ -309,7 +309,7 @@ class Utility extends Model
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
-        Log::info("{$tag} called");
+        Log::debug("{$tag} called");
         $output->writeln("## [{$tag}] Getting global settings");
         if (!self::$getSettings) {
             try {
@@ -352,7 +352,7 @@ class Utility extends Model
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
-        Log::info("{$tag} start", [UsersConstants::COL_USER_ID => $userId]);
+        Log::debug("{$tag} start", [UsersConstants::COL_USER_ID => $userId]);
         $output->writeln("## {$tag} -- Loading settings for user ID {$userId}");
         try {
             $data = self::getSettingsById($userId);
@@ -386,7 +386,7 @@ class Utility extends Model
         $class = class_basename(self::class);
         $method = __FUNCTION__;
         $tag   = "{$class}::{$method}";
-        Log::info("{$tag} called", [UsersConstants::COL_USER_ID => $id]);
+        Log::debug("{$tag} called", [UsersConstants::COL_USER_ID => $id]);
         $output->writeln("## [{$tag}] Fetching settings for user ID {$id}");
         if (!self::$getSettingsId) {
             try {
@@ -406,7 +406,7 @@ class Utility extends Model
                     $data = SettingsConstants::DFT_SETTINGS;
                 }
                 self::$getSettingsId = $data;
-                Log::info("{$tag} found settings", ['count' => count($data)]);
+                Log::debug("{$tag} found settings", ['count' => count($data)]);
                 $output->writeln("## [{$tag}] Retrieved " . count($data) . " rows");
             } catch (QueryException $qe) {
                 Log::error("{$tag} QueryException", ['message' => $qe->getMessage()]);
@@ -505,14 +505,14 @@ class Utility extends Model
     {
         $output = new ConsoleOutput();
         $tag   = class_basename(self::class) . '::' . __FUNCTION__;
-        Log::info("{$tag} called");
+        Log::debug("{$tag} called");
         $output->writeln("## [{$tag}] Loading languages…");
         try {
             if (self::$languageSetting === null) {
                 Log::debug("{$tag} no cache, building language list");
                 $output->writeln("## [{$tag}] Generating language list");
                 if (Schema::hasTable(DatabaseConstants::TABLE_LANGS)) {
-                    Log::info("{$tag} languages table exists");
+                    Log::debug("{$tag} languages table exists");
                     $output->writeln("## [{$tag}] Querying DB for languages");
                     $settings = self::settings();
                     $disabled = $settings[SettingsConstants::DSB_LNG] ?? '';
@@ -525,7 +525,7 @@ class Utility extends Model
                         Log::debug("{$tag} no disabled languages, loading all");
                         $languages = Language::pluck('full_name', 'code');
                     }
-                    Log::info("{$tag} DB languages loaded", ['count' => $languages->count()]);
+                    Log::debug("{$tag} DB languages loaded", ['count' => $languages->count()]);
                     $collection = $languages;
                 } else {
                     Log::warning("{$tag} languages table missing, using default list");
@@ -2358,7 +2358,7 @@ class Utility extends Model
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
-        Log::info("{$tag} called", ['path' => $path]);
+        Log::debug("{$tag} called", ['path' => $path]);
         $output->writeln("## [{$tag}] Retrieving file URL for path: {$path}");
         try {
             if (!$settings) {
@@ -2368,7 +2368,7 @@ class Utility extends Model
                 Log::debug("{$tag} settings loaded", ['keys' => array_keys($settings)]);
             }
             $storageType = $settings[SettingsConstants::STR_STT] ?? SettingsConstants::LC;
-            Log::info("{$tag} storage type determined", ['storageType' => $storageType]);
+            Log::debug("{$tag} storage type determined", ['storageType' => $storageType]);
             $output->writeln("## [{$tag}] Using disk: {$storageType}");
             if ($storageType === SettingsConstants::WSB) {
                 Log::debug("{$tag} configuring Wasabi disk", [
@@ -2403,7 +2403,7 @@ class Utility extends Model
             ]);
             $output->writeln("## [{$tag}] Using disk adapter " . get_class($disk));
             $url = $disk->url($path);
-            Log::info("{$tag} URL generated", ['url' => $url]);
+            Log::debug("{$tag} URL generated", ['url' => $url]);
             $output->writeln("## [{$tag}] URL: {$url}");
             return $url;
         } catch (QueryException $qe) {

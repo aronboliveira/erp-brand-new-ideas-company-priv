@@ -15,7 +15,7 @@ use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator};
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants as RRC, SettingsConstants as LandingPageSettingsConstants};
+use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants as RRC, SettingsConstants as LPC};
 use Modules\LandingPage\Entities\{JoinUs, LandingPageSetting};
 use function App\Http\Controllers\{defaultUndefinedException};
 
@@ -39,15 +39,20 @@ class JoinUsController extends AppController
             Log::info("[$action] started", ['user_id' => $userId]);
             try {
                 $fetchStart = microtime(true);
-                $entries = JoinUs::all();
+                $join_us_col = JoinUs::all();
                 $this->logExecutionTime($fetchStart, $action . '::fetchEntries', 'completed');
                 $view = self::getFirstExistingView(self::JU);
                 if (!$view) {
                     Log::warning("[$action] view not found", ['attempted' => self::JU . '.index']);
                     throw new \RuntimeException("View not found: " . self::JU . '.index');
                 }
-                Log::info("[$action] succeeded", ['user_id' => $userId, 'count' => count($entries)]);
-                return view($view, compact('entries'));
+                Log::warning('JOIN_US_COL', ['data' => $join_us_col]);
+                $join_us = $join_us_col->isNotEmpty()
+                    ? $join_us_col->sortByDesc('created_at')->values()->all()
+                    : [];
+                Log::info("[$action] succeeded", ['user_id' => $userId, 'join_us' => $join_us, 'count' => count($join_us)]);
+                Log::info("[$action] rendering view", ['view' => $view, 'join_us' => $join_us]);
+                return view($view, compact('join_us'));
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['user_id' => $userId, 'error' => $e->getMessage()]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
@@ -56,7 +61,7 @@ class JoinUsController extends AppController
         }, ['user_id' => Auth::id()]);
     }
 
-    public function show(Request $request, int $id): View|RedirectResponse|null
+    public function show(Request $request, int|string $id): View|RedirectResponse|null
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['id' => $id]);
@@ -136,14 +141,14 @@ class JoinUsController extends AppController
             if (($g = self::guard($request, PermissionsConstants::MNG_LP, self::REDIRECT_INDEX)) !== true) return $g;
             Log::info("$action started", [UsersConstants::COL_USER_ID => $user?->id]);
             $data = $request->validate([
-                LandingPageSettingsConstants::JU_STT_K => 'nullable',
-                LandingPageSettingsConstants::JU_HDG_K => 'nullable|string',
-                LandingPageSettingsConstants::JU_DESC_K => 'nullable|string'
+                LPC::JU_STT_K => 'nullable',
+                LPC::JU_HDG_K => 'nullable|string',
+                LPC::JU_DESC_K => 'nullable|string'
             ]);
             $settings = [
-                self::JU . 'Status' => $request->has(LandingPageSettingsConstants::JU_STT_K) ? 'on' : 'off',
-                self::JU . 'Heading' => $data[LandingPageSettingsConstants::JU_HDG_K] ?? '',
-                self::JU . 'Description' => $data[LandingPageSettingsConstants::JU_DESC_K] ?? ''
+                self::JU . '_status' => $request->has(LPC::JU_STT_K) ? 'on' : 'off',
+                self::JU . '_heading' => $data[LPC::JU_HDG_K] ?? '',
+                self::JU . '_description' => $data[LPC::JU_DESC_K] ?? ''
             ];
             DB::beginTransaction();
             $stepStart = microtime(true);
@@ -162,7 +167,7 @@ class JoinUsController extends AppController
         });
     }
 
-    public function edit(Request $request, int $id): View|RedirectResponse|null
+    public function edit(Request $request, int|string $id): View|RedirectResponse|null
     {
         $function = __FUNCTION__;
         $action = class_basename(static::class) . '@' . __FUNCTION__;
@@ -204,7 +209,7 @@ class JoinUsController extends AppController
         }, ['id' => $id]);
     }
 
-    public function update(Request $request, int $id): RedirectResponse|null
+    public function update(Request $request, int|string $id): RedirectResponse|null
     {
         $method = __METHOD__;
         Log::debug($method . ' - start', ['user_id' => Auth::id(), 'id' => $id]);
@@ -236,7 +241,7 @@ class JoinUsController extends AppController
         }, ['user_id' => Auth::id(), 'id' => $id]);
     }
 
-    public function destroy(Request $request, int $id): RedirectResponse|null
+    public function destroy(Request $request, int|string $id): RedirectResponse|null
     {
         $function = __FUNCTION__;
         return $this->measureProfile($function, function () use ($request, $id, $function) {
@@ -307,7 +312,13 @@ class JoinUsController extends AppController
                     ->withInput()
                     ->with('error_html', $errorHtml);
             }
-            $data      = $validator->validated();
+            do $joinerQueryKey = Str::uuid()->toString();
+            while (JoinUs::where('query_key', $joinerQueryKey)->exists());
+            $data = [
+                'query_key' => $joinerQueryKey,
+                'email'     => $validator->validated()['email'],
+                ...collect($validator->validated())->except('email')->toArray(),
+            ];
             $stepStart = microtime(true);
             try {
                 $model = JoinUs::create($data);

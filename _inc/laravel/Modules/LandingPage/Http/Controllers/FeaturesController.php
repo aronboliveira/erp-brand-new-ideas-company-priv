@@ -9,6 +9,7 @@ use App\Traits\ChecksLogin;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log, View};
+use Illuminate\Support\Collection;
 use Modules\LandingPage\{
     Config\Constants\RoutesResourcesConstants,
     Entities\LandingPageSetting
@@ -47,6 +48,7 @@ final class FeaturesController extends AppController
                 $this->logExecutionTime($decodeStart, $action . '::decodeFeatures', 'completed');
                 $decodeOthersStart = microtime(true);
                 $others = json_decode($settings[self::OTHER_NAME] ?? '[]', true) ?: [];
+                $others = is_array($others) ? collect($others)->sortByDesc('created_at')->toArray() : ($others instanceof Collection ? $others->sortByDesc('created_at')->toArray() : $others);
                 $this->logExecutionTime($decodeOthersStart, $action . '::decodeOthers', 'completed');
                 Log::info("[$action] retrieved counts", ['features' => count($features), 'others' => count($others)]);
                 $baseView = self::getFirstExistingView(self::ENTITY . '.index');
