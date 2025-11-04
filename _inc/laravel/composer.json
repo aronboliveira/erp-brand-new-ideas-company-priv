@@ -250,6 +250,36 @@
       "@php artisan route:list --sort=uri",
       "@php artisan serve"
     ],
+    "artisan-serve--sh--reset--hard": [
+      "@artisan-serve--reset--sh--hard"
+    ],
+    "artisan-serve--hard--reset--sh": [
+      "@artisan-serve--reset--sh--hard"
+    ],
+    "artisan-serve--hard--sh--reset": [
+      "@artisan-serve--reset--sh--hard"
+    ],
+    "artisan-serve--sh--hard--reset": [
+      "@artisan-serve--reset--sh--hard"
+    ],
+    "artisan-serve--reset--hard--sh": [
+      "@artisan-serve--reset--sh--hard"
+    ],
+    "artisan-serve--sh--reset--soft": [
+      "@artisan-serve--reset--sh--soft"
+    ],
+    "artisan-serve--soft--reset--sh": [
+      "@artisan-serve--reset--sh--soft"
+    ],
+    "artisan-serve--soft--sh--reset": [
+      "@artisan-serve--reset--sh--soft"
+    ],
+    "artisan-serve--sh--soft--reset": [
+      "@artisan-serve--reset--sh--soft"
+    ],
+    "artisan-serve--reset--soft--sh": [
+      "@artisan-serve--reset--sh--soft"
+    ],
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
       "@php artisan package:discover --ansi"

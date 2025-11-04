@@ -228,7 +228,6 @@
         >
             <i class="<?php echo e(VC::TI_LT); ?>"></i>
         </a>
-
         <a
             id="deal-create-btn"
             href="<?php echo e($hasCreate ? route($createName) : '#'); ?>"

@@ -9,6 +9,7 @@
         ViewsConstants as VW,
         YieldingConstants,
     };
+    use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
     use Illuminate\Support\Facades\{Auth, Route};
     /** @var \App\Models\User|null $user */
@@ -41,10 +42,10 @@
     $deleteGuard  = Utility::fetchLinkMessage($lang, $ns, 'deal_destroy_route_unavailable')
         ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
 
-    $cntRaw = $cnt_deal ?? $cntDeal ?? null;
-    if (is_array($cntRaw ?? null)) {
+    $cntRaw = $cntDeal ?? null;
+    if (Utility::isFilled($cntRaw))
         $totals = $cntRaw;
-    } else {
+    else {
         $currencySymbol = $settings[SC::CR_SB] ?? '';
         $position       = $settings[SC::CR_SB_P] ?? '';
         $amount         = '—';
@@ -60,11 +61,9 @@
             'last_30days' => $display,
         ];
     }
-
     $dealsList = (isset($deals) && (is_array($deals) || $deals instanceof \Illuminate\Support\Collection))
         ? $deals
         : [];
-
     $isPriceFormatAvailable = method_exists($user, 'priceFormat');
 @endphp
 
@@ -240,13 +239,13 @@
             title="{{ __('Create New Deal') }}"
             class="{{ VC::BT_SM_PM }}"
         >
-            <i class="ti ti-plus"></i>
+            <i class="{{ VC::TI_PLS }}"></i>
         </a>
     </div>
 @endsection
 
 @section(YieldingConstants::ADM_CTT)
-    @if(!empty($pipeline))
+    @if(Utility::isFilled($pipeline))
         <div class="{{ VC::RW }}">
             <div class="{{ VC::CS3 }}">
                 <div class="{{ VC::CD }}">
@@ -254,7 +253,7 @@
                         <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                             <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
                                 <small class="{{ VC::TXT_MT }}">{{ __('Total Deals') }}</small>
-                                <h4 class="{{ VC::MB0 }}">{{ $totals['total'] ?? '—' }}</h4>
+                                <h4 class="{{ VC::MB0 }}">{{ $totals['total'] ?? __('No total available') }}</h4>
                             </div>
                             <div class="{{ VC::C_AT }}">
                                 <div class="theme-avatar bg-info">
@@ -271,7 +270,7 @@
                         <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                             <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
                                 <small class="{{ VC::TXT_MT }}">{{ __('This Month Total Deals') }}</small>
-                                <h4 class="{{ VC::MB0 }}">{{ $totals['this_month'] ?? '—' }}</h4>
+                                <h4 class="{{ VC::MB0 }}">{{ $totals['this_month'] ?? __('No totals for this month') }}</h4>
                             </div>
                             <div class="{{ VC::C_AT }}">
                                 <div class="theme-avatar bg-primary">
@@ -288,7 +287,7 @@
                         <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                             <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
                                 <small class="{{ VC::TXT_MT }}">{{ __('This Week Total Deals') }}</small>
-                                <h4 class="{{ VC::MB0 }}">{{ $totals['this_week'] ?? '—' }}</h4>
+                                <h4 class="{{ VC::MB0 }}">{{ $totals['this_week'] ?? __('No totals for week') }}</h4>
                             </div>
                             <div class="{{ VC::C_AT }}">
                                 <div class="theme-avatar bg-warning">
@@ -305,7 +304,7 @@
                         <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
                             <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
                                 <small class="{{ VC::TXT_MT }}">{{ __('Last 30 Days Total Deals') }}</small>
-                                <h4 class="{{ VC::MB0 }}">{{ $totals['last_30days'] ?? '—' }}</h4>
+                                <h4 class="{{ VC::MB0 }}">{{ $totals['last_30days'] ?? __('No totals for last 30 days') }}</h4>
                             </div>
                             <div class="{{ VC::C_AT }}">
                                 <div class="theme-avatar bg-danger">
@@ -317,7 +316,6 @@
                 </div>
             </div>
         </div>
-
         <div class="{{ VC::RW }}">
             <div class="col-xl-12">
                 <div class="{{ VC::CD }}">
@@ -344,7 +342,6 @@
                                             $stageName   = $deal->stage->name ?? __('—');
                                             $tasksCount  = is_countable($deal->tasks ?? []) ? count($deal->tasks) : 0;
                                             $doneCount   = is_countable($deal->complete_tasks ?? []) ? count($deal->complete_tasks) : 0;
-
                                             $viewUrl     = ($hasShow && !empty($deal->is_active) && $dealId) ? route($showName, $dealId) : '#';
                                             $editUrl     = ($hasEdit && $dealId) ? route($editName, $dealId) : '#';
                                             $deleteUrl   = ($hasDelete && $dealId) ? route($destroyName, $dealId) : '#';
@@ -393,7 +390,7 @@
                                                                         title="{{ __('View') }}"
                                                                         data-title="{{ __('Lead Detail') }}"
                                                                     >
-                                                                        <i class="ti ti-eye text-white"></i>
+                                                                        <i class="{{ VC::TI_EYE_WT }}"></i>
                                                                     </a>
                                                                 </div>
                                                             @endif

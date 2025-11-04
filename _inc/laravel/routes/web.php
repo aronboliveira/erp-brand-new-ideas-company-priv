@@ -750,16 +750,15 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
         }
     );
     #endregion
-
-    // Client Module
-
-    Route::resource('clients', ClientController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
-    Route::any('client-reset-password/{id}', [ClientController::class, 'clientPassword'])->name('clients.reset');
-    Route::post('client-reset-password/{id}', [ClientController::class, 'clientPasswordReset'])->name('client.password.update');
-
-    // Deal Module
-
+    //================================= Clients ====================================//
+    #region
+    Route::resource(VW::CLT, ClientController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::any('client-reset-password/{id}', [ClientController::class, 'clientPassword'])->name(VW::CLT . '.reset');
+    Route::post('client-reset-password/{id}', [ClientController::class, 'clientPasswordReset'])->name(VW::CLT . '.password.update');
+    #endregion
+    //================================= Deals ====================================//
+    // Main Deal Routes
+    #region
     Route::post(VW::DL . '/user', [DealController::class, 'jsonUser'])->name(VW::DL . '.user.json');
     Route::post(VW::DL . '/order', [DealController::class, 'order'])->name(VW::DL . '.order')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::DL . '/change-pipeline', [DealController::class, 'changePipeline'])->name(VW::DL . '.change.pipeline')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
@@ -794,23 +793,22 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::get(VW::DL . '/{id}/permission/{cid}', [DealController::class, 'permission'])->name(VW::DL . '.client.permission')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::put(VW::DL . '/{id}/permission/{cid}', [DealController::class, 'permissionStore'])->name(VW::DL . '.client.permissions.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::DL . '/list', [DealController::class, 'dealList'])->name(VW::DL . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
+    #endregion
     // Deal Calls
-
+    #region
     Route::get(VW::DL . '/{id}/call', [DealController::class, 'callCreate'])->name(VW::DL . '.calls.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::DL . '/{id}/call', [DealController::class, 'callStore'])->name(VW::DL . '.calls.store')->middleware([MiddlewaresConstants::AUTH]);
     Route::get(VW::DL . '/{id}/call/{cid}/edit', [DealController::class, 'callEdit'])->name(VW::DL . '.calls.edit')->middleware([MiddlewaresConstants::AUTH]);
     Route::put(VW::DL . '/{id}/call/{cid}', [DealController::class, 'callUpdate'])->name(VW::DL . '.calls.update')->middleware([MiddlewaresConstants::AUTH]);
     Route::delete(VW::DL . '/{id}/call/{cid}', [DealController::class, 'callDestroy'])->name(VW::DL . '.calls.destroy')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
+    #endregion
     // Deal Email
-
+    #region
     Route::get(VW::DL . '/{id}/email', [DealController::class, 'emailCreate'])->name(VW::DL . '.emails.create')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::post(VW::DL . '/{id}/email', [DealController::class, 'emailStore'])->name(VW::DL . '.emails.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
     Route::resource(VW::DL, DealController::class)->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-
-    // end Deal Module
+    #endregion
+    #endregion
 
     Route::get('/search', [UserController::class, 'search'])->name('search.json');
     Route::post('/stages/order', [StageController::class, 'order'])->name('stages.order');

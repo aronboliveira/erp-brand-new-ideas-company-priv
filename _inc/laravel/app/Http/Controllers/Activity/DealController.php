@@ -130,11 +130,11 @@ class DealController extends Controller
         Log::debug("[{$class}::{$action}]", ['cntDeal' => $cntDeal]);
         $ordStart = microtime(true);
         if ($user[UC::COL_TP] === PC::CL) {
-            $ordered = Deal::join('client_deals', 'client_deals.deal_id', '=', 'deals.id')
-                ->where('client_deals.client_id', $user?->id);
+          $ordered = Deal::join('client_deals', 'client_deals.deal_id', '=', 'deals.id')
+            ->where('client_deals.client_id', $user?->id);
         } else {
-            $ordered = Deal::join('user_deals', 'user_deals.deal_id', '=', 'deals.id')
-                ->where('user_deals.user_id', $user?->id);
+          $ordered = Deal::join('user_deals', 'user_deals.deal_id', '=', 'deals.id')
+            ->where('user_deals.user_id', $user?->id);
         }
         $deals = $ordered->where(DC::TABLE_DEALS . '.pipeline_id', $pipeline->id)->orderBy(DC::TABLE_DEALS . '.order')->get();
         $this->logExecutionTime($ordStart, $action, 'loadOrderedDeals');
@@ -1793,7 +1793,7 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DC::TABLE_DEALS . '.show';
+    $viewPath = VW::DL . '.show';
     return $this->measureProfile($action, function () use ($request, $deal, $action, $method, $class, $viewPath) {
       Log::info("[{$class}::{$action}]", [UC::COL_USER_ID => Auth::id(), 'deal_id' => $deal->id, 'method' => $method]);
       if (($resp = self::guard($request, 'view deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $resp;
@@ -1875,26 +1875,26 @@ class DealController extends Controller
    */
   private function getDefaultPipeline(User $user): Pipeline
   {
-      Log::debug(__METHOD__, [
-          UC::COL_USER_ID => $user?->id,
-          'default_pipeline' => $user?->default_pipeline ?? '#NULL'
-      ]);
-      try {
-          $isSa = $user->{UC::COL_TP} === PC::SA;
-          $creatorId = $isSa ? $user->id : DC::DEFAULT_UUID;
-          $baseQuery = fn() => Pipeline::where(DC::TABLE_CREATOR, $creatorId);
-          $pipeline = null;
-          if ($user->default_pipeline)
-              $pipeline = $baseQuery()->where('id', $user->default_pipeline)->first();
-          if (!$pipeline)
-              $pipeline = $baseQuery()->first();
-          if (!$pipeline)
-              throw new \RuntimeException("No pipeline found for user {$user->id}");
-          Log::debug(__METHOD__ . ' resolved', ['pipeline_id' => $pipeline->id]);
-          return $pipeline;
-      } catch (\Throwable $e) {
-          Log::error(__METHOD__ . ' error', ['err' => $e->getMessage()]);
-          throw $e;
-      }
+    Log::debug(__METHOD__, [
+      UC::COL_USER_ID => $user?->id,
+      'default_pipeline' => $user?->default_pipeline ?? '#NULL'
+    ]);
+    try {
+      $isSa = $user->{UC::COL_TP} === PC::SA;
+      $creatorId = $isSa ? $user->id : DC::DEFAULT_UUID;
+      $baseQuery = fn() => Pipeline::where(DC::TABLE_CREATOR, $creatorId);
+      $pipeline = null;
+      if ($user->default_pipeline)
+        $pipeline = $baseQuery()->where('id', $user->default_pipeline)->first();
+      if (!$pipeline)
+        $pipeline = $baseQuery()->first();
+      if (!$pipeline)
+        throw new \RuntimeException("No pipeline found for user {$user->id}");
+      Log::debug(__METHOD__ . ' resolved', ['pipeline_id' => $pipeline->id]);
+      return $pipeline;
+    } catch (\Throwable $e) {
+      Log::error(__METHOD__ . ' error', ['err' => $e->getMessage()]);
+      throw $e;
+    }
   }
 }

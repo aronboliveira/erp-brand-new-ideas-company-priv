@@ -1,21 +1,19 @@
 <?php
-
-use App\Config\Constants\{
-    ExtendingLayoutsConstants,
-    SettingsConstants
-};
-use App\Models\Utility;
-use Illuminate\Support\Facades\{Log, Session};
-
-Log::debug('Loading admin footer data...');
-$settings = Utility::settings();
-Log::debug('Loading admin footer template...');
+    use App\Config\Constants\{
+        ExtendingLayoutsConstants,
+        SettingsConstants as SC
+    };
+    use App\Models\Utility;
+    use Illuminate\Support\Facades\{Log, Session};
+    Log::debug('Loading admin footer data...');
+    $settings = Utility::settings();
+    Log::debug('Loading admin footer template...');
 ?>
 <footer class="dash-footer">
     <div class="footer-wrapper">
         <div class="py-1">
             <p class="mb-0 text-muted"> &copy;
-                <?php echo e(date('Y')); ?> <?php echo e($settings[SettingsConstants::FT_TXT] ? $settings[SettingsConstants::FT_TXT] : config('app.name', 'ERPNovaPrestech')); ?>
+                <?php echo e(date('Y')); ?> <?php echo e($settings[SC::FT_TXT] ? $settings[SC::FT_TXT] : config('app.name', 'ERPNovaPrestech')); ?>
 
             </p>
         </div>
@@ -43,21 +41,21 @@ Log::debug('Loading admin footer template...');
 <script defer src="<?php echo e(asset('js/popper.min.js')); ?>"></script>
 
 <script>
-    var site_currency_symbol_position = '<?php echo e($settings['site_currency_symbol_position']); ?>';
-    var site_currency_symbol = '<?php echo e($settings['site_currency_symbol']); ?>';
+    var site_currency_symbol_position = '<?php echo e($settings[SC::CR_SB_P]); ?>';
+    var site_currency_symbol = '<?php echo e($settings[SC::CR_SB]); ?>';
 </script>
 <script src="<?php echo e(asset('js/custom.js')); ?>"></script>
-<?php if ($message = Session::get('success')): ?>
+<?php if($message = Session::get('success')): ?>
     <script>
         show_toastr('success', '<?php echo $message; ?>');
     </script>
 <?php endif; ?>
-<?php if ($message = Session::get('error')): ?>
+<?php if($message = Session::get('error')): ?>
     <script>
         show_toastr('error', '<?php echo $message; ?>');
     </script>
 <?php endif; ?>
-<?php if ($settings['enable_cookie'] == 'on'): ?>
+<?php if($settings['enable_cookie'] == 'on'): ?>
     <?php if ($__env->exists(ExtendingLayoutsConstants::CKC)) echo $__env->make(ExtendingLayoutsConstants::CKC, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 <?php endif; ?>
 <?php echo $__env->yieldPushContent('script-page'); ?>

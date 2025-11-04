@@ -1,20 +1,18 @@
 <link
   rel="icon"
-  href="{{ empty($faviconUrl) ? 'favicon.ico' : $faviconUrl }}"
+  href="{{ empty($faviconUrl) ? asset('favicon.ico') : preg_replace('#^(https?://[^/]+)/.*?([^/]+\.(ico|svg|png))$#', '$1/$2', $faviconUrl) }}"
   type="image/x-icon"
 />
 <script id="fallbackIcon">
 	(() => {
 		const linkEl = document.querySelector("link[rel~='icon']");
 		if (!linkEl) return;
-
+		const origin = window.location.origin;
 		const candidates = [
-			linkEl.href,
-			'/favicon.ico',
-			'/favicon.svg',
-			'/favicon.png'
+			`${origin}/favicon.ico`,
+			`${origin}/favicon.svg`,
+			`${origin}/favicon.png`
 		];
-
 		let idx = 0;
 		const tryNext = () => {
 			if (idx >= candidates.length) return;
@@ -23,9 +21,7 @@
 			img.onerror = () => { idx++; tryNext(); };
 			img.src = candidates[idx];
 		};
-
 		tryNext();
-
 		setTimeout(() => {
 			document.getElementById('fallbackIcon')?.remove();
 		}, 2000);

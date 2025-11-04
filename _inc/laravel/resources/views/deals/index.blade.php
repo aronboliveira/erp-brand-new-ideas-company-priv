@@ -223,7 +223,6 @@
         >
             <i class="{{ VC::TI_LT }}"></i>
         </a>
-
         <a
             id="deal-create-btn"
             href="{{ $hasCreate ? route($createName) : '#' }}"
