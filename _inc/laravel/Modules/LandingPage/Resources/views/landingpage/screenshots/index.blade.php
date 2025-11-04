@@ -3,7 +3,7 @@
 	use App\Models\Utility;
     use Collective\Html\FormFacade as Form;
 	use Illuminate\Support\Facades\{Log,Route};
-	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R};
+	use Modules\LandingPage\Config\Constants\{ExtendingLandingPageLayoutConstants as E,RoutesResourcesConstants as R,SettingsConstants};
 	$lpSettings ??= [];
 	$logo ??= '';
     $lang = Utility::fetchUserLang();
@@ -101,7 +101,7 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 {{ Form::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                                {{ Form::text('screenshots_heading',$lpSettings['screenshots_heading'], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                                                {{ Form::text(SettingsConstants::SC_HDG_K,$lpSettings[SettingsConstants::SC_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
                                                 @error('mail_host')
                                                 <span class="invalid-mail_driver" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -144,7 +144,7 @@
                                             data-ajax-popup="true"
                                             data-bs-toggle="tooltip"
                                             title="{{ __('Create') }}"
-                                            class="btn btn-sm btn-primary {{ $canCreate ? '' : 'disabled' }}"
+                                            class="{{ VC::BT_SM_PM }} {{ $canCreate ? '' : 'disabled' }}"
                                             {{ $canCreate ? '' : 'aria-disabled="true"' }}
                                         >
                                             <i class="{{ VC::TI_PLS_LG }}"></i>
@@ -170,13 +170,13 @@
                                                 @foreach ($screenshots as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
-                                                        <td>{{ $value['screenshots_heading'] }}</td>
+                                                        <td>{{ !empty($value[SettingsConstants::SC_HDG_K]) ? $value[SettingsConstants::SC_HDG_K] : __('No heading available') }}</td>
                                                         <td>
                                                             <span>
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     @if(Route::has(R::SST.'.edit'))
                                                                         <a href="#"
-                                                                           class="mx-3 btn btn-sm align-items-center"
+                                                                           class="{{ VC::BT_SM_CT }}"
                                                                            data-url="{{ route(R::SST.'.edit', $key) }}"
                                                                            data-ajax-popup="true"
                                                                            data-title="{{ __('Edit Page') }}"
@@ -211,7 +211,7 @@
                                                                                 data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                                data-confirm-yes="document.getElementById('delete-form-{{ $key }}').submit();"
                                                                             >
-                                                                                <i class="ti ti-trash text-white"></i>
+                                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                             </a>
                                                                         {!! Form::close() !!}
                                                                     @else
@@ -219,7 +219,7 @@
                                                                            class="{{ VC::BT_SM_CT_DSB }}"
                                                                            aria-disabled="true"
                                                                         >
-                                                                            <i class="ti ti-trash text-white"></i>
+                                                                            <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                         </a>
                                                                     @endif
                                                                 </div>

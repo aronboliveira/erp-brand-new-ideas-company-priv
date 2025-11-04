@@ -181,11 +181,11 @@ Route::middleware([MiddlewaresConstants::WEB, MiddlewaresConstants::AUTH])
     ->group(function () {
         Route::get(
             '/',
-            [HomeController::class, 'index']
+            [DashboardController::class, DashboardController::ACC_DSB_IDX]
         )->name(RoutesResourcesConstants::HM . '.index');
         Route::get(
             VW::HM,
-            [HomeController::class, 'index']
+            [DashboardController::class, DashboardController::ACC_DSB_IDX]
         )->name(RoutesResourcesConstants::HM . '.index.alt');
     });
 //Route::get('/register/{lang?}', function () {
@@ -793,7 +793,7 @@ Route::group(['middleware' => [MiddlewaresConstants::VF]], function () {
     Route::post(VW::DL . '/{id}/discussions', [DealController::class, 'discussionStore'])->name(VW::DL . '.discussion.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::get(VW::DL . '/{id}/permission/{cid}', [DealController::class, 'permission'])->name(VW::DL . '.client.permission')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
     Route::put(VW::DL . '/{id}/permission/{cid}', [DealController::class, 'permissionStore'])->name(VW::DL . '.client.permissions.store')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
-    Route::get(VW::DL . '/list', [DealController::class, 'deal_list'])->name(VW::DL . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
+    Route::get(VW::DL . '/list', [DealController::class, 'dealList'])->name(VW::DL . '.list')->middleware([MiddlewaresConstants::AUTH, MiddlewaresConstants::XSS]);
 
     // Deal Calls
 

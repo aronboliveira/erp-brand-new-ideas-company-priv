@@ -46,7 +46,6 @@ class JoinUsController extends AppController
                     Log::warning("[$action] view not found", ['attempted' => self::JU . '.index']);
                     throw new \RuntimeException("View not found: " . self::JU . '.index');
                 }
-                Log::warning('JOIN_US_COL', ['data' => $join_us_col]);
                 $join_us = $join_us_col->isNotEmpty()
                     ? $join_us_col->sortByDesc('created_at')->values()->all()
                     : [];

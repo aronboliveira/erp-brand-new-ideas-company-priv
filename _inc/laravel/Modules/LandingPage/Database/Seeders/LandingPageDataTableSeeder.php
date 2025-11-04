@@ -160,9 +160,9 @@ class LandingPageDataTableSeeder extends Seeder
                         while (LandingPageSetting::where('query_key', $itemKey)->exists() && (microtime(true) - $startTime) < 20);
                         LandingPageSetting::updateOrCreate(
                             ['query_key' => $itemKey],
-                            ['created_by' => DatabaseConstants::DEFAULT_UUID],
                             [
                                 'name' => $config['key'],
+                                'created_by' => DatabaseConstants::DEFAULT_UUID,
                                 'value' => json_encode($item, JSON_THROW_ON_ERROR)
                             ]
                         );

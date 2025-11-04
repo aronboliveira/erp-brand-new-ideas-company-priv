@@ -7,12 +7,13 @@ use App\Config\Constants\{
     DatabaseConstants,
     ProjectsConstants
 };
-use App\Traits\UsesUuids;
+use App\Traits\{ChecksLogin, UsesUuids};
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\{Model, Relations\HasMany};
 
 class Pipeline extends Model
 {
-    use UsesUuids;
+    use ChecksLogin, UsesUuids;
 
     private const CREATED_BY     = DatabaseConstants::TABLE_CREATOR;
     private const ORDER          = ActivitiesConstants::COL_OD;
@@ -20,7 +21,7 @@ class Pipeline extends Model
 
     protected $fillable = self::FILLABLE_FIELDS;
 
-    public function stages(): HasMany
+    public function stages(): HasMany|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -33,7 +34,7 @@ class Pipeline extends Model
             ->orderBy(self::ORDER);
     }
 
-    public function leadStages(): HasMany
+    public function leadStages(): HasMany|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())

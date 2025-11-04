@@ -216,7 +216,7 @@
       "@php artisan route:list --sort=uri",
       "@php artisan serve"
     ],
-    "artisan-reset-sh--soft": [
+    "artisan-serve--reset--sh--soft": [
       "@php artisan permission:cache-reset",
       "@php artisan config:clear",
       "@php artisan cache:clear",
@@ -232,7 +232,7 @@
       "@php artisan route:list --sort=uri",
       "@php artisan serve"
     ],
-    "artisan-reset-sh--hard": [
+    "artisan-serve--reset--sh--hard": [
       "@php artisan db:wipe",
       "@php artisan migrate",
       "@php artisan permission:cache-reset",

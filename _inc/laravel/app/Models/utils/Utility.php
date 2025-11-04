@@ -5,16 +5,16 @@ namespace App\Models;
 use App\Config\Constants\{
     ActivitiesConstants,
     BillsConstants,
-    ChartsConstants,
+    ChartsConstants as CTC,
     CompaniesConstants,
-    DatabaseConstants,
-    EmailsConstants,
-    FormsConstants,
+    DatabaseConstants as DC,
+    EmailsConstants as EC,
+    FormsConstants as FC,
     LangsConstants,
-    PermissionsConstants,
+    PermissionsConstants as PMC,
     ProjectsConstants,
-    SettingsConstants,
-    UsersConstants
+    SettingsConstants as SC,
+    UsersConstants as UC
 };
 use App\Mail\CommonEmailTemplate;
 use App\Models\{
@@ -70,16 +70,16 @@ class Utility extends Model
     private static $taxes          = null;
     private static $languageSetting = null;
     private static $getRatingData  = null;
-    public static $colorCode = SettingsConstants::CLR_CD;
-    public static $chartOfAccountType = ChartsConstants::COA_TPS;
-    public static $chartOfAccountSubType = ChartsConstants::COA_SBTPS;
-    public static $emailStatus = EmailsConstants::STATUS_MAP;
-    private const DEFAULT_SETTINGS = SettingsConstants::DFT_SETTINGS;
-    private const DEFAULT_SETTINGS_BY_ID = SettingsConstants::DFT_SETTINGS_IDF;
-    public static $chartOfAccount = ChartsConstants::COA_SETTINGS_0;
-    public static $chartOfAccount1 = ChartsConstants::COA_SETTINGS_1;
-    private const ARR_PERMISSIONS = FormsConstants::PERMISSIONS;
-    private const COMPANY_DATA_PERMISSIONS = FormsConstants::PERMISSIONS;
+    public static $colorCode = SC::CLR_CD;
+    public static $chartOfAccountType = CTC::COA_TPS;
+    public static $chartOfAccountSubType = CTC::COA_SBTPS;
+    public static $emailStatus = EC::STATUS_MAP;
+    private const DEFAULT_SETTINGS = SC::DFT_SETTINGS;
+    private const DEFAULT_SETTINGS_BY_ID = SC::DFT_SETTINGS_IDF;
+    public static $chartOfAccount = CTC::COA_SETTINGS_0;
+    public static $chartOfAccount1 = CTC::COA_SETTINGS_1;
+    private const ARR_PERMISSIONS = FC::PERMISSIONS;
+    private const COMPANY_DATA_PERMISSIONS = FC::PERMISSIONS;
     private const FST_DSK = 'filesystems.disks';
     private const FST_DSK_WSB = self::FST_DSK . '.wasabi.';
     private const FST_DSK_S3 = self::FST_DSK . '.s3.';
@@ -169,77 +169,77 @@ class Utility extends Model
      * @param  string|null $logoPath   Custom logo path, defaults to 'uploads/logo/'.
      * @return array<string, mixed>    Array of all shared view variables.
      */
-    public static function prepareCommonViewData(int|string $creatorId = DatabaseConstants::DEFAULT_UUID, ?string $logoPath = null): array
+    public static function prepareCommonViewData(int|string $creatorId = DC::DEFAULT_UUID, ?string $logoPath = null): array
     {
-        $settings     = ($creatorId && $creatorId !== DatabaseConstants::DEFAULT_UUID)
+        $settings     = ($creatorId && $creatorId !== DC::DEFAULT_UUID)
             ? self::settingsById($creatorId)
             : self::settings();
         $colorSettings = self::colorset();
         $locale       = app()->getLocale();
         $seo          = self::getSeoSetting();
-        $company_logo_dk = $settings[SettingsConstants::CPN_LG_DK]
-            ?? $settings[SettingsConstants::CPN_LG_LT]
+        $company_logo_dk = $settings[SC::CPN_LG_DK]
+            ?? $settings[SC::CPN_LG_LT]
             ?? '';
-        $company_logo_lt = $settings[SettingsConstants::CPN_LG_LT]
-            ?? $settings[SettingsConstants::CPN_LG_DK]
+        $company_logo_lt = $settings[SC::CPN_LG_LT]
+            ?? $settings[SC::CPN_LG_DK]
             ?? '';
-        $company_favicon = $settings[SettingsConstants::FAV_ICN]
-            ?? asset(SettingsConstants::CPN_FAVICON_DEF);
-        $logo = $settings[SettingsConstants::LOGO]
+        $company_favicon = $settings[SC::FAV_ICN]
+            ?? asset(SC::CPN_FAVICON_DEF);
+        $logo = $settings[SC::LOGO]
             ?? asset($logoPath)
-            ?? asset(SettingsConstants::CPN_FAVICON_DEF);
-        $secondary_logo = $settings[SettingsConstants::SC_LOGO]
+            ?? asset(SC::CPN_FAVICON_DEF);
+        $secondary_logo = $settings[SC::SC_LOGO]
             ?? asset($logoPath)
-            ?? asset(SettingsConstants::CPN_FAVICON_DEF);
-        $color = $settings[SettingsConstants::THM_CLR]
-            ?? SettingsConstants::THM_CLR_DEF;
-        $siteRtl = $settings[SettingsConstants::RTL]
+            ?? asset(SC::CPN_FAVICON_DEF);
+        $color = $settings[SC::THM_CLR]
+            ?? SC::THM_CLR_DEF;
+        $siteRtl = $settings[SC::RTL]
             ?? 'off';
         if (in_array($locale, ['ar', 'he'], true))
             $siteRtl = 'on';
-        $lang = $settings[SettingsConstants::LCL]
+        $lang = $settings[SC::LCL]
             ?? str_replace('_', '-', $locale)
-            ?? DatabaseConstants::DEFAULT_LANG;
-        $meta_title = $seo[SettingsConstants::MT_TTL_K]
+            ?? DC::DEFAULT_LANG;
+        $meta_title = $seo[SC::MT_TTL_K]
             ?? config('app.name', 'ERPNovaPrestech');
-        $meta_desc = $seo[SettingsConstants::MT_DESC_LONG]
+        $meta_desc = $seo[SC::MT_DESC_LONG]
             ?? config('app.desc', 'A brand new ERP!');
-        $meta_image = $seo[SettingsConstants::MT_IMG_K]
+        $meta_image = $seo[SC::MT_IMG_K]
             ?? $company_logo_lt
             ?? $company_logo_dk
             ?? '';
-        $meta_logo = $seo[SettingsConstants::MT_LOGO]
-            ?? $seo[SettingsConstants::MT_IMG_K]
+        $meta_logo = $seo[SC::MT_LOGO]
+            ?? $seo[SC::MT_IMG_K]
             ?? $company_logo_lt
             ?? $company_logo_dk
             ?? '';
-        $cookie_setting = $settings[SettingsConstants::CK_STG]
+        $cookie_setting = $settings[SC::CK_STG]
             ?? 'off';
-        $modeLayout = method_exists(self::class, SettingsConstants::MD_LO)
+        $modeLayout = method_exists(self::class, SC::MD_LO)
             ? self::mode_layout()
             : null;
         if (!is_array($colorSettings))
             $colorSettings = [];
-        if (empty($colorSettings[SettingsConstants::CST_DRK]))
-            $colorSettings[SettingsConstants::CST_DRK] = 'off';
-        if (empty($settings[SettingsConstants::RCPT_MDL]))
-            $settings[SettingsConstants::RCPT_MDL] = 'off';
+        if (empty($colorSettings[SC::CST_DRK]))
+            $colorSettings[SC::CST_DRK] = 'off';
+        if (empty($settings[SC::RCPT_MDL]))
+            $settings[SC::RCPT_MDL] = 'off';
         return [
-            SettingsConstants::ENTITY       => $settings,
-            SettingsConstants::CLR_STG      => $colorSettings,
-            SettingsConstants::RTL          => $siteRtl,
-            SettingsConstants::LCL          => $lang,
-            SettingsConstants::MT_TTL_K     => $meta_title,
-            SettingsConstants::MT_DESC_LONG => $meta_desc,
-            SettingsConstants::MT_IMG_K     => $meta_image,
-            SettingsConstants::MT_LOGO      => $meta_logo,
-            SettingsConstants::LOGO         => $logo,
-            SettingsConstants::SC_LOGO      => $secondary_logo,
-            SettingsConstants::FAV_ICN      => $company_favicon,
-            SettingsConstants::THM_CLR      => $color,
-            SettingsConstants::CK_STG       => $cookie_setting,
-            SettingsConstants::MD_LO        => $modeLayout,
-            SettingsConstants::CPN_CFG      => $settings,
+            SC::ENTITY       => $settings,
+            SC::CLR_STG      => $colorSettings,
+            SC::RTL          => $siteRtl,
+            SC::LCL          => $lang,
+            SC::MT_TTL_K     => $meta_title,
+            SC::MT_DESC_LONG => $meta_desc,
+            SC::MT_IMG_K     => $meta_image,
+            SC::MT_LOGO      => $meta_logo,
+            SC::LOGO         => $logo,
+            SC::SC_LOGO      => $secondary_logo,
+            SC::FAV_ICN      => $company_favicon,
+            SC::THM_CLR      => $color,
+            SC::CK_STG       => $cookie_setting,
+            SC::MD_LO        => $modeLayout,
+            SC::CPN_CFG      => $settings,
         ];
     }
 
@@ -261,10 +261,10 @@ class Utility extends Model
             if ($userOrRedirect instanceof User) {
                 /** @var User $user */
                 $user = $userOrRedirect;
-                Log::debug("{$tag} authenticated user", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::debug("{$tag} authenticated user", [UC::COL_USER_ID => $user?->id]);
                 $output->writeln("## {$tag} -- User ID: {$user?->id}");
                 $userId = $user?->creatorId();
-                Log::debug("{$tag} fetching settings by user ID", [DatabaseConstants::TABLE_CREATOR => $userId]);
+                Log::debug("{$tag} fetching settings by user ID", [DC::TABLE_CREATOR => $userId]);
                 $data = self::getSettingsById($userId);
                 if (empty($data)) {
                     Log::info("{$tag} No user settings found. Loading global defaults...");
@@ -280,11 +280,11 @@ class Utility extends Model
             foreach ($data as $name => $value)
                 $settings[$name] = $value;
             Log::debug("{$tag} applying config", [
-                SettingsConstants::G_RCPT_K => $settings[SettingsConstants::G_RCPT_K] ?? '',
+                SC::G_RCPT_K => $settings[SC::G_RCPT_K] ?? '',
             ]);
             config([
-                'captcha.secret'  => $settings[SettingsConstants::G_RCPT_SC] ?? '',
-                'captcha.sitekey' => $settings[SettingsConstants::G_RCPT_K]    ?? '',
+                'captcha.secret'  => $settings[SC::G_RCPT_SC] ?? '',
+                'captcha.sitekey' => $settings[SC::G_RCPT_K]    ?? '',
                 'options'         => ['timeout' => 30],
             ]);
             Log::debug("{$tag} complete");
@@ -294,7 +294,7 @@ class Utility extends Model
             Log::error("{$tag} exception", [
                 'message' => $e->getMessage(),
             ]);
-            Log::channel(SettingsConstants::ERR_TRACE)->debug("{$tag} exception", [
+            Log::channel(SC::ERR_TRACE)->debug("{$tag} exception", [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
             ]);
@@ -313,13 +313,13 @@ class Utility extends Model
         $output->writeln("## [{$tag}] Getting global settings");
         if (!self::$getSettings) {
             try {
-                $data = DB::table(DatabaseConstants::TABLE_SETTINGS)
-                    ->where(DatabaseConstants::TABLE_CREATOR, DatabaseConstants::DEFAULT_UUID)
+                $data = DB::table(DC::TABLE_SETTINGS)
+                    ->where(DC::TABLE_CREATOR, DC::DEFAULT_UUID)
                     ->pluck('value', 'name')
                     ->toArray();
                 if (empty($data)) {
                     Log::warning("{$tag} no default settings found; using system default");
-                    $data = SettingsConstants::DFT_SETTINGS;
+                    $data = SC::DFT_SETTINGS;
                 }
                 self::$getSettings = $data;
                 Log::info("{$tag} default settings retrieved", ['count' => count($data)]);
@@ -327,17 +327,17 @@ class Utility extends Model
             } catch (QueryException $e) {
                 Log::error("{$tag} QueryException", ['message' => $e->getMessage()]);
                 $output->writeln("## [{$tag}] DB error: {$e->getMessage()}");
-                self::$getSettings = SettingsConstants::DFT_SETTINGS;
+                self::$getSettings = SC::DFT_SETTINGS;
             } catch (\Throwable $e) {
                 Log::error("{$tag} unexpected exception", [
                     'message' => $e->getMessage(),
                 ]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("{$tag} unexpected exception", [
+                Log::channel(SC::ERR_TRACE)->debug("{$tag} unexpected exception", [
                     'message' => $e->getMessage(),
                     'trace'   => $e->getTraceAsString(),
                 ]);
                 $output->writeln("## [{$tag}] Error loading default settings: {$e->getMessage()}");
-                self::$getSettings = SettingsConstants::DFT_SETTINGS;
+                self::$getSettings = SC::DFT_SETTINGS;
             }
         } else {
             Log::debug("{$tag} returning cached default settings", ['count' => count(self::$getSettings)]);
@@ -352,7 +352,7 @@ class Utility extends Model
         $class  = class_basename(self::class);
         $method = __FUNCTION__;
         $tag    = "{$class}::{$method}";
-        Log::debug("{$tag} start", [UsersConstants::COL_USER_ID => $userId]);
+        Log::debug("{$tag} start", [UC::COL_USER_ID => $userId]);
         $output->writeln("## {$tag} -- Loading settings for user ID {$userId}");
         try {
             $data = self::getSettingsById($userId);
@@ -363,14 +363,14 @@ class Utility extends Model
             foreach ($data as $name => $value)
                 $settings[$name] = $value;
             Log::debug("{$tag} settings assembled", [
-                UsersConstants::COL_USER_ID => $userId,
+                UC::COL_USER_ID => $userId,
                 'settings'                 => $settings,
             ]);
             $output->writeln("## {$tag} -- Settings assembled successfully");
             return $settings;
         } catch (\Throwable $e) {
             Log::error("{$tag} exception", [
-                UsersConstants::COL_USER_ID => $userId,
+                UC::COL_USER_ID => $userId,
                 'message'                  => $e->getMessage(),
                 'file'                     => $e->getFile(),
                 'line'                     => $e->getLine(),
@@ -386,24 +386,24 @@ class Utility extends Model
         $class = class_basename(self::class);
         $method = __FUNCTION__;
         $tag   = "{$class}::{$method}";
-        Log::debug("{$tag} called", [UsersConstants::COL_USER_ID => $id]);
+        Log::debug("{$tag} called", [UC::COL_USER_ID => $id]);
         $output->writeln("## [{$tag}] Fetching settings for user ID {$id}");
         if (!self::$getSettingsId) {
             try {
-                $data = DB::table(DatabaseConstants::TABLE_SETTINGS)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $id)
+                $data = DB::table(DC::TABLE_SETTINGS)
+                    ->where(DC::TABLE_CREATOR, $id)
                     ->pluck('value', 'name')
                     ->toArray();
                 if (empty($data)) {
                     Log::info("{$tag} no settings for user {$id}, falling back to user defaults");
-                    $data = DB::table(DatabaseConstants::TABLE_SETTINGS)
-                        ->where(DatabaseConstants::TABLE_CREATOR, DatabaseConstants::DEFAULT_UUID)
+                    $data = DB::table(DC::TABLE_SETTINGS)
+                        ->where(DC::TABLE_CREATOR, DC::DEFAULT_UUID)
                         ->pluck('value', 'name')
                         ->toArray();
                 }
                 if (empty($data)) {
                     Log::notice("{$tag} no default settings found; using system default");
-                    $data = SettingsConstants::DFT_SETTINGS;
+                    $data = SC::DFT_SETTINGS;
                 }
                 self::$getSettingsId = $data;
                 Log::debug("{$tag} found settings", ['count' => count($data)]);
@@ -411,19 +411,19 @@ class Utility extends Model
             } catch (QueryException $qe) {
                 Log::error("{$tag} QueryException", ['message' => $qe->getMessage()]);
                 $output->writeln("## [{$tag}] DB error: {$qe->getMessage()}");
-                self::$getSettingsId = SettingsConstants::DFT_SETTINGS;
+                self::$getSettingsId = SC::DFT_SETTINGS;
             } catch (\Throwable $e) {
                 Log::error("{$tag} unexpected exception", [
-                    UsersConstants::COL_USER_ID => $id,
+                    UC::COL_USER_ID => $id,
                     'message'                  => $e->getMessage(),
                 ]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("{$tag} unexpected exception", [
-                    UsersConstants::COL_USER_ID => $id,
+                Log::channel(SC::ERR_TRACE)->debug("{$tag} unexpected exception", [
+                    UC::COL_USER_ID => $id,
                     'message'                  => $e->getMessage(),
                     'trace'                    => $e->getTraceAsString(),
                 ]);
                 $output->writeln("## [{$tag}] Error fetching settings: {$e->getMessage()}");
-                self::$getSettingsId = SettingsConstants::DFT_SETTINGS;
+                self::$getSettingsId = SC::DFT_SETTINGS;
             }
         } else {
             Log::debug("{$tag} returning cached settings", ['count' => count(self::$getSettingsId)]);
@@ -491,7 +491,7 @@ class Utility extends Model
                 foreach (['ico', 'svg', 'png'] as $ext)
                     $candidates[] = "{$logo}.{$ext}";
         }
-        $faviconUrl = SettingsConstants::CPN_FAVICON_DEF;
+        $faviconUrl = SC::CPN_FAVICON_DEF;
         foreach ($candidates as $file) {
             if (file_exists(public_path($file))) {
                 $faviconUrl = asset($file);
@@ -511,11 +511,11 @@ class Utility extends Model
             if (self::$languageSetting === null) {
                 Log::debug("{$tag} no cache, building language list");
                 $output->writeln("## [{$tag}] Generating language list");
-                if (Schema::hasTable(DatabaseConstants::TABLE_LANGS)) {
+                if (Schema::hasTable(DC::TABLE_LANGS)) {
                     Log::debug("{$tag} languages table exists");
                     $output->writeln("## [{$tag}] Querying DB for languages");
                     $settings = self::settings();
-                    $disabled = $settings[SettingsConstants::DSB_LNG] ?? '';
+                    $disabled = $settings[SC::DSB_LNG] ?? '';
                     if (!empty($disabled)) {
                         $codes = array_filter(explode(',', $disabled));
                         Log::debug("{$tag} excluding codes", ['disabled' => $codes]);
@@ -547,14 +547,14 @@ class Utility extends Model
                 Log::warning("{$tag} languages list empty, falling back to DEFAULT_LANG");
                 $output->writeln("## [{$tag}] Empty list, using DEFAULT_LANG");
                 self::$languageSetting = collect([
-                    DatabaseConstants::DEFAULT_LANG => DatabaseConstants::DEFAULT_LANG_LONG
+                    DC::DEFAULT_LANG => DC::DEFAULT_LANG_LONG
                 ]);
             }
             return self::$languageSetting;
         } catch (QueryException $qe) {
             Log::error("{$tag} QueryException", ['message' => $qe->getMessage()]);
             $output->writeln("## [{$tag}] DB error: {$qe->getMessage()}");
-            return collect([DatabaseConstants::DEFAULT_LANG => DatabaseConstants::DEFAULT_LANG_LONG]);
+            return collect([DC::DEFAULT_LANG => DC::DEFAULT_LANG_LONG]);
         } catch (\Throwable $e) {
             Log::error("{$tag} unexpected error", [
                 'message' => $e->getMessage(),
@@ -562,7 +562,7 @@ class Utility extends Model
                 'line'    => $e->getLine(),
             ]);
             $output->writeln("## [{$tag}] Exception: {$e->getMessage()}");
-            return collect([DatabaseConstants::DEFAULT_LANG => DatabaseConstants::DEFAULT_LANG_LONG]);
+            return collect([DC::DEFAULT_LANG => DC::DEFAULT_LANG_LONG]);
         }
     }
 
@@ -649,8 +649,8 @@ class Utility extends Model
 
     public static function priceFormat(array $settings, float|int $price): string
     {
-        $symbol  = $settings['site_currency_symbol'] ?? '';
-        $position = $settings['site_currency_symbol_position'] ?? 'pre';
+        $symbol  = $settings[SC::CR_SB] ?? '';
+        $position = $settings[SC::CR_SB_P] ?? 'pre';
         $decimals = (int) ($settings['decimal_number'] ?? 2);
         $formatted = number_format($price, $decimals);
         return ($position === 'pre' ? $symbol : '')
@@ -660,7 +660,7 @@ class Utility extends Model
 
     public static function currencySymbol(array $settings): string
     {
-        return $settings['site_currency_symbol'] ?? '';
+        return $settings[SC::CR_SB] ?? '';
     }
 
     public static function dateFormat(array $settings, string $date): string
@@ -675,55 +675,55 @@ class Utility extends Model
 
     public static function purchaseNumberFormat(int|string $number): string
     {
-        return self::formatNumber('purchase_prefix', $number);
+        return self::formatNumber(SC::PRC_PFX, $number);
     }
 
     public static function posNumberFormat(int|string $number): string
     {
-        return self::formatNumber('pos_prefix', $number);
+        return self::formatNumber(SC::POS_PFX, $number);
     }
 
     public static function contractNumberFormat(int|string $number): string
     {
-        return self::formatNumber('contract_prefix', $number);
+        return self::formatNumber(SC::CTC_PFX, $number);
     }
 
     public static function invoiceNumberFormat(array $settings, int|string $number): string
     {
-        $prefix = $settings['invoice_prefix'] ?? '';
+        $prefix = $settings[SC::INV_PFX] ?? '';
         return $prefix . sprintf('%05d', (int) $number);
     }
 
     public static function proposalNumberFormat(array $settings, int|string $number): string
     {
-        $prefix = $settings['proposal_prefix'] ?? '';
+        $prefix = $settings[SC::PPS_PFX] ?? '';
         return $prefix . sprintf('%05d', (int) $number);
     }
 
     public static function customerProposalNumberFormat(int|string $number): string
     {
-        return self::formatNumber('proposal_prefix', $number);
+        return self::formatNumber(SC::PPS_PFX, $number);
     }
 
     public static function customerInvoiceNumberFormat(int|string $number): string
     {
-        return self::formatNumber('invoice_prefix', $number);
+        return self::formatNumber(SC::INV_PFX, $number);
     }
 
     public static function customerPosNumberFormat(int|string $number): string
     {
-        return self::formatNumber('pos_prefix', $number);
+        return self::formatNumber(SC::POS_PFX, $number);
     }
 
     public static function billNumberFormat(array $settings, int|string $number): string
     {
-        $prefix = $settings['bill_prefix'] ?? '';
+        $prefix = $settings[SC::BL_PFX] ?? '';
         return $prefix . sprintf('%05d', (int) $number);
     }
 
     public static function vendorBillNumberFormat(int|string $number): string
     {
-        return self::formatNumber('bill_prefix', $number);
+        return self::formatNumber(SC::BL_PFX, $number);
     }
 
     public static function getTax(string|int $taxId): ?Tax
@@ -793,7 +793,7 @@ class Utility extends Model
 
     public static function updateUserBalance(string $userType, string|int $id, float $amount, string $type): void
     {
-        $modelClass = $userType === PermissionsConstants::CT ? Customer::class : Vendor::class;
+        $modelClass = $userType === PMC::CT ? Customer::class : Vendor::class;
         $user = $modelClass::find($id);
         if (!$user) return;
         try {
@@ -863,19 +863,19 @@ class Utility extends Model
     public static function chartOfAccountTypeData(string $companyId): void
     {
         $typeNames = [
-            ChartsConstants::TP_ASSETS         => ChartsConstants::COA_TPS[ChartsConstants::AST],
-            ChartsConstants::TP_LIABILITIES    => ChartsConstants::COA_TPS[ChartsConstants::LBL],
-            ChartsConstants::TP_EQUITY         => ChartsConstants::COA_TPS[ChartsConstants::EQT],
-            ChartsConstants::TP_INCOME         => ChartsConstants::COA_TPS[ChartsConstants::ICM],
-            ChartsConstants::TP_COGS           => ChartsConstants::COA_TPS[ChartsConstants::CGS],
-            ChartsConstants::TP_EXPENSES       => ChartsConstants::COA_TPS[ChartsConstants::EXP],
+            CTC::TP_ASSETS         => CTC::COA_TPS[CTC::AST],
+            CTC::TP_LIABILITIES    => CTC::COA_TPS[CTC::LBL],
+            CTC::TP_EQUITY         => CTC::COA_TPS[CTC::EQT],
+            CTC::TP_INCOME         => CTC::COA_TPS[CTC::ICM],
+            CTC::TP_COGS           => CTC::COA_TPS[CTC::CGS],
+            CTC::TP_EXPENSES       => CTC::COA_TPS[CTC::EXP],
         ];
-        foreach (ChartsConstants::COA_SBTPS as $typeId => $subtypes) {
+        foreach (CTC::COA_SBTPS as $typeId => $subtypes) {
             ChartOfAccountType::updateOrCreate(
                 ['id' => $typeId],
                 [
                     'name'       => $typeNames[$typeId]  ?? 'Undefined',
-                    DatabaseConstants::TABLE_CREATOR => $companyId,
+                    DC::TABLE_CREATOR => $companyId,
                 ]
             );
             foreach ($subtypes as $subTypeId => $subName)
@@ -885,7 +885,7 @@ class Utility extends Model
                         'name'       => $subName,
                         'type'       => $typeId,
                         'type_name'  => $typeNames[$typeId]  ?? 'Undefined',
-                        DatabaseConstants::TABLE_CREATOR => $companyId,
+                        DC::TABLE_CREATOR => $companyId,
                     ]
                 );
         }
@@ -897,17 +897,17 @@ class Utility extends Model
         foreach (self::$chartOfAccount as $acct) {
             try {
                 ChartOfAccount::create([
-                    ChartsConstants::COL_CD          => $acct[ChartsConstants::COL_CD],
-                    ChartsConstants::COL_NM          => $acct[ChartsConstants::COL_NM],
-                    ChartsConstants::COL_TP          => $acct[ChartsConstants::COL_TP],
-                    ChartsConstants::COL_SUBTP       => $acct[ChartsConstants::COL_SUBTP],
-                    ChartsConstants::COL_ENB         => 1,
-                    DatabaseConstants::TABLE_CREATOR => $user?->id,
+                    CTC::COL_CD          => $acct[CTC::COL_CD],
+                    CTC::COL_NM          => $acct[CTC::COL_NM],
+                    CTC::COL_TP          => $acct[CTC::COL_TP],
+                    CTC::COL_SUBTP       => $acct[CTC::COL_SUBTP],
+                    CTC::COL_ENB         => 1,
+                    DC::TABLE_CREATOR => $user?->id,
                 ]);
             } catch (\Throwable $e) {
                 Log::error(
                     __CLASS__ . '::' . __FUNCTION__
-                        . " failed creating COA[{$acct[ChartsConstants::COL_CD]}]: {$e->getMessage()}"
+                        . " failed creating COA[{$acct[CTC::COL_CD]}]: {$e->getMessage()}"
                 );
             }
         }
@@ -920,25 +920,25 @@ class Utility extends Model
         foreach ($chartData as $acct) {
             try {
                 DB::transaction(function () use ($acct, $userId) {
-                    $type = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $userId)
-                        ->where(ChartsConstants::COL_NM, $acct[ChartsConstants::COL_TP])
+                    $type = ChartOfAccountType::where(DC::TABLE_CREATOR, $userId)
+                        ->where(CTC::COL_NM, $acct[CTC::COL_TP])
                         ->firstOrFail();
-                    $sub = ChartOfAccountSubType::where(ChartsConstants::COL_TP, $type->id)
-                        ->where(ChartsConstants::COL_NM, $acct[ChartsConstants::COL_SUBTP])
+                    $sub = ChartOfAccountSubType::where(CTC::COL_TP, $type->id)
+                        ->where(CTC::COL_NM, $acct[CTC::COL_SUBTP])
                         ->firstOrFail();
                     ChartOfAccount::create([
-                        ChartsConstants::COL_CD          => $acct[ChartsConstants::COL_CD],
-                        ChartsConstants::COL_NM          => $acct[ChartsConstants::COL_NM],
-                        ChartsConstants::COL_TP          => $type->id,
-                        ChartsConstants::COL_SUBTP       => $sub->id,
-                        ChartsConstants::COL_ENB         => 1,
-                        DatabaseConstants::TABLE_CREATOR => $userId,
+                        CTC::COL_CD          => $acct[CTC::COL_CD],
+                        CTC::COL_NM          => $acct[CTC::COL_NM],
+                        CTC::COL_TP          => $type->id,
+                        CTC::COL_SUBTP       => $sub->id,
+                        CTC::COL_ENB         => 1,
+                        DC::TABLE_CREATOR => $userId,
                     ]);
                 });
             } catch (\Throwable $e) {
                 Log::error(
                     __CLASS__ . '::' . __FUNCTION__
-                        . " failed creating COA[{$acct[ChartsConstants::COL_CD]}]: {$e->getMessage()}"
+                        . " failed creating COA[{$acct[CTC::COL_CD]}]: {$e->getMessage()}"
                 );
             }
         }
@@ -953,14 +953,14 @@ class Utility extends Model
             return $userOrRedirect;
         $user = $userOrRedirect;
         $mailTo = array_values($mailTo);
-        if ($user->type != PermissionsConstants::SA) {
+        if ($user->type != PMC::SA) {
             $template = EmailTemplate::where('name', 'LIKE', $emailTemplate)->first();
             if (!$template) {
                 return ['is_success' => false, 'error' => __('Mail not send, email not found')];
             }
-            $isActiveRecord = $user->type != PermissionsConstants::SA
+            $isActiveRecord = $user->type != PMC::SA
                 ? UserEmailTemplate::where('template_id', $template->id)
-                ->where(UsersConstants::COL_USER_ID, $user?->creatorId())->first()
+                ->where(UC::COL_USER_ID, $user?->creatorId())->first()
                 : (object)['is_active' => 1];
             if ($isActiveRecord->is_active != 1) {
                 return ['is_success' => true, 'error' => false];
@@ -1008,7 +1008,7 @@ class Utility extends Model
             return ['is_success' => false, 'error' => __('Mail not send, email not found')];
         }
         $isActiveRecord = UserEmailTemplate::where('template_id', $template->id)
-            ->where(UsersConstants::COL_USER_ID, $user?->creatorId())->first();
+            ->where(UC::COL_USER_ID, $user?->creatorId())->first();
         if ($isActiveRecord->is_active != 1) {
             return ['is_success' => true, 'error' => false];
         }
@@ -1328,7 +1328,7 @@ class Utility extends Model
             DB::transaction(function () use ($createdId) {
                 $pipeline = Pipeline::create([
                     ProjectsConstants::COL_PPL_NM         => 'Sales',
-                    DatabaseConstants::TABLE_CREATOR      => $createdId,
+                    DC::TABLE_CREATOR      => $createdId,
                 ]);
                 $stages = ['Draft', 'Sent', 'Open', 'Revised', 'Declined'];
                 foreach ($stages as $order => $stageName) {
@@ -1336,13 +1336,13 @@ class Utility extends Model
                         ProjectsConstants::COL_STG_NM         => $stageName,
                         ProjectsConstants::COL_PPL_ID         => $pipeline->id,
                         ActivitiesConstants::COL_OD           => $order,
-                        DatabaseConstants::TABLE_CREATOR      => $createdId,
+                        DC::TABLE_CREATOR      => $createdId,
                     ]);
                     Stage::create([
                         ProjectsConstants::COL_STG_NM         => $stageName,
                         ProjectsConstants::COL_PPL_ID         => $pipeline->id,
                         ActivitiesConstants::COL_OD           => $order,
-                        DatabaseConstants::TABLE_CREATOR      => $createdId,
+                        DC::TABLE_CREATOR      => $createdId,
                     ]);
                 }
             });
@@ -1363,7 +1363,7 @@ class Utility extends Model
                         ActivitiesConstants::COL_PJ       => $projectId,
                         ProjectsConstants::COL_STG_NM     => $stageName,
                         ActivitiesConstants::COL_OD       => $order,
-                        DatabaseConstants::TABLE_CREATOR  => $createdBy,
+                        DC::TABLE_CREATOR  => $createdBy,
                     ]);
                 }
             });
@@ -1408,7 +1408,7 @@ class Utility extends Model
                     JobStage::create([
                         ActivitiesConstants::COL_TT        => $title,
                         ActivitiesConstants::COL_OD        => $order,
-                        DatabaseConstants::TABLE_CREATOR   => $creatorId,
+                        DC::TABLE_CREATOR   => $creatorId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1423,7 +1423,7 @@ class Utility extends Model
             DB::transaction(function () use ($creatorId, &$pipeline) {
                 $pipeline = Pipeline::create([
                     ProjectsConstants::COL_PPL_NM      => 'Default Pipeline',
-                    DatabaseConstants::TABLE_CREATOR  => $creatorId,
+                    DC::TABLE_CREATOR  => $creatorId,
                 ]);
             });
         } catch (\Throwable $e) {
@@ -1445,7 +1445,7 @@ class Utility extends Model
                         ProjectsConstants::COL_LB_NM      => $item[ProjectsConstants::COL_LB_NM],
                         ProjectsConstants::COL_CL         => $item[ProjectsConstants::COL_CL],
                         ProjectsConstants::COL_PPL_ID     => $pipeline->id,
-                        DatabaseConstants::TABLE_CREATOR  => $creatorId,
+                        DC::TABLE_CREATOR  => $creatorId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1459,7 +1459,7 @@ class Utility extends Model
                     BugStatus::create([
                         ActivitiesConstants::COL_TT        => $status,
                         ActivitiesConstants::COL_OD        => $order,
-                        DatabaseConstants::TABLE_CREATOR   => $creatorId,
+                        DC::TABLE_CREATOR   => $creatorId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1476,7 +1476,7 @@ class Utility extends Model
                 foreach ($sourceNames as $name)
                     Source::create([
                         'name'                             => $name,
-                        DatabaseConstants::TABLE_CREATOR   => $createdId,
+                        DC::TABLE_CREATOR   => $createdId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1487,7 +1487,7 @@ class Utility extends Model
     public static function employeeNumber($userId): string|int
     {
         if (is_string($userId)) return (string) Str::uuid();
-        return Employee::where(UsersConstants::COL_USER_ID, $userId)->latest()->first();
+        return Employee::where(UC::COL_USER_ID, $userId)->latest()->first();
     }
 
     public const EMP_DTLS = 'employeeDetails';
@@ -1500,40 +1500,40 @@ class Utility extends Model
             DB::transaction(function () use ($user, $createdBy, $faker) {
                 $branch = Branch::create([
                     CompaniesConstants::COL_BRC_NM       => $faker->company,
-                    DatabaseConstants::TABLE_CREATOR => $createdBy,
+                    DC::TABLE_CREATOR => $createdBy,
                 ]);
                 $department = Department::create([
                     CompaniesConstants::COL_DEP_NM       => $faker->word,
                     CompaniesConstants::COL_BRC_ID  => $branch->id,
-                    DatabaseConstants::TABLE_CREATOR => $createdBy,
+                    DC::TABLE_CREATOR => $createdBy,
                 ]);
                 $designation = Designation::create([
-                    UsersConstants::COL_DSG_NM           => $faker->jobTitle,
+                    UC::COL_DSG_NM           => $faker->jobTitle,
                     CompaniesConstants::COL_DEP_ID  => $department->id,
-                    DatabaseConstants::TABLE_CREATOR     => $createdBy,
+                    DC::TABLE_CREATOR     => $createdBy,
                 ]);
                 $tax = Tax::create([
                     BillsConstants::COL_TAX_NM       => 'Tax ' . $faker->randomNumber(2),
                     BillsConstants::COL_TAX_RT       => $faker->randomFloat(2, 0, 1),
-                    DatabaseConstants::TABLE_CREATOR => $createdBy,
+                    DC::TABLE_CREATOR => $createdBy,
                 ]);
                 $payslipType = PayslipType::create([
                     BillsConstants::COL_PAY_SLP_NM       => $faker->randomElement(['Monthly', 'Hourly', 'Daily']),
-                    DatabaseConstants::TABLE_CREATOR => $createdBy,
+                    DC::TABLE_CREATOR => $createdBy,
                 ]);
                 Employee::create([
-                    UsersConstants::COL_USER_ID     => $user?->id,
-                    UsersConstants::COL_NM        => $user[UsersConstants::COL_NM],
-                    UsersConstants::COL_EM       => $user[UsersConstants::COL_EM],
-                    UsersConstants::COL_PW    => $user[UsersConstants::COL_PW],
-                    UsersConstants::COL_EMP_ID => self::employeeNumber($createdBy),
-                    UsersConstants::COL_BRC_ID       => $branch->id,
-                    UsersConstants::COL_DEP_ID   => $department->id,
-                    UsersConstants::COL_DSG_ID  => $designation->id,
-                    UsersConstants::COL_TAX_ID    => $tax->id,
-                    UsersConstants::COL_SLR_TP     => $payslipType->id,
-                    UsersConstants::COL_SLR          => $faker->numberBetween(30000, 100000),
-                    DatabaseConstants::TABLE_CREATOR => $createdBy,
+                    UC::COL_USER_ID     => $user?->id,
+                    UC::COL_NM        => $user[UC::COL_NM],
+                    UC::COL_EM       => $user[UC::COL_EM],
+                    UC::COL_PW    => $user[UC::COL_PW],
+                    UC::COL_EMP_ID => self::employeeNumber($createdBy),
+                    UC::COL_BRC_ID       => $branch->id,
+                    UC::COL_DEP_ID   => $department->id,
+                    UC::COL_DSG_ID  => $designation->id,
+                    UC::COL_TAX_ID    => $tax->id,
+                    UC::COL_SLR_TP     => $payslipType->id,
+                    UC::COL_SLR          => $faker->numberBetween(30000, 100000),
+                    DC::TABLE_CREATOR => $createdBy,
                 ]);
             });
         } catch (\Throwable $e) {
@@ -1548,9 +1548,9 @@ class Utility extends Model
         if (!$user) return;
         try {
             DB::transaction(function () use ($user) {
-                Employee::where(UsersConstants::COL_USER_ID, $user?->id)->update([
-                    UsersConstants::COL_NM  => $user[UsersConstants::COL_NM],
-                    UsersConstants::COL_EM => $user[UsersConstants::COL_EM],
+                Employee::where(UC::COL_USER_ID, $user?->id)->update([
+                    UC::COL_NM  => $user[UC::COL_NM],
+                    UC::COL_EM => $user[UC::COL_EM],
                 ]);
             });
         } catch (\Throwable $e) {
@@ -1639,8 +1639,8 @@ class Utility extends Model
         $project = Project::find($projectId);
         if (!$project) {
             $settings = self::settings();
-            $symbol = $settings['site_currency_symbol'] ?? '';
-            $position = $settings['site_currency_symbol_position'] ?? 'pre';
+            $symbol = $settings[SC::CR_SB] ?? '';
+            $position = $settings[SC::CR_SB_P] ?? 'pre';
             $dec = $decimal ? (int) Utility::getValByName('decimal_number') : (int) Utility::getValByName('decimal_number');
             $formatted = number_format($amount, $dec);
             return ($position === 'pre' ? $symbol : '') . $formatted . ($position === 'post' ? $symbol : '');
@@ -1735,8 +1735,8 @@ class Utility extends Model
 
     public static function companyData(string|int $companyId, string $key): string
     {
-        $row = DB::table(DatabaseConstants::TABLE_SETTINGS)
-            ->where(UsersConstants::COL_USER_ID, $companyId)
+        $row = DB::table(DC::TABLE_SETTINGS)
+            ->where(UC::COL_USER_ID, $companyId)
             ->where('name', $key)
             ->first();
         return $row->value ?? '';
@@ -1776,7 +1776,7 @@ class Utility extends Model
             $query   = DB::table('admin_payment_settings');
             $user = Auth::user();
             if (Auth::check())
-                $query->where(DatabaseConstants::TABLE_CREATOR, $user?->{UsersConstants::COL_TP} === PermissionsConstants::SA ? $user->id : DatabaseConstants::DEFAULT_UUID);
+                $query->where(DC::TABLE_CREATOR, $user?->{UC::COL_TP} === PMC::SA ? $user->id : DC::DEFAULT_UUID);
             $rows    = $query->get();
             $settings = [];
             foreach ($rows as $row)
@@ -1791,7 +1791,7 @@ class Utility extends Model
     public static function getCompanyPaymentSetting(string|int $userId): array
     {
         $rows    = DB::table('company_payment_settings')
-            ->where(DatabaseConstants::TABLE_CREATOR, $userId)
+            ->where(DC::TABLE_CREATOR, $userId)
             ->get();
         $settings = [];
         foreach ($rows as $row)
@@ -1809,7 +1809,7 @@ class Utility extends Model
         $user = $userOrRedirect;
         $query   = DB::table('company_payment_settings');
         if (Auth::check())
-            $query->where(UsersConstants::COL_USER_ID, $user?->creatorId());
+            $query->where(UC::COL_USER_ID, $user?->creatorId());
         $rows    = $query->get();
         $settings = [];
         foreach ($rows as $row)
@@ -1893,7 +1893,7 @@ class Utility extends Model
         $lang = $user?->lang;
         $notiLang = NotificationTemplateLangs::where('parent_id', $template->id)
             ->where('lang', $lang)
-            ->where(UsersConstants::COL_USER_ID, $user?->id)
+            ->where(UC::COL_USER_ID, $user?->id)
             ->first()
             ?: NotificationTemplateLangs::where('parent_id', $template->id)
             ->where('lang', $lang)
@@ -1927,7 +1927,7 @@ class Utility extends Model
         $lang = $user?->lang;
         $notiLang = NotificationTemplateLangs::where('parent_id', $template->id)
             ->where('lang', $lang)
-            ->where(UsersConstants::COL_USER_ID, $user?->id)
+            ->where(UC::COL_USER_ID, $user?->id)
             ->first()
             ?: NotificationTemplateLangs::where('parent_id', $template->id)
             ->where('lang', $lang)
@@ -1963,7 +1963,7 @@ class Utility extends Model
         $lang = $user?->lang;
         $notiLang = NotificationTemplateLangs::where('parent_id', $template->id)
             ->where('lang', $lang)
-            ->where(UsersConstants::COL_USER_ID, $user?->id)
+            ->where(UC::COL_USER_ID, $user?->id)
             ->first()
             ?: NotificationTemplateLangs::where('parent_id', $template->id)
             ->where('lang', $lang)
@@ -2033,7 +2033,7 @@ class Utility extends Model
             ]);
             if (!$toRecord->exists && $delete !== 'delete') {
                 $toRecord->quantity  = $quantity;
-                $toRecord[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                $toRecord[DC::TABLE_CREATOR] = $user?->creatorId();
                 $toRecord->save();
             } elseif ($toRecord->exists) {
                 $toRecord->quantity += $quantity;
@@ -2069,7 +2069,7 @@ class Utility extends Model
                 'type'       => $type,
                 'type_id'    => $typeId,
                 'description' => $description,
-                DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                DC::TABLE_CREATOR => $user?->creatorId(),
             ]);
         });
     }
@@ -2082,18 +2082,18 @@ class Utility extends Model
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        $query = DB::table(DatabaseConstants::TABLE_SETTINGS);
+        $query = DB::table(DC::TABLE_SETTINGS);
         if (Auth::check()) {
-            $query = $query->where(UsersConstants::COL_USER_ID, $user?->creatorId());
+            $query = $query->where(UC::COL_USER_ID, $user?->creatorId());
             $rows = $query->get();
             if ($rows->isEmpty())
-                $rows = DB::table(DatabaseConstants::TABLE_SETTINGS)->where(UsersConstants::COL_USER_ID, DatabaseConstants::DEFAULT_UUID)->get();
+                $rows = DB::table(DC::TABLE_SETTINGS)->where(UC::COL_USER_ID, DC::DEFAULT_UUID)->get();
         } else
-            $rows = $query->where(UsersConstants::COL_USER_ID, DatabaseConstants::DEFAULT_UUID)->get();
+            $rows = $query->where(UC::COL_USER_ID, DC::DEFAULT_UUID)->get();
         $defaults = [
-            SettingsConstants::CST_DRK => 'off',
-            SettingsConstants::CST_BG   => 'on',
-            SettingsConstants::CLR           => '',
+            SC::CST_DRK => 'off',
+            SC::CST_BG   => 'on',
+            SC::CLR           => '',
         ];
         foreach ($rows as $row)
             $defaults[$row->name] = $row->value;
@@ -2103,25 +2103,25 @@ class Utility extends Model
     public static function colorset(): array
     {
         $default = [
-            SettingsConstants::CST_DRK => 'off',
+            SC::CST_DRK => 'off',
         ];
         $userOrRedirect = self::_checkLogin(haltRedirect: true);
         if (!$userOrRedirect instanceof User)
             return $default;
         $user  = $userOrRedirect;
-        $role  = Auth::user()[UsersConstants::COL_TP];
+        $role  = Auth::user()[UC::COL_TP];
         $userId = $user?->id;
         $creator = $user?->creatorId();
-        $qb = DB::table(DatabaseConstants::TABLE_SETTINGS)
+        $qb = DB::table(DC::TABLE_SETTINGS)
             ->select('name', 'value');
         if (in_array($role, [
-            PermissionsConstants::SA,
-            PermissionsConstants::ADM,
-            PermissionsConstants::CPN,
+            PMC::SA,
+            PMC::ADM,
+            PMC::CPN,
         ], true))
             $rows = $qb
                 ->where('user_id', $userId)
-                ->orWhere(DatabaseConstants::TABLE_CREATOR, $creator)
+                ->orWhere(DC::TABLE_CREATOR, $creator)
                 ->get();
         else
             $rows = $qb
@@ -2129,18 +2129,18 @@ class Utility extends Model
                 ->get();
         $fetched = $rows->pluck('value', 'name')->toArray();
         $colorSettings = $default + $fetched;
-        if (empty($colorSettings[SettingsConstants::CST_DRK]))
-            $colorSettings[SettingsConstants::CST_DRK] = 'off';
+        if (empty($colorSettings[SC::CST_DRK]))
+            $colorSettings[SC::CST_DRK] = 'off';
         return $colorSettings;
     }
 
     public static function getSeoSetting(): array
     {
-        $rows = DB::table(DatabaseConstants::TABLE_SETTINGS)
+        $rows = DB::table(DC::TABLE_SETTINGS)
             ->whereIn('name', [
-                SettingsConstants::MT_TTL_K,
-                SettingsConstants::MT_DSC_K,
-                SettingsConstants::MT_IMG_K
+                SC::MT_TTL_K,
+                SC::MT_DSC_K,
+                SC::MT_IMG_K
             ])
             ->get();
         $settings = [];
@@ -2151,23 +2151,23 @@ class Utility extends Model
 
     public static function getSuperadminLogo(): string
     {
-        $settings = DB::table(DatabaseConstants::TABLE_SETTINGS)
-            ->where(UsersConstants::COL_USER_ID, Auth::user()->id)
+        $settings = DB::table(DC::TABLE_SETTINGS)
+            ->where(UC::COL_USER_ID, Auth::user()->id)
             ->pluck('value', 'name')
             ->toArray();
-        $mode = $settings[SettingsConstants::CLR_STG][SettingsConstants::CST_DRK] ?? 'off';
+        $mode = $settings[SC::CLR_STG][SC::CST_DRK] ?? 'off';
         if ($mode === 'on')
-            return SettingsConstants::CPN_LG_LT_DEF;
-        return SettingsConstants::CPN_LG_DK_DEF;
+            return SC::CPN_LG_LT_DEF;
+        return SC::CPN_LG_DK_DEF;
     }
 
     public static function getLogo(): string
     {
-        $isDark = self::getValByName(SettingsConstants::CLR_STG)[SettingsConstants::CST_DRK] === 'on';
-        if (Auth::user() && Auth::user()[UsersConstants::COL_TP] !== PermissionsConstants::SA) {
+        $isDark = self::getValByName(SC::CLR_STG)[SC::CST_DRK] === 'on';
+        if (Auth::user() && Auth::user()[UC::COL_TP] !== PMC::SA) {
             return $isDark
-                ? self::getValByName(SettingsConstants::CPN_LG_LT)
-                : self::getValByName(SettingsConstants::CPN_LG_DK);
+                ? self::getValByName(SC::CPN_LG_LT)
+                : self::getValByName(SC::CPN_LG_DK);
         }
         return $isDark
             ? self::getValByName('light_logo')
@@ -2176,8 +2176,8 @@ class Utility extends Model
 
     public static function getGdpr(): array
     {
-        $rows = DB::table(DatabaseConstants::TABLE_SETTINGS)
-            ->where(UsersConstants::COL_USER_ID, DatabaseConstants::DEFAULT_UUID)
+        $rows = DB::table(DC::TABLE_SETTINGS)
+            ->where(UC::COL_USER_ID, DC::DEFAULT_UUID)
             ->get();
         $defaults = [
             'gdpr_cookie' => '',
@@ -2207,9 +2207,9 @@ class Utility extends Model
                     [
                         'warehouse_id' => $warehouseId,
                         'product_id' => $productId,
-                        UsersConstants::COL_USER_ID => Auth::id()
+                        UC::COL_USER_ID => Auth::id()
                     ],
-                    ['quantity' => $newQty, UsersConstants::COL_USER_ID => Auth::id()]
+                    ['quantity' => $newQty, UC::COL_USER_ID => Auth::id()]
                 );
             });
         } catch (\Throwable $e) {
@@ -2232,8 +2232,8 @@ class Utility extends Model
             'bill'     => 'bill_starting_number',
         ];
         if (!isset($mapping[$type])) return 0;
-        return DB::table(DatabaseConstants::TABLE_SETTINGS)
-            ->where(UsersConstants::COL_USER_ID, $creator)
+        return DB::table(DC::TABLE_SETTINGS)
+            ->where(UC::COL_USER_ID, $creator)
             ->where('name', $mapping[$type])
             ->update(['value' => $id]);
     }
@@ -2242,33 +2242,33 @@ class Utility extends Model
     {
         try {
             $settings = Utility::getStorageSetting();
-            if (empty($settings[SettingsConstants::STR_STT]))
+            if (empty($settings[SC::STR_STT]))
                 return ['flag' => 0, 'msg' => __('Please set proper configuration for storage.')];
-            $settingType = $settings[SettingsConstants::STR_STT] ?? SettingsConstants::LC;
+            $settingType = $settings[SC::STR_STT] ?? SC::LC;
             $diskConfig = [];
-            if ($settingType === SettingsConstants::WSB) {
+            if ($settingType === SC::WSB) {
                 $diskConfig = [
-                    self::FST_DSK_WSB_K  => $settings[SettingsConstants::WSB_K]    ?? '',
-                    self::FST_DSK_WSB_SC => $settings[SettingsConstants::WSB_SC]   ?? '',
-                    self::FST_DSK_WSB_RG => $settings[SettingsConstants::WSB_RG]   ?? '',
-                    self::FST_DSK_WSB_BK => $settings[SettingsConstants::WSB_BK]   ?? '',
-                    self::FST_DSK_WSB_EP => 'https://s3.' . ($settings[SettingsConstants::WSB_RG] ?? '') . '.wasabisys.com',
+                    self::FST_DSK_WSB_K  => $settings[SC::WSB_K]    ?? '',
+                    self::FST_DSK_WSB_SC => $settings[SC::WSB_SC]   ?? '',
+                    self::FST_DSK_WSB_RG => $settings[SC::WSB_RG]   ?? '',
+                    self::FST_DSK_WSB_BK => $settings[SC::WSB_BK]   ?? '',
+                    self::FST_DSK_WSB_EP => 'https://s3.' . ($settings[SC::WSB_RG] ?? '') . '.wasabisys.com',
                 ];
-                $maxSize = $settings[SettingsConstants::WSB_M_UP]    ?? SettingsConstants::MAX_U_SIZE_DEF;
-                $mimes  = $settings[SettingsConstants::WSB_STG_VL] ?? '';
-            } elseif ($settingType === SettingsConstants::S3) {
+                $maxSize = $settings[SC::WSB_M_UP]    ?? SC::MAX_U_SIZE_DEF;
+                $mimes  = $settings[SC::WSB_STG_VL] ?? '';
+            } elseif ($settingType === SC::S3) {
                 $diskConfig = [
-                    self::FST_DSK_S3_K   => $settings[SettingsConstants::S3_K]    ?? '',
-                    self::FST_DSK_S3_SC  => $settings[SettingsConstants::S3_SC]   ?? '',
-                    self::FST_DSK_S3_RG  => $settings[SettingsConstants::S3_RG]   ?? '',
-                    self::FST_DSK_S3_BK  => $settings[SettingsConstants::S3_BK]   ?? '',
+                    self::FST_DSK_S3_K   => $settings[SC::S3_K]    ?? '',
+                    self::FST_DSK_S3_SC  => $settings[SC::S3_SC]   ?? '',
+                    self::FST_DSK_S3_RG  => $settings[SC::S3_RG]   ?? '',
+                    self::FST_DSK_S3_BK  => $settings[SC::S3_BK]   ?? '',
                     self::FST_DSK_S3_EP  => false,
                 ];
-                $maxSize = $settings[SettingsConstants::S3_M_UP]    ?? SettingsConstants::MAX_U_SIZE_DEF;
-                $mimes  = $settings[SettingsConstants::S3_STG_VL] ?? '';
+                $maxSize = $settings[SC::S3_M_UP]    ?? SC::MAX_U_SIZE_DEF;
+                $mimes  = $settings[SC::S3_STG_VL] ?? '';
             } else {
-                $maxSize = $settings[SettingsConstants::LC_ST_M_UP] ?? SettingsConstants::MAX_U_SIZE_DEF;
-                $mimes  = $settings[SettingsConstants::LC_ST_VL]   ?? '';
+                $maxSize = $settings[SC::LC_ST_M_UP] ?? SC::MAX_U_SIZE_DEF;
+                $mimes  = $settings[SC::LC_ST_VL]   ?? '';
             }
             if (!empty($diskConfig))
                 config($diskConfig);
@@ -2299,33 +2299,33 @@ class Utility extends Model
     {
         try {
             $settings = Utility::getStorageSetting();
-            if (empty($settings[SettingsConstants::STR_STT]))
+            if (empty($settings[SC::STR_STT]))
                 return ['flag' => 0, 'msg' => __('Please set proper configuration for storage.')];
-            $settingType = $settings[SettingsConstants::STR_STT] ?? SettingsConstants::LC;
+            $settingType = $settings[SC::STR_STT] ?? SC::LC;
             $diskConfig = [];
-            if ($settingType === SettingsConstants::WSB) {
+            if ($settingType === SC::WSB) {
                 $diskConfig = [
-                    self::FST_DSK_WSB_K  => $settings[SettingsConstants::WSB_K]    ?? '',
-                    self::FST_DSK_WSB_SC => $settings[SettingsConstants::WSB_SC]   ?? '',
-                    self::FST_DSK_WSB_RG => $settings[SettingsConstants::WSB_RG]   ?? '',
-                    self::FST_DSK_WSB_BK => $settings[SettingsConstants::WSB_BK]   ?? '',
-                    self::FST_DSK_WSB_EP => 'https://s3.' . ($settings[SettingsConstants::WSB_RG] ?? '') . '.wasabisys.com',
+                    self::FST_DSK_WSB_K  => $settings[SC::WSB_K]    ?? '',
+                    self::FST_DSK_WSB_SC => $settings[SC::WSB_SC]   ?? '',
+                    self::FST_DSK_WSB_RG => $settings[SC::WSB_RG]   ?? '',
+                    self::FST_DSK_WSB_BK => $settings[SC::WSB_BK]   ?? '',
+                    self::FST_DSK_WSB_EP => 'https://s3.' . ($settings[SC::WSB_RG] ?? '') . '.wasabisys.com',
                 ];
-                $maxSize = $settings[SettingsConstants::WSB_M_UP]    ?? SettingsConstants::MAX_U_SIZE_DEF;
-                $mimes  = $settings[SettingsConstants::WSB_STG_VL] ?? '';
+                $maxSize = $settings[SC::WSB_M_UP]    ?? SC::MAX_U_SIZE_DEF;
+                $mimes  = $settings[SC::WSB_STG_VL] ?? '';
             } elseif ($settingType === 's3') {
                 $diskConfig = [
-                    self::FST_DSK_S3_K   => $settings[SettingsConstants::S3_K]    ?? '',
-                    self::FST_DSK_S3_SC  => $settings[SettingsConstants::S3_SC]   ?? '',
-                    self::FST_DSK_S3_RG  => $settings[SettingsConstants::S3_RG]   ?? '',
-                    self::FST_DSK_S3_BK  => $settings[SettingsConstants::S3_BK]   ?? '',
+                    self::FST_DSK_S3_K   => $settings[SC::S3_K]    ?? '',
+                    self::FST_DSK_S3_SC  => $settings[SC::S3_SC]   ?? '',
+                    self::FST_DSK_S3_RG  => $settings[SC::S3_RG]   ?? '',
+                    self::FST_DSK_S3_BK  => $settings[SC::S3_BK]   ?? '',
                     self::FST_DSK_S3_EP => false,
                 ];
-                $maxSize = $settings[SettingsConstants::S3_M_UP]    ?? SettingsConstants::MAX_U_SIZE_DEF;
-                $mimes  = $settings[SettingsConstants::S3_STG_VL] ?? '';
+                $maxSize = $settings[SC::S3_M_UP]    ?? SC::MAX_U_SIZE_DEF;
+                $mimes  = $settings[SC::S3_STG_VL] ?? '';
             } else {
-                $maxSize = $settings[SettingsConstants::LC_ST_M_UP] ?? SettingsConstants::MAX_U_SIZE_DEF;
-                $mimes  = $settings[SettingsConstants::LC_ST_VL]   ?? '';
+                $maxSize = $settings[SC::LC_ST_M_UP] ?? SC::MAX_U_SIZE_DEF;
+                $mimes  = $settings[SC::LC_ST_VL]   ?? '';
             }
             if (!empty($diskConfig))
                 config($diskConfig);
@@ -2367,31 +2367,31 @@ class Utility extends Model
                 $settings = self::settings();
                 Log::debug("{$tag} settings loaded", ['keys' => array_keys($settings)]);
             }
-            $storageType = $settings[SettingsConstants::STR_STT] ?? SettingsConstants::LC;
+            $storageType = $settings[SC::STR_STT] ?? SC::LC;
             Log::debug("{$tag} storage type determined", ['storageType' => $storageType]);
             $output->writeln("## [{$tag}] Using disk: {$storageType}");
-            if ($storageType === SettingsConstants::WSB) {
+            if ($storageType === SC::WSB) {
                 Log::debug("{$tag} configuring Wasabi disk", [
-                    'region' => $settings[SettingsConstants::WSB_RG] ?? null,
-                    'bucket' => $settings[SettingsConstants::WSB_BK] ?? null,
+                    'region' => $settings[SC::WSB_RG] ?? null,
+                    'bucket' => $settings[SC::WSB_BK] ?? null,
                 ]);
                 config([
-                    self::FST_DSK_WSB_K  => $settings[SettingsConstants::WSB_K]  ?? '',
-                    self::FST_DSK_WSB_SC => $settings[SettingsConstants::WSB_SC] ?? '',
-                    self::FST_DSK_WSB_RG => $settings[SettingsConstants::WSB_RG] ?? '',
-                    self::FST_DSK_WSB_BK => $settings[SettingsConstants::WSB_BK] ?? '',
-                    self::FST_DSK_WSB_EP => 'https://s3.' . ($settings[SettingsConstants::WSB_RG] ?? '') . '.wasabisys.com',
+                    self::FST_DSK_WSB_K  => $settings[SC::WSB_K]  ?? '',
+                    self::FST_DSK_WSB_SC => $settings[SC::WSB_SC] ?? '',
+                    self::FST_DSK_WSB_RG => $settings[SC::WSB_RG] ?? '',
+                    self::FST_DSK_WSB_BK => $settings[SC::WSB_BK] ?? '',
+                    self::FST_DSK_WSB_EP => 'https://s3.' . ($settings[SC::WSB_RG] ?? '') . '.wasabisys.com',
                 ]);
-            } elseif ($storageType === SettingsConstants::S3) {
+            } elseif ($storageType === SC::S3) {
                 Log::debug("{$tag} configuring S3 disk", [
-                    'region' => $settings[SettingsConstants::S3_RG] ?? null,
-                    'bucket' => $settings[SettingsConstants::S3_BK] ?? null,
+                    'region' => $settings[SC::S3_RG] ?? null,
+                    'bucket' => $settings[SC::S3_BK] ?? null,
                 ]);
                 config([
-                    self::FST_DSK_S3_K  => $settings[SettingsConstants::S3_K]  ?? '',
-                    self::FST_DSK_S3_SC => $settings[SettingsConstants::S3_SC] ?? '',
-                    self::FST_DSK_S3_RG => $settings[SettingsConstants::S3_RG] ?? '',
-                    self::FST_DSK_S3_BK => $settings[SettingsConstants::S3_BK] ?? '',
+                    self::FST_DSK_S3_K  => $settings[SC::S3_K]  ?? '',
+                    self::FST_DSK_S3_SC => $settings[SC::S3_SC] ?? '',
+                    self::FST_DSK_S3_RG => $settings[SC::S3_RG] ?? '',
+                    self::FST_DSK_S3_BK => $settings[SC::S3_BK] ?? '',
                     self::FST_DSK_S3_EP => false,
                 ]);
             }
@@ -2427,27 +2427,27 @@ class Utility extends Model
 
     public static function getStorageSetting(): array
     {
-        $rows = DB::table(DatabaseConstants::TABLE_SETTINGS)->where(UsersConstants::COL_USER_ID, DatabaseConstants::DEFAULT_UUID)->get();
+        $rows = DB::table(DC::TABLE_SETTINGS)->where(UC::COL_USER_ID, DC::DEFAULT_UUID)->get();
         $defaults = [
-            SettingsConstants::STR_STT          => SettingsConstants::LC,
-            SettingsConstants::LC_ST_VL         => SettingsConstants::FMTS_UP_DEF,
-            SettingsConstants::LC_ST_M_UP       => SettingsConstants::MAX_U_SIZE_DEF,
-            SettingsConstants::S3_K             => '',
-            SettingsConstants::S3_SC            => '',
-            SettingsConstants::S3_RG            => '',
-            SettingsConstants::S3_BK            => '',
-            SettingsConstants::S3_URL           => '',
-            SettingsConstants::S3_EP            => '',
-            SettingsConstants::S3_M_UP          => '',
-            SettingsConstants::S3_STG_VL        => '',
-            SettingsConstants::WSB_K            => '',
-            SettingsConstants::WSB_SC           => '',
-            SettingsConstants::WSB_RG           => '',
-            SettingsConstants::WSB_BK           => '',
-            SettingsConstants::WSB_URL          => '',
-            SettingsConstants::WSB_RT           => '',
-            SettingsConstants::WSB_M_UP         => '',
-            SettingsConstants::WSB_STG_VL       => '',
+            SC::STR_STT          => SC::LC,
+            SC::LC_ST_VL         => SC::FMTS_UP_DEF,
+            SC::LC_ST_M_UP       => SC::MAX_U_SIZE_DEF,
+            SC::S3_K             => '',
+            SC::S3_SC            => '',
+            SC::S3_RG            => '',
+            SC::S3_BK            => '',
+            SC::S3_URL           => '',
+            SC::S3_EP            => '',
+            SC::S3_M_UP          => '',
+            SC::S3_STG_VL        => '',
+            SC::WSB_K            => '',
+            SC::WSB_SC           => '',
+            SC::WSB_RG           => '',
+            SC::WSB_BK           => '',
+            SC::WSB_URL          => '',
+            SC::WSB_RT           => '',
+            SC::WSB_M_UP         => '',
+            SC::WSB_STG_VL       => '',
         ];
         foreach ($rows as $row)
             $defaults[$row->name] = $row->value;
@@ -2558,7 +2558,7 @@ class Utility extends Model
         $user = $userId ? User::find($userId) : Auth::user();
         if (!$user) return false;
         $webhook = WebhookSettings::where('module', $module)
-            ->where(UsersConstants::COL_USER_ID, $user?->id)
+            ->where(UC::COL_USER_ID, $user?->id)
             ->first();
         if (!$webhook) return false;
         $reference = sprintf('https://%s%s', $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI']);
@@ -2583,7 +2583,7 @@ class Utility extends Model
 
     public static function getCookieSetting(): array
     {
-        $rows = DB::table(DatabaseConstants::TABLE_SETTINGS)
+        $rows = DB::table(DC::TABLE_SETTINGS)
             ->whereIn('name', [
                 'enable_cookie',
                 'cookie_logging',
@@ -2711,7 +2711,7 @@ class Utility extends Model
 
     public static function fetchUserLang(?User $user = null, ?Request $req = null): ?string
     {
-        $lang = DatabaseConstants::DEFAULT_LANG;
+        $lang = DC::DEFAULT_LANG;
         try {
             $locale = $req?->cookie('LANGUAGE');
             $id = $user?->id ?? $req?->user()?->id ?? null;
@@ -2719,12 +2719,12 @@ class Utility extends Model
                 $locale = Cache::get("user_{$id}_lang");
             if (!$locale || !array_key_exists($locale, Utility::langList())) {
                 $user ??= $req?->user() ?? null;
-                $locale = $user?->{UsersConstants::COL_LG} ?? $locale;
+                $locale = $user?->{UC::COL_LG} ?? $locale;
             }
             if (!$locale || !array_key_exists($locale, Utility::langList()))
                 config('app.locale');
             if (!$locale || !array_key_exists($locale, Utility::langList()))
-                $locale = DatabaseConstants::DEFAULT_LANG;
+                $locale = DC::DEFAULT_LANG;
             $lang = $locale;
         } catch (\Throwable $e) {
             Log::warning(static::class . ' failed to retrieve user language', [
@@ -2732,14 +2732,14 @@ class Utility extends Model
                 'message'      => $e->getMessage(),
                 'default_lang' => $lang,
             ]);
-            $lang = DatabaseConstants::DEFAULT_LANG;
+            $lang = DC::DEFAULT_LANG;
         }
         if (!array_key_exists($lang, Utility::langList()))
-            $lang = DatabaseConstants::DEFAULT_LANG;
+            $lang = DC::DEFAULT_LANG;
         return $lang;
     }
 
-    public static function fetchLinkMessage(string $lang = DatabaseConstants::DEFAULT_LANG, string $set, string $key, bool $isFailure = true, bool $shouldFallback = true): ?string
+    public static function fetchLinkMessage(string $lang = DC::DEFAULT_LANG, string $set, string $key, bool $isFailure = true, bool $shouldFallback = true): ?string
     {
         $startMsg = 'Undefined server message. This could mean either a failure or a success. Check with your support team about your request.';
         $resultMsg = $startMsg;
@@ -2777,7 +2777,7 @@ class Utility extends Model
         }
     }
 
-    public static function displayErrorMessage($msg = null, $lang = DatabaseConstants::DEFAULT_LANG): string
+    public static function displayErrorMessage($msg = null, $lang = DC::DEFAULT_LANG): string
     {
         if (!$msg)
             $msg = Utility::fetchLinkMessage($lang, 'generics', 'route_unavailable') ?? 'Request unavailable';
@@ -2837,7 +2837,7 @@ class Utility extends Model
                     ['code'      => $code],
                     [
                         'full_name'         => $fullName,
-                        DatabaseConstants::TABLE_CREATOR => $createdBy,
+                        DC::TABLE_CREATOR => $createdBy,
                     ]
                 );
             } catch (QueryException $e) {
@@ -2857,7 +2857,7 @@ class Utility extends Model
 
     public static function langSetting(): array
     {
-        $rows = DB::table(DatabaseConstants::TABLE_SETTINGS)->where(UsersConstants::COL_USER_ID, DatabaseConstants::DEFAULT_UUID)->get();
+        $rows = DB::table(DC::TABLE_SETTINGS)->where(UC::COL_USER_ID, DC::DEFAULT_UUID)->get();
         $settings = [];
         foreach ($rows as $row)
             $settings[$row->name] = $row->value;
@@ -2892,7 +2892,7 @@ class Utility extends Model
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
         $accountIds = BankAccount::where('chart_account_id', $accountId)
-            ->where(UsersConstants::COL_USER_ID, $user?->creatorId())
+            ->where(UC::COL_USER_ID, $user?->creatorId())
             ->pluck('id');
         $invoicePaymentAmount = InvoicePayment::whereIn('account_id', $accountIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
@@ -2913,13 +2913,13 @@ class Utility extends Model
         $paymentAmount = Payment::whereIn('account_id', $accountIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
-        $journalCredit = JournalItem::join(DatabaseConstants::TABLE_JOURNAL_ENTRIES, DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $journalCredit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->sum('credit');
-        $journalDebit = JournalItem::join(DatabaseConstants::TABLE_JOURNAL_ENTRIES, DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $journalDebit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->sum('debit');
@@ -2962,9 +2962,9 @@ class Utility extends Model
         $payment = Payment::whereIn('account_id', $accountIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->get();
-        $journalItems = JournalItem::select(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.journal_id', DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.date as transaction_date', 'journal_items.*')
-            ->join(DatabaseConstants::TABLE_JOURNAL_ENTRIES, DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $journalItems = JournalItem::select(DC::TABLE_JOURNAL_ENTRIES . '.journal_id', DC::TABLE_JOURNAL_ENTRIES . '.date as transaction_date', 'journal_items.*')
+            ->join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->get();
@@ -3029,113 +3029,113 @@ class Utility extends Model
         $user = $userOrRedirect;
         $creatorId = $user?->creatorId();
         $journalItem = JournalItem::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('sum(debit) as totalDebit'),
             DB::raw('sum(credit) as totalCredit')
         )
-            ->join(DatabaseConstants::TABLE_JOURNAL_ENTRIES, DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->join(DatabaseConstants::TABLE_COAS, 'journal_items.account', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
+            ->join(DC::TABLE_COAS, 'journal_items.account', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('journal_items.created_at', [$start, $end])
             ->groupBy('account')
             ->get()->toArray();
         $invoice = InvoiceProduct::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('0 as totalDebit'),
             DB::raw('sum(price * invoice_products.quantity) as totalCredit')
         )
-            ->join(DatabaseConstants::TABLE_PROD_SERVS, DatabaseConstants::TABLE_PROD_SERVS . '.id', 'invoice_products.product_id')
-            ->join(DatabaseConstants::TABLE_COAS, DatabaseConstants::TABLE_PROD_SERVS . '.sale_chartaccount_id', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'invoice_products.product_id')
+            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.sale_chartaccount_id', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('invoice_products.created_at', [$start, $end])
-            ->groupBy(DatabaseConstants::TABLE_PROD_SERVS . '.sale_chartaccount_id')
+            ->groupBy(DC::TABLE_PROD_SERVS . '.sale_chartaccount_id')
             ->get()->toArray();
         $invoicePayment = InvoicePayment::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('sum(amount) as totalDebit'),
             DB::raw('0 as totalCredit')
         )
-            ->join('bank_accounts', DatabaseConstants::TABLE_BANK_ACC . '.id', 'invoice_payments.account_id')
-            ->join(DatabaseConstants::TABLE_COAS, DatabaseConstants::TABLE_BANK_ACC . '.chart_account_id', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'invoice_payments.account_id')
+            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('invoice_payments.created_at', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();
         $revenue = Revenue::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('0 as totalDebit'),
             DB::raw('sum(amount) as totalCredit')
         )
-            ->join('bank_accounts', DatabaseConstants::TABLE_BANK_ACC . '.id', 'revenues.account_id')
-            ->join(DatabaseConstants::TABLE_COAS, DatabaseConstants::TABLE_BANK_ACC . '.chart_account_id', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'revenues.account_id')
+            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('revenues.created_at', [$start, $end])
             ->groupBy('chart_account_id')
             ->get()->toArray();
         $bill = BillProduct::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('sum(price * bill_products.quantity) as totalDebit'),
             DB::raw('0 as totalCredit')
         )
-            ->join(DatabaseConstants::TABLE_PROD_SERVS, DatabaseConstants::TABLE_PROD_SERVS . '.id', 'bill_products.product_id')
-            ->join(DatabaseConstants::TABLE_COAS, DatabaseConstants::TABLE_PROD_SERVS . '.expense_chartaccount_id', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'bill_products.product_id')
+            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.expense_chartaccount_id', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('bill_products.created_at', [$start, $end])
-            ->groupBy(DatabaseConstants::TABLE_PROD_SERVS . '.expense_chartaccount_id')
+            ->groupBy(DC::TABLE_PROD_SERVS . '.expense_chartaccount_id')
             ->get()->toArray();
         $billAccount = BillAccount::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('sum(price) as totalDebit'),
             DB::raw('0 as totalCredit')
         )
-            ->join(DatabaseConstants::TABLE_COAS, 'bill_accounts.chart_account_id', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join(DC::TABLE_COAS, 'bill_accounts.chart_account_id', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('bill_accounts.created_at', [$start, $end])
             ->groupBy('chart_account_id')
             ->get()->toArray();
         $billPayment = BillPayment::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('sum(amount) as totalDebit'),
             DB::raw('0 as totalCredit')
         )
-            ->join('bank_accounts', DatabaseConstants::TABLE_BANK_ACC . '.id', 'bill_payments.account_id')
-            ->join(DatabaseConstants::TABLE_COAS, DatabaseConstants::TABLE_BANK_ACC . '.chart_account_id', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'bill_payments.account_id')
+            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('bill_payments.created_at', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();
         $payments = Payment::select(
-            DatabaseConstants::TABLE_COAS . '.id',
-            DatabaseConstants::TABLE_COAS . '.code',
-            DatabaseConstants::TABLE_COAS . '.name',
+            DC::TABLE_COAS . '.id',
+            DC::TABLE_COAS . '.code',
+            DC::TABLE_COAS . '.name',
             DB::raw('sum(amount) as totalDebit'),
             DB::raw('0 as totalCredit')
         )
-            ->join('bank_accounts', DatabaseConstants::TABLE_BANK_ACC . '.id', 'payments.account_id')
-            ->join(DatabaseConstants::TABLE_COAS, DatabaseConstants::TABLE_BANK_ACC . '.chart_account_id', DatabaseConstants::TABLE_COAS . '.id')
-            ->where(DatabaseConstants::TABLE_COAS . '.type', $accountType)
-            ->where(DatabaseConstants::TABLE_COAS . '.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'payments.account_id')
+            ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
+            ->where(DC::TABLE_COAS . '.type', $accountType)
+            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('payments.created_at', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();

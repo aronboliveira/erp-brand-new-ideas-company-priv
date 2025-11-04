@@ -1,11 +1,12 @@
 @php
 	use App\Config\Constants\{ExtendingLayoutsConstants,StacksConstants,ViewClassNamesConstants as VC,YieldingConstants};
 	use App\Models\Utility;
+    use Collective\Html\FormFacade as Form;
 	use Illuminate\Support\Facades\{Log,Route};
 	use Modules\LandingPage\Config\Constants\{
 		ExtendingLandingPageLayoutConstants as E,
 		RoutesResourcesConstants              as R,
-		SettingsConstants                     as LandingPageSettingsConstants
+		SettingsConstants                     as LPC
 	};
     use Nwidart\Modules\Facades\Module;
     
@@ -101,15 +102,15 @@
                                     </div>
                                 </div>
                             </div>
-                            {{ Collective\Html\FormFacade::open(array('route' => R::TTMN.'.store', 'method'=>'post', 'enctype' => "multipart/form-data")) }}
+                            {{ Form::open(array('route' => R::TTMN.'.store', 'method'=>'post', 'enctype' => "multipart/form-data")) }}
                                 @csrf
                                 <div class="card-body">
                                     <div class="row">
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                {{ Collective\Html\FormFacade::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                                                {{ Collective\Html\FormFacade::text($lpSettings[LandingPageSettingsConstants::TM_HDG_K],$lpSettings[LandingPageSettingsConstants::TM_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                                                {{ Form::label('Heading', __('Heading'), ['class' => 'form-label']) }}
+                                                {{ Form::text($lpSettings[LPC::TM_HDG_K],$lpSettings[LPC::TM_HDG_K], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
                                                 @error('mail_host')
                                                 <span class="invalid-mail_driver" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
@@ -120,9 +121,9 @@
 
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                {{ Collective\Html\FormFacade::label('Description', __('Description'), ['class' => 'form-label']) }}
-                                                {{ Collective\Html\FormFacade::text($lpSettings[LandingPageSettingsConstants::TM_DESC_K], $lpSettings[LandingPageSettingsConstants::TM_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
-                                                @error($lpSettings[LandingPageSettingsConstants::TM_DESC_K])
+                                                {{ Form::label('Description', __('Description'), ['class' => 'form-label']) }}
+                                                {{ Form::text($lpSettings[LPC::TM_DESC_K], $lpSettings[LPC::TM_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Description')]) }}
+                                                @error($lpSettings[LPC::TM_DESC_K])
                                                 <span class="invalid-testimonials_description" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
                                                     </span>
@@ -132,9 +133,9 @@
 
                                         <div class="col-md-12">
                                             <div class="form-group">
-                                                {{ Collective\Html\FormFacade::label('Long Description', __('Long Description'), ['class' => 'form-label']) }}
-                                                {{ Collective\Html\FormFacade::textarea($lpSettings[LandingPageSettingsConstants::TM_LONG_DESC_K], $lpSettings[LandingPageSettingsConstants::TM_LONG_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Long Description')]) }}
-                                                @error($lpSettings[LandingPageSettingsConstants::TM_LONG_DESC_K])
+                                                {{ Form::label('Long Description', __('Long Description'), ['class' => 'form-label']) }}
+                                                {{ Form::textarea($lpSettings[LPC::TM_LONG_DESC_K], $lpSettings[LPC::TM_LONG_DESC_K], ['class' => 'form-control', 'placeholder' => __('Enter Long Description')]) }}
+                                                @error($lpSettings[LPC::TM_LONG_DESC_K])
                                                 <span class="invalid-mail_port" role="alert">
                                                         <strong class="text-danger">{{ $message }}</strong>
                                                     </span>
@@ -146,7 +147,7 @@
                                 <div class="card-footer text-end">
                                     <button class="{{ VC::BT_PR_PRM10 }}" type="submit" >{{ __('Save Changes') }}</button>
                                 </div>
-                            {{ Collective\Html\FormFacade::close() }}
+                            {{ Form::close() }}
                         </div>
                         <div class="card">
                             <div class="card-header">
@@ -189,20 +190,20 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                           @if (is_array($testimonials) || is_object($testimonials))
+                                           @if (Utility::isFilled($testimonials))
                                             @php
                                                 $no = 1
                                             @endphp
                                                 @foreach ($testimonials as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
-                                                        <td>{{ $value[LandingPageSettingsConstants::TM_TTL_K] }}</td>
+                                                        <td>{{ !empty($value[LPC::TM_TTL_K]) ? $value[LPC::TM_TTL_K] : __('No heading available') }}</td>
                                                         <td>
                                                             <span>
                                                                 <div class="{{ VC::ACT_BTN_PRIM }}">
                                                                     @if(Route::has(R::TTMN.'.edit'))
                                                                         <a href="#"
-                                                                           class="mx-3 btn btn-sm align-items-center"
+                                                                           class="{{ VC::BT_SM_CT }}"
                                                                            data-url="{{ route(R::TTMN.'.edit', $key) }}"
                                                                            data-ajax-popup="true"
                                                                            data-title="{{ __('Edit Page') }}"
@@ -226,7 +227,7 @@
                                                                 </div>
                                                                 <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                                     @if(Route::has(R::TTMN.'.delete'))
-                                                                        {!! Collective\Html\FormFacade::open([
+                                                                        {!! Form::open([
                                                                             'method' => 'GET',
                                                                             'route'  => [R::TTMN.'.delete', $key],
                                                                             'id'     => 'delete-form-' . $key
@@ -239,9 +240,9 @@
                                                                                 data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                                data-confirm-yes="document.getElementById('delete-form-{{ $key }}').submit();"
                                                                             >
-                                                                                <i class="ti ti-trash text-white"></i>
+                                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                             </a>
-                                                                        {!! Collective\Html\FormFacade::close() !!}
+                                                                        {!! Form::close() !!}
                                                                     @else
                                                                         <a href="#"
                                                                            class="{{ VC::BT_SM_CT_DSB }}"

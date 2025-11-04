@@ -1,6 +1,7 @@
 @php
 	use App\Config\Constants\{DatabaseConstants as DC,
-        ExtendingLayoutsConstants,SettingsConstants as SC,
+        ExtendingLayoutsConstants,
+        SettingsConstants as SC,
         StacksConstants,
         ViewsConstants as VW,
         ViewClassNamesConstants as VC,
@@ -356,9 +357,9 @@
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('site_currency_symbol', __('Currency Symbol *'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('site_currency_symbol', data_get($setting??[], 'site_currency_symbol'), ['class'=>VC::FM_CT]) }}
-                                            @error('site_currency_symbol')
+                                            {{ Form::label(SC::CR_SB, __('Currency Symbol *'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::CR_SB, data_get($setting??[], SC::CR_SB), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::CR_SB)
                                                 <span class="invalid-site_currency_symbol" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
@@ -366,11 +367,11 @@
                                             <label class="{{ VC::FM_LB }}">{{ __('Currency Symbol Position') }}</label>
                                             <div class="{{ VC::RW }} ms-1">
                                                 <div class="form-check {{ VC::CM6 }}">
-                                                    <input class="form-check-input" type="radio" name="site_currency_symbol_position" value="pre" id="symbol_pos_pre" @checked((data_get($setting??[], 'site_currency_symbol_position',''))==='pre')>
+                                                    <input class="form-check-input" type="radio" name="site_currency_symbol_position" value="pre" id="symbol_pos_pre" @checked((data_get($setting??[], SC::CR_SB_P, ''))==='pre')>
                                                     <label class="form-check-label" for="symbol_pos_pre">{{ __('Pre') }}</label>
                                                 </div>
                                                 <div class="form-check {{ VC::CM6 }}">
-                                                    <input class="form-check-input" type="radio" name="site_currency_symbol_position" value="post" id="symbol_pos_post" @checked((data_get($setting??[], 'site_currency_symbol_position',''))==='post')>
+                                                    <input class="form-check-input" type="radio" name="site_currency_symbol_position" value="post" id="symbol_pos_post" @checked((data_get($setting??[], SC::CR_SB_P, ''))==='post')>
                                                     <label class="form-check-label" for="symbol_pos_post">{{ __('Post') }}</label>
                                                 </div>
                                             </div>
@@ -400,65 +401,65 @@
                                             </select>
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('customer_prefix', __('Customer Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('customer_prefix', data_get($setting??[], 'customer_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('customer_prefix')
+                                            {{ Form::label(SC::CST_PFX, __('Customer Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::CST_PFX, data_get($setting??[], SC::CST_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::CST_PFX)
                                                 <span class="invalid-customer_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('vendor_prefix', __('Vendor Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('vendor_prefix', data_get($setting??[], 'vendor_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('vendor_prefix')
+                                            {{ Form::label(SC::VND_PFX, __('Vendor Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::VND_PFX, data_get($setting??[], SC::VND_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::VND_PFX)
                                                 <span class="invalid-vendor_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('proposal_prefix', __('Proposal Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('proposal_prefix', data_get($setting??[], 'proposal_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('proposal_prefix')
+                                            {{ Form::label(SC::PPS_PFX, __('Proposal Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::PPS_PFX, data_get($setting??[], SC::PPS_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::PPS_PFX)
                                                 <span class="invalid-proposal_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('invoice_prefix', __('Invoice Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('invoice_prefix', data_get($setting??[], 'invoice_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('invoice_prefix')
+                                            {{ Form::label(SC::INV_PFX, __('Invoice Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::INV_PFX, data_get($setting??[], SC::INV_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::INV_PFX)
                                                 <span class="invalid-invoice_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('bill_prefix', __('Bill Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('bill_prefix', data_get($setting??[], 'bill_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('bill_prefix')
+                                            {{ Form::label(SC::BL_PFX, __('Bill Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::BL_PFX, data_get($setting??[], SC::BL_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::BL_PFX)
                                                 <span class="invalid-bill_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('purchase_prefix', __('Purchase Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('purchase_prefix', data_get($setting??[], 'purchase_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('purchase_prefix')
+                                            {{ Form::label(SC::PRC_PFX, __('Purchase Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::PRC_PFX, data_get($setting??[], SC::PRC_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::PRC_PFX)
                                                 <span class="invalid-purchase_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('pos_prefix', __('Pos Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('pos_prefix', data_get($setting??[], 'pos_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('pos_prefix')
+                                            {{ Form::label(SC::POS_PFX, __('Pos Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::POS_PFX, data_get($setting??[], SC::POS_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::POS_PFX)
                                                 <span class="invalid-pos_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('journal_prefix', __('Journal Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('journal_prefix', data_get($setting??[], 'journal_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('journal_prefix')
+                                            {{ Form::label(SC::JRN_PFX, __('Journal Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::JRN_PFX, data_get($setting??[], SC::JRN_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::JRN_PFX)
                                                 <span class="invalid-journal_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>
                                         <div class="{{ VC::FM_G }} {{ VC::CM6 }}">
-                                            {{ Form::label('expense_prefix', __('Expense Prefix'), ['class'=>VC::FM_LB]) }}
-                                            {{ Form::text('expense_prefix', data_get($setting??[], 'expense_prefix'), ['class'=>VC::FM_CT]) }}
-                                            @error('expense_prefix')
+                                            {{ Form::label(SC::EXP_PFX, __('Expense Prefix'), ['class'=>VC::FM_LB]) }}
+                                            {{ Form::text(SC::EXP_PFX, data_get($setting??[], SC::EXP_PFX), ['class'=>VC::FM_CT]) }}
+                                            @error(SC::EXP_PFX)
                                                 <span class="invalid-expense_prefix" role="alert"><strong class="text-danger">{{ !empty($message) ? $message : __('No message available') }}</strong></span>
                                             @enderror
                                         </div>

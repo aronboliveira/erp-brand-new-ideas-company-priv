@@ -1,7 +1,7 @@
 @php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
-        SettingsConstants
+        SettingsConstants as SC
     };
     use App\Models\Utility;
     use Illuminate\Support\Facades\{Log, Session};
@@ -13,7 +13,7 @@
     <div class="footer-wrapper">
         <div class="py-1">
             <p class="mb-0 text-muted"> &copy;
-                {{ date('Y') }} {{ $settings[SettingsConstants::FT_TXT] ? $settings[SettingsConstants::FT_TXT] : config('app.name', 'ERPNovaPrestech') }}
+                {{ date('Y') }} {{ $settings[SC::FT_TXT] ? $settings[SC::FT_TXT] : config('app.name', 'ERPNovaPrestech') }}
             </p>
         </div>
     </div>
@@ -40,8 +40,8 @@
 <script defer src="{{ asset('js/popper.min.js') }}"></script>
 {{--<script src="{{ asset ('js/bootstrap.min.js') }}"></script>--}}
 <script>
-    var site_currency_symbol_position = '{{ $settings['site_currency_symbol_position'] }}';
-    var site_currency_symbol = '{{ $settings['site_currency_symbol'] }}';
+    var site_currency_symbol_position = '{{ $settings[SC::CR_SB_P] }}';
+    var site_currency_symbol = '{{ $settings[SC::CR_SB] }}';
 </script>
 <script src="{{ asset('js/custom.js') }}"></script>
 @if($message = Session::get('success'))

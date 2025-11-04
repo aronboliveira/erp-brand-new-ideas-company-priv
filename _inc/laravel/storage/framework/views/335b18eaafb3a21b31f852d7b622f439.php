@@ -1,4 +1,4 @@
-@php
+<?php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         PermissionsConstants,
@@ -14,19 +14,19 @@
     use Illuminate\Support\Collection;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user:$user);
-@endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Manage Deals')}} @if($pipeline && $pipeline->name) - {{$pipeline->name}} @else {{ __('No name for pipeline available') }} @endif
-@endsection
-@push(StacksConstants::ADM_CSS)
-    <link rel="stylesheet" href="{{ asset('css/summernote/summernote-bs4.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/plugins/dragula.min.css') }}" id="main-style-link">
-@endpush
-@push(StacksConstants::ADM_SCR_PG)
-    <script src="{{ asset('css/summernote/summernote-bs4.js') }}"></script>
-    <script defer src="{{ asset('assets/js/plugins/dragula.min.js') }}"></script>
-    <script async src="{{ asset('assets/js/routes/deals/lang/index.js') }}"></script>
+?>
+
+<?php $__env->startSection(YieldingConstants::ADM_PG_TTL); ?>
+    <?php echo e(__('Manage Deals')); ?> <?php if($pipeline && $pipeline->name): ?> - <?php echo e($pipeline->name); ?> <?php else: ?> <?php echo e(__('No name for pipeline available')); ?> <?php endif; ?>
+<?php $__env->stopSection(); ?>
+<?php $__env->startPush(StacksConstants::ADM_CSS); ?>
+    <link rel="stylesheet" href="<?php echo e(asset('css/summernote/summernote-bs4.css')); ?>">
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/plugins/dragula.min.css')); ?>" id="main-style-link">
+<?php $__env->stopPush(); ?>
+<?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
+    <script src="<?php echo e(asset('css/summernote/summernote-bs4.js')); ?>"></script>
+    <script defer src="<?php echo e(asset('assets/js/plugins/dragula.min.js')); ?>"></script>
+    <script async src="<?php echo e(asset('assets/js/routes/deals/lang/index.js')); ?>"></script>
     <script defer>
         (() => {
             const ERR_FB = '# ERROR';
@@ -119,11 +119,11 @@
                         const old_status = source.dataset.status;
                         const new_status = target.dataset.status;
                         const stage_id = target.getAttribute('data-id');
-                        const pipeline_id = '{{ $pipeline->id }}';
+                        const pipeline_id = '<?php echo e($pipeline->id); ?>';
                         $(source).parent().find('.count').text(source.children.length);
                         $(target).parent().find('.count').text(target.children.length);
                         $.ajax({
-                        url: '{{ route(VW::DL.".order") }}',
+                        url: '<?php echo e(route(VW::DL.".order")); ?>',
                         type: 'POST',
                         data: { deal_id:id, stage_id, order, new_status, old_status, pipeline_id,
                                 _token: $('meta[name="csrf-token"]').attr('content') },
@@ -150,17 +150,18 @@
             });
         })();
     </script>
-@endpush
-@section(YieldingConstants::ADM_BDC)
+<?php $__env->stopPush(); ?>
+<?php $__env->startSection(YieldingConstants::ADM_BDC); ?>
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
-            {{ __('Dashboard') }}
+        <a href="<?php echo e(Route::has('dashboard') ? route('dashboard') : '#'); ?>"
+        <?php echo e(Route::has('dashboard') ? '' : 'aria-disabled="true"'); ?>>
+            <?php echo e(__('Dashboard')); ?>
+
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Deal')}}</li>
-@endsection
-@php
+    <li class="breadcrumb-item"><?php echo e(__('Deal')); ?></li>
+<?php $__env->stopSection(); ?>
+<?php
     $ns = VW::DL;
     $changeName = "{$ns}.change.pipeline";
     $hasChange = Route::has($changeName);
@@ -183,25 +184,27 @@
         $ns,
         'deals_create_route_unavailable'
     ) ?? 'Deal create route is unavailable. Please contact technical support or your domain administrator.';
-@endphp
-@section(YieldingConstants::ADM_ACT_BTN)
+?>
+<?php $__env->startSection(YieldingConstants::ADM_ACT_BTN); ?>
     <div class="float-end">
-        @if($hasChange)
-            {{ Form::open([
+        <?php if($hasChange): ?>
+            <?php echo e(Form::open([
                 'route'          => $changeName,
                 'id'             => 'change-pipeline-form',
                 'class'          => VC::BT_SM,
                 'data-guard-msg' => $changeGuardMsg
-            ]) }}
-        @else
-            {{ Form::open([
+            ])); ?>
+
+        <?php else: ?>
+            <?php echo e(Form::open([
                 'url'            => '#',
                 'id'             => 'change-pipeline-form',
                 'class'          => VC::BT_SM,
                 'data-guard-msg' => $changeGuardMsg
-            ]) }}
-        @endif
-        {{ Form::select(
+            ])); ?>
+
+        <?php endif; ?>
+        <?php echo e(Form::select(
             'default_pipeline_id',
             Utility::isFilled($pipelines) ? $pipelines : [__('No pipelines available' ?? [])],
             Utility::isFilled($pipeline ?? []) ? $pipeline->id : '# Unidentified pipeline',
@@ -209,44 +212,46 @@
                 'class' => VC::FM_CT . ' select me-4',
                 'id'    => 'default_pipeline_id'
             ]
-        ) }}
-        {{ Form::close() }}
+        )); ?>
+
+        <?php echo e(Form::close()); ?>
+
         <a
             id="deal-list-btn"
-            href="{{ $hasList ? route($listName) : '#' }}"
-            data-url="{{ $hasList ? route($listName) : '#' }}"
-            data-guard-msg="{{ $listGuardMsg }}"
+            href="<?php echo e($hasList ? route($listName) : '#'); ?>"
+            data-url="<?php echo e($hasList ? route($listName) : '#'); ?>"
+            data-guard-msg="<?php echo e($listGuardMsg); ?>"
             data-size="lg"
             data-bs-toggle="tooltip"
-            title="{{ __('List View') }}"
-            class="{{ VC::BT_SM_PM }}"
+            title="<?php echo e(__('List View')); ?>"
+            class="<?php echo e(VC::BT_SM_PM); ?>"
         >
-            <i class="{{ VC::TI_LT }}"></i>
+            <i class="<?php echo e(VC::TI_LT); ?>"></i>
         </a>
 
         <a
             id="deal-create-btn"
-            href="{{ $hasCreate ? route($createName) : '#' }}"
-            data-url="{{ $hasCreate ? route($createName) : '#' }}"
-            data-guard-msg="{{ $createGuardMsg }}"
+            href="<?php echo e($hasCreate ? route($createName) : '#'); ?>"
+            data-url="<?php echo e($hasCreate ? route($createName) : '#'); ?>"
+            data-guard-msg="<?php echo e($createGuardMsg); ?>"
             data-size="lg"
             data-ajax-popup="true"
             data-bs-toggle="tooltip"
-            title="{{ __('Create New Deal') }}"
-            data-title="{{ __('Create Deal') }}"
-            class="{{ VC::BT_SM_PM }}"
+            title="<?php echo e(__('Create New Deal')); ?>"
+            data-title="<?php echo e(__('Create Deal')); ?>"
+            class="<?php echo e(VC::BT_SM_PM); ?>"
         >
-            <i class="{{ VC::TI_PLS }}"></i>
+            <i class="<?php echo e(VC::TI_PLS); ?>"></i>
         </a>
     </div>
-@endsection
-@push(StacksConstants::ADM_SCR_PG)
-    <script defer src="{{ asset('assets/js/routes/deals/pipelines/change.js') }}"></script>
-    <script defer src="{{ asset('assets/js/routes/deals/list.js') }}"></script>
-    <script defer src="{{ asset('assets/js/routes/deals/create.js') }}"></script>
-@endpush
-@section(YieldingConstants::ADM_CTT)
-    @php
+<?php $__env->stopSection(); ?>
+<?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
+    <script defer src="<?php echo e(asset('assets/js/routes/deals/pipelines/change.js')); ?>"></script>
+    <script defer src="<?php echo e(asset('assets/js/routes/deals/list.js')); ?>"></script>
+    <script defer src="<?php echo e(asset('assets/js/routes/deals/create.js')); ?>"></script>
+<?php $__env->stopPush(); ?>
+<?php $__env->startSection(YieldingConstants::ADM_CTT); ?>
+    <?php
         if (is_array($cntDeal ?? null)) {
             if (isset($cntDeal['total']))
                 $totals = $cntDeal;
@@ -268,17 +273,17 @@
         $stages = ($pipeline->stages ?? collect());
         $containers = [];
         foreach ($stages as $s) { $containers[] = 'task-list-'.$s->id; }
-    @endphp
-    <div class="{{ VC::RW }}">
-        <div class="{{ VC::CS3 }}">
-            <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD }}-body">
-                    <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
-                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
-                            <small class="{{ VC::TXT_MT }}">{{ __('Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ !empty($totals['total']) ? $totals['total'] : "#NULL" }}</h4>
+    ?>
+    <div class="<?php echo e(VC::RW); ?>">
+        <div class="<?php echo e(VC::CS3); ?>">
+            <div class="<?php echo e(VC::CD); ?>">
+                <div class="<?php echo e(VC::CD); ?>-body">
+                    <div class="<?php echo e(VC::RW); ?> <?php echo e(VC::JCB); ?> <?php echo e(VC::ALC); ?>">
+                        <div class="<?php echo e(VC::C_AT); ?> <?php echo e(VC::MB3); ?> <?php echo e(VC::MB0); ?>">
+                            <small class="<?php echo e(VC::TXT_MT); ?>"><?php echo e(__('Total Deals')); ?></small>
+                            <h4 class="<?php echo e(VC::MB0); ?>"><?php echo e(!empty($totals['total']) ? $totals['total'] : "#NULL"); ?></h4>
                         </div>
-                        <div class="{{ VC::C_AT }}">
+                        <div class="<?php echo e(VC::C_AT); ?>">
                             <div class="theme-avatar bg-info">
                                 <i class="ti ti-layers-difference"></i>
                             </div>
@@ -288,15 +293,15 @@
             </div>
         </div>
 
-        <div class="{{ VC::CS3 }}">
-            <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD }}-body">
-                    <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
-                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
-                            <small class="{{ VC::TXT_MT }}">{{ __('This Month Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ !empty($totals['this_month']) ? $totals['this_month'] : "#NULL" }}</h4>
+        <div class="<?php echo e(VC::CS3); ?>">
+            <div class="<?php echo e(VC::CD); ?>">
+                <div class="<?php echo e(VC::CD); ?>-body">
+                    <div class="<?php echo e(VC::RW); ?> <?php echo e(VC::JCB); ?> <?php echo e(VC::ALC); ?>">
+                        <div class="<?php echo e(VC::C_AT); ?> <?php echo e(VC::MB3); ?> <?php echo e(VC::MB0); ?>">
+                            <small class="<?php echo e(VC::TXT_MT); ?>"><?php echo e(__('This Month Total Deals')); ?></small>
+                            <h4 class="<?php echo e(VC::MB0); ?>"><?php echo e(!empty($totals['this_month']) ? $totals['this_month'] : "#NULL"); ?></h4>
                         </div>
-                        <div class="{{ VC::C_AT }}">
+                        <div class="<?php echo e(VC::C_AT); ?>">
                             <div class="theme-avatar bg-primary">
                                 <i class="ti ti-layers-difference"></i>
                             </div>
@@ -306,15 +311,15 @@
             </div>
         </div>
 
-        <div class="{{ VC::CS3 }}">
-            <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD }}-body">
-                    <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
-                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
-                            <small class="{{ VC::TXT_MT }}">{{ __('This Week Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ !empty($totals['this_week']) ? $totals['this_week'] : "#NULL" }}</h4>
+        <div class="<?php echo e(VC::CS3); ?>">
+            <div class="<?php echo e(VC::CD); ?>">
+                <div class="<?php echo e(VC::CD); ?>-body">
+                    <div class="<?php echo e(VC::RW); ?> <?php echo e(VC::JCB); ?> <?php echo e(VC::ALC); ?>">
+                        <div class="<?php echo e(VC::C_AT); ?> <?php echo e(VC::MB3); ?> <?php echo e(VC::MB0); ?>">
+                            <small class="<?php echo e(VC::TXT_MT); ?>"><?php echo e(__('This Week Total Deals')); ?></small>
+                            <h4 class="<?php echo e(VC::MB0); ?>"><?php echo e(!empty($totals['this_week']) ? $totals['this_week'] : "#NULL"); ?></h4>
                         </div>
-                        <div class="{{ VC::C_AT }}">
+                        <div class="<?php echo e(VC::C_AT); ?>">
                             <div class="theme-avatar bg-warning">
                                 <i class="ti ti-layers-difference"></i>
                             </div>
@@ -324,15 +329,15 @@
             </div>
         </div>
 
-        <div class="{{ VC::CS3 }}">
-            <div class="{{ VC::CD }}">
-                <div class="{{ VC::CD }}-body">
-                    <div class="{{ VC::RW }} {{ VC::JCB }} {{ VC::ALC }}">
-                        <div class="{{ VC::C_AT }} {{ VC::MB3 }} {{ VC::MB0 }}">
-                            <small class="{{ VC::TXT_MT }}">{{ __('Last 30 Days Total Deals') }}</small>
-                            <h4 class="{{ VC::MB0 }}">{{ !empty($totals['last_30days']) ? $totals['last_30days'] : "#NULL" }}</h4>
+        <div class="<?php echo e(VC::CS3); ?>">
+            <div class="<?php echo e(VC::CD); ?>">
+                <div class="<?php echo e(VC::CD); ?>-body">
+                    <div class="<?php echo e(VC::RW); ?> <?php echo e(VC::JCB); ?> <?php echo e(VC::ALC); ?>">
+                        <div class="<?php echo e(VC::C_AT); ?> <?php echo e(VC::MB3); ?> <?php echo e(VC::MB0); ?>">
+                            <small class="<?php echo e(VC::TXT_MT); ?>"><?php echo e(__('Last 30 Days Total Deals')); ?></small>
+                            <h4 class="<?php echo e(VC::MB0); ?>"><?php echo e(!empty($totals['last_30days']) ? $totals['last_30days'] : "#NULL"); ?></h4>
                         </div>
-                        <div class="{{ VC::C_AT }}">
+                        <div class="<?php echo e(VC::C_AT); ?>">
                             <div class="theme-avatar bg-danger">
                                 <i class="ti ti-layers-difference"></i>
                             </div>
@@ -343,35 +348,35 @@
         </div>
     </div>
 
-    <div class="{{ VC::RW }}">
+    <div class="<?php echo e(VC::RW); ?>">
         <div class="row kanban-wrapper horizontal-scroll-cards"
-             data-containers='@json($containers)'
+             data-containers='<?php echo json_encode($containers, 15, 512) ?>'
              data-plugin="dragula">
-            @if (Utility::isFilled($stages) ?? [])
-                @php
+            <?php if(Utility::isFilled($stages) ?? []): ?>
+                <?php
                     $isPriceFormatAvailable = method_exists($user ?? null, 'priceFormat');
-                @endphp
-                @foreach($stages as $stage)
-                    @php
+                ?>
+                <?php $__currentLoopData = $stages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stage): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
                         $stageId   = isset($stage->id) ? $stage->id : uniqid('stage_');
                         $stageName = !empty($stage->name) ? $stage->name : __('Untitled Stage');
                         $dealsRaw = method_exists($stage, 'deals') ? ($stage->deals() ?? []) : [];
                         $deals    = Utility::isFilled($dealsRaw ?? [])
                                     ? $dealsRaw
                                     : [];
-                    @endphp
-                    <div class="{{ VC::C_AT }}">
-                        <div class="{{ VC::CD }}">
-                            <div class="{{ VC::CD }}-header">
-                                <div class="{{ VC::FEND }}">
-                                    <span class="{{ VC::BT_SM_PM }} btn-icon count">{{ is_countable($deals) ? count($deals) : 0 }}</span>
+                    ?>
+                    <div class="<?php echo e(VC::C_AT); ?>">
+                        <div class="<?php echo e(VC::CD); ?>">
+                            <div class="<?php echo e(VC::CD); ?>-header">
+                                <div class="<?php echo e(VC::FEND); ?>">
+                                    <span class="<?php echo e(VC::BT_SM_PM); ?> btn-icon count"><?php echo e(is_countable($deals) ? count($deals) : 0); ?></span>
                                 </div>
-                                <h4 class="{{ VC::MB0 }}">{{ $stageName }}</h4>
+                                <h4 class="<?php echo e(VC::MB0); ?>"><?php echo e($stageName); ?></h4>
                             </div>
-                            <div class="{{ VC::CD }}-body kanban-box" id="task-list-{{ $stageId }}" data-id="{{ $stageId }}">
-                                @if(!empty($deals))
-                                    @foreach($deals as $deal)
-                                        @php
+                            <div class="<?php echo e(VC::CD); ?>-body kanban-box" id="task-list-<?php echo e($stageId); ?>" data-id="<?php echo e($stageId); ?>">
+                                <?php if(!empty($deals)): ?>
+                                    <?php $__currentLoopData = $deals; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $deal): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php
                                             $dealId      = $deal->id ?? uniqid('deal_');
                                             $dealName    = !empty($deal->name) ? $deal->name : __('No deal name available');
                                             $priceRaw    = isset($deal->price) && is_numeric($deal->price) ? (float)$deal->price : null;
@@ -393,36 +398,37 @@
                                             $showGuardMsg    = Utility::fetchLinkMessage($lang, $namespace, 'deal_show_route_unavailable')    ?? 'Deal show route is unavailable. Please contact technical support or your domain administrator.';
                                             $labelsRoute = !empty($dealId) ? route("{$namespace}.labels", $dealId) : '#';
                                             $labelsGuard     = Utility::fetchLinkMessage($lang, $namespace, 'deals_labels_route_unavailable') ?? 'Deal labels route is unavailable. Please contact technical support or your domain administrator.';
-                                        @endphp
-                                        <div class="{{ VC::CD }}" data-id="{{ $dealId }}">
-                                            <div class="{{ VC::PT3 }} {{ VC::PS3 }}">
-                                                @if(!empty($labels))
-                                                    @foreach($labels as $label)
-                                                        @php
+                                        ?>
+                                        <div class="<?php echo e(VC::CD); ?>" data-id="<?php echo e($dealId); ?>">
+                                            <div class="<?php echo e(VC::PT3); ?> <?php echo e(VC::PS3); ?>">
+                                                <?php if(!empty($labels)): ?>
+                                                    <?php $__currentLoopData = $labels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <?php
                                                             $lblColor = $label->color ?? 'secondary';
                                                             $lblName  = $label->name  ?? __('Label');
-                                                        @endphp
-                                                        <div class="badge-xs badge bg-{{ $lblColor }} {{ VC::P4 }} {{ VC::PX3 }} {{ VC::PY2 }}">{{ $lblName }}</div>
-                                                    @endforeach
-                                                @else
-                                                    <div class="badge-xs badge bg-secondary {{ VC::P4 }} {{ VC::PX3 }} {{ VC::PY2 }}">{{ __('No Labels') }}</div>
-                                                @endif
+                                                        ?>
+                                                        <div class="badge-xs badge bg-<?php echo e($lblColor); ?> <?php echo e(VC::P4); ?> <?php echo e(VC::PX3); ?> <?php echo e(VC::PY2); ?>"><?php echo e($lblName); ?></div>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php else: ?>
+                                                    <div class="badge-xs badge bg-secondary <?php echo e(VC::P4); ?> <?php echo e(VC::PX3); ?> <?php echo e(VC::PY2); ?>"><?php echo e(__('No Labels')); ?></div>
+                                                <?php endif; ?>
                                             </div>
-                                            <div class="{{ VC::CD }}-header border-0 pb-0 position-relative">
+                                            <div class="<?php echo e(VC::CD); ?>-header border-0 pb-0 position-relative">
                                                 <h5>
                                                     <a
-                                                        id="deal-show-btn-{{ $dealId }}"
-                                                        href="{{ $showRoute }}"
-                                                        data-url="{{ $showRoute }}"
-                                                        data-guard-msg="{{ $showGuardMsg }}"
-                                                        class="{{ VC::BT_OUTPM }}"
+                                                        id="deal-show-btn-<?php echo e($dealId); ?>"
+                                                        href="<?php echo e($showRoute); ?>"
+                                                        data-url="<?php echo e($showRoute); ?>"
+                                                        data-guard-msg="<?php echo e($showGuardMsg); ?>"
+                                                        class="<?php echo e(VC::BT_OUTPM); ?>"
                                                     >
-                                                        {{ $dealName }}
+                                                        <?php echo e($dealName); ?>
+
                                                     </a>
-                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                    <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
                                                         <script defer>
                                                             (() => {
-                                                                const btn = document.getElementById('deal-show-btn-{{ $dealId }}');
+                                                                const btn = document.getElementById('deal-show-btn-<?php echo e($dealId); ?>');
                                                                 if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
                                                                 btn.setAttribute('data-listener-active', 'true');
                                                                 btn.addEventListener('click', e => {
@@ -456,46 +462,46 @@
                                                                 });
                                                             })();
                                                         </script>
-                                                    @endpush
+                                                    <?php $__env->stopPush(); ?>
                                                 </h5>
-                                                <div class="{{ VC::CD }}-header-right">
-                                                    @if(($user?->{UsersConstants::COL_TP} ?? null) !== PermissionsConstants::CL)
+                                                <div class="<?php echo e(VC::CD); ?>-header-right">
+                                                    <?php if(($user?->{UsersConstants::COL_TP} ?? null) !== PermissionsConstants::CL): ?>
                                                         <div class="btn-group card-option">
                                                             <button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                                                                <i class="{{ VC::TD_DOTV }}"></i>
+                                                                <i class="<?php echo e(VC::TD_DOTV); ?>"></i>
                                                             </button>
-                                                            <div class="{{ VC::DRP_MN_EM }}">
-                                                                @can('edit deal')
-                                                                    @php
+                                                            <div class="<?php echo e(VC::DRP_MN_EM); ?>">
+                                                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('edit deal')): ?>
+                                                                    <?php
                                                                         $editRoute   = !empty($dealId) ? route("{$namespace}.edit",   $dealId) : '#';
                                                                         $editGuard       = Utility::fetchLinkMessage($lang, $namespace, 'deals_edit_route_unavailable')   ?? 'Deal edit route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    @endphp
+                                                                    ?>
                                                                     <a
-                                                                        id="deal-labels-btn-{{ $dealId }}"
-                                                                        href="{{ $labelsRoute }}"
-                                                                        data-url="{{ $labelsRoute }}"
-                                                                        data-guard-msg="{{ $labelsGuard }}"
+                                                                        id="deal-labels-btn-<?php echo e($dealId); ?>"
+                                                                        href="<?php echo e($labelsRoute); ?>"
+                                                                        data-url="<?php echo e($labelsRoute); ?>"
+                                                                        data-guard-msg="<?php echo e($labelsGuard); ?>"
                                                                         data-size="md"
                                                                         data-ajax-popup="true"
                                                                         class="dropdown-item"
                                                                     >
-                                                                        <i class="ti ti-bookmark"></i> <span>{{ __('Labels') }}</span>
+                                                                        <i class="ti ti-bookmark"></i> <span><?php echo e(__('Labels')); ?></span>
                                                                     </a>
                                                                     <a
-                                                                        id="deal-edit-btn-{{ $dealId }}"
-                                                                        href="{{ $editRoute }}"
-                                                                        data-url="{{ $editRoute }}"
-                                                                        data-guard-msg="{{ $editGuard }}"
+                                                                        id="deal-edit-btn-<?php echo e($dealId); ?>"
+                                                                        href="<?php echo e($editRoute); ?>"
+                                                                        data-url="<?php echo e($editRoute); ?>"
+                                                                        data-guard-msg="<?php echo e($editGuard); ?>"
                                                                         data-size="lg"
                                                                         data-ajax-popup="true"
                                                                         class="dropdown-item"
                                                                     >
-                                                                        <i class="{{ VC::TI_PC }}"></i> <span>{{ __('Edit') }}</span>
+                                                                        <i class="<?php echo e(VC::TI_PC); ?>"></i> <span><?php echo e(__('Edit')); ?></span>
                                                                     </a>
-                                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                                    <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
                                                                         <script defer>
                                                                             (() => {
-                                                                                const btn = document.getElementById('deal-labels-btn-{{ $dealId }}');
+                                                                                const btn = document.getElementById('deal-labels-btn-<?php echo e($dealId); ?>');
                                                                                 if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
                                                                                 btn.setAttribute('data-listener-active','true');
                                                                                 btn.addEventListener('click', e => {
@@ -531,7 +537,7 @@
                                                                         </script>
                                                                         <script defer>
                                                                             (() => {
-                                                                                const btn = document.getElementById('deal-edit-btn-{{ $dealId }}');
+                                                                                const btn = document.getElementById('deal-edit-btn-<?php echo e($dealId); ?>');
                                                                                 if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
                                                                                 btn.setAttribute('data-listener-active','true');
                                                                                 btn.addEventListener('click', e => {
@@ -565,36 +571,38 @@
                                                                                 });
                                                                             })();
                                                                         </script>
-                                                                    @endpush
-                                                                @endcan
-                                                                @can('delete deal')
-                                                                    @php
+                                                                    <?php $__env->stopPush(); ?>
+                                                                <?php endif; ?>
+                                                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete deal')): ?>
+                                                                    <?php
                                                                         $destroyRouteName = VW::DL . '.destroy';
                                                                         $destroyUrl  = !empty($dealId) ? route($destroyRouteName, $dealId) : '#';
                                                                         $destroyGuard    = Utility::fetchLinkMessage($lang, $namespace, 'deal_destroy_route_unavailable') ?? 'Delete deal route is unavailable. Please contact technical support or your domain administrator.';
-                                                                    @endphp
-                                                                    {!! Form::open([
+                                                                    ?>
+                                                                    <?php echo Form::open([
                                                                         'route'  => [$destroyRouteName, $dealId],
                                                                         'method' => 'DELETE',
                                                                         'id'     => 'delete-form-' . $dealId
-                                                                    ]) !!}
+                                                                    ]); ?>
+
                                                                         <a
-                                                                            id="delete-deal-btn-{{ $dealId }}"
-                                                                            href="{{ $destroyUrl }}"
-                                                                            data-url="{{ $destroyUrl }}"
-                                                                            data-guard-msg="{{ $destroyGuard }}"
+                                                                            id="delete-deal-btn-<?php echo e($dealId); ?>"
+                                                                            href="<?php echo e($destroyUrl); ?>"
+                                                                            data-url="<?php echo e($destroyUrl); ?>"
+                                                                            data-guard-msg="<?php echo e($destroyGuard); ?>"
                                                                             class="dropdown-item bs-pass-para"
                                                                             data-bs-toggle="tooltip"
-                                                                            title="{{ __('Delete') }}"
+                                                                            title="<?php echo e(__('Delete')); ?>"
                                                                         >
                                                                             <i class="ti ti-archive"></i>
-                                                                            <span>{{ __('Delete') }}</span>
+                                                                            <span><?php echo e(__('Delete')); ?></span>
                                                                         </a>
-                                                                    {!! Form::close() !!}
-                                                                    @push(StacksConstants::ADM_SCR_PG)
+                                                                    <?php echo Form::close(); ?>
+
+                                                                    <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
                                                                         <script defer>
                                                                             (() => {
-                                                                                const btn = document.getElementById('delete-deal-btn-{{ $dealId }}');
+                                                                                const btn = document.getElementById('delete-deal-btn-<?php echo e($dealId); ?>');
                                                                                 if (!btn || btn.getAttribute('data-listener-active') === 'true') return;
                                                                                 btn.setAttribute('data-listener-active', 'true');
                                                                                 btn.addEventListener('click', e => {
@@ -628,66 +636,72 @@
                                                                                 });
                                                                             })();
                                                                         </script>
-                                                                    @endpush
-                                                                @endcan
+                                                                    <?php $__env->stopPush(); ?>
+                                                                <?php endif; ?>
                                                             </div>
                                                         </div>
-                                                    @endif
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
 
-                                            <div class="{{ VC::CD }}-body">
-                                                <div class="{{ VC::DFL_AIC_JCB }} {{ VC::MB2 }}">
-                                                    <ul class="list-inline {{ VC::MB0 }}">
-                                                        <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Tasks') }}">
+                                            <div class="<?php echo e(VC::CD); ?>-body">
+                                                <div class="<?php echo e(VC::DFL_AIC_JCB); ?> <?php echo e(VC::MB2); ?>">
+                                                    <ul class="list-inline <?php echo e(VC::MB0); ?>">
+                                                        <li class="list-inline-item <?php echo e(VC::DFL_AIC); ?>" data-bs-toggle="tooltip" title="<?php echo e(__('Tasks')); ?>">
                                                             <i class="f-16 text-primary ti ti-list"></i>
-                                                            {{ $tasksCount }}/{{ $completeCount }}
+                                                            <?php echo e($tasksCount); ?>/<?php echo e($completeCount); ?>
+
                                                         </li>
                                                     </ul>
                                                     <div class="user-group">
                                                         <i class="text-primary ti ti-report-money"></i>
-                                                        {{ $priceRaw !== null ? ($isPriceFormatAvailable ? ($user?->priceFormat($priceRaw)) : $priceRaw) : '-' }}
+                                                        <?php echo e($priceRaw !== null ? ($isPriceFormatAvailable ? ($user?->priceFormat($priceRaw)) : $priceRaw) : '-'); ?>
+
                                                     </div>
                                                 </div>
 
-                                                <div class="{{ VC::DFL_AIC_JCB }}">
-                                                    <ul class="list-inline {{ VC::MB0 }}">
-                                                        <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Product') }}">
-                                                            <i class="f-16 text-primary ti ti-shopping-cart"></i> {{ is_countable($products) ? count($products) : 0 }}
+                                                <div class="<?php echo e(VC::DFL_AIC_JCB); ?>">
+                                                    <ul class="list-inline <?php echo e(VC::MB0); ?>">
+                                                        <li class="list-inline-item <?php echo e(VC::DFL_AIC); ?>" data-bs-toggle="tooltip" title="<?php echo e(__('Product')); ?>">
+                                                            <i class="f-16 text-primary ti ti-shopping-cart"></i> <?php echo e(is_countable($products) ? count($products) : 0); ?>
+
                                                         </li>
-                                                        <li class="list-inline-item {{ VC::DFL_AIC }}" data-bs-toggle="tooltip" title="{{ __('Source') }}">
-                                                            <i class="f-16 text-primary ti ti-social"></i> {{ is_countable($sources) ? count($sources) : 0 }}
+                                                        <li class="list-inline-item <?php echo e(VC::DFL_AIC); ?>" data-bs-toggle="tooltip" title="<?php echo e(__('Source')); ?>">
+                                                            <i class="f-16 text-primary ti ti-social"></i> <?php echo e(is_countable($sources) ? count($sources) : 0); ?>
+
                                                         </li>
                                                     </ul>
                                                     <div class="user-group">
-                                                        @if(Utility::isFilled($dealUsers))
-                                                            @foreach($dealUsers as $assignee)
-                                                                @php
+                                                        <?php if(Utility::isFilled($dealUsers)): ?>
+                                                            <?php $__currentLoopData = $dealUsers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assignee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                <?php
                                                                     $avatar = !empty($assignee->avatar)
                                                                         ? asset('storage/uploads/avatar/'.$assignee->avatar)
                                                                         : asset('storage/uploads/avatar/avatar.png');
                                                                     $assigneeName = $assignee->name ?? '';
-                                                                @endphp
-                                                                <img src="{{ $avatar }}" data-bs-toggle="tooltip" title="{{ $assigneeName }}">
-                                                            @endforeach
-                                                        @else
-                                                            <div>{{ __('No deal users available') }}</div>
-                                                        @endif
+                                                                ?>
+                                                                <img src="<?php echo e($avatar); ?>" data-bs-toggle="tooltip" title="<?php echo e($assigneeName); ?>">
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                        <?php else: ?>
+                                                            <div><?php echo e(__('No deal users available')); ?></div>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    @endforeach
-                                @else
-                                    <div class="{{ VC::P4 }} {{ VC::TXCT }} {{ VC::TXT_MT }}">{{ __('No deals in this stage') }}</div>
-                                @endif
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php else: ?>
+                                    <div class="<?php echo e(VC::P4); ?> <?php echo e(VC::TXCT); ?> <?php echo e(VC::TXT_MT); ?>"><?php echo e(__('No deals in this stage')); ?></div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
-                @endforeach
-            @else
-                <div class="{{ VC::P4 }} {{ VC::TXCT }} {{ VC::TXT_MT }}">{{ __('No stages found') }}</div>
-            @endif
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            <?php else: ?>
+                <div class="<?php echo e(VC::P4); ?> <?php echo e(VC::TXCT); ?> <?php echo e(VC::TXT_MT); ?>"><?php echo e(__('No stages found')); ?></div>
+            <?php endif; ?>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make(ExtendingLayoutsConstants::ADM, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/resources/views/deals/index.blade.php ENDPATH**/ ?>

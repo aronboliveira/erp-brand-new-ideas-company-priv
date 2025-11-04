@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Config\Constants\{
   ActivitiesConstants,
-  DatabaseConstants,
-  PermissionsConstants,
+  DatabaseConstants as DC,
+  PermissionsConstants as PC,
   ProjectsConstants,
-  UsersConstants
+  UsersConstants as UC,
+  ViewsConstants as VW
 };
 use App\Mail\SendDealEmail;
 use App\Models\{
@@ -57,7 +58,7 @@ class DealController extends Controller
 {
   use ChecksLogin, ChecksPermissions;
 
-  private const ROUTE_INDEX = DatabaseConstants::TABLE_DEALS . '.index';
+  private const ROUTE_INDEX = DC::TABLE_DEALS . '.index';
   private static ?Deal $dealCache = null;
 
   public function index(Request $req): View|RedirectResponse
@@ -65,22 +66,22 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.' . $action;
+    $viewPath = DC::TABLE_DEALS . '.' . $action;
     return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
-      if (($r = self::guard($req, PermissionsConstants::MNG_DL, self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
+      if (($r = self::guard($req, PC::MNG_DL, self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       try {
         $userStart = microtime(true);
         $user = $req->user();
         $this->logExecutionTime($userStart, $action, 'fetchUser');
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, UsersConstants::COL_TP => $user[UsersConstants::COL_TP], 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $user?->id, UC::COL_TP => $user[UC::COL_TP], 'method' => $method]);
         $pipeStart = microtime(true);
         $pipeline = $this->getDefaultPipeline($user);
         $this->logExecutionTime($pipeStart, $action, 'getDefaultPipeline');
         $listStart = microtime(true);
-        $pipelines = Pipeline::where(DatabaseConstants::TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
+        $pipelines = Pipeline::where(DC::TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadPipelines');
         $idsStart = microtime(true);
-        $ids = $user[UsersConstants::COL_TP] === PermissionsConstants::CL ? $user?->clientDeals->pluck('id') : $user?->deals->pluck('id');
+        $ids = $user[UC::COL_TP] === PC::CL ? $user?->clientDeals->pluck('id') : $user?->deals->pluck('id');
         $this->logExecutionTime($idsStart, $action, 'collectDealIds');
         $dealsStart = microtime(true);
         $deals = Deal::whereIn('id', $ids)->where('pipeline_id', $pipeline->id)->get();
@@ -89,7 +90,7 @@ class DealController extends Controller
         Log::debug("[{$class}::{$action}]", ['cntDeal' => $cntDeal]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view(DatabaseConstants::TABLE_DEALS . '.' . $action, compact(DatabaseConstants::TABLE_PIPELINES, Str::singular(DatabaseConstants::TABLE_PIPELINES), 'cntDeal'));
+        $response = view(VW::DL . '.' . $action, compact(DC::TABLE_PIPELINES, Str::singular(DC::TABLE_PIPELINES), 'cntDeal'));
         $this->logExecutionTime($renderStart, $action, 'renderIndex');
         return $response;
       } catch (\Throwable $e) {
@@ -106,36 +107,40 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.list';
+    $viewPath = VW::DL . '.list';
     return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
-      if (($r = self::guard($req, PermissionsConstants::MNG_DL, self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       try {
+        if (($r = self::guard($req, PC::MNG_DL, self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $userStart = microtime(true);
         $user = $req->user();
         $this->logExecutionTime($userStart, $action, 'fetchUser');
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'method' => $method]);
         $pipeStart = microtime(true);
         $pipeline = $this->getDefaultPipeline($user);
         $this->logExecutionTime($pipeStart, $action, 'getDefaultPipeline');
         $listStart = microtime(true);
-        $pipelines = Pipeline::where(DatabaseConstants::TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
+        $pipelines = Pipeline::where(DC::TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadPipelines');
         $idsStart = microtime(true);
-        $ids = $user[UsersConstants::COL_TP] === PermissionsConstants::CL ? $user?->clientDeals->pluck('id') : $user?->deals->pluck('id');
+        $ids = $user[UC::COL_TP] === PC::CL ? $user?->clientDeals->pluck('id') : $user?->deals->pluck('id');
         $this->logExecutionTime($idsStart, $action, 'collectDealIds');
         $sumStart = microtime(true);
         $cntDeal = ['total' => Deal::getDealSummary(Deal::whereIn('id', $ids)->where('pipeline_id', $pipeline->id)->get())];
         $this->logExecutionTime($sumStart, $action, 'computeDealSummary');
         Log::debug("[{$class}::{$action}]", ['cntDeal' => $cntDeal]);
         $ordStart = microtime(true);
-        $ordered = $user[UsersConstants::COL_TP] === PermissionsConstants::CL
-          ? Deal::join('client_deals', PermissionsConstants::CL . DatabaseConstants::TABLE_DEALS . '_' . 'deal_id', '=', DatabaseConstants::TABLE_DEALS . '.id')->where(PermissionsConstants::CL . DatabaseConstants::TABLE_DEALS . '_' . 'client_id', $user?->id)
-          : Deal::join('user_deals', 'user' . DatabaseConstants::TABLE_DEALS . '_' . 'deal_id', '=', DatabaseConstants::TABLE_DEALS . '.id')->where('user' . DatabaseConstants::TABLE_DEALS . '_' . '.user_id', $user?->id);
-        $deals = $ordered->where(DatabaseConstants::TABLE_DEALS . '.pipeline_id', $pipeline->id)->orderBy(DatabaseConstants::TABLE_DEALS . '.order')->get();
+        if ($user[UC::COL_TP] === PC::CL) {
+            $ordered = Deal::join('client_deals', 'client_deals.deal_id', '=', 'deals.id')
+                ->where('client_deals.client_id', $user?->id);
+        } else {
+            $ordered = Deal::join('user_deals', 'user_deals.deal_id', '=', 'deals.id')
+                ->where('user_deals.user_id', $user?->id);
+        }
+        $deals = $ordered->where(DC::TABLE_DEALS . '.pipeline_id', $pipeline->id)->orderBy(DC::TABLE_DEALS . '.order')->get();
         $this->logExecutionTime($ordStart, $action, 'loadOrderedDeals');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view(DatabaseConstants::TABLE_DEALS . '.list', compact(DatabaseConstants::TABLE_PIPELINES, Str::singular(DatabaseConstants::TABLE_PIPELINES), 'deals', 'cntDeal'));
+        $response = view(VW::DL . '.list', compact(DC::TABLE_PIPELINES, Str::singular(DC::TABLE_PIPELINES), 'deals', 'cntDeal'));
         $this->logExecutionTime($renderStart, $action, 'renderDealList');
         return $response;
       } catch (\Throwable $e) {
@@ -151,24 +156,24 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.' . $action;
+    $viewPath = DC::TABLE_DEALS . '.' . $action;
     return $this->measureProfile($action, function () use ($req, $action, $method, $class, $viewPath) {
       if (($r = self::guard($req, 'create deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       try {
         $userStart = microtime(true);
         $user = $req->user();
         $this->logExecutionTime($userStart, $action, 'fetchUser');
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'method' => $method]);
         $ownerStart = microtime(true);
         $ownerId = $user?->ownerId();
         $this->logExecutionTime($ownerStart, $action, 'getOwnerId');
         $listStart = microtime(true);
-        $clients = User::where(DatabaseConstants::TABLE_CREATOR, $ownerId)->where(UsersConstants::COL_TP, PermissionsConstants::CL)->pluck('name', 'id');
+        $clients = User::where(DC::TABLE_CREATOR, $ownerId)->where(UC::COL_TP, PC::CL)->pluck('name', 'id');
         $customFields = CustomField::where('module', 'deal')->get();
         $this->logExecutionTime($listStart, $action, 'loadClientsAndCustomFields');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view(DatabaseConstants::TABLE_DEALS . '.' . $action, compact(DatabaseConstants::TABLE_CLIENTS, 'customFields'));
+        $response = view(VW::DL . '.' . $action, compact(DC::TABLE_CLIENTS, 'customFields'));
         $this->logExecutionTime($renderStart, $action, 'renderCreate');
         return $response;
       } catch (\Throwable $e) {
@@ -217,7 +222,7 @@ class DealController extends Controller
             'pipeline_id' => $pipeline->id,
             'stage_id' => $stage->id,
             'status' => 'Active',
-            DatabaseConstants::TABLE_CREATOR => $user?->ownerId(),
+            DC::TABLE_CREATOR => $user?->ownerId(),
           ]);
           $this->logExecutionTime($createStart, $action, 'createDeal');
           Log::info("[{$class}::{$action}] deal created", ['deal_id' => $deal->id]);
@@ -225,12 +230,12 @@ class DealController extends Controller
           $cliStart = microtime(true);
           foreach ($cids as $cid) ClientDeal::create(['deal_id' => $deal->id, 'client_id' => $cid]);
           $this->logExecutionTime($cliStart, $action, 'assignClients');
-          Log::info("[{$class}::{$action}] clients assigned", ['deal_id' => $deal->id, DatabaseConstants::TABLE_CLIENTS => $cids]);
-          $uids = $user[UsersConstants::COL_TP] === PermissionsConstants::CPN ? [$user?->id] : [$user?->id, $user?->ownerId()];
+          Log::info("[{$class}::{$action}] clients assigned", ['deal_id' => $deal->id, DC::TABLE_CLIENTS => $cids]);
+          $uids = $user[UC::COL_TP] === PC::CPN ? [$user?->id] : [$user?->id, $user?->ownerId()];
           $userStart = microtime(true);
-          for ($i = 0, $n = count($uids); $i < $n; $i++) UserDeal::create([UsersConstants::COL_USER_ID => $uids[$i], 'deal_id' => $deal->id]);
+          for ($i = 0, $n = count($uids); $i < $n; $i++) UserDeal::create([UC::COL_USER_ID => $uids[$i], 'deal_id' => $deal->id]);
           $this->logExecutionTime($userStart, $action, 'assignUsers');
-          Log::info("[{$class}::{$action}] users assigned", ['deal_id' => $deal->id, DatabaseConstants::TABLE_USERS => $uids]);
+          Log::info("[{$class}::{$action}] users assigned", ['deal_id' => $deal->id, DC::TABLE_USERS => $uids]);
           $cfStart = microtime(true);
           CustomField::saveData($deal, $req->customField ?? []);
           $this->logExecutionTime($cfStart, $action, 'saveCustomFields');
@@ -250,13 +255,13 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.edit';
+    $viewPath = DC::TABLE_DEALS . '.edit';
     return $this->measureProfile($action, function () use ($req, $deal, $action, $method, $class, $viewPath) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       if (($r = $this->guard($req, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       if ($deal->created_by !== $user?->ownerId()) {
-        Log::warning("[{$class}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $user?->id, 'deal_id' => $deal->id]);
+        Log::warning("[{$class}::{$action}] unauthorized", [UC::COL_USER_ID => $user?->id, 'deal_id' => $deal->id]);
         return defaultPermissionDenial($req, new AuthorizationException, '', '');
       }
       try {
@@ -265,9 +270,9 @@ class DealController extends Controller
         $ownerId = $user?->ownerId();
         $this->logExecutionTime($ownerStart, $action, 'getOwnerId');
         $loadStart = microtime(true);
-        $pipelines = Pipeline::where(DatabaseConstants::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
-        $sources = Source::where(DatabaseConstants::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
-        $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
+        $pipelines = Pipeline::where(DC::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
+        $sources = Source::where(DC::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
+        $products = ProductService::where(DC::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
         $customFields = CustomField::where('module', 'deal')->get();
         $this->logExecutionTime($loadStart, $action, 'loadEditLists');
         $prepStart = microtime(true);
@@ -277,7 +282,7 @@ class DealController extends Controller
         $this->logExecutionTime($prepStart, $action, 'prepareDealExtras');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_PIPELINES, 'sources', DatabaseConstants::TABLE_PRODUCTS, 'customFields'));
+        $response = view($viewPath, compact('deal', DC::TABLE_PIPELINES, 'sources', DC::TABLE_PRODUCTS, 'customFields'));
         $this->logExecutionTime($renderStart, $action, 'renderEdit');
         return $response;
       } catch (\Throwable $e) {
@@ -298,7 +303,7 @@ class DealController extends Controller
       $user = $userOrRedirect;
       if (($r = $this->guard($req, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       if ($deal->created_by !== $user?->ownerId()) {
-        Log::warning("[{$class}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $user?->id, 'deal_id' => $deal->id]);
+        Log::warning("[{$class}::{$action}] unauthorized", [UC::COL_USER_ID => $user?->id, 'deal_id' => $deal->id]);
         return defaultPermissionDenial($req, new AuthorizationException, '', '');
       }
       $valStart = microtime(true);
@@ -320,7 +325,7 @@ class DealController extends Controller
           'pipeline_id' => $req->pipeline_id,
           'stage_id' => $req->stage_id,
           'sources' => implode(',', array_filter($req->sources ?? [])),
-          DatabaseConstants::TABLE_PRODUCTS => implode(',', array_filter($req->products ?? [])),
+          DC::TABLE_PRODUCTS => implode(',', array_filter($req->products ?? [])),
           'notes' => $req->notes,
         ];
         $this->logExecutionTime($prepStart, $action, 'prepareUpdatePayload');
@@ -353,7 +358,7 @@ class DealController extends Controller
       $user = $userOrRedirect;
       if (($r = $this->guard($req, 'delete deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       if ($deal->created_by !== $user?->ownerId()) {
-        Log::warning("[{$class}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $user?->id, 'deal_id' => $deal->id]);
+        Log::warning("[{$class}::{$action}] unauthorized", [UC::COL_USER_ID => $user?->id, 'deal_id' => $deal->id]);
         return defaultPermissionDenial($req, new AuthorizationException, '', '');
       }
       DB::beginTransaction();
@@ -402,7 +407,7 @@ class DealController extends Controller
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       if (($r = $this->guard($req, 'move deal', '')) instanceof RedirectResponse) return response()->json(['error' => __('Permission Denied.')], 401);
-      Log::info("[{$class}::{$action}] start", ['method' => $method, 'input_keys' => array_keys($req->all()), UsersConstants::COL_USER_ID => $user?->id]);
+      Log::info("[{$class}::{$action}] start", ['method' => $method, 'input_keys' => array_keys($req->all()), UC::COL_USER_ID => $user?->id]);
       $valStart = microtime(true);
       $v = Validator::make($req->all(), ['deal_id' => 'required', 'stage_id' => 'required', 'order' => 'required|array']);
       if ($v->fails()) return response()->json(['error' => $v->errors()->first()], 400);
@@ -419,7 +424,7 @@ class DealController extends Controller
         if ($deal->stage_id !== $req->stage_id) {
           $stageStart = microtime(true);
           $newStage = Stage::findOrFail($req->stage_id);
-          ActivityLog::create([UsersConstants::COL_USER_ID => $user?->id, 'deal_id' => $deal->id, 'log_type' => 'Move', 'remark' => json_encode(['title' => $deal->name, 'oldStatus' => $deal->stage->name, 'newStatus' => $newStage->name])]);
+          ActivityLog::create([UC::COL_USER_ID => $user?->id, 'deal_id' => $deal->id, 'log_type' => 'Move', 'remark' => json_encode(['title' => $deal->name, 'oldStatus' => $deal->stage->name, 'newStatus' => $newStage->name])]);
           Utility::sendEmailTemplate('Move Deal', $usrs, ['deal_name' => $deal->name, 'deal_pipeline' => $deal->pipeline->name, 'deal_stage' => $deal->stage->name, 'deal_status' => $deal->status, 'deal_price' => $user?->priceFormat($deal->price), 'deal_oldStage' => $deal->stage->name, 'deal_newStage' => $newStage->name]);
           $this->logExecutionTime($stageStart, $action, 'handleStageMove');
           Log::info("[{$class}::{$action}] moved", ['deal_id' => $deal->id, 'new_stage' => $newStage->id]);
@@ -449,22 +454,22 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.labels';
+    $viewPath = DC::TABLE_DEALS . '.labels';
     return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $viewPath) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       if (($r = $this->guard($req, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'deal_id' => $id, 'method' => $method]);
         $loadStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($loadStart, $action, 'loadDeal');
         if ($deal->created_by !== $user?->ownerId()) {
-          Log::warning("[{$class}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $user?->id, 'deal_id' => $id]);
+          Log::warning("[{$class}::{$action}] unauthorized", [UC::COL_USER_ID => $user?->id, 'deal_id' => $id]);
           return response()->json(['error' => __('Permission Denied.')], 401);
         }
         $listStart = microtime(true);
-        $labels = Label::where('pipeline_id', $deal->pipeline_id)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+        $labels = Label::where('pipeline_id', $deal->pipeline_id)->where(DC::TABLE_CREATOR, $user?->creatorId())->get();
         $selected = $deal->labels()->pluck('id')->toArray();
         $this->logExecutionTime($listStart, $action, 'loadLabelsAndSelected');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -501,7 +506,7 @@ class DealController extends Controller
         $deal->save();
         $this->logExecutionTime($persistStart, $action, 'persistLabels');
         DB::commit();
-        Log::info("[{$class}::{$action}] labels updated", ['deal_id' => $deal->id, UsersConstants::COL_USER_ID => $user?->id]);
+        Log::info("[{$class}::{$action}] labels updated", ['deal_id' => $deal->id, UC::COL_USER_ID => $user?->id]);
         return redirect()->back()->with('success', __('Labels successfully updated!'));
       } catch (\Throwable $e) {
         DB::rollBack();
@@ -518,25 +523,25 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.users';
+    $viewPath = DC::TABLE_DEALS . '.users';
     return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $viewPath) {
       if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
       $user = $userOrRedirect;
       if (($r = $this->guard($req, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'deal_id' => $id, 'method' => $method]);
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
         if ($deal->created_by !== $user?->ownerId()) throw new AuthorizationException;
         $usersStart = microtime(true);
-        $users = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->whereNotIn('id', function ($q) use ($id) {
-          $q->select(UsersConstants::COL_USER_ID)->from('user_deals')->where('deal_id', $id);
-        })->get()->filter(fn($u) => $u->can(PermissionsConstants::MNG_DL))->pluck('name', 'id')->prepend(__('Select Users'), '');
+        $users = User::where(DC::TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, '!=', PC::CL)->whereNotIn('id', function ($q) use ($id) {
+          $q->select(UC::COL_USER_ID)->from('user_deals')->where('deal_id', $id);
+        })->get()->filter(fn($u) => $u->can(PC::MNG_DL))->pluck('name', 'id')->prepend(__('Select Users'), '');
         $this->logExecutionTime($usersStart, $action, 'loadAssignableUsers');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_USERS));
+        $response = view($viewPath, compact('deal', DC::TABLE_USERS));
         $this->logExecutionTime($renderStart, $action, 'renderUserEdit');
         return $response;
       } catch (\Throwable $e) {
@@ -568,14 +573,14 @@ class DealController extends Controller
         $this->logExecutionTime($emailLoadStart, $action, 'loadEmails');
         DB::beginTransaction();
         $assignStart = microtime(true);
-        foreach ($uids as $uid) UserDeal::create(['deal_id' => $deal->id, UsersConstants::COL_USER_ID => $uid]);
+        foreach ($uids as $uid) UserDeal::create(['deal_id' => $deal->id, UC::COL_USER_ID => $uid]);
         $this->logExecutionTime($assignStart, $action, 'assignUsers');
         if ($emails) {
           $emailSendStart = microtime(true);
           $dArr = ['deal_name' => $deal->name, 'deal_pipeline' => $deal->pipeline->name, 'deal_stage' => $deal->stage->name, 'deal_status' => $deal->status, 'deal_price' => $user?->priceFormat($deal->price)];
           $resp = Utility::sendEmailTemplate('Assign Deal', $emails, $dArr);
           $this->logExecutionTime($emailSendStart, $action, 'sendAssignEmails');
-          Log::info("[{$class}::{$action}] users assigned", ['deal_id' => $deal->id, DatabaseConstants::TABLE_USERS => $uids]);
+          Log::info("[{$class}::{$action}] users assigned", ['deal_id' => $deal->id, DC::TABLE_USERS => $uids]);
         }
         DB::commit();
         return redirect()->back()->with('success', __('Users successfully updated!') . (!empty($resp['error']) ? '<br><span class="text-danger">' . $resp['error'] . '</span>' : ''));
@@ -604,12 +609,12 @@ class DealController extends Controller
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
         if ($deal->created_by !== $user?->ownerId()) throw new AuthorizationException;
         $delStart = microtime(true);
-        UserDeal::where([['deal_id', $id], [UsersConstants::COL_USER_ID, $userId]])->delete();
+        UserDeal::where([['deal_id', $id], [UC::COL_USER_ID, $userId]])->delete();
         $this->logExecutionTime($delStart, $action, 'deleteUserLink');
-        Log::info("[{$class}::{$action}] user removed", ['deal_id' => $id, UsersConstants::COL_USER_ID => $userId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] user removed", ['deal_id' => $id, UC::COL_USER_ID => $userId, 'method' => $method]);
         return redirect()->back()->with('success', __('User successfully deleted!'));
       } catch (\Throwable $e) {
-        Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $id, UsersConstants::COL_USER_ID => $userId]);
+        Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $id, UC::COL_USER_ID => $userId]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
         return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       }
@@ -622,9 +627,9 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.clients';
+    $viewPath = DC::TABLE_DEALS . '.clients';
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $viewPath) {
-      Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+      Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
       try {
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -638,12 +643,12 @@ class DealController extends Controller
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $listStart = microtime(true);
         $exclude = ClientDeal::where('deal_id', $id)->pluck('client_id');
-        $clients = User::where(DatabaseConstants::TABLE_CREATOR, $request->user()->ownerId())->where(UsersConstants::COL_TP, PermissionsConstants::CL)->whereNotIn('id', $exclude)->pluck('name', 'id');
+        $clients = User::where(DC::TABLE_CREATOR, $request->user()->ownerId())->where(UC::COL_TP, PC::CL)->whereNotIn('id', $exclude)->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadEligibleClients');
         Log::info("[{$class}::{$action}] fetched clients", ['count' => $clients->count()]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_CLIENTS));
+        $response = view($viewPath, compact('deal', DC::TABLE_CLIENTS));
         $this->logExecutionTime($renderStart, $action, 'renderClients');
         return $response;
       } catch (AuthorizationException $e) {
@@ -664,7 +669,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}]", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}]", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
@@ -680,8 +685,8 @@ class DealController extends Controller
           $this->logExecutionTime($assignStart, $action, 'assignClientsLoop');
         });
         $this->logExecutionTime($txnStart, $action, 'clientUpdateTransaction');
-        Log::info("[{$class}::{$action}] assigned clients", ['deal_id' => $deal->id, DatabaseConstants::TABLE_CLIENTS => $clients]);
-        return $clients ? redirect()->back()->with('success', __('Clients successfully updated!'))->with('status', DatabaseConstants::TABLE_CLIENTS) : redirect()->back()->with('error', __('Please Select Valid Clients!'))->with('status', DatabaseConstants::TABLE_CLIENTS);
+        Log::info("[{$class}::{$action}] assigned clients", ['deal_id' => $deal->id, DC::TABLE_CLIENTS => $clients]);
+        return $clients ? redirect()->back()->with('success', __('Clients successfully updated!'))->with('status', DC::TABLE_CLIENTS) : redirect()->back()->with('error', __('Please Select Valid Clients!'))->with('status', DC::TABLE_CLIENTS);
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -700,7 +705,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $clientId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'client_id' => $clientId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'client_id' => $clientId, 'method' => $method]);
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
@@ -712,7 +717,7 @@ class DealController extends Controller
         ClientDeal::where('deal_id', $deal->id)->where('client_id', $clientId)->delete();
         $this->logExecutionTime($delStart, $action, 'deleteClientLink');
         Log::info("[{$class}::{$action}] removed client", ['deal_id' => $deal->id, 'client_id' => $clientId]);
-        return redirect()->back()->with('success', __('Client successfully deleted!'))->with('status', DatabaseConstants::TABLE_CLIENTS);
+        return redirect()->back()->with('success', __('Client successfully deleted!'))->with('status', DC::TABLE_CLIENTS);
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -729,9 +734,9 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.products';
+    $viewPath = DC::TABLE_DEALS . '.products';
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $viewPath) {
-      Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+      Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
       try {
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -745,12 +750,12 @@ class DealController extends Controller
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $listStart = microtime(true);
         $excluded = explode(',', $deal->products);
-        $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $request->user()->ownerId())->whereNotIn('id', $excluded)->pluck('name', 'id');
+        $products = ProductService::where(DC::TABLE_CREATOR, $request->user()->ownerId())->whereNotIn('id', $excluded)->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadEligibleProducts');
         Log::info("[{$class}::{$action}] fetched products", ['count' => $products->count()]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_PRODUCTS));
+        $response = view($viewPath, compact('deal', DC::TABLE_PRODUCTS));
         $this->logExecutionTime($renderStart, $action, 'renderProducts');
         return $response;
       } catch (AuthorizationException $e) {
@@ -771,7 +776,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
@@ -790,10 +795,10 @@ class DealController extends Controller
         $names = ProductService::whereIn('id', $new)->pluck('name')->implode(',');
         $this->logExecutionTime($namesLoadStart, $action, 'loadProductNames');
         $activityStart = microtime(true);
-        ActivityLog::create([UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Add Product', 'remark' => json_encode(['title' => $names])]);
+        ActivityLog::create([UC::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Add Product', 'remark' => json_encode(['title' => $names])]);
         $this->logExecutionTime($activityStart, $action, 'createActivityLog');
-        Log::info("[{$class}::{$action}] products added", ['deal_id' => $deal->id, DatabaseConstants::TABLE_PRODUCTS => $new]);
-        return redirect()->back()->with('success', __('Products successfully updated!'))->with('status', DatabaseConstants::TABLE_PRODUCTS);
+        Log::info("[{$class}::{$action}] products added", ['deal_id' => $deal->id, DC::TABLE_PRODUCTS => $new]);
+        return redirect()->back()->with('success', __('Products successfully updated!'))->with('status', DC::TABLE_PRODUCTS);
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -812,7 +817,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $productId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'product_id' => $productId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'product_id' => $productId, 'method' => $method]);
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
@@ -826,7 +831,7 @@ class DealController extends Controller
         $deal->save();
         $this->logExecutionTime($updateStart, $action, 'removeProductAndSave');
         Log::info("[{$class}::{$action}] removed product", ['deal_id' => $deal->id, 'product_id' => $productId]);
-        return redirect()->back()->with('success', __('Products successfully deleted!'))->with('status', DatabaseConstants::TABLE_PRODUCTS);
+        return redirect()->back()->with('success', __('Products successfully deleted!'))->with('status', DC::TABLE_PRODUCTS);
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -845,7 +850,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -868,11 +873,11 @@ class DealController extends Controller
           $this->logExecutionTime($storeStart, $action, 'storeUploadedFile');
         }
         $logStart = microtime(true);
-        ActivityLog::create([UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Upload File', 'remark' => json_encode(['file_name' => $orig])]);
+        ActivityLog::create([UC::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Upload File', 'remark' => json_encode(['file_name' => $orig])]);
         $this->logExecutionTime($logStart, $action, 'createActivityLog');
         $routeStart = microtime(true);
-        $download = route(DatabaseConstants::TABLE_DEALS . '.file.download', [$id, $file->id]);
-        $delete = route(DatabaseConstants::TABLE_DEALS . '.file.delete', [$id, $file->id]);
+        $download = route(DC::TABLE_DEALS . '.file.download', [$id, $file->id]);
+        $delete = route(DC::TABLE_DEALS . '.file.delete', [$id, $file->id]);
         $this->logExecutionTime($routeStart, $action, 'buildResponseRoutes');
         Log::info("[{$class}::{$action}] file stored", ['file_id' => $file->id, 'limit' => $lim]);
         return response()->json(['is_success' => true, 'download' => $download, 'delete' => $delete], 200);
@@ -894,7 +899,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $fileId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'file_id' => $fileId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'file_id' => $fileId, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -931,7 +936,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $fileId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'file_id' => $fileId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'file_id' => $fileId, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -973,7 +978,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -999,10 +1004,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.tasks';
+    $viewPath = DC::TABLE_DEALS . '.tasks';
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -1028,7 +1033,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input_keys' => array_keys($request->all())]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input_keys' => array_keys($request->all())]);
         $dealLoadStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
@@ -1043,7 +1048,7 @@ class DealController extends Controller
           $task = DealTask::create(['deal_id' => $deal->id, 'name' => $request->name, 'date' => $request->date, 'time' => date('H:i:s', strtotime("{$request->date} {$request->time}")), ProjectsConstants::COL_PRT => $request[ProjectsConstants::COL_PRT], 'status' => $request->status]);
           $this->logExecutionTime($createStart, $action, 'createTaskRow');
           $logStart = microtime(true);
-          ActivityLog::create([UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Create Task', 'remark' => json_encode(['title' => $task->name])]);
+          ActivityLog::create([UC::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Create Task', 'remark' => json_encode(['title' => $task->name])]);
           $this->logExecutionTime($logStart, $action, 'createActivityLog');
         });
         $this->logExecutionTime($txnStart, $action, 'taskStoreTransaction');
@@ -1062,10 +1067,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.tasksShow';
+    $viewPath = DC::TABLE_DEALS . '.tasksShow';
     return $this->measureProfile($action, function () use ($request, $id, $taskId, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -1092,10 +1097,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.tasks';
+    $viewPath = DC::TABLE_DEALS . '.tasks';
     return $this->measureProfile($action, function () use ($request, $id, $taskId, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -1124,7 +1129,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $taskId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method, 'input_keys' => array_keys($request->all())]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method, 'input_keys' => array_keys($request->all())]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -1153,7 +1158,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $taskId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method, 'input_keys' => array_keys($request->all())]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method, 'input_keys' => array_keys($request->all())]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -1186,7 +1191,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $taskId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'task_id' => $taskId, 'method' => $method]);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
@@ -1209,10 +1214,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.sources';
+    $viewPath = DC::TABLE_DEALS . '.sources';
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return response()->json(['error' => __('Permission Denied.')], 401);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1224,7 +1229,7 @@ class DealController extends Controller
         }
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $listStart = microtime(true);
-        $sources = Source::where(DatabaseConstants::TABLE_CREATOR, $request->user()->ownerId())->pluck('name', 'id');
+        $sources = Source::where(DC::TABLE_CREATOR, $request->user()->ownerId())->pluck('name', 'id');
         $selected = $deal->sources()?->pluck('id')->toArray() ?: [];
         $this->logExecutionTime($listStart, $action, 'loadSources');
         Log::info("[{$class}::{$action}] fetched sources", ['count' => count($sources)]);
@@ -1251,7 +1256,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}]", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'input' => $request->all(), 'method' => $method]);
+        Log::info("[{$class}::{$action}]", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'input' => $request->all(), 'method' => $method]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1266,7 +1271,7 @@ class DealController extends Controller
         DB::transaction(fn() => $deal->update(['sources' => implode(',', $list)]));
         $this->logExecutionTime($txnStart, $action, 'persistSourcesTransaction');
         $actStart = microtime(true);
-        ActivityLog::create([UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Update Sources', 'remark' => json_encode(['title' => 'Update Sources'])]);
+        ActivityLog::create([UC::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Update Sources', 'remark' => json_encode(['title' => 'Update Sources'])]);
         $this->logExecutionTime($actStart, $action, 'createActivityLog');
         Log::info("[{$class}::{$action}] updated sources", ['deal_id' => $deal->id, 'sources' => $list]);
         return redirect()->back()->with('success', __('Sources successfully updated!'))->with('status', 'sources');
@@ -1288,7 +1293,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $sourceId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'source_id' => $sourceId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'source_id' => $sourceId, 'method' => $method]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1317,10 +1322,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.permissions';
+    $viewPath = DC::TABLE_DEALS . '.permissions';
     return $this->measureProfile($action, function () use ($request, $id, $clientId, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'client_id' => $clientId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'client_id' => $clientId, 'method' => $method]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1335,7 +1340,7 @@ class DealController extends Controller
         $this->logExecutionTime($permStart, $action, 'loadPermissions');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view($viewPath, compact('deal', PermissionsConstants::CL, 'selected', DatabaseConstants::TABLE_PERMISSIONS));
+        $response = view($viewPath, compact('deal', PC::CL, 'selected', DC::TABLE_PERMISSIONS));
         $this->logExecutionTime($renderStart, $action, 'renderPermissionView');
         return $response;
       } catch (AuthorizationException $e) {
@@ -1356,7 +1361,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $clientId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}]", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'client_id' => $clientId, 'input' => $request->all(), 'method' => $method]);
+        Log::info("[{$class}::{$action}]", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'client_id' => $clientId, 'input' => $request->all(), 'method' => $method]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1373,12 +1378,12 @@ class DealController extends Controller
         $txnStart = microtime(true);
         DB::transaction(function () use ($perm, $list, $clientId, $deal, $action) {
           $persistStart = microtime(true);
-          $perm ? $perm->update([DatabaseConstants::TABLE_PERMISSIONS => implode(',', $list)]) : ($list && ClientPermission::create(['client_id' => $clientId, 'deal_id' => $deal->id, DatabaseConstants::TABLE_PERMISSIONS => implode(',', $list)]));
+          $perm ? $perm->update([DC::TABLE_PERMISSIONS => implode(',', $list)]) : ($list && ClientPermission::create(['client_id' => $clientId, 'deal_id' => $deal->id, DC::TABLE_PERMISSIONS => implode(',', $list)]));
           $this->logExecutionTime($persistStart, $action, 'persistPermissions');
         });
         $this->logExecutionTime($txnStart, $action, 'permissionStoreTransaction');
-        Log::info("[{$class}::{$action}] updated permissions", ['deal_id' => $deal->id, 'client_id' => $clientId, DatabaseConstants::TABLE_PERMISSIONS => $list]);
-        return redirect()->back()->with('success', __(ucfirst(DatabaseConstants::TABLE_PERMISSIONS) . ' successfully updated!'))->with('status', DatabaseConstants::TABLE_CLIENTS);
+        Log::info("[{$class}::{$action}] updated permissions", ['deal_id' => $deal->id, 'client_id' => $clientId, DC::TABLE_PERMISSIONS => $list]);
+        return redirect()->back()->with('success', __(ucfirst(DC::TABLE_PERMISSIONS) . ' successfully updated!'))->with('status', DC::TABLE_CLIENTS);
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -1422,7 +1427,7 @@ class DealController extends Controller
       try {
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $user = $request->user();
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'input_keys' => array_keys($request->all()), 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'input_keys' => array_keys($request->all()), 'method' => $method]);
         $valStart = microtime(true);
         $v = Validator::make($request->all(), ['defaultPipelineId' => 'required|integer|min:1']);
         if ($v->fails()) {
@@ -1433,7 +1438,7 @@ class DealController extends Controller
         $updStart = microtime(true);
         $user->update(['default_pipeline' => $request->input('defaultPipelineId')]);
         $this->logExecutionTime($updStart, $action, 'persistDefaultPipeline');
-        Log::info("[{$class}::{$action}] updated", [UsersConstants::COL_USER_ID => $user?->id, 'default_pipeline' => $user?->default_pipeline]);
+        Log::info("[{$class}::{$action}] updated", [UC::COL_USER_ID => $user?->id, 'default_pipeline' => $user?->default_pipeline]);
         return redirect()->back();
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
@@ -1451,10 +1456,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.discussions';
+    $viewPath = DC::TABLE_DEALS . '.discussions';
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return response()->json(['error' => __('Permission Denied.')], 401);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1482,13 +1487,13 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input_keys' => array_keys($request->all())]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input_keys' => array_keys($request->all())]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
         $createStart = microtime(true);
-        $disc = DealDiscussion::create(['deal_id' => $deal->id, 'comment' => $request->input('comment'), DatabaseConstants::TABLE_CREATOR => $request->user()->id]);
+        $disc = DealDiscussion::create(['deal_id' => $deal->id, 'comment' => $request->input('comment'), DC::TABLE_CREATOR => $request->user()->id]);
         $this->logExecutionTime($createStart, $action, 'createDiscussionRow');
         Log::info("[{$class}::{$action}] added discussion", ['discussion_id' => $disc->id]);
         return redirect()->back()->with('success', __('Message successfully added!'))->with('status', 'discussion');
@@ -1510,7 +1515,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'status' => $request->input('dealStatus'), 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'status' => $request->input('dealStatus'), 'method' => $method]);
         if (($r = self::guard($request, 'edit deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1535,20 +1540,20 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.calls';
+    $viewPath = DC::TABLE_DEALS . '.calls';
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         if (($r = self::guard($request, 'create deal call', self::ROUTE_INDEX)) instanceof RedirectResponse) return response()->json(['error' => __('Permission Denied.')], 401);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
         $usersStart = microtime(true);
-        $users = UserDeal::where('deal_id', $id)->pluck(UsersConstants::COL_USER_ID);
+        $users = UserDeal::where('deal_id', $id)->pluck(UC::COL_USER_ID);
         $this->logExecutionTime($usersStart, $action, 'loadDealUsers');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view($viewPath, compact('deal', DatabaseConstants::TABLE_USERS));
+        $response = view($viewPath, compact('deal', DC::TABLE_USERS));
         $this->logExecutionTime($renderStart, $action, 'renderCallCreate');
         return $response;
       } catch (AuthorizationException $e) {
@@ -1569,14 +1574,14 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input' => $request->all()]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input' => $request->all()]);
         if (($r = self::guard($request, 'create deal call', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
         $valStart = microtime(true);
         try {
-          $v = $request->validate(['subject' => 'required', 'callType' => 'required', UsersConstants::COL_USER_ID => 'required']);
+          $v = $request->validate(['subject' => 'required', 'callType' => 'required', UC::COL_USER_ID => 'required']);
         } catch (ValidationException $e) {
           $this->logExecutionTime($valStart, $action, 'validatePayload');
           Log::warning("[{$class}::{$action}] validation failed", ['errors' => $e->errors()]);
@@ -1585,10 +1590,10 @@ class DealController extends Controller
         }
         $this->logExecutionTime($valStart, $action, 'validatePayload');
         $createStart = microtime(true);
-        $call = DealCall::create(['deal_id' => $deal->id, 'subject' => $v['subject'], 'call_type' => $v['callType'], 'duration' => $request->input('duration'), UsersConstants::COL_USER_ID => $v[UsersConstants::COL_USER_ID], 'description' => $request->input('description'), 'call_result' => $request->input('callResult')]);
+        $call = DealCall::create(['deal_id' => $deal->id, 'subject' => $v['subject'], 'call_type' => $v['callType'], 'duration' => $request->input('duration'), UC::COL_USER_ID => $v[UC::COL_USER_ID], 'description' => $request->input('description'), 'call_result' => $request->input('callResult')]);
         $this->logExecutionTime($createStart, $action, 'createDealCall');
         $actStart = microtime(true);
-        ActivityLog::create([UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Create Deal Call', 'remark' => json_encode(['title' => 'Create new Deal Call'])]);
+        ActivityLog::create([UC::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Create Deal Call', 'remark' => json_encode(['title' => 'Create new Deal Call'])]);
         $this->logExecutionTime($actStart, $action, 'createActivityLog');
         Log::info("[{$class}::{$action}] created call", ['call_id' => $call->id]);
         return redirect()->back()->with('success', __('Call successfully created!'))->with('status', 'calls');
@@ -1608,10 +1613,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.calls';
+    $viewPath = DC::TABLE_DEALS . '.calls';
     return $this->measureProfile($action, function () use ($request, $id, $callId, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'call_id' => $callId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'call_id' => $callId, 'method' => $method]);
         if (($r = self::guard($request, 'edit deal call', self::ROUTE_INDEX)) instanceof RedirectResponse) return response()->json(['error' => __('Permission Denied.')], 401);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1620,11 +1625,11 @@ class DealController extends Controller
         $call = DealCall::findOrFail($callId);
         $this->logExecutionTime($callStart, $action, 'loadCall');
         $usersStart = microtime(true);
-        $users = UserDeal::where('deal_id', $id)->pluck(UsersConstants::COL_USER_ID);
+        $users = UserDeal::where('deal_id', $id)->pluck(UC::COL_USER_ID);
         $this->logExecutionTime($usersStart, $action, 'loadDealUsers');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
-        $response = view($viewPath, compact('deal', 'call', DatabaseConstants::TABLE_USERS));
+        $response = view($viewPath, compact('deal', 'call', DC::TABLE_USERS));
         $this->logExecutionTime($renderStart, $action, 'renderCallEdit');
         return $response;
       } catch (AuthorizationException $e) {
@@ -1645,14 +1650,14 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $callId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'call_id' => $callId, 'method' => $method, 'input' => $request->all()]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'call_id' => $callId, 'method' => $method, 'input' => $request->all()]);
         if (($r = self::guard($request, 'edit deal call', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
         $valStart = microtime(true);
         try {
-          $v = $request->validate(['subject' => 'required', 'callType' => 'required', UsersConstants::COL_USER_ID => 'required']);
+          $v = $request->validate(['subject' => 'required', 'callType' => 'required', UC::COL_USER_ID => 'required']);
         } catch (ValidationException $e) {
           $this->logExecutionTime($valStart, $action, 'validatePayload');
           Log::warning("[{$class}::{$action}] validation failed", ['errors' => $e->errors()]);
@@ -1661,7 +1666,7 @@ class DealController extends Controller
         }
         $this->logExecutionTime($valStart, $action, 'validatePayload');
         $updStart = microtime(true);
-        DealCall::findOrFail($callId)->update(['subject' => $v['subject'], 'call_type' => $v['callType'], 'duration' => $request->input('duration'), UsersConstants::COL_USER_ID => $v[UsersConstants::COL_USER_ID], 'description' => $request->input('description'), 'call_result' => $request->input('callResult')]);
+        DealCall::findOrFail($callId)->update(['subject' => $v['subject'], 'call_type' => $v['callType'], 'duration' => $request->input('duration'), UC::COL_USER_ID => $v[UC::COL_USER_ID], 'description' => $request->input('description'), 'call_result' => $request->input('callResult')]);
         $this->logExecutionTime($updStart, $action, 'updateDealCall');
         Log::info("[{$class}::{$action}] updated call", ['call_id' => $callId]);
         return redirect()->back()->with('success', __('Call successfully updated!'))->with('status', 'calls');
@@ -1683,7 +1688,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $callId, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'call_id' => $callId, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'call_id' => $callId, 'method' => $method]);
         if (($r = self::guard($request, 'delete deal call', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $findStart = microtime(true);
         $call = DealCall::findOrFail($callId);
@@ -1709,10 +1714,10 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.emails';
+    $viewPath = DC::TABLE_DEALS . '.emails';
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class, $viewPath) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method]);
         if (($r = self::guard($request, 'create deal email', self::ROUTE_INDEX)) instanceof RedirectResponse) return response()->json(['error' => __('Permission Denied.')], 401);
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1740,7 +1745,7 @@ class DealController extends Controller
     $class = static::class;
     return $this->measureProfile($action, function () use ($request, $id, $action, $method, $class) {
       try {
-        Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input' => $request->all()]);
+        Log::info("[{$class}::{$action}] start", [UC::COL_USER_ID => $request->user()->id, 'deal_id' => $id, 'method' => $method, 'input' => $request->all()]);
         if (($r = self::guard($request, 'create deal email', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
@@ -1770,7 +1775,7 @@ class DealController extends Controller
         }
         $this->logExecutionTime($mailStart, $action, 'sendDealEmail');
         $actStart = microtime(true);
-        ActivityLog::create([UsersConstants::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Create Deal Email', 'remark' => json_encode(['title' => 'Create new Deal Email'])]);
+        ActivityLog::create([UC::COL_USER_ID => $request->user()->id, 'deal_id' => $deal->id, 'log_type' => 'Create Deal Email', 'remark' => json_encode(['title' => 'Create new Deal Email'])]);
         $this->logExecutionTime($actStart, $action, 'createActivityLog');
         return redirect()->back()->with('success', __('Email successfully created!') . ($smtpError ?? ''))->with('status', 'emails');
       } catch (AuthorizationException $e) {
@@ -1788,9 +1793,9 @@ class DealController extends Controller
     $action = __FUNCTION__;
     $method = __METHOD__;
     $class = static::class;
-    $viewPath = DatabaseConstants::TABLE_DEALS . '.show';
+    $viewPath = DC::TABLE_DEALS . '.show';
     return $this->measureProfile($action, function () use ($request, $deal, $action, $method, $class, $viewPath) {
-      Log::info("[{$class}::{$action}]", [UsersConstants::COL_USER_ID => Auth::id(), 'deal_id' => $deal->id, 'method' => $method]);
+      Log::info("[{$class}::{$action}]", [UC::COL_USER_ID => Auth::id(), 'deal_id' => $deal->id, 'method' => $method]);
       if (($resp = self::guard($request, 'view deal', self::ROUTE_INDEX)) instanceof RedirectResponse) return $resp;
       try {
         $activeStart = microtime(true);
@@ -1801,7 +1806,7 @@ class DealController extends Controller
         }
         $tasksStart = microtime(true);
         $calendarTasks = [];
-        if ($request->user()->can('view task')) foreach ($deal->tasks as $task) $calendarTasks[] = ['title' => $task->name, 'start' => $task->date, 'url' => route(DatabaseConstants::TABLE_DEALS . '.tasks.show', [$deal->id, $task->id]), 'className' => $task->status ? 'bg-primary border-primary' : 'bg-warning border-warning'];
+        if ($request->user()->can('view task')) foreach ($deal->tasks as $task) $calendarTasks[] = ['title' => $task->name, 'start' => $task->date, 'url' => route(DC::TABLE_DEALS . '.tasks.show', [$deal->id, $task->id]), 'className' => $task->status ? 'bg-primary border-primary' : 'bg-warning border-warning'];
         $this->logExecutionTime($tasksStart, $action, 'buildCalendarTasks');
         $customStart = microtime(true);
         $permission = [];
@@ -1870,19 +1875,26 @@ class DealController extends Controller
    */
   private function getDefaultPipeline(User $user): Pipeline
   {
-    Log::info(__METHOD__, [UsersConstants::COL_USER_ID => $user?->id, 'default_pipeline' => $user?->default_pipeline]);
-    try {
-      $query = Pipeline::where(DatabaseConstants::TABLE_CREATOR, $user?->ownerId());
-      $pipeline = $user?->default_pipeline
-        ? ($query->find($user?->default_pipeline) ?? $query->first())
-        : $query->first();
-      if (!$pipeline)
-        throw new \RuntimeException('No pipeline found for user ' . $user?->id);
-      Log::info(__METHOD__ . ' resolved', ['pipeline_id' => $pipeline->id]);
-      return $pipeline;
-    } catch (\Throwable $e) {
-      Log::error(__METHOD__ . ' error', ['err' => $e->getMessage()]);
-      throw $e;
-    }
+      Log::debug(__METHOD__, [
+          UC::COL_USER_ID => $user?->id,
+          'default_pipeline' => $user?->default_pipeline ?? '#NULL'
+      ]);
+      try {
+          $isSa = $user->{UC::COL_TP} === PC::SA;
+          $creatorId = $isSa ? $user->id : DC::DEFAULT_UUID;
+          $baseQuery = fn() => Pipeline::where(DC::TABLE_CREATOR, $creatorId);
+          $pipeline = null;
+          if ($user->default_pipeline)
+              $pipeline = $baseQuery()->where('id', $user->default_pipeline)->first();
+          if (!$pipeline)
+              $pipeline = $baseQuery()->first();
+          if (!$pipeline)
+              throw new \RuntimeException("No pipeline found for user {$user->id}");
+          Log::debug(__METHOD__ . ' resolved', ['pipeline_id' => $pipeline->id]);
+          return $pipeline;
+      } catch (\Throwable $e) {
+          Log::error(__METHOD__ . ' error', ['err' => $e->getMessage()]);
+          throw $e;
+      }
   }
 }

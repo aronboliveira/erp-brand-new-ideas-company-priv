@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{DatabaseConstants, PermissionsConstants};
+use App\Config\Constants\{DatabaseConstants, PermissionsConstants as PC, SettingsConstants as SC};
 use App\Traits\{ChecksLogin, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\{Foundation\Auth\User as Authenticatable, Notifications\Notifiable};
@@ -48,7 +48,7 @@ class Customer extends Authenticatable
         'lang',
         'name',
         'password',
-        'proposal_prefix',          // ! ALERT check if needed
+        SC::PPS_PFX,          // ! ALERT check if needed
         'shipping_address',
         'shipping_city',
         'shipping_country',
@@ -74,7 +74,7 @@ class Customer extends Authenticatable
 
     public function creatorId(): string
     {
-        return ($this->type === PermissionsConstants::CPN || $this->type === PermissionsConstants::SA)
+        return ($this->type === PC::CPN || $this->type === PC::SA)
             ? $this->id
             : $this->created_by;
     }
@@ -87,7 +87,7 @@ class Customer extends Authenticatable
     public function currencySymbol(): string
     {
         $s = Utility::settings();
-        return $s['site_currency_symbol'];
+        return $s[SC::CR_SB];
     }
 
     public function dateFormat(string $date): string
@@ -97,27 +97,27 @@ class Customer extends Authenticatable
 
     public function invoiceNumberFormat(int $n): string
     {
-        return Utility::settings()['invoice_prefix'] . sprintf('%05d', $n);
+        return Utility::settings()[SC::INV_PFX] . sprintf('%05d', $n);
     }
 
     public function priceFormat(float $price): string
     {
         $s = Utility::settings();
         $fmt = number_format($price, Utility::getValByName('decimal_number'));
-        return ($s['site_currency_symbol_position'] === 'pre' ? $s['site_currency_symbol'] : '')
+        return ($s[SC::CR_SB_P] === 'pre' ? $s[SC::CR_SB] : '')
             . $fmt
-            . ($s['site_currency_symbol_position'] === 'post' ? $s['site_currency_symbol'] : '');
+            . ($s[SC::CR_SB_P] === 'post' ? $s[SC::CR_SB] : '');
     }
 
     public function proposalNumberFormat(int $n): string
     {
-        return Utility::settings()['proposal_prefix'] . sprintf('%05d', $n);
+        return Utility::settings()[SC::PPS_PFX] . sprintf('%05d', $n);
     }
 
     public function timeFormat(string $time): string
     {
         return date(
-            Utility::settings()['site_time_format'] ?? 'H:i:s',
+            Utility::settings()[SC::TM_FM] ?? 'H:i:s',
             strtotime($time)
         );
     }

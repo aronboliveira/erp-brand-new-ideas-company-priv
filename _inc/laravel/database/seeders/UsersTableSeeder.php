@@ -95,7 +95,7 @@ class UsersTableSeeder extends Seeder
                 };
                 $allNull = array_reduce(
                     $args,
-                    fn (bool $carry, mixed $item): bool => $carry && is_null($item),
+                    fn(bool $carry, mixed $item): bool => $carry && is_null($item),
                     true
                 );
                 if (!$allNull)
@@ -266,7 +266,7 @@ class UsersTableSeeder extends Seeder
                     array_map('serialize', $arrPermissions)
                 )
             ))
-                ->unique(fn ($r) => ($r[$gn] ?? 'web') . '|' . $r['name'])
+                ->unique(fn($r) => ($r[$gn] ?? 'web') . '|' . $r['name'])
                 ->values()
                 ->all();
             foreach ($arrPermissions as $p) {
@@ -327,8 +327,14 @@ class UsersTableSeeder extends Seeder
                 $pipeline = Pipeline::create([
                     ProjectsConstants::COL_PPL_NM       => 'Default Pipeline',
                     ActivitiesConstants::COL_OD         => 0,
-                    DatabaseConstants::TABLE_CREATOR    => $superAdmin?->id ?? DatabaseConstants::DEFAULT_UUID,
+                    DatabaseConstants::TABLE_CREATOR    => DatabaseConstants::DEFAULT_UUID,
                 ]);
+                if ($superAdmin instanceof User)
+                    $saPipeline = Pipeline::create([
+                        ProjectsConstants::COL_PPL_NM       => 'Default Super Admin Pipeline',
+                        ActivitiesConstants::COL_OD         => 0,
+                        DatabaseConstants::TABLE_CREATOR    => $superAdmin->id,
+                    ]);
             } catch (QueryException $e) {
                 $msg = 'Database error while seeding permissions: ' . $e->getMessage();
                 Log::error($msg, ['exception' => $e]);

@@ -46,7 +46,7 @@ class CustomPageController extends AppController
             try {
                 $settings = LandingPageSetting::landingPageSetting();
                 $pages    = json_decode($settings[self::MB . '_page'], true);
-                $pages = is_array($pages) ? collect($pages)->sortByDesc('created_at')->toArray() : ($pages instanceof Collection ? $pages->sortByDesc('created_at')->toArray() : $pages);
+                // $pages = is_array($pages) ? usort($pages, fn($a, $b) => $b['created_at'] <=> $a['created_at']) : [];
                 $view = self::getFirstExistingView(self::MB . '.' . $action);
                 if (!$view) {
                     Log::warning("[$action] view not found", ['attempted' => self::MB . '.' . $action]);

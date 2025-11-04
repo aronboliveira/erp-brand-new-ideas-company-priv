@@ -205,14 +205,14 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                           @if (is_array($faqs) || is_object($faqs))
+                                           @if (Utility::isFilled($faqs))
                                             @php
                                                 $no = 1
                                             @endphp
                                                 @foreach ($faqs as $key => $value)
                                                     <tr>
                                                         <td>{{ $no++ }}</td>
-                                                        <td>{{ $value['faq_questions'] }}</td>
+                                                        <td>{{ !empty($value['faq_questions']) ? $value['faq_questions'] : __('No heading available') }}</td>
                                                         @php
                                                             $editRoute    = R::FQ.'.edit';
                                                             $deleteRoute  = R::FQ.'.delete';
@@ -224,7 +224,7 @@
                                                                 <div class="action-btn {{ VC::BG_P }} ms-2">
                                                                     @if($canEditFaq)
                                                                         <a href="{{ route($editRoute, $key) }}"
-                                                                        class="mx-3 btn btn-sm align-items-center"
+                                                                        class="{{ VC::BT_SM_CT }}"
                                                                         data-url="{{ route($editRoute, $key) }}"
                                                                         data-ajax-popup="true"
                                                                         data-title="{{ __('Edit Page') }}"
@@ -261,7 +261,7 @@
                                                                             data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}"
                                                                             data-confirm-yes="document.getElementById('delete-form-{{ $key }}').submit();"
                                                                             >
-                                                                                <i class="ti ti-trash text-white"></i>
+                                                                                <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                             </a>
                                                                         {!! Form::close() !!}
                                                                     @else

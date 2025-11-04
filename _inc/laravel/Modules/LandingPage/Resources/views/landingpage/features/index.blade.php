@@ -423,7 +423,7 @@
                                                 @foreach ($other_features as $key => $value)
                                                     <tr>
                                                         <td>{{ $of_no++ }}</td>
-                                                        <td>{{ $value['other_features_heading'] }}</td>
+                                                        <td>{{ !empty($value['other_features_heading']) ? $value['other_features_heading'] : __('No heading available') }}</td>
                                                         @php
                                                             $editRoute    = VW::FT.'.edit';
                                                             $deleteRoute  = VW::FT.'.delete';

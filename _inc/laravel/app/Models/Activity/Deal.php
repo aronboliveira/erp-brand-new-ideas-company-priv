@@ -6,24 +6,44 @@ use App\Config\Constants\DatabaseConstants;
 use App\Traits\{ChecksLogin, UsesUuids};
 use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany, HasOne};
+use Illuminate\Http\RedirectResponse;
 
 class Deal extends Model
 {
     use HasFactory, UsesUuids, ChecksLogin;
     protected $fillable = [
-        'name', 'phone', 'price', 'pipeline_id', 'stage_id', 'group_id',
-        'sources', DatabaseConstants::TABLE_PRODUCTS,
-        DatabaseConstants::TABLE_NOTES, 'labels', DatabaseConstants::TABLE_PERMISSIONS,
-        'status', 'order', DatabaseConstants::TABLE_CREATOR, 'is_active'
+        'name',
+        'phone',
+        'price',
+        'pipeline_id',
+        'stage_id',
+        'group_id',
+        'sources',
+        DatabaseConstants::TABLE_PRODUCTS,
+        DatabaseConstants::TABLE_NOTES,
+        'labels',
+        DatabaseConstants::TABLE_PERMISSIONS,
+        'status',
+        'order',
+        DatabaseConstants::TABLE_CREATOR,
+        'is_active'
     ];
     private const PERM_BASE         = 'Client';
     private const PERM_VIEW_TARGETS = [
-        'Tasks', 'Products', 'Sources', 'Contacts', 'Files',
-        'Invoices', 'Custom fields', 'Members'
+        'Tasks',
+        'Products',
+        'Sources',
+        'Contacts',
+        'Files',
+        'Invoices',
+        'Custom fields',
+        'Members'
     ];
     private const PERM_EXTRAS       = ['Add File', 'Deal Activity'];
     public static $statuses = [
-        'Active' => 'Active', 'Loss' => 'Loss', 'Won' => 'Won'
+        'Active' => 'Active',
+        'Loss' => 'Loss',
+        'Won' => 'Won'
     ];
     public $customField;
     /** @var string[] */
@@ -32,8 +52,8 @@ class Deal extends Model
     {
         parent::booted();
         self::$permissions = array_merge(
-            array_map(fn ($t) => self::PERM_BASE . " View " . $t, self::PERM_VIEW_TARGETS),
-            array_map(fn ($e) => self::PERM_BASE . " " . $e, self::PERM_EXTRAS)
+            array_map(fn($t) => self::PERM_BASE . " View " . $t, self::PERM_VIEW_TARGETS),
+            array_map(fn($e) => self::PERM_BASE . " " . $e, self::PERM_EXTRAS)
         );
     }
     public function labels(): Collection
@@ -125,7 +145,8 @@ class Deal extends Model
         return $this->hasMany(DealDiscussion::class, 'deal_id', 'id')
             ->orderByDesc('id');
     }
-    public static function getDealSummary($deals): float
+
+    public static function getDealSummary(array|Collection $deals, bool $numeric = false): string|array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
@@ -133,6 +154,7 @@ class Deal extends Model
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        return $user?->priceFormat(collect($deals)->sum(fn ($d) => $d->price));
+        $deals = is_array($deals) ? $deals : ($deals instanceof Collection ? $deals->toArray() : []);
+        return $user?->priceFormat(collect($deals)->sum(fn($d) => $d->price), $numeric);
     }
 }

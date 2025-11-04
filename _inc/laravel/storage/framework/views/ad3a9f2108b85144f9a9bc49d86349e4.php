@@ -1,13 +1,15 @@
 <?php
-    use App\Config\Constants\{
-        ExtendingLayoutsConstants,
-        SettingsConstants
-    };
-    use App\Models\Utility;
-    use Illuminate\Support\Facades\{Log, Session};
-    Log::debug('Loading admin footer data...');
-    $settings = Utility::settings();
-    Log::debug('Loading admin footer template...');
+
+use App\Config\Constants\{
+    ExtendingLayoutsConstants,
+    SettingsConstants
+};
+use App\Models\Utility;
+use Illuminate\Support\Facades\{Log, Session};
+
+Log::debug('Loading admin footer data...');
+$settings = Utility::settings();
+Log::debug('Loading admin footer template...');
 ?>
 <footer class="dash-footer">
     <div class="footer-wrapper">
@@ -45,17 +47,17 @@
     var site_currency_symbol = '<?php echo e($settings['site_currency_symbol']); ?>';
 </script>
 <script src="<?php echo e(asset('js/custom.js')); ?>"></script>
-<?php if($message = Session::get('success')): ?>
+<?php if ($message = Session::get('success')): ?>
     <script>
         show_toastr('success', '<?php echo $message; ?>');
     </script>
 <?php endif; ?>
-<?php if($message = Session::get('error')): ?>
+<?php if ($message = Session::get('error')): ?>
     <script>
         show_toastr('error', '<?php echo $message; ?>');
     </script>
 <?php endif; ?>
-<?php if($settings['enable_cookie'] == 'on'): ?>
+<?php if ($settings['enable_cookie'] == 'on'): ?>
     <?php if ($__env->exists(ExtendingLayoutsConstants::CKC)) echo $__env->make(ExtendingLayoutsConstants::CKC, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 <?php endif; ?>
 <?php echo $__env->yieldPushContent('script-page'); ?>

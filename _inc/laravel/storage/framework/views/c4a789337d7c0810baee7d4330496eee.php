@@ -1,4 +1,4 @@
-@php
+<?php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         PermissionsConstants,
@@ -15,30 +15,32 @@
 
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user: $user);
-@endphp
+?>
 
-@extends(ExtendingLayoutsConstants::ADM)
 
-@section(YieldingConstants::ADM_PG_TTL)
-    {{ __('Manage Contract') }}
-@endsection
 
-@push(StacksConstants::ADM_SCR_PG)
-@endpush
+<?php $__env->startSection(YieldingConstants::ADM_PG_TTL); ?>
+    <?php echo e(__('Manage Contract')); ?>
 
-@section(YieldingConstants::ADM_BDC)
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startSection(YieldingConstants::ADM_BDC); ?>
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-           {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
-            {{ __('Dashboard') }}
+        <a href="<?php echo e(Route::has('dashboard') ? route('dashboard') : '#'); ?>"
+           <?php echo e(Route::has('dashboard') ? '' : 'aria-disabled="true"'); ?>>
+            <?php echo e(__('Dashboard')); ?>
+
         </a>
     </li>
-    <li class="breadcrumb-item">{{ __('Contract') }}</li>
-@endsection
+    <li class="breadcrumb-item"><?php echo e(__('Contract')); ?></li>
+<?php $__env->stopSection(); ?>
 
-@section(YieldingConstants::ADM_ACT_BTN)
+<?php $__env->startSection(YieldingConstants::ADM_ACT_BTN); ?>
     <div class="float-end">
-        @php
+        <?php
             $contractsIndexBaseRouteName = VW::CTC.'.index';
             $contractsIndexKebabRouteName = Str::kebab($contractsIndexBaseRouteName);
             $contractsIndexResolvedRouteName = Route::has($contractsIndexBaseRouteName)
@@ -49,39 +51,39 @@
             $contractsIndexGuardMessage = Utility::fetchLinkMessage($contractsLangValue, VW::CTC, 'index_route_unavailable')
                 ?? 'Contracts index route is unavailable. Please contact technical support or your domain administrator.';
             $contractsIndexLinkId = 'contracts-index-list-link';
-        @endphp
-        <a id="{{ $contractsIndexLinkId }}"
-        href="{{ $contractsIndexUrl }}"
-        class="{{ VC::BT_SM_PM }}"
+        ?>
+        <a id="<?php echo e($contractsIndexLinkId); ?>"
+        href="<?php echo e($contractsIndexUrl); ?>"
+        class="<?php echo e(VC::BT_SM_PM); ?>"
         data-sv-localized="true"
-        data-url="{{ $contractsIndexUrl }}"
-        data-guard-msg="{{ $contractsIndexGuardMessage }}"
+        data-url="<?php echo e($contractsIndexUrl); ?>"
+        data-guard-msg="<?php echo e($contractsIndexGuardMessage); ?>"
         data-bs-toggle="tooltip"
-        title="{{ __('List View') }}">
+        title="<?php echo e(__('List View')); ?>">
             <i class="ti ti-list"></i>
         </a>
-        @push(StacksConstants::ADM_SCR_PG)
-            <script defer src="{{ asset('assets/js/routes/contracts/index.js') }}"></script>
-        @endpush
-        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA)
-            @php
+        <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
+            <script defer src="<?php echo e(asset('assets/js/routes/contracts/index.js')); ?>"></script>
+        <?php $__env->stopPush(); ?>
+        <?php if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA): ?>
+            <?php
                 $createRoute = VW::CTC . '.create';
                 $createHref  = Route::has($createRoute) ? route($createRoute) : '#';
                 $createGuard = Utility::fetchLinkMessage($lang, VW::CTC, 'create_route_unavailable')
                                 ?? 'Create route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+            ?>
             <a href="#"
                data-size="md"
-               data-url="{{ $createHref }}"
+               data-url="<?php echo e($createHref); ?>"
                data-ajax-popup="true"
                data-sv-localized="true"
-               data-guard-msg="{{ $createGuard }}"
+               data-guard-msg="<?php echo e($createGuard); ?>"
                data-bs-toggle="tooltip"
-               title="{{ __('Create New Contract') }}"
-               class="{{ VC::BT_SM_PM }}">
-                <i class="{{ VC::TI_PLS }}"></i>
+               title="<?php echo e(__('Create New Contract')); ?>"
+               class="<?php echo e(VC::BT_SM_PM); ?>">
+                <i class="<?php echo e(VC::TI_PLS); ?>"></i>
             </a>
-            @push(StacksConstants::ADM_SCR_PG)
+            <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
                 <script defer>
                     (function () {
                         try {
@@ -108,16 +110,16 @@
                                 };
                             }
 
-                            var idxA = document.querySelector('a.btn.btn-sm.btn-primary[href="{{ $contractsIndexUrl }}"]');
-                            if (idxA && "{{ $contractsIndexUrl }}" === "#") {
+                            var idxA = document.querySelector('a.btn.btn-sm.btn-primary[href="<?php echo e($idxHref); ?>"]');
+                            if (idxA && "<?php echo e($idxHref); ?>" === "#") {
                                 idxA.addEventListener('click', function (e) {
                                     e.preventDefault();
                                     window.svToastOrAlert(idxA.getAttribute('data-guard-msg'));
                                 });
                             }
 
-                            var createA = document.querySelector('a[data-url="{{ $createHref }}"]');
-                            if (createA && "{{ $createHref }}" === "#") {
+                            var createA = document.querySelector('a[data-url="<?php echo e($createHref); ?>"]');
+                            if (createA && "<?php echo e($createHref); ?>" === "#") {
                                 createA.addEventListener('click', function (e) {
                                     e.preventDefault();
                                     window.svToastOrAlert(createA.getAttribute('data-guard-msg'));
@@ -126,18 +128,18 @@
                         } catch (_) {}
                     })();
                 </script>
-            @endpush
-        @endif
+            <?php $__env->stopPush(); ?>
+        <?php endif; ?>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section(YieldingConstants::ADM_CTT)
+<?php $__env->startSection(YieldingConstants::ADM_CTT); ?>
     <div class="row">
-        @php
+        <?php
             $list = Utility::isFilled($contracts ?? []) ? $contracts : [];
-        @endphp
-        @forelse($list as $contract)
-            @php
+        ?>
+        <?php $__empty_1 = true; $__currentLoopData = $list; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $contract): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <?php
                 $cid = isset($contract->id) ? (string)$contract->id : '';
                 $subject = (isset($contract->subject) && $contract->subject !== '') ? (string)$contract->subject : __('No subject available');
                 $desc = (isset($contract->description) && $contract->description !== '') ? (string)$contract->description : __('No description available');
@@ -150,18 +152,19 @@
                 $showHref    = Route::has($showRoute) && $cid !== '' ? route($showRoute, $cid) : '#';
                 $showGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'show_route_unavailable')
                                ?? 'Show route is unavailable. Please contact technical support or your domain administrator.';
-            @endphp
+            ?>
             <div class="col-md-3">
                 <div class="card">
                     <div class="card-header">
-                        <a href="{{ $showHref }}"
+                        <a href="<?php echo e($showHref); ?>"
                            class="mb-0"
                            data-sv-localized="true"
-                           data-guard-msg="{{ $showGuard }}">
-                            {{ $subject }}
+                           data-guard-msg="<?php echo e($showGuard); ?>">
+                            <?php echo e($subject); ?>
+
                         </a>
-                        @if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA)
-                            @php
+                        <?php if($user?->{UsersConstants::COL_TP} == PermissionsConstants::CPN || $user?->{UsersConstants::COL_TP} == PermissionsConstants::SA): ?>
+                            <?php
                                 $editRoute   = VW::CTC . '.edit';
                                 $editHref    = (Route::has($editRoute) && $cid !== '') ? route($editRoute, $cid) : '#';
                                 $editGuard   = Utility::fetchLinkMessage($lang, VW::CTC, 'edit_route_unavailable')
@@ -179,7 +182,7 @@
                                 } else {
                                     $openParams['url'] = '#';
                                 }
-                            @endphp
+                            ?>
                             <div class="card-header-right">
                                 <div class="btn-group card-option">
                                     <button type="button" class="btn dropdown-toggle"
@@ -187,30 +190,32 @@
                                             aria-expanded="false">
                                         <i class="ti ti-dots-vertical"></i>
                                     </button>
-                                    <div class="{{ VC::DRP_MN_EM }}">
+                                    <div class="<?php echo e(VC::DRP_MN_EM); ?>">
                                         <a href="#!"
                                            data-size="md"
-                                           data-url="{{ $editHref }}"
+                                           data-url="<?php echo e($editHref); ?>"
                                            data-ajax-popup="true"
                                            class="dropdown-item"
                                            data-sv-localized="true"
-                                           data-guard-msg="{{ $editGuard }}"
-                                           data-bs-original-title="{{ __('Edit User') }}">
+                                           data-guard-msg="<?php echo e($editGuard); ?>"
+                                           data-bs-original-title="<?php echo e(__('Edit User')); ?>">
                                             <i class="ti ti-pencil"></i>
-                                            <span>{{ __('Edit') }}</span>
+                                            <span><?php echo e(__('Edit')); ?></span>
                                         </a>
 
-                                        {!! Form::open($openParams) !!}
+                                        <?php echo Form::open($openParams); ?>
+
                                             <a href="#!"
                                                class="dropdown-item bs-pass-para"
                                                data-sv-localized="true"
-                                               data-guard-msg="{{ $deleteGuard }}"
-                                               data-confirm="{{ $confirmMsg }}"
-                                               data-confirm-yes="document.getElementById('{{ $deleteFormId }}').submit();">
+                                               data-guard-msg="<?php echo e($deleteGuard); ?>"
+                                               data-confirm="<?php echo e($confirmMsg); ?>"
+                                               data-confirm-yes="document.getElementById('<?php echo e($deleteFormId); ?>').submit();">
                                                 <i class="ti ti-archive"></i>
-                                                <span>{{ __('Delete') }}</span>
+                                                <span><?php echo e(__('Delete')); ?></span>
                                             </a>
-                                        {!! Form::close() !!}
+                                        <?php echo Form::close(); ?>
+
                                     </div>
                                 </div>
                             </div>
@@ -241,23 +246,23 @@
                                             };
                                         }
 
-                                        var box = document.querySelector('.card a.mb-0[href="{{ $showHref }}"]');
-                                        if (box && "{{ $showHref }}" === "#") {
+                                        var box = document.querySelector('.card a.mb-0[href="<?php echo e($showHref); ?>"]');
+                                        if (box && "<?php echo e($showHref); ?>" === "#") {
                                             box.addEventListener('click', function (e) {
                                                 e.preventDefault();
                                                 window.svToastOrAlert(box.getAttribute('data-guard-msg'));
                                             });
                                         }
 
-                                        var editA = document.querySelector('a.dropdown-item[data-url="{{ $editHref }}"]');
-                                        if (editA && "{{ $editHref }}" === "#") {
+                                        var editA = document.querySelector('a.dropdown-item[data-url="<?php echo e($editHref); ?>"]');
+                                        if (editA && "<?php echo e($editHref); ?>" === "#") {
                                             editA.addEventListener('click', function (e) {
                                                 e.preventDefault();
                                                 window.svToastOrAlert(editA.getAttribute('data-guard-msg'));
                                             });
                                         }
 
-                                        var delForm = document.getElementById('{{ $deleteFormId }}');
+                                        var delForm = document.getElementById('<?php echo e($deleteFormId); ?>');
                                         if (delForm) {
                                             var hasAction = (delForm.getAttribute('action') || '').trim() !== '';
                                             var actionIsHash = (delForm.getAttribute('action') || '#') === '#';
@@ -274,61 +279,65 @@
                                     } catch (_) {}
                                 })();
                             </script>
-                        @endif
+                        <?php endif; ?>
                     </div>
                     <div class="card-body py-3 flex-grow-1">
-                        <p class="text-sm mb-0">{{ $desc }}</p>
+                        <p class="text-sm mb-0"><?php echo e($desc); ?></p>
                     </div>
                     <div class="card-footer py-0">
-                        <ul class="{{ VC::LG_FLSH }}">
+                        <ul class="<?php echo e(VC::LG_FLSH); ?>">
                             <li class="list-group-item px-0">
                                 <div class="row align-items-center">
                                     <div class="col-6">
-                                        <span class="form-label">{{ __('Contract Type') }}:</span>
+                                        <span class="form-label"><?php echo e(__('Contract Type')); ?>:</span>
                                     </div>
                                     <div class="col-6 text-end">
-                                        <span class="badge bg-secondary p-2 px-3 rounded">{{ $typeName }}</span>
+                                        <span class="badge bg-secondary p-2 px-3 rounded"><?php echo e($typeName); ?></span>
                                     </div>
                                 </div>
                             </li>
                             <li class="list-group-item px-0">
                                 <div class="row align-items-center">
                                     <div class="col-6">
-                                        <span class="form-label">{{ __('Contract Value') }}:</span>
+                                        <span class="form-label"><?php echo e(__('Contract Value')); ?>:</span>
                                     </div>
                                     <div class="col-6 text-end">
                                         <span class="badge bg-secondary p-2 px-3 rounded">
-                                            {{ is_numeric($valueRaw) && method_exists($user, 'priceFormat') ? ($user?->priceFormat($valueRaw) ?? __('Failed to format value')) : __('No value available') }}
+                                            <?php echo e(is_numeric($valueRaw) && method_exists($user, 'priceFormat') ? ($user?->priceFormat($valueRaw) ?? __('Failed to format value')) : __('No value available')); ?>
+
                                         </span>
                                     </div>
                                 </div>
                             </li>
 
-                            @if($user?->{UsersConstants::COL_TP} != PermissionsConstants::CL)
+                            <?php if($user?->{UsersConstants::COL_TP} != PermissionsConstants::CL): ?>
                                 <li class="list-group-item px-0">
                                     <div class="row align-items-center">
                                         <div class="col-6">
-                                            <span class="form-label">{{ __('Client') }}:</span>
+                                            <span class="form-label"><?php echo e(__('Client')); ?>:</span>
                                         </div>
                                         <div class="col-6 text-end">
-                                            {{ $clientName }}
+                                            <?php echo e($clientName); ?>
+
                                         </div>
                                     </div>
                                 </li>
-                            @endif
+                            <?php endif; ?>
 
                             <li class="list-group-item px-0">
                                 <div class="row align-items-center">
                                     <div class="col-6">
-                                        <small>{{ __('Start Date') }}:</small>
+                                        <small><?php echo e(__('Start Date')); ?>:</small>
                                         <div class="h6 mb-0">
-                                            {{ $startRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($startRaw) ?? __('Failed to format date')) : __('No start date available') }}
+                                            <?php echo e($startRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($startRaw) ?? __('Failed to format date')) : __('No start date available')); ?>
+
                                         </div>
                                     </div>
                                     <div class="col-6">
-                                        <small>{{ __('End Date') }}:</small>
+                                        <small><?php echo e(__('End Date')); ?>:</small>
                                         <div class="h6 mb-0">
-                                            {{ $endRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($endRaw) ?? __('Failed to format date')) : __('No end date available') }}
+                                            <?php echo e($endRaw && method_exists($user, 'dateFormat') ? ($user?->dateFormat($endRaw) ?? __('Failed to format date')) : __('No end date available')); ?>
+
                                         </div>
                                     </div>
                                 </div>
@@ -338,14 +347,17 @@
 
                 </div>
             </div>
-        @empty
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <div class="col-12">
                 <div class="card">
                     <div class="card-body text-center text-muted">
-                        {{ __('No contracts available') }}
+                        <?php echo e(__('No contracts available')); ?>
+
                     </div>
                 </div>
             </div>
-        @endforelse
+        <?php endif; ?>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make(ExtendingLayoutsConstants::ADM, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/resources/views/contracts/grid.blade.php ENDPATH**/ ?>

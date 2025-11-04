@@ -1,7 +1,7 @@
 @php
 	use App\Config\Constants\{
 		DatabaseConstants,
-		SettingsConstants,
+		SettingsConstants as SC,
 		ViewClassNamesConstants as VC,
 		ViewsConstants as VW
 	};
@@ -22,11 +22,11 @@
 
 	try {
 		$data = Utility::prepareCommonViewData() ?: [];
-		$logo = $data[SettingsConstants::LOGO] ?? '';
-		$company_favicon = $data[SettingsConstants::FAV_ICN] ?? '';
-		$siteRtl = $data[SettingsConstants::RTL] ?? false;
-		$colorSettings = $data[SettingsConstants::CLR_STG] ?? [];
-		$color = $data[SettingsConstants::THM_CLR] ?? '';
+		$logo = $data[SC::LOGO] ?? '';
+		$company_favicon = $data[SC::FAV_ICN] ?? '';
+		$siteRtl = $data[SC::RTL] ?? false;
+		$colorSettings = $data[SC::CLR_STG] ?? [];
+		$color = $data[SC::THM_CLR] ?? '';
 		$faviconUrl = Utility::getCompanyLogo() ?: '';
 	} catch (\Error $e) {
 		Log::error('Error fetching view data', ['exception_class'=>get_class($e),'message'=>$e->getMessage(),'file'=>$e->getFile(),'line'=>$e->getLine()]);
@@ -514,8 +514,9 @@
                     });
                 });
             });
-            const site_currency_symbol_position = "{{ Utility::getValByName('site_currency_symbol_position') }}";
-            const site_currency_symbol = "{{ Utility::getValByName('site_currency_symbol') }}";
+
+            const site_currency_symbol_position = "{{ Utility::getValByName(SC::CR_SB_P) }}";
+            const site_currency_symbol = "{{ Utility::getValByName(SC::CR_SB) }}";
         </script>
     </body>
 </html>

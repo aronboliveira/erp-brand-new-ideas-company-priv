@@ -157,9 +157,6 @@
                                     </thead>
                                     <tbody>
                                         @if(Utility::isFilled($join_us))
-                                            @php
-                                                Log::warning('JOIN US DATA', $join_us);
-                                            @endphp
                                             @foreach ($join_us as $key => $value)
                                                 <tr>
                                                     <td>{{ !empty($value->email) ? $value->email : __('No email available for joining') }}</td>
@@ -168,7 +165,7 @@
                                                             <div class="{{ VC::ACT_BTN_DNG_2 }}">
                                                             {!! Form::open(['method' => 'DELETE', 'route' => [R::JU.'.destroy', $value->id],'id'=>'delete-form-'.$value->id]) !!}
                                                                 <a href="#" class="{{ VC::BT_SM_CT_PR }}" data-bs-toggle="tooltip" title="{{__('Delete')}}" data-original-title="{{__('Delete')}}" data-confirm="{{ __(Utility::fetchLinkMessage($lang, 'generics', 'are_you_sure') ?? 'Are You Sure?') }}|{{ __(Utility::fetchLinkMessage($lang, 'generics', 'irreversible_action') ?? 'This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{$value->id}}').submit();">
-                                                                    <i class="ti ti-trash text-white"></i>
+                                                                    <i class="{{ VC::TI_TRS_WT }}"></i>
                                                                 </a>
                                                                 {!! Form::close() !!}
                                                             </div>
