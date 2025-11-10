@@ -15,7 +15,7 @@ trait UsesUuids
 				$newId = '';
 				if (!isset(self::$uuids[$cls])) self::$uuids[$cls] = [];
 				do $newId = (string) Str::uuid();
-				while (in_array($newId, self::$uuids, true));
+				while (in_array($newId, self::$uuids[$cls] ?? [], true));
 				self::$uuids[$cls][] = $newId;
 				$model->{$model->getKeyName()} = $newId;
 			}

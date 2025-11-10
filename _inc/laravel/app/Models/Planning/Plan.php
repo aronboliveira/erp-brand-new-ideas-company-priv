@@ -3,18 +3,19 @@
 namespace App\Models;
 
 use App\Config\Constants\{
+    DatabaseConstants,
     PermissionsConstants,
     PlansConstants,
     UsersConstants
 };
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\{Eloquent\Model, QueryException};
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Validation\ValidationException;
 
 class Plan extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields;
 
     private const COL_ACCOUNT       = PlansConstants::COL_ACC;
     private const COL_CHATGPT       = PlansConstants::COL_GPT;
@@ -33,7 +34,7 @@ class Plan extends Model
     private const COL_PROJECT       = PlansConstants::COL_PJ;
     private const COL_STORAGE_LIMIT = PlansConstants::COL_SL;
     private const FILLABLE = [
-        'id',
+        'query_key',
         self::COL_NAME,
         self::COL_PRICE,
         self::COL_DURATION,
@@ -66,7 +67,7 @@ class Plan extends Model
 
     public function status(): array
     {
-        return array_map(fn ($v) => __($v), array_values(self::DURATION_OPTIONS));
+        return array_map(fn($v) => __($v), array_values(self::DURATION_OPTIONS));
     }
 
     public static function totalPlan(): int
@@ -74,7 +75,7 @@ class Plan extends Model
         return self::count();
     }
 
-    public static function mostPurchasedPlan(): ?object
+    public static function mostPurchasedPlan(): object|null
     {
         try {
             return User::select(DB::raw('count(*) as total'))
@@ -96,10 +97,30 @@ class Plan extends Model
             Log::error('Unexpected Exception');
             Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed: {$e->getMessage()}");
         }
+        return null;
     }
 
     public static function getPlan(string $id): ?self
     {
-        return self::$cachedPlan ??= self::find($id);
+        if (self::$cachedPlan?->id === $id && Plan::where('id', self::$cachedPlan->id)->exists())
+            return self::$cachedPlan;
+        try {
+            return self::$cachedPlan ??= self::where('id', $id)
+                ->orWhere('query_key', $id)
+                ->firstOrFail();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::notice("Plan not found with id: {$id}. Attempting to query by query_key.", [
+                'message' => $e->getMessage(),
+            ]);
+            try {
+                return self::$cachedPlan ??= self::where('query_key', $id)->firstOrFail();
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                Log::warning("Plan not found with query_key: {$id}.", [
+                    'message' => $e->getMessage(),
+                ]);
+                return null;
+            }
+            return self::$cachedPlan = null;
+        }
     }
 }

@@ -200,6 +200,41 @@
       "@php artisan route:list --sort=uri",
       "@php artisan serve"
     ],
+    "artisan-serve--reset--ps--soft": [
+      "@artclrs-ps"
+    ],
+    "artisan-serve--reset--ps--hard": [
+      "@php artisan db:wipe",
+      "@php artisan migrate",
+      "@artclrs-ps"
+    ],
+    "artisan-serve--ps--reset--hard": [
+      "@artisan-serve--reset--ps--hard"
+    ],
+    "artisan-serve--hard--reset--ps": [
+      "@artisan-serve--reset--ps--hard"
+    ],
+    "artisan-serve--hard--ps--reset": [
+      "@artisan-serve--reset--ps--hard"
+    ],
+    "artisan-serve--ps--hard--reset": [
+      "@artisan-serve--reset--ps--hard"
+    ],
+    "artisan-serve--reset--hard--ps": [
+      "@artisan-serve--reset--ps--hard"
+    ],
+    "artisan-serve--ps--reset--soft": [
+      "@artisan-serve--reset--ps--soft"
+    ],
+    "artisan-serve--soft--reset--ps": [
+      "@artisan-serve--reset--ps--soft"
+    ],
+    "artisan-serve--soft--ps--reset": [
+      "@artisan-serve--reset--ps--soft"
+    ],
+    "artisan-serve--ps--soft--reset": [
+      "@artisan-serve--reset--ps--soft"
+    ],
     "artclrs-sh": [
       "@php artisan permission:cache-reset",
       "@php artisan config:clear",
@@ -217,38 +252,12 @@
       "@php artisan serve"
     ],
     "artisan-serve--reset--sh--soft": [
-      "@php artisan permission:cache-reset",
-      "@php artisan config:clear",
-      "@php artisan cache:clear",
-      "@php artisan optimize:clear",
-      "@php artisan route:clear",
-      "@php artisan view:clear",
-      "@php artisan clear-compiled",
-      "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
-      "@composer dump-autoload -o",
-      "@php artisan migrate:status",
-      "@php artisan migrate:reset",
-      "@php artisan migrate:fresh --seed",
-      "@php artisan route:list --sort=uri",
-      "@php artisan serve"
+      "@artclrs-sh"
     ],
     "artisan-serve--reset--sh--hard": [
       "@php artisan db:wipe",
       "@php artisan migrate",
-      "@php artisan permission:cache-reset",
-      "@php artisan config:clear",
-      "@php artisan cache:clear",
-      "@php artisan optimize:clear",
-      "@php artisan route:clear",
-      "@php artisan view:clear",
-      "@php artisan clear-compiled",
-      "rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/compiled.php bootstrap/cache/routes.php",
-      "@composer dump-autoload -o",
-      "@php artisan migrate:status",
-      "@php artisan migrate:reset",
-      "@php artisan migrate:fresh --seed",
-      "@php artisan route:list --sort=uri",
-      "@php artisan serve"
+      "@artclrs-sh"
     ],
     "artisan-serve--sh--reset--hard": [
       "@artisan-serve--reset--sh--hard"

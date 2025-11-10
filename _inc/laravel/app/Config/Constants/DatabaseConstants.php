@@ -13,6 +13,7 @@ class DatabaseConstants
 	public const COA = 'chart_of_account';
 	public const TABLE_USERS = 'users';
 	public const TABLE_CREATOR = 'created_by';
+	public const TABLE_UPDATER = 'updated_by';
 	public const TABLE_PLANS = 'plans';
 	public const TABLE_PROJECTS = 'projects';
 	public const TABLE_TASKS = 'tasks';

@@ -3,46 +3,51 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    DatabaseConstants
+    ActivitiesConstants as AC,
+    PermissionsConstants as PMC,
+    ProjectsConstants as PJC,
+    DatabaseConstants as DC
 };
-use App\Traits\{ChecksLogin, UsesUuids};
+use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model};
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class ProjectStages extends Model
 {
-    use ChecksLogin, HasFactory, UsesUuids;
+    use ChecksLogin, HasFactory, UsesUuids, HasAuditFields;
 
-    private const COL_NAME      = ProjectsConstants::COL_NM;
-    private const COL_COLOR     = ProjectsConstants::COL_CL;
-    private const COL_ORDER     = ActivitiesConstants::COL_OD;
-    private const COL_CREATED_BY = DatabaseConstants::TABLE_CREATOR;
+    private const COL_NAME      = PJC::COL_NM;
+    private const COL_COLOR     = PJC::COL_CL;
+    private const COL_ORDER     = AC::COL_OD;
+    private const COL_CREATED_BY = DC::TABLE_CREATOR;
 
     protected $fillable = [
         self::COL_NAME,
         self::COL_COLOR,
-        self::COL_CREATED_BY,
         self::COL_ORDER,
+    ];
+
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR
     ];
 
     public function tasks(string $projectId): Collection
     {
         $user = Auth::user();
-        $query = Task::where(ProjectsConstants::COL_STG, $this->id)
-            ->where(ProjectsConstants::COL_PJ_ID, $projectId);
-        if ($user->type !== PermissionsConstants::CL && $user->type !== PermissionsConstants::CPN)
-            $query->where(ProjectsConstants::COL_ASGN, $user?->id);
+        $query = Task::where(PJC::COL_STG, $this->id)
+            ->where(PJC::COL_PJ_ID, $projectId);
+        if ($user->type !== PMC::CL && $user->type !== PMC::CPN)
+            $query->where(PJC::COL_ASGN, $user?->id);
         return $query->orderBy(self::COL_ORDER)->get();
     }
 
-    public static function getChartData(): array
+    public static function getChartData(): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
@@ -66,12 +71,12 @@ class ProjectStages extends Model
         )->get();
         $arrTask = [];
         $i      = 0;
-        if ($user->type == PermissionsConstants::CPN) {
+        if ($user->type == PMC::CPN) {
             foreach ($stages as $stage) {
                 $data = [];
                 foreach ($arrDate as $d)
-                    $data[] = Task::where(ProjectsConstants::COL_STG, $stage->id)
-                        ->whereDate(DatabaseConstants::COL_U_AT, $d)->count();
+                    $data[] = Task::where(PJC::COL_STG, $stage->id)
+                        ->whereDate(DC::COL_U_AT, $d)->count();
                 $arrTask[] = [
                     'label'           => $stage->name,
                     'fill'            => '!0',
@@ -81,20 +86,20 @@ class ProjectStages extends Model
                 ];
                 $i++;
             }
-        } elseif ($user->type == PermissionsConstants::CL) {
+        } elseif ($user->type == PMC::CL) {
             foreach ($stages as $stage) {
                 $data = [];
                 foreach ($arrDate as $d)
                     $data[] = Task::join(
-                        DatabaseConstants::TABLE_PROJECTS,
-                        DatabaseConstants::TABLE_TASKS . '.' . ProjectsConstants::COL_PJ_ID,
+                        DC::TABLE_PROJECTS,
+                        DC::TABLE_TASKS . '.' . PJC::COL_PJ_ID,
                         '=',
-                        DatabaseConstants::TABLE_PROJECTS . 'id'
+                        DC::TABLE_PROJECTS . 'id'
                     )
-                        ->where(DatabaseConstants::TABLE_PROJECTS . PermissionsConstants::CL, $user?->id)
-                        ->where(ProjectsConstants::COL_STG, $stage->id)
-                        ->whereDate(DatabaseConstants::TABLE_TASKS . '.'
-                            . DatabaseConstants::COL_U_AT, $d)
+                        ->where(DC::TABLE_PROJECTS . PMC::CL, $user?->id)
+                        ->where(PJC::COL_STG, $stage->id)
+                        ->whereDate(DC::TABLE_TASKS . '.'
+                            . DC::COL_U_AT, $d)
                         ->count();
                 $arrTask[] = [
                     'label'           => $stage->name,
@@ -109,10 +114,10 @@ class ProjectStages extends Model
             foreach ($stages as $stage) {
                 $data = [];
                 foreach ($arrDate as $d)
-                    $data[] = Task::where(ProjectsConstants::COL_ASGN, $user?->id)
-                        ->where(ProjectsConstants::COL_STG, $stage->id)
-                        ->whereDate(DatabaseConstants::TABLE_TASKS . '.'
-                            . DatabaseConstants::COL_U_AT, $d)
+                    $data[] = Task::where(PJC::COL_ASGN, $user?->id)
+                        ->where(PJC::COL_STG, $stage->id)
+                        ->whereDate(DC::TABLE_TASKS . '.'
+                            . DC::COL_U_AT, $d)
                         ->count();
                 $arrTask[] = [
                     'label'           => $stage->name,

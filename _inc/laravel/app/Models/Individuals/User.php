@@ -42,7 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
         TwoFactorAuthenticatable,
         UsesUuids;
 
-    private const APPENDS       = ['profile'];        // ! CHANGED
+    private const APPENDS       = ['profile'];
     private const FILLABLE_FIELDS = [
         UC::COL_NM,
         UC::COL_EM,
@@ -65,13 +65,16 @@ class User extends Authenticatable implements MustVerifyEmail
         UC::COL_DPL,
         UC::COL_A_ST,
         UC::COL_DM
-    ];                                              // ! CHANGED
-    private const HIDDEN_FIELDS = [UC::COL_PW, UC::COL_RT]; // ! CHANGED
-    private const CASTS_FIELDS  = [UC::COL_EM_V_AT => 'datetime']; // ! CHANGED
-    protected $appends = self::APPENDS;              // ! CHANGED
-    protected $fillable = self::FILLABLE_FIELDS;     // ! CHANGED
-    protected $hidden = self::HIDDEN_FIELDS;         // ! CHANGED
-    protected $casts = self::CASTS_FIELDS;           // ! CHANGED
+    ];
+    private const HIDDEN_FIELDS = [UC::COL_PW, UC::COL_RT];
+    private const CASTS_FIELDS  = [
+        // UC::COL_PW => 'hashed', // ! CAST QUANDO SAIR DO TESTE
+        UC::COL_EM_V_AT => 'datetime'
+    ];
+    protected $appends = self::APPENDS;
+    protected $fillable = self::FILLABLE_FIELDS;
+    protected $hidden = self::HIDDEN_FIELDS;
+    protected $casts = self::CASTS_FIELDS;
     private const REL_PROJECTS  = DC::TABLE_PROJECTS;
     private const COL_PROJECT_ID = PJC::COL_PJ_ID;
     private const DEFAULT_WAREHOUSE = [

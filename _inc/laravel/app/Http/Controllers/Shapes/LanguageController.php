@@ -74,6 +74,7 @@ class LanguageController extends Controller
             if (($r = self::guard($request, 'manage language', self::ROUTE_INDEX)) instanceof RedirectResponse) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             $currentLang = $lang ?: DatabaseConstants::DEFAULT_LANG;
+            Log::warning($currentLang);
             try {
                 $startFetchLangs = microtime(true);
                 $languages = Language::pluck('full_name', 'code');
@@ -99,6 +100,7 @@ class LanguageController extends Controller
                 $startLoadLabel = microtime(true);
                 $baseDir = base_path("resources/lang/{$currentLang}");
                 $labelFilePath = is_dir($baseDir) ? "{$baseDir}.json" : base_path('resources/lang/en.json');
+                Log::warning($labelFilePath);
                 $raw = file_get_contents($labelFilePath) ?: '{}';
                 $labelFile = json_decode($raw, true) ?: [];
                 $this->logExecutionTime($startLoadLabel, "{$action} loadLabelFile", 'completed');
@@ -132,6 +134,7 @@ class LanguageController extends Controller
                     'disabledLangs' => $disabled,
                     'settings' => $settings
                 ];
+                Log::warning("[$action] rendering view", ['view' => $viewName]);
                 return $cookie ? response()->view($viewName, $data)->withCookie($cookie) : view($viewName, $data);
             } catch (\Throwable $e) {
                 Log::error("[$action] failed load message files", ['error' => $e->getMessage()]);

@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\DatabaseConstants as DC;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
@@ -11,33 +11,39 @@ class CreateSourcesTable extends Migration
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();      // ! CHANGED
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);         // ! CHANGED
-            $table->foreign(DatabaseConstants::TABLE_CREATOR)
+            $table->uuid(DC::TABLE_CREATOR)->nullable();
+            $table->uuid(DC::TABLE_UPDATER)->nullable();
+            $table->foreign(DC::TABLE_CREATOR)
                 ->references('id')
-                ->on(DatabaseConstants::TABLE_USERS)
-                ->cascadeOnDelete();
+                ->on(DC::TABLE_USERS)
+                ->nullOnDelete();
+            $table->foreign(DC::TABLE_UPDATER)
+                ->references('id')
+                ->on(DC::TABLE_USERS)
+                ->nullOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            try {
-                if (Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR)) {
-                    $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+            foreach ([DC::TABLE_CREATOR, DC::TABLE_UPDATER] as $column) {
+                try {
+                    if (Schema::hasColumn(self::TABLE, $column))
+                        $table->dropForeign([$column]);
+                } catch (\Exception $e) {
+                    Log::warning(
+                        'Failed to drop foreign key for '
+                            . $column
+                            . ' on table '
+                            . self::TABLE
+                            . ': '
+                            . $e->getMessage()
+                    );
                 }
-            } catch (\Exception $e) {
-                Log::warning(
-                    'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
-                        . ' on table '
-                        . self::TABLE
-                        . ': '
-                        . $e->getMessage()
-                );
             }
         });
         Schema::dropIfExists(self::TABLE);

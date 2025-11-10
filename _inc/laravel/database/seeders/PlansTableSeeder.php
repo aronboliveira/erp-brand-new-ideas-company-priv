@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Config\Constants\{
-    DatabaseConstants,
-    PlansConstants,
+    DatabaseConstants as DC,
+    PlansConstants as PLC,
     SeedersTemplating
 };
 use App\Models\Plan;
@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 class PlansTableSeeder extends Seeder
 {
-    public $planId = '';
+    protected string $planId = '';
     public function run(): void
     {
         $uuids = [];
@@ -33,29 +33,29 @@ class PlansTableSeeder extends Seeder
         } while (
             in_array($planId, $uuids, true) ||
             in_array($planId, [
-                DatabaseConstants::DEFAULT_PLAN,
-                DatabaseConstants::DEFAULT_PIPELINE,
-                DatabaseConstants::DEFAULT_UUID
+                DC::DEFAULT_PLAN,
+                DC::DEFAULT_PIPELINE,
+                DC::DEFAULT_UUID
             ], true)
         );
         Plan::create(
             [
-                'id' => $planId,
-                PlansConstants::COL_NM => 'Free Plan',
-                PlansConstants::COL_PC => 0,
-                PlansConstants::COL_DUR => 'lifetime',
-                PlansConstants::COL_MAX_U => 5,
-                PlansConstants::COL_MAX_CR => 5,
-                PlansConstants::COL_MAX_V => 5,
-                PlansConstants::COL_MAX_CL => 5,
-                PlansConstants::COL_SL => 1024,
-                PlansConstants::COL_CRM => 1,
-                PlansConstants::COL_HRM => 1,
-                PlansConstants::COL_ACC => 1,
-                PlansConstants::COL_PJ => 1,
-                PlansConstants::COL_POS => 1,
-                PlansConstants::COL_GPT => 1,
-                PlansConstants::COL_IMG => 'free_plan.png',
+                'query_key' => $planId,
+                PLC::COL_NM => 'Free Plan',
+                PLC::COL_PC => 0,
+                PLC::COL_DUR => 'lifetime',
+                PLC::COL_MAX_U => 5,
+                PLC::COL_MAX_CR => 5,
+                PLC::COL_MAX_V => 5,
+                PLC::COL_MAX_CL => 5,
+                PLC::COL_SL => 1024,
+                PLC::COL_CRM => 1,
+                PLC::COL_HRM => 1,
+                PLC::COL_ACC => 1,
+                PLC::COL_PJ => 1,
+                PLC::COL_POS => 1,
+                PLC::COL_GPT => 1,
+                PLC::COL_IMG => 'free_plan.png',
             ]
         );
         $output->writeln('<info>                                 Done creating Plans!</info>');

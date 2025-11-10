@@ -3,36 +3,40 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    UsersConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC
 };
-use App\Traits\{ChecksLogin, UsesUuids};
+use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 use Illuminate\{Http\RedirectResponse, Support\Collection};
 
 class Stage extends Model
 {
-    use HasFactory;
-    use UsesUuids;
-    use ChecksLogin;
+    use HasFactory, UsesUuids, ChecksLogin, HasAuditFields;
 
     protected $fillable = [
-        ProjectsConstants::COL_STG_NM, ProjectsConstants::COL_PPL_ID,
-        DatabaseConstants::TABLE_CREATOR, ActivitiesConstants::COL_OD
+        PJC::COL_STG_NM,
+        PJC::COL_PPL_ID,
+        DC::TABLE_CREATOR, // ! REMOVER APÓS TESTES
+        AC::COL_OD
+    ];
+    protected $guarded  = [
+        'id',
+        // DC::TABLE_CREATOR // ! ATIVAR APÓS TESTES
     ];
 
-    private const CLIENT_TYPE       = PermissionsConstants::CL;
+    private const CLIENT_TYPE       = PMC::CL;
     private const PIVOT_CLIENT_DEALS = 'client_deals';
     private const PIVOT_USER_DEALS  = 'user_deals';
-    private const FK_DEAL_ID        = ActivitiesConstants::COL_DL;
+    private const FK_DEAL_ID        = AC::COL_DL;
     private const FK_CLIENT_ID      = 'client_id';
     private const FK_USER_ID        = 'user_id';
     private const FK_STAGE_ID       = 'stage_id';
-    private const DEALS_TABLE       = DatabaseConstants::TABLE_DEALS;
-    private const ORDER_COL         = ActivitiesConstants::COL_OD;
+    private const DEALS_TABLE       = DC::TABLE_DEALS;
+    private const ORDER_COL         = AC::COL_OD;
 
     public function deals(): Collection|RedirectResponse
     {
@@ -41,10 +45,10 @@ class Stage extends Model
             instanceof RedirectResponse
         ) return $userOrRedirect;
         $user  = $userOrRedirect;
-        $pivot = $user[UsersConstants::COL_TP] === self::CLIENT_TYPE
+        $pivot = $user[UC::COL_TP] === self::CLIENT_TYPE
             ? self::PIVOT_CLIENT_DEALS
             : self::PIVOT_USER_DEALS;
-        $userKey = $user[UsersConstants::COL_TP] === self::CLIENT_TYPE
+        $userKey = $user[UC::COL_TP] === self::CLIENT_TYPE
             ? self::FK_CLIENT_ID
             : self::FK_USER_ID;
 

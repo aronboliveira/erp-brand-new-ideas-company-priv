@@ -6,12 +6,12 @@ use App\Config\Constants\{
     ActivitiesConstants,
     BanksConstants,
     ChartsConstants,
-    DatabaseConstants,
-    PermissionsConstants,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
     ProjectsConstants,
-    SeedersTemplating,
-    SettingsConstants,
-    UsersConstants
+    SeedersTemplating as SDT,
+    SettingsConstants as ST,
+    UsersConstants as UC
 };
 use App\Models\{
     BankAccount,
@@ -29,7 +29,7 @@ use App\Models\{
     ProjectStages,
     Role,
     User,
-    Utility
+    Utility as U
 };
 use Carbon\Carbon;
 use Database\Seeders\PlansTableSeeder;
@@ -49,47 +49,47 @@ class UsersTableSeeder extends Seeder
     {
         try {
             $settled = self::_hardcoded_permissions();
-            $superAdmin = $settled[PermissionsConstants::SA];
-            $admin = $settled[PermissionsConstants::ADM];
-            $accountant = $settled[PermissionsConstants::ACT];
-            $company = $settled[PermissionsConstants::CPN];
-            $clientUser = $settled[PermissionsConstants::CL . 'User'];
+            $superAdmin = $settled[PMC::SA];
+            $admin = $settled[PMC::ADM];
+            $accountant = $settled[PMC::ACT];
+            $company = $settled[PMC::CPN];
+            $clientUser = $settled[PMC::CL . 'User'];
             $project = $settled['project'];
             $uuids = $settled['uuids'];
             $users = [$superAdmin, $admin, $accountant, $company, $clientUser];
             $utilityTasks = [];
             $employeePairs = [
-                [$accountant->id ?? DatabaseConstants::DEFAULT_UUID, $company->id   ?? DatabaseConstants::DEFAULT_UUID],
-                [$superAdmin->id ?? DatabaseConstants::DEFAULT_UUID, $company->id  ?? DatabaseConstants::DEFAULT_UUID],
-                [$admin->id      ?? DatabaseConstants::DEFAULT_UUID, $company->id  ?? DatabaseConstants::DEFAULT_UUID],
-                [$company->id    ?? DatabaseConstants::DEFAULT_UUID, $superAdmin->id ?? DatabaseConstants::DEFAULT_UUID],
+                [$accountant->id ?? DC::DEFAULT_UUID, $company->id   ?? DC::DEFAULT_UUID],
+                [$superAdmin->id ?? DC::DEFAULT_UUID, $company->id  ?? DC::DEFAULT_UUID],
+                [$admin->id      ?? DC::DEFAULT_UUID, $company->id  ?? DC::DEFAULT_UUID],
+                [$company->id    ?? DC::DEFAULT_UUID, $superAdmin->id ?? DC::DEFAULT_UUID],
             ];
             foreach ($employeePairs as $args)
-                $utilityTasks[] = [Utility::EMP_DTLS, $args];
+                $utilityTasks[] = [U::EMP_DTLS, $args];
             foreach ([$admin, $accountant, $company, $superAdmin] as $u)
-                $utilityTasks[] = [Utility::COA_TP_DT, [$u->id ?? DatabaseConstants::DEFAULT_UUID]];
+                $utilityTasks[] = [U::COA_TP_DT, [$u->id ?? DC::DEFAULT_UUID]];
             foreach ([$accountant, $admin, $company, $superAdmin] as $u)
-                $utilityTasks[] = [Utility::COA_DATA, [$u]];
+                $utilityTasks[] = [U::COA_DATA, [$u]];
             foreach ([$accountant, $admin, $company, $superAdmin] as $u)
-                $utilityTasks[] = [Utility::PPL_LD_DL_STG, [$u->id ?? DatabaseConstants::DEFAULT_UUID]];
+                $utilityTasks[] = [U::PPL_LD_DL_STG, [$u->id ?? DC::DEFAULT_UUID]];
             foreach ([$company, $superAdmin] as $u)
                 $utilityTasks[] = [
-                    Utility::PRJ_TSK_STGS,
+                    U::PRJ_TSK_STGS,
                     [
-                        $project->id ?? DatabaseConstants::DEFAULT_PIPELINE,
-                        $u->id      ?? DatabaseConstants::DEFAULT_UUID,
+                        $project->id ?? DC::DEFAULT_PIPELINE,
+                        $u->id      ?? DC::DEFAULT_UUID,
                     ]
                 ];
             foreach ([$accountant, $admin, $company, $superAdmin] as $u)
-                $utilityTasks[] = ['labels', [$u->id ?? DatabaseConstants::DEFAULT_UUID]];
+                $utilityTasks[] = ['labels', [$u->id ?? DC::DEFAULT_UUID]];
             foreach ([$company, $superAdmin] as $u)
-                $utilityTasks[] = ['sources', [$u->id ?? DatabaseConstants::DEFAULT_UUID]];
+                $utilityTasks[] = ['sources', [$u->id ?? DC::DEFAULT_UUID]];
             foreach ([$admin, $company, $superAdmin] as $u)
-                $utilityTasks[] = [Utility::JB_STG, [$u->id ?? DatabaseConstants::DEFAULT_UUID]];
+                $utilityTasks[] = [U::JB_STG, [$u->id ?? DC::DEFAULT_UUID]];
             Log::debug("Dinamalically calling the utility methods to populate project-related tables...");
             if ($project instanceof Project) Log::debug("Project {$project->id} is a project instance");
             foreach ($utilityTasks as [$method, $args]) {
-                if ($method === Utility::PRJ_TSK_STGS && !$project?->id) {
+                if ($method === U::PRJ_TSK_STGS && !$project?->id) {
                     Log::error("Failed to call user function for Project Task Stages");
                     continue;
                 };
@@ -99,40 +99,40 @@ class UsersTableSeeder extends Seeder
                     true
                 );
                 if (!$allNull)
-                    call_user_func_array([Utility::class, $method], $args);
+                    call_user_func_array([U::class, $method], $args);
             };
             $uniqueLanguages = [];
             foreach ($users as $user) {
-                $lang = $user?->lang ?? DatabaseConstants::DEFAULT_LANG;
-                $id = $user?->id ?? DatabaseConstants::DEFAULT_UUID;
+                $lang = $user?->lang ?? DC::DEFAULT_LANG;
+                $id = $user?->id ?? DC::DEFAULT_UUID;
                 if (!isset($uniqueLanguages[$lang]))
                     $uniqueLanguages[$lang] = $id;
             };
             foreach ($uniqueLanguages as $lang => $id) {
-                $friendlyLangName = Utility::langList()[is_string($lang) ? $lang : (string) $lang];
+                $friendlyLangName = U::langList()[is_string($lang) ? $lang : (string) $lang];
                 Log::debug("Loading language resources for {$friendlyLangName}, id {$id}");
-                Utility::languageCreate($id);
+                U::languageCreate($id);
             }
             foreach ($users as $user) {
                 if (!($user instanceof User)) continue;
                 $user?->userDefaultData();
-                $user?->defaultEmail($user?->id ?? DatabaseConstants::DEFAULT_UUID);
+                $user?->defaultEmail($user?->id ?? DC::DEFAULT_UUID);
                 $user?->userDefaultWarehouse();
-                GeneratedOfferLetter::defaultOfferLetter($user?->id ?? DatabaseConstants::DEFAULT_UUID);
-                ExperienceCertificate::defaultExpCertificate($user?->id ?? DatabaseConstants::DEFAULT_UUID);
-                JoiningLetter::defaultJoiningLetter($user?->id ?? DatabaseConstants::DEFAULT_UUID);
-                Noc::defaultNocCertificate($user?->id ?? DatabaseConstants::DEFAULT_UUID);
+                GeneratedOfferLetter::defaultOfferLetter($user?->id ?? DC::DEFAULT_UUID);
+                ExperienceCertificate::defaultExpCertificate($user?->id ?? DC::DEFAULT_UUID);
+                JoiningLetter::defaultJoiningLetter($user?->id ?? DC::DEFAULT_UUID);
+                Noc::defaultNocCertificate($user?->id ?? DC::DEFAULT_UUID);
             }
-            $disks          = [SettingsConstants::LC, SettingsConstants::WSB, SettingsConstants::S3];
-            $validationExts = SettingsConstants::FMTS_UP_DEF;
-            $maxUploadSize  = (int) SettingsConstants::MAX_U_SIZE_DEF;
+            $disks          = [ST::LC, ST::WSB, ST::S3];
+            $validationExts = ST::FMTS_UP_DEF;
+            $maxUploadSize  = (int) ST::MAX_U_SIZE_DEF;
             $settingsToInsert = [];
             foreach ($disks as $disk) {
                 $primarySettingsId = '';
                 $primarySettingsAcc = 0;
                 do {
                     if ($primarySettingsAcc > 100_000) {
-                        Log::warning(SeedersTemplating::SCAPE_MSG);
+                        Log::warning(SDT::SCAPE_MSG);
                         break;
                     }
                     $primarySettingsId = (string) Str::uuid();
@@ -143,7 +143,7 @@ class UsersTableSeeder extends Seeder
                 $secondarySettingsAcc = 0;
                 do {
                     if ($secondarySettingsAcc > 100_000) {
-                        Log::warning(SeedersTemplating::SCAPE_MSG);
+                        Log::warning(SDT::SCAPE_MSG);
                         break;
                     }
                     $secondarySettingsId = (string) Str::uuid();
@@ -154,16 +154,16 @@ class UsersTableSeeder extends Seeder
                     'id'         => $primarySettingsId,
                     'name'       => "{$disk}_storage_validation",
                     'value'      => $validationExts,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ] + self::timestamps();
                 $settingsToInsert[] = [
                     'id'         => $secondarySettingsId,
                     'name'       => "{$disk}_max_upload_size",
                     'value'      => $maxUploadSize,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ] + self::timestamps();
             }
-            DB::table(DatabaseConstants::TABLE_SETTINGS)
+            DB::table(DC::TABLE_SETTINGS)
                 ->insert(
                     collect($settingsToInsert)
                         ->unique('name')
@@ -185,8 +185,8 @@ class UsersTableSeeder extends Seeder
     {
         $now = Carbon::now();
         return [
-            UsersConstants::COL_C_AT => $createdAt ?? $now,
-            UsersConstants::COL_U_AT => $updatedAt ?? $now,
+            UC::COL_C_AT => $createdAt ?? $now,
+            UC::COL_U_AT => $updatedAt ?? $now,
         ];
     }
     /**
@@ -238,7 +238,7 @@ class UsersTableSeeder extends Seeder
      */
     private static function _hardcoded_permissions(): array
     {
-        $arrPermissions = SeedersTemplating::PERMISSIONS;
+        $arrPermissions = SDT::PERMISSIONS;
         $now = now()->toDateTimeString();
         $gn = 'guard_name';
         $output = new ConsoleOutput();
@@ -256,8 +256,8 @@ class UsersTableSeeder extends Seeder
         try {
             $output->writeln('<comment> Seeding Permissions with ' . static::class . '</comment>');
             foreach ($arrPermissions as &$p) {
-                $p[UsersConstants::COL_C_AT] = $now;
-                $p[UsersConstants::COL_U_AT] = $now;
+                $p[UC::COL_C_AT] = $now;
+                $p[UC::COL_U_AT] = $now;
                 if (!isset($p[$gn]) || !$p[$gn]) $p[$gn] = 'web';
             }
             $arrPermissions = collect(array_map(
@@ -291,7 +291,7 @@ class UsersTableSeeder extends Seeder
             $saAcc = 0;
             do {
                 if ($saAcc > 100_000) {
-                    Log::warning(SeedersTemplating::SCAPE_MSG);
+                    Log::warning(SDT::SCAPE_MSG);
                     break;
                 }
                 $superAdminId = (string) Str::uuid();
@@ -301,39 +301,39 @@ class UsersTableSeeder extends Seeder
             $superAdminRole = Role::create(
                 [
                     'id'   => $superAdminId,
-                    'name' => PermissionsConstants::SA,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    'name' => PMC::SA,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
             $superAdmin = User::create(
                 [
-                    UsersConstants::COL_NM => $faker->name,
-                    UsersConstants::COL_EM => 'suporte@prestech.com.br', // TODO CHANGE AFTER TESTING
-                    UsersConstants::COL_PW => Hash::make('123456789qwe.*'), // TODO CHANGE AFTER TESTING
-                    UsersConstants::COL_TP => PermissionsConstants::SA,
-                    UsersConstants::COL_LG => DatabaseConstants::DEFAULT_LANG,
-                    UsersConstants::COL_AV =>  $faker->imageUrl(200, 200, 'people'),
-                    UsersConstants::COL_EM_V_AT => now()->toDateTimeString(),
-                    UsersConstants::COL_DPL => DatabaseConstants::DEFAULT_PIPELINE,
-                    UsersConstants::COL_PL => PlansTableSeeder::$planId ?? DatabaseConstants::DEFAULT_PLAN,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    UC::COL_NM => $faker->name,
+                    UC::COL_EM => 'suporte@prestech.com.br', // TODO CHANGE AFTER TESTING
+                    UC::COL_PW => Hash::make('123456789qwe.*'), // TODO CHANGE AFTER TESTING
+                    UC::COL_TP => PMC::SA,
+                    UC::COL_LG => DC::DEFAULT_LANG,
+                    UC::COL_AV =>  $faker->imageUrl(200, 200, 'people'),
+                    UC::COL_EM_V_AT => now()->toDateTimeString(),
+                    UC::COL_DPL => DC::DEFAULT_PIPELINE,
+                    UC::COL_PL => PlansTableSeeder::$planId ?? DC::DEFAULT_PLAN,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
             $superAdmin->assignRole($superAdminRole);
-            foreach (array_column(SeedersTemplating::SA_PERMS, 'name') as $saPerm)
+            foreach (array_column(SDT::SA_PERMS, 'name') as $saPerm)
                 $superAdminRole->givePermissionTo($saPerm);
             Log::debug('Super Admin created with permissions: ' . json_encode($superAdminRole->getAllPermissions()->pluck('name')));
             try {
                 $pipeline = Pipeline::create([
                     ProjectsConstants::COL_PPL_NM       => 'Default Pipeline',
                     ActivitiesConstants::COL_OD         => 0,
-                    DatabaseConstants::TABLE_CREATOR    => DatabaseConstants::DEFAULT_UUID,
+                    DC::TABLE_CREATOR    => DC::DEFAULT_UUID,
                 ]);
                 if ($superAdmin instanceof User)
                     $saPipeline = Pipeline::create([
                         ProjectsConstants::COL_PPL_NM       => 'Default Super Admin Pipeline',
                         ActivitiesConstants::COL_OD         => 0,
-                        DatabaseConstants::TABLE_CREATOR    => $superAdmin->id,
+                        DC::TABLE_CREATOR    => $superAdmin->id,
                     ]);
             } catch (QueryException $e) {
                 $msg = 'Database error while seeding permissions: ' . $e->getMessage();
@@ -366,7 +366,7 @@ class UsersTableSeeder extends Seeder
             $saAcc = 0;
             do {
                 if ($saAcc > 100_000) {
-                    Log::warning(SeedersTemplating::SCAPE_MSG);
+                    Log::warning(SDT::SCAPE_MSG);
                     break;
                 }
                 $adminId = (string) Str::uuid();
@@ -376,25 +376,25 @@ class UsersTableSeeder extends Seeder
             $adminRole = Role::create(
                 [
                     'id'   => $adminId,
-                    'name' => PermissionsConstants::ADM,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    'name' => PMC::ADM,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
-            foreach (array_column(SeedersTemplating::SA_PERMS, 'name') as $saPerm)
+            foreach (array_column(SDT::SA_PERMS, 'name') as $saPerm)
                 $adminRole->givePermissionTo($saPerm);
             $adminPassword = $faker->password(12, 20);
             $admin = User::create(
                 [
-                    UsersConstants::COL_NM                    => $faker->name,
-                    UsersConstants::COL_EM                   => $faker->unique()->safeEmail,
-                    UsersConstants::COL_PW                => bcrypt($adminPassword),
-                    UsersConstants::COL_TP => PermissionsConstants::ADM,
-                    UsersConstants::COL_LG => DatabaseConstants::DEFAULT_LANG,
-                    UsersConstants::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
-                    UsersConstants::COL_EM_V_AT => now()->toDateTimeString(),
-                    UsersConstants::COL_DPL => $pipeline?->id ?? DatabaseConstants::DEFAULT_PIPELINE,
-                    UsersConstants::COL_PL => PlansTableSeeder::$planId ?? DatabaseConstants::DEFAULT_PLAN,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    UC::COL_NM                    => $faker->name,
+                    UC::COL_EM                   => $faker->unique()->safeEmail,
+                    UC::COL_PW                => bcrypt($adminPassword),
+                    UC::COL_TP => PMC::ADM,
+                    UC::COL_LG => DC::DEFAULT_LANG,
+                    UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
+                    UC::COL_EM_V_AT => now()->toDateTimeString(),
+                    UC::COL_DPL => $pipeline?->id ?? DC::DEFAULT_PIPELINE,
+                    UC::COL_PL => PlansTableSeeder::$planId ?? DC::DEFAULT_PLAN,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
             $admin->assignRole($adminRole);
@@ -420,7 +420,7 @@ class UsersTableSeeder extends Seeder
             $companyAcc = 0;
             do {
                 if ($companyAcc > 100_000) {
-                    Log::warning(SeedersTemplating::SCAPE_MSG);
+                    Log::warning(SDT::SCAPE_MSG);
                     break;
                 }
                 $companyId = (string) Str::uuid();
@@ -431,24 +431,24 @@ class UsersTableSeeder extends Seeder
                 [
                     'id'   => $companyId,
                     'name' => 'company',
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
-            foreach (array_column(SeedersTemplating::COMPANY_PERMS, 'name') as $cpPerm)
+            foreach (array_column(SDT::COMPANY_PERMS, 'name') as $cpPerm)
                 $companyRole->givePermissionTo($cpPerm);
             $companyPassword = $faker->password(12, 20);
             $company = User::create(
                 [
-                    UsersConstants::COL_NM                    => $faker->name,
-                    UsersConstants::COL_EM                   => $faker->unique()->safeEmail,
-                    UsersConstants::COL_PW                => bcrypt($companyPassword),
-                    UsersConstants::COL_TP => PermissionsConstants::CPN,
-                    UsersConstants::COL_LG => DatabaseConstants::DEFAULT_LANG,
-                    UsersConstants::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
-                    UsersConstants::COL_EM_V_AT => now()->toDateTimeString(),
-                    UsersConstants::COL_DPL => $pipeline?->id ?? DatabaseConstants::DEFAULT_PIPELINE,
-                    UsersConstants::COL_PL => PlansTableSeeder::$planId ?? DatabaseConstants::DEFAULT_PLAN,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    UC::COL_NM                    => $faker->name,
+                    UC::COL_EM                   => $faker->unique()->safeEmail,
+                    UC::COL_PW                => bcrypt($companyPassword),
+                    UC::COL_TP => PMC::CPN,
+                    UC::COL_LG => DC::DEFAULT_LANG,
+                    UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
+                    UC::COL_EM_V_AT => now()->toDateTimeString(),
+                    UC::COL_DPL => $pipeline?->id ?? DC::DEFAULT_PIPELINE,
+                    UC::COL_PL => PlansTableSeeder::$planId ?? DC::DEFAULT_PLAN,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
             $company?->assignRole($companyRole);
@@ -461,7 +461,7 @@ class UsersTableSeeder extends Seeder
                 $accountantAcc = 0;
                 do {
                     if ($accountantAcc > 100_000) {
-                        Log::warning(SeedersTemplating::SCAPE_MSG);
+                        Log::warning(SDT::SCAPE_MSG);
                         break;
                     }
                     $accountantId = (string) Str::uuid();
@@ -472,24 +472,24 @@ class UsersTableSeeder extends Seeder
                     [
                         'id'   => $accountantId,
                         'name' => 'accountant',
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]
                 );
-                foreach (array_column(SeedersTemplating::ACCOUNTANT_PERMS, 'name') as $acPerm)
+                foreach (array_column(SDT::ACCOUNTANT_PERMS, 'name') as $acPerm)
                     $accountantRole->givePermissionTo($acPerm);
                 $accPassword = $faker->password(12, 20);
                 $accountant = User::create(
                     [
-                        UsersConstants::COL_NM                    => $faker->name,
-                        UsersConstants::COL_EM                   => $faker->unique()->safeEmail,
-                        UsersConstants::COL_PW                => bcrypt($accPassword),
-                        UsersConstants::COL_TP => PermissionsConstants::ACT,
-                        UsersConstants::COL_LG => DatabaseConstants::DEFAULT_LANG,
-                        UsersConstants::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
-                        UsersConstants::COL_EM_V_AT => now()->toDateTimeString(),
-                        UsersConstants::COL_DPL => $pipeline?->id ?? DatabaseConstants::DEFAULT_PIPELINE,
-                        UsersConstants::COL_PL => PlansTableSeeder::$planId ?? DatabaseConstants::DEFAULT_PLAN,
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        UC::COL_NM                    => $faker->name,
+                        UC::COL_EM                   => $faker->unique()->safeEmail,
+                        UC::COL_PW                => bcrypt($accPassword),
+                        UC::COL_TP => PMC::ACT,
+                        UC::COL_LG => DC::DEFAULT_LANG,
+                        UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
+                        UC::COL_EM_V_AT => now()->toDateTimeString(),
+                        UC::COL_DPL => $pipeline?->id ?? DC::DEFAULT_PIPELINE,
+                        UC::COL_PL => PlansTableSeeder::$planId ?? DC::DEFAULT_PLAN,
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]
                 );
                 $accountant->assignRole($accountantRole);
@@ -519,7 +519,7 @@ class UsersTableSeeder extends Seeder
                     do {
                         if (str_starts_with('ba', $varName)) $baAcc += 1;
                         if ($acc > 100_000) {
-                            Log::warning(SeedersTemplating::SCAPE_MSG);
+                            Log::warning(SDT::SCAPE_MSG);
                             break;
                         }
                         $$varName = (string) Str::uuid();
@@ -530,7 +530,7 @@ class UsersTableSeeder extends Seeder
                     [
                         'id' => $coaTpId,
                         ChartsConstants::COL_NM => 'admin-type-chart',
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID
 
                     ]
                 );
@@ -539,7 +539,7 @@ class UsersTableSeeder extends Seeder
                         'id' => $coaSbTpId,
                         ChartsConstants::COL_NM => 'admin-subtype-chart',
                         ChartsConstants::COL_TP => $coaTpId,
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID
 
                     ]
                 );
@@ -549,7 +549,7 @@ class UsersTableSeeder extends Seeder
                         ChartsConstants::COL_NM => 'admin-chart',
                         ChartsConstants::COL_TP => $coaTpId,
                         ChartsConstants::COL_SUBTP => $coaSbTpId,
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID
                     ],
                 );
                 BankAccount::create(
@@ -562,7 +562,7 @@ class UsersTableSeeder extends Seeder
                         BanksConstants::COL_CT => '+55 21 9000-000',
                         BanksConstants::COL_ADR => 'Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro, RJ, Brasil',
                         BanksConstants::COL_COA => $coaId,
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]
                 );
                 $doneTime = now()->toDateTimeString();
@@ -583,7 +583,7 @@ class UsersTableSeeder extends Seeder
                 $clientAcc = 0;
                 do {
                     if ($clientAcc > 100_000) {
-                        Log::warning(SeedersTemplating::SCAPE_MSG);
+                        Log::warning(SDT::SCAPE_MSG);
                         break;
                     }
                     $clientId = (string) Str::uuid();
@@ -593,25 +593,25 @@ class UsersTableSeeder extends Seeder
                 $clientRole = Role::create(
                     [
                         'id'   => $clientId,
-                        'name' => PermissionsConstants::CL,
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        'name' => PMC::CL,
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]
                 );
-                foreach (array_column(SeedersTemplating::CLIENT_PERMS, 'name') as $clPerm)
+                foreach (array_column(SDT::CLIENT_PERMS, 'name') as $clPerm)
                     $clientRole->givePermissionTo($clPerm);
                 $clientPassword = $faker->password(12, 20);
                 $clientUser = User::create(
                     [
-                        UsersConstants::COL_NM                    => $faker->name,
-                        UsersConstants::COL_EM                   => $faker->unique()->safeEmail,
-                        UsersConstants::COL_PW                => bcrypt($clientPassword),
-                        UsersConstants::COL_TP => PermissionsConstants::CL,
-                        UsersConstants::COL_LG => DatabaseConstants::DEFAULT_LANG,
-                        UsersConstants::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
-                        UsersConstants::COL_EM_V_AT => now()->toDateTimeString(),
-                        UsersConstants::COL_DPL => $pipeline?->id ?? DatabaseConstants::DEFAULT_PIPELINE,
-                        UsersConstants::COL_PL => PlansTableSeeder::$planId ?? DatabaseConstants::DEFAULT_PLAN,
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        UC::COL_NM                    => $faker->name,
+                        UC::COL_EM                   => $faker->unique()->safeEmail,
+                        UC::COL_PW                => bcrypt($clientPassword),
+                        UC::COL_TP => PMC::CL,
+                        UC::COL_LG => DC::DEFAULT_LANG,
+                        UC::COL_AV                  => $faker->imageUrl(200, 200, 'people'),
+                        UC::COL_EM_V_AT => now()->toDateTimeString(),
+                        UC::COL_DPL => $pipeline?->id ?? DC::DEFAULT_PIPELINE,
+                        UC::COL_PL => PlansTableSeeder::$planId ?? DC::DEFAULT_PLAN,
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]
                 );
                 $clientUser->assignRole($clientRole);
@@ -620,26 +620,26 @@ class UsersTableSeeder extends Seeder
                     . $doneTime . ' !</info>');
                 if ($clientUser instanceof User) {
                     $client = Client::create([
-                        UsersConstants::COL_NM        => $clientUser->{UsersConstants::COL_NM},
-                        UsersConstants::COL_EM        => $clientUser->{UsersConstants::COL_EM},
-                        UsersConstants::COL_EM_V_AT   => $clientUser->{UsersConstants::COL_EM_V_AT},
-                        UsersConstants::COL_PW        => $clientUser->{UsersConstants::COL_PW},
-                        UsersConstants::COL_LG        => $clientUser->{UsersConstants::COL_LG},
-                        UsersConstants::COL_IA        => 1,
-                        UsersConstants::COL_USER_ID   => $clientUser->id,
-                        UsersConstants::COL_TEL       => $faker->phoneNumber,
-                        UsersConstants::COL_ADR       => $faker->address,
-                        UsersConstants::COL_IU        => true,
-                        UsersConstants::COL_AV        => $clientUser->{UsersConstants::COL_AV},
-                        UsersConstants::COL_MSG_CL    => '#2180f3',
-                        UsersConstants::COL_DEL_STT   => 1,
-                        DatabaseConstants::TABLE_CREATOR => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        UC::COL_NM        => $clientUser->{UC::COL_NM},
+                        UC::COL_EM        => $clientUser->{UC::COL_EM},
+                        UC::COL_EM_V_AT   => $clientUser->{UC::COL_EM_V_AT},
+                        UC::COL_PW        => $clientUser->{UC::COL_PW},
+                        UC::COL_LG        => $clientUser->{UC::COL_LG},
+                        UC::COL_IA        => 1,
+                        UC::COL_USER_ID   => $clientUser->id,
+                        UC::COL_TEL       => $faker->phoneNumber,
+                        UC::COL_ADR       => $faker->address,
+                        UC::COL_IU        => true,
+                        UC::COL_AV        => $clientUser->{UC::COL_AV},
+                        UC::COL_MSG_CL    => '#2180f3',
+                        UC::COL_DEL_STT   => 1,
+                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
                     ]);
                     $stageTemplate = ProjectStages::create([
                         ProjectsConstants::COL_NM         => 'Default Stage Set',
                         ProjectsConstants::COL_CL         => 'primary',
                         ActivitiesConstants::COL_OD       => 0,
-                        DatabaseConstants::TABLE_CREATOR  => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        DC::TABLE_CREATOR  => $company?->id ?? DC::DEFAULT_UUID,
                     ]);
                     $projectPassword = $faker->password(12, 20);
                     $project = Project::create([
@@ -653,9 +653,9 @@ class UsersTableSeeder extends Seeder
                         ProjectsConstants::COL_BUDGET       => 25_000,
                         ProjectsConstants::COL_E_HRS        => '160',
                         ProjectsConstants::COL_PASSWORD     => bcrypt($projectPassword),
-                        ProjectsConstants::COL_COPYLINK     => url('/') . Utility::generateRandomBase64Path(),
+                        ProjectsConstants::COL_COPYLINK     => url('/') . U::generateRandomBase64Path(),
                         ProjectsConstants::COL_TAGS         => json_encode(['demo', 'seed']),
-                        DatabaseConstants::TABLE_CREATOR    => $company?->id ?? DatabaseConstants::DEFAULT_UUID,
+                        DC::TABLE_CREATOR    => $company?->id ?? DC::DEFAULT_UUID,
                     ]);
                 };
             } catch (PermissionDoesNotExist $e) {
@@ -690,7 +690,7 @@ class UsersTableSeeder extends Seeder
             $customerAcc = 0;
             do {
                 if ($customerAcc > 100_000) {
-                    Log::warning(SeedersTemplating::SCAPE_MSG);
+                    Log::warning(SDT::SCAPE_MSG);
                     break;
                 }
                 $customerId = (string) Str::uuid();
@@ -700,11 +700,11 @@ class UsersTableSeeder extends Seeder
             $customerRole = Role::create(
                 [
                     'id'   => $customerId,
-                    'name' => PermissionsConstants::CT,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    'name' => PMC::CT,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
-            foreach (array_column(SeedersTemplating::CUSTOMER_PERMS, 'name') as $ctPerm)
+            foreach (array_column(SDT::CUSTOMER_PERMS, 'name') as $ctPerm)
                 $customerRole->givePermissionTo($ctPerm);
             $doneTime = now()->toDateTimeString();
             $output->writeln('<info>                          Done creating customers at '
@@ -728,7 +728,7 @@ class UsersTableSeeder extends Seeder
             $vendorId = '';
             do {
                 if ($vendorAcc > 100_000) {
-                    Log::warning(SeedersTemplating::SCAPE_MSG);
+                    Log::warning(SDT::SCAPE_MSG);
                     break;
                 }
                 $vendorId = (string) Str::uuid();
@@ -738,11 +738,11 @@ class UsersTableSeeder extends Seeder
             $vendorRole = Role::create(
                 [
                     'id'   => $vendorId,
-                    'name' => PermissionsConstants::VD,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::DEFAULT_UUID,
+                    'name' => PMC::VD,
+                    DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
-            foreach (array_column(SeedersTemplating::VENDOR_PERMS, 'name') as $vdPerm)
+            foreach (array_column(SDT::VENDOR_PERMS, 'name') as $vdPerm)
                 $vendorRole->givePermissionTo($vdPerm);
             $doneTime = now()->toDateTimeString();
             $output->writeln('<info>                             Done creating vendors at '
@@ -763,12 +763,12 @@ class UsersTableSeeder extends Seeder
         $output->writeln('<question>----------- End of Users Seeding ------------</question>');
         $output->writeln('');
         return [
-            PermissionsConstants::SA => $superAdmin,
-            PermissionsConstants::ADM => $admin,
-            PermissionsConstants::ACT => $accountant,
-            PermissionsConstants::CPN => $company,
-            PermissionsConstants::CL . 'User' => $clientUser,
-            PermissionsConstants::CL => $client,
+            PMC::SA => $superAdmin,
+            PMC::ADM => $admin,
+            PMC::ACT => $accountant,
+            PMC::CPN => $company,
+            PMC::CL . 'User' => $clientUser,
+            PMC::CL => $client,
             'project' => $project,
             'pipeline' => $pipeline,
             'uuids' => $uuids

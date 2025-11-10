@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Config\Constants\{
     DatabaseConstants,
-    PlansConstants,
+    PlansConstants as PLC,
     PermissionsConstants,
     SettingsConstants,
     ViewsConstants as VW
@@ -13,7 +13,7 @@ use App\Models\{Plan, Utility};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Arr;
+use Illuminate\Support\{Arr, Str};
 use Illuminate\Support\Facades\{Crypt, File, Log, Redirect, Validator, View as ViewFacade};
 
 class PlanController extends Controller
@@ -99,38 +99,40 @@ class PlanController extends Controller
                 if (empty($adminPaymentSetting) || !collect($methods)->some(fn($m) => $adminPaymentSetting[$m] === 'on'))
                     return Redirect::back()->with('error', __('Please set stripe or paypal api key & secret key for add newself::SINGULAR. .'));
                 $validation = [
-                    PlansConstants::COL_DUR      => 'required',
-                    PlansConstants::COL_MAX_CR   => 'required|numeric',
-                    PlansConstants::COL_MAX_U    => 'required|numeric',
-                    PlansConstants::COL_MAX_V    => 'required|numeric',
-                    PlansConstants::COL_NM       => 'required|unique:plans',
-                    PlansConstants::COL_PC       => 'required|numeric|min:0',
-                    PlansConstants::COL_SL       => 'required|numeric'
+                    PLC::COL_DUR      => 'required',
+                    PLC::COL_MAX_CR   => 'required|numeric',
+                    PLC::COL_MAX_U    => 'required|numeric',
+                    PLC::COL_MAX_V    => 'required|numeric',
+                    PLC::COL_NM       => 'required|unique:plans',
+                    PLC::COL_PC       => 'required|numeric|min:0',
+                    PLC::COL_SL       => 'required|numeric'
                 ];
-                if ($request->hasFile(PlansConstants::COL_IMG)) {
-                    $validation[PlansConstants::COL_IMG] = 'required|file|max:' . SettingsConstants::MAX_U_SIZE_DEF;
+                if ($request->hasFile(PLC::COL_IMG)) {
+                    $validation[PLC::COL_IMG] = 'required|file|max:' . SettingsConstants::MAX_U_SIZE_DEF;
                 }
                 Validator::make($request->all(), $validation)->validate();
                 $data = $request->all();
+                do $candidateKey = Str::uuid()->toString();
+                while (Plan::where('query_key', $candidateKey)->exists());
                 $post = Arr::only($data, [
-                    PlansConstants::COL_NM,
-                    PlansConstants::COL_PC,
-                    PlansConstants::COL_DUR,
-                    PlansConstants::COL_MAX_U,
-                    PlansConstants::COL_MAX_CR,
-                    PlansConstants::COL_MAX_V,
-                    PlansConstants::COL_SL
+                    PLC::COL_NM,
+                    PLC::COL_PC,
+                    PLC::COL_DUR,
+                    PLC::COL_MAX_U,
+                    PLC::COL_MAX_CR,
+                    PLC::COL_MAX_V,
+                    PLC::COL_SL
                 ]);
-                foreach ([PlansConstants::COL_PJ, PlansConstants::COL_CRM, PlansConstants::COL_HRM, PlansConstants::COL_ACC, PlansConstants::COL_POS, PlansConstants::COL_GPT] as $feature) {
+                $post = array_merge($post, ['id' => $candidateKey]);
+                foreach ([PLC::COL_PJ, PLC::COL_CRM, PLC::COL_HRM, PLC::COL_ACC, PLC::COL_POS, PLC::COL_GPT] as $feature)
                     $post[$feature] = isset($data["enable_$feature"]) ? 1 : 0;
-                }
-                if ($request->hasFile(PlansConstants::COL_IMG)) {
-                    $file = $request->file(PlansConstants::COL_IMG);
+                if ($request->hasFile(PLC::COL_IMG)) {
+                    $file = $request->file(PLC::COL_IMG);
                     $fileName = self::SINGULAR . '_' . time() . '.' . $file->getClientOriginalExtension();
                     $dir = storage_path('uploads/' . self::SINGULAR . '/');
                     if (!file_exists($dir)) mkdir($dir, 0777, true);
                     $file->storeAs('uploads/' . self::SINGULAR . '/', $fileName);
-                    $post[PlansConstants::COL_IMG] = $fileName;
+                    $post[PLC::COL_IMG] = $fileName;
                 }
                 Plan::create($post);
                 return Redirect::back()->with('success', __('Plan successfully created.'));
@@ -178,35 +180,35 @@ class PlanController extends Controller
                 }
                 $plan = Plan::findOrFail($planId);
                 $validation = [
-                    PlansConstants::COL_DUR      => 'required',
-                    PlansConstants::COL_MAX_CR   => 'required|numeric',
-                    PlansConstants::COL_MAX_U    => 'required|numeric',
-                    PlansConstants::COL_MAX_V    => 'required|numeric',
-                    PlansConstants::COL_NM       => 'required|unique:plans,name,' . $planId,
-                    PlansConstants::COL_SL       => 'required|numeric'
+                    PLC::COL_DUR      => 'required',
+                    PLC::COL_MAX_CR   => 'required|numeric',
+                    PLC::COL_MAX_U    => 'required|numeric',
+                    PLC::COL_MAX_V    => 'required|numeric',
+                    PLC::COL_NM       => 'required|unique:plans,name,' . $planId,
+                    PLC::COL_SL       => 'required|numeric'
                 ];
                 Validator::make($request->all(), $validation)->validate();
                 $data = $request->all();
                 $post = Arr::only($data, [
-                    PlansConstants::COL_NM,
-                    PlansConstants::COL_DUR,
-                    PlansConstants::COL_MAX_U,
-                    PlansConstants::COL_MAX_CR,
-                    PlansConstants::COL_MAX_V,
-                    PlansConstants::COL_SL
+                    PLC::COL_NM,
+                    PLC::COL_DUR,
+                    PLC::COL_MAX_U,
+                    PLC::COL_MAX_CR,
+                    PLC::COL_MAX_V,
+                    PLC::COL_SL
                 ]);
-                foreach ([PlansConstants::COL_PJ, PlansConstants::COL_CRM, PlansConstants::COL_HRM, PlansConstants::COL_ACC, PlansConstants::COL_POS, PlansConstants::COL_GPT] as $feature) {
+                foreach ([PLC::COL_PJ, PLC::COL_CRM, PLC::COL_HRM, PLC::COL_ACC, PLC::COL_POS, PLC::COL_GPT] as $feature) {
                     $post[$feature] = isset($data["enable_$feature"]) ? 1 : 0;
                 }
-                if ($request->hasFile(PlansConstants::COL_IMG)) {
-                    $file = $request->file(PlansConstants::COL_IMG);
+                if ($request->hasFile(PLC::COL_IMG)) {
+                    $file = $request->file(PLC::COL_IMG);
                     $fileName = self::SINGULAR . '_' . time() . '.' . $file->getClientOriginalExtension();
                     $dir = storage_path('uploads/' . self::SINGULAR . '/');
                     if (!file_exists($dir)) mkdir($dir, 0777, true);
                     $oldPath = $dir . $plan->image;
                     if (File::exists($oldPath)) File::delete($oldPath);
                     $file->storeAs('uploads/' . self::SINGULAR . '/', $fileName);
-                    $post[PlansConstants::COL_IMG] = $fileName;
+                    $post[PLC::COL_IMG] = $fileName;
                 }
                 $plan->update($post);
                 return Redirect::back()->with('success', __('Plan successfully updated.'));

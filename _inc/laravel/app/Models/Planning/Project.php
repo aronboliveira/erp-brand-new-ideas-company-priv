@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    PermissionsConstants,
-    ProjectsConstants,
-    UsersConstants,
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC,
     ViewsConstants as VW
 };
-use App\Traits\{ChecksLogin, UsesUuids};
+use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Support\Facades\{Auth, Storage};
 use Illuminate\{Database\Eloquent\Model, Support\Collection};
@@ -19,23 +19,32 @@ use Illuminate\Http\RedirectResponse;
 
 class Project extends Model
 {
-    use ChecksLogin, UsesUuids;
+    use ChecksLogin, UsesUuids, HasAuditFields;
 
     protected $fillable = [
-        ProjectsConstants::COL_NM,
-        ProjectsConstants::COL_S_DT,
-        ProjectsConstants::COL_E_DT,
-        ProjectsConstants::COL_IMG,
-        ProjectsConstants::COL_BUDGET,
-        ProjectsConstants::COL_CLIENT_ID,
-        ProjectsConstants::COL_STAGE_ID,
-        ProjectsConstants::COL_DESCRIPTION,
-        ProjectsConstants::COL_STATUS,
-        ProjectsConstants::COL_E_HRS,
-        ProjectsConstants::COL_PASSWORD,
-        ProjectsConstants::COL_COPYLINK,
-        ProjectsConstants::COL_TAGS,
-        DatabaseConstants::TABLE_CREATOR,
+        PJC::COL_NM,
+        PJC::COL_S_DT,
+        PJC::COL_E_DT,
+        PJC::COL_IMG,
+        PJC::COL_BUDGET,
+        PJC::COL_CLIENT_ID,
+        PJC::COL_STAGE_ID,
+        PJC::COL_DESCRIPTION,
+        PJC::COL_STATUS,
+        PJC::COL_E_HRS,
+        PJC::COL_COPYLINK,
+        PJC::COL_TAGS,
+    ];
+
+    protected $hidden = [PJC::COL_PASSWORD];
+
+    protected $casts = [
+        PJC::COL_PASSWORD => 'hashed',
+    ];
+
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
     ];
 
     protected $appends = ['img_image'];
@@ -58,7 +67,7 @@ class Project extends Model
 
     public function milestones(): HasMany
     {
-        return $this->hasMany(\App\Models\Milestone::class, ProjectsConstants::COL_PJ_ID, 'id');
+        return $this->hasMany(\App\Models\Milestone::class, PJC::COL_PJ_ID, 'id');
         // * consider belongsTo(User::class,'client_id','id')
     }
 
@@ -73,19 +82,19 @@ class Project extends Model
     public function projectAttachments(): Collection
     {
         $ids = $this->tasks->pluck('id');
-        return TaskFile::whereIn(ActivitiesConstants::COL_TSK_ID, $ids)->get();
+        return TaskFile::whereIn(AC::COL_TSK_ID, $ids)->get();
     }
 
     public static function projectHrs(int|string $projectId, int|string $taskId = ''): array
     {
-        $allocated = self::projectTask($projectId)->sum(ProjectsConstants::COL_E_HRS);
+        $allocated = self::projectTask($projectId)->sum(PJC::COL_E_HRS);
         return ['allocated' => $allocated];
     }
 
     public static function projectTask(int|string $id): Collection
     {
         if (self::$projectTask === null)
-            self::$projectTask = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->get();
+            self::$projectTask = ProjectTask::where(PJC::COL_PJ_ID, $id)->get();
         return self::$projectTask;
         // * consider caching per project id instead of globally
     }
@@ -94,32 +103,32 @@ class Project extends Model
     {
         $total = $project->tasks->count();
         $completed = $project->tasks
-            ->where(ProjectsConstants::COL_STAGE_ID, $lastTask)
-            ->where(ProjectsConstants::COL_IS_CP, 1)
+            ->where(PJC::COL_STAGE_ID, $lastTask)
+            ->where(PJC::COL_IS_CP, 1)
             ->count();
         $percentage = $total > 0 ? intval(($completed / $total) * 100) : 0;
         $color = Utility::getProgressColor($percentage);
-        return [ProjectsConstants::COL_CL => $color, 'percentage' => $percentage . '%'];
+        return [PJC::COL_CL => $color, 'percentage' => $percentage . '%'];
     }
 
     public function projectProgressCopy(int|string $userId): array
     {
         $last = TaskStage::orderBy('order', 'desc')
-            ->where(DatabaseConstants::TABLE_CREATOR, $userId)
+            ->where(DC::TABLE_CREATOR, $userId)
             ->first();
         $total = $this->tasks->count();
         $completed = $this->tasks()
-            ->where(ProjectsConstants::COL_STAGE_ID, $last->id)
-            ->where(ProjectsConstants::COL_IS_CP, 1)
+            ->where(PJC::COL_STAGE_ID, $last->id)
+            ->where(PJC::COL_IS_CP, 1)
             ->count();
         $percentage = $total > 0 ? intval(($completed / $total) * 100) : 0;
         $color = Utility::getProgressColor($percentage);
-        return [ProjectsConstants::COL_CL => $color, 'percentage' => $percentage . '%'];
+        return [PJC::COL_CL => $color, 'percentage' => $percentage . '%'];
     }
 
     public function tasks(): HasMany
     {
-        return $this->hasMany(ProjectTask::class, ProjectsConstants::COL_PJ_ID, 'id')
+        return $this->hasMany(ProjectTask::class, PJC::COL_PJ_ID, 'id')
             ->orderBy('id', 'desc');
     }
 
@@ -128,8 +137,8 @@ class Project extends Model
         return $this->belongsToMany(
             \App\Models\User::class,
             'project_users',
-            ProjectsConstants::COL_PJ_ID,
-            UsersConstants::COL_USER_ID
+            PJC::COL_PJ_ID,
+            UC::COL_USER_ID
         );
     }
 
@@ -141,13 +150,13 @@ class Project extends Model
 
     public function activities(): HasMany
     {
-        return $this->hasMany(ActivityLog::class, ProjectsConstants::COL_PJ_ID, 'id')
+        return $this->hasMany(ActivityLog::class, PJC::COL_PJ_ID, 'id')
             ->orderBy('id', 'desc');
     }
 
     public function expense(): HasMany
     {
-        return $this->hasMany(Expense::class, ProjectsConstants::COL_PJ_ID, 'id')
+        return $this->hasMany(Expense::class, PJC::COL_PJ_ID, 'id')
             ->orderBy('id', 'desc');
     }
 
@@ -169,8 +178,8 @@ class Project extends Model
                     $task = ProjectTask::find($tid);
                     if (!$task) continue;
                     $users = $projectsTimesheet
-                        ?->where(ActivitiesConstants::COL_TSK_ID, $tid)
-                        ->pluck(DatabaseConstants::TABLE_CREATOR)
+                        ?->where(AC::COL_TSK_ID, $tid)
+                        ->pluck(DC::TABLE_CREATOR)
                         ->unique()
                         ->toArray() ?? [];
                     $dateArray = [];
@@ -179,7 +188,7 @@ class Project extends Model
                         foreach ($days['datePeriod'] as $dateObj) {
                             $date = $dateObj->format('Y-m-d');
                             $entry = collect($sheet)
-                                ->first(fn($v) => $v[DatabaseConstants::TABLE_CREATOR] === $uid
+                                ->first(fn($v) => $v[DC::TABLE_CREATOR] === $uid
                                     && $v['date'] === $date);
                             $time = $entry
                                 ? Carbon::parse($entry['time'])->format('H:i')
@@ -194,7 +203,7 @@ class Project extends Model
                             array_column($week, 'time')
                         );
                         $dateArray[] = [
-                            UsersConstants::COL_USER_ID   => $uid,
+                            UC::COL_USER_ID   => $uid,
                             'user_name' => User::find($uid)?->name ?? '',
                             'week'      => $week,
                             'totaltime' => $tot
@@ -202,14 +211,14 @@ class Project extends Model
                         $totals[] = $tot;
                     }
                     $taskArray[] = [
-                        ActivitiesConstants::COL_TSK_ID   => $task->id,
-                        'task_name' => $task[ProjectsConstants::COL_NM],
+                        AC::COL_TSK_ID   => $task->id,
+                        'task_name' => $task[PJC::COL_NM],
                         'dateArray' => $dateArray
                     ];
                 }
                 $timesheetArray[] = [
-                    ProjectsConstants::COL_PJ_ID   => $project->id,
-                    ProjectsConstants::COL_NM => $project->name,
+                    PJC::COL_PJ_ID   => $project->id,
+                    PJC::COL_NM => $project->name,
                     'taskArray'    => $taskArray
                 ];
             }
@@ -238,8 +247,8 @@ class Project extends Model
                 }
                 $tot = Utility::calculateTimesheetHours($times);
                 $timesheetArray[] = [
-                    ActivitiesConstants::COL_TSK_ID   => $task->id,
-                    'task_name' => $task[ProjectsConstants::COL_NM],
+                    AC::COL_TSK_ID   => $task->id,
+                    'task_name' => $task[PJC::COL_NM],
                     'dateArray' => $week,
                     'totaltime' => $tot
                 ];
@@ -258,7 +267,7 @@ class Project extends Model
             $totalDateTimes[$d] = Utility::calculateTimesheetHours($times);
         }
 
-        return view(DatabaseConstants::TABLE_PROJECTS . '.timesheets.week', compact(
+        return view(DC::TABLE_PROJECTS . '.timesheets.week', compact(
             'timesheetArray',
             'totalDateTimes',
             'totalTime',
@@ -271,7 +280,7 @@ class Project extends Model
     {
         return $this->hasMany(
             \App\Models\Milestone::class,
-            ProjectsConstants::COL_PJ_ID,
+            PJC::COL_PJ_ID,
             'id'
         )->orderBy('id', 'desc');
     }
@@ -283,13 +292,13 @@ class Project extends Model
     ): \Illuminate\Database\Eloquent\Builder {
         $project = self::find($projectId);
         $user = Auth::user()
-            ?: User::where('id', $project[DatabaseConstants::TABLE_CREATOR])->first();
+            ?: User::where('id', $project[DC::TABLE_CREATOR])->first();
         $ids = $user?->tasks()->pluck('id')->toArray();
         $q = ProjectTask::whereIn('id', $ids);
         $q = $project
-            ? $q->where(ProjectsConstants::COL_PJ_ID, $projectId)
+            ? $q->where(PJC::COL_PJ_ID, $projectId)
             : $q;
-        if ($stageId) $q->where(ProjectsConstants::COL_STAGE_ID, $stageId);
+        if ($stageId) $q->where(PJC::COL_STAGE_ID, $stageId);
         foreach ($filterData as $col => $val)
             if ($val !== null && $val !== '')
                 $q->where($col, $val);
@@ -300,7 +309,7 @@ class Project extends Model
     {
         return $this->hasMany(
             \App\Models\Timesheet::class,
-            ProjectsConstants::COL_PJ_ID,
+            PJC::COL_PJ_ID,
             'id'
         )->orderBy('id', 'desc');
     }
@@ -314,7 +323,7 @@ class Project extends Model
         $project->activities()->delete();
         $project->timesheets()->delete();
         $project->users()->detach();
-        $taskIds = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)
+        $taskIds = ProjectTask::where(PJC::COL_PJ_ID, $project->id)
             ->pluck('id')
             ->toArray();
         if ($taskIds) ProjectTask::deleteTask($taskIds);
@@ -326,7 +335,7 @@ class Project extends Model
         return $this->hasOne(
             \App\Models\Label::class,
             'id',
-            ActivitiesConstants::COL_TSK_STT
+            AC::COL_TSK_STT
         )->first();
     }
 
@@ -334,7 +343,7 @@ class Project extends Model
     {
         return $this->hasMany(
             \App\Models\ProjectUser::class,
-            UsersConstants::COL_USER_ID,
+            UC::COL_USER_ID,
             'id'
         );
     }
@@ -351,15 +360,15 @@ class Project extends Model
         $isOwner = $userString
             && strtolower($userString) === 'owner';
         $complete = $isOwner
-            ? $this->tasks->where(ProjectsConstants::COL_IS_CP, 1)->count()
+            ? $this->tasks->where(PJC::COL_IS_CP, 1)->count()
             : $this->tasks()
-            ->where(ProjectsConstants::COL_IS_CP, 1)
-            ->whereRaw("find_in_set('{$userId}'," . ProjectsConstants::COL_ASGN . ")")
+            ->where(PJC::COL_IS_CP, 1)
+            ->whereRaw("find_in_set('{$userId}'," . PJC::COL_ASGN . ")")
             ->count();
         $total = $isOwner
             ? $this->tasks->count()
             : $this->tasks()
-            ->whereRaw("find_in_set('{$userId}'," . ProjectsConstants::COL_ASGN . ")")
+            ->whereRaw("find_in_set('{$userId}'," . PJC::COL_ASGN . ")")
             ->count();
         return "{$complete}/{$total}";
     }
@@ -368,22 +377,22 @@ class Project extends Model
     {
         $u = Auth::user();
         $type = $u->type;
-        $keys = array_keys(ProjectsConstants::$projectStatus);
+        $keys = array_keys(PJC::$projectStatus);
         $counts = [];
         foreach ($keys as $status) {
             $counts[$status] = match ($type) {
-                PermissionsConstants::CPN => self::where(ActivitiesConstants::COL_TSK_STT, $status)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $u->id)->count(),
-                PermissionsConstants::CL => self::where(ActivitiesConstants::COL_TSK_STT, $status)
+                PMC::CPN => self::where(AC::COL_TSK_STT, $status)
+                    ->where(DC::TABLE_CREATOR, $u->id)->count(),
+                PMC::CL => self::where(AC::COL_TSK_STT, $status)
                     ->where('client_id', $u->id)->count(),
                 default => \App\Models\ProjectUser::join(
-                    DatabaseConstants::TABLE_PROJECTS,
-                    'project_users.' . ProjectsConstants::COL_PJ_ID,
+                    DC::TABLE_PROJECTS,
+                    'project_users.' . PJC::COL_PJ_ID,
                     '=',
-                    DatabaseConstants::TABLE_PROJECTS . '.id'
-                )->where(DatabaseConstants::TABLE_PROJECTS . '.' .
-                    ActivitiesConstants::COL_TSK_STT, $status)
-                    ->where(UsersConstants::COL_USER_ID, $u->id)->count()
+                    DC::TABLE_PROJECTS . '.id'
+                )->where(DC::TABLE_PROJECTS . '.' .
+                    AC::COL_TSK_STT, $status)
+                    ->where(UC::COL_USER_ID, $u->id)->count()
             };
         }
         $total = array_sum($counts);
@@ -403,31 +412,31 @@ class Project extends Model
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        return TaskStage::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        return TaskStage::where(DC::TABLE_CREATOR, $user?->creatorId())
             ->orderBy('order', 'desc')
             ->first();
     }
 
     public function projectTotalTask(int|string $projectId): int
     {
-        return ProjectTask::where(ProjectsConstants::COL_PJ_ID, $projectId)->count();
+        return ProjectTask::where(PJC::COL_PJ_ID, $projectId)->count();
     }
 
     public function projectCompleteTask(
         int|string $projectId,
         int|string $lastStageId
     ): int {
-        return ProjectTask::where(ProjectsConstants::COL_PJ_ID, $projectId)
-            ->where(ProjectsConstants::COL_STAGE_ID, $lastStageId)
+        return ProjectTask::where(PJC::COL_PJ_ID, $projectId)
+            ->where(PJC::COL_STAGE_ID, $lastStageId)
             ->count();
     }
 
     public function projectMilestoneProgress(): array
     {
         $milestones = \App\Models\Milestone::query()
-            ->where(ProjectsConstants::COL_PJ_ID, $this->id);
+            ->where(PJC::COL_PJ_ID, $this->id);
         $total = $milestones->count();
-        $sum = $milestones->sum(ProjectsConstants::COL_PGR);
+        $sum = $milestones->sum(PJC::COL_PGR);
         $pct = $total
             ? intval($sum / $total)
             : 0;
