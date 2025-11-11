@@ -1,9 +1,9 @@
 <?php
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    ProjectsConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC
 };
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
@@ -11,38 +11,48 @@ use Illuminate\Support\Facades\{Log, Schema};
 class CreateDealTasksTable extends Migration
 {
     private const TABLE       = 'deal_tasks';
-    private const COL_DEAL_ID = ActivitiesConstants::COL_DL;
+    private const COL_DEAL_ID = AC::COL_DL;
 
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();           // ! CHANGED
-            $table->uuid(self::COL_DEAL_ID);         // ! CHANGED
-            $table->string(ProjectsConstants::COL_NM);
-            $table->date(ActivitiesConstants::COL_TSK_DATE);
-            $table->time(ActivitiesConstants::COL_TSK_TIME);
-            $table->string(ProjectsConstants::COL_PRT);
-            $table->string(ActivitiesConstants::COL_TSK_STT);
+            $table->uuid('id')->primary();
+            $table->uuid(self::COL_DEAL_ID)->index();
+            $table->string(PJC::COL_NM);
+            $table->date(AC::COL_TSK_DATE);
+            $table->time(AC::COL_TSK_TIME);
+            $table->unsignedTinyInteger(PJC::COL_PRT)->default(1);
+            $table->unsignedTinyInteger(AC::COL_TSK_STT)->default(0);
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_DEAL_ID                  => DatabaseConstants::TABLE_DEALS,
-                DatabaseConstants::TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DC::TABLE_CREATOR)->nullable();
+            $table->uuid(DC::TABLE_UPDATER)->nullable();
+            $table->foreign(self::COL_DEAL_ID)
+                ->references('id')
+                ->on(DC::TABLE_DEALS)
+                ->cascadeOnDelete();
+            foreach (
+                [
+                    DC::TABLE_CREATOR   => DC::TABLE_USERS,
+                    DC::TABLE_UPDATER   => DC::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete();
+                    ->nullOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_DEAL_ID,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_DEAL_ID,
+                    DC::TABLE_CREATOR,
+                    DC::TABLE_UPDATER,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

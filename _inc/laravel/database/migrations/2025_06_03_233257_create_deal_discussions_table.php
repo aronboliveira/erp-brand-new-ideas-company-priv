@@ -1,40 +1,49 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateDealDiscussionsTable extends Migration
 {
     private const TABLE = 'deal_discussions';
-    private const COL_DEAL = 'deal_id';
     public function up(): void
     {
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
-                $table->uuid('id')->primary();         // ! CHANGED
-                $table->uuid(self::COL_DEAL);               // ! CHANGED
+                $table->uuid('id')->primary();
+                $table->uuid(AC::COL_DL)->index();
                 $table->text('comment');
-                $table->uuid(DatabaseConstants::TABLE_CREATOR);            // ! CHANGED
+                $table->uuid(DC::TABLE_CREATOR)->nullable();
+                $table->uuid(DC::TABLE_UPDATER)->nullable();
                 $table->timestamps();
-                foreach ([
-                    self::COL_DEAL                  => DatabaseConstants::TABLE_DEALS,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable)
+                $table->foreign(AC::COL_DL)
+                    ->references('id')
+                    ->on(DC::TABLE_DEALS)
+                    ->cascadeOnDelete();
+                foreach (
+                    [
+                        DC::TABLE_UPDATER => DC::TABLE_USERS,
+                        DC::TABLE_CREATOR => DC::TABLE_USERS,
+                    ] as $column => $referencedTable
+                )
                     $table->foreign($column)
                         ->references('id')
                         ->on($referencedTable)
-                        ->onDelete('cascade');
+                        ->nullOnDelete();
             });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_DEAL,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    AC::COL_DL,
+                    DC::TABLE_CREATOR,
+                    DC::TABLE_UPDATER,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

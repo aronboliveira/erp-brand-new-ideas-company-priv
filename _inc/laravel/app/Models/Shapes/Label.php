@@ -2,27 +2,31 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{DatabaseConstants, ProjectsConstants};
+use App\Config\Constants\{DatabaseConstants, ProjectsConstants as PJC};
+use App\Traits\HasAuditFields;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 
 class Label extends Model
 {
-    use HasFactory, UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields;
 
     protected $fillable = [
-        ProjectsConstants::COL_LB_NM,
-        ProjectsConstants::COL_CL,
-        ProjectsConstants::COL_PPL_ID,
+        PJC::COL_LB_NM,
+        PJC::COL_CL,
+        PJC::COL_PPL_ID,
+    ];
+    protected $guarded  = [
+        'id',
         DatabaseConstants::TABLE_CREATOR,
     ];
 
     public static array $colors = [
         'primary',
         'secondary',
-        ProjectsConstants::STT_DGR,
-        ProjectsConstants::STT_WRN,
-        ProjectsConstants::STT_INF,
-        ProjectsConstants::STT_SCS,
+        PJC::STT_DGR,
+        PJC::STT_WRN,
+        PJC::STT_INF,
+        PJC::STT_SCS,
     ];
 }

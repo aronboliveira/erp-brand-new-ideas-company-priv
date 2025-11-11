@@ -3,21 +3,29 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    ProjectsConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC
 };
-use App\Traits\{ChecksLogin, UsesUuids};
+use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\{Model, Relations\HasMany};
 
 class Pipeline extends Model
 {
-    use ChecksLogin, UsesUuids;
+    use ChecksLogin, UsesUuids, HasAuditFields;
 
-    private const CREATED_BY     = DatabaseConstants::TABLE_CREATOR;
-    private const ORDER          = ActivitiesConstants::COL_OD;
-    private const FILLABLE_FIELDS = ['id', ProjectsConstants::COL_PPL_NM, self::CREATED_BY];
+    private const CREATED_BY     = DC::TABLE_CREATOR;
+    private const ORDER          = AC::COL_OD;
+    private const FILLABLE_FIELDS = [
+        'id', //! REMOVE AFTER TESTS
+        PJC::COL_PPL_NM,
+        self::CREATED_BY //! REMOVE AFTER TESTS
+    ];
+    // protected $guarded = [ //! UNCOMMENT AFTER TESTS
+    //     'id',
+    //     DC::TABLE_CREATOR,
+    // ];
 
     protected $fillable = self::FILLABLE_FIELDS;
 
@@ -25,11 +33,11 @@ class Pipeline extends Model
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        return $this->hasMany(Stage::class, ProjectsConstants::COL_PPL_ID, 'id')
+        return $this->hasMany(Stage::class, PJC::COL_PPL_ID, 'id')
             ->where(self::CREATED_BY, '=', $user?->ownerId())
             ->orderBy(self::ORDER);
     }
@@ -38,11 +46,11 @@ class Pipeline extends Model
     {
         if (
             ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
+            instanceof RedirectResponse
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        return $this->hasMany(LeadStage::class, ProjectsConstants::COL_PPL_ID, 'id')
+        return $this->hasMany(LeadStage::class, PJC::COL_PPL_ID, 'id')
             ->where(self::CREATED_BY, '=', $user?->ownerId())
             ->orderBy(self::ORDER);
     }

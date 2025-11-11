@@ -16,7 +16,7 @@ class CreateProjectsTable extends Migration
             $table->date(PJC::COL_E_DT)->nullable();
             $table->uuid(PJC::COL_CLIENT_ID)->index();
             $table->string(PJC::COL_IMG)->nullable();
-            $table->decimal(PJC::COL_BUDGET)->nullable();
+            $table->decimal(PJC::COL_BUDGET, 15, 2)->nullable();
             $table->uuid(PJC::COL_STAGE_ID)->index()->nullable();
             $table->text(PJC::COL_DESCRIPTION)->nullable();
             $table->string(PJC::COL_STATUS);

@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\DatabaseConstants as DC;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Schema, Log};
 
@@ -12,30 +12,40 @@ class CreateDealFilesTable extends Migration
     public function up(): void
     {
         Schema::create(self::TABLE_NAME, function (Blueprint $table) {
-            $table->uuid('id')->primary(); // ! CHANGED: use UUID primary key
-            $table->uuid(self::COL_DEAL); // ! CHANGED: deal_id as UUID to match Deals model
-            $table->string(self::FILE . '_name');
+            $table->uuid('id')->primary();
+            $table->uuid(self::COL_DEAL)->index();
+            $table->string(self::FILE . '_name')->index();
             $table->string(self::FILE . '_path');
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_DEAL                   => DatabaseConstants::TABLE_DEALS,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DC::TABLE_CREATOR)->nullable();
+            $table->uuid(DC::TABLE_UPDATER)->nullable();
+            $table->foreign(self::COL_DEAL)
+                ->references('id')
+                ->on(DC::TABLE_DEALS)
+                ->cascadeOnDelete();
+            foreach (
+                [
+                    DC::TABLE_CREATOR => DC::TABLE_USERS,
+                    DC::TABLE_UPDATER => DC::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->onDelete('cascade');
+                    ->nullOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE_NAME, function (Blueprint $table): void {
-            foreach ([
-                self::COL_DEAL,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_DEAL,
+                    DC::TABLE_CREATOR,
+                    DC::TABLE_UPDATER
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE_NAME, $column)
                         && $table->dropForeign([$column]);

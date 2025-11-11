@@ -1,40 +1,50 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants, ProjectsConstants};
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateLabelsTable extends Migration
 {
-    private const TABLE = DatabaseConstants::TABLE_LBL;
-    private const COL_PIPELINE = ProjectsConstants::COL_PPL_ID;
+    private const TABLE = DC::TABLE_LBL;
+    private const COL_PIPELINE = PJC::COL_PPL_ID;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary(); // ! CHANGED
-            $table->string(ProjectsConstants::COL_LB_NM);
-            $table->string(ProjectsConstants::COL_CL);
-            $table->uuid(self::COL_PIPELINE); // ! CHANGED
-            $table->uuid(DatabaseConstants::TABLE_CREATOR); // ! CHANGED
+            $table->uuid('id')->primary();
+            $table->string(PJC::COL_LB_NM);
+            $table->string(PJC::COL_CL);
+            $table->uuid(self::COL_PIPELINE);
+            $table->uuid(DC::TABLE_CREATOR)->nullable();
+            $table->uuid(DC::TABLE_UPDATER)->nullable();
             $table->timestamps();
-            foreach ([
-                self::COL_PIPELINE                      => DatabaseConstants::TABLE_PIPELINES,
-                DatabaseConstants::TABLE_CREATOR     => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->foreign(self::COL_PIPELINE)
+                ->references('id')
+                ->on(DC::TABLE_PIPELINES)
+                ->cascadeOnDelete();
+            foreach (
+                [
+                    DC::TABLE_UPDATER    => DC::TABLE_USERS,
+                    DC::TABLE_CREATOR     => DC::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete();
+                    ->nullOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PIPELINE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_PIPELINE,
+                    DC::TABLE_CREATOR,
+                    DC::TABLE_UPDATER
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Config\Constants\DatabaseConstants;
-use App\Traits\{ChecksLogin, UsesUuids};
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Traits\{ChecksLogin, HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany, HasOne};
 use Illuminate\Http\RedirectResponse;
 
 class Deal extends Model
 {
-    use HasFactory, UsesUuids, ChecksLogin;
+    use HasFactory, UsesUuids, ChecksLogin, HasAuditFields;
     protected $fillable = [
         'name',
         'phone',
@@ -19,14 +19,17 @@ class Deal extends Model
         'stage_id',
         'group_id',
         'sources',
-        DatabaseConstants::TABLE_PRODUCTS,
-        DatabaseConstants::TABLE_NOTES,
+        'products',
+        'notes',
         'labels',
-        DatabaseConstants::TABLE_PERMISSIONS,
+        'permissions',
         'status',
         'order',
-        DatabaseConstants::TABLE_CREATOR,
         'is_active'
+    ];
+    protected $guarded  = [
+        'id',
+        DC::TABLE_CREATOR,
     ];
     private const PERM_BASE         = 'Client';
     private const PERM_VIEW_TARGETS = [

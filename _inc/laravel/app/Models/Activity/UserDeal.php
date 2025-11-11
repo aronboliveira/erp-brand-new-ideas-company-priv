@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Traits\HasAuditFields;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 
 class UserDeal extends Model
 {
-    use HasFactory, UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields;
 
     protected $fillable = ['user_id', 'deal_id'];
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $with = ['deal', 'user'];
 
     private const FK_DEAL = 'deal_id';
     private const FK_USER = 'user_id';

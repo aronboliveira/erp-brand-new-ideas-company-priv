@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    ProjectsConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC
 };
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -15,17 +15,17 @@ class Bug extends Model
 {
     use UsesUuids;
 
-    private const COL_ASSIGN_TO  = ProjectsConstants::COL_ASGN;
+    private const COL_ASSIGN_TO  = PJC::COL_ASGN;
     private const COL_BUG_ID     = 'bug_id';
-    private const COL_DESCRIPTION = ActivitiesConstants::COL_DESC;
+    private const COL_DESCRIPTION = AC::COL_DESC;
     private const COL_DUE_DATE   = 'due_date';
     private const COL_ORDER      = 'order';
-    private const COL_PRIORITY   = ProjectsConstants::COL_PRT;
-    private const COL_PROJECT_ID = ProjectsConstants::COL_PJ_ID;
-    private const COL_START_DATE = ProjectsConstants::COL_S_DT;
-    private const COL_STATUS     = ActivitiesConstants::COL_TSK_STT;
-    private const COL_TITLE      = ActivitiesConstants::COL_TT;
-    private const COL_CREATED_BY = DatabaseConstants::TABLE_CREATOR;
+    private const COL_PRIORITY   = PJC::COL_PRT;
+    private const COL_PROJECT_ID = PJC::COL_PJ_ID;
+    private const COL_START_DATE = PJC::COL_S_DT;
+    private const COL_STATUS     = AC::COL_TSK_STT;
+    private const COL_TITLE      = AC::COL_TT;
+    private const COL_CREATED_BY = DC::TABLE_CREATOR;
 
     protected $fillable = [
         self::COL_BUG_ID,
@@ -37,8 +37,11 @@ class Bug extends Model
         self::COL_DESCRIPTION,
         self::COL_STATUS,
         self::COL_ASSIGN_TO,
-        self::COL_CREATED_BY,
         self::COL_ORDER,
+    ];
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
     ];
 
     public static $priority = [

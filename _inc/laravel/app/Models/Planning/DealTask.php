@@ -2,29 +2,25 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{ActivitiesConstants, ProjectsConstants};
-use App\Traits\UsesUuids;
+use App\Config\Constants\{ActivitiesConstants as AC, ProjectsConstants as PJC, DatabaseConstants as DC};
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DealTask extends Model
 {
-    use UsesUuids;
-
-    private const COL_DATE    = ActivitiesConstants::COL_TSK_DATE;
-    private const COL_DEAL_ID = ActivitiesConstants::COL_DL;
-    private const COL_NAME    = ProjectsConstants::COL_NM;
-    private const COL_PRIORITY = ProjectsConstants::COL_PRT;
-    private const COL_STATUS  = ActivitiesConstants::COL_TSK_STT;
-    private const COL_TIME    = ActivitiesConstants::COL_TSK_TIME;
+    use UsesUuids, HasAuditFields;
 
     protected $fillable = [
-        self::COL_DEAL_ID,
-        self::COL_NAME,
-        self::COL_DATE,
-        self::COL_TIME,
-        self::COL_PRIORITY,
-        self::COL_STATUS,
+        AC::COL_DL,
+        PJC::COL_NM,
+        AC::COL_TSK_DATE,
+        AC::COL_TSK_TIME,
+        PJC::COL_PRT,
+        AC::COL_TSK_STT,
     ];
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $with = ['deal'];
 
     public static $priorities = [
         1 => 'Low',
@@ -36,4 +32,28 @@ class DealTask extends Model
         0 => 'On Going',
         1 => 'Completed',
     ];
+
+    public function deal(): BelongsTo
+    {
+        return $this->belongsTo(Deal::class, AC::COL_DL, 'id');
+    }
+
+    public function status(): string
+    {
+        return match ($this->{AC::COL_TSK_STT}) {
+            0 => 'On Going',
+            1 => 'Completed',
+            default => 'Unknown',
+        };
+    }
+
+    public function priority(): string
+    {
+        return match ($this->{PJC::COL_PRT}) {
+            1 => 'Low',
+            2 => 'Medium',
+            3 => 'High',
+            default => 'Unknown',
+        };
+    }
 }
