@@ -1,6 +1,6 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PC, UsersConstants as UC};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
@@ -12,23 +12,29 @@ class CreateBugCommentsTable extends Migration
     {
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
-                $table->uuid('id')->primary();                             // ! CHANGED
+                $table->uuid('id')->primary();
+                $table->uuid(self::COL_BUG)->index();
                 $table->text('comment');
-                $table->uuid(self::COL_BUG);                                     // ! CHANGED
-                $table->string('user_type', 100);
-                $table->uuid(DatabaseConstants::TABLE_CREATOR);                                 // ! CHANGED
+                $table->string(UC::COL_U_TP, 64)->default(PC::CL);
+                $table->uuid(DC::TABLE_CREATOR)->nullable();
+                $table->uuid(DC::TABLE_UPDATER)->nullable();
                 $table->timestamps();
-                $table->foreign(self::COL_BUG)->references('id')->on(DatabaseConstants::TABLE_BUGS)
-                    ->onDelete('cascade');          // * ADDED consider FK
-                $table->foreign(DatabaseConstants::TABLE_CREATOR)->references('id')
-                    ->on(DatabaseConstants::TABLE_USERS)->onDelete('cascade');      // * ADDED consider FK
+                $table->foreign(self::COL_BUG)
+                    ->references('id')
+                    ->on(DC::TABLE_BUGS)
+                    ->cascadeOnDelete();
+                foreach ([DC::TABLE_UPDATER, DC::TABLE_CREATOR] as $col)
+                    $table->foreign($col)
+                        ->references('id')
+                        ->on(DC::TABLE_USERS)
+                        ->nullOnDelete();
             });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([self::COL_BUG, DatabaseConstants::TABLE_CREATOR] as $col) {
+            foreach ([self::COL_BUG, DC::TABLE_CREATOR, DC::TABLE_UPDATER] as $col) {
                 try {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);

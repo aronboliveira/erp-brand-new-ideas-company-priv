@@ -6,7 +6,7 @@ use App\Config\Constants\{
     ActivitiesConstants,
     BillsConstants,
     ChartsConstants as CTC,
-    CompaniesConstants,
+    CompaniesConstants as CPC,
     DatabaseConstants as DC,
     EmailsConstants as EC,
     FormsConstants as FC,
@@ -1499,17 +1499,17 @@ class Utility extends Model
         try {
             DB::transaction(function () use ($user, $createdBy, $faker) {
                 $branch = Branch::create([
-                    CompaniesConstants::COL_BRC_NM       => $faker->company,
+                    CPC::COL_BRC_NM       => $faker->company,
                     DC::TABLE_CREATOR => $createdBy,
                 ]);
                 $department = Department::create([
-                    CompaniesConstants::COL_DEP_NM       => $faker->word,
-                    CompaniesConstants::COL_BRC_ID  => $branch->id,
+                    CPC::COL_DEP_NM       => $faker->word,
+                    CPC::COL_BRC_ID  => $branch->id,
                     DC::TABLE_CREATOR => $createdBy,
                 ]);
                 $designation = Designation::create([
                     UC::COL_DSG_NM           => $faker->jobTitle,
-                    CompaniesConstants::COL_DEP_ID  => $department->id,
+                    CPC::COL_DEP_ID  => $department->id,
                     DC::TABLE_CREATOR     => $createdBy,
                 ]);
                 $tax = Tax::create([

@@ -27,6 +27,7 @@ class UsersConstants
 	public const COL_PED = self::COL_PL . '_expire_date';
 	public const COL_RP = 'requested_' . self::COL_PL;
 	public const COL_USER_ID = 'user_id';
+	public const COL_U_TP = 'user_type';
 	public const COL_EMP_ID = 'employee_id';
 	public const COL_PLAN_ID = 'plan_id';
 	public const COL_PLAN_NM = 'plan_name';

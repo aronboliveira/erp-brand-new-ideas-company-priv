@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
     {
         $lastSeeder = null;
         try {
-            foreach ([ClientSeeder::class, PasswordResetsSeeder::class, PipelineSeeder::class, ProjectSeeder::class, ProjectStagesSeeder::class, SourceSeeder::class, StageSeeder::class, LabelSeeder::class, DealSeeder::class, UserDealSeeder::class, ClientDealSeeder::class, BugSeeder::class] as $mockSeeder) {
+            foreach ([ClientSeeder::class, PasswordResetsSeeder::class, PipelineSeeder::class, PlanSeeder::class, ProjectSeeder::class, ProjectStagesSeeder::class, SourceSeeder::class, StageSeeder::class, LabelSeeder::class, DealSeeder::class, DealFileSeeder::class, DealTaskSeeder::class, DealDiscussionSeeder::class, UserDealSeeder::class, ClientDealSeeder::class, TaxSeeder::class, BugSeeder::class, BugFileSeeder::class, BugCommentSeeder::class, BugStatusSeeder::class, BasicFavoritesSeeder::class] as $mockSeeder) {
                 $this->call($mockSeeder);
                 $lastSeeder = $mockSeeder;
                 Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');

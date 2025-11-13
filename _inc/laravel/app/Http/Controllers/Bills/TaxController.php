@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Config\Constants\{
-    DatabaseConstants,
+    DatabaseConstants as DC,
     PermissionsConstants,
-    UsersConstants,
+    UsersConstants as UC,
     ViewsConstants
 };
 use App\Models\{BillProduct, InvoiceProduct, ProposalProduct, Tax};
@@ -29,16 +29,16 @@ class TaxController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id]);
             if (($denial = self::guard($request, PermissionsConstants::MNG_CT_TX, self::INDEX_ROUTE)) !== true) return $denial;
 
-            $taxes = Tax::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $taxes = Tax::where(DC::TABLE_CREATOR, $user?->creatorId())->get();
 
             $view = ViewsConstants::TX . '.' . $func;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
 
             return ViewFacade::make($view, compact('taxes'));
-        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+        }, [UC::COL_USER_ID => $request->user()?->id ?? null]);
     }
 
     public function create(Request $request): View|RedirectResponse
@@ -50,14 +50,14 @@ class TaxController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id]);
             if (($denial = self::guard($request, 'create constant tax', self::INDEX_ROUTE)) !== true) return $denial;
 
             $view = ViewsConstants::TX . '.' . $func;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
 
             return ViewFacade::make($view);
-        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+        }, [UC::COL_USER_ID => $request->user()?->id ?? null]);
     }
 
     public function show(Request $request, Tax $tax): View|RedirectResponse
@@ -69,12 +69,10 @@ class TaxController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
             if (($denial = self::guard($request, 'view constant tax', self::INDEX_ROUTE)) !== true) return $denial;
-            if ($tax->created_by !== $user?->creatorId()) {
+            if ($tax->created_by !== $user?->creatorId())
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);
-            }
-
             $view = ViewsConstants::TX . '.show';
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
 
@@ -91,7 +89,7 @@ class TaxController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $cls, $meth, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'input' => $request->only('name', 'rate')]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'input' => $request->only('name', 'rate')]);
             if (($denial = self::guard($request, 'create constant tax', self::INDEX_ROUTE)) !== true) return $denial;
 
             $v = Validator::make($request->all(), ['name' => 'required|string|max:20', 'rate' => 'required|numeric']);
@@ -102,10 +100,17 @@ class TaxController extends Controller
 
             try {
                 DB::transaction(function () use ($request, $user, $action) {
+                    $rate = is_float($request->rate) ? $request->rate : (is_int($request->rate) ? (float)$request->rate : (is_numeric($request->rate) ? (float)$request->rate : 0));
+                    if (!is_float($rate)) {
+                        throw new \InvalidArgumentException('Invalid rate value');
+                    }
+                    if (Tax::where('name', $request->name)->where(DC::TABLE_CREATOR, $user?->creatorId())->exists()) {
+                        throw new \InvalidArgumentException('Tax name already exists');
+                    }
                     $tax = Tax::create([
                         'name' => $request->name,
-                        'rate' => $request->rate,
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                        'rate' => $rate,
+                        DC::TABLE_CREATOR => $user?->creatorId()
                     ]);
                     Log::info($action . ' created', ['tax_id' => $tax->id]);
                 });
@@ -115,7 +120,7 @@ class TaxController extends Controller
                 Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action, route(self::INDEX_ROUTE));
             }
-        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null, 'input' => $request->only('name', 'rate')]);
+        }, [UC::COL_USER_ID => $request->user()?->id ?? null, 'input' => $request->only('name', 'rate')]);
     }
 
     public function edit(Request $request, Tax $tax): View|RedirectResponse
@@ -127,7 +132,7 @@ class TaxController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
             if (($denial = self::guard($request, 'edit constant tax', self::INDEX_ROUTE)) !== true) return $denial;
             if ($tax->created_by !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);
@@ -149,7 +154,7 @@ class TaxController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id, 'input' => $request->only('name', 'rate')]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id, 'input' => $request->only('name', 'rate')]);
             if (($denial = self::guard($request, 'edit constant tax', self::INDEX_ROUTE)) !== true) return $denial;
             if ($tax->created_by !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);
@@ -184,7 +189,7 @@ class TaxController extends Controller
 
         return $this->measureProfile($action, function () use ($request, $tax, $cls, $meth, $func, $action) {
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
-            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
+            Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id, 'tax_id' => $tax->id]);
             if (($denial = self::guard($request, 'delete constant tax', self::INDEX_ROUTE)) !== true) return $denial;
             if ($tax->created_by !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::INDEX_ROUTE), false);

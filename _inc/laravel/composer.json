@@ -94,6 +94,9 @@
         "app/Http/Controllers/Traits/",
         "app/Models/Traits"
       ],
+      "App\\Enums\\": [
+        "app/Enums/"
+      ],
       "App\\Http\\Controllers\\": [
         "app/Http/Controllers/",
         "app/Http/Controllers/Abstracts/",

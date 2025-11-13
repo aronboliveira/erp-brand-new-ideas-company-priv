@@ -14,7 +14,7 @@ class CreateUserDealsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid(self::COL_DEAL);
-            $table->uuid(self::COL_USER);
+            $table->uuid(self::COL_USER)->nullable();
             $table->timestamps();
             $table->uuid(DC::TABLE_CREATOR)->nullable();
             $table->uuid(DC::TABLE_UPDATER)->nullable();

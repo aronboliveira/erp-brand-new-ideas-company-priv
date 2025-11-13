@@ -2,34 +2,65 @@
 
 namespace App\Models;
 
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\UserType;
+use App\Traits\HasAuditFields;
 use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class BugComment extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields;
 
-    private const COL_BUG_ID    = 'bug_id';
-    private const COL_COMMENT   = 'comment';
-    private const COL_CREATED_BY = 'created_by';
-    private const COL_USER_TYPE = 'user_type';
-    private const FILLABLE      = [
-        self::COL_COMMENT,
-        self::COL_BUG_ID,
-        self::COL_CREATED_BY,
-        self::COL_USER_TYPE,
+    protected $fillable = [
+        'bug_id',
+        'comment',
+        UC::COL_U_TP,
+    ];
+    protected $guarded  = [
+        'id',
+        DC::TABLE_CREATOR,
+    ];
+    protected $with = ['bug'];
+    protected $casts = [
+        UC::COL_U_TP => UserType::class,
     ];
 
-    protected $fillable = self::FILLABLE;
+    protected static function booted(): void
+    {
+        is_callable('parent::booted') && parent::booted();
+        static::creating(function ($model) {
+            try {
+                $stringValue = $model->{UC::COL_U_TP} instanceof UserType
+                    ? $model->{UC::COL_U_TP}->value
+                    : (string) $model->{UC::COL_U_TP};
+                $model->{UC::COL_U_TP} = UserType::normalize($stringValue) ?? throw new \InvalidArgumentException(
+                    'Invalid user type: ' . $stringValue
+                );
+            } catch (\InvalidArgumentException $e) {
+                $model->{UC::COL_U_TP} = UserType::Client;
+            }
+        });
+        static::updating(function ($model) {
+            if ($model->isDirty(UC::COL_U_TP)) {
+                $model->{UC::COL_U_TP} = UserType::normalize((string) $model->{UC::COL_U_TP})
+                    ?? throw new \InvalidArgumentException('Invalid user_type');
+            }
+        });
+    }
+
+    public function bug(): BelongsTo
+    {
+        return $this->belongsTo(Bug::class, 'bug_id', 'id');
+    }
 
     public function commentUser(): ?User
     {
         return User::where('id', $this->created_by)->first();
     }
 
-    public function user(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', self::COL_CREATED_BY);
-        // * consider belongsTo(User::class,self::COL_CREATED_BY,'id')
+        return $this->belongsTo(User::class, DC::TABLE_CREATOR, 'id');
     }
 }
