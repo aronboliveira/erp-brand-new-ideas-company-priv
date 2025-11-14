@@ -2739,7 +2739,7 @@ class Utility extends Model
         return $lang;
     }
 
-    public static function fetchLinkMessage(string $lang = DC::DEFAULT_LANG, string $set, string $key, bool $isFailure = true, bool $shouldFallback = true): ?string
+    public static function fetchLinkMessage(string $lang = DC::DEFAULT_LANG, ?string $set = 'generics', string $key, bool $isFailure = true, bool $shouldFallback = true): ?string
     {
         $startMsg = 'Undefined server message. This could mean either a failure or a success. Check with your support team about your request.';
         $resultMsg = $startMsg;

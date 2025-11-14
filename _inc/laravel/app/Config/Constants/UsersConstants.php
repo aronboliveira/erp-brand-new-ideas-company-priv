@@ -45,4 +45,8 @@ class UsersConstants
 	public const COL_IU = 'is_user';
 	public const COL_MSG_CL = 'messenger_color';
 	public const COL_DEL_STT = 'delete_status';
+	public const COL_ACC_HD = 'account_holder_name';
+	public const COL_ACC_NM = 'account_number';
+	public const COL_BANK_NM = 'bank_name';
+	public const COL_BANK_IC = 'bank_identifier_code';
 }

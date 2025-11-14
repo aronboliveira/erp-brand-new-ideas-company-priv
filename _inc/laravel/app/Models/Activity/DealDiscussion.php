@@ -4,8 +4,7 @@ namespace App\Models;
 
 use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
 use App\Models\User;
-use App\Traits\HasAuditFields;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

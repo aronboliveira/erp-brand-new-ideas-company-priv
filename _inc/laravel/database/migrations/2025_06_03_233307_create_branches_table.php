@@ -17,7 +17,7 @@ class CreateBranchesTable extends Migration
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->string(CPC::COL_BRC_NM)->unique()->index();
-                $table->text('address')->nullable()->index();
+                $table->string('address', 252)->nullable()->index();
                 $table->string('phone', 32)->nullable();
                 $table->string(CPC::COL_FND)->nullable()->default(DC::DEFAULT_UUID);
                 $table->uuid(CPC::COL_MNG)->nullable()->default(DC::DEFAULT_UUID);

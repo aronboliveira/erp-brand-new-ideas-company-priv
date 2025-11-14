@@ -7,6 +7,8 @@ class CompaniesConstants
 	public const COL_BRC_NM = 'name';
 	public const COL_DEP_NM = 'name';
 	public const COL_BRC_ID = 'branch_id';
+	public const COL_BRC_LC = 'branch_location';
+	public const COL_DOJ = 'company_doj';
 	public const COL_DEP_ID = 'department_id';
 	public const COL_FND = 'founder';
 	public const COL_ADM = 'administrator';

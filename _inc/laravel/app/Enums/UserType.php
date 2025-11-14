@@ -19,4 +19,17 @@ enum UserType: string
 		$slug = mb_strtolower(trim($value));
 		return self::tryFrom($slug);
 	}
+	public static function isValidValue(string $value): bool
+	{
+		return self::tryFrom($value) !== null;
+	}
+	public static function values(): array
+	{
+		return array_column(self::cases(), 'value');
+	}
+
+	public static function names(): array
+	{
+		return array_column(self::cases(), 'name');
+	}
 }

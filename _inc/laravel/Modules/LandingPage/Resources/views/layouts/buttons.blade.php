@@ -131,7 +131,7 @@
 				'rawPages'=>$rawPages
 			]
 		);
-		$pages=[];
+		$pages??=[];
 	}
 @endphp
 @if ($menubarStatus === 'on' && count((array) $pages))

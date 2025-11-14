@@ -25813,7 +25813,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'مسار لوحة تحكم إدارة موارد العملاء غير متاح. ' . self::DELEGATION_AR,
 				'project_dashboard_route_unavailable' => 'مسار لوحة تحكم المشاريع غير متاح. ' . self::DELEGATION_AR,
 				'pos_dashboard_route_unavailable' => 'مسار لوحة تحكم نقاط البيع غير متاح. ' . self::DELEGATION_AR,
-				'grammar_check_route_unavailable' => 'مسار التحقق النحوي غير متاح. ' . self::DELEGATION_AR
+				'grammar_check_route_unavailable' => 'مسار التحقق النحوي غير متاح. ' . self::DELEGATION_AR,
+				'null' => 'حدث خطأ غير معرف.'
 			],
 			'da' => [
 				'home_route_unavailable' => 'Hjem-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
@@ -25826,7 +25827,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'Dashboard-rute for Customer Resources Management er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'project_dashboard_route_unavailable' => 'Projekt dashboard-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
 				'pos_dashboard_route_unavailable' => 'Ruten for dashboard for Points of Sales er ikke tilgængelig. ' . self::DELEGATION_DA,
-				'grammar_check_route_unavailable' => 'Grammatiktjek-rute er ikke tilgængelig. ' . self::DELEGATION_DA
+				'grammar_check_route_unavailable' => 'Grammatiktjek-rute er ikke tilgængelig. ' . self::DELEGATION_DA,
+				'null' => 'Der er opstået en udefineret fejl.'
 			],
 			'de' => [
 				'home_route_unavailable' => 'Startseiten-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
@@ -25839,7 +25841,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'Die Dashboard-Route für Customer Resources Management ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'project_dashboard_route_unavailable' => 'Projekt-Dashboard-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
 				'pos_dashboard_route_unavailable' => 'Die Route für das Dashboard der Points of Sales ist nicht verfügbar. ' . self::DELEGATION_DE,
-				'grammar_check_route_unavailable' => 'Grammatikprüfungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE
+				'grammar_check_route_unavailable' => 'Grammatikprüfungs-Route ist nicht verfügbar. ' . self::DELEGATION_DE,
+				'null' => 'Ein undefinierter Fehler ist aufgetreten.'
 			],
 			'en' => [
 				'home_route_unavailable' => 'Home route is unavailable. ' . self::DELEGATION_EN,
@@ -25852,7 +25855,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'The dashboard route for Customer Resources Management is unavailable. ' . self::DELEGATION_EN,
 				'project_dashboard_route_unavailable' => 'Project dashboard route is unavailable. ' . self::DELEGATION_EN,
 				'pos_dashboard_route_unavailable' => 'The route for the dashboard of the Points of Sales is unavailable. ' . self::DELEGATION_EN,
-				'grammar_check_route_unavailable' => 'Grammar check route is unavailable. ' . self::DELEGATION_EN
+				'grammar_check_route_unavailable' => 'Grammar check route is unavailable. ' . self::DELEGATION_EN,
+				'null' => 'An undefined error has occurred',
 			],
 			'es' => [
 				'home_route_unavailable' => 'La ruta de inicio no está disponible. ' . self::DELEGATION_ES,
@@ -25865,7 +25869,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'La ruta del panel de control para Gestión de Recursos de Clientes no está disponible. ' . self::DELEGATION_ES,
 				'project_dashboard_route_unavailable' => 'La ruta del panel de control de proyectos no está disponible. ' . self::DELEGATION_ES,
 				'pos_dashboard_route_unavailable' => 'La ruta para el panel de control de los Puntos de Venta no está disponible. ' . self::DELEGATION_ES,
-				'grammar_check_route_unavailable' => 'La ruta de verificación gramatical no está disponible. ' . self::DELEGATION_ES
+				'grammar_check_route_unavailable' => 'La ruta de verificación gramatical no está disponible. ' . self::DELEGATION_ES,
+				'null' => 'Se ha producido un error indefinido.',
 			],
 			'fr' => [
 				'home_route_unavailable' => 'La route d\'accueil n\'est pas disponible. ' . self::DELEGATION_FR,
@@ -25878,7 +25883,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'La route du tableau de bord pour la Gestion des Ressources Clients n\'est pas disponible. ' . self::DELEGATION_FR,
 				'project_dashboard_route_unavailable' => 'La route du tableau de bord de projet n\'est pas disponible. ' . self::DELEGATION_FR,
 				'pos_dashboard_route_unavailable' => 'La route pour le tableau de bord des Points de Vente n\'est pas disponible. ' . self::DELEGATION_FR,
-				'grammar_check_route_unavailable' => 'La route de vérification grammaticale n\'est pas disponible. ' . self::DELEGATION_FR
+				'grammar_check_route_unavailable' => 'La route de vérification grammaticale n\'est pas disponible. ' . self::DELEGATION_FR,
+				'null' => 'Une erreur indéfinie est survenue.'
 			],
 			'he' => [
 				'home_route_unavailable' => 'נתיב הבית אינו זמין. ' . self::DELEGATION_HE,
@@ -25891,7 +25897,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'נתיב לוח הבקרה לניהול משאבי לקוחות אינו זמין. ' . self::DELEGATION_HE,
 				'project_dashboard_route_unavailable' => 'נתיב לוח הבקרה של פרויקט אינו זמין. ' . self::DELEGATION_HE,
 				'pos_dashboard_route_unavailable' => 'הנתיב ללוח הבקרה של נקודות מכירה אינו זמין. ' . self::DELEGATION_HE,
-				'grammar_check_route_unavailable' => 'נתיב בדיקת הדקדוק אינו זמין. ' . self::DELEGATION_HE
+				'grammar_check_route_unavailable' => 'נתיב בדיקת הדקדוק אינו זמין. ' . self::DELEGATION_HE,
+				'null' => 'אירעה שגיאה לא מוגדרת.'
 			],
 			'it' => [
 				'home_route_unavailable' => 'La rotta home non è disponibile. ' . self::DELEGATION_IT,
@@ -25904,7 +25911,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'La rotta della dashboard per Gestione delle Risorse Clienti non è disponibile. ' . self::DELEGATION_IT,
 				'project_dashboard_route_unavailable' => 'La rotta della dashboard del progetto non è disponibile. ' . self::DELEGATION_IT,
 				'pos_dashboard_route_unavailable' => 'La rotta per la dashboard dei Punti Vendita non è disponibile. ' . self::DELEGATION_IT,
-				'grammar_check_route_unavailable' => 'La rotta di controllo grammaticale non è disponibile. ' . self::DELEGATION_IT
+				'grammar_check_route_unavailable' => 'La rotta di controllo grammaticale non è disponibile. ' . self::DELEGATION_IT,
+				'null' => 'Si è verificato un errore indefinito.'
 			],
 			'ja' => [
 				'home_route_unavailable' => 'ホームルートは利用できません。' . self::DELEGATION_JA,
@@ -25917,7 +25925,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => '顧客リソース管理のダッシュボードルートは利用できません。' . self::DELEGATION_JA,
 				'project_dashboard_route_unavailable' => 'プロジェクトダッシュボードルートは利用できません。' . self::DELEGATION_JA,
 				'pos_dashboard_route_unavailable' => '販売ポイントのダッシュボードルートは利用できません。' . self::DELEGATION_JA,
-				'grammar_check_route_unavailable' => '文法チェックルートは利用できません。' . self::DELEGATION_JA
+				'grammar_check_route_unavailable' => '文法チェックルートは利用できません。' . self::DELEGATION_JA,
+				'null' => '未定義のエラーが発生しました。'
 			],
 			'nl' => [
 				'home_route_unavailable' => 'Home-route is niet beschikbaar. ' . self::DELEGATION_NL,
@@ -25930,7 +25939,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'De dashboard-route voor Customer Resources Management is niet beschikbaar. ' . self::DELEGATION_NL,
 				'project_dashboard_route_unavailable' => 'Projectdashboard-route is niet beschikbaar. ' . self::DELEGATION_NL,
 				'pos_dashboard_route_unavailable' => 'De route voor het dashboard van de Points of Sales is niet beschikbaar. ' . self::DELEGATION_NL,
-				'grammar_check_route_unavailable' => 'Grammaticacontrole-route is niet beschikbaar. ' . self::DELEGATION_NL
+				'grammar_check_route_unavailable' => 'Grammaticacontrole-route is niet beschikbaar. ' . self::DELEGATION_NL,
+				'null' => 'Er is een ongedefinieerde fout opgetreden.'
 			],
 			'pl' => [
 				'home_route_unavailable' => 'Trasa strony głównej jest niedostępna. ' . self::DELEGATION_PL,
@@ -25943,7 +25953,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'Trasa pulpitu nawigacyjnego dla Zarządzania Zasobami Klientów jest niedostępna. ' . self::DELEGATION_PL,
 				'project_dashboard_route_unavailable' => 'Trasa pulpitu nawigacyjnego projektu jest niedostępna. ' . self::DELEGATION_PL,
 				'pos_dashboard_route_unavailable' => 'Trasa do pulpitu nawigacyjnego Punktów Sprzedaży jest niedostępna. ' . self::DELEGATION_PL,
-				'grammar_check_route_unavailable' => 'Trasa sprawdzania gramatyki jest niedostępna. ' . self::DELEGATION_PL
+				'grammar_check_route_unavailable' => 'Trasa sprawdzania gramatyki jest niedostępna. ' . self::DELEGATION_PL,
+				'null' => 'Wystąpił niezdefiniowany błąd.'
 			],
 			'pt' => [
 				'home_route_unavailable' => 'A rota inicial não está disponível. ' . self::DELEGATION_PT,
@@ -25956,7 +25967,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'A rota do painel de controlo para Gestão de Recursos de Clientes não está disponível. ' . self::DELEGATION_PT,
 				'project_dashboard_route_unavailable' => 'A rota do painel de controlo do projeto não está disponível. ' . self::DELEGATION_PT,
 				'pos_dashboard_route_unavailable' => 'A rota para o painel de controlo dos Pontos de Venda não está disponível. ' . self::DELEGATION_PT,
-				'grammar_check_route_unavailable' => 'A rota de verificação gramatical não está disponível. ' . self::DELEGATION_PT
+				'grammar_check_route_unavailable' => 'A rota de verificação gramatical não está disponível. ' . self::DELEGATION_PT,
+				'null' => 'Ocorreu um erro indefinido.'
 			],
 			'pt-br' => [
 				'home_route_unavailable' => 'A rota inicial não está disponível. ' . self::DELEGATION_PTBR,
@@ -25969,7 +25981,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'A rota do painel de controle para Gestão de Recursos de Clientes não está disponível. ' . self::DELEGATION_PTBR,
 				'project_dashboard_route_unavailable' => 'A rota do painel de controle do projeto não está disponível. ' . self::DELEGATION_PTBR,
 				'pos_dashboard_route_unavailable' => 'A rota para o painel de controle dos Pontos de Venda não está disponível. ' . self::DELEGATION_PTBR,
-				'grammar_check_route_unavailable' => 'A rota de verificação gramatical não está disponível. ' . self::DELEGATION_PTBR
+				'grammar_check_route_unavailable' => 'A rota de verificação gramatical não está disponível. ' . self::DELEGATION_PTBR,
+				'null' => 'Ocorreu um erro indefinido.'
 			],
 			'ru' => [
 				'home_route_unavailable' => 'Маршрут главной страницы недоступен. ' . self::DELEGATION_RU,
@@ -25982,7 +25995,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'Маршрут панели управления для Управления клиентскими ресурсами недоступен. ' . self::DELEGATION_RU,
 				'project_dashboard_route_unavailable' => 'Маршрут панели управления проектом недоступен. ' . self::DELEGATION_RU,
 				'pos_dashboard_route_unavailable' => 'Маршрут для панели управления Торговых точек недоступен. ' . self::DELEGATION_RU,
-				'grammar_check_route_unavailable' => 'Маршрут проверки грамматики недоступен. ' . self::DELEGATION_RU
+				'grammar_check_route_unavailable' => 'Маршрут проверки грамматики недоступен. ' . self::DELEGATION_RU,
+				'null' => 'Произошла неопределенная ошибка.'
 			],
 			'tr' => [
 				'home_route_unavailable' => 'Ana sayfa rotası kullanılamıyor. ' . self::DELEGATION_TR,
@@ -25995,7 +26009,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => 'Müşteri Kaynakları Yönetimi için kontrol paneli rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'project_dashboard_route_unavailable' => 'Proje kontrol paneli rotası kullanılamıyor. ' . self::DELEGATION_TR,
 				'pos_dashboard_route_unavailable' => 'Satış Noktaları kontrol paneli rotası kullanılamıyor. ' . self::DELEGATION_TR,
-				'grammar_check_route_unavailable' => 'Dil bilgisi kontrol rotası kullanılamıyor. ' . self::DELEGATION_TR
+				'grammar_check_route_unavailable' => 'Dil bilgisi kontrol rotası kullanılamıyor. ' . self::DELEGATION_TR,
+				'null' => 'Tanımsız bir hata oluştu.'
 			],
 			'zh' => [
 				'home_route_unavailable' => '主页路由不可用。' . self::DELEGATION_ZH,
@@ -26008,7 +26023,8 @@ class LangsConstants
 				'crm_dashboard_route_unavailable' => '客户资源管理仪表板路由不可用。' . self::DELEGATION_ZH,
 				'project_dashboard_route_unavailable' => '项目仪表板路由不可用。' . self::DELEGATION_ZH,
 				'pos_dashboard_route_unavailable' => '销售点仪表板路由不可用。' . self::DELEGATION_ZH,
-				'grammar_check_route_unavailable' => '语法检查路由不可用。' . self::DELEGATION_ZH
+				'grammar_check_route_unavailable' => '语法检查路由不可用。' . self::DELEGATION_ZH,
+				'null' => '发生未定义错误。'
 			]
 		],
 	];

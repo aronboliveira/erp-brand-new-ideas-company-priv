@@ -1102,7 +1102,7 @@
                     var scrollSpy = new bootstrap.ScrollSpy(document.body, {
                         target: "#navbar-example",
                     });
-                    feather.replace();
+                    feather && typeof feather.replace === 'function' && feather.replace();
                 </script>
                 <script>
                     (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(

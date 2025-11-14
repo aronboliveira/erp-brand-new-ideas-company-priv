@@ -3,8 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\DatabaseConstants as DC;
-use App\Traits\HasAuditFields;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
 

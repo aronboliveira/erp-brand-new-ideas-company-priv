@@ -3,8 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC};
-use App\Traits\HasAuditFields;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 
 class Branch extends Model

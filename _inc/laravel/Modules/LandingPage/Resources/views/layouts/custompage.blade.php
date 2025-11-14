@@ -79,7 +79,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-    <html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? (app()->getLocale() : DatabaseConstants::DEFAULT_LANG) : '') : '' }}"  dir="{{$siteRtl == 'on'?'rtl':''}}">
+    <html lang="{{ $lang ? str_replace('_', '-', app()->getLocale() ?? DatabaseConstants::DEFAULT_LANG) : '' }}" dir="{{ $siteRtl == 'on' ? 'rtl' : 'ltr' }}">
         <head>
             <title>{{ env('APP_NAME') }}</title>
             @include('fragments.std', [
@@ -145,7 +145,7 @@
                                          alt="logo" 
                                          id="headerLogo"
                                          data-fallback-index="0"
-                                         style="border-radius: 0.5rem 0.5rem 1rem 1rem; clip-path: inset(-8px 0px 0px 0px);
+                                         style="border-radius: 0.5rem 0.5rem 1rem 1rem; clip-path: inset(-8px 0px 0px 0px); width: 12rem;
                                          transform: scale(1.1) translateY(1%);"
                                          onload="this.style.opacity = '1'"
                                          onerror="
@@ -694,7 +694,7 @@
                             @endphp
                             <form method="post" action="{{ $juSt }}">
                                 @csrf
-                                <div class="input-wrapper border border-dark">
+                                <div class="input-wrapper border border-dark" style="border-color: transparent !important; margin-bottom: 1rem">
                                     <input type="text" name="email" placeholder="Type your email address...">
                                     <button type="submit" class="btn btn-dark rounded-pill">{{__('Join Us')}}!</button>
                                 </div>
@@ -738,7 +738,7 @@
                         target: "#navbar-example",
                     });
                 }
-                feather.replace();
+                feather && typeof feather.replace === 'function' && feather.replace();
             </script>
             <script>
                 (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') && console.log(

@@ -20,8 +20,8 @@ class CreateDesignationsTable extends Migration
             $table->decimal(CPC::COL_EBDG, 15, 2)->default(0.00)->nullable();
             $table->text('description')->nullable();
             $table->text('notes')->nullable();
-            $table->date(CPC::COL_VFROM)->nullable()->default(DB::raw('CURDATE()'));
-            $table->date(CPC::COL_VTO)->nullable()->default(DB::raw('DATE_ADD(CURDATE(), INTERVAL 10 YEAR)'));
+            $table->date(CPC::COL_VFROM)->nullable()->default(DB::raw('(CURDATE())'));
+            $table->date(CPC::COL_VTO)->nullable()->default(DB::raw('(DATE_ADD(CURDATE(), INTERVAL 10 YEAR))'));
             $table->timestamps();
             $table->uuid(DC::TABLE_CREATOR)->nullable();
             $table->uuid(DC::TABLE_UPDATER)->nullable();

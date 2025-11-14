@@ -3,8 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{DatabaseConstants, ProjectsConstants as PJC};
-use App\Traits\HasAuditFields;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 
 class Label extends Model

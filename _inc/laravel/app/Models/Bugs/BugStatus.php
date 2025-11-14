@@ -9,8 +9,7 @@ use App\Config\Constants\{
   ProjectsConstants as PJC,
   UsersConstants as UC
 };
-use App\Traits\HasAuditFields;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Collection, Model};
 use Illuminate\Support\Facades\Auth;
 

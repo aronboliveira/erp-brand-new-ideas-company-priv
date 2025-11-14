@@ -457,7 +457,7 @@ final class Handler extends ExceptionHandler
                             document.getElementById("redirect-message").textContent = translations.redirectMessage;
                         }
 
-                        feather.replace();
+                        feather && typeof feather.replace === "function" && feather.replace();
                         updateContent();
                     
                         })();
@@ -919,7 +919,7 @@ final class Handler extends ExceptionHandler
                     document.getElementById("cancel-hint").innerHTML = translations.cancelHint;
                     }
 
-                    feather.replace();
+                    feather && typeof feather.replace === "function" && feather.replace();
                     updateContent();
 
                     let timeLeft = ' . $redirectDelay . ';
@@ -1375,7 +1375,7 @@ final class Handler extends ExceptionHandler
                                                     document.getElementById("cancel-hint").innerHTML = translations.cancelHint;
                                                 }
                         
-                                                feather.replace();
+                                                feather && typeof feather.replace === "function" && feather.replace();
                                                 updateContent();
                                                 
                                                 let timeLeft = ' . $redirectDelay . ';

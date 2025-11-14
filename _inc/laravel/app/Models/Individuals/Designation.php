@@ -7,8 +7,7 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     UsersConstants as UC
 };
-use App\Traits\HasAuditFields;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

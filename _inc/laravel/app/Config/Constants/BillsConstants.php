@@ -12,4 +12,7 @@ class BillsConstants
 	public const COL_PAY_SLP_NM = 'name';
 	public const COL_TAX_NM = 'name';
 	public const COL_TAX_RT = 'rate';
+	public const COL_MIN_AMT = 'min_amount';
+	public const COL_MAX_AMT = 'max_amount';
+	public const COL_RL_APL = 'roles_applicable';
 }

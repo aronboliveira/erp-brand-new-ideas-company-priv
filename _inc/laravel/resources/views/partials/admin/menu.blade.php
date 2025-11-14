@@ -90,6 +90,7 @@
     } else Log::notice('No plan found!');
     if ($user instanceof User)
     Log::debug('User permissions names: ', $user->getAllPermissions()->pluck('name')->toArray());
+    $isSa = !empty($user->{UsersConstants::COL_TP}) && $user->{UsersConstants::COL_TP} === PMC::SA;
 @endphp
 @if (!empty($colorSettings[SC::CST_DRK]) && $colorSettings[SC::CST_DRK] === 'on')
     <nav class="dash-sidebar light-sidebar transprent-bg">
@@ -117,7 +118,7 @@
                                 Gate::check(PMC::SHW_PRJ_DSB) ||
                                 Gate::check(PMC::SHW_ACC_DSB) ||
                                 Gate::check(PMC::SHW_CRM_DSB) ||
-                                Gate::check(PMC::SHW_POS_DSB))
+                                Gate::check(PMC::SHW_POS_DSB) || $isSa)
                             @php
                                 $segments = [
                                     null,
@@ -155,7 +156,7 @@
                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                 </a>
                                 <ul class="dash-submenu">
-                                    @if ($userPlan?->{PLC::COL_ACC} == 1 && Gate::check(PMC::SHW_ACC_DSB))
+                                    @if (($userPlan?->{PLC::COL_ACC} == 1 && Gate::check(PMC::SHW_ACC_DSB)) || $isSa)
                                         @php
                                             $segments = [
                                                 null,
@@ -222,7 +223,7 @@
                                                         Gate::check(PMC::BIL_RPT) ||
                                                         Gate::check(PMC::STK_RPT) ||
                                                         Gate::check(PMC::TAX_RPT) ||
-                                                        Gate::check(PMC::MNG_TRT))
+                                                        Gate::check(PMC::MNG_TRT) || $isSa)
                                                     @php
                                                         $segments = [
                                                             'reports',
@@ -657,7 +658,7 @@
                                             </ul>
                                         </li>
                                     @endif
-                                    @if ($userPlan?->{PLC::COL_HRM} == 1)
+                                    @if ((!empty($userPlan) && $userPlan?->{PLC::COL_HRM} == 1) || $isSa)
                                         @can(PMC::SHW_HRM_DSB)
                                             @php
                                                 $segments = [
@@ -803,7 +804,7 @@
                                             </li>
                                         @endcan
                                     @endif
-                                    @if ($userPlan?->{PLC::COL_CRM} == 1)
+                                    @if ((!empty($userPlan) && $userPlan?->{PLC::COL_CRM} == 1) || $isSa)
                                         @can(PMC::SHW_CRM_DSB)
                                             @php
                                                 $segments = [VW::CRM_DSB, 'reports-lead', 'reports-deal'];
@@ -916,7 +917,7 @@
                                             </li>
                                         @endcan
                                     @endif
-                                    @if ($userPlan?->{PLC::COL_PJ} == 1)
+                                    @if ($userPlan?->{PLC::COL_PJ} == 1 || $isSa)
                                         @can(PMC::SHW_PRJ_DSB)
                                             @php
                                                 $projectDashboardRoute = Route::has('project.dashboard')
@@ -946,7 +947,7 @@
                                             @endpush                                
                                         @endcan
                                     @endif
-                                    @if ($userPlan?->{PLC::COL_POS} == 1)
+                                    @if ((!empty($userPlan) && $userPlan?->{PLC::COL_POS} == 1) || $isSa)
                                         @can(PMC::SHW_POS_DSB)
                                             @php
                                                 $segments = [
@@ -1115,8 +1116,8 @@
                                 </ul>
                             </li>
                         @endif
-                        @if (!empty($userPlan) && $userPlan?->{PLC::COL_HRM} == 1)
-                            @if (Gate::check(PMC::MNG_EMP) || Gate::check(PMC::MNG_SSL))
+                        @if ((!empty($userPlan) && $userPlan?->{PLC::COL_HRM} == 1) || $isSa)
+                            @if (Gate::check(PMC::MNG_EMP) || Gate::check(PMC::MNG_SSL) || $isSa)
                                 @php
                                     $segments = [
                                         VW::ALW_OPT,
@@ -1229,7 +1230,7 @@
                                         @push(ST::ADM_SCR_PG)
                                             <script defer src="{{ asset('assets/js/routes/partials/admin/menu/employee.js') }}"></script>
                                         @endpush
-                                        @if (Gate::check(PMC::MNG_SSL) || Gate::check(PMC::MNG_PSL))
+                                        @if (Gate::check(PMC::MNG_SSL) || Gate::check(PMC::MNG_PSL) || $isSa)
                                             @php
                                                 $segments = [
                                                     VW::PY_SLP,
@@ -1310,7 +1311,7 @@
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if (Gate::check(PMC::MNG_LV) || Gate::check(PMC::MNG_ATD))
+                                        @if (Gate::check(PMC::MNG_LV) || Gate::check(PMC::MNG_ATD) || $isSa)
                                             @php
                                                 $segments = [
                                                     VW::EMP_ATD,
@@ -1326,7 +1327,7 @@
                                                 $isAttendanceLeave = in_array(RF::segment(1), $allSegments);
                                             @endphp
                                             <li
-                                                class="{{ VC::DSH_IT_MN }}  {{ $isAttendanceLave ? 'active dash-trigger' : '' }}">
+                                                class="{{ VC::DSH_IT_MN }}  {{ $isAttendanceLeave ? 'active dash-trigger' : '' }}">
                                                 <a class="dash-link" href="#">{{ __('Leave Management Setup') }}
                                                     <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                                                 </a>
@@ -1446,7 +1447,7 @@
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if (Gate::check(PMC::MNG_IND) || Gate::check(PMC::MNG_APR) || Gate::check(PMC::MNG_GTR))
+                                        @if (Gate::check(PMC::MNG_IND) || Gate::check(PMC::MNG_APR) || Gate::check(PMC::MNG_GTR) || $isSa)
                                             @php
                                                 $segments = [
                                                     VW::APR,
@@ -1556,7 +1557,7 @@
                                                 </ul>
                                             </li>
                                         @endif
-                                        @if (Gate::check(PMC::MNG_TNG) || Gate::check(PMC::MNG_TNR) || Gate::check(PMC::SHW_TNG))
+                                        @if (Gate::check(PMC::MNG_TNG) || Gate::check(PMC::MNG_TNR) || Gate::check(PMC::SHW_TNG) || $isSa)
                                             @php
                                                 $isTraining = RF::segment(1) === VW::TNR || RF::segment(1) === VW::TNG;
                                             @endphp
@@ -1575,7 +1576,7 @@
                                                             $trainingLinkId = 'training-index-link';
                                                             $message = Utility::fetchLinkMessage(
                                                                 $lang,
-                                                                VW::TRAINING,
+                                                                VW::TNG,
                                                                 'training_index_route_unavailable'
                                                             ) ?? 'Training list route is unavailable. Please contact technical support or your domain administrator.';
                                                         @endphp
@@ -1631,7 +1632,7 @@
                                                 Gate::check(PMC::MNG_JB_APL) ||
                                                 Gate::check(PMC::MNG_CST_QT) ||
                                                 Gate::check(PMC::SHW_ITV_SCHD) ||
-                                                Gate::check(PMC::SHW_CRR))
+                                                Gate::check(PMC::SHW_CRR) || $isSa)
                                             @php
                                                 $segments = [
                                                     VW::C_JB_APL,
@@ -1715,7 +1716,7 @@
                                                         @php
                                                             $jobAppRoute = Route::has(VW::JB_APL.'.index')
                                                                 ? route(VW::JB_APL.'.index')
-                                                                : (Router::has(Str::kebab(VW::JB_APL.'.index'))
+                                                                : (Route::has(Str::kebab(VW::JB_APL.'.index'))
                                                                 ? route(Str::kebab(VW::JB_APL.'.index'))
                                                                 : '#');
                                                             $jobAppLinkId = 'job-application-link';
@@ -1909,7 +1910,7 @@
                                             $allSegments = array_merge($segments, $kebabSegments);
                                             $isEmployeeManagement = in_array(RF::segment(1), $allSegments);
                                         @endphp
-                                        @if ($hasPermission)
+                                        @if ($hasPermission || $isSa)
                                             <li
                                                 class="{{ VC::DSH_IT_MN }} {{ $isEmployeeManagement ? 'active dash-trigger' : '' }}">
                                                 <a class="dash-link" href="#">{{ __('HR Admin Setup') }}
@@ -2213,7 +2214,7 @@
                                                 $meetingLinkId = 'meeting-index-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    VW::MEETING,
+                                                    VW::MT,
                                                     'meeting_index_route_unavailable'
                                                 ) ?? 'Meeting index route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
@@ -2235,15 +2236,15 @@
                                         @endcan
                                         @can(PMC::MNG_AST)
                                             @php
-                                                $assetSetupRoute = Route::has(VW::ACT_AST.'.index')
-                                                    ? route(VW::ACT_AST.'.index')
-                                                    : (Route::has(Str::kebab(VW::ACT_AST.'.index'))
-                                                    ? route(Str::kebab(VW::ACT_AST.'.index'))
+                                                $assetSetupRoute = Route::has(VW::ACC_AST.'.index')
+                                                    ? route(VW::ACC_AST.'.index')
+                                                    : (Route::has(Str::kebab(VW::ACC_AST.'.index'))
+                                                    ? route(Str::kebab(VW::ACC_AST.'.index'))
                                                     : '#');
                                                 $employeeAssetLinkId = 'employees-asset-setup-link';
                                                 $message = Utility::fetchLinkMessage(
                                                     $lang,
-                                                    VW::ACT_AST,
+                                                    VW::ACC_AST,
                                                     'account_asset_setup_unavailable'
                                                 ) ?? 'Account Assets Setup route is unavailable. Please contact technical support or your domain administrator.';
                                             @endphp
@@ -2325,7 +2326,7 @@
                                         @endcan
                                         @if ($user[UsersConstants::COL_TP] === PMC::CPN || 
                                             strtolower($user[UsersConstants::COL_TP]) === 'hr' ||
-                                            $user[UsersConstants::COL_TP] === PMC::SA)
+                                            $isSa)
                                             @php
                                                 $segments = [
                                                     VW::ALW_OPT,
@@ -2380,7 +2381,7 @@
                                 </li>
                             @endif
                         @endif
-                        @if (!empty($userPlan) &&  $userPlan?->{PLC::COL_ACC} == 1)
+                        @if ((!empty($userPlan) &&  $userPlan?->{PLC::COL_ACC} == 1) || $isSa)
                             @php
                                 $permissions = [
                                     PMC::MNG_CST,
@@ -2745,7 +2746,7 @@
                                                     $urlDN    = Route::has($route) ? route($route) : '#';
                                                     $dnId     = 'debit-note-link';
                                                     $dnKey    = 'debit_note_route_unavailable';
-                                                    $dnMsg    = Utility::fetchLinkMessage($lang, null, $dnKey)
+                                                    $dnMsg    = Utility::fetchLinkMessage($lang, VW::DBT_NT, $dnKey)
                                                                 ?? __('Debit Note route is unavailable. Please contact technical support or your domain administrator.');
                                                     $items[]  = $dnId;
                                                 @endphp
@@ -3219,7 +3220,7 @@
                                 </li>
                             @endif
                         @endif
-                        @if (!empty($userPlan) &&  $userPlan?->{PLC::COL_CRM} == 1)
+                        @if ((!empty($userPlan) &&  $userPlan?->{PLC::COL_CRM} == 1) || $isSa)
                             @php
                                 $permissions = [
                                     PMC::MNG_LD,
@@ -3458,7 +3459,7 @@
                 @endif
                 {{-- <!--------------------- End CRM -----------------------------------> --}}
                 {{-- <!--------------------- Start Project -----------------------------------> --}}
-                @if (!empty($userPlan) && $userPlan?->{PLC::COL_PJ} == 1)
+                @if ((!empty($userPlan) && $userPlan?->{PLC::COL_PJ} == 1) || $isSa)
                     @if (Gate::check(PMC::MNG_PRJ))
                         @php
                             $segments = [
@@ -3794,7 +3795,7 @@
                     $hasUserType = in_array($user[UsersConstants::COL_TP], $userTypes);
                     $hasUserAdminPermission = collect($permissions)->some(fn($permission) => Gate::check($permission));
                 @endphp
-                @if ($hasUserAdminPermission)
+                @if ($hasUserAdminPermission || $isSa)
                     @php
                        $segments = [
                             VW::CLT,
@@ -3914,7 +3915,7 @@
                 @endif
                 {{-- <!--------------------- End User Managaement System-----------------------------------> --}}
                 {{-- <!--------------------- Start Products System -----------------------------------> --}}
-                @if (Gate::check(PMC::MNG_PRD_SV))
+                @if (Gate::check(PMC::MNG_PRD_SV) || $isSa)
                     <li class="{{ VC::DSH_IT_MN }}">
                         <a href="#!" class="dash-link">
                             <span class="dash-micon">
@@ -3982,7 +3983,7 @@
                 @endif
                 {{-- <!--------------------- End Products System -----------------------------------> --}}
                 {{-- <!--------------------- Start POs System -----------------------------------> --}}
-                @if (!empty($userPlan) && $userPlan?->{PLC::COL_POS} == 1)
+                @if ((!empty($userPlan) && $userPlan?->{PLC::COL_POS} == 1) || $isSa)
                     @php
                         $permissions = [
                             PMC::MNG_WRH,
@@ -4223,7 +4224,7 @@
                     @endif
                 @endif
                 {{-- <!--------------------- End POs System -----------------------------------> --}}
-                @if ($user[UsersConstants::COL_TP] != PMC::ADM)
+                @if (($user[UsersConstants::COL_TP] != PMC::ADM) || $isSa)
                     @php
                         $supportRoute = Route::has(VW::SPT.'.index')
                             ? route(VW::SPT.'.index')
@@ -4302,8 +4303,7 @@
                         <script defer src="{{ asset('assets/js/routes/partials/admin/menu/calls.js') }}"></script>
                     @endpush
                 @endif
-                @if ($user[UsersConstants::COL_TP] == PMC::CPN || 
-                    $user[UsersConstants::COL_TP] == PMC::SA)
+                @if ($user[UsersConstants::COL_TP] == PMC::CPN || $user[UsersConstants::COL_TP] == PMC::SA)
                     @php
                         $notifTmpRoute = Route::has(VW::NTF_TMP.'.index')
                             ? route(VW::NTF_TMP.'.index')
@@ -4335,7 +4335,7 @@
                     @endpush
                 @endif
                 {{-- <!--------------------- Start System Setup -----------------------------------> --}}
-                @if ($user[UsersConstants::COL_TP] != PMC::ADM)
+                @if ($user[UsersConstants::COL_TP] != PMC::ADM || $isSa)
                     @if (Gate::check(PMC::MNG_CP_PL) || Gate::check(PMC::MNG_OD) || Gate::check(PMC::MNG_CPN_SET))
                         <li
                             class="{{ VC::DSH_IT_MN }} {{ RF::segment(1) == VW::SET ||
@@ -4439,8 +4439,7 @@
                     @endif
                 @endif
                 {{-- <!--------------------- End System Setup -----------------------------------> --}}
-                @if ($user[UsersConstants::COL_TP] === PMC::CL || 
-                $user[UsersConstants::COL_TP] === PMC::SA)
+                @if ($user[UsersConstants::COL_TP] === PMC::CL || $isSa)
                     <ul class="dash-navbar">
                         @if (Gate::check(PMC::MNG_CLT_DSB))
                             @php

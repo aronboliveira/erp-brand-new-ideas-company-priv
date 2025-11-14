@@ -94,6 +94,7 @@ class DatabaseConstants
 	public const TABLE_JL = 'joining_letters';
 	public const TABLE_TRS = 'transactions';
 	public const TABLE_LBL = 'labels';
+	public const TABLE_PAY_SLP = 'payslip_types';
 
 	// * FIELD NAMES
 

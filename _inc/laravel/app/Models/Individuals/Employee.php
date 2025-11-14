@@ -2,55 +2,221 @@
 
 namespace App\Models;
 
-use App\Models\Allowance;
-use App\Models\Commission;
-use App\Models\EmployeeDocument;
-use App\Models\Loan;
-use App\Models\OtherPayment;
-use App\Models\Overtime;
-use App\Models\PayslipType;
-use App\Models\SaturationDeduction;
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\{Model, Relations\HasMany};
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Str;
+use App\Config\Constants\{
+    CompaniesConstants as CPC,
+    DatabaseConstants as DC,
+    UsersConstants as UC
+};
+use App\Enums\Gender;
+use App\Models\{
+    Allowance,
+    Commission,
+    EmployeeDocument,
+    Loan,
+    OtherPayment,
+    Overtime,
+    PayslipType,
+    SaturationDeduction
+};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{
+    Collection,
+    Model,
+    Relations\BelongsTo,
+    Relations\HasMany,
+    Relations\HasOne
+};
+use Illuminate\Support\{Str, Facades\Hash};
 
 class Employee extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields;
 
-    private const FILLABLE_FIELDS = [
-        'user_id',
+    protected $table = DC::TABLE_EMPLOYEES;
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $with = ['branch', 'department', 'designation'];
+    protected $hidden = ['password'];
+    protected $casts = [
+        'dob' => 'date',
+        'salary' => 'decimal:2',
+        'gender' => Gender::class,
+        'documents' => 'array',
+        'password' => 'hashed',
+    ];
+    protected $fillable = [
+        UC::COL_USER_ID,
         'name',
-        'dob',
-        'gender',
         'phone',
-        'address',
         'email',
+        'gender',
+        'notes',
         'password',
-        'employee_id',
-        'branch_id',
-        'department_id',
-        'designation_id',
-        'company_doj',
+        'address',
+        'dob',
+        CPC::COL_BRC_ID,
+        CPC::COL_BRC_LC,
+        CPC::COL_DEP_ID,
+        UC::COL_DSG_ID,
+        CPC::COL_DOJ,
         'documents',
-        'account_holder_name',
-        'account_number',
-        'bank_name',
-        'bank_identifier_code',
-        'branch_location',
-        'tax_payer_id',
-        'salary_type',
+        UC::COL_ACC_HD,
+        UC::COL_ACC_NM,
+        UC::COL_BANK_NM,
+        UC::COL_BANK_IC,
+        UC::COL_TAX_ID,
         'salary',
-        'created_by'
-    ]; // ! CHANGED
+        UC::COL_SLR_TP,
+        UC::COL_IA,
+    ];
 
-    protected $fillable = self::FILLABLE_FIELDS;                  // ! CHANGED
+    protected static function booted(): void
+    {
+        $normalizePhone = static function (?string $v): ?string {
+            if ($v === null) return null;
+            $v = preg_replace('/\D+/', '', $v);
+            return $v !== '' ? $v : null;
+        };
+        $normalizeEmail = static function (?string $v): ?string {
+            if ($v === null) return null;
+            $v = strtolower(trim($v));
+            return $v !== '' ? $v : null;
+        };
+        $normalizeAccNum = static function (?string $v): ?string {
+            if ($v === null) return null;
+            $v = preg_replace('/\s+/u', '', $v);
+            return $v !== '' ? $v : null;
+        };
+        $ensureUnique = static function (self $m, string $col): void {
+            $val = $m->{$col} ?? null;
+            if ($val === null) return;
+            $q = self::query()->where($col, $val);
+            if ($m->exists) $q->where('id', '!=', $m->getKey());
+            if ($q->exists())
+                throw new \DomainException("Valor já utilizado para {$col}");
+        };
+
+        static::creating(function (self $m) use ($normalizePhone, $normalizeEmail, $normalizeAccNum, $ensureUnique) {
+            if (empty($m->{UC::COL_EMP_ID})) {
+                do $publicId = (string) \Illuminate\Support\Str::uuid();
+                while (self::where(UC::COL_EMP_ID, $publicId)->exists());
+                $m->{UC::COL_EMP_ID} = $publicId;
+            }
+
+            $m->phone = $normalizePhone($m->phone ?? null);
+            $m->email = $normalizeEmail($m->email ?? null);
+            $m->{UC::COL_ACC_NM}
+                = $normalizeAccNum($m->{UC::COL_ACC_NM} ?? null);
+
+            $ensureUnique($m, 'phone');
+            $ensureUnique($m, 'email');
+            $ensureUnique($m, UC::COL_ACC_NM);
+
+            if (empty($m->{CPC::COL_BRC_LC}) && $m->{CPC::COL_BRC_ID}) {
+                $addr = $m->branch()->value('address');
+                if ($addr) $m->{CPC::COL_BRC_LC} = $addr;
+            }
+            if (!empty($m->password) && !str_starts_with((string) $m->password, '$2y$'))
+                $m->password = Hash::make($m->password);
+            if (empty($m->{CPC::COL_DOJ}))
+                $m->{CPC::COL_DOJ} = now('America/Sao_Paulo')->format('Y-m-d');
+        });
+
+        static::updating(function (self $m) use ($normalizePhone, $normalizeEmail, $normalizeAccNum, $ensureUnique) {
+            if ($m->isDirty('phone')) {
+                $m->phone = $normalizePhone($m->phone ?? null);
+                $ensureUnique($m, 'phone');
+            }
+            if ($m->isDirty('email')) {
+                $m->email = $normalizeEmail($m->email ?? null);
+                $ensureUnique($m, 'email');
+            }
+            if ($m->isDirty(UC::COL_ACC_NM)) {
+                $m->{UC::COL_ACC_NM}
+                    = $normalizeAccNum($m->{UC::COL_ACC_NM} ?? null);
+                $ensureUnique($m, UC::COL_ACC_NM);
+            }
+
+            if (
+                $m->isDirty(CPC::COL_BRC_ID)
+                && empty($m->{CPC::COL_BRC_LC})
+            ) {
+                $addr = $m->branch()->value('address');
+                if ($addr) $m->{CPC::COL_BRC_LC} = $addr;
+            }
+            if ($m->isDirty('password') && !empty($m->password) && !str_starts_with((string) $m->password, '$2y$'))
+                $m->password = Hash::make($m->password);
+            if ($m->isDirty('gender'))
+                $m->gender = $m->gender;
+        });
+    }
+
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class, CPC::COL_BRC_ID, 'id');
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, CPC::COL_DEP_ID, 'id');
+    }
+
+    public function designation(): BelongsTo
+    {
+        return $this->belongsTo(Designation::class, UC::COL_DSG_ID, 'id');
+    }
+
+    public function salaryType(): BelongsTo
+    {
+        return $this->belongsTo(PayslipType::class, UC::COL_SLR_TP, 'id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, UC::COL_USER_ID, 'id');
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class, UC::COL_TAX_ID, 'id');
+    }
 
     public function documents(): Collection
     {
         return $this->hasMany(EmployeeDocument::class, 'employee_id', 'employee_id')->get();
+    }
+
+    public function getSalaryTypeNameAttribute(): ?string
+    {
+        return $this->salaryType?->name;
+    }
+
+    public function setDocumentsAttribute($value): void
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            $this->attributes['documents'] = json_last_error() === JSON_ERROR_NONE ? json_encode($decoded, JSON_UNESCAPED_UNICODE) : json_encode([$value], JSON_UNESCAPED_UNICODE);
+        } else {
+            $this->attributes['documents'] = json_encode($value ?? [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    public function setGenderAttribute($value): void
+    {
+        $enum = $value instanceof Gender ? $value : Gender::normalize((string)$value);
+        $this->attributes['gender'] = $enum?->value;
+    }
+
+    public function setPhoneAttribute($value): void
+    {
+        $v = is_string($value) ? preg_replace('/\D+/', '', $value) : $value;
+        $this->attributes['phone'] = $v ?: null;
+    }
+
+    public function setEmailAttribute($value): void
+    {
+        $v = is_string($value) ? strtolower(trim($value)) : $value;
+        $this->attributes['email'] = $v ?: null;
     }
 
     public function salary_type(): HasOne // * KEPT FOR COMPATIBILITY, SHOULD NOT BE CALLED IN ENDPOINT
@@ -173,31 +339,6 @@ class Employee extends Model
         return is_numeric($id)
             ? ((int)$id + 1)
             : (string) Str::uuid();
-    }
-
-    public function branch(): HasOne
-    {
-        return $this->hasOne(Branch::class, 'id', 'branch_id');
-    }
-
-    public function department(): HasOne
-    {
-        return $this->hasOne(Department::class, 'id', 'department_id');
-    }
-
-    public function designation(): HasOne
-    {
-        return $this->hasOne(Designation::class, 'id', 'designation_id');
-    }
-
-    public function salaryType(): HasOne
-    {
-        return $this->hasOne(PayslipType::class, 'id', 'salary_type');
-    }
-
-    public function user(): HasOne
-    {
-        return $this->hasOne(User::class, 'id', 'user_id');
     }
 
     public function paySlip(): HasOne

@@ -2,7 +2,7 @@
 var flg = "0";
 document.addEventListener("DOMContentLoaded", function () {
   // feather icon start
-  feather.replace();
+  feather && typeof feather.replace === "function" && feather.replace();
   // feather icon end
   // remove pre-loader start
   setTimeout(function () {

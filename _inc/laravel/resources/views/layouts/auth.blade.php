@@ -3,9 +3,9 @@
 	use App\Config\Constants\{
 		DatabaseConstants,
 		ExtendingLayoutsConstants,
-		SettingsConstants,
+		SettingsConstants as SC,
 		StacksConstants,
-		ViewClassNamesConstants,
+		ViewClassNamesConstants as VC,
 		YieldingConstants
 	};
 	use App\Models\Utility;
@@ -97,34 +97,34 @@
 	} catch (Error|Exception|Throwable $e) {}
 	try {
 		$data=Utility::prepareCommonViewData()?:[];
-		$setting=$data[SettingsConstants::ENTITY]??
-			SettingsConstants::DFT_SETTINGS;
-		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
-		$company_logo_dk=$setting[SettingsConstants::CPN_LG_DK]??
-			$setting[SettingsConstants::CPN_LG_LT]??'';
-		$company_logo_lt=$setting[SettingsConstants::CPN_LG_LT]??
-			$setting[SettingsConstants::CPN_LG_DK]??'';
-		$company_favicon=$data[SettingsConstants::FAV_ICN]? asset($data[SettingsConstants::FAV_ICN]) :
+		$setting=$data[SC::ENTITY]??
+			SC::DFT_SETTINGS;
+		$colorSettings=$data[SC::CLR_STG]??[];
+		$company_logo_dk=$setting[SC::CPN_LG_DK]??
+			$setting[SC::CPN_LG_LT]??'';
+		$company_logo_lt=$setting[SC::CPN_LG_LT]??
+			$setting[SC::CPN_LG_DK]??'';
+		$company_favicon=$data[SC::FAV_ICN]? asset($data[SC::FAV_ICN]) :
 			asset('favicon.ico');
-		$logo=$data[SettingsConstants::LOGO]? asset($data[SettingsConstants::LOGO]) : asset('favicon.ico');
-		$color=$data[SettingsConstants::THM_CLR]??
-			SettingsConstants::THM_CLR_DEF;
-		$siteRtl=$data[SettingsConstants::RTL]??'off';
-		$lang=$data[SettingsConstants::LCL]?? Utility::fetchUserLang() ??
+		$logo=$data[SC::LOGO]? asset($data[SC::LOGO]) : asset('favicon.ico');
+		$color=$data[SC::THM_CLR]??
+			SC::THM_CLR_DEF;
+		$siteRtl=$data[SC::RTL]??'off';
+		$lang=$data[SC::LCL]?? Utility::fetchUserLang() ??
 			str_replace('_','-',app()->getLocale())??
 			DatabaseConstants::DEFAULT_LANG;
-		$meta_title=$data[SettingsConstants::MT_TTL_K]??
+		$meta_title=$data[SC::MT_TTL_K]??
 			config('app.name','ERPNovaPrestech');
-		$meta_desc=$data[SettingsConstants::MT_DESC_LONG]??
+		$meta_desc=$data[SC::MT_DESC_LONG]??
 			config('app.desc','A brand new ERP!');
-		$meta_image=$data[SettingsConstants::MT_IMG_K]??
-			$setting[SettingsConstants::CPN_LG_LT]??
-			$setting[SettingsConstants::CPN_LG_DK]??'';
-		$meta_logo=$data[SettingsConstants::MT_LOGO]??
-			$data[SettingsConstants::MT_IMG_K]??
-			$setting[SettingsConstants::CPN_LG_LT]??
-			$setting[SettingsConstants::CPN_LG_DK]??'';
-		$get_cookie=$data[SettingsConstants::CK_STG]??'off';
+		$meta_image=$data[SC::MT_IMG_K]??
+			$setting[SC::CPN_LG_LT]??
+			$setting[SC::CPN_LG_DK]??'';
+		$meta_logo=$data[SC::MT_LOGO]??
+			$data[SC::MT_IMG_K]??
+			$setting[SC::CPN_LG_LT]??
+			$setting[SC::CPN_LG_DK]??'';
+		$get_cookie=$data[SC::CK_STG]??'off';
 		$faviconUrl=Utility::getCompanyLogo()?:'';
 	} catch (\Error $e) {
 		Log::error(
@@ -182,7 +182,7 @@
         ])
         @include('fragments.favicon', ['faviconUrl' => $faviconUrl])
         @include('fragments.stylesheets', ['settings' => $colorSettings]) 
-        @if ($colorSettings[SettingsConstants::CST_DRK] ==='on' && is_file(asset('assets/css/custom-auth-dark.css')))
+        @if ($colorSettings[SC::CST_DRK] ==='on' && is_file(asset('assets/css/custom-auth-dark.css')))
             <link rel="stylesheet" href="{{ asset('assets/css/custom-auth-dark.css') }}" id="custom-auth-style-link">
         @else
             <link rel="stylesheet" href="{{ asset('assets/css/custom-auth.css') }}" id="custom-auth-style-link">
@@ -198,13 +198,13 @@
                 <img src="{{ asset('assets/images/auth/' . ($color ?: 'default') . '.svg') }}" class="login-bg-1">
                 <img src="{{ asset('assets/images/auth/common.svg') }}" class="login-bg-2">
             </div>
-            <div class="bg-login {{ ViewClassNamesConstants::BG_P }}"></div>
+            <div class="bg-login {{ VC::BG_P }}"></div>
             <div class="custom-login-inner">
-                <header class="{{ ViewClassNamesConstants::DSH }}">
-                    <nav class="{{ ViewClassNamesConstants::NVB_DEF }}">
-                        <div class="{{ ViewClassNamesConstants::CT }}">
-                            <div class="{{ ViewClassNamesConstants::NVB_BR }}">
-                            <a class="{{ ViewClassNamesConstants::NVB_BR }}" href="#">
+                <header class="{{ VC::DSH }}">
+                    <nav class="{{ VC::NVB_DEF }}">
+                        <div class="{{ VC::CT }}">
+                            <div class="{{ VC::NVB_BR }}">
+                            <a class="{{ VC::NVB_BR }}" href="#">
                                 @php
                                     $srcDark='';
                                     $srcLight='';
@@ -247,9 +247,9 @@
                                         );
                                     }
                                 @endphp
-                                @if ($colorSettings[SettingsConstants::CST_DRK] === 'on')
+                                @if ($colorSettings[SC::CST_DRK] === 'on')
                                     <img
-                                        class="{{ ViewClassNamesConstants::LOGO }}"
+                                        class="{{ VC::LOGO }}"
                                         src="{{ asset($srcDark) }}"
                                         alt="Company Logo"
                                         loading="lazy"
@@ -259,7 +259,7 @@
                                     />
                                 @else
                                     <img
-                                        class="{{ ViewClassNamesConstants::LOGO }}"
+                                        class="{{ VC::LOGO }}"
                                         src="{{ asset($srcLight) }}"
                                         alt="Company Logo"
                                         loading="lazy"
@@ -270,12 +270,12 @@
                                 @endif
                             </a>
                             </div>
-                            <button class="{{ ViewClassNamesConstants::NVB_TG }}" type="button" data-bs-toggle="collapse"
+                            <button class="{{ VC::NVB_TG }}" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#navbarlogin">
-                                <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
+                                <span class="{{ VC::NVB_TG_IC }}"></span>
                             </button>
-                            <div class="{{ ViewClassNamesConstants::NVB_CLP }}" id="navbarlogin">
-                                <ul class="{{ ViewClassNamesConstants::NVB_NAV_LG }}">
+                            <div class="{{ VC::NVB_CLP }}" id="navbarlogin">
+                                <ul class="{{ VC::NVB_NAV_LG }}">
                                     @includeIf(R::LP.'::'.E::LOS.'.buttons')
                                     @yield(YieldingConstants::AUTH_LG_BAR)
                                 </ul>
@@ -285,18 +285,18 @@
                 </header>
                 <main class="custom-wrapper">
                     <div class="custom-row">
-                        <div class="{{ ViewClassNamesConstants::CD }}">
+                        <div class="{{ VC::CD }}">
                             @yield(YieldingConstants::AUTH_CTT)
                         </div>
                     </div>
                 </main>
                 <footer>
-                    <div class="{{ ViewClassNamesConstants::AUT_FT }}">
-                        <div class="{{ ViewClassNamesConstants::CT }}">
-                            <div class="{{ ViewClassNamesConstants::RW }}">
+                    <div class="{{ VC::AUT_FT }}">
+                        <div class="{{ VC::CT }}">
+                            <div class="{{ VC::RW }}">
                                 <div class="col-12">
                                     <span>&copy; {{ date('Y') }}
-                                        {{ Utility::getValByName(SettingsConstants::FT_TXT) ?: config('app.name', 'Storego Saas') }}
+                                        {{ Utility::getValByName(SC::FT_TXT) ?: config('app.name', 'Storego Saas') }}
                                     </span>
                                 </div>
                             </div>
@@ -333,19 +333,19 @@
         {{-- <div class="auth-wrapper auth-v3">
         <div class="bg-auth-side bg-primary"></div>
             <div class="auth-content">
-                <nav class="{{ ViewClassNamesConstants::NVB_DEF }} navbar-light">
+                <nav class="{{ VC::NVB_DEF }} navbar-light">
                     <div class="container-fluid pe-2">
-                        <a class="{{ ViewClassNamesConstants::NVB_BR }}" href="#">
-                            @if ($colorSettings[SettingsConstants::CST_DRK] && $colorSettings[SettingsConstants::CST_DRK] ==='on')
-                                <img src="{{ $logo . '/' . (isset($company_logo_lt) && !empty($company_logo_lt) ? $company_logo_lt : SettingsConstants::CPN_LG_DK_DEF) }}"
-                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ ViewClassNamesConstants::LOGO }}">
+                        <a class="{{ VC::NVB_BR }}" href="#">
+                            @if ($colorSettings[SC::CST_DRK] && $colorSettings[SC::CST_DRK] ==='on')
+                                <img src="{{ $logo . '/' . (isset($company_logo_lt) && !empty($company_logo_lt) ? $company_logo_lt : SC::CPN_LG_DK_DEF) }}"
+                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}">
                             @else
-                                <img src="{{ $logo . '/' . (isset($company_logo_dk) && !empty($company_logo_dk) ? $company_logo_dk : SettingsConstants::CPN_LG_DK_DEF) }}"
-                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ ViewClassNamesConstants::LOGO }}">
+                                <img src="{{ $logo . '/' . (isset($company_logo_dk) && !empty($company_logo_dk) ? $company_logo_dk : SC::CPN_LG_DK_DEF) }}"
+                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}">
                             @endif
                         </a>
                         <button
-                            class="{{ ViewClassNamesConstants::NVB_TG }}"
+                            class="{{ VC::NVB_TG }}"
                             type="button"
                             data-bs-toggle="collapse"
                             data-bs-target="#navbarTogglerDemo01"
@@ -353,23 +353,23 @@
                             aria-expanded="false"
                             aria-label="Toggle navigation"
                         >
-                            <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
+                            <span class="{{ VC::NVB_TG_IC }}"></span>
                         </button>
-                        <div class="{{ ViewClassNamesConstants::NVB_CLP }}" id="navbarTogglerDemo01" style="flex-grow: 0;">
-                            <ul class="{{ ViewClassNamesConstants::NVB_NAV_LG }}">
+                        <div class="{{ VC::NVB_CLP }}" id="navbarTogglerDemo01" style="flex-grow: 0;">
+                            <ul class="{{ VC::NVB_NAV_LG }}">
                                 <li class="nav-item">
                                     @include(R::LP.'::'.E::LOS.'.buttons')
                                 </li>
 
                             </ul>
 
-                            <ul class="{{ ViewClassNamesConstants::NVB_NAV_LG }}">
+                            <ul class="{{ VC::NVB_NAV_LG }}">
                                 @yield(YieldingConstants::AUTH_TB)
                             </ul>
                         </div>
                     </div>
                 </nav>
-                <div class="{{ ViewClassNamesConstants::CD }}">
+                <div class="{{ VC::CD }}">
                     <div class="row align-items-center text-start">
                         <div class="col-xl-6">
                             <div class="card-body">
@@ -394,12 +394,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="{{ ViewClassNamesConstants::AUT_FT }}">
+                <div class="{{ VC::AUT_FT }}">
                     <div class="container-fluid">
-                        <div class="{{ ViewClassNamesConstants::RW }}">
+                        <div class="{{ VC::RW }}">
                             <div class="col-6">
                                 <p class="mb-0"> &copy;
-                                    {{ date('Y') }} {{ Utility::getValByName(SettingsConstants::FT_TXT) ? Utility::getValByName(SettingsConstants::FT_TXT) : config('app.name', 'ERPNovaPrestech') }}
+                                    {{ date('Y') }} {{ Utility::getValByName(SC::FT_TXT) ? Utility::getValByName(SC::FT_TXT) : config('app.name', 'ERPNovaPrestech') }}
                                 </p>
                             </div>
 
@@ -413,10 +413,10 @@
         <script defer src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                feather.replace();
+                feather && typeof feather.replace === 'function' && feather.replace();
             });
         </script>
-        @if ($colorSettings[SettingsConstants::CST_DRK] === 'on')
+        @if ($colorSettings[SC::CST_DRK] === 'on')
             <style>
                 .g-recaptcha {
                     filter: invert(1) hue-rotate(180deg) !important;
@@ -425,7 +425,7 @@
         @endif
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                feather.replace();
+                feather && typeof feather.replace === 'function' && feather.replace();
                 document.querySelector("#pct-toggler")?.addEventListener("click", () => {
                     const cust = document.querySelector(".pct-customizer");
                     cust && cust.classList.toggle("active");
