@@ -211,7 +211,7 @@
                                                         </a>
                                                     </li>
                                                     @push(ST::ADM_SCR_PG)
-                                                        <script defer src="{{ asset('assets/routes/partials/admin/menu/dashboard.js') }}"></script>
+                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/dashboard.js') }}"></script>
                                                     @endpush
                                                 @endcan
                                                 @if (Gate::check(PMC::INC_RPT) ||
@@ -271,7 +271,7 @@
                                                                     </a>
                                                                 </li>
                                                                 @push(ST::ADM_SCR_PG)
-                                                                    <script defer src="{{ asset('js/routes/partials/admin/menu/accountStatement.js') }}"></script>
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/accountStatement.js') }}"></script>
                                                                 @endpush
                                                             @endcan
                                                             @can(PMC::INV_RPT)
@@ -299,7 +299,7 @@
                                                                     </a>
                                                                 </li>
                                                                 @push(ST::ADM_SCR_PG)
-                                                                    <script defer src="{{ asset('js/routes/partials/admin/menu/invoiceSummary.js') }}"></script>
+                                                                    <script defer src="{{ asset('assets/js/routes/partials/admin/menu/invoiceSummary.js') }}"></script>
                                                                 @endpush
                                                             @endcan
                                                             @php
@@ -326,7 +326,7 @@
                                                                 </a>
                                                             </li>
                                                             @push(ST::ADM_SCR_PG)
-                                                                <script defer src="{{ asset('js/routes/partials/admin/menu/salesReport.js') }}"></script>
+                                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/salesReport.js') }}"></script>
                                                             @endpush
                                                             @php
                                                                 $receivablesRoute = Route::has(VW::RPT.'.receivables')
@@ -352,7 +352,7 @@
                                                                 </a>
                                                             </li>
                                                             @push(ST::ADM_SCR_PG)
-                                                                <script defer src="{{ asset('js/routes/partials/admin/menu/receivables.js') }}"></script>
+                                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/receivables.js') }}"></script>
                                                             @endpush
                                                             @php
                                                                 $payablesRoute = Route::has(VW::RPT.'.payables')
@@ -1105,7 +1105,7 @@
                                                     @push(ST::ADM_SCR_PG)
                                                         <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsWarehouse.js') }}"></script>
                                                         <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsDailyPurchase.js') }}"></script>
-                                                        <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsPosPurchase.js') }}"></script>
+                                                        {{-- <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsPosPurchase.js') }}"></script> --}}
                                                         <script defer src="{{ asset('assets/js/routes/partials/admin/menu/reportsPosVsPurchase.js') }}"></script>
                                                     @endpush                                                
                                                     </li>
@@ -1493,7 +1493,7 @@
                                                             </a>
                                                         </li>
                                                         @push(ST::ADM_SCR_PG)
-                                                            <script defer src="{{ asset('public/assets/js/routes/partials/admin/menu/indicator.js') }}"></script>
+                                                            <script defer src="{{ asset('assets/js/routes/partials/admin/menu/indicator.js') }}"></script>
                                                         @endpush
                                                     @endcan
                                                     @can(PMC::MNG_APR)
@@ -3104,7 +3104,7 @@
                                                 </a>
                                             </li>
                                             @push(ST::ADM_SCR_PG)
-                                                <script defer src="{{ asset('public/assets/js/routes/partials/admin/menu/budgetPlanner.js') }}"></script>
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/budgetPlanner.js') }}"></script>
                                             @endpush
                                         @endif
                                         @if (Gate::check(PMC::MNG_GL))
@@ -3132,7 +3132,7 @@
                                                 </a>
                                             </li>
                                             @push(ST::ADM_SCR_PG)
-                                                <script defer src="{{ asset('public/assets/js/routes/partials/admin/menu/financialGoal.js') }}"></script>
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/financialGoal.js') }}"></script>
                                             @endpush                                    
                                         @endif
                                         @php
@@ -3213,7 +3213,7 @@
                                                 </a>
                                             </li>
                                             @push(ST::ADM_SCR_PG)
-                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/printSettings.js') }}"></script>
+                                                <script defer src="{{ asset('assets/js/routes/partials/admin/menu/printSetting.js') }}"></script>
                                             @endpush
                                         @endif
                                     </ul>

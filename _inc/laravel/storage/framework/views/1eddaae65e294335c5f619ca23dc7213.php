@@ -213,7 +213,7 @@
                                                         </a>
                                                     </li>
                                                     <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                        <script defer src="<?php echo e(asset('assets/routes/partials/admin/menu/dashboard.js')); ?>"></script>
+                                                        <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/dashboard.js')); ?>"></script>
                                                     <?php $__env->stopPush(); ?>
                                                 <?php endif; ?>
                                                 <?php if(Gate::check(PMC::INC_RPT) ||
@@ -275,7 +275,7 @@
                                                                     </a>
                                                                 </li>
                                                                 <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                                    <script defer src="<?php echo e(asset('js/routes/partials/admin/menu/accountStatement.js')); ?>"></script>
+                                                                    <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/accountStatement.js')); ?>"></script>
                                                                 <?php $__env->stopPush(); ?>
                                                             <?php endif; ?>
                                                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check(PMC::INV_RPT)): ?>
@@ -304,7 +304,7 @@
                                                                     </a>
                                                                 </li>
                                                                 <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                                    <script defer src="<?php echo e(asset('js/routes/partials/admin/menu/invoiceSummary.js')); ?>"></script>
+                                                                    <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/invoiceSummary.js')); ?>"></script>
                                                                 <?php $__env->stopPush(); ?>
                                                             <?php endif; ?>
                                                             <?php
@@ -332,7 +332,7 @@
                                                                 </a>
                                                             </li>
                                                             <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                                <script defer src="<?php echo e(asset('js/routes/partials/admin/menu/salesReport.js')); ?>"></script>
+                                                                <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/salesReport.js')); ?>"></script>
                                                             <?php $__env->stopPush(); ?>
                                                             <?php
                                                                 $receivablesRoute = Route::has(VW::RPT.'.receivables')
@@ -359,7 +359,7 @@
                                                                 </a>
                                                             </li>
                                                             <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                                <script defer src="<?php echo e(asset('js/routes/partials/admin/menu/receivables.js')); ?>"></script>
+                                                                <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/receivables.js')); ?>"></script>
                                                             <?php $__env->stopPush(); ?>
                                                             <?php
                                                                 $payablesRoute = Route::has(VW::RPT.'.payables')
@@ -1137,7 +1137,7 @@
                                                     <?php $__env->startPush(ST::ADM_SCR_PG); ?>
                                                         <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/reportsWarehouse.js')); ?>"></script>
                                                         <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/reportsDailyPurchase.js')); ?>"></script>
-                                                        <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/reportsPosPurchase.js')); ?>"></script>
+                                                        
                                                         <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/reportsPosVsPurchase.js')); ?>"></script>
                                                     <?php $__env->stopPush(); ?>                                                
                                                     </li>
@@ -1537,7 +1537,7 @@
                                                             </a>
                                                         </li>
                                                         <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                            <script defer src="<?php echo e(asset('public/assets/js/routes/partials/admin/menu/indicator.js')); ?>"></script>
+                                                            <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/indicator.js')); ?>"></script>
                                                         <?php $__env->stopPush(); ?>
                                                     <?php endif; ?>
                                                     <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check(PMC::MNG_APR)): ?>
@@ -3200,7 +3200,7 @@
                                                 </a>
                                             </li>
                                             <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                <script defer src="<?php echo e(asset('public/assets/js/routes/partials/admin/menu/budgetPlanner.js')); ?>"></script>
+                                                <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/budgetPlanner.js')); ?>"></script>
                                             <?php $__env->stopPush(); ?>
                                         <?php endif; ?>
                                         <?php if(Gate::check(PMC::MNG_GL)): ?>
@@ -3229,7 +3229,7 @@
                                                 </a>
                                             </li>
                                             <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                <script defer src="<?php echo e(asset('public/assets/js/routes/partials/admin/menu/financialGoal.js')); ?>"></script>
+                                                <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/financialGoal.js')); ?>"></script>
                                             <?php $__env->stopPush(); ?>                                    
                                         <?php endif; ?>
                                         <?php
@@ -3312,7 +3312,7 @@
                                                 </a>
                                             </li>
                                             <?php $__env->startPush(ST::ADM_SCR_PG); ?>
-                                                <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/printSettings.js')); ?>"></script>
+                                                <script defer src="<?php echo e(asset('assets/js/routes/partials/admin/menu/printSetting.js')); ?>"></script>
                                             <?php $__env->stopPush(); ?>
                                         <?php endif; ?>
                                     </ul>

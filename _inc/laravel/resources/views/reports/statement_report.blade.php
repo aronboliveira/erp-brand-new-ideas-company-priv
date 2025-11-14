@@ -96,14 +96,14 @@
                 <div class="{{ VC::CD }}">
                     <div class="card-body">
                         @php
-                            $acctStmtBase = ViewsConstants::RPT.'.account.statement';
+                            $acctStmtBase = VW::RPT.'.account.statement';
                             $acctStmtKebab = Str::kebab($acctStmtBase);
                             $acctStmtResolved = Route::has($acctStmtBase) ? $acctStmtBase : (Route::has($acctStmtKebab) ? $acctStmtKebab : null);
                             $actionRoute = $acctStmtResolved ? [$acctStmtResolved] : ['#'];
                             $actionUrl = $acctStmtResolved ? route($acctStmtResolved) : '#';
                             $langValue = isset($lang) ? $lang : Utility::fetchUserLang();
-                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'apply_account_statement_route_unavailable') ?? 'Apply account statement route is unavailable. Please contact technical support or your domain administrator.';
-                            $resetGuardMsg = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'reset_account_statement_route_unavailable') ?? 'Reset account statement route is unavailable. Please contact technical support or your domain administrator.';
+                            $applyGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'apply_account_statement_route_unavailable') ?? 'Apply account statement route is unavailable. Please contact technical support or your domain administrator.';
+                            $resetGuardMsg = Utility::fetchLinkMessage($langValue, VW::RPT, 'reset_account_statement_route_unavailable') ?? 'Reset account statement route is unavailable. Please contact technical support or your domain administrator.';
                         @endphp
                         {{ Form::open(['route'=> $actionRoute,'method'=>'GET','id'=>'report_account','data-url'=>$actionUrl,'data-guard-msg'=>$applyGuardMsg,'data-sv-localized'=>'true']) }}
                             <div class="{{ VC::R_ALC_JCE }}">

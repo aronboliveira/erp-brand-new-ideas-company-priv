@@ -685,14 +685,14 @@ final class Handler extends ExceptionHandler
             </head>
             <body>
                 <div class="container-fluid d-flex align-items-center justify-content-center min-vh-100 py-4">
-                <div class="error-container">
+                <div class="error-container" style="display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative;">
                     <div class="floating-elements">
                     <div class="floating-element"><i data-feather="circle"></i></div>
                     <div class="floating-element"><i data-feather="triangle"></i></div>
                     <div class="floating-element"><i data-feather="square"></i></div>
                     </div>
 
-                    <div class="error-header">
+                    <div class="error-header" style="width: 100%;">
                     <div class="error-icon">
                         <i data-feather="alert-triangle" size="40" color="#2c5aa0"></i>
                     </div>
@@ -700,8 +700,9 @@ final class Handler extends ExceptionHandler
                     <p class="mb-0" id="error-subtitle">Something went wrong on our end</p>
                     </div>
 
-                    <div class="error-content">
-                    <img src="/assets/images/404-art.webp" alt="404 Error" loading="lazy" decoding="async" />
+                    <div class="error-content" style="display: flex; flex-direction: column; align-items: center;">
+                    <img src="/assets/images/404-art.webp" alt="404 Error" loading="lazy" decoding="async" style="max-width: 100%; height: auto;     clip-path: rect(15% 85% 80% 5%);
+    transform: translate(5%, -5%);" />
                     <div class="text-center mb-4">
                         <p class="text-muted" id="error-description">
                         We encountered a technical issue while processing your request. Don\'t worry, we\'re working to fix it!

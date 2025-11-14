@@ -1,8 +1,8 @@
 @php
-	use App\Config\Constants\{DatabaseConstants,SettingsConstants,ViewClassNamesConstants};
+	use App\Config\Constants\{DatabaseConstants as DC,SettingsConstants as SC,ViewClassNamesConstants as VC};
 	use App\Models\Utility;
 	use Illuminate\Support\Facades\{Log,Route};
-	use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants,SettingsConstants as LandingPageSettingsConstants};
+	use Modules\LandingPage\Config\Constants\{RoutesResourcesConstants as RRC,SettingsConstants as LPC};
     use Nwidart\Modules\Facades\Module;
 	use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -26,23 +26,23 @@
 	$color??='';
 	$faviconUrl??='';
 	$lpSettings??=[];
-    $lang = DatabaseConstants::DEFAULT_LANG;
+    $lang = DC::DEFAULT_LANG;
 	try {
 		$user=auth()->user();
         $lang = Utility::fetchUserLang(user: $user);
-		$creatorId=$user?->id?:DatabaseConstants::DEFAULT_UUID;
+		$creatorId=$user?->id?:DC::DEFAULT_UUID;
 		$data=Utility::prepareCommonViewData($creatorId,'uploads/landing_page_image')?:[];
-		$setting=$data[SettingsConstants::ENTITY]??[];
-		$colorSettings=$data[SettingsConstants::CLR_STG]??[];
-		$logo=$data[SettingsConstants::LOGO]??'';
-		$sup_logo=$data[SettingsConstants::SC_LOGO]??'';
-		$adminSettings=$data[SettingsConstants::CPN_CFG]??[];
-		$meta_title=$data[SettingsConstants::MT_TTL_K]??'';
-		$meta_desc=$data[SettingsConstants::MT_DESC_LONG]??'';
-		$meta_image=$data[SettingsConstants::MT_IMG_K]??'';
-		$meta_logo=$data[SettingsConstants::MT_LOGO]??'';
-		$siteRtl=$data[SettingsConstants::RTL]??false;
-		$color=$data[SettingsConstants::THM_CLR]??'';
+		$setting=$data[SC::ENTITY]??[];
+		$colorSettings=$data[SC::CLR_STG]??[];
+		$logo=$data[SC::LOGO]??'';
+		$sup_logo=$data[SC::SC_LOGO]??'';
+		$adminSettings=$data[SC::CPN_CFG]??[];
+		$meta_title=$data[SC::MT_TTL_K]??'';
+		$meta_desc=$data[SC::MT_DESC_LONG]??'';
+		$meta_image=$data[SC::MT_IMG_K]??'';
+		$meta_logo=$data[SC::MT_LOGO]??'';
+		$siteRtl=$data[SC::RTL]??false;
+		$color=$data[SC::THM_CLR]??'';
 		$faviconUrl=Utility::getCompanyLogo()?:'';
 		$lpSettings=\Modules\LandingPage\Entities\LandingPageSetting::settings()?:[];
 	} catch (\Error $e) {
@@ -79,7 +79,7 @@
     $data = Utility::fallbackSettings($data);
 @endphp
 <!DOCTYPE html>
-    <html lang="{{ $lang ? str_replace('_', '-', app()->getLocale() ?? DatabaseConstants::DEFAULT_LANG) : '' }}" dir="{{ $siteRtl == 'on' ? 'rtl' : 'ltr' }}">
+    <html lang="{{ $lang ? str_replace('_', '-', app()->getLocale() ?? DC::DEFAULT_LANG) : '' }}" dir="{{ $siteRtl == 'on' ? 'rtl' : 'ltr' }}">
         <head>
             <title>{{ env('APP_NAME') }}</title>
             @include('fragments.std', [
@@ -117,31 +117,31 @@
             <link rel="stylesheet" href=" {{ Module::asset('LandingPage:css/landing-page.css')}}" />
             @include('fragments.stylesheets', ['settings' => $colorSettings])
         </head>
-        @if (!empty($colorSettings[SettingsConstants::CST_DRK]) && $colorSettings[SettingsConstants::CST_DRK] === 'on')
+        @if (!empty($colorSettings[SC::CST_DRK]) && $colorSettings[SC::CST_DRK] === 'on')
             <body class="{{$color}} landing-dark">
         @else
             <body class="{{$color}}">
         @endif
             <!-- [ Header ] start -->
             <header class="main-header">
-                @if (!empty($lpSettings[LandingPageSettingsConstants::TB_STT_K])
-                && !empty($lpSettings[LandingPageSettingsConstants::TB_NTF_MSG_K]))
-                    @if ($lpSettings[LandingPageSettingsConstants::TB_STT_K] === 'on')
+                @if (!empty($lpSettings[LPC::TB_STT_K])
+                && !empty($lpSettings[LPC::TB_NTF_MSG_K]))
+                    @if ($lpSettings[LPC::TB_STT_K] === 'on')
                         <div class="announcement bg-dark text-center p-2">
                             <p class="mb-0">
-                                @if(! empty($lpSettings[LandingPageSettingsConstants::TB_NTF_MSG_K]))
-                                    {!! $lpSettings[LandingPageSettingsConstants::TB_NTF_MSG_K] !!}
+                                @if(! empty($lpSettings[LPC::TB_NTF_MSG_K]))
+                                    {!! $lpSettings[LPC::TB_NTF_MSG_K] !!}
                                 @endif
                             </p>
                         </div>
                     @endif
                 @endif
-                @if (!empty($lpSettings[LandingPageSettingsConstants::MB_STT_K]) && $lpSettings[LandingPageSettingsConstants::MB_STT_K] === 'on')
-                    <div class="{{ ViewClassNamesConstants::CT }}">
-                        <nav class="{{ ViewClassNamesConstants::NVB_DEF_TOP }}">
+                @if (!empty($lpSettings[LPC::MB_STT_K]) && $lpSettings[LPC::MB_STT_K] === 'on')
+                    <div class="{{ VC::CT }}">
+                        <nav class="{{ VC::NVB_DEF_TOP }}">
                             <div class="header-left">
-                                <a class="{{ ViewClassNamesConstants::NVB_BR_TPR }}" href="#">
-                                    <img src="{{ $lpSettings[LandingPageSettingsConstants::SL_K] ? asset('assets/images/'.$lpSettings[LandingPageSettingsConstants::SL_K]) : asset('assets/images/logo-light.webp') }}" 
+                                <a class="{{ VC::NVB_BR_TPR }}" href="#">
+                                    <img src="{{ $lpSettings[LPC::SL_K] ? asset('assets/images/'.$lpSettings[LPC::SL_K]) : asset('assets/images/logo-light.webp') }}" 
                                          alt="logo" 
                                          id="headerLogo"
                                          data-fallback-index="0"
@@ -170,12 +170,12 @@
                                          ">
                                 </a>
                             </div>
-                            <div class="{{ ViewClassNamesConstants::NVB_CLP }}" id="navbarTogglerDemo01">
+                            <div class="{{ VC::NVB_CLP }}" id="navbarTogglerDemo01">
                                 @php
                                     $menuItems??=[];
                                     try {
                                         $menuItems=json_decode(
-                                            $lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]',true
+                                            $lpSettings[LPC::MB_PG_K]??'[]',true
                                         )?:[];
                                     } catch (\Error $e) {
                                         Log::error(
@@ -185,7 +185,7 @@
                                                 'message'=>$e->getMessage(),
                                                 'file'=>$e->getFile(),
                                                 'line'=>$e->getLine(),
-                                                'raw'=>$lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]'
+                                                'raw'=>$lpSettings[LPC::MB_PG_K]??'[]'
                                             ]
                                         );
                                     } catch (\Exception $e) {
@@ -196,7 +196,7 @@
                                                 'message'=>$e->getMessage(),
                                                 'file'=>$e->getFile(),
                                                 'line'=>$e->getLine(),
-                                                'raw'=>$lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]'
+                                                'raw'=>$lpSettings[LPC::MB_PG_K]??'[]'
                                             ]
                                         );
                                     } catch (\Throwable $e) {
@@ -207,30 +207,30 @@
                                                 'message'=>$e->getMessage(),
                                                 'file'=>$e->getFile(),
                                                 'line'=>$e->getLine(),
-                                                'raw'=>$lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]'
+                                                'raw'=>$lpSettings[LPC::MB_PG_K]??'[]'
                                             ]
                                         );
                                     }
                                 @endphp
-                                <ul class="{{ ViewClassNamesConstants::NVB_NAV }}">
+                                <ul class="{{ VC::NVB_NAV }}">
                                     <li class="nav-item">
                                         <a class="nav-link active" href="{{ url('/#home') }}">
-                                            {{ $lpSettings[LandingPageSettingsConstants::HM_TTL_K] ?? '' }}
+                                            {{ $lpSettings[LPC::HM_TTL_K] ?? '' }}
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ url('/#features') }}">
-                                            {{ $lpSettings[LandingPageSettingsConstants::FT_TTL_K] ?? '' }}
+                                            {{ $lpSettings[LPC::FT_TTL_K] ?? '' }}
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ url('/#plan') }}">
-                                            {{ $lpSettings[LandingPageSettingsConstants::PN_TTL_K] ?? '' }}
+                                            {{ $lpSettings[LPC::PN_TTL_K] ?? '' }}
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ url('/#faq') }}">
-                                            {{ $lpSettings[LandingPageSettingsConstants::FAQ_TTL_K] ?? '' }}
+                                            {{ $lpSettings[LPC::FAQ_TTL_K] ?? '' }}
                                         </a>
                                     </li>
                                     @foreach($menuItems as $item)
@@ -245,8 +245,8 @@
                                         try {
                                             $header=$item['header']??'';
                                             $template=$item['template_name']??'';
-                                            $slug=$item[LandingPageSettingsConstants::PG_SLG]??'';
-                                            $name=$item[LandingPageSettingsConstants::MB_PG_NM]??'';
+                                            $slug=$item[LPC::PG_SLG]??'';
+                                            $name=$item[LPC::MB_PG_NM]??'';
                                             if($header==='on'&&$template==='page_content'){
                                                 $cstNm='custom.page';
                                                 $cstRt=Route::has($cstNm)?$cstNm:'#';
@@ -297,10 +297,10 @@
                                         @endif
                                     @endforeach
                                 </ul>
-                                <button class="{{ ViewClassNamesConstants::NVB_TG_P }}" type="button" data-bs-toggle="collapse"
+                                <button class="{{ VC::NVB_TG_P }}" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
                                     aria-label="Toggle navigation">
-                                    <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
+                                    <span class="{{ VC::NVB_TG_IC }}"></span>
                                 </button>
                             </div>
                             <div class="ms-auto d-flex justify-content-end gap-2">
@@ -312,10 +312,10 @@
                                     <span class="hide-mob me-2">{{ __('Register') }}</span>
                                     <i data-feather="user-check"></i>
                                 </a>
-                                <button class="{{ ViewClassNamesConstants::NVB_TG }}" type="button" data-bs-toggle="collapse"
+                                <button class="{{ VC::NVB_TG }}" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false"
                                     aria-label="Toggle navigation">
-                                    <span class="{{ ViewClassNamesConstants::NVB_TG_IC }}"></span>
+                                    <span class="{{ VC::NVB_TG_IC }}"></span>
                                 </button>
                             </div>
                         </nav>
@@ -325,13 +325,13 @@
             <!-- [ Header ] End -->
             <!-- [ common banner ] start -->
             <section class="common-banner bg-primary">
-                <div class="{{ ViewClassNamesConstants::CT }}">
+                <div class="{{ VC::CT }}">
                     <div class="row align-items-center">
                         <div class="col-lg-4">
                             <div class="title">
                                 <h1 class="text-white">
-                                    @if(! empty($page[LandingPageSettingsConstants::MB_PG_NM]))
-                                        {!! $page[LandingPageSettingsConstants::MB_PG_NM] !!}
+                                    @if(! empty($page[LPC::MB_PG_NM]))
+                                        {!! $page[LPC::MB_PG_NM] !!}
                                     @endif
                                 </h1>
                             </div>
@@ -342,19 +342,19 @@
             <!-- [ common banner ] end -->
             <!-- [ Static content ] start -->
                 <section class="static-content section-gap">
-                    <div class="{{ ViewClassNamesConstants::CT }}">
+                    <div class="{{ VC::CT }}">
                         <div class="mb-5">
-                            @if (!empty($page[LandingPageSettingsConstants::MB_PG_CT]))
-                                {!! $page[LandingPageSettingsConstants::MB_PG_CT] !!}
+                            @if (!empty($page[LPC::MB_PG_CT]))
+                                {!! $page[LPC::MB_PG_CT] !!}
                             @endif
                         </div>
-                        @if (!empty($lpSettings[LandingPageSettingsConstants::TM_STT_K]) && $lpSettings[LandingPageSettingsConstants::TM_STT_K] === 'on')
-                            @if (is_array(json_decode($lpSettings[LandingPageSettingsConstants::TM_TMS_K], true)) || is_object(json_decode($lpSettings[LandingPageSettingsConstants::TM_TMS_K], true)))
+                        @if (!empty($lpSettings[LPC::TM_STT_K]) && $lpSettings[LPC::TM_STT_K] === 'on')
+                            @if (is_array(json_decode($lpSettings[LPC::TM_TMS_K], true)) || is_object(json_decode($lpSettings[LPC::TM_TMS_K], true)))
                                 @php
                                     $decodedTestimonials??=[];
                                     try {
                                         $decodedTestimonials=json_decode(
-                                            $lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]',
+                                            $lpSettings[LPC::TM_TMS_K]??'[]',
                                             true
                                         )?:[];
                                     } catch (\Error $e) {
@@ -365,7 +365,7 @@
                                                 'message'=>$e->getMessage(),
                                                 'file'=>$e->getFile(),
                                                 'line'=>$e->getLine(),
-                                                'raw'=>$lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]'
+                                                'raw'=>$lpSettings[LPC::TM_TMS_K]??'[]'
                                             ]
                                         );
                                     } catch (\Exception $e) {
@@ -376,7 +376,7 @@
                                                 'message'=>$e->getMessage(),
                                                 'file'=>$e->getFile(),
                                                 'line'=>$e->getLine(),
-                                                'raw'=>$lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]'
+                                                'raw'=>$lpSettings[LPC::TM_TMS_K]??'[]'
                                             ]
                                         );
                                     } catch (\Throwable $e) {
@@ -387,7 +387,7 @@
                                                 'message'=>$e->getMessage(),
                                                 'file'=>$e->getFile(),
                                                 'line'=>$e->getLine(),
-                                                'raw'=>$lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]'
+                                                'raw'=>$lpSettings[LPC::TM_TMS_K]??'[]'
                                             ]
                                         );
                                     }
@@ -398,7 +398,7 @@
                                         $testimonial??=[];
                                         try {
                                             $decodedTestimonials=json_decode(
-                                                $lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]',
+                                                $lpSettings[LPC::TM_TMS_K]??'[]',
                                                 true
                                             )?:[];
                                             $testimonial=!empty($decodedTestimonials)
@@ -412,7 +412,7 @@
                                                     'message'=>$e->getMessage(),
                                                     'file'=>$e->getFile(),
                                                     'line'=>$e->getLine(),
-                                                    'raw'=>$lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]'
+                                                    'raw'=>$lpSettings[LPC::TM_TMS_K]??'[]'
                                                 ]
                                             );
                                         } catch (\Exception $e) {
@@ -423,7 +423,7 @@
                                                     'message'=>$e->getMessage(),
                                                     'file'=>$e->getFile(),
                                                     'line'=>$e->getLine(),
-                                                    'raw'=>$lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]'
+                                                    'raw'=>$lpSettings[LPC::TM_TMS_K]??'[]'
                                                 ]
                                             );
                                         } catch (\Throwable $e) {
@@ -434,7 +434,7 @@
                                                     'message'=>$e->getMessage(),
                                                     'file'=>$e->getFile(),
                                                     'line'=>$e->getLine(),
-                                                    'raw'=>$lpSettings[LandingPageSettingsConstants::TM_TMS_K]??'[]'
+                                                    'raw'=>$lpSettings[LPC::TM_TMS_K]??'[]'
                                                 ]
                                             );
                                         }
@@ -453,13 +453,13 @@
                                                                 </span>
                                                                 <div>
                                                                     <h2>
-                                                                        @if(! empty($testimonial[LandingPageSettingsConstants::TM_TTL_K]))
-                                                                            {!! $testimonial[LandingPageSettingsConstants::TM_TTL_K] !!}
+                                                                        @if(! empty($testimonial[LPC::TM_TTL_K]))
+                                                                            {!! $testimonial[LPC::TM_TTL_K] !!}
                                                                         @endif
                                                                     </h2>
                                                                     <p class="mb-0">
-                                                                        @if(! empty($testimonial[LandingPageSettingsConstants::TM_DESC_K]))
-                                                                            {!! $testimonial[LandingPageSettingsConstants::TM_DESC_K] !!}
+                                                                        @if(! empty($testimonial[LPC::TM_DESC_K]))
+                                                                            {!! $testimonial[LPC::TM_DESC_K] !!}
                                                                         @endif
                                                                     </p>
                                                                 </div>
@@ -468,16 +468,16 @@
                                                         <div class="col-xxl-6 col-lg-6">
                                                         <div class="d-flex align-items-center gap-3 justify-content-center justify-content-sm-end">
                                                             <div class="text-end">
-                                                                <b class="d-block">{{ $testimonial[LandingPageSettingsConstants::TM_USR] ?? 'Anonymous' }} </b>
+                                                                <b class="d-block">{{ $testimonial[LPC::TM_USR] ?? 'Anonymous' }} </b>
                                                                 <span class="d-block">
-                                                                    @if(! empty($testimonial[LandingPageSettingsConstants::TM_USR_DSG]))
-                                                                        {!! $testimonial[LandingPageSettingsConstants::TM_USR_DSG] !!}
+                                                                    @if(! empty($testimonial[LPC::TM_USR_DSG]))
+                                                                        {!! $testimonial[LPC::TM_USR_DSG] !!}
                                                                     @else
                                                                         Customer
                                                                     @endif
                                                                 </span>
                                                                 <span>
-                                                                    @for ($i = 1; $i <= (int) $testimonial[LandingPageSettingsConstants::TM_STR] ?? 5; $i++)
+                                                                    @for ($i = 1; $i <= (int) $testimonial[LPC::TM_STR] ?? 5; $i++)
                                                                         <i data-feather="star"></i>
                                                                     @endfor
                                                                 </span>
@@ -485,13 +485,13 @@
                                                             @php
                                                                 try {
                                                                     Log::debug('Fetching avatar URL for testimonial: '.json_encode(array_keys($testimonial)));
-                                                                    $avatarKey = LandingPageSettingsConstants::TM_USR_AV;
+                                                                    $avatarKey = LPC::TM_USR_AV;
                                                                     $avatar    = $testimonial[$avatarKey] ?? null;
                                                                     $avatarUrl = $avatar
                                                                         ? asset('assets/images/'.$testimonial[$avatarKey])
                                                                         : asset('uploads/avatar/avatar.png');
                                                                 } catch (\Throwable) {
-                                                                    Log::debug('Error fetching avatar URL for testimonial: '.$testimonial[LandingPageSettingsConstants::TM_USR_AV] ?? 'No avatar URL found');
+                                                                    Log::debug('Error fetching avatar URL for testimonial: '.$testimonial[LPC::TM_USR_AV] ?? 'No avatar URL found');
                                                                 }
                                                             @endphp
                                                             <span class="theme-avatar avatar avatar-l rounded-circle">
@@ -516,12 +516,12 @@
             <!-- [ Static content ] end -->
             <!-- [ Footer ] start -->
             <footer class="site-footer bg-gray-100">
-                <div class="{{ ViewClassNamesConstants::CT }}">
+                <div class="{{ VC::CT }}">
                     <div class="footer-row">
                         <div class="ftr-col cmp-detail">
                             <div class="footer-logo mb-3">
                                 <a rel="external" href="https://prestech.com.br/site/" hreflang="pt-BR" target="_blank">
-                                    <img src="{{ asset($lpSettings[LandingPageSettingsConstants::SL_K] ?? 'assets/images/favicon.ico') }}" 
+                                    <img src="{{ asset($lpSettings[LPC::SL_K] ?? 'assets/images/favicon.ico') }}" 
                                          alt="logo" 
                                          id="footerLogo"
                                          data-fallback-index="0"
@@ -551,8 +551,8 @@
                                 </a>
                             </div>
                             <p>
-                                @if(!empty($lpSettings[LandingPageSettingsConstants::SD_K]))
-                                    {!! $lpSettings[LandingPageSettingsConstants::SD_K] !!}
+                                @if(!empty($lpSettings[LPC::SD_K]))
+                                    {!! $lpSettings[LPC::SD_K] !!}
                                 @endif
                             </p>
                         </div>
@@ -561,7 +561,7 @@
                                 $menuItems??=[];
                                 try {
                                     $menuItems=json_decode(
-                                        $lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]',
+                                        $lpSettings[LPC::MB_PG_K]??'[]',
                                         true
                                     )?:[];
                                 } catch (\Error $e) {
@@ -572,7 +572,7 @@
                                             'message'=>$e->getMessage(),
                                             'file'=>$e->getFile(),
                                             'line'=>$e->getLine(),
-                                            'raw'=>$lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]'
+                                            'raw'=>$lpSettings[LPC::MB_PG_K]??'[]'
                                         ]
                                     );
                                 } catch (\Exception $e) {
@@ -583,7 +583,7 @@
                                             'message'=>$e->getMessage(),
                                             'file'=>$e->getFile(),
                                             'line'=>$e->getLine(),
-                                            'raw'=>$lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]'
+                                            'raw'=>$lpSettings[LPC::MB_PG_K]??'[]'
                                         ]
                                     );
                                 } catch (\Throwable $e) {
@@ -594,7 +594,7 @@
                                             'message'=>$e->getMessage(),
                                             'file'=>$e->getFile(),
                                             'line'=>$e->getLine(),
-                                            'raw'=>$lpSettings[LandingPageSettingsConstants::MB_PG_K]??'[]'
+                                            'raw'=>$lpSettings[LPC::MB_PG_K]??'[]'
                                         ]
                                     );
                                 }
@@ -610,8 +610,8 @@
                                         try {
                                             $footer=($item['footer']??'')==='on';
                                             $template=$item['template_name']??'';
-                                            $slug=$item[LandingPageSettingsConstants::PG_SLG]??'';
-                                            $name=$item[LandingPageSettingsConstants::MB_PG_NM]??'';
+                                            $slug=$item[LPC::PG_SLG]??'';
+                                            $name=$item[LPC::MB_PG_NM]??'';
                                             if($footer&&$template==='page_content'){
                                                 $cstNm='custom.page';
                                                 $url=Route::has($cstNm)
@@ -676,20 +676,20 @@
                                 @endforeach
                             </ul>
                         </div>
-                        @if ( $lpSettings[LandingPageSettingsConstants::JU_STT_K] == 'on')
+                        @if ( $lpSettings[LPC::JU_STT_K] == 'on')
                         <div class="ftr-col ftr-subscribe">
                             <h2>
-                                @if(! empty($lpSettings[LandingPageSettingsConstants::JU_HDG_K]))
-                                    {!! $lpSettings[LandingPageSettingsConstants::JU_HDG_K] !!}
+                                @if(! empty($lpSettings[LPC::JU_HDG_K]))
+                                    {!! $lpSettings[LPC::JU_HDG_K] !!}
                                 @endif
                             </h2>
                             <p>
-                                @if(! empty($lpSettings[LandingPageSettingsConstants::JU_DESC_K]))
-                                    {!! $lpSettings[LandingPageSettingsConstants::JU_DESC_K] !!}
+                                @if(! empty($lpSettings[LPC::JU_DESC_K]))
+                                    {!! $lpSettings[LPC::JU_DESC_K] !!}
                                 @endif
                             </p>
                             @php
-                                $juRt = RoutesResourcesConstants::JU.'.store';
+                                $juRt = RRC::JU.'.store';
                                 $juSt = Route::has($juRt) ? $juRt : '#';
                             @endphp
                             <form method="post" action="{{ $juSt }}">
@@ -705,7 +705,7 @@
                 </div>
                 <div class="border-top border-dark text-center p-2">
                     <p class="mb-0">  &copy;
-                        {{ date('Y') }} {{ Utility::getValByName(SettingsConstants::FT_TXT) ? Utility::getValByName(SettingsConstants::FT_TXT) : config('app.name', 'ERPNovaPrestech') }}
+                        {{ date('Y') }} {{ Utility::getValByName(SC::FT_TXT) ? Utility::getValByName(SC::FT_TXT) : config('app.name', 'ERPNovaPrestech') }}
                     </p>
                 </div>
             </footer>

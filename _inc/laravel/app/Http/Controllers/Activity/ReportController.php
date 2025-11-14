@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Config\Constants\{
     CompaniesConstants,
-    DatabaseConstants,
+    DatabaseConstants as DC,
     PermissionsConstants,
-    UsersConstants,
+    UsersConstants as UC,
     ViewsConstants,
 };
 use App\Exports\{
@@ -172,12 +172,12 @@ final class ReportController extends Controller
             if (($r = self::guard($request, PermissionsConstants::EXP_RPT, self::ROUTE_EXPENSE_SUMMARY)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             $year = $request->year ?? date('Y');
-            Log::info(get_class($this) . "::{$action} started", [UsersConstants::COL_USER_ID => $user?->id, 'year' => $year]);
+            Log::info(get_class($this) . "::{$action} started", [UC::COL_USER_ID => $user?->id, 'year' => $year]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildExpenseSummaryView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . "::{$action} committed", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . "::{$action} committed", [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -188,7 +188,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_EXPENSE_SUMMARY));
             }
         }, ['req' => $request]);
@@ -209,12 +209,12 @@ final class ReportController extends Controller
             if (($r = self::guard($request, PermissionsConstants::IE_RPT, self::ROUTE_INCOME_VS_EXPENSE)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
             $year = $request->year ?? date('Y');
-            Log::info(get_class($this) . "::{$action} started", [UsersConstants::COL_USER_ID => $user?->id, 'year' => $year]);
+            Log::info(get_class($this) . "::{$action} started", [UC::COL_USER_ID => $user?->id, 'year' => $year]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildIncomeVsExpenseSummaryView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . "::{$action} committed", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . "::{$action} committed", [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -225,7 +225,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INCOME_VS_EXPENSE));
             }
         }, ['req' => $request]);
@@ -245,12 +245,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::TAX_RPT, self::ROUTE_TAX_SUMMARY)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . "::{$action} started", [UsersConstants::COL_USER_ID => $user?->id, 'year' => $request->year ?? date('Y')]);
+            Log::info(get_class($this) . "::{$action} started", [UC::COL_USER_ID => $user?->id, 'year' => $request->year ?? date('Y')]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildTaxSummaryView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . "::{$action} committed", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . "::{$action} committed", [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -261,7 +261,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_TAX_SUMMARY));
             }
         }, ['req' => $request]);
@@ -310,12 +310,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::INV_RPT, self::ROUTE_INVOICE_REPORT)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . "::{$action} started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . "::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildInvoiceSummaryView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . "::{$action} committed", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . "::{$action} committed", [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -326,7 +326,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INVOICE_REPORT));
             }
         }, ['req' => $request]);
@@ -346,12 +346,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::BIL_RPT, self::ROUTE_BILL_REPORT)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::billSummary started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . '::billSummary started', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildBillSummaryView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::billSummary committed', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . '::billSummary committed', [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -362,7 +362,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::billSummary failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::billSummary failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_BILL_REPORT));
             }
         }, ['req' => $request]);
@@ -382,12 +382,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, 'statement report', self::ROUTE_STATEMENT_REPORT)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::accountStatement started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::warning(get_class($this) . '::accountStatement started', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildAccountStatementView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::accountStatement committed', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . '::accountStatement committed', [UC::COL_USER_ID => $user?->id, 'view' => $view]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -398,7 +398,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::accountStatement failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::accountStatement failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_STATEMENT_REPORT));
             }
         }, ['req' => $request]);
@@ -418,12 +418,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::BIL_RPT, self::ROUTE_BALANCE_SHEET)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::balanceSheet started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . '::balanceSheet started', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $result = DB::transaction(fn() => $this->_buildBalanceSheetView($request, $view, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::balanceSheet committed', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . '::balanceSheet committed', [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($result)) $viewName = $result;
                 elseif (is_object($result)) {
@@ -434,7 +434,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $result;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::balanceSheet failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::balanceSheet failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_BALANCE_SHEET));
             }
         }, ['req' => $request, 'view' => $view]);
@@ -454,12 +454,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::LDG_RPT, self::ROUTE_LEDGER_SUMMARY)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::ledgerSummary started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . '::ledgerSummary started', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildLedgerSummaryView($request, $account, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::ledgerSummary committed', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . '::ledgerSummary committed', [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -470,7 +470,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::ledgerSummary failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::ledgerSummary failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_LEDGER_SUMMARY));
             }
         }, ['req' => $request, 'account' => $account]);
@@ -490,12 +490,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::TRL_RPT, self::ROUTE_TRIAL_BALANCE)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . "::{$action} started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . "::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildTrialBalanceSummaryView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . "::{$action} committed", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . "::{$action} committed", [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -506,7 +506,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_TRIAL_BALANCE));
             }
         }, ['req' => $request]);
@@ -525,12 +525,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_RPT, self::ROUTE_LEAVE)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::leave started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . '::leave started', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildLeaveView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::leave committed', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . '::leave committed', [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -541,7 +541,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::leave failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::leave failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_LEAVE));
             }
         }, ['req' => $request]);
@@ -561,12 +561,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_RPT, self::ROUTE_EMPLOYEE_LEAVE)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::employeeLeave started', [UsersConstants::COL_USER_ID => $user?->id, UsersConstants::COL_EMP_ID => $employee_id]);
+            Log::info(get_class($this) . '::employeeLeave started', [UC::COL_USER_ID => $user?->id, UC::COL_EMP_ID => $employee_id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildEmployeeLeaveView($employee_id, $status, $type, $month, $year, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::employeeLeave committed', [UsersConstants::COL_USER_ID => $user?->id, UsersConstants::COL_EMP_ID => $employee_id]);
+                Log::info(get_class($this) . '::employeeLeave committed', [UC::COL_USER_ID => $user?->id, UC::COL_EMP_ID => $employee_id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -577,7 +577,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::employeeLeave failed', [UsersConstants::COL_USER_ID => $user?->id, UsersConstants::COL_EMP_ID => $employee_id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::employeeLeave failed', [UC::COL_USER_ID => $user?->id, UC::COL_EMP_ID => $employee_id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_EMPLOYEE_LEAVE));
             }
         }, ['req' => $request, 'employee_id' => $employee_id, 'status' => $status, 'type' => $type, 'month' => $month, 'year' => $year]);
@@ -597,12 +597,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_RPT, self::ROUTE_MONTHLY_ATTENDANCE)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::monthlyAttendance started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . '::monthlyAttendance started', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildMonthlyAttendanceView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::monthlyAttendance committed', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . '::monthlyAttendance committed', [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -613,7 +613,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::monthlyAttendance failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::monthlyAttendance failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_MONTHLY_ATTENDANCE));
             }
         }, ['req' => $request]);
@@ -632,12 +632,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_RPT, self::ROUTE_PAYROLL)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::payroll started', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . '::payroll started', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $view = DB::transaction(fn() => $this->_buildPayrollView($request, $user?->creatorId()));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info(get_class($this) . '::payroll committed', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info(get_class($this) . '::payroll committed', [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($view)) $viewName = $view;
                 elseif (is_object($view)) {
@@ -648,7 +648,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::payroll failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::payroll failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_PAYROLL));
             }
         }, ['req' => $request]);
@@ -668,12 +668,12 @@ final class ReportController extends Controller
             $user = $userOrRedirect;
             try {
                 $startFetch = microtime(true);
-                $depts = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->when(($request[CompaniesConstants::COL_BRC_ID] ?? 0) != 0, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $request[CompaniesConstants::COL_BRC_ID]), fn($q) => $q)->pluck(CompaniesConstants::COL_DEP_NM, 'id')->toArray();
+                $depts = Department::where(DC::TABLE_CREATOR, $user?->creatorId())->when(($request[CompaniesConstants::COL_BRC_ID] ?? 0) != 0, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $request[CompaniesConstants::COL_BRC_ID]), fn($q) => $q)->pluck(CompaniesConstants::COL_DEP_NM, 'id')->toArray();
                 $this->logExecutionTime($startFetch, "{$action} fetchDepartments", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return response()->json($depts);
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'branch_id' => $request[CompaniesConstants::COL_BRC_ID] ?? null, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'branch_id' => $request[CompaniesConstants::COL_BRC_ID] ?? null, 'error' => $e->getMessage()]);
                 return response()->json(['status' => 'error', 'message' => __('An unexpected error occurred.')], 500);
             }
         }, ['req' => $request]);
@@ -694,12 +694,12 @@ final class ReportController extends Controller
             try {
                 $startFetch = microtime(true);
                 $depId = $request[CompaniesConstants::COL_DEP_ID] ?? null;
-                $emps = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck(UsersConstants::COL_NM, 'id')->toArray();
+                $emps = Employee::where(DC::TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck(UC::COL_NM, 'id')->toArray();
                 $this->logExecutionTime($startFetch, "{$action} fetchEmployees", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return response()->json($emps);
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'dept_id' => $request[CompaniesConstants::COL_DEP_ID] ?? null, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'dept_id' => $request[CompaniesConstants::COL_DEP_ID] ?? null, 'error' => $e->getMessage()]);
                 return response()->json(['status' => 'error', 'message' => __('An unexpected error occurred.')], 500);
             }
         }, ['req' => $request]);
@@ -733,7 +733,7 @@ final class ReportController extends Controller
                 for ($i = 1; $i <= $numDays; $i++) $dates[] = str_pad($i, 2, '0', STR_PAD_LEFT);
                 $this->logExecutionTime($startDates, "{$action} buildDateRange", 'completed');
                 $startEmp = microtime(true);
-                $employees = Employee::select('id', 'name')->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->when($branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $branch), fn($q) => $q)->when($department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $department), fn($q) => $q)->get()->pluck('name', 'id')->toArray();
+                $employees = Employee::select('id', 'name')->where(DC::TABLE_CREATOR, $user?->creatorId())->when($branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $branch), fn($q) => $q)->when($department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $department), fn($q) => $q)->get()->pluck('name', 'id')->toArray();
                 $this->logExecutionTime($startEmp, "{$action} fetchEmployees", 'completed');
                 Log::info("[$action] employees fetched", ['count' => count($employees)]);
                 $startRows = microtime(true);
@@ -743,9 +743,9 @@ final class ReportController extends Controller
                     foreach ($dates as $d) {
                         $dateStr = "{$year}-{$month}-{$d}";
                         try {
-                            $att = EmployeeAttendance::where(UsersConstants::COL_EMP_ID, $id)->where('date', $dateStr)->first();
+                            $att = EmployeeAttendance::where(UC::COL_EMP_ID, $id)->where('date', $dateStr)->first();
                         } catch (\Throwable $e) {
-                            Log::warning(get_class($this) . "::{$action} attendance lookup failed", [UsersConstants::COL_EMP_ID => $id, 'date' => $dateStr, 'error' => $e->getMessage()]);
+                            Log::warning(get_class($this) . "::{$action} attendance lookup failed", [UC::COL_EMP_ID => $id, 'date' => $dateStr, 'error' => $e->getMessage()]);
                             $att = null;
                         }
                         $row[$d] = match (true) {
@@ -787,17 +787,17 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::STK_RPT, self::ROUTE_PRODUCT_STOCK)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . '::productStock', [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info(get_class($this) . '::productStock', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startFetch = microtime(true);
-                $stocks = StockReport::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $stocks = StockReport::where(DC::TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($startFetch, "{$action} fetchStocks", 'completed');
                 $viewName = ViewsConstants::RPT . '.product_stock_report';
                 if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
                 $this->logExecutionTime($startOverall, "{$action} renderView", 'completed');
                 return view($viewName, compact('stocks'));
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . '::productStock failed', [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . '::productStock failed', [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_PRODUCT_STOCK));
             }
         }, ['req' => $request]);
@@ -816,7 +816,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, 'statement report', self::ROUTE_EXPORT_ACCOUNT)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . "::{$action} started", [UsersConstants::COL_USER_ID => $user->id]);
+            Log::info(get_class($this) . "::{$action} started", [UC::COL_USER_ID => $user->id]);
             try {
                 $startExport = microtime(true);
                 $fileName = 'account_statement_' . now()->format('Y-m-d_H-i-s');
@@ -845,7 +845,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::STK_RPT, self::ROUTE_EXPORT_STOCK)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info(get_class($this) . "::{$action} started", [UsersConstants::COL_USER_ID => $user->id]);
+            Log::info(get_class($this) . "::{$action} started", [UC::COL_USER_ID => $user->id]);
             try {
                 $startExport = microtime(true);
                 $fileName = 'product_stock_' . now()->format('Y-m-d_H-i-s');
@@ -875,7 +875,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_RPT, self::ROUTE_EXPORT_PAYROLL)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::{$action} started", [UsersConstants::COL_USER_ID => $user->id]);
+            Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user->id]);
             try {
                 $startExport = microtime(true);
                 $fileName = 'payroll_' . now()->format('Y-m-d_H-i-s');
@@ -905,7 +905,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_RPT, self::ROUTE_EXPORT_LEAVE)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::leaveReportExport started", [UsersConstants::COL_USER_ID => $user->id]);
+            Log::info("{$class}::leaveReportExport started", [UC::COL_USER_ID => $user->id]);
             try {
                 $startExport = microtime(true);
                 $fileName = 'leave_' . now()->format('Y-m-d_H-i-s');
@@ -938,13 +938,13 @@ final class ReportController extends Controller
             try {
                 $startFetch = microtime(true);
                 $branchId = $request[CompaniesConstants::COL_BRC_ID] ?? null;
-                $branch = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->when($branchId !== 0, fn($q) => $q->where('id', $branchId), fn($q) => $q)->first();
+                $branch = Branch::where(DC::TABLE_CREATOR, $user?->creatorId())->when($branchId !== 0, fn($q) => $q->where('id', $branchId), fn($q) => $q)->first();
                 $depts = $branch ? $branch->departments()->pluck(CompaniesConstants::COL_BRC_NM, 'id')->toArray() : [];
                 $this->logExecutionTime($startFetch, "{$action} fetchDepartments", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return response()->json($depts);
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, CompaniesConstants::COL_BRC_ID => $request[CompaniesConstants::COL_BRC_ID] ?? null, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, CompaniesConstants::COL_BRC_ID => $request[CompaniesConstants::COL_BRC_ID] ?? null, 'error' => $e->getMessage()]);
                 return response()->json(['status' => 'error', 'message' => __('An unexpected error occurred.')], 500);
             }
         }, ['req' => $request]);
@@ -968,12 +968,12 @@ final class ReportController extends Controller
             try {
                 $startFetch = microtime(true);
                 $depId = $request[CompaniesConstants::COL_DEP_ID] ?? null;
-                $emps = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck('name', 'id')->toArray();
+                $emps = Employee::where(DC::TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck('name', 'id')->toArray();
                 $this->logExecutionTime($startFetch, "{$action} fetchEmployees", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return response()->json($emps);
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'dept_id' => $request[CompaniesConstants::COL_DEP_ID] ?? null, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'dept_id' => $request[CompaniesConstants::COL_DEP_ID] ?? null, 'error' => $e->getMessage()]);
                 return response()->json(['status' => 'error', 'message' => __('An unexpected error occurred.')], 500);
             }
         }, ['req' => $request]);
@@ -993,7 +993,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, 'lead report', self::ROUTE_LEAD_REPORT)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::{$action} started", [UsersConstants::COL_USER_ID => $u->id]);
+            Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $u->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_buildLeadReport($request, $u->creatorId()));
@@ -1029,7 +1029,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, 'deal report', self::ROUTE_DEAL_REPORT)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::dealReport started", [UsersConstants::COL_USER_ID => $u->id]);
+            Log::info("{$class}::dealReport started", [UC::COL_USER_ID => $u->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_buildDealReport($request, $u->creatorId()));
@@ -1068,9 +1068,9 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
                 $user = $userOrRedirect;
                 $startQuery = microtime(true);
-                self::$dealData = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                self::$dealData = User::where(DC::TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($startQuery, "{$action} fetchUsers", 'completed');
-                Log::info("{$class}::{$action} loaded", [UsersConstants::COL_USER_ID => $user?->id, 'count' => self::$dealData->count()]);
+                Log::info("{$class}::{$action} loaded", [UC::COL_USER_ID => $user?->id, 'count' => self::$dealData->count()]);
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return self::$dealData;
             } catch (\Throwable $e) {
@@ -1096,12 +1096,12 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_POS, self::ROUTE_WAREHOUSE_REPORT)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::warehouseReport started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::warehouseReport started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_renderWarehouse($user?->id));
                 $this->logExecutionTime($startTxn, "{$action} transaction", 'completed');
-                Log::info("{$class}::warehouseReport committed", [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::info("{$class}::warehouseReport committed", [UC::COL_USER_ID => $user?->id]);
                 $viewName = null;
                 if (is_string($resp)) $viewName = $resp;
                 elseif (is_object($resp)) {
@@ -1112,7 +1112,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::warehouseReport failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error("{$class}::warehouseReport failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_WAREHOUSE_REPORT));
             }
         }, ['req' => $request]);
@@ -1132,7 +1132,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_POS, self::ROUTE_PURCHASE_DAILY)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::purchaseDailyReport started", [UsersConstants::COL_USER_ID => $u->id]);
+            Log::info("{$class}::purchaseDailyReport started", [UC::COL_USER_ID => $u->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_buildPurchaseDaily($request, $u->creatorId()));
@@ -1167,7 +1167,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_POS, self::ROUTE_PURCHASE_MONTHLY)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::purchaseMonthlyReport started", [UsersConstants::COL_USER_ID => $u->id]);
+            Log::info("{$class}::purchaseMonthlyReport started", [UC::COL_USER_ID => $u->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_buildPurchaseMonthly($request, $u->creatorId()));
@@ -1202,7 +1202,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_POS, self::ROUTE_POS_DAILY)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::posDailyReport started", [UsersConstants::COL_USER_ID => $u->id]);
+            Log::info("{$class}::posDailyReport started", [UC::COL_USER_ID => $u->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_buildPosDaily($request, $u->creatorId()));
@@ -1237,7 +1237,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_POS, self::ROUTE_POS_MONTHLY)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::posMonthlyReport started", [UsersConstants::COL_USER_ID => $u->id]);
+            Log::info("{$class}::posMonthlyReport started", [UC::COL_USER_ID => $u->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_buildPosMonthly($request, $u->creatorId()));
@@ -1272,7 +1272,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if (($r = self::guard($request, PermissionsConstants::MNG_POS, self::ROUTE_POS_VS_PURCHASE)) !== true) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::posVsPurchaseReport started", [UsersConstants::COL_USER_ID => $u->id]);
+            Log::info("{$class}::posVsPurchaseReport started", [UC::COL_USER_ID => $u->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_buildPosVsPurchase($request, $u->creatorId()));
@@ -1308,7 +1308,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::profitLoss started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::profitLoss started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_renderProfitLoss($request, $view, $user?->creatorId()));
@@ -1323,7 +1323,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::profitLoss failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error("{$class}::profitLoss failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.profit_loss'));
             }
         }, ['req' => $request, 'view' => $view]);
@@ -1344,7 +1344,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::LP_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::{$action} started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_renderMonthlyCashflow($request, $user?->creatorId()));
@@ -1380,7 +1380,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::LP_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::quarterlyCashflow started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::quarterlyCashflow started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_renderQuarterlyCashflow($request, $user?->creatorId()));
@@ -1395,7 +1395,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::quarterlyCashflow failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error("{$class}::quarterlyCashflow failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.quarterly_cashflow'));
             }
         }, ['req' => $request]);
@@ -1416,7 +1416,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::TRL_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::{$action} started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_doTrialBalanceExport($request, $user?->creatorId()));
@@ -1453,7 +1453,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::BLC_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::{$action} started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_doBalanceSheetExport($request, $user?->creatorId()));
@@ -1468,7 +1468,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error("{$class}::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.balance_sheet_export'));
             }
         }, ['req' => $request]);
@@ -1488,7 +1488,7 @@ final class ReportController extends Controller
             $user = $userOrRedirect;
             $startPerm = microtime(true);
             if (!$user?->can(PermissionsConstants::TRL_RPT)) {
-                Log::warning('[trialBalancePrint] Permission denied', [UsersConstants::COL_USER_ID => $user?->id]);
+                Log::warning('[trialBalancePrint] Permission denied', [UC::COL_USER_ID => $user?->id]);
                 $this->logExecutionTime($startPerm, "{$action} permissionCheck", 'completed');
                 return Redirect::back()->with('error', __('Permission Denied.'));
             }
@@ -1496,7 +1496,7 @@ final class ReportController extends Controller
             $startParams = microtime(true);
             $start = $request->start_date ?: now()->startOfYear()->toDateString();
             $end = $request->end_date ?: now()->addDay()->toDateString();
-            Log::info('[trialBalancePrint] Generating report', [UsersConstants::COL_USER_ID => $user?->id, 'start' => $start, 'end' => $end, 'view' => $view]);
+            Log::info('[trialBalancePrint] Generating report', [UC::COL_USER_ID => $user?->id, 'start' => $start, 'end' => $end, 'view' => $view]);
             $this->logExecutionTime($startParams, "{$action} prepareParams", 'completed');
             try {
                 $startBuild = microtime(true);
@@ -1508,7 +1508,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return view($viewName, compact('filter', 'totalAccounts'));
             } catch (\Throwable $e) {
-                Log::error("{$class}::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error("{$class}::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.trial_balance_receipt'));
             }
         }, ['req' => $request, 'view' => $view]);
@@ -1529,7 +1529,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::BLC_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::balanceSheetPrint started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::balanceSheetPrint started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_renderBalanceSheetPrint($request, $view, $user?->creatorId()));
@@ -1565,7 +1565,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::{$action} started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::{$action} started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_doProfitLossExport($request, $user?->creatorId()));
@@ -1580,7 +1580,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::{$action} failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error("{$class}::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.profit_loss_export'));
             }
         }, ['req' => $request]);
@@ -1601,7 +1601,7 @@ final class ReportController extends Controller
             $startGuard = microtime(true);
             if ($r = self::guard($request, PermissionsConstants::IE_RPT, $method)) return $r;
             $this->logExecutionTime($startGuard, "{$action} guardCheck", 'completed');
-            Log::info("{$class}::profitLossPrint started", [UsersConstants::COL_USER_ID => $user?->id]);
+            Log::info("{$class}::profitLossPrint started", [UC::COL_USER_ID => $user?->id]);
             try {
                 $startTxn = microtime(true);
                 $resp = DB::transaction(fn() => $this->_renderProfitLossPrint($request, $view, $user?->creatorId()));
@@ -1616,7 +1616,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $resp;
             } catch (\Throwable $e) {
-                Log::error("{$class}::profitLossPrint failed", [UsersConstants::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error("{$class}::profitLossPrint failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(ViewsConstants::RPT . '.profit_loss_print'));
             }
         }, ['req' => $request, 'view' => $view]);
@@ -1918,7 +1918,7 @@ final class ReportController extends Controller
         )
             ->leftJoin('product_services', 'product_services.id', '=', 'invoice_products.product_id')
             ->leftJoin('invoices',         'invoices.id',          '=', 'invoice_products.invoice_id')
-            ->where('product_services.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('product_services.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoice_products.product_id')
             ->get()
@@ -1938,7 +1938,7 @@ final class ReportController extends Controller
         SQL)
             ->leftJoin('customers', 'customers.id',       '=', 'invoices.customer_id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -1989,7 +1989,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
             ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -2011,7 +2011,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
             ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -2025,7 +2025,7 @@ final class ReportController extends Controller
             ->selectRaw('5 AS status')
             ->leftJoin('customers', 'customers.id', '=', 'credit_notes.customer')
             ->leftJoin('invoices',  'invoices.id',  '=', 'credit_notes.invoice')
-            ->where('invoices.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('credit_notes.date', [$start, $end])
             ->groupBy('credit_notes.id')
             ->get()
@@ -2041,7 +2041,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',         'customers.id',         '=', 'invoices.customer_id')
             ->leftJoin('invoice_products',  'invoice_products.invoice_id', '=', 'invoices.id')
             ->leftJoin('product_services',  'product_services.id',  '=', 'invoice_products.product_id')
-            ->where('invoices.' . DatabaseConstants::TABLE_CREATOR,  $creator)
+            ->where('invoices.' . DC::TABLE_CREATOR,  $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id', 'product_services.name')
             ->get()
@@ -2057,7 +2057,7 @@ final class ReportController extends Controller
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'credit_notes.invoice')
             ->leftJoin('product_services', 'product_services.id', '=', 'invoice_products.product_id')
             ->leftJoin('invoices',        'invoices.id',        '=', 'credit_notes.invoice')
-            ->where('invoices.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('credit_notes.date', [$start, $end])
             ->groupBy('credit_notes.id', 'product_services.name')
             ->get()
@@ -2099,7 +2099,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
             ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -2171,7 +2171,7 @@ final class ReportController extends Controller
             ->leftJoin('vendors',      'vendors.id',      '=', 'bills.vendor_id')
             ->leftJoin('bill_payments', 'bill_payments.bill_id', '=', 'bills.id')
             ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
-            ->where('bills.' . DatabaseConstants::TABLE_CREATOR,  $creator)
+            ->where('bills.' . DC::TABLE_CREATOR,  $creator)
             ->whereNotIn('bills.user_type', ['employee', 'customer'])
             ->whereBetween('bills.bill_date', [$start, $end])
             ->groupBy('bills.bill_id')
@@ -2196,7 +2196,7 @@ final class ReportController extends Controller
             ->leftJoin('vendors',      'vendors.id',      '=', 'bills.vendor_id')
             ->leftJoin('bill_payments', 'bill_payments.bill_id', '=', 'bills.id')
             ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
-            ->where('bills.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('bills.' . DC::TABLE_CREATOR, $creator)
             ->whereNotIn('bills.user_type', ['employee', 'customer'])
             ->whereBetween('bills.bill_date', [$start, $end])
             ->groupBy('bills.id')
@@ -2213,7 +2213,7 @@ final class ReportController extends Controller
             ->selectRaw('5 AS status')
             ->leftJoin('vendors', 'vendors.id', '=', 'debit_notes.vendor')
             ->leftJoin('bills',  'bills.id', '=', 'debit_notes.bill')
-            ->where('bills.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('bills.' . DC::TABLE_CREATOR, $creator)
             ->whereBetween('debit_notes.date', [$start, $end])
             ->groupBy('debit_notes.id')
             ->get()
@@ -2232,7 +2232,7 @@ final class ReportController extends Controller
             ->leftJoin('vendors',       'vendors.id',       '=', 'bills.vendor_id')
             ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
             ->leftJoin('product_services', 'product_services.id', '=', 'bill_products.product_id')
-            ->where('bills.' . DatabaseConstants::TABLE_CREATOR, $creator)
+            ->where('bills.' . DC::TABLE_CREATOR, $creator)
             ->whereNotIn('bills.user_type', ['employee', 'customer'])
             ->whereBetween('bills.bill_date', [$start, $end])
             ->groupBy('bills.bill_id', 'product_services.name')
@@ -2251,7 +2251,7 @@ final class ReportController extends Controller
             ->leftJoin('bill_products',   'bill_products.bill_id', '=', 'debit_notes.bill')
             ->leftJoin('product_services', 'product_services.id', '=', 'bill_products.product_id')
             ->leftJoin('bills',           'bills.id',           '=', 'debit_notes.bill')
-            ->where('bills.' . DatabaseConstants::TABLE_CREATOR,   $creator)
+            ->where('bills.' . DC::TABLE_CREATOR,   $creator)
             ->whereBetween('debit_notes.date', [$start, $end])
             ->groupBy('debit_notes.id', 'product_services.name')
             ->get()
@@ -2306,18 +2306,18 @@ final class ReportController extends Controller
         )
             return $userOrRedirect;
         $u = $userOrRedirect;
-        return [UsersConstants::COL_USER_ID => $u->id, 'creator_id' => $u->creatorId()];
+        return [UC::COL_USER_ID => $u->id, 'creator_id' => $u->creatorId()];
     }
 
-    private function _buildIncomeSummaryView(Request $request, int $creatorId): View
+    private function _buildIncomeSummaryView(Request $request, int|string $creatorId): View
     {
-        $account   = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $account   = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
-        $customer  = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $customer  = Customer::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Customer', '');
-        $category  = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $category  = ProductServiceCategory::where(DC::TABLE_CREATOR, $creatorId)
             ->where('type', 1)
             ->pluck('name', 'id')
             ->prepend('Select Category', '');
@@ -2341,7 +2341,7 @@ final class ReportController extends Controller
                 'product_service_categories.id'
             )
             ->where('product_service_categories.type', 1)
-            ->where('revenues.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->groupBy('category_id', 'month')
             ->get();
@@ -2364,7 +2364,7 @@ final class ReportController extends Controller
         }
 
         $totalRev = Revenue::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2386,7 +2386,7 @@ final class ReportController extends Controller
             $incomeTotal[] = $totalRev[$m] ?? 0;
         }
 
-        $invoices = Invoice::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $invoices = Invoice::where(DC::TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2445,15 +2445,15 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.income_summary', compact('filter'), $data);
     }
 
-    private function _buildExpenseSummaryView(Request $request, int $creatorId): View
+    private function _buildExpenseSummaryView(Request $request, int|string $creatorId): View
     {
-        $account   = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $account   = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
-        $vendor    = Vendor::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $vendor    = Vendor::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Vendor', '');
-        $category  = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $category  = ProductServiceCategory::where(DC::TABLE_CREATOR, $creatorId)
             ->where('type', 2)
             ->pluck('name', 'id')
             ->prepend('Select Category', '');
@@ -2477,7 +2477,7 @@ final class ReportController extends Controller
                 'product_service_categories.id'
             )
             ->where('product_service_categories.type', 2)
-            ->where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2510,7 +2510,7 @@ final class ReportController extends Controller
         }
 
         $totalPay = Payment::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2532,7 +2532,7 @@ final class ReportController extends Controller
             $payTotal[] = $totalPay[$m] ?? 0;
         }
 
-        $bills   = Bill::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $bills   = Bill::where(DC::TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2591,18 +2591,18 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.expense_summary', compact('filter'), $data);
     }
 
-    private function _buildIncomeVsExpenseSummaryView(Request $request, int $creatorId): View
+    private function _buildIncomeVsExpenseSummaryView(Request $request, int|string $creatorId): View
     {
-        $account   = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $account   = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
-        $vendor    = Vendor::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $vendor    = Vendor::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Vendor', '');
-        $customer  = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $customer  = Customer::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Customer', '');
-        $category  = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $category  = ProductServiceCategory::where(DC::TABLE_CREATOR, $creatorId)
             ->whereIn('type', [1, 2])
             ->pluck('name', 'id')
             ->prepend('Select Category', '');
@@ -2621,7 +2621,7 @@ final class ReportController extends Controller
         ];
 
         $payData = Payment::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2638,7 +2638,7 @@ final class ReportController extends Controller
             ->pluck('amount', 'month')
             ->toArray();
 
-        $bills   = Bill::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $bills   = Bill::where(DC::TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2660,7 +2660,7 @@ final class ReportController extends Controller
         }
 
         $revData = Revenue::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where('revenues.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2677,7 +2677,7 @@ final class ReportController extends Controller
             ->pluck('amount', 'month')
             ->toArray();
 
-        $invData = Invoice::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $invData = Invoice::where(DC::TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2731,11 +2731,11 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.income_vs_expense_summary', compact('filter'), $data);
     }
 
-    private function _buildTaxSummaryView(Request $request, int $creatorId): View
+    private function _buildTaxSummaryView(Request $request, int|string $creatorId): View
     {
         $monthList = $this->yearMonth();
         $yearList = $this->yearList();
-        $taxList  = Tax::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $taxList  = Tax::where(DC::TABLE_CREATOR, $creatorId)->get();
         $year     = $request->year ?? date('Y');
 
         $invoiceProducts = InvoiceProduct::selectRaw(
@@ -2748,7 +2748,7 @@ final class ReportController extends Controller
                 'product_services.id'
             )
             ->whereYear('invoice_products.created_at', $year)
-            ->where('product_services.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where('product_services.' . DC::TABLE_CREATOR, $creatorId)
             ->get();
 
         $incomeTaxesData = [];
@@ -2794,7 +2794,7 @@ final class ReportController extends Controller
                 'product_services.id'
             )
             ->whereYear('bill_products.created_at', $year)
-            ->where('product_services.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+            ->where('product_services.' . DC::TABLE_CREATOR, $creatorId)
             ->get();
 
         $expenseTaxesData = [];
@@ -2848,10 +2848,10 @@ final class ReportController extends Controller
         );
     }
 
-    private function _buildInvoiceSummaryView(Request $request, int $creatorId): View
+    private function _buildInvoiceSummaryView(Request $request, int|string $creatorId): View
     {
         $filter  = ['customer' => __('All'), 'status' => __('All')];
-        $customer = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $customer = Customer::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Customer', '');
         $status  = Invoice::$statuses;
@@ -2866,7 +2866,7 @@ final class ReportController extends Controller
             $q->where('status', '!=', 0);
         }
 
-        $q->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+        $q->where(DC::TABLE_CREATOR, $creatorId);
 
         $start = !empty($request->start_month)
             ? strtotime($request->start_month)
@@ -2922,10 +2922,10 @@ final class ReportController extends Controller
         );
     }
 
-    private function _buildBillSummaryView(Request $request, int $creatorId): View
+    private function _buildBillSummaryView(Request $request, int|string $creatorId): View
     {
         $filter = ['vendor' => __('All'), 'status' => __('All')];
-        $vendor = Vendor::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $vendor = Vendor::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Vendor', '');
         $status = Bill::$statuses;
@@ -2938,7 +2938,7 @@ final class ReportController extends Controller
             $q->where('status', '!=', 0);
         }
 
-        $q->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+        $q->where(DC::TABLE_CREATOR, $creatorId);
 
         $start = !empty($request->start_month)
             ? strtotime($request->start_month)
@@ -2996,7 +2996,7 @@ final class ReportController extends Controller
 
     private function _buildAccountStatementView(
         Request $request,
-        int $creatorId
+        int|string $creatorId
     ): View {
         $filter     = ['account' => __('All'), 'type' => __('Revenue')];
         $reportData = [
@@ -3005,44 +3005,44 @@ final class ReportController extends Controller
             'revenueAccounts' => '',
             'paymentAccounts' => '',
         ];
-        $account = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $account = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
         $types  = ['revenue' => __('Revenue'), 'payment' => __('Payment')];
 
         if ($request->type === 'payment') {
             $payAcc = Payment::select(
-                DatabaseConstants::TABLE_BANK_ACC . '.id',
-                DatabaseConstants::TABLE_BANK_ACC . '.holder_name',
-                DatabaseConstants::TABLE_BANK_ACC . '.bank_name'
+                DC::TABLE_BANK_ACC . '.id',
+                DC::TABLE_BANK_ACC . '.holder_name',
+                DC::TABLE_BANK_ACC . '.bank_name'
             )
                 ->leftJoin(
                     'bank_accounts',
                     'payments.account_id',
                     '=',
-                    DatabaseConstants::TABLE_BANK_ACC . '.id'
+                    DC::TABLE_BANK_ACC . '.id'
                 )
                 ->groupBy('payments.account_id')
                 ->selectRaw('sum(amount) as total')
-                ->where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId);
-            $payments = Payment::where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                ->where('payments.' . DC::TABLE_CREATOR, $creatorId);
+            $payments = Payment::where('payments.' . DC::TABLE_CREATOR, $creatorId)
                 ->orderBy('id', 'desc');
         } else {
             $revAcc  = Revenue::select(
-                DatabaseConstants::TABLE_BANK_ACC . '.id',
-                DatabaseConstants::TABLE_BANK_ACC . '.holder_name',
-                DatabaseConstants::TABLE_BANK_ACC . '.bank_name'
+                DC::TABLE_BANK_ACC . '.id',
+                DC::TABLE_BANK_ACC . '.holder_name',
+                DC::TABLE_BANK_ACC . '.bank_name'
             )
                 ->leftJoin(
                     'bank_accounts',
                     'revenues.account_id',
                     '=',
-                    DatabaseConstants::TABLE_BANK_ACC . '.id'
+                    DC::TABLE_BANK_ACC . '.id'
                 )
                 ->groupBy('revenues.account_id')
                 ->selectRaw('sum(amount) as total')
-                ->where('revenues.' . DatabaseConstants::TABLE_CREATOR, $creatorId);
-            $revenues = Revenue::where('revenues.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                ->where('revenues.' . DC::TABLE_CREATOR, $creatorId);
+            $revenues = Revenue::where('revenues.' . DC::TABLE_CREATOR, $creatorId)
                 ->orderBy('id', 'desc');
         }
 
@@ -3066,26 +3066,26 @@ final class ReportController extends Controller
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                        ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
                 );
                 $payAcc->orWhere(
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                        ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
                 );
             } else {
                 $revenues->orWhere(
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('revenues.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                        ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
                 );
                 $revAcc->orWhere(
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('revenues.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                        ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
                 );
             }
         }
@@ -3108,13 +3108,13 @@ final class ReportController extends Controller
         if ($request->type === 'payment') {
             $reportData['payments']       = $payments->get();
             $reportData['paymentAccounts'] = $payAcc
-                ->where('payments.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
                 ->get();
             $filter['type'] = __('Payment');
         } else {
             $reportData['revenues']       = $revenues->get();
             $reportData['revenueAccounts'] = $revAcc
-                ->where('revenues.' . DatabaseConstants::TABLE_CREATOR, $creatorId)
+                ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
                 ->get();
         }
 
@@ -3130,11 +3130,11 @@ final class ReportController extends Controller
     private function _buildBalanceSheetView(
         Request $request,
         string $view,
-        int $creatorId
+        int|string $creatorId
     ): View {
         $start = $request->start_date ?? date('Y-01-01');
         $end  = $request->end_date ?? date('Y-m-d', strtotime('+1 day'));
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
             ->get();
         $chartAccounts = [];
@@ -3144,7 +3144,7 @@ final class ReportController extends Controller
             $subArr  = [];
 
             foreach ($subTypes as $st) {
-                $accs = ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $accs = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
                     ->where('type', $type->id)
                     ->where('sub_type', $st->id)
                     ->get();
@@ -3194,9 +3194,9 @@ final class ReportController extends Controller
     private function _buildLedgerSummaryView(
         Request $request,
         string $acc,
-        int $creatorId
+        int|string $creatorId
     ): View {
-        $accounts = ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('All', '');
         $start   = $request->start_date ?? date('Y-01-01');
@@ -3204,7 +3204,7 @@ final class ReportController extends Controller
         $items   = ChartOfAccount::whereKey(
             $request->account
                 ? [$request->account]
-                : ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                : ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
                 ->pluck('id')
                 ->all()
         )->get();
@@ -3224,11 +3224,11 @@ final class ReportController extends Controller
 
     private function _buildTrialBalanceSummaryView(
         Request $request,
-        int $creatorId
+        int|string $creatorId
     ): View {
         $start = $request->start_date ?? date('Y-01-01');
         $end  = $request->end_date ?? date('Y-m-d', strtotime('+1 day'));
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)->get();
         $accounts = [];
 
         foreach ($types as $type) {
@@ -3255,12 +3255,12 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.trial_balance', compact('filter', 'totalAccounts'));
     }
 
-    private function _buildLeaveView(Request $request, int $creatorId): View
+    private function _buildLeaveView(Request $request, int|string $creatorId): View
     {
-        $branch    = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $branch    = Branch::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck(CompaniesConstants::COL_BRC_NM, 'id')
             ->prepend('Select Branch', '');
-        $department = Department::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $department = Department::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck(CompaniesConstants::COL_DEP_NM, 'id')
             ->prepend('Select Department', '');
         $filterYear = [
@@ -3269,7 +3269,7 @@ final class ReportController extends Controller
             'type'          => __('Monthly'),
             'dateYearRange' => date('M-Y'),
         ];
-        $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+        $employees = Employee::where(DC::TABLE_CREATOR, $creatorId);
         if ($request->branch) {
             $employees->where(CompaniesConstants::COL_BRC_ID, $request->branch);
             $filterYear['branch'] = Branch::find($request->branch)?->name ?? '';
@@ -3283,11 +3283,11 @@ final class ReportController extends Controller
         $leaves = [];
         $totApp = $totRej = $totPend = 0;
         foreach ($employees as $emp) {
-            $app = Leave::where(UsersConstants::COL_EMP_ID, $emp->id)
+            $app = Leave::where(UC::COL_EMP_ID, $emp->id)
                 ->where('status', 'Approved');
-            $rej = Leave::where(UsersConstants::COL_EMP_ID, $emp->id)
+            $rej = Leave::where(UC::COL_EMP_ID, $emp->id)
                 ->where('status', 'Reject');
-            $pend = Leave::where(UsersConstants::COL_EMP_ID, $emp->id)
+            $pend = Leave::where(UC::COL_EMP_ID, $emp->id)
                 ->where('status', 'Pending');
             if (($type = $request->type) === 'monthly' && $request->month) {
                 $m = date('m', strtotime($request->month));
@@ -3317,7 +3317,7 @@ final class ReportController extends Controller
             $totPend += $pCnt;
             $leaves[] = [
                 'id'        => $emp->id,
-                UsersConstants::COL_EMP_ID => $emp->employee_id,
+                UC::COL_EMP_ID => $emp->employee_id,
                 'employee'  => $emp->name,
                 'approved'  => $aCnt,
                 'reject'    => $rCnt,
@@ -3351,12 +3351,12 @@ final class ReportController extends Controller
         string $type,
         string $month,
         int $year,
-        int $creatorId
+        int|string $creatorId
     ): View {
-        $leaveTypes = LeaveType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $leaveTypes = LeaveType::where(DC::TABLE_CREATOR, $creatorId)->get();
         $leaves    = [];
         foreach ($leaveTypes as $lt) {
-            $q = Leave::where(UsersConstants::COL_EMP_ID, $employee_id)
+            $q = Leave::where(UC::COL_EMP_ID, $employee_id)
                 ->where('status', $status)
                 ->where('leave_type_id', $lt->id);
             if ($type === 'yearly') {
@@ -3372,7 +3372,7 @@ final class ReportController extends Controller
             ];
         }
 
-        $leaveData = Leave::where(UsersConstants::COL_EMP_ID, $employee_id)
+        $leaveData = Leave::where(UC::COL_EMP_ID, $employee_id)
             ->where('status', $status);
         if ($type === 'yearly') {
             $leaveData->whereYear('applied_on', $year);
@@ -3393,13 +3393,13 @@ final class ReportController extends Controller
 
     private function _buildMonthlyAttendanceView(
         Request $request,
-        int $creatorId
+        int|string $creatorId
     ): View {
-        $branch    = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-        $department = Department::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $branch    = Branch::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $department = Department::where(DC::TABLE_CREATOR, $creatorId)->get();
         $data      = ['branch' => __('All'), 'department' => __('All')];
         $emps      = Employee::select('id', 'name')
-            ->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+            ->where(DC::TABLE_CREATOR, $creatorId);
         if (!empty($request->employee_id) && $request->employee_id[0] != 0) {
             $emps->whereIn('id', $request->employee_id);
         }
@@ -3440,7 +3440,7 @@ final class ReportController extends Controller
             foreach ($dates as $d) {
                 $dt = "$y-$m-$d";
                 if ($dt <= date('Y-m-d')) {
-                    $att = EmployeeAttendance::where(UsersConstants::COL_EMP_ID, $id)
+                    $att = EmployeeAttendance::where(UC::COL_EMP_ID, $id)
                         ->where('date', $dt)
                         ->first();
                     if ($att && $att->status === 'Present') {
@@ -3487,12 +3487,12 @@ final class ReportController extends Controller
         );
     }
 
-    private function _buildPayrollView(Request $request, int $creatorId): View
+    private function _buildPayrollView(Request $request, int|string $creatorId): View
     {
-        $branch    = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-        $department = Department::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-        $emps      = Employee::select('id', UsersConstants::COL_NM)
-            ->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+        $branch    = Branch::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $department = Department::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $emps      = Employee::select('id', UC::COL_NM)
+            ->where(DC::TABLE_CREATOR, $creatorId);
         if (!empty($request->employee_id) && $request->employee_id[0] != 0)
             $emps->whereIn('id', $request->employee_id);
         $filterYear = [
@@ -3501,9 +3501,9 @@ final class ReportController extends Controller
             'type'          => __('Monthly'),
             'dateYearRange' => '',
         ];
-        $q = Payslip::select('pay_slips.*', 'employees.' . UsersConstants::COL_NM)
-            ->leftJoin('employees', 'pay_slips.' . UsersConstants::COL_EMP_ID, '=', 'employees.id')
-            ->where('pay_slips.' . DatabaseConstants::TABLE_CREATOR, $creatorId);
+        $q = Payslip::select('pay_slips.*', 'employees.' . UC::COL_NM)
+            ->leftJoin('employees', 'pay_slips.' . UC::COL_EMP_ID, '=', 'employees.id')
+            ->where('pay_slips.' . DC::TABLE_CREATOR, $creatorId);
         if (($t = $request->type) === 'monthly' && $request->month) {
             $q->where('salary_month', $request->month);
             $filterYear['dateYearRange'] = date('M-Y', strtotime($request->month));
@@ -3527,7 +3527,7 @@ final class ReportController extends Controller
             $filterYear['department'] = Department::find($request->department)?->name ?? '';
         }
         $empsArr = $emps->get()->pluck('name', 'id')->all();
-        $payslips = $q->whereIn('employees.' . UsersConstants::COL_NM, $empsArr)
+        $payslips = $q->whereIn('employees.' . UC::COL_NM, $empsArr)
             ->with('employees')
             ->get();
         $totBasic = $totNet = $totAllw = $totCom = $totLoan = 0;
@@ -3577,12 +3577,12 @@ final class ReportController extends Controller
         );
     }
 
-    private function _buildLeadReport(Request $request, int $creatorId)
+    private function _buildLeadReport(Request $request, int|string $creatorId)
     {
         $weekStart = Carbon::now()->startOfWeek();
         $weekEnd  = Carbon::now()->endOfWeek();
         $period   = CarbonPeriod::create($weekStart, $weekEnd);
-        $grouped  = Lead::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $grouped  = Lead::where(DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('created_at', [$weekStart, $weekEnd])
             ->get()
             ->groupBy(fn($l) => $l->created_at->format('Y-m-d'));
@@ -3595,10 +3595,10 @@ final class ReportController extends Controller
             $deviceData[]  = $grouped[$key]?->count() ?? 0;
         }
 
-        $sources = Source::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $sources = Source::where(DC::TABLE_CREATOR, $creatorId)->get();
         $srcLabels = $sources->pluck('name')->toArray();
         $srcData  = $sources->map(
-            fn($s) => Lead::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            fn($s) => Lead::where(DC::TABLE_CREATOR, $creatorId)
                 ->where('sources', $s->id)
                 ->count()
         )->toArray();
@@ -3616,7 +3616,7 @@ final class ReportController extends Controller
             $m = date('m', $cur);
             $y = date('Y', $cur);
             $labels[] = date('M Y', $cur);
-            $count = Lead::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $count = Lead::where(DC::TABLE_CREATOR, $creatorId)
                 ->whereMonth('date', $request->start_month ? date('m', strtotime($request->start_month)) : $m)
                 ->whereYear('date', $y)
                 ->count();
@@ -3628,10 +3628,10 @@ final class ReportController extends Controller
         }
 
         $userCounts = [];
-        $users = User::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $users = User::where(DC::TABLE_CREATOR, $creatorId)->get();
         foreach ($users as $uData) {
-            $c = Lead::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
-                ->where(UsersConstants::COL_USER_ID, $uData->id)
+            $c = Lead::where(DC::TABLE_CREATOR, $creatorId)
+                ->where(UC::COL_USER_ID, $uData->id)
                 ->when(
                     $request->From_Date && $request->To_Date,
                     fn($q) => $q->whereBetween('created_at', [
@@ -3647,10 +3647,10 @@ final class ReportController extends Controller
 
         $pipeLabels = [];
         $pipeData  = [];
-        $pipes = Pipeline::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $pipes = Pipeline::where(DC::TABLE_CREATOR, $creatorId)->get();
         foreach ($pipes as $p) {
             $pipeLabels[] = $p->name;
-            $pipeData[]  = Lead::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $pipeData[]  = Lead::where(DC::TABLE_CREATOR, $creatorId)
                 ->where('pipeline_id', $p->id)
                 ->count();
         }
@@ -3676,12 +3676,12 @@ final class ReportController extends Controller
         ));
     }
 
-    private function _buildDealReport(Request $request, int $creatorId)
+    private function _buildDealReport(Request $request, int|string $creatorId)
     {
         // weekly
         $weekStart = Carbon::now()->startOfWeek();
         $period   = CarbonPeriod::create($weekStart, $weekStart->copy()->endOfWeek());
-        $grouped  = Deal::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $grouped  = Deal::where(DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('created_at', [$weekStart, $weekStart->copy()->endOfWeek()])
             ->get()
             ->groupBy(fn($d) => $d->created_at->format('Y-m-d'));
@@ -3693,10 +3693,10 @@ final class ReportController extends Controller
             $deviceData[]  = $grouped[$key]?->count() ?? 0;
         }
         // source
-        $srcs = Source::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $srcs = Source::where(DC::TABLE_CREATOR, $creatorId)->get();
         $srcLabels = $srcs->pluck('name')->toArray();
         $srcData  = $srcs->map(
-            fn($s) => Deal::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            fn($s) => Deal::where(DC::TABLE_CREATOR, $creatorId)
                 ->where('sources', $s->id)->count()
         )->toArray();
         // staff
@@ -3704,12 +3704,12 @@ final class ReportController extends Controller
         $users = $this->deals();
         foreach ($users as $uData) {
             $userData['name'][] = $uData->name;
-            $userData['data'][] = UserDeal::where(UsersConstants::COL_USER_ID, $uData->id)
+            $userData['data'][] = UserDeal::where(UC::COL_USER_ID, $uData->id)
                 ->count();
         }
         // client
         $clientData = [];
-        $clients = ClientDeal::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('client_id')->unique();
+        $clients = ClientDeal::where(DC::TABLE_CREATOR, $creatorId)->pluck('client_id')->unique();
         foreach ($clients as $cid) {
             $name = Customer::find($cid)?->name ?? '';
             $clientData['name'][] = $name;
@@ -3729,7 +3729,7 @@ final class ReportController extends Controller
             $labels[] = date('M Y', $cur);
             $m = date('m', $cur);
             $y = date('Y', $cur);
-            $count = Deal::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $count = Deal::where(DC::TABLE_CREATOR, $creatorId)
                 ->whereMonth('created_at', $m)
                 ->whereYear('created_at', $y)
                 ->count();
@@ -3760,20 +3760,20 @@ final class ReportController extends Controller
 
     private function _renderWarehouse(int $userId): View
     {
-        $warehouses     = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $userId)->get();
+        $warehouses     = Warehouse::where(DC::TABLE_CREATOR, $userId)->get();
         $totalWarehouse = $warehouses->count();
-        $totalProduct   = WarehouseProduct::where(DatabaseConstants::TABLE_CREATOR, $userId)->count();
+        $totalProduct   = WarehouseProduct::where(DC::TABLE_CREATOR, $userId)->count();
         $warehousename  = $warehouses->pluck('name')->all();
         $warehouseCounts = $warehouses
             ->map(
-                fn($w) => WarehouseProduct::where(DatabaseConstants::TABLE_CREATOR, $userId)
+                fn($w) => WarehouseProduct::where(DC::TABLE_CREATOR, $userId)
                     ->where('warehouse_id', $w->id)
                     ->count()
             )
             ->all();
 
         Log::info(get_class($this) . '::warehouseReport rendered', [
-            UsersConstants::COL_USER_ID         => $userId,
+            UC::COL_USER_ID         => $userId,
             'totalWarehouse'  => $totalWarehouse,
             'totalProduct'    => $totalProduct,
         ]);
@@ -3787,7 +3787,7 @@ final class ReportController extends Controller
         ]);
     }
 
-    private function _buildPurchaseDaily(Request $request, int $creatorId): View
+    private function _buildPurchaseDaily(Request $request, int|string $creatorId): View
     {
         $start = $request->start_date
             ? $request->start_date
@@ -3796,7 +3796,7 @@ final class ReportController extends Controller
             ? $request->end_date
             : now()->subDay()->toDateString();
 
-        $query = Purchase::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $query = Purchase::where(DC::TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3828,9 +3828,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'vendor' => Vendor::find($request->vendor)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $vendors   = Vendor::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $vendors   = Vendor::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         return view(ViewsConstants::RPT . '.daily_purchase', compact(
@@ -3842,10 +3842,10 @@ final class ReportController extends Controller
         ));
     }
 
-    private function _buildPurchaseMonthly(Request $request, int $creatorId): View
+    private function _buildPurchaseMonthly(Request $request, int|string $creatorId): View
     {
         $year = $request->year ?? now()->year;
-        $query = Purchase::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $query = Purchase::where(DC::TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3876,9 +3876,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'vendor' => Vendor::find($request->vendor)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $vendors   = Vendor::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $vendors   = Vendor::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         $monthList = $this->yearMonth();
@@ -3895,7 +3895,7 @@ final class ReportController extends Controller
         ));
     }
 
-    private function _buildPosDaily(Request $request, int $creatorId): View
+    private function _buildPosDaily(Request $request, int|string $creatorId): View
     {
         $start = $request->start_date
             ? $request->start_date
@@ -3904,7 +3904,7 @@ final class ReportController extends Controller
             ? $request->end_date
             : now()->subDay()->toDateString();
 
-        $query = Pos::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $query = Pos::where(DC::TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3936,9 +3936,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'customer' => Customer::find($request->customer)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $customers = Customer::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         return view(ViewsConstants::RPT . '.daily_pos', compact(
@@ -3950,10 +3950,10 @@ final class ReportController extends Controller
         ));
     }
 
-    private function _buildPosMonthly(Request $request, int $creatorId): View
+    private function _buildPosMonthly(Request $request, int|string $creatorId): View
     {
         $year = $request->year ?? now()->year;
-        $query = Pos::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $query = Pos::where(DC::TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3984,9 +3984,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'customer' => Customer::find($request->customer)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $customers = Customer::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         $monthList = $this->yearMonth();
@@ -4003,17 +4003,17 @@ final class ReportController extends Controller
         ));
     }
 
-    private function _buildPosVsPurchase(Request $request, int $creatorId): View
+    private function _buildPosVsPurchase(Request $request, int|string $creatorId): View
     {
         $year = $request->year ?? now()->year;
 
-        $posTotals = Pos::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $posTotals = Pos::where(DC::TABLE_CREATOR, $creatorId)
             ->whereYear('pos_date', $year)
             ->get()
             ->groupBy(fn($p) => $p->pos_date->format('n'))
             ->map(fn($col) => $col->sum(fn($p) => $p->getTotal()));
 
-        $purTotals = Purchase::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $purTotals = Purchase::where(DC::TABLE_CREATOR, $creatorId)
             ->whereYear('purchase_date', $year)
             ->get()
             ->groupBy(fn($p) => $p->purchase_date->format('n'))
@@ -4044,20 +4044,20 @@ final class ReportController extends Controller
         ]);
     }
 
-    private function _renderProfitLoss(Request $request, string $view, int $creatorId): View
+    private function _renderProfitLoss(Request $request, string $view, int|string $creatorId): View
     {
         // parse date range
         $start = $request->start_date ?: now()->startOfYear()->toDateString();
         $end  = $request->end_date   ?: now()->addDay()->toDateString();
 
         // only three types
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Income', 'Costs of Goods Sold', 'Expenses'])
             ->get();
 
         $chartAccounts = [];
         foreach ($types as $type) {
-            $accounts = ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
                 ->where('type', $type->id)
                 ->get();
 
@@ -4106,13 +4106,13 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.profit_loss', compact('filter', 'chartAccounts'));
     }
 
-    private function _renderMonthlyCashflow(Request $request, int $creatorId): View
+    private function _renderMonthlyCashflow(Request $request, int|string $creatorId): View
     {
         $year = $request->year ?: now()->year;
 
         $sumByMonth = function ($model, string $dateCol, ?int $category = null) use ($creatorId, $year) {
             $q = $model::selectRaw('MONTH(' . $dateCol . ') m, SUM(amount) amt')
-                ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                ->where(DC::TABLE_CREATOR, $creatorId)
                 ->whereYear($dateCol, $year)
                 ->when($category !== null, fn($q) => $q->where('category_id', $category), fn($q) => $q)
                 ->groupBy('m')
@@ -4154,7 +4154,7 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.monthly_cashflow', compact('filter') + $data);
     }
 
-    private function _renderQuarterlyCashflow(Request $request, int $creatorId): View
+    private function _renderQuarterlyCashflow(Request $request, int|string $creatorId): View
     {
         $year = $request->year ?: now()->year;
         $quarters = [
@@ -4168,7 +4168,7 @@ final class ReportController extends Controller
         // fetch and group function
         $groupByCategory = function ($model, string $dateCol, string $sumCol) use ($creatorId, $year) {
             return $model::selectRaw("category_id, MONTH($dateCol) m, SUM($sumCol) amt")
-                ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                ->where(DC::TABLE_CREATOR, $creatorId)
                 ->whereYear($dateCol, $year)
                 ->groupBy('category_id', 'm')
                 ->get()
@@ -4233,12 +4233,12 @@ final class ReportController extends Controller
     }
 
 
-    private function _doTrialBalanceExport(Request $request, int $creatorId): BinaryFileResponse
+    private function _doTrialBalanceExport(Request $request, int|string $creatorId): BinaryFileResponse
     {
         $start = $request->start_date ?: now()->startOfMonth()->toDateString();
         $end  = $request->end_date   ?: now()->endOfMonth()->toDateString();
 
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)->get();
         $totals = [];
 
         foreach ($types as $type) {
@@ -4266,9 +4266,9 @@ final class ReportController extends Controller
      * @param string $end
      * @return array<string, array<string, array{ id:int, code:string, name:string, totalDebit:float, totalCredit:float }>>
      */
-    private function buildTrialBalanceData(int $creatorId, string $start, string $end): array
+    private function buildTrialBalanceData(int|string $creatorId, string $start, string $end): array
     {
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)->get();
         $totalsByType = [];
         foreach ($types as $type) {
             $totalsByType[$type->name] = Utility::trialBalance($type->id, $start, $end);
@@ -4295,12 +4295,12 @@ final class ReportController extends Controller
         return $result;
     }
 
-    private function _doBalanceSheetExport(Request $request, int $creatorId): BinaryFileResponse
+    private function _doBalanceSheetExport(Request $request, int|string $creatorId): BinaryFileResponse
     {
         $start = $request->start_date ?: now()->startOfMonth()->toDateString();
         $end  = $request->end_date   ?: now()->endOfMonth()->toDateString();
 
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
             ->get();
 
@@ -4310,7 +4310,7 @@ final class ReportController extends Controller
             $subs = [];
 
             foreach ($subTypes as $sub) {
-                $accounts = ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
                     ->where('type', $type->id)
                     ->where('sub_type', $sub->id)
                     ->get();
@@ -4345,7 +4345,7 @@ final class ReportController extends Controller
         return Excel::download(new BalanceSheetExport($structure, $start, $end, $company), $filename);
     }
 
-    private function _renderBalanceSheetPrint(Request $request, string $view, int $creatorId): View
+    private function _renderBalanceSheetPrint(Request $request, string $view, int|string $creatorId): View
     {
         $start = $request->start_date ?: now()->startOfYear()->toDateString();
         $end  = $request->end_date   ?: now()->addDay()->toDateString();
@@ -4356,9 +4356,9 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.balance_sheet_receipt', compact('filter', 'chartAccounts'));
     }
 
-    private function _doBalanceSheetStructure(int $creatorId, string $start, string $end): array
+    private function _doBalanceSheetStructure(int|string $creatorId, string $start, string $end): array
     {
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
             ->get();
 
@@ -4367,7 +4367,7 @@ final class ReportController extends Controller
             $subTypes = ChartOfAccountSubType::where('type', $type->id)->get();
             $subs = [];
             foreach ($subTypes as $sub) {
-                $accounts = ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
                     ->where('type', $type->id)
                     ->where('sub_type', $sub->id)
                     ->get();
@@ -4395,18 +4395,18 @@ final class ReportController extends Controller
         return $structure;
     }
 
-    private function _doProfitLossExport(Request $request, int $creatorId): BinaryFileResponse
+    private function _doProfitLossExport(Request $request, int|string $creatorId): BinaryFileResponse
     {
         $start = $request->start_date ?: now()->startOfYear()->toDateString();
         $end  = $request->end_date   ?: now()->addDay()->toDateString();
 
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Income', 'Costs of Goods Sold', 'Expenses'])
             ->get();
 
         $structure = [];
         foreach ($types as $type) {
-            $accounts = ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
                 ->where('type', $type->id)
                 ->get();
             $rows = [];
@@ -4444,7 +4444,7 @@ final class ReportController extends Controller
         return Excel::download(new ProfitLossExport($structure, $start, $end, $company), $filename);
     }
 
-    private function _renderProfitLossPrint(Request $request, string $view, int $creatorId): View
+    private function _renderProfitLossPrint(Request $request, string $view, int|string $creatorId): View
     {
         $start = $request->start_date ?: now()->startOfYear()->toDateString();
         $end  = $request->end_date   ?: now()->addDay()->toDateString();
@@ -4459,15 +4459,15 @@ final class ReportController extends Controller
         return view(ViewsConstants::RPT . '.profit_loss_receipt', compact('filter', 'chartAccounts'));
     }
 
-    private function _doProfitLossStructure(int $creatorId, string $start, string $end): array
+    private function _doProfitLossStructure(int|string $creatorId, string $start, string $end): array
     {
-        $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Income', 'Costs of Goods Sold', 'Expenses'])
             ->get();
 
         $structure = [];
         foreach ($types as $type) {
-            $accounts = ChartOfAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
                 ->where('type', $type->id)
                 ->get();
             $rows = [];
