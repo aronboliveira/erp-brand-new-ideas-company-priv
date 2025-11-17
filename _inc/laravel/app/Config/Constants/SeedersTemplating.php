@@ -503,6 +503,7 @@ class SeedersTemplating
 	];
 	public const PRC_PERMS = [
 		['name' => PC::MNG_PRC],
+		['name' => 'view purchase'],
 		['name' => 'create purchase'],
 		['name' => 'edit purchase'],
 		['name' => 'show purchase'],

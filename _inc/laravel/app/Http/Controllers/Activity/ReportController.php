@@ -69,6 +69,7 @@ use Illuminate\Http\{
     RedirectResponse,
     Request
 };
+use Illuminate\Routing\ResponseFactory;
 use Illuminate\Support\Facades\{
     DB,
     Log,
@@ -91,8 +92,8 @@ final class ReportController extends Controller
     private const ROUTE_EXPENSE_SUMMARY   = ViewsConstants::RPT . '.expense_summary';
     private const ROUTE_INCOME_VS_EXPENSE = ViewsConstants::RPT . '.income_vs_expense_summary';
     private const ROUTE_TAX_SUMMARY      = ViewsConstants::RPT . '.tax_summary';
-    private const ROUTE_INVOICE_REPORT  = ViewsConstants::RPT . '.invoice_report';
-    private const ROUTE_BILL_REPORT     = ViewsConstants::RPT . '.bill_report';
+    private const ROUTE_INVOICE_REPORT  = ViewsConstants::RPT . '.invoice';
+    private const ROUTE_BILL_REPORT     = ViewsConstants::RPT . '.bill';
     private const ROUTE_STATEMENT_REPORT = ViewsConstants::RPT . '.statement_report';
     private const ROUTE_BALANCE_SHEET   = ViewsConstants::RPT . '.balance_sheet';
     private const ROUTE_LEDGER_SUMMARY  = ViewsConstants::RPT . '.ledger_summary';
@@ -326,7 +327,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return $view;
             } catch (\Throwable $e) {
-                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage()]);
+                Log::error(get_class($this) . "::{$action} failed", [UC::COL_USER_ID => $user?->id, 'error' => $e->getMessage(), 'request' => $request->all(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
                 return defaultUndefinedException($request, $e, "{$method}", route(self::ROUTE_INVOICE_REPORT));
             }
         }, ['req' => $request]);
@@ -2848,66 +2849,68 @@ final class ReportController extends Controller
         );
     }
 
-    private function _buildInvoiceSummaryView(Request $request, int|string $creatorId): View
+    private function _buildInvoiceSummaryView(Request $request, int|string $creatorId): View|ResponseFactory
     {
         $filter  = ['customer' => __('All'), 'status' => __('All')];
         $customer = Customer::where(DC::TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Customer', '');
+        Log::debug('Creator ID in Invoice Summary: ' . ($creatorId ?? 'null'));
         $status  = Invoice::$statuses;
         $q       = Invoice::selectRaw(
             'invoices.*, MONTH(send_date) as month'
         );
-
+        Log::debug('Invoices queried by month: ' . (json_encode($q->get()->toArray()) ?? 'null'));
         if ($request->status !== '') {
             $q->where('status', $request->status);
             $filter['status'] = $status[$request->status] ?? '';
-        } else {
-            $q->where('status', '!=', 0);
-        }
-
+        } else $q->where('status', '!=', 0);
+        Log::debug('After status filter: ' . (json_encode($q->get()->toArray()) ?? 'null'));
         $q->where(DC::TABLE_CREATOR, $creatorId);
-
+        Log::debug('After creator filter: ' . (json_encode($q->get()->toArray()) ?? 'null'));
         $start = !empty($request->start_month)
             ? strtotime($request->start_month)
             : strtotime(date('Y-01'));
         $end  = !empty($request->end_month)
             ? strtotime($request->end_month)
             : strtotime(date('Y-12'));
-
         $q->where('send_date', '>=', date('Y-m-01', $start))
             ->where('send_date', '<=', date('Y-m-t', $end));
-
+        Log::debug('After date range filter: ' . (json_encode($q->get()->toArray()) ?? 'null'));
         $filter['startDateRange'] = date('M-Y', $start);
         $filter['endDateRange']  = date('M-Y', $end);
-
         if (!empty($request->customer)) {
             $q->where('customer_id', $request->customer);
             $cust = Customer::find($request->customer);
             $filter['customer'] = $cust->name ?? '';
         }
-
+        Log::debug('After customer filter: ' . (json_encode($q->get()->toArray()) ?? 'null'));
         $invoices      = $q->get();
         $totInv        = 0;
         $totDue        = 0;
         $arr           = [];
-
-        foreach ($invoices as $inv) {
-            $totInv += $inv->getTotal();
-            $totDue += $inv->getDue();
-            $arr[$inv->month][] = $inv->getTotal();
-        }
-
+        if (!empty($invoices))
+            foreach ($invoices as $inv) {
+                $totInv += $inv->getTotal();
+                $totDue += $inv->getDue();
+                $arr[$inv->month][] = $inv->getTotal();
+            }
+        Log::debug('After processing invoices: ' . json_encode($arr));
         $paid         = $totInv - $totDue;
         $invoiceTotal = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $invoiceTotal[] = $arr[$i] ? array_sum($arr[$i]) : 0;
-        }
-
+        if (!empty($arr))
+            for ($i = 1; $i <= 12; $i++)
+                $invoiceTotal[] = $arr[$i] ? array_sum($arr[$i]) : 0;
+        Log::debug('Invoice totals by month: ' . json_encode($invoiceTotal));
         $monthList = $this->yearMonth();
-
+        $viewCandidate = ViewsConstants::RPT . '.invoice_report';
+        if (!view()->exists($viewCandidate)) {
+            Log::error('View not found: ' . $viewCandidate);
+            return response('Not Found', 404);
+        }
+        Log::debug('Rendering view: ' . $viewCandidate);
         return view(
-            ViewsConstants::RPT . '.invoice_report',
+            $viewCandidate,
             compact(
                 'invoices',
                 'customer',

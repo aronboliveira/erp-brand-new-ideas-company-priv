@@ -462,7 +462,7 @@ class AuthenticatedSessionController extends Controller
   }
 
   public const SHW_LG_RQ = 'showLoginRequestForm';
-  public function showLinkRequestForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
+  public function showLoginRequestForm(string $lang = DatabaseConstants::DEFAULT_LANG): View|JsonResponse
   {
     $action = class_basename(static::class) . '@' . __FUNCTION__;
     $function = __FUNCTION__;

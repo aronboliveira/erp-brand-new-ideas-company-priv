@@ -1,4 +1,4 @@
-@php
+<?php
     use App\Config\Constants\{
         ExtendingLayoutsConstants,
         StacksConstants,
@@ -12,29 +12,31 @@
     use Illuminate\Support\Str;
     $user = Auth::user();
     $lang = Utility::fetchUserLang($user);
-@endphp
-@extends(ExtendingLayoutsConstants::ADM)
-@section(YieldingConstants::ADM_PG_TTL)
-    {{__('Invoice Summary')}}
-@endsection
+?>
 
-@section(YieldingConstants::ADM_BDC)
+<?php $__env->startSection(YieldingConstants::ADM_PG_TTL); ?>
+    <?php echo e(__('Invoice Summary')); ?>
+
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startSection(YieldingConstants::ADM_BDC); ?>
     <li class="breadcrumb-item">
-        <a href="{{ Route::has('dashboard') ? route('dashboard') : '#' }}"
-        {{ Route::has('dashboard') ? '' : 'aria-disabled="true"' }}>
-            {{ __('Dashboard') }}
+        <a href="<?php echo e(Route::has('dashboard') ? route('dashboard') : '#'); ?>"
+        <?php echo e(Route::has('dashboard') ? '' : 'aria-disabled="true"'); ?>>
+            <?php echo e(__('Dashboard')); ?>
+
         </a>
     </li>
-    <li class="breadcrumb-item">{{__('Invoice Summary')}}</li>
-@endsection
+    <li class="breadcrumb-item"><?php echo e(__('Invoice Summary')); ?></li>
+<?php $__env->stopSection(); ?>
 
-@push('theme-script')
-    <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-@endpush
+<?php $__env->startPush('theme-script'); ?>
+    <script src="<?php echo e(asset('assets/js/plugins/apexcharts.min.js')); ?>"></script>
+<?php $__env->stopPush(); ?>
 
-@push(StacksConstants::ADM_SCR_PG)
-    <script type="text/javascript" src="{{ asset('js/html2pdf.bundle.min.js') }}"></script>
-    <script async src="{{ asset('assets/js/routes/reports/invoices/lang/chart.js') }}"></script>
+<?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
+    <script type="text/javascript" src="<?php echo e(asset('js/html2pdf.bundle.min.js')); ?>"></script>
+    <script async src="<?php echo e(asset('assets/js/routes/reports/invoices/lang/chart.js')); ?>"></script>
     <script async>
         (function () {
             const $ = window.jQuery;
@@ -138,16 +140,16 @@
             }
             try {
                 const chartBarOptions = {
-                series: [{ name: '{{ __("Invoice") }}', data: {!! json_encode($invoiceTotal) !!} }],
+                series: [{ name: '<?php echo e(__("Invoice")); ?>', data: <?php echo json_encode($invoiceTotal); ?> }],
                 chart: { height: 300, type: "bar", dropShadow: { enabled: true, color: "#000", top: 18, left: 7, blur: 10, opacity: 0.2 }, toolbar: { show: false } },
                 dataLabels: { enabled: false },
                 stroke: { width: 2, curve: "smooth" },
                 title: { text: "", align: "left" },
-                xaxis: { categories: {!! json_encode($monthList) !!}, title: { text: '{{ __("Months") }}' } },
+                xaxis: { categories: <?php echo json_encode($monthList); ?>, title: { text: '<?php echo e(__("Months")); ?>' } },
                 colors: ["#6fd944", "#6fd944"],
                 grid: { strokeDashArray: 4 },
                 legend: { show: false },
-                yaxis: { title: { text: '{{ __("Invoice") }}' } }
+                yaxis: { title: { text: '<?php echo e(__("Invoice")); ?>' } }
                 };
                 target.innerHTML = "";
                 const arChart = new window.ApexCharts(target, chartBarOptions);
@@ -217,122 +219,132 @@
             }
         })();
     </script>
-@endpush
-{{--        <a class="btn btn-sm btn-primary" data-bs-toggle="collapse" href="#multiCollapseExample1" role="button" aria-expanded="false" aria-controls="multiCollapseExample1" data-bs-toggle="tooltip" title="{{__('Filter')}}">--}}
-{{--            <i class="ti ti-filter"></i>--}}
-{{--        </a>--}}
+<?php $__env->stopPush(); ?>
 
-@section(YieldingConstants::ADM_ACT_BTN)
+
+
+
+<?php $__env->startSection(YieldingConstants::ADM_ACT_BTN); ?>
     <div class="float-end">
-        @php
+        <?php
             $downloadGuardMsg = Utility::fetchLinkMessage($lang, VW::RPT, 'download_invoice_reports_unavailable') ?? 'Download function for invoice reports is unavailable. Please contact technical support or your domain administrator.';
-        @endphp
+        ?>
         <a href="#"
         id="download-invoice-reports-link"
-        class="{{ VC::BT_SM_PM }} download-invoice-reports"
+        class="<?php echo e(VC::BT_SM_PM); ?> download-invoice-reports"
         data-func-name="saveAsPDF"
-        data-guard-msg="{{ $downloadGuardMsg }}"
+        data-guard-msg="<?php echo e($downloadGuardMsg); ?>"
         data-sv-localized="true"
         data-bs-toggle="tooltip"
-        title="{{ __('Download') }}"
-        data-original-title="{{ __('Download') }}">
-            <span class="btn-inner--icon"><i class="{{ VC::TI_DWN }}"></i></span>
+        title="<?php echo e(__('Download')); ?>"
+        data-original-title="<?php echo e(__('Download')); ?>">
+            <span class="btn-inner--icon"><i class="<?php echo e(VC::TI_DWN); ?>"></i></span>
         </a>
-        @push(StacksConstants::ADM_SCR_PG)
-            <script src="{{ asset('assets/js/routes/reports/invoices/download.js') }}" defer></script>
-        @endpush
+        <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
+            <script src="<?php echo e(asset('assets/js/routes/reports/invoices/download.js')); ?>" defer></script>
+        <?php $__env->stopPush(); ?>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section(YieldingConstants::ADM_CTT)
-    <div class="{{ VC::RW }}">
-        <div class="{{ VC::CS12 }}">
+<?php $__env->startSection(YieldingConstants::ADM_CTT); ?>
+    <div class="<?php echo e(VC::RW); ?>">
+        <div class="<?php echo e(VC::CS12); ?>">
             <div class="mt-2" id="multiCollapseExample1">
-                <div class="{{ VC::CD }}">
+                <div class="<?php echo e(VC::CD); ?>">
                     <div class="card-body">
-                        @php
+                        <?php
                             $invoiceSummaryBase        = VW::RPT.'.invoice.summary';
                             $invoiceSummaryKebab       = Str::kebab($invoiceSummaryBase);
                             $invoiceSummaryResolved    = Route::has($invoiceSummaryBase) ? $invoiceSummaryBase : (Route::has($invoiceSummaryKebab) ? $invoiceSummaryKebab : null);
                             $invoiceSummaryUrl         = $invoiceSummaryResolved ? route($invoiceSummaryResolved) : '#';
                             $invoiceSummaryGuardMsg    = Utility::fetchLinkMessage($lang, VW::RPT, 'invoice_summary_report_route_unavailable') ?? 'Invoice summary report route is unavailable. Please contact technical support or your domain administrator.';
-                        @endphp
-                        {{ Form::open([
+                        ?>
+                        <?php echo e(Form::open([
                             'method'            => 'GET',
                             'url'               => $invoiceSummaryUrl,
                             'id'                => 'report_invoice_summary',
                             'data-url'          => $invoiceSummaryUrl,
                             'data-guard-msg'    => $invoiceSummaryGuardMsg,
                             'data-sv-localized' => 'true',
-                        ]) }}
-                            <div class="{{ VC::R_ALC_JCE }}">
+                        ])); ?>
+
+                            <div class="<?php echo e(VC::R_ALC_JCE); ?>">
                                 <div class="col-xl-10">
-                                    <div class="{{ VC::RW }}">
-                                        <div class="{{ VC::CL_XLG4 }}">
+                                    <div class="<?php echo e(VC::RW); ?>">
+                                        <div class="<?php echo e(VC::CL_XLG4); ?>">
                                             <div class="btn-box">
-                                                {{ Form::label('start_month', __('Start Month'), ['class'=> VC::FM_LB]) }}
-                                                {{ Form::month('start_month', request('start_month', date('Y-m', strtotime('-5 month'))), ['class'=> VC::FM_CT . ' month-btn']) }}
+                                                <?php echo e(Form::label('start_month', __('Start Month'), ['class'=> VC::FM_LB])); ?>
+
+                                                <?php echo e(Form::month('start_month', request('start_month', date('Y-m', strtotime('-5 month'))), ['class'=> VC::FM_CT . ' month-btn'])); ?>
+
                                             </div>
                                         </div>
-                                        <div class="{{ VC::CL_XLG4 }}">
+                                        <div class="<?php echo e(VC::CL_XLG4); ?>">
                                             <div class="btn-box">
-                                                {{ Form::label('end_month', __('End Month'), ['class'=> VC::FM_LB]) }}
-                                                {{ Form::month('end_month', request('end_month', date('Y-m')), ['class'=> VC::FM_CT . ' month-btn']) }}
+                                                <?php echo e(Form::label('end_month', __('End Month'), ['class'=> VC::FM_LB])); ?>
+
+                                                <?php echo e(Form::month('end_month', request('end_month', date('Y-m')), ['class'=> VC::FM_CT . ' month-btn'])); ?>
+
                                             </div>
                                         </div>
-                                        <div class="{{ VC::CL_XLG4 }}">
+                                        <div class="<?php echo e(VC::CL_XLG4); ?>">
                                             <div class="btn-box">
-                                                {{ Form::label('customer', __('Customer'), ['class'=> VC::FM_LB]) }}
-                                                {{ Form::select('customer', $customer ?? [], request('customer',''), ['class' => VC::FM_CT_SL, 'placeholder'=>__('No customers available')]) }}
+                                                <?php echo e(Form::label('customer', __('Customer'), ['class'=> VC::FM_LB])); ?>
+
+                                                <?php echo e(Form::select('customer', $customer ?? [], request('customer',''), ['class' => VC::FM_CT_SL, 'placeholder'=>__('No customers available')])); ?>
+
                                             </div>
                                         </div>
-                                        <div class="{{ VC::CL_XLG4 }}">
+                                        <div class="<?php echo e(VC::CL_XLG4); ?>">
                                             <div class="btn-box">
-                                                {{ Form::label('status', __('Status'), ['class'=> VC::FM_LB]) }}
-                                                {{ Form::select('status', [''=>__('Select Status')]+($status ?? []), request('status',''), ['class' => VC::FM_CT_SL]) }}
+                                                <?php echo e(Form::label('status', __('Status'), ['class'=> VC::FM_LB])); ?>
+
+                                                <?php echo e(Form::select('status', [''=>__('Select Status')]+($status ?? []), request('status',''), ['class' => VC::FM_CT_SL])); ?>
+
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="{{ VC::C_AT }}">
-                                    <div class="{{ VC::RW }}">
-                                        <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
+                                <div class="<?php echo e(VC::C_AT); ?>">
+                                    <div class="<?php echo e(VC::RW); ?>">
+                                        <div class="<?php echo e(VC::C_AT); ?> <?php echo e(VC::MT4); ?>">
                                             <a href="#"
-                                            class="{{ VC::BT_SM_PM }} apply-invoice-summary"
+                                            class="<?php echo e(VC::BT_SM_PM); ?> apply-invoice-summary"
                                             data-form-id="report_invoice_summary"
-                                            data-guard-msg="{{ $invoiceSummaryGuardMsg }}"
+                                            data-guard-msg="<?php echo e($invoiceSummaryGuardMsg); ?>"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
-                                            title="{{ __('Apply') }}"
-                                            data-original-title="{{ __('apply') }}">
-                                                <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
+                                            title="<?php echo e(__('Apply')); ?>"
+                                            data-original-title="<?php echo e(__('apply')); ?>">
+                                                <span class="btn-inner--icon"><i class="<?php echo e(VC::TI_SRC); ?>"></i></span>
                                             </a>
-                                            <a href="{{ $invoiceSummaryUrl }}"
-                                            class="{{ VC::BT_SM_DG }} reset-invoice-summary"
-                                            data-url="{{ $invoiceSummaryUrl }}"
-                                            data-guard-msg="{{ $invoiceSummaryGuardMsg }}"
+                                            <a href="<?php echo e($invoiceSummaryUrl); ?>"
+                                            class="<?php echo e(VC::BT_SM_DG); ?> reset-invoice-summary"
+                                            data-url="<?php echo e($invoiceSummaryUrl); ?>"
+                                            data-guard-msg="<?php echo e($invoiceSummaryGuardMsg); ?>"
                                             data-sv-localized="true"
                                             data-bs-toggle="tooltip"
-                                            title="{{ __('Reset') }}"
-                                            data-original-title="{{ __('Reset') }}">
-                                                <span class="btn-inner--icon"><i class="{{ VC::TI_TRS_OFF }}"></i></span>
+                                            title="<?php echo e(__('Reset')); ?>"
+                                            data-original-title="<?php echo e(__('Reset')); ?>">
+                                                <span class="btn-inner--icon"><i class="<?php echo e(VC::TI_TRS_OFF); ?>"></i></span>
                                             </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        {{ Form::close() }}
-                        @push(StacksConstants::ADM_SCR_PG)
-                            <script src="{{ asset('assets/js/routes/reports/invoice/summaries/apply.js') }}" defer></script>
-                            <script src="{{ asset('assets/js/routes/reports/invoice/summaries/reset.js') }}" defer></script>
-                        @endpush
+                        <?php echo e(Form::close()); ?>
+
+                        <?php $__env->startPush(StacksConstants::ADM_SCR_PG); ?>
+                            <script src="<?php echo e(asset('assets/js/routes/reports/invoice/summaries/apply.js')); ?>" defer></script>
+                            <script src="<?php echo e(asset('assets/js/routes/reports/invoice/summaries/reset.js')); ?>" defer></script>
+                        <?php $__env->stopPush(); ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div id="printableArea">
-        @php
+        <?php
             $fltStatus   = data_get($filter,'status');
             $fltCust     = data_get($filter,'customer');
             $fltStart    = data_get($filter,'startDateRange');
@@ -357,65 +369,65 @@
                 ['label' => __('Total Paid'),    'value' => $totalPaidInvoice ?? 0],
                 ['label' => __('Total Due'),     'value' => $totalDueInvoice ?? 0],
             ];
-        @endphp
-        <input type="hidden" id="filename" value="{{ $filename }}">
-        <div class="{{ VC::RW }} {{ VC::MT3 }}">
-            @foreach($items as $item)
-                @if($item['when'])
+        ?>
+        <input type="hidden" id="filename" value="<?php echo e($filename); ?>">
+        <div class="<?php echo e(VC::RW); ?> <?php echo e(VC::MT3); ?>">
+            <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if($item['when']): ?>
                     <div class="col">
-                        <div class="{{ VC::CD_POS }}">
-                            <h7 class="{{ VC::RPT_TX_GR }}">{{ $item['label'] }} :</h7>
-                            <h6 class="{{ VC::RPT_TX_DEF }}">{{ $item['value'] }}</h6>
+                        <div class="<?php echo e(VC::CD_POS); ?>">
+                            <h7 class="<?php echo e(VC::RPT_TX_GR); ?>"><?php echo e($item['label']); ?> :</h7>
+                            <h6 class="<?php echo e(VC::RPT_TX_DEF); ?>"><?php echo e($item['value']); ?></h6>
                         </div>
                     </div>
-                @endif
-            @endforeach
+                <?php endif; ?>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
-        <div class="{{ VC::RW }}">
-            @foreach($stats as $stat)
+        <div class="<?php echo e(VC::RW); ?>">
+            <?php $__currentLoopData = $stats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $stat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="col-xl-4 col-md-6 col-lg-4">
-                    <div class="{{ VC::CD_POS }}">
-                        <h7 class="{{ VC::RPT_TX_GR }}">{{ $stat['label'] }}</h7>
-                        <h6 class="{{ VC::RPT_TX_DEF }}">{{ $user?->priceFormat($stat['value']) ?? number_format((float)$stat['value'],2) }}</h6>
+                    <div class="<?php echo e(VC::CD_POS); ?>">
+                        <h7 class="<?php echo e(VC::RPT_TX_GR); ?>"><?php echo e($stat['label']); ?></h7>
+                        <h6 class="<?php echo e(VC::RPT_TX_DEF); ?>"><?php echo e($user?->priceFormat($stat['value']) ?? number_format((float)$stat['value'],2)); ?></h6>
                     </div>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
-        <div class="{{ VC::RW }}">
-            <div class="{{ VC::C12 }}" id="invoice-container">
-                <div class="{{ VC::CD }}">
+        <div class="<?php echo e(VC::RW); ?>">
+            <div class="<?php echo e(VC::C12); ?>" id="invoice-container">
+                <div class="<?php echo e(VC::CD); ?>">
                     <div class="card-header">
-                        <div class="{{ VC::DFL_JCB }} w-100">
-                            <ul class="{{ VC::NAV_PL_Y3 }}" id="pills-tab" role="tablist">
-                                <li class="{{ VC::NV_IT }}">
-                                    <a class="{{ VC::NV_LK }} active" id="profile-tab3" data-bs-toggle="pill" href="#summary" role="tab" aria-controls="pills-summary" aria-selected="true">{{__('Summary')}}</a>
+                        <div class="<?php echo e(VC::DFL_JCB); ?> w-100">
+                            <ul class="<?php echo e(VC::NAV_PL_Y3); ?>" id="pills-tab" role="tablist">
+                                <li class="<?php echo e(VC::NV_IT); ?>">
+                                    <a class="<?php echo e(VC::NV_LK); ?> active" id="profile-tab3" data-bs-toggle="pill" href="#summary" role="tab" aria-controls="pills-summary" aria-selected="true"><?php echo e(__('Summary')); ?></a>
                                 </li>
-                                <li class="{{ VC::NV_IT }}">
-                                    <a class="{{ VC::NV_LK }}" id="contact-tab4" data-bs-toggle="pill" href="#invoices" role="tab" aria-controls="pills-invoice" aria-selected="false">{{__('Invoices')}}</a>
+                                <li class="<?php echo e(VC::NV_IT); ?>">
+                                    <a class="<?php echo e(VC::NV_LK); ?>" id="contact-tab4" data-bs-toggle="pill" href="#invoices" role="tab" aria-controls="pills-invoice" aria-selected="false"><?php echo e(__('Invoices')); ?></a>
                                 </li>
                             </ul>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="{{ VC::RW }}">
-                            <div class="{{ VC::CS12 }}">
+                        <div class="<?php echo e(VC::RW); ?>">
+                            <div class="<?php echo e(VC::CS12); ?>">
                                 <div class="tab-content" id="myTabContent2">
                                     <div class="tab-pane fade fade" id="invoices" role="tabpanel" aria-labelledby="profile-tab3">
-                                        <table class="{{ VC::TB }} table-flush" id="report-dataTable">
+                                        <table class="<?php echo e(VC::TB); ?> table-flush" id="report-dataTable">
                                             <thead>
                                                 <tr>
-                                                    <th>{{__('Invoice')}}</th>
-                                                    <th>{{__('Date')}}</th>
-                                                    <th>{{__('Customer')}}</th>
-                                                    <th>{{__('Category')}}</th>
-                                                    <th>{{__('Status')}}</th>
-                                                    <th>{{__('Paid Amount')}}</th>
-                                                    <th>{{__('Due Amount')}}</th>
-                                                    <th>{{__('Payment Date')}}</th>
-                                                    <th>{{__('Amount')}}</th>
+                                                    <th><?php echo e(__('Invoice')); ?></th>
+                                                    <th><?php echo e(__('Date')); ?></th>
+                                                    <th><?php echo e(__('Customer')); ?></th>
+                                                    <th><?php echo e(__('Category')); ?></th>
+                                                    <th><?php echo e(__('Status')); ?></th>
+                                                    <th><?php echo e(__('Paid Amount')); ?></th>
+                                                    <th><?php echo e(__('Due Amount')); ?></th>
+                                                    <th><?php echo e(__('Payment Date')); ?></th>
+                                                    <th><?php echo e(__('Amount')); ?></th>
                                                 </tr>
                                             </thead>
-                                            @php
+                                            <?php
                                                 $statusClasses = [
                                                     0 => 'bg-primary',
                                                     1 => 'bg-warning',
@@ -423,51 +435,53 @@
                                                     3 => 'bg-info',
                                                     4 => 'bg-success',
                                                 ];
-                                            @endphp
+                                            ?>
                                             <tbody>
-                                                @forelse($invoices as $invoice)
-                                                    @php
+                                                <?php $__empty_1 = true; $__currentLoopData = $invoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                                    <?php
                                                         $status = $invoice->status;
                                                         $badgeClass = $statusClasses[$status] ?? 'bg-secondary';
                                                         $custName = optional($invoice->customer)->name ?? __('No customer available');
                                                         $catName  = optional($invoice->category)->name ?? __('No category available');
                                                         $payDate  = optional($invoice->lastPayments)->date ? ($user?->dateFormat($invoice->lastPayments->date)) : __('No payment date available');
-                                                    @endphp
+                                                    ?>
                                                     <tr>
                                                         <td class="Id">
-                                                            <a href="{{ route(VW::INV . '.show', Crypt::encrypt($invoice->id)) }}" class="{{ VC::BT_OUTPM }}">
-                                                                {{ $user?->invoiceNumberFormat($invoice->invoice_id) ?? __('Could not find invoice number') }}
+                                                            <a href="<?php echo e(route(VW::INV . '.show', Crypt::encrypt($invoice->id))); ?>" class="<?php echo e(VC::BT_OUTPM); ?>">
+                                                                <?php echo e($user?->invoiceNumberFormat($invoice->invoice_id) ?? __('Could not find invoice number')); ?>
+
                                                             </a>
                                                         </td>
-                                                        <td>{{ $user?->dateFormat($invoice->send_date) ?? __('Could not find date') }}</td>
-                                                        <td>{{ $custName }}</td>
-                                                        <td>{{ $catName }}</td>
+                                                        <td><?php echo e($user?->dateFormat($invoice->send_date) ?? __('Could not find date')); ?></td>
+                                                        <td><?php echo e($custName); ?></td>
+                                                        <td><?php echo e($catName); ?></td>
                                                         <td>
-                                                            <span class="{{ VC::BDG }} status_badge {{ $badgeClass }} p-2 px-3 rounded">
-                                                                {{ __(\App\Models\Invoice::$statuses[$status] ?? __('Unknown')) }}
+                                                            <span class="<?php echo e(VC::BDG); ?> status_badge <?php echo e($badgeClass); ?> p-2 px-3 rounded">
+                                                                <?php echo e(__(\App\Models\Invoice::$statuses[$status] ?? __('Unknown'))); ?>
+
                                                             </span>
                                                         </td>
-                                                        <td>{{ $user?->priceFormat($invoice->getTotal() - $invoice->getDue()) ?? number_format((float)($invoice->getTotal() - $invoice->getDue()),2) }}</td>
-                                                        <td>{{ $user?->priceFormat($invoice->getDue()) ?? number_format((float)$invoice->getDue(),2) }}</td>
-                                                        <td>{{ $payDate }}</td>
-                                                        <td>{{ $user?->priceFormat($invoice->getTotal()) ?? number_format((float)$invoice->getTotal(),2) }}</td>
+                                                        <td><?php echo e($user?->priceFormat($invoice->getTotal() - $invoice->getDue()) ?? number_format((float)($invoice->getTotal() - $invoice->getDue()),2)); ?></td>
+                                                        <td><?php echo e($user?->priceFormat($invoice->getDue()) ?? number_format((float)$invoice->getDue(),2)); ?></td>
+                                                        <td><?php echo e($payDate); ?></td>
+                                                        <td><?php echo e($user?->priceFormat($invoice->getTotal()) ?? number_format((float)$invoice->getTotal(),2)); ?></td>
                                                     </tr>
-                                                @empty
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                                     <tr>
-                                                        <td colspan="9" class="text-center text-muted">{{ __('No invoices available for the selected filters') }}</td>
+                                                        <td colspan="9" class="text-center text-muted"><?php echo e(__('No invoices available for the selected filters')); ?></td>
                                                     </tr>
-                                                @endforelse
+                                                <?php endif; ?>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="tab-pane fade fade show active" id="summary" role="tabpanel" aria-labelledby="profile-tab3">
-                                        <div class="{{ VC::CS12 }}">
+                                        <div class="<?php echo e(VC::CS12); ?>">
                                             <div class="scrollbar-inner">
                                                 <div id="chart-sales" data-color="primary" data-type="bar" data-height="300"></div>
                                             </div>
-                                            @if(empty($invoices) || count($invoices) === 0)
-                                                <div class="text-center text-muted mt-3">{{ __('No summary data available for the selected filters') }}</div>
-                                            @endif
+                                            <?php if(empty($invoices) || count($invoices) === 0): ?>
+                                                <div class="text-center text-muted mt-3"><?php echo e(__('No summary data available for the selected filters')); ?></div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -478,4 +492,6 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make(ExtendingLayoutsConstants::ADM, \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/resources/views/reports/invoice_report.blade.php ENDPATH**/ ?>

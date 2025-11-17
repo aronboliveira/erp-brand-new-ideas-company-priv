@@ -32,6 +32,7 @@ class FormsConstants
 		PermissionsConstants::MNG_PRC,
 		'create purchase',
 		'edit purchase',
+		'view purchase',
 		'show purchase',
 		'delete purchase',
 		'send purchase',

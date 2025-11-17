@@ -12,6 +12,8 @@
     use Illuminate\Support\Str;
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user: $user);
+    $invoiceItems ??= [];
+    $invoiceCustomers ??= [];
 @endphp
 @extends(ExtendingLayoutsConstants::ADM)
 @section(YieldingConstants::ADM_PG_TTL)
@@ -121,13 +123,13 @@
                                             <div class="{{ VC::CL_XL3 }}">
                                                 <div class="btn-box">
                                                     {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
-                                                    {{ Form::date('start_date', $filter['startDateRange'], ['class' => 'startDate ' . VC::FM_CT]) }}
+                                                    {{ Form::date('start_date', !empty($filter['startDateRange']) ? $filter['startDateRange'] : __('No start date range available'), ['class' => 'startDate ' . VC::FM_CT]) }}
                                                 </div>
                                             </div>
                                             <div class="{{ VC::CL_XL3 }}">
                                                 <div class="btn-box">
                                                     {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
-                                                    {{ Form::date('end_date', $filter['endDateRange'], ['class' => 'endDate ' . VC::FM_CT]) }}
+                                                    {{ Form::date('end_date', !empty($filter['endDateRange']) ? $filter['endDateRange'] : __('No end date range available'), ['class' => 'endDate ' . VC::FM_CT]) }}
                                                 </div>
                                             </div>
                                             <input type="hidden" name="view" value="horizontal">
