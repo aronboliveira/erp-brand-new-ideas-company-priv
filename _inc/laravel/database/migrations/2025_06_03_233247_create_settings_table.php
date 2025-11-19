@@ -1,51 +1,49 @@
 <?php
 
-use App\Config\Constants\{DatabaseConstants, UsersConstants};
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateSettingsTable extends Migration
 {
-    private const TABLE_NAME = DatabaseConstants::TABLE_SETTINGS;
+    use HasNullableAuditColumns;
+    private const TABLE_NAME = DC::TABLE_SETTINGS;
     private const COL_NAME = 'name';
     public function up(): void
     {
         Schema::create(self::TABLE_NAME, function (Blueprint $table) {
-            $table->uuid('id')->primary(); // ! CHANGED
+            $table->uuid('id')->primary();
             $table->string(self::COL_NAME)->nullable();
             $table->text('value')->nullable();
-            $table->timestamps();
-            $table->unique([self::COL_NAME, DatabaseConstants::TABLE_CREATOR]);
-            $table->uuid(DatabaseConstants::TABLE_CREATOR); // ! CHANGED
-            $table->foreign(DatabaseConstants::TABLE_CREATOR)
+            $table->unique([self::COL_NAME, DC::TABLE_CREATOR]);
+            $table->uuid(UC::COL_USER_ID)->nullable();
+            $table->foreign(UC::COL_USER_ID)
                 ->references('id')
-                ->on(DatabaseConstants::TABLE_USERS)
-                ->cascadeOnDelete();
-            $table->uuid(UsersConstants::COL_USER_ID)->nullable();
-            $table->foreign(UsersConstants::COL_USER_ID)
-                ->references('id')
-                ->on(DatabaseConstants::TABLE_USERS)
+                ->on(DC::TABLE_USERS)
                 ->cascadeOnDelete();
             $table->unique(
-                [self::COL_NAME, DatabaseConstants::TABLE_CREATOR, UsersConstants::COL_USER_ID],
+                [self::COL_NAME, DC::TABLE_CREATOR, UC::COL_USER_ID],
                 self::TABLE_NAME
                     . '_' . self::COL_NAME
-                    . '_' . DatabaseConstants::TABLE_CREATOR
-                    . '_' . UsersConstants::COL_USER_ID . '_unique'
+                    . '_' . DC::TABLE_CREATOR
+                    . '_' . UC::COL_USER_ID . '_unique'
             );
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE_NAME, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE_NAME);
             try {
-                Schema::hasColumn(self::TABLE_NAME, DatabaseConstants::TABLE_CREATOR) &&
-                    $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+                Schema::hasColumn(self::TABLE_NAME, UC::COL_USER_ID) &&
+                    $table->dropForeign([UC::COL_USER_ID]);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
+                        . UC::COL_USER_ID
                         . ' on table '
                         . self::TABLE_NAME
                         . ': '

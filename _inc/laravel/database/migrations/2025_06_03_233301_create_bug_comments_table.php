@@ -1,11 +1,13 @@
 <?php
 
 use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PC, UsersConstants as UC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateBugCommentsTable extends Migration
 {
+    use HasNullableAuditColumns;
     private const TABLE = 'bug_comments';
     private const COL_BUG = 'bug_id';
     public function up(): void
@@ -16,25 +18,19 @@ class CreateBugCommentsTable extends Migration
                 $table->uuid(self::COL_BUG)->index();
                 $table->text('comment');
                 $table->string(UC::COL_U_TP, 64)->default(PC::CL);
-                $table->uuid(DC::TABLE_CREATOR)->nullable();
-                $table->uuid(DC::TABLE_UPDATER)->nullable();
-                $table->timestamps();
                 $table->foreign(self::COL_BUG)
                     ->references('id')
                     ->on(DC::TABLE_BUGS)
                     ->cascadeOnDelete();
-                foreach ([DC::TABLE_UPDATER, DC::TABLE_CREATOR] as $col)
-                    $table->foreign($col)
-                        ->references('id')
-                        ->on(DC::TABLE_USERS)
-                        ->nullOnDelete();
+                $this->addAuditColumns($table);
             });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([self::COL_BUG, DC::TABLE_CREATOR, DC::TABLE_UPDATER] as $col) {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            foreach ([self::COL_BUG] as $col) {
                 try {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);

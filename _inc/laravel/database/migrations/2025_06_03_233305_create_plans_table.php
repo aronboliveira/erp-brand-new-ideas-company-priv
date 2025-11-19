@@ -32,7 +32,7 @@ class CreatePlansTable extends Migration
                 $table->string(PLC::COL_IMG)->nullable();
                 $table->timestamps();
                 $table->uuid(DC::TABLE_CREATOR)->default(DC::DEFAULT_UUID)->nullable();
-                $table->uuid(DC::TABLE_UPDATER)->nullable();
+                $table->uuid(DC::TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
                 foreach (
                     [
                         DC::TABLE_CREATOR  => DC::TABLE_USERS,

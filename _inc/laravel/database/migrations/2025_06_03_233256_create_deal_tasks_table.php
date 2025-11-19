@@ -5,11 +5,14 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateDealTasksTable extends Migration
 {
+
+    use HasNullableAuditColumns;
     private const TABLE       = 'deal_tasks';
     private const COL_DEAL_ID = AC::COL_DL;
 
@@ -23,34 +26,21 @@ class CreateDealTasksTable extends Migration
             $table->time(AC::COL_TSK_TIME);
             $table->unsignedTinyInteger(PJC::COL_PRT)->default(1);
             $table->unsignedTinyInteger(AC::COL_TSK_STT)->default(0);
-            $table->timestamps();
-            $table->uuid(DC::TABLE_CREATOR)->nullable();
-            $table->uuid(DC::TABLE_UPDATER)->nullable();
             $table->foreign(self::COL_DEAL_ID)
                 ->references('id')
                 ->on(DC::TABLE_DEALS)
                 ->cascadeOnDelete();
-            foreach (
-                [
-                    DC::TABLE_CREATOR   => DC::TABLE_USERS,
-                    DC::TABLE_UPDATER   => DC::TABLE_USERS,
-                ] as $column => $referencedTable
-            )
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
                     self::COL_DEAL_ID,
-                    DC::TABLE_CREATOR,
-                    DC::TABLE_UPDATER,
                 ] as $column
             ) {
                 try {

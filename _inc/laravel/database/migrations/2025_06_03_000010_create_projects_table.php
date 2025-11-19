@@ -1,11 +1,13 @@
 <?php
 
 use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\{Facades\Log, Facades\Schema, Str};
 
 class CreateProjectsTable extends Migration
 {
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_PROJECTS;
     public function up(): void
     {
@@ -24,13 +26,9 @@ class CreateProjectsTable extends Migration
             $table->string(PJC::COL_PASSWORD)->nullable();                // * consider adding to $fillable
             $table->text(PJC::COL_COPYLINK)->nullable();           // * consider adding to $fillable
             $table->text(PJC::COL_TAGS)->nullable();
-            $table->uuid(DC::TABLE_CREATOR)->index();
-            $table->uuid(DC::TABLE_UPDATER)->nullable();
-            $table->timestamps();
             foreach (
                 [
                     PJC::COL_STAGE_ID          => DC::TABLE_PROJ_STAGES,
-                    DC::TABLE_UPDATER           => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
@@ -40,25 +38,24 @@ class CreateProjectsTable extends Migration
             foreach (
                 [
                     PJC::COL_CLIENT_ID          => DC::TABLE_CLIENTS,
-                    DC::TABLE_CREATOR           => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
                     ->cascadeOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
                     PJC::COL_CLIENT_ID,
                     PJC::COL_STAGE_ID,
-                    DC::TABLE_CREATOR,
-                    DC::TABLE_UPDATER
                 ] as $column
             ) {
                 try {

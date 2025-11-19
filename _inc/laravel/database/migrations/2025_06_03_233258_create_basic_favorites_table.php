@@ -1,12 +1,13 @@
 <?php
 
 use App\Config\Constants\DatabaseConstants as DC;
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateBasicFavoritesTable extends Migration
 {
-
+    use HasNullableAuditColumns;
     private const TABLE = 'basic_favorites';
     public function up(): void
     {
@@ -14,34 +15,21 @@ class CreateBasicFavoritesTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid('favorite_id')->index();
             $table->uuid('user_id');
-            $table->timestamps();
-            $table->uuid(DC::TABLE_CREATOR)->nullable();
-            $table->uuid(DC::TABLE_UPDATER)->nullable();
             $table->foreign('user_id')
                 ->references('id')
                 ->on(DC::TABLE_USERS)
                 ->cascadeOnDelete();
-            foreach (
-                [
-                    DC::TABLE_UPDATER => DC::TABLE_USERS,
-                    DC::TABLE_CREATOR => DC::TABLE_USERS,
-                ] as $column => $referencedTable
-            )
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
                     'user_id',
-                    DC::TABLE_CREATOR,
-                    DC::TABLE_UPDATER,
                 ] as $column
             ) {
                 try {

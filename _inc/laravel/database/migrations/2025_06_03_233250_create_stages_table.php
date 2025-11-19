@@ -5,11 +5,13 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateStagesTable extends Migration
 {
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_STAGES;
     private const COL_PL = PJC::COL_PPL_ID;
     public function up(): void
@@ -19,34 +21,26 @@ class CreateStagesTable extends Migration
             $table->uuid(self::COL_PL)->index();
             $table->string(PJC::COL_STG_NM);
             $table->integer(AC::COL_OD)->default(0);
-            $table->timestamps();
-            $table->uuid(DC::TABLE_CREATOR);
-            $table->uuid(DC::TABLE_UPDATER)->nullable();
             foreach (
                 [
-                    self::COL_PL                        => DC::TABLE_PIPELINES,
-                    DC::TABLE_CREATOR     => DC::TABLE_USERS,
+                    self::COL_PL => DC::TABLE_PIPELINES,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
                     ->cascadeOnDelete();
-            $table->foreign(DC::TABLE_UPDATER)
-                ->references('id')
-                ->on(DC::TABLE_USERS)
-                ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
                     self::COL_PL,
-                    DC::TABLE_CREATOR,
-                    DC::TABLE_UPDATER
                 ] as $column
             ) {
                 try {

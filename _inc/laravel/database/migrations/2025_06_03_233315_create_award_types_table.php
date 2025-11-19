@@ -5,21 +5,18 @@ use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Schema};
 
-class CreateTerminationTypesTable extends Migration
+class CreateAwardTypesTable extends Migration
 {
     use HasNullableAuditColumns;
-    private const TABLE          = DC::TABLE_TERMINATION_TYPES;
-    private const COL_NAME       = 'name';
-
+    private const TABLE = DC::TABLE_AWD_TPS;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->string(self::COL_NAME)->nullable()->index();
+            $table->uuid('id')->primary(); // ! CHANGED
+            $table->string('name');
             $this->addAuditColumns($table);
         });
     }
-
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {

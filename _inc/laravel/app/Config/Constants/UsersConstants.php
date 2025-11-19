@@ -49,4 +49,8 @@ class UsersConstants
 	public const COL_ACC_NM = 'account_number';
 	public const COL_BANK_NM = 'bank_name';
 	public const COL_BANK_IC = 'bank_identifier_code';
+	public const COL_AWD_TP = 'award_type';
+	public const COL_TERMINATION_TP = 'termination_type';
+	public const COL_TERMINATION_DT = 'termination_date';
+	public const COL_TERMINATION_NDT = 'notice_date';
 }

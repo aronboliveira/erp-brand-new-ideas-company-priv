@@ -42,7 +42,7 @@
         {{ Form::close() }}
     </div> --}}
     {{-- <div class="float-end me-2">
-        <a href="{{ route(ViewsConstants::RPT . '.balance.sheet', 'vertical') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
+        <a href="{{ route(VW::RPT . '.balance.sheet', 'vertical') }}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip"
             title="{{ __('Vertical View') }}" data-original-title="{{ __('Vertical View') }}"><i
                 class="ti ti-separator-horizontal"></i></a>
     </div> --}}
@@ -80,14 +80,14 @@
                     <div class="{{ VC::CD }}" id="show_filter" style="display:none;">
                         <div class="card-body">
                             @php
-                                $receivablesBase    = ViewsConstants::RPT.'.receivables';
+                                $receivablesBase    = VW::RPT.'.receivables';
                                 $receivablesKebab   = Str::kebab($receivablesBase);
                                 $receivablesResolved= Route::has($receivablesBase) ? $receivablesBase : (Route::has($receivablesKebab) ? $receivablesKebab : null);
                                 $actionRoute        = $receivablesResolved ? [$receivablesResolved] : ['#'];
                                 $actionUrl          = $receivablesResolved ? route($receivablesResolved) : '#';
                                 $langValue          = isset($lang) ? $lang : Utility::fetchUserLang();
-                                $applyGuardMsg      = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'apply_receivables_route_unavailable') ?? 'Apply receivables route is unavailable. Please contact technical support or your domain administrator.';
-                                $resetGuardMsg      = Utility::fetchLinkMessage($langValue, ViewsConstants::RPT, 'reset_receivables_route_unavailable') ?? 'Reset receivables route is unavailable. Please contact technical support or your domain administrator.';
+                                $applyGuardMsg      = Utility::fetchLinkMessage($langValue, VW::RPT, 'apply_receivables_route_unavailable') ?? 'Apply receivables route is unavailable. Please contact technical support or your domain administrator.';
+                                $resetGuardMsg      = Utility::fetchLinkMessage($langValue, VW::RPT, 'reset_receivables_route_unavailable') ?? 'Reset receivables route is unavailable. Please contact technical support or your domain administrator.';
                             @endphp
                             {{ Form::open(['route' => $actionRoute, 'method' => 'GET', 'id' => 'report_bill_summary', 'data-url' => $actionUrl, 'data-guard-msg' => $applyGuardMsg, 'data-sv-localized' => 'true']) }}
                                 <div class="{{ VC::R_ALC_JCE }}">
@@ -102,13 +102,13 @@
                                             <div class="{{ VC::CL_XL3 }}">
                                                 <div class="btn-box">
                                                     {{ Form::label('start_date', __('Start Date'), ['class' => VC::FM_LB]) }}
-                                                    {{ Form::date('start_date', $filter['startDateRange'], ['class' => 'startDate ' . VC::FM_CT]) }}
+                                                    {{ Form::date('start_date', !empty($filter['startDateRange']) ? $filter['startDateRange'] : null, ['class' => 'startDate ' . VC::FM_CT]) }}
                                                 </div>
                                             </div>
                                             <div class="{{ VC::CL_XL3 }}">
                                                 <div class="btn-box">
                                                     {{ Form::label('end_date', __('End Date'), ['class' => VC::FM_LB]) }}
-                                                    {{ Form::date('end_date', $filter['endDateRange'], ['class' => 'endDate ' . VC::FM_CT]) }}
+                                                    {{ Form::date('end_date', !empty($filter['endDateRange']) ? $filter['endDateRange'] : null, ['class' => 'endDate ' . VC::FM_CT]) }}
                                                 </div>
                                             </div>
                                             <input type="hidden" name="report" class="report">

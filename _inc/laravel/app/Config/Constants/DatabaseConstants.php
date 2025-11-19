@@ -22,6 +22,8 @@ class DatabaseConstants
 	public const TABLE_BUGS = 'bugs';
 	public const TABLE_EMPLOYEES = 'employees';
 	public const TABLE_DOCS = 'documents';
+	public const TABLE_EDOCS = 'employee_documents';
+	public const TABLE_TERMINATIONS = 'terminations';
 	public const TABLE_TERMINATION_TYPES = 'termination_types';
 	public const TABLE_DESIGNS = 'designations';
 	public const TABLE_COAS = self::COA . 's';
@@ -95,6 +97,8 @@ class DatabaseConstants
 	public const TABLE_TRS = 'transactions';
 	public const TABLE_LBL = 'labels';
 	public const TABLE_PAY_SLP = 'payslip_types';
+	public const TABLE_AWD = 'awards';
+	public const TABLE_AWD_TPS = 'award_types';
 
 	// * FIELD NAMES
 

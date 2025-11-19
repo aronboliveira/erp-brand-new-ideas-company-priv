@@ -1,11 +1,13 @@
 <?php
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateEmployeesTable extends Migration
 {
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_EMPLOYEES;
     private const SALARY = 'salary';
     public function up(): void
@@ -36,9 +38,7 @@ class CreateEmployeesTable extends Migration
             $table->decimal(self::SALARY, 10, 2)->nullable()->default(0.00);
             $table->uuid(UC::COL_SLR_TP)->nullable();
             $table->integer(UC::COL_IA)->default(1);
-            $table->uuid(DC::TABLE_CREATOR)->nullable();
-            $table->uuid(DC::TABLE_UPDATER)->nullable();
-            $table->timestamps();
+            $this->addAuditColumns($table);
             $table->foreign(CPC::COL_BRC_ID)
                 ->references('id')
                 ->on(DC::TABLE_BRANCHES)
@@ -47,8 +47,6 @@ class CreateEmployeesTable extends Migration
                 [
                     UC::COL_USER_ID    => DC::TABLE_USERS,
                     UC::COL_DSG_ID     => DC::TABLE_DESIGNS,
-                    DC::TABLE_CREATOR  => DC::TABLE_USERS,
-                    DC::TABLE_UPDATER  => DC::TABLE_USERS,
                     CPC::COL_DEP_ID    => DC::TABLE_DEPARTMENTS,
                     UC::COL_TAX_ID     => DC::TABLE_TAXES,
                     UC::COL_SLR_TP     => DC::TABLE_PAY_SLP,
@@ -64,14 +62,13 @@ class CreateEmployeesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
                     UC::COL_USER_ID,
                     UC::COL_DSG_ID,
                     CPC::COL_BRC_ID,
                     CPC::COL_DEP_ID,
-                    DC::TABLE_CREATOR,
-                    DC::TABLE_UPDATER,
                     UC::COL_TAX_ID,
                     UC::COL_SLR_TP,
                 ] as $column

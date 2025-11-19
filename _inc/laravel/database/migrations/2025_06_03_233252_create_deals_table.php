@@ -1,11 +1,13 @@
 <?php
 
 use App\Config\Constants\DatabaseConstants as DC;
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateDealsTable extends Migration
 {
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_DEALS;
     private const COL_PL = 'pipeline_id';
     private const COL_STG = 'stage_id';
@@ -27,32 +29,27 @@ class CreateDealsTable extends Migration
             $table->string('status')->nullable();
             $table->integer('order')->default(0);
             $table->integer('is_active')->default(1);
-            $table->timestamps();
-            $table->uuid(DC::TABLE_CREATOR)->nullable();
-            $table->uuid(DC::TABLE_UPDATER)->nullable();
             foreach (
                 [
                     self::COL_PL                       => DC::TABLE_PIPELINES,
                     self::COL_STG                          => DC::TABLE_STAGES,
-                    DC::TABLE_CREATOR    => DC::TABLE_USERS,
-                    DC::TABLE_UPDATER    => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
                     ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
                     self::COL_PL,
                     self::COL_STG,
-                    DC::TABLE_CREATOR,
-                    DC::TABLE_UPDATER
                 ] as $column
             ) {
                 try {

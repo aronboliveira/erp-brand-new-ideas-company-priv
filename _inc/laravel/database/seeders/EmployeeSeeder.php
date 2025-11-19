@@ -32,7 +32,7 @@ final class EmployeeSeeder extends Seeder
 		$faker = fake('pt_BR');
 
 		DB::transaction(function () use ($faker) {
-			$systemUserId = $this->ensureSystemUser();
+			$this->ensureSystemUser();
 
 			$branchIds = Br::query()->pluck('id')->all();
 			$deptIds   = Dep::query()->pluck('id')->all();

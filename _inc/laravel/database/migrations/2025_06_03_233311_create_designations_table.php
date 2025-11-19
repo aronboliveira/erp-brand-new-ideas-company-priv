@@ -5,11 +5,13 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     UsersConstants as UC
 };
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class CreateDesignationsTable extends Migration
 {
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_DESIGNS;
     public function up(): void
     {
@@ -22,34 +24,21 @@ class CreateDesignationsTable extends Migration
             $table->text('notes')->nullable();
             $table->date(CPC::COL_VFROM)->nullable()->default(DB::raw('(CURDATE())'));
             $table->date(CPC::COL_VTO)->nullable()->default(DB::raw('(DATE_ADD(CURDATE(), INTERVAL 10 YEAR))'));
-            $table->timestamps();
-            $table->uuid(DC::TABLE_CREATOR)->nullable();
-            $table->uuid(DC::TABLE_UPDATER)->nullable();
+            $this->addAuditColumns($table);
             $table->foreign(CPC::COL_DEP_ID)
                 ->references('id')
                 ->on(DC::TABLE_DEPARTMENTS)
                 ->cascadeOnDelete();
-            foreach (
-                [
-                    DC::TABLE_UPDATER    => DC::TABLE_USERS,
-                    DC::TABLE_CREATOR    => DC::TABLE_USERS,
-                ] as $column => $referencedTable
-            )
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->nullOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
                     CPC::COL_DEP_ID,
-                    DC::TABLE_UPDATER,
-                    DC::TABLE_CREATOR,
                 ] as $column
             ) {
                 try {

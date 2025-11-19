@@ -2,21 +2,20 @@
 
 namespace App\Models;
 
+use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\User;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
 
 class TerminationType extends Model
 {
-    use UsesUuids;
-
-    private const COL_CREATED_BY = 'created_by';
+    use HasAuditFields, UsesUuids;
+    private const COL_CREATED_BY = DC::TABLE_CREATOR;
     private const COL_NAME      = 'name';
 
-    protected $fillable = [
-        self::COL_NAME,
-        self::COL_CREATED_BY,
-    ];
+    protected $table = DC::TABLE_TERMINATION_TYPES;
+    protected $fillable = [self::COL_NAME];
+    protected $guarded = ['id', self::COL_CREATED_BY];
 
     public function createdBy(): HasOne
     {

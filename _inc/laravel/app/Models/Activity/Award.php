@@ -2,32 +2,56 @@
 
 namespace App\Models;
 
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\HasAuditFields;
 use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class Award extends Model
 {
-    use UsesUuids;
-
+    use HasAuditFields, UsesUuids;
+    protected $table = DC::TABLE_AWD;
     protected $fillable = [
-        'employee_id',
-        'award_type',
+        UC::COL_EMP_ID,
+        UC::COL_AWD_TP,
         'date',
         'gift',
         'description',
-        'created_by',
+    ];
+    protected $casts = [
+        'date' => 'date',
+    ];
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $with = [
+        'awardType',
+        'employee',
     ];
 
-    public function awardType(): HasOne
+    public function awardType(): BelongsTo
     {
-        $cls = get_class($this);
-        return $this->hasOne(substr($cls, 0, strrpos($cls, '\\')) . '\\' . ucfirst(__FUNCTION__), 'id', 'award_type');
+        return $this->belongsTo(AwardType::class, UC::COL_AWD_TP, 'id');
     }
 
-    public function employee(): HasOne
+    /** O prêmio PERTENCE a um empregado */
+    public function employee(): BelongsTo
     {
-        $f = 'id';
-        $cls = get_class($this);
-        return $this->hasOne(substr($cls, 0, strrpos($cls, '\\')) . '\\' . ucfirst(__FUNCTION__), $f, __FUNCTION__ . '_' . $f);
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
+    }
+
+    public function getTypeNameAttribute(): string
+    {
+        return (string) ($this->awardType?->name ?? '');
+    }
+
+    public function scopeForEmployee($query, string $employeeId)
+    {
+        return $query->where(UC::COL_EMP_ID, $employeeId);
+    }
+
+    public function scopeBetweenDates($query, ?string $start, ?string $end)
+    {
+        if ($start) $query->whereDate('date', '>=', $start);
+        if ($end)   $query->whereDate('date', '<=', $end);
+        return $query;
     }
 }

@@ -1,46 +1,46 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateTerminationsTable extends Migration
 {
-    private const TABLE = 'terminations';
-    private const COL_EMPLOYEE = 'employee_id';
-    private const COL_TERMINATION_TYPE = 'termination_type';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_TERMINATIONS;
     public function up(): void
     {
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
-                $table->uuid('id')->primary();               // ! CHANGED
-                $table->uuid(self::COL_EMPLOYEE);                  // ! CHANGED
-                $table->date('notice_date');
-                $table->date('termination_date');
-                $table->uuid(self::COL_TERMINATION_TYPE)->nullable(); // ! CHANGED
+                $table->uuid('id')->primary();
+                $table->uuid(UC::COL_EMP_ID)->unique()->index();
+                $table->date(UC::COL_TERMINATION_NDT)->default(now()->format('Y-m-d'));
+                $table->date(UC::COL_TERMINATION_DT)->default(now()->addDays(30)->format('Y-m-d'));
+                $table->uuid(UC::COL_TERMINATION_TP)->nullable();
                 $table->string('description')->nullable();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR);                   // ! CHANGED
-                $table->timestamps();
-                foreach ([
-                    self::COL_EMPLOYEE           => DatabaseConstants::TABLE_EMPLOYEES,
-                    self::COL_TERMINATION_TYPE   => DatabaseConstants::TABLE_TERMINATION_TYPES,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable)
-                    $table->foreign($column)
-                        ->references('id')
-                        ->on($referencedTable)
-                        ->onDelete('cascade');
+                $table->foreign(UC::COL_EMP_ID)
+                    ->references('id')
+                    ->on(DC::TABLE_EMPLOYEES)
+                    ->cascadeOnDelete();
+                $table->foreign(UC::COL_TERMINATION_TP)
+                    ->references('id')
+                    ->on(DC::TABLE_TERMINATION_TYPES)
+                    ->nullOnDelete();
+                $this->addAuditColumns($table);
             });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_EMPLOYEE,
-                self::COL_TERMINATION_TYPE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            foreach (
+                [
+                    UC::COL_EMP_ID,
+                    UC::COL_TERMINATION_TP,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);
