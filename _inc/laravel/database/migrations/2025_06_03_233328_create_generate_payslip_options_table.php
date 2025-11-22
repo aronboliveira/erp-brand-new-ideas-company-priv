@@ -4,6 +4,7 @@ use App\Config\Constants\DatabaseConstants;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
+// TODO VERIFICAR ESSE MODELO
 class CreateGeneratePayslipOptionsTable extends Migration
 {
     private const TABLE_NAME = 'generate_payslip_options';

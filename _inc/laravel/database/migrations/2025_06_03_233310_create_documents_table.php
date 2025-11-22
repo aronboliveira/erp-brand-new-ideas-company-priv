@@ -1,13 +1,13 @@
 <?php
 
 use App\Config\Constants\DatabaseConstants as DC;
-use App\Traits\HasDocumentColumns;
+use App\Traits\{HasDocumentColumns, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateDocumentsTable extends Migration
 {
-    use HasDocumentColumns;
+    use HasNullableAuditColumns, HasDocumentColumns;
 
     private const TABLE = DC::TABLE_DOCS;
 
@@ -20,6 +20,7 @@ class CreateDocumentsTable extends Migration
                 $table->string('is_required')->default('false');
                 $table->boolean('is_private')->default(false)->nullable();
                 $this->addDocumentColumns($table);
+                $this->addAuditColumns($table);
             });
     }
 

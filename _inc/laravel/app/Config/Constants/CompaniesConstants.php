@@ -16,4 +16,11 @@ class CompaniesConstants
 	public const COL_EBDG = 'expected_budget';
 	public const COL_VFROM = 'valid_from';
 	public const COL_VTO = 'valid_to';
+	public const COL_CPT_DT = 'complaint_date';
+	public const COL_CPT_AGST = 'complaint_against';
+	public const COL_CPT_FRM = 'complaint_from';
+	public const COL_WRN_TO = 'warning_to';
+	public const COL_WRN_BY = 'warning_by';
+	public const COL_WRN_FROM = 'warning_from';
+	public const COL_WRN_DATE = 'warning_date';
 }

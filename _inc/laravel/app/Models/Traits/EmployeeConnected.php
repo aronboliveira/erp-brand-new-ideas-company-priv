@@ -2,51 +2,39 @@
 
 namespace App\Traits;
 
-use App\Models\Employee;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Log;
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\{Log, Schema};
 
 trait EmployeeConnected
 {
-  public static function bootEmployeeConnected()
+  protected function addEmployeeColumns(Blueprint $table, bool $unique = false, bool $nullable = false): void
   {
-    static::creating(function ($model) {
-      $model->mergeFillable(['employee_id']);
-    });
-    static::updating(function ($model) {
-      $model->mergeFillable(['employee_id']);
-    });
+    $unique ? ($nullable ? $table->uuid(UC::COL_EMP_ID)->unique()->nullable()->index() : $table->uuid(UC::COL_EMP_ID)->index()) : ($nullable ? $table->uuid(UC::COL_EMP_ID)->nullable()->index() : $table->uuid(UC::COL_EMP_ID)->index());
+    $nullable ?
+      $table->foreign(UC::COL_EMP_ID)
+      ->references('id')
+      ->on(DC::TABLE_EMPLOYEES)
+      ->nullOnDelete() :
+      $table->foreign(UC::COL_EMP_ID)
+      ->references('id')
+      ->on(DC::TABLE_EMPLOYEES)
+      ->cascadeOnDelete();
   }
-  public function employee(): BelongsTo
-  {
-    return $this->belongsTo(Employee::class);
-  }
-  public function getEmployeeById(string $empId): ?Employee
+  protected function dropEmployeeForeign(Blueprint $table, string $tableName): void
   {
     try {
-      $emp = Employee::find($empId);
-      if (!$emp) {
-        Log::warning(sprintf('No Employee found with ID %s in %s', $empId, static::class));
-        return null;
-      }
-      return $emp;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Employee by ID %s: %s', $empId, $e->getMessage()), ['exception' => $e]);
-      return null;
-    }
-  }
-  public function getEmployeeByName(string $name): ?Employee
-  {
-    try {
-      $emp = Employee::where('name', $name)->first();
-      if (!$emp) {
-        Log::warning(sprintf('No Employee found with name %s in %s', $name, static::class));
-        return null;
-      }
-      return $emp;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Employee by name %s: %s', $name, $e->getMessage()), ['exception' => $e]);
-      return null;
+      Schema::hasColumn($tableName, UC::COL_EMP_ID) &&
+        $table->dropForeign([UC::COL_EMP_ID]);
+    } catch (\Exception $e) {
+      Log::warning(
+        'Failed to drop foreign key for '
+          . UC::COL_EMP_ID
+          . ' on table '
+          . $tableName
+          . ': '
+          . $e->getMessage()
+      );
     }
   }
 }

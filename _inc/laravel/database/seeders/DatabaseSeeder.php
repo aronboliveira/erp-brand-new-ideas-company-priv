@@ -29,7 +29,51 @@ class DatabaseSeeder extends Seeder
     {
         $lastSeeder = null;
         try {
-            foreach ([ClientSeeder::class, PasswordResetsSeeder::class, DocumentSeeder::class, PipelineSeeder::class, PlanSeeder::class, ProjectSeeder::class, ProjectStagesSeeder::class, SourceSeeder::class, StageSeeder::class, LabelSeeder::class, DealSeeder::class, DealFileSeeder::class, DealTaskSeeder::class, DealDiscussionSeeder::class, UserDealSeeder::class, ClientDealSeeder::class, TaxSeeder::class, BugSeeder::class, BugFileSeeder::class, BugCommentSeeder::class, BugStatusSeeder::class, BranchSeeder::class, DepartmentSeeder::class, DesignationSeeder::class, PayslipTypeSeeder::class, EmployeeSeeder::class, EmployeeDocumentSeeder::class, AwardTypeSeeder::class, AwardSeeder::class, TerminationTypeSeeder::class, TerminationSeeder::class, BasicFavoritesSeeder::class] as $mockSeeder) {
+            foreach (
+                [
+                    ClientSeeder::class,
+                    PasswordResetsSeeder::class,
+                    DocumentSeeder::class,
+                    PipelineSeeder::class,
+                    PlanSeeder::class,
+                    ProjectSeeder::class,
+                    ProjectStagesSeeder::class,
+                    SourceSeeder::class,
+                    StageSeeder::class,
+                    LabelSeeder::class,
+                    DealSeeder::class,
+                    DealFileSeeder::class,
+                    DealTaskSeeder::class,
+                    DealDiscussionSeeder::class,
+                    UserDealSeeder::class,
+                    ClientDealSeeder::class,
+                    TaxSeeder::class,
+                    BugSeeder::class,
+                    BugFileSeeder::class,
+                    BugCommentSeeder::class,
+                    BugStatusSeeder::class,
+                    BranchSeeder::class,
+                    DepartmentSeeder::class,
+                    DesignationSeeder::class,
+                    PayslipTypeSeeder::class,
+                    EmployeeSeeder::class,
+                    EmployeeDocumentSeeder::class,
+                    AwardTypeSeeder::class,
+                    AwardSeeder::class,
+                    TerminationTypeSeeder::class,
+                    TerminationSeeder::class,
+                    ResignationSeeder::class,
+                    TravelSeeder::class,
+                    PromotionSeeder::class,
+                    TransferSeeder::class,
+                    WarningSeeder::class,
+                    ComplaintSeeder::class,
+                    AllowanceOptionSeeder::class,
+                    LoanOptionSeeder::class,
+                    DeductionOptionSeeder::class,
+                    BasicFavoritesSeeder::class
+                ] as $mockSeeder
+            ) {
                 $this->call($mockSeeder);
                 $lastSeeder = $mockSeeder;
                 Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');

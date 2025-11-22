@@ -1,54 +1,41 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC};
+use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateComplaintsTable extends Migration
 {
-    private const ENTITY = 'complaint';
-    private const TABLE = self::ENTITY . 's';
-    private const COL_EMPLOYEE = 'employee_id';
+    use EmployeeConnected, HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_CPT;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary(); // ! CHANGED
-            $table->uuid(self::COL_EMPLOYEE);    // ! CHANGED
-            $table->integer(self::ENTITY . '_from');
-            $table->integer(self::ENTITY . '_against');
-            $table->string('title');
-            $table->date(self::ENTITY . '_date');
+            $table->uuid('id')->primary();
+            $this->addEmployeeColumns($table, nullable: true);
+            $table->string('title')->index();
+            $table->string('reason')->nullable();
+            $table->uuid(CC::COL_CPT_FRM)->nullable();
+            $table->uuid(CC::COL_CPT_AGST)->nullable();
+            $table->date(CC::COL_CPT_DT)->default(now()->format('Y-m-d'))->index();
             $table->string('description')->nullable();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);
-            $table->timestamps();
-            foreach ([
-                self::COL_EMPLOYEE                     => DatabaseConstants::TABLE_EMPLOYEES,
-                DatabaseConstants::TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->onDelete('cascade');
+            $table->string('notes')->nullable();
+            foreach ([CC::COL_CPT_FRM => DC::TABLE_EMPLOYEES, CC::COL_CPT_AGST => DC::TABLE_EMPLOYEES] as $column => $referencedTable) $table->foreign($column)->references('id')->on($referencedTable)->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_EMPLOYEE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropEmployeeForeign($table, self::TABLE);
+            foreach ([CC::COL_CPT_FRM, CC::COL_CPT_AGST,] as $col) {
                 try {
-                    Schema::hasColumn(self::TABLE, $column)
-                        && $table->dropForeign([$column]);
+                    Schema::hasColumn(self::TABLE, $col) && $table->dropForeign([$col]);
                 } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $column
-                            . ': '
-                            . $e->getMessage()
-                    );
+                    Log::warning('Failed to drop foreign key for ' . $col . ': ' . $e->getMessage());
                 }
             }
         });

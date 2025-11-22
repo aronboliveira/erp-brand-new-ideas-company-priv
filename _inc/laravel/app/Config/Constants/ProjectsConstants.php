@@ -43,6 +43,8 @@ class ProjectsConstants
 	public const STT_SCS						 = 'success';
 	public const STT_DGR						 = 'danger';
 	public const STT_DEF_CL					 = self::STT_INF;
+	public const VST_PPS = 'purpose_of_visit';
+	public const VST_PLC = 'place_of_visit';
 	public static array $projectStatus = [
 		self::STT_INP_K => 'In Progress',
 		self::STT_ONH_K     => 'On Hold',

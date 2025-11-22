@@ -2,40 +2,38 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class Promotion extends Model
 {
-    use UsesUuids;
+    use HasAuditFields, UsesUuids;
 
-    private const COL_CREATED_BY     = 'created_by';
-    private const COL_DESCRIPTION    = 'description';
-    private const COL_DESIGNATION_ID = 'designation_id';
-    private const COL_EMPLOYEE_ID    = 'employee_id';
-    private const COL_PROMOTION_DATE = 'promotion_date';
-    private const COL_PROMOTION_TITLE = 'promotion_title';
-
-    private const FILLABLE = [
-        self::COL_EMPLOYEE_ID,
-        self::COL_DESIGNATION_ID,
-        self::COL_PROMOTION_TITLE,
-        self::COL_PROMOTION_DATE,
-        self::COL_DESCRIPTION,
-        self::COL_CREATED_BY,
+    protected $table = DC::TABLE_PRMT;
+    protected $fillable = [
+        UC::COL_EMP_ID,
+        UC::COL_DSG_ID,
+        UC::COL_PRMT_TL,
+        UC::COL_PRMT_DT,
+        'description'
+    ];
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $with = [
+        'employee',
+        'designation',
+    ];
+    protected $casts = [
+        UC::COL_PRMT_DT => 'date',
     ];
 
-    protected $fillable = self::FILLABLE;
-
-    public function designation(): HasOne
+    public function designation(): BelongsTo
     {
-        return $this->hasOne(Designation::class, 'id', self::COL_DESIGNATION_ID);
-        // * consider belongsTo(Designation::class,self::COL_DESIGNATION_ID,'id')
+        return $this->belongsTo(Designation::class, UC::COL_DSG_ID, 'id');
     }
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(Employee::class, 'id', self::COL_EMPLOYEE_ID);
-        // * consider belongsTo(Employee::class,self::COL_EMPLOYEE_ID,'id')
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
     }
 }

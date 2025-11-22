@@ -21,6 +21,5 @@ trait HasDocumentColumns
 		$table->text('executors')->nullable(); // * UUIDS OF USERS WHO CAN EXECUTE
 		$table->text('editors')->nullable(); // * UUIDS OF USERS ALLOWED TO EDIT
 		$table->text('viewers')->nullable(); // * UUIDS OF USERS ALLOWED TO VIEW
-		$this->addAuditColumns($table);
 	}
 }

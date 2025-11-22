@@ -1,52 +1,32 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateResignationsTable extends Migration
 {
-    private const TABLE = 'resignations';
-    private const TABLE_CREATOR = 'created_by';
-    private const COL_EMPLOYEE = 'employee_id';
-    private const DATE = 'date';
+    use EmployeeConnected, HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_RSG;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
-            $table->uuid('id')->primary();           // ! CHANGED
-            $table->uuid(self::COL_EMPLOYEE);              // ! CHANGED
-            $table->date('notice_' . self::DATE);
-            $table->date('resignation_' . self::DATE);
-            $table->string('description')->nullable();
-            $table->uuid(self::TABLE_CREATOR);               // ! CHANGED
-            $table->timestamps();
-            foreach ([
-                self::COL_EMPLOYEE           => DatabaseConstants::TABLE_EMPLOYEES,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $this->addEmployeeColumns($table, unique: true);
+            $table->date(UC::COL_RESIGNATION_NDT)->default(now()->format('Y-m-d'));
+            $table->date(UC::COL_RESIGNATION_DT)->default(now()->addDays(30)->format('Y-m-d'));
+            $table->text('description')->nullable();
+            $table->text('notes')->nullable();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([self::COL_EMPLOYEE, self::TABLE_CREATOR] as $col) {
-                try {
-                    Schema::hasColumn(self::TABLE, $col) &&
-                        $table->dropForeign([$col]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $col
-                            . ': '
-                            . $e->getMessage()
-                    );
-                }
-            }
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropEmployeeForeign($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

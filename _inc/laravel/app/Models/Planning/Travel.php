@@ -2,22 +2,32 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 
 class Travel extends Model
 {
-    use UsesUuids;
+    use HasAuditFields, UsesUuids;
 
-    private const FILLABLE_FIELDS = [
-        'employee_id', 'start_date', 'end_date', 'purpose_of_visit',
-        'place_of_visit', 'description', 'created_by'
+    protected $table = DC::TABLE_TRAVELS;
+    protected $fillable = [
+        UC::COL_EMP_ID,
+        PJC::COL_S_DT,
+        PJC::COL_E_DT,
+        PJC::VST_PPS,
+        PJC::VST_PLC,
+        'description',
     ];
-    protected $fillable = self::FILLABLE_FIELDS;
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $casts = [
+        PJC::COL_S_DT => 'date',
+        PJC::COL_E_DT => 'date',
+    ];
+    protected $with = ['employee'];
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(Employee::class, 'id', 'employee_id');
-        // * consider belongsTo(Employee::class,'employee_id','id')
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID, 'id');
     }
 }

@@ -2,29 +2,40 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\HasOne};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transfer extends Model
 {
-    use HasFactory, UsesUuids;
+    use HasAuditFields, HasFactory, UsesUuids;
 
+    protected const TABLE = DC::TABLE_TRFS;
     protected $fillable = [
-        'employee_id', 'branch_id', 'department_id',
-        'transfer_date', 'description', 'created_by'
+        UC::COL_EMP_ID,
+        UC::COL_BRC_ID,
+        UC::COL_DEP_ID,
+        UC::COL_TRF_DT,
+        'description',
+        'notes',
     ];
-
-    private const FK_EMPLOYEE  = 'employee_id';
-    private const FK_BRANCH    = 'branch_id';
-    private const FK_DEPARTMENT = 'department_id';
-    private const FK_CREATED_BY = 'created_by';
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $casts = [
+        UC::COL_TRF_DT => 'date',
+    ];
+    protected $with = [
+        'employee',
+        'branch',
+        'department',
+    ];
 
     public function department(): HasOne
     {
         return $this->hasOne(
             Department::class,
             'id',
-            self::FK_DEPARTMENT
+            UC::COL_DEP_ID
         );
     }
 
@@ -33,16 +44,16 @@ class Transfer extends Model
         return $this->hasOne(
             Branch::class,
             'id',
-            self::FK_BRANCH
+            UC::COL_BRC_ID
         );
     }
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(
+        return $this->belongsTo(
             Employee::class,
-            'id',
-            self::FK_EMPLOYEE
+            UC::COL_EMP_ID,
+            'id'
         );
     }
 }

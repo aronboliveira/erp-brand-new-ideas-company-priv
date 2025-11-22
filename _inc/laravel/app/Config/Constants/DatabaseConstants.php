@@ -25,6 +25,7 @@ class DatabaseConstants
 	public const TABLE_EDOCS = 'employee_documents';
 	public const TABLE_TERMINATIONS = 'terminations';
 	public const TABLE_TERMINATION_TYPES = 'termination_types';
+	public const TABLE_RSG = 'resignations';
 	public const TABLE_DESIGNS = 'designations';
 	public const TABLE_COAS = self::COA . 's';
 	public const TABLE_COA_TYPES = self::COA . '_types';
@@ -99,6 +100,11 @@ class DatabaseConstants
 	public const TABLE_PAY_SLP = 'payslip_types';
 	public const TABLE_AWD = 'awards';
 	public const TABLE_AWD_TPS = 'award_types';
+	public const TABLE_TRAVELS = 'travels';
+	public const TABLE_PRMT = 'promotions';
+	public const TABLE_TRFS = 'transfers';
+	public const TABLE_WRN = 'warnings';
+	public const TABLE_CPT = 'complaints';
 
 	// * FIELD NAMES
 

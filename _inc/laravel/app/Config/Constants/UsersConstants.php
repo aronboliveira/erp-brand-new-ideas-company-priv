@@ -53,4 +53,9 @@ class UsersConstants
 	public const COL_TERMINATION_TP = 'termination_type';
 	public const COL_TERMINATION_DT = 'termination_date';
 	public const COL_TERMINATION_NDT = 'notice_date';
+	public const COL_RESIGNATION_NDT = self::COL_TERMINATION_NDT;
+	public const COL_RESIGNATION_DT = 'resignation_date';
+	public const COL_PRMT_DT = 'promotion_date';
+	public const COL_PRMT_TL = 'promotion_title';
+	public const COL_TRF_DT = 'transfer_date';
 }

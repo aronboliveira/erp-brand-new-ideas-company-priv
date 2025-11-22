@@ -2,27 +2,34 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\HasOne};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property string|int $id
  */
 class Resignation extends Model
 {
-    use HasFactory, UsesUuids;
-
+    use HasAuditFields, HasFactory, UsesUuids;
+    protected $table = DC::TABLE_RSG;
     protected $fillable = [
-        'employee_id',
-        'notice_date',
-        'resignation_date',
+        UC::COL_EMP_ID,
+        UC::COL_RESIGNATION_NDT,
+        UC::COL_RESIGNATION_DT,
         'description',
-        'created_by',
+        'notes'
+    ];
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $with = ['employee'];
+    protected $casts = [
+        UC::COL_RESIGNATION_NDT => 'date',
+        UC::COL_RESIGNATION_DT  => 'date',
     ];
 
-    public function employee(): HasOne
+    public function employee(): BelongsTo
     {
-        return $this->hasOne(Employee::class, 'id', 'employee_id');
-        // * consider using belongsTo(Employee::class, 'employee_id');
+        return $this->belongsTo(Employee::class, UC::COL_EMP_ID);
     }
 }

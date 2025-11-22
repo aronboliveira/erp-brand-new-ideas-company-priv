@@ -42,9 +42,9 @@ class CreateDefaultMessagesTable extends Migration
             foreach (
                 [
                     'from_' . self::COL_IDF,
-                    'to_' . self::COL_IDF,
+                    'to_' . self::COL_IDF
                 ] as $column
-            ) {
+            )
                 try {
                     Schema::hasColumn(self::TABLE_NAME, $column)
                         && $table->dropForeign([$column]);
@@ -58,7 +58,6 @@ class CreateDefaultMessagesTable extends Migration
                             . $e->getMessage()
                     );
                 }
-            }
         });
         Schema::dropIfExists(self::TABLE_NAME);
     }

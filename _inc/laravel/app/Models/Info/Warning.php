@@ -2,45 +2,43 @@
 
 namespace App\Models;
 
+use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, UsersConstants as UC};
 use App\Models\Employee;
-use App\Traits\UsesUuids;
+use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
 
 class Warning extends Model
 {
-    use UsesUuids;
-
-    private const COL_CREATED_BY  = 'created_by';
-    private const COL_DESCRIPTION = 'description';
-    private const COL_SUBJECT     = 'subject';
-    private const COL_WARNING_BY  = 'warning_by';
-    private const COL_WARNING_DATE = 'warning_date';
-    private const COL_WARNING_TO  = 'warning_to';
-    private const COL_EMPLOYEE_ID = 'employee_id';
-    private const FILLABLE        = [
-        self::COL_WARNING_TO,
-        self::COL_WARNING_BY,
-        self::COL_SUBJECT,
-        self::COL_WARNING_DATE,
-        self::COL_DESCRIPTION,
-        self::COL_CREATED_BY,
-        self::COL_EMPLOYEE_ID
+    use HasAuditFields, UsesUuids;
+    protected $table = DC::TABLE_WRN;
+    protected $fillable = [
+        CC::COL_WRN_TO,
+        CC::COL_WRN_BY,
+        CC::COL_WRN_DATE,
+        'subject',
+        'description',
+        UC::COL_EMP_ID,
     ];
-
-    protected $fillable = self::FILLABLE;
+    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $casts = [
+        CC::COL_WRN_DATE => 'date',
+    ];
+    protected $with = [
+        'employee'
+    ];
 
     public function employee(): HasOne
     {
-        return $this->hasOne(Employee::class, 'id', 'employee_id');
+        return $this->hasOne(Employee::class, 'id', UC::COL_EMP_ID);
     }
 
     public function warningTo(): HasOne
     {
-        return $this->hasOne(Employee::class, 'id', self::COL_WARNING_TO);
+        return $this->hasOne(Employee::class, 'id', CC::COL_WRN_TO);
     }
 
     public function warningBy(): HasOne
     {
-        return $this->hasOne(Employee::class, 'id', self::COL_WARNING_BY);
+        return $this->hasOne(Employee::class, 'id', CC::COL_WRN_BY);
     }
 }
