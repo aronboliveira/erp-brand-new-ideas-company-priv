@@ -30,7 +30,7 @@ class BugFile extends Model
 
     protected static function booted(): void
     {
-        is_callable('parent::booted') && parent::booted();
+        parent::booted();
         static::creating(function ($model) {
             try {
                 $stringValue = $model->{UC::COL_U_TP} instanceof UserType

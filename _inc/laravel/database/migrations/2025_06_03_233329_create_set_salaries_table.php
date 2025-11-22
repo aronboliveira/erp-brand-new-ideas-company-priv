@@ -1,55 +1,45 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, UsersConstants as UC};
+use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
-use Illuminate\Support\Facades\{Log, Schema};
+use Illuminate\Support\Facades\{Schema};
 
 class CreateSetSalariesTable extends Migration
 {
-    private const SALARY = 'salary';
-    private const TABLE = 'set_salaries';
-    private const COL_EMPLOYEE = 'employee_id';
+    use EmployeeConnected, HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_SSLR;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                      // ! CHANGED
-            $table->uuid(self::COL_EMPLOYEE)->index();                // ! CHANGED
-            $table->string(self::SALARY . '_type');                       // ! CHANGED
-            $table->decimal(self::SALARY, 15, 2);                      // ! CHANGED
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->index();                 // ! CHANGED
-            $table->timestamps();
-            foreach ([
-                self::COL_EMPLOYEE                      => DatabaseConstants::TABLE_EMPLOYEES,
-                DatabaseConstants::TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $this->addEmployeeColumns($table, unique: true);
+            $table->string(UC::COL_SLR_TP)->index(); // TODO MODIFICAR PARA ENUM POSTERIORMENTE
+            $table->decimal('salary', 15, 2)->default(DC::MININUM_WAGE_BR);
+            $table->enum('frequency', [
+                'once',
+                'variable',
+                'hourly',
+                'biweekly',
+                'weekly',
+                'semimonthly',
+                'semestral',
+                'monthly',
+                'annual',
+            ])->default('monthly')
+                ->index()
+                ->nullable(); // ? Nullable para testes iniciais
+            $table->unsignedTinyInteger(BC::COL_MDAY_LMT)->min(1)->max(31)->default(5)
+                ->nullable(); // ? Nullable para testes iniciais
+            $this->addAuditColumns($table, false);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_EMPLOYEE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
-                try {
-                    Schema::hasColumn(self::TABLE, $column)
-                        && $table->dropForeign([$column]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $column
-                            . ' on table '
-                            . self::TABLE
-                            . ': '
-                            . $e->getMessage()
-                    );
-                }
-            }
+            $this->dropEmployeeForeign($table, self::TABLE);
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

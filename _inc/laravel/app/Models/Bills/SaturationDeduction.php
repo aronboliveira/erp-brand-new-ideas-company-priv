@@ -2,32 +2,120 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{
+    BillsConstants as BC,
+    DatabaseConstants as DC,
+    UsersConstants as UC
+};
+use App\Enums\LoanType;
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model,
+    Relations\HasOne
+};
 
 class SaturationDeduction extends Model
 {
-    use UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields;
 
-    private const FILLABLE = [
-        'employee_id', 'deduction_option', 'title', 'amount', 'created_by'
-    ];
-    protected $fillable = self::FILLABLE;
+    protected $table = DC::TABLE_ST_DD;
 
-    public static $saturationDeductionType = [
-        'fixed'     => 'Fixed',
+    /** @var array<string,string> */
+    public static array $saturationDeductionType = [
+        'fixed'      => 'Fixed',
         'percentage' => 'Percentage',
     ];
 
+    protected $fillable = [
+        UC::COL_EMP_ID,
+        BC::COL_DD_OPT,
+        'title',
+        'amount',
+        'type',
+    ];
+
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
+        DC::TABLE_UPDATER,
+    ];
+
+    protected $casts = [
+        'amount'           => 'decimal:2',
+        UC::COL_EMP_ID     => 'string',
+        BC::COL_DD_OPT => 'string',
+        'type'             => LoanType::class,
+    ];
+
+    protected $with = [
+        'employee',
+        'deductionOption',
+    ];
+
+    protected $appends = [
+        'is_percentage',
+    ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::saving(function (SaturationDeduction $m): void {
+            if ($m->type !== null) {
+                $norm = LoanType::normalize($m->type);
+                if ($norm) $m->type = $norm;
+            }
+
+            if ($m->amount < 0)
+                $m->amount = 0;
+
+            if ($m->type === LoanType::Percentage) {
+                $value = (float) $m->amount;
+                if ($value < 0) $value = 0;
+                if ($value > 100) $value = 100;
+
+                if ($m->deduction_option) {
+                    /** @var DeductionOption|null $opt */
+                    $opt = DeductionOption::query()->find($m->deduction_option);
+
+                    if ($opt) {
+                        $min = $opt->{BC::COL_MIN_PCT};
+                        $max = $opt->{BC::COL_MAX_PCT};
+
+                        if ($min !== null && $value < $min)
+                            $value = (float) $min;
+
+                        if ($max !== null && $value > $max)
+                            $value = (float) $max;
+                    }
+                }
+
+                $m->amount = $value;
+            }
+        });
+    }
+
+    public function getIsPercentageAttribute(): bool
+    {
+        return $this->type === LoanType::Percentage;
+    }
+
     public function employee(): HasOne
     {
-        return $this->hasOne(Employee::class, 'id', 'employee_id');
-        // * consider belongsTo(Employee::class,'employee_id','id')
+        return $this->hasOne(
+            Employee::class,
+            'id',
+            UC::COL_EMP_ID
+        );
     }
 
     public function deductionOption(): HasOne
     {
-        return $this->hasOne(DeductionOption::class, 'id', 'deduction_option');
-        // * consider belongsTo(DeductionOption::class,'deduction_option','id')
+        return $this->hasOne(
+            DeductionOption::class,
+            'id',
+            BC::COL_DD_OPT
+        );
     }
 }

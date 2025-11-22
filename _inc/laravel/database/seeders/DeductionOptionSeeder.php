@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
-use App\Enums\{CalculationBase, DeductionFrequency, DeductionType};
+use App\Enums\{CalculationBase, Frequency, DeductionType};
 use App\Models\DeductionOption;
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
@@ -26,7 +26,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::ContributionSalary,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 14,
-					'frequency'       => DeductionFrequency::Monthly,
+					'frequency'       => Frequency::Monthly,
 					BC::COL_MDAY_LMT  => 1,
 				],
 
@@ -37,7 +37,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::ProgressiveTable,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 27,
-					'frequency'       => DeductionFrequency::Monthly,
+					'frequency'       => Frequency::Monthly,
 					BC::COL_MDAY_LMT  => 1,
 				],
 
@@ -48,7 +48,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::GrossSalary,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 2,
-					'frequency'       => DeductionFrequency::Monthly,
+					'frequency'       => Frequency::Monthly,
 					BC::COL_MDAY_LMT  => 1,
 				],
 
@@ -59,7 +59,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::SpecificAmount,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 50,
-					'frequency'       => DeductionFrequency::Monthly,
+					'frequency'       => Frequency::Monthly,
 					BC::COL_MDAY_LMT  => 1,
 				],
 
@@ -70,7 +70,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::NetSalary,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 33,
-					'frequency'       => DeductionFrequency::Monthly,
+					'frequency'       => Frequency::Monthly,
 					BC::COL_MDAY_LMT  => 1,
 				],
 
@@ -81,7 +81,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::Percentage,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 30,
-					'frequency'       => DeductionFrequency::Monthly,
+					'frequency'       => Frequency::Monthly,
 					BC::COL_MDAY_LMT  => 2,
 				],
 
@@ -92,7 +92,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::GrossSalary,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 40,
-					'frequency'       => DeductionFrequency::Semimonthly,
+					'frequency'       => Frequency::Semimonthly,
 					BC::COL_MDAY_LMT  => 2,
 				],
 
@@ -103,7 +103,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::SpecificAmount,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 100,
-					'frequency'       => DeductionFrequency::Once,
+					'frequency'       => Frequency::Once,
 					BC::COL_MDAY_LMT  => 1,
 				],
 
@@ -114,7 +114,7 @@ final class DeductionOptionSeeder extends Seeder
 					BC::COL_CCL_BS    => CalculationBase::Mixed,
 					BC::COL_MIN_PCT   => 0,
 					BC::COL_MAX_PCT   => 100,
-					'frequency'       => DeductionFrequency::Variable,
+					'frequency'       => Frequency::Variable,
 					BC::COL_MDAY_LMT  => 12,
 				],
 			];

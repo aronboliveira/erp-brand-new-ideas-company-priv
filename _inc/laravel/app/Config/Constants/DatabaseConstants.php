@@ -105,6 +105,11 @@ class DatabaseConstants
 	public const TABLE_TRFS = 'transfers';
 	public const TABLE_WRN = 'warnings';
 	public const TABLE_CPT = 'complaints';
+	public const TABLE_SSLR = 'set_salaries';
+	public const TABLE_ALW = 'allowances';
+	public const TABLE_CMS = 'commissions';
+	public const TABLE_LN = 'loans';
+	public const TABLE_ST_DD = 'saturation_deductions';
 
 	// * FIELD NAMES
 
@@ -127,4 +132,5 @@ class DatabaseConstants
 	public const ORDER_ID = 'orderById';
 	public const ORDER_C_AT = 'orderByCreatedAt';
 	public const ORDER_NEW = 'orderByNewest';
+	public const MININUM_WAGE_BR = 1518.00; // TODO RECUPERAR DE API REAL POSTERIORMENTE
 }

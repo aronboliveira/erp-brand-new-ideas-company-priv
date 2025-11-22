@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum DeductionFrequency: string
+enum Frequency: string
 {
 	case Monthly     = 'monthly';
 	case Weekly      = 'weekly';
@@ -12,6 +12,7 @@ enum DeductionFrequency: string
 	case Annual      = 'annual';
 	case Once        = 'once';
 	case Variable    = 'variable';
+	case Hourly      = 'hourly';
 
 	public static function normalize(null|string|\BackedEnum $v): ?self
 	{

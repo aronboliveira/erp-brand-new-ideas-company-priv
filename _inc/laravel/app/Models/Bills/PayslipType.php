@@ -21,6 +21,7 @@ class PayslipType extends Model
 
     protected static function booted(): void
     {
+        parent::booted();
         $normalizeAmount = static function (string|int|float|null $v): ?string {
             if ($v === null || $v === '') return null;
             $raw = (string) $v;

@@ -19,6 +19,7 @@ class LoanOption extends Model
     ];
     protected static function booted(): void
     {
+        parent::booted();
         static::saving(function ($model) {
             static::verifyMaxBudget($model);
         });

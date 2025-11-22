@@ -43,17 +43,18 @@ class CreateDeductionOptionsTable extends Migration
                 ->default(100)
                 ->nullable(); // ? Nullable para testes iniciais
             $table->enum('frequency', [
-                'monthly',
-                'weekly',
+                'once',
+                'variable',
+                'hourly',
                 'biweekly',
+                'weekly',
                 'semimonthly',
                 'semestral',
+                'monthly',
                 'annual',
-                'once',
-                'variable'
             ])->default('monthly')
                 ->nullable()->index(); // ? Nullable para testes iniciais
-            $table->unsignedTinyInteger(BC::COL_MDAY_LMT)->min(1)->max(12)->nullable(); // ? Nullable para testes iniciais
+            $table->unsignedTinyInteger(BC::COL_MDAY_LMT)->min(1)->max(31)->nullable(); // ? Nullable para testes iniciais
             $this->addAuditColumns($table);
         });
     }

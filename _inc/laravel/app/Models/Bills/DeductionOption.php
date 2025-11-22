@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
-use App\Enums\{CalculationBase, DeductionFrequency, DeductionType};
+use App\Enums\{CalculationBase, Frequency, DeductionType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 
@@ -29,7 +29,7 @@ class DeductionOption extends Model
     protected $casts = [
         BC::COL_DD_TYPE => DeductionType::class,
         BC::COL_CCL_BS  => CalculationBase::class,
-        'frequency'     => DeductionFrequency::class,
+        'frequency'     => Frequency::class,
         BC::COL_MIN_PCT => 'integer',
         BC::COL_MAX_PCT => 'integer',
         BC::COL_MDAY_LMT => 'integer',
@@ -37,6 +37,7 @@ class DeductionOption extends Model
 
     protected static function booted(): void
     {
+        parent::booted();
         static::saving(function (self $m): void {
             if ($m->isDirty(BC::COL_DD_TYPE)) {
                 $norm = DeductionType::normalize($m->{BC::COL_DD_TYPE});
@@ -49,7 +50,7 @@ class DeductionOption extends Model
             }
 
             if ($m->isDirty('frequency')) {
-                $norm = DeductionFrequency::normalize($m->frequency);
+                $norm = Frequency::normalize($m->frequency);
                 $m->frequency = $norm?->value;
             }
 
@@ -84,6 +85,6 @@ class DeductionOption extends Model
     }
     public function setFrequencyAttribute($value): void
     {
-        $this->attributes['frequency'] = DeductionFrequency::normalize($value)?->value;
+        $this->attributes['frequency'] = Frequency::normalize($value)?->value;
     }
 }

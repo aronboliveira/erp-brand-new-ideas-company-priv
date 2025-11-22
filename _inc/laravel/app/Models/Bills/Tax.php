@@ -21,6 +21,7 @@ class Tax extends Model
     ];
     protected static function booted(): void
     {
+        parent::booted();
         static::creating(function (self $m) {
             self::normalizeAndValidate($m, true);
         });

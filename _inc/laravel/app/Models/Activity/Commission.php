@@ -2,22 +2,62 @@
 
 namespace App\Models;
 
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Models\Employee;
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{Factories\HasFactory, Model, Relations\HasOne};
 
 class Commission extends Model
 {
-    use UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields;
 
-    protected $fillable = ['employee_id', 'title', 'amount', 'type', 'created_by'];
-    public static $commissionType = [ // ! CHANGED
-        'fixed'     => 'Fixed',
+    public const TABLE = DC::TABLE_CMS;
+
+    protected $table = self::TABLE;
+
+    /** @var array<string,string> */
+    public static array $commissionType = [
+        'fixed'      => 'Fixed',
         'percentage' => 'Percentage',
     ];
 
+    protected $fillable = [
+        UC::COL_EMP_ID,
+        'title',
+        'amount',
+        'type',
+    ];
+
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
+        DC::TABLE_UPDATER,
+    ];
+
+    protected $casts = [
+        'amount'       => 'decimal:2',
+        UC::COL_EMP_ID => 'string',
+    ];
+
+    protected $with = [
+        'employee',
+    ];
+
+    protected $appends = [
+        'is_percentage',
+    ];
+
+    public function getIsPercentageAttribute(): bool
+    {
+        return $this->type === 'percentage';
+    }
+
     public function employee(): HasOne
     {
-        return $this->hasOne(Employee::class, 'id', 'employee_id');
+        return $this->hasOne(
+            Employee::class,
+            'id',
+            UC::COL_EMP_ID
+        );
     }
 }

@@ -31,6 +31,12 @@ class BillsConstants
 	public const COL_MIN_PCT = 'minimum_percentage';
 	public const COL_MAX_PCT = 'maximum_percentage';
 	public const COL_MDAY_LMT = 'month_day_limit';
+	public const COL_ALW_OPT = 'allowance_option';
+	public const COL_LN_OPT = 'loan_option';
+	public const COL_DD_OPT = 'deduction_option';
+
+	// * VALORES
+
 	public const VL_GRS_SL = 'gross_salary';
 	public const VL_NET_SL = 'net_salary';
 	public const VL_SPC_AMT = 'specific_amount';

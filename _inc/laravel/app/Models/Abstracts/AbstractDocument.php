@@ -144,6 +144,7 @@ abstract class AbstractDocument extends Model
 
 	protected static function booted(): void
 	{
+		parent::booted();
 		static::creating(function (self $m) {
 			$m->ensureMimeAndTypeFromExtension();
 		});

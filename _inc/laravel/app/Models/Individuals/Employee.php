@@ -71,6 +71,7 @@ class Employee extends Model
 
     protected static function booted(): void
     {
+        parent::booted();
         $normalizePhone = static function (?string $v): ?string {
             if ($v === null) return null;
             $v = preg_replace('/\D+/', '', $v);
