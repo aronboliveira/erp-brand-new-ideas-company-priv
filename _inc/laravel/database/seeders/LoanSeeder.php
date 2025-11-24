@@ -52,7 +52,7 @@ final class LoanSeeder extends Seeder
 				$picked = collect($titles)->shuffle()->take($qty);
 
 				foreach ($picked as $title) {
-					// Alterna entre tipos aceitos pelo enum LoanType
+					// Alterna entre tipos aceitos pelo enum PaymentPatternType
 					$type = (random_int(0, 1) === 1) ? 'percentage' : 'fixed';
 
 					// Datas sempre com format('Y-m-d')
@@ -92,7 +92,7 @@ final class LoanSeeder extends Seeder
 							UC::COL_EMP_ID    => $emp->id,
 							BC::COL_LN_OPT    => $loanOptionId,
 							'title'           => $title,
-							'type'            => $type,            // LoanType aceita 'fixed'|'percentage'
+							'type'            => $type,            // PaymentPatternType aceita 'fixed'|'percentage'
 							'amount'          => $amount,
 							PJC::COL_S_DT     => $start,
 							PJC::COL_E_DT     => $end,

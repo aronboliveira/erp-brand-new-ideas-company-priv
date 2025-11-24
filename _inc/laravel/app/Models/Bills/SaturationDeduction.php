@@ -7,7 +7,7 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     UsersConstants as UC
 };
-use App\Enums\LoanType;
+use App\Enums\PaymentPatternType;
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
@@ -45,7 +45,7 @@ class SaturationDeduction extends Model
         'amount'           => 'decimal:2',
         UC::COL_EMP_ID     => 'string',
         BC::COL_DD_OPT => 'string',
-        'type'             => LoanType::class,
+        'type'             => PaymentPatternType::class,
     ];
 
     protected $with = [
@@ -63,14 +63,14 @@ class SaturationDeduction extends Model
 
         static::saving(function (SaturationDeduction $m): void {
             if ($m->type !== null) {
-                $norm = LoanType::normalize($m->type);
+                $norm = PaymentPatternType::normalize($m->type);
                 if ($norm) $m->type = $norm;
             }
 
             if ($m->amount < 0)
                 $m->amount = 0;
 
-            if ($m->type === LoanType::Percentage) {
+            if ($m->type === PaymentPatternType::Percentage) {
                 $value = (float) $m->amount;
                 if ($value < 0) $value = 0;
                 if ($value > 100) $value = 100;
@@ -98,7 +98,7 @@ class SaturationDeduction extends Model
 
     public function getIsPercentageAttribute(): bool
     {
-        return $this->type === LoanType::Percentage;
+        return $this->type === PaymentPatternType::Percentage;
     }
 
     public function employee(): HasOne

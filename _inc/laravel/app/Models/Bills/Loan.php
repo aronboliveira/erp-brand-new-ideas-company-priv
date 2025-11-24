@@ -8,7 +8,7 @@ use App\Config\Constants\{
     ProjectsConstants as PJC,
     UsersConstants as UC
 };
-use App\Enums\{DeductionType, LoanType};
+use App\Enums\{DeductionType, PaymentPatternType};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
@@ -55,7 +55,7 @@ class Loan extends Model
         BC::COL_LN_OPT  => 'string',
         'installments'  => 'integer',
         BC::COL_DD_TYPE => DeductionType::class,
-        'type'          => LoanType::class,
+        'type'          => PaymentPatternType::class,
     ];
 
     protected $with = [
@@ -77,7 +77,7 @@ class Loan extends Model
             }
 
             if ($loan->type !== null) {
-                $normalizedType = LoanType::normalize($loan->type);
+                $normalizedType = PaymentPatternType::normalize($loan->type);
                 $loan->type = $normalizedType;
             }
 
@@ -121,7 +121,7 @@ class Loan extends Model
 
     public function getIsPercentageAttribute(): bool
     {
-        return $this->type === LoanType::Percentage;
+        return $this->type === PaymentPatternType::Percentage;
     }
 
     public function employee(): HasOne

@@ -58,4 +58,5 @@ class UsersConstants
 	public const COL_PRMT_DT = 'promotion_date';
 	public const COL_PRMT_TL = 'promotion_title';
 	public const COL_TRF_DT = 'transfer_date';
+	public const COL_NDAYS = 'number_of_days';
 }

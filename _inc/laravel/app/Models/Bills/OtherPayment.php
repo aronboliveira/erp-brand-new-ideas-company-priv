@@ -2,34 +2,78 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use App\Enums\PaymentPatternType;
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model,
+    Relations\HasOne
+};
 
 class OtherPayment extends Model
 {
-    use UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields;
 
-    private const COL_CREATED_BY  = 'created_by';
-    private const COL_EMPLOYEE_ID = 'employee_id';
-    private const COL_TYPE        = 'type';
+    protected $table = DC::TABLE_OT_PYMTS;
 
-    protected $fillable = [
-        self::COL_EMPLOYEE_ID,
-        'title',
-        'amount',
-        self::COL_TYPE,       // * ADDED
-        self::COL_CREATED_BY,
-    ];
-
-    public static $otherPaymentType = [
+    /** @var array<string,string> */
+    public static array $otherPaymentType = [
         'fixed'      => 'Fixed',
         'percentage' => 'Percentage',
     ];
 
+    protected $fillable = [
+        UC::COL_EMP_ID,
+        'title',
+        'amount',
+        'type',
+    ];
+
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
+        DC::TABLE_UPDATER,
+    ];
+
+    protected $casts = [
+        'amount'       => 'decimal:2',
+        UC::COL_EMP_ID => 'string',
+        'type'         => PaymentPatternType::class,
+    ];
+
+    protected $with = [
+        'employee',
+    ];
+
+    protected $appends = [
+        'is_percentage',
+    ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::saving(function (OtherPayment $m): void {
+            if ($m->type !== null) {
+                $norm = PaymentPatternType::normalize($m->type);
+                if ($norm) $m->type = $norm;
+            }
+
+            if ($m->amount < 0) $m->amount = 0;
+
+            if ($m->type === PaymentPatternType::Percentage && $m->amount > 100)
+                $m->amount = 100;
+        });
+    }
+
+    public function getIsPercentageAttribute(): bool
+    {
+        return $this->type === PaymentPatternType::Percentage;
+    }
+
     public function employee(): HasOne
     {
-        return $this
-            ->hasOne(Employee::class, 'id', self::COL_EMPLOYEE_ID);
-        // * consider using belongsTo(Employee::class, self::COL_EMPLOYEE_ID)
+        return $this->hasOne(Employee::class, 'id', UC::COL_EMP_ID);
     }
 }

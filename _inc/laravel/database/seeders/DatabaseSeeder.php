@@ -75,6 +75,7 @@ class DatabaseSeeder extends Seeder
                     AllowanceSeeder::class,
                     LoanSeeder::class,
                     SaturationDeductionSeeder::class,
+                    OtherPaymentSeeder::class,
                     BasicFavoritesSeeder::class
                 ] as $mockSeeder
             ) {

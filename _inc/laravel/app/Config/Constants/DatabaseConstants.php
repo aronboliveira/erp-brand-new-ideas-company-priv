@@ -110,6 +110,8 @@ class DatabaseConstants
 	public const TABLE_CMS = 'commissions';
 	public const TABLE_LN = 'loans';
 	public const TABLE_ST_DD = 'saturation_deductions';
+	public const TABLE_OT_PYMTS = 'other_payments';
+	public const TABLE_OVT = 'overtimes';
 
 	// * FIELD NAMES
 

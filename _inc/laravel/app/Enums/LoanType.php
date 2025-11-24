@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum LoanType: string
+enum PaymentPatternType: string
 {
 	case Fixed      = 'fixed';
 	case Percentage = 'percentage';
