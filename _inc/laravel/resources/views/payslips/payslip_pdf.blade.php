@@ -24,8 +24,8 @@
     $empName = data_get($employee,'name',__('No employee name available'));
     $empCreatedAt = data_get($employee,'created_at');
     $salaryMonth = data_get($payslip,'salary_month');
-    $basicSalary = data_get($payslip,'basic_salary',0);
-    $netPayable = data_get($payslip,'net_payble',0);
+    $basicSalary = data_get($payslip,'gross_salary',0);
+    $netPayable = data_get($payslip,'net_payable',0);
 
     $allowances = (array) data_get($payslipDetail,'earning.allowance',[]);
     $commissions = (array) data_get($payslipDetail,'earning.commission',[]);

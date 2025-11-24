@@ -1,65 +1,87 @@
 <?php
 
 use App\Config\Constants\{
-    ChartsConstants,
-    DatabaseConstants,
-    UsersConstants
+    BillsConstants as BC,
+    ChartsConstants as CHTC,
+    DatabaseConstants as DC,
+    UsersConstants as UC,
+    SettingsConstants as SC
 };
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateChartOfAccountsTable extends Migration
 {
-    private const TABLE         = DatabaseConstants::TABLE_COAS;
-    private const COL_CREATED_BY = DatabaseConstants::TABLE_CREATOR;
-    private const COL_SUB_TYPE  = ChartsConstants::COL_SUBTP;
-    private const COL_TYPE      = ChartsConstants::COL_TP;
+    use HasNullableAuditColumns;
+
+    private const TABLE = DC::TABLE_COAS;
 
     public function up(): void
     {
-        Schema::create(self::TABLE, function (Blueprint $table) {
+        if (Schema::hasTable(self::TABLE)) return;
+
+        Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();                  // ! CHANGED
-            $table->string(ChartsConstants::COL_NM);
-            $table->integer(ChartsConstants::COL_CD)->default(0);
-            $table->uuid(self::COL_TYPE);                   // ! CHANGED
-            $table->uuid(self::COL_SUB_TYPE);               // ! CHANGED
-            $table->integer(ChartsConstants::COL_ENB)->default(1);
-            $table->text(Chartsconstants::COL_DESC)->nullable();
-            $table->uuid(self::COL_CREATED_BY);             // ! CHANGED
-            $table->uuid(UsersConstants::COL_USER_ID)->nullable();
-            $table->timestamps();
-            foreach ([
-                self::COL_CREATED_BY => DatabaseConstants::TABLE_USERS,
-                self::COL_SUB_TYPE => DatabaseConstants::TABLE_COA_SUBTYPES,
-                self::COL_TYPE => DatabaseConstants::TABLE_COA_TYPES
-            ] as $col => $tbl)
+            $table->string(CHTC::COL_NM)->index();
+            $table->integer(CHTC::COL_CD)->default(0)->index();
+            $table->integer('depth')->default(0)->index()->nullable(); // ? nullable para testes
+            $table->decimal(CHTC::CUR_BL, 25, 6)->default(0.000000)->nullable(); // ? nullable para testes
+            $table->decimal(CHTC::INIT_BL, 25, 6)->default(0.000000)->nullable(); // ? nullable para testes
+            $table->decimal(CHTC::EXP_NXT_MN_BL, 25, 6)->default(0.000000)->nullable(); // ? nullable para testes
+            $table->string(BC::COL_CUR_ID, 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? nullable para testes
+            $table->json('attributes')->nullable();
+            $table->json('restrictions')->nullable();
+            $table->uuid(UC::COL_RSP_ID)->index()->nullable(); // * ponteiro para responsável legal, se cabível; se nulo, delegar ao user_id
+            $table->boolean(UC::COL_PD_UPD)->default(false)->nullable(); // ? nullable para testes
+            $table->boolean(UC::COL_IS_SYS)->default(true)->nullable(); // ? nullable para testes; em ::saving verificar creator vs DEFAULT_UUID
+            $table->uuid(CHTC::COL_TP);                   // ! CHANGED
+            $table->uuid(CHTC::COL_SUBTP);               // ! CHANGED
+            $table->integer(CHTC::COL_ENB)->default(1);
+            $table->text(CHTC::COL_DESC)->nullable();
+            $table->uuid(UC::COL_USER_ID);
+            foreach (
+                [
+                    CHTC::COL_SUBTP => DC::TABLE_COA_SUBTYPES,
+                    CHTC::COL_TP    => DC::TABLE_COA_TYPES,
+                    UC::COL_RSP_ID  => DC::TABLE_USERS,
+                ] as $col => $tbl
+            )
                 $table->foreign($col)
-                    ->references('id')->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
+                    ->references('id')
+                    ->on($tbl)
+                    ->nullOnDelete();
+            $table->foreign(UC::COL_USER_ID)
+                ->references('id')
+                ->on(DC::TABLE_USERS)
+                ->cascadeOnDelete();
+            $this->addAuditColumns($table);
+            $table->softDeletes();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_CREATED_BY,
-                self::COL_SUB_TYPE,
-                self::COL_TYPE,
-            ] as $col) {
+            foreach ([CHTC::COL_TP, CHTC::COL_SUBTP, UC::COL_USER_ID] as $col) {
                 try {
-                    Schema::hasColumn(self::TABLE, $col) &&
-                        $table->dropForeign([$col]);
+                    Schema::hasColumn(self::TABLE, $col)
+                        && $table->dropForeign([$col]);
                 } catch (\Exception $e) {
                     Log::warning(
-                        'Failed to drop foreign key for '
-                            . $col
-                            . ': '
-                            . $e->getMessage()
+                        'Failed to drop foreign key for ' .
+                            $col .
+                            ' on table ' .
+                            self::TABLE .
+                            ': ' .
+                            $e->getMessage()
                     );
                 }
             }
+
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
+
         Schema::dropIfExists(self::TABLE);
     }
 }

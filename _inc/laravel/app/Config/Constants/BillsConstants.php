@@ -34,6 +34,41 @@ class BillsConstants
 	public const COL_ALW_OPT = 'allowance_option';
 	public const COL_LN_OPT = 'loan_option';
 	public const COL_DD_OPT = 'deduction_option';
+	public const COL_MIN_V = 'minimum_value';
+	public const COL_MAX_V = 'maximum_value';
+	public const COL_MIN_M = 'minimum_months';
+	public const COL_MAX_M = 'maximum_months';
+	public const COL_DEF_TRMC = 'defines_termination_conditions';
+	public const COL_ST_DD = 'saturation_deduction';
+	public const COL_OT_PAY = 'other_payment';
+	public const COL_G_SLR = 'gross_salary';
+	public const COL_N_SLR = 'net_salary';
+	public const COL_NET_PAYABLE = 'net_payable';
+	public const COL_SLR_M = 'salary_month';
+	public const COL_P_DAY = 'pay_day';
+	public const COL_BS_PRC = 'base_price';
+	public const COL_CUR_ID = 'currency_id';
+	public const COL_TX_N = 'tax_number';
+	public const COL_BL_NAME = 'bill_name';
+	public const COL_BL_EMAIL = 'bill_email';
+	public const COL_BL_ADR = 'bill_address';
+	public const COL_BL_TEL = 'bill_phone';
+	public const COL_BL_ZIP = 'bill_zip';
+	public const COL_BL_CTY = 'bill_city';
+	public const COL_BL_ST = 'bill_state';
+	public const COL_BL_CTR = 'bill_country';
+	public const COL_SHIP_NAME = 'shipping_name';
+	public const COL_SHIP_EMAIL = 'shipping_email';
+	public const COL_SHIP_ADR = 'shipping_address';
+	public const COL_SHIP_TEL = 'shipping_phone';
+	public const COL_SHIP_ZIP = 'shipping_zip';
+	public const COL_SHIP_CTY = 'shipping_city';
+	public const COL_SHIP_ST = 'shipping_state';
+	public const COL_SHIP_CTR = 'shipping_country';
+	public const COL_CST_ID = 'customer_id';
+	public const COL_OT_TX_ID = 'other_taxes_ids';
+	public const COL_OD_C = 'order_counter';
+	public const COL_IS_PRM = 'is_premium';
 
 	// * VALORES
 

@@ -75,7 +75,17 @@ class DatabaseSeeder extends Seeder
                     AllowanceSeeder::class,
                     LoanSeeder::class,
                     SaturationDeductionSeeder::class,
+                    OvertimeSeeder::class,
                     OtherPaymentSeeder::class,
+                    ContractTypeSeeder::class,
+                    ContractSeeder::class,
+                    PerformanceTypeSeeder::class,
+                    PayslipSeeder::class,
+                    ProductServiceUnitSeeder::class,
+                    ChartOfAccountTypeSeeder::class,
+                    ChartOfAccountSubTypeSeeder::class,
+                    ChartOfAccountSeeder::class,
+                    CustomerSeeder::class,
                     BasicFavoritesSeeder::class
                 ] as $mockSeeder
             ) {

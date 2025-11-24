@@ -162,7 +162,7 @@ final class PayslipController extends Controller
                             'net_payable'          => $e->getNetSalary(),
                             'salary_month'         => $fmt,
                             'status'               => 0,
-                            'basic_salary'         => $e->salary ?? 0,
+                            'gross_salary'         => $e->salary ?? 0,
                             'allowance'            => Employee::allowance($e->id),
                             'commission'           => Employee::commission($e->id),
                             'loan'                 => Employee::loan($e->id),
@@ -302,8 +302,8 @@ final class PayslipController extends Controller
                         : ($user?->employeeIdFormat($e->employee_id ?? null) ?? ''),
                     'name'         => $e->name ?? '',
                     'type'         => $e->payslipType?->name ?? '',
-                    'basic_salary' => $user?->priceFormat($p->basic_salary ?? 0) ?? '-',
-                    'net_payble'   => $user?->priceFormat($p->net_payable ?? 0) ?? '-',
+                    'gross_salary' => $user?->priceFormat($p->gross_salary ?? 0) ?? '-',
+                    'net_payable'   => $user?->priceFormat($p->net_payable ?? 0) ?? '-',
                     'status'       => ($p->status ?? 0) ? 'Paid' : 'Unpaid',
                     'url'          => route('employee.show', Crypt::encryptString($e->id ?? 0)), // ! ALERT
                 ];
@@ -672,7 +672,7 @@ final class PayslipController extends Controller
                         $p->$f = Employee::{$f}($p->employee_id);
                     }
 
-                    $p->net_payble = Employee::find($p->employee_id)?->getNetSalary() ?? 0;
+                    $p->net_payable = Employee::find($p->employee_id)?->getNetSalary() ?? 0;
                     $p->save();
                 });
                 $this->logExecutionTime($t, $action, 'updateEmployeeTransaction');

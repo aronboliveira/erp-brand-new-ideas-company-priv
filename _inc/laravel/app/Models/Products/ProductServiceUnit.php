@@ -2,25 +2,113 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{
+    ActivitiesConstants as AC,
+    BillsConstants as BC,
+    DatabaseConstants as DC
+};
+use App\Enums\ProductStatus;
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model,
+    Relations\HasOne
+};
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductServiceUnit extends Model
 {
-    use UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields, SoftDeletes;
 
-    private const COL_CREATED_BY = 'created_by';
-    private const COL_NAME      = 'name';
-    private const FILLABLE      = [
-        self::COL_NAME,
-        self::COL_CREATED_BY,
+    public const TABLE = DC::TABLE_PROD_SERV_UNITS;
+
+    protected $table = self::TABLE;
+
+    protected $fillable = [
+        'name',
+        'code',
+        'status',
+        AC::COL_MUNIT,
+        'quantity',
+        BC::COL_BS_PRC,
+        BC::COL_CUR_ID,
+        'attributes',
+        'description',
+        'notes',
+        AC::COL_AV_FROM,
+        AC::COL_AV_UNTIL,
     ];
 
-    protected $fillable = self::FILLABLE;
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
+        DC::TABLE_UPDATER,
+    ];
+
+    protected $casts = [
+        'quantity'           => 'integer',
+        BC::COL_BS_PRC       => 'decimal:4',
+        BC::COL_CUR_ID       => 'string',
+        'attributes'         => 'array',
+        AC::COL_AV_FROM      => 'datetime',
+        AC::COL_AV_UNTIL     => 'datetime',
+        'status'             => ProductStatus::class,
+    ];
+
+    protected $with = [
+        'user',
+    ];
+
+    protected $appends = [
+        'is_active',
+        'is_available',
+    ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::saving(function (self $m): void {
+            foreach (['name', 'code', BC::COL_CUR_ID, AC::COL_MUNIT] as $field)
+                if (isset($m->{$field}) && is_string($m->{$field}))
+                    $m->{$field} = trim($m->{$field});
+            $normalized = ProductStatus::normalize($m->status);
+            $m->status = $normalized ?? ProductStatus::Undefined;
+            if ($m->quantity === null || $m->quantity < 1)
+                $m->quantity = 1;
+            if ($m->{BC::COL_BS_PRC} === null || $m->{BC::COL_BS_PRC} < 0)
+                $m->{BC::COL_BS_PRC} = 0.0000;
+            $from  = $m->{AC::COL_AV_FROM};
+            $until = $m->{AC::COL_AV_UNTIL};
+            if ($from && $until && $until < $from)
+                $m->{AC::COL_AV_UNTIL} = $from;
+        });
+    }
+
+    public static function statusLabels(): array
+    {
+        return ProductStatus::labels();
+    }
+
+    public function getIsActiveAttribute(): bool
+    {
+        return $this->status === ProductStatus::Active;
+    }
+
+    public function getIsAvailableAttribute(): bool
+    {
+        $now   = now();
+        $from  = $this->{AC::COL_AV_FROM};
+        $until = $this->{AC::COL_AV_UNTIL};
+
+        return $this->status === ProductStatus::Active
+            && (!$from || $from <= $now)
+            && (!$until || $until >= $now);
+    }
 
     public function user(): HasOne
     {
-        return $this->hasOne(User::class, 'id', self::COL_CREATED_BY);
-        // * consider belongsTo(User::class,self::COL_CREATED_BY,'id')
+        return $this->hasOne(\App\Models\User::class, 'id', DC::TABLE_CREATOR);
+        // * consider belongsTo(User::class, DC::TABLE_CREATOR, 'id')
     }
 }

@@ -1,62 +1,85 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreatePayslipsTable extends Migration
 {
-    private const TABLE          = 'pay_slips';
-    private const COL_CREATED_BY = 'created_by';
-    private const COL_EMPLOYEE_ID = 'employee_id';
+    use EmployeeConnected, HasNullableAuditColumns;
+
+    private const TABLE = DC::TABLE_PAY_SLP;
 
     public function up(): void
     {
-        Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                      // ! CHANGED
-            $table->uuid(self::COL_EMPLOYEE_ID);                // ! CHANGED
-            $table->integer('net_payble');
-            $table->string('salary_month');
+        if (Schema::hasTable(self::TABLE)) return;
+
+        Schema::create(self::TABLE, function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $this->addEmployeeColumns($table, unique: false, nullable: false);
+            $table->integer(BC::COL_NET_PAYABLE)->default(0);
+            $table->string(BC::COL_SLR_M); // TODO modificar posteriormente para date
+            $table->date(BC::COL_P_DAY)->nullable();
             $table->integer('status');
-            $table->integer('basic_salary');
-            $table->text('allowance');
-            $table->text('commission');
-            $table->text('loan');
-            $table->text('saturation_deduction');
-            $table->text('other_payment');
-            $table->text('overtime');
-            $table->uuid(self::COL_CREATED_BY);                 // ! CHANGED
-            $table->timestamps();
-            foreach ([
-                self::COL_EMPLOYEE_ID  => DatabaseConstants::TABLE_USERS,
-                self::COL_CREATED_BY  => DatabaseConstants::TABLE_EMPLOYEES,
-            ] as $col => $tbl)
+            $table->decimal(BC::COL_G_SLR, 10, 2)->default(DC::MININUM_WAGE_BR - 1.00);
+            $table->decimal(BC::COL_N_SLR, 10, 2)->default(DC::MININUM_WAGE_BR)->nullable();
+            $table->uuid('allowance')->nullable();
+            $table->uuid('commission')->nullable();
+            $table->uuid('loan')->nullable();
+            $table->uuid(BC::COL_ST_DD)->nullable();
+            $table->uuid(BC::COL_OT_PAY)->nullable();
+            $table->uuid('overtime')->nullable();
+            $this->addAuditColumns($table);
+            foreach (
+                [
+                    'allowance'    => DC::TABLE_ALW,
+                    'commission'   => DC::TABLE_CMS,
+                    'loan'         => DC::TABLE_LN,
+                    BC::COL_ST_DD  => DC::TABLE_ST_DD,
+                    BC::COL_OT_PAY => DC::TABLE_OT_PYMTS,
+                    'overtime'     => DC::TABLE_OVT,
+                ] as $col => $tbl
+            )
                 $table->foreign($col)
-                    ->references('id')->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
+                    ->references('id')
+                    ->on($tbl)
+                    ->nullOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_EMPLOYEE_ID,
-                self::COL_CREATED_BY
-            ] as $col) {
+            $this->dropEmployeeForeign($table, self::TABLE);
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+
+            foreach (
+                [
+                    'allowance',
+                    'commission',
+                    'loan',
+                    BC::COL_ST_DD,
+                    BC::COL_OT_PAY,
+                    'overtime',
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);
                 } catch (\Exception $e) {
                     Log::warning(
-                        'Failed to drop foreign key for '
-                            . $col
-                            . ': '
-                            . $e->getMessage()
+                        'Failed to drop foreign key for ' .
+                            $col .
+                            ' on table ' .
+                            self::TABLE .
+                            ': ' .
+                            $e->getMessage()
                     );
                 }
             }
         });
+
         Schema::dropIfExists(self::TABLE);
     }
 }

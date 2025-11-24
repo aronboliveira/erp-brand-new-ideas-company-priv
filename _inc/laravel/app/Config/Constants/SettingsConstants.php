@@ -85,6 +85,8 @@ class SettingsConstants
 	public const MAX_U_SIZE_DEF = "2048000";
 	public const MAX_SL_LIMIT_MB = 1024;
 	public const FMTS_UP_DEF = 'jpg,jpeg,png,xlsx,xls,csv,pdf';
+	public const DEF_SITE_CURRENCY_ID = 'BRL';
+	public const DEF_SITE_CURRENCY_SB = 'R$';
 	public const CLR_CD = [
 		1 => 'event-warning',
 		2 => 'event-secondary',
@@ -101,7 +103,7 @@ class SettingsConstants
 	public const DFT_SETTINGS =  [
 		"lang" => DatabaseConstants::DEFAULT_LANG,
 		PlansConstants::COL_SL => self::MAX_SL_LIMIT_MB,
-		"site_currency" => "BRL",
+		"site_currency" => self::DEF_SITE_CURRENCY_ID,
 		"site_currency_symbol" => "R$",
 		"site_currency_symbol_position" => "pre",
 		"site_date_format" => "M j, Y",

@@ -24,7 +24,7 @@
     $p = ($payslip ?? null) instanceof Payslip ? $payslip : null;
     $emp = $p ? (data_get($p,'employees') ?? null) : null;
     $empCode = $canEmpIdFmt ? ($emp && data_get($emp,'employee_id') ? $user->employeeIdFormat(data_get($emp,'employee_id')) : __('No employee code available')) : __('Failed to format employee code');
-    $basicSalary = $canPrice ? ($p && data_get($p,'basic_salary') !== null ? $user->priceFormat(data_get($p,'basic_salary')) : __('No salary available')) : __('Failed to format salary');
+    $basicSalary = $canPrice ? ($p && data_get($p,'gross_salary') !== null ? $user->priceFormat(data_get($p,'gross_salary')) : __('No salary available')) : __('Failed to format salary');
     $salaryMonth = $canDate ? ($p && data_get($p,'salary_month') ? $user->dateFormat(data_get($p,'salary_month')) : __('No payroll month available')) : __('Failed to format date');
 
     $allowances = $p && data_get($p,'allowance') ? json_decode(data_get($p,'allowance')) : [];
@@ -319,7 +319,7 @@
                                 </div>
                                 <div class="col-md-4 py-3">
                                     <h5 class="emp-title mb-0">{{ __('Net Salary') }}</h5>
-                                    <h5 class="emp-title black-text">{{ $canPrice ? ($p && data_get($p,'net_payble') !== null ? $user->priceFormat(data_get($p,'net_payble')) : __('No net salary available')) : __('Failed to format amount') }}</h5>
+                                    <h5 class="emp-title black-text">{{ $canPrice ? ($p && data_get($p,'net_payable') !== null ? $user->priceFormat(data_get($p,'net_payable')) : __('No net salary available')) : __('Failed to format amount') }}</h5>
                                 </div>
                             </div>
                         </div>

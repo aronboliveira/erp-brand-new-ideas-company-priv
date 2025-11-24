@@ -1675,7 +1675,7 @@ class Utility extends Model
         $totalDeduction   = 0;
 
         foreach ($payslips as $p) {
-            $basic = $p->basic_salary;
+            $basic = $p->gross_salary;
             $allowances = json_decode($p->allowance, true) ?: [];
             foreach ($allowances as $a) {
                 $amount = $a['type'] === 'percentage'

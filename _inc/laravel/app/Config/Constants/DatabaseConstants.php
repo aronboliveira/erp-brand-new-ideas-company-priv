@@ -112,6 +112,8 @@ class DatabaseConstants
 	public const TABLE_ST_DD = 'saturation_deductions';
 	public const TABLE_OT_PYMTS = 'other_payments';
 	public const TABLE_OVT = 'overtimes';
+	public const TABLE_PRF_TP = 'performance_types';
+	public const TABLE_PSLP = 'pay_slips';
 
 	// * FIELD NAMES
 

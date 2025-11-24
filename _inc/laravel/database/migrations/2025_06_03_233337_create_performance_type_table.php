@@ -1,42 +1,38 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreatePerformanceTypeTable extends Migration
 {
-    private const TABLE = 'performance_types';
+    use HasNullableAuditColumns;
+
+    private const TABLE = DC::TABLE_PRF_TP;
+
     public function up(): void
     {
-        Schema::create(self::TABLE, function (Blueprint $table) {
+        if (Schema::hasTable(self::TABLE)) return;
+
+        Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();       // ! CHANGED
             $table->string('name');
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);          // ! CHANGED
-            $table->foreign(DatabaseConstants::TABLE_CREATOR)
-                ->references('id')
-                ->on(DatabaseConstants::TABLE_USERS)
-                ->cascadeOnDelete();
+            $table->string('description')->nullable();
+            $table->string('category')->index()->nullable();
+            $table->string(PJC::COL_M_METRIC)->nullable()->index();
+            $table->json('metrics')->nullable();
+            $table->boolean(PJC::COL_CRT)->default(false)->nullable();
+            $this->addAuditColumns($table);
         });
     }
+
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR) &&
-                    $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
-            } catch (\Exception $e) {
-                Log::warning(
-                    'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
-                        . ' on table '
-                        . self::TABLE
-                        . ': '
-                        . $e->getMessage()
-                );
-            }
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
+
         Schema::dropIfExists(self::TABLE);
     }
 }

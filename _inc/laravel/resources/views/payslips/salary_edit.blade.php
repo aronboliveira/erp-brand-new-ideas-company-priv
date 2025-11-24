@@ -31,8 +31,8 @@
         <div class="{{ VC::CM4 }} {{ VC::MB3 }}">
             <h6 class="emp-title {{ VC::MB0 }}">{{ __('Basic Salary') }}</h6>
             <h6 class="emp-title black-text">
-                {{ data_get($payslip??null,'basic_salary')!==null
-                    ? ($user?->priceFormat(data_get($payslip,'basic_salary')) ?? __('Failed to format salary'))
+                {{ data_get($payslip??null,'gross_salary')!==null
+                    ? ($user?->priceFormat(data_get($payslip,'gross_salary')) ?? __('Failed to format salary'))
                     : __('No basic salary available') }}
             </h6>
         </div>

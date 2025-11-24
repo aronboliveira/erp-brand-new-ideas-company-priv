@@ -3,57 +3,238 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ChartsConstants,
-    DatabaseConstants,
-    UsersConstants
+    ChartsConstants as CHTC,
+    DatabaseConstants as DC,
+    UsersConstants as UC
 };
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model,
+    Relations\HasOne
+};
 use Illuminate\Support\Facades\DB;
 
 class ChartOfAccount extends Model
 {
-    use UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields;
 
-    private const COL_NAME       = ChartsConstants::COL_NM;
-    private const COL_CODE       = ChartsConstants::COL_CD;
-    private const COL_DESCRIPTION = ChartsConstants::COL_DESC;
-    private const COL_IS_ENABLED = ChartsConstants::COL_ENB;
-    private const COL_SUB_TYPE   = ChartsConstants::COL_SUBTP;
-    private const COL_TYPE       = ChartsConstants::COL_TP;
-    private const COL_CREATED_BY = DatabaseConstants::TABLE_CREATOR;
+    public const TABLE = DC::TABLE_COAS;
+
+    protected $table = self::TABLE;
 
     protected $fillable = [
-        self::COL_NAME,
-        self::COL_CODE,
-        self::COL_TYPE,
-        self::COL_SUB_TYPE,
-        self::COL_IS_ENABLED,
-        self::COL_DESCRIPTION,
-        self::COL_CREATED_BY,
-        UsersConstants::COL_USER_ID
+        CHTC::COL_NM,
+        CHTC::COL_CD,
+        'depth',
+        CHTC::CUR_BL,
+        CHTC::INIT_BL,
+        CHTC::EXP_NXT_MN_BL,
+        'currency_id',
+        'attributes',
+        'restrictions',
+        UC::COL_RSP_ID,
+        UC::COL_PD_UPD,
+        UC::COL_IS_SYS,
+        CHTC::COL_TP,
+        CHTC::COL_SUBTP,
+        CHTC::COL_ENB,
+        CHTC::COL_DESC,
+        UC::COL_USER_ID,
     ];
 
-    protected static function booted()
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
+        DC::TABLE_UPDATER,
+    ];
+
+    protected $casts = [
+        CHTC::COL_CD        => 'integer',
+        'depth'             => 'integer',
+        CHTC::CUR_BL        => 'decimal:6',
+        CHTC::INIT_BL       => 'decimal:6',
+        CHTC::EXP_NXT_MN_BL => 'decimal:6',
+        'currency_id'       => 'string',
+        'attributes'        => 'array',
+        'restrictions'      => 'array',
+        UC::COL_RSP_ID      => 'string',
+        UC::COL_PD_UPD      => 'boolean',
+        UC::COL_IS_SYS      => 'boolean',
+        CHTC::COL_ENB       => 'integer',
+    ];
+
+    protected $with = [
+        'types',
+        'subType',
+    ];
+
+    protected $appends = [
+        'net_balance',
+    ];
+
+    protected static function booted(): void
     {
-        static::creating(function (ChartOfAccount $coa) {
-            if (empty($coa->user_id) && !empty($coa->{DatabaseConstants::TABLE_CREATOR}))
-                $coa->user_id = $coa->{DatabaseConstants::TABLE_CREATOR};
+        parent::booted();
+
+        static::creating(function (self $coa): void {
+            if (empty($coa->{UC::COL_USER_ID}) && !empty($coa->{DC::TABLE_CREATOR}))
+                $coa->{UC::COL_USER_ID} = $coa->{DC::TABLE_CREATOR};
         });
+
+        static::saving(function (self $coa): void {
+            self::enforceTypeAndSubtypeConstraints($coa);
+            self::normalizeFields($coa);
+        });
+    }
+
+    protected static function enforceTypeAndSubtypeConstraints(self $coa): void
+    {
+        $typeId    = $coa->{CHTC::COL_TP} ?? null;
+        $subTypeId = $coa->{CHTC::COL_SUBTP} ?? null;
+
+        if (!$typeId || !$subTypeId)
+            throw new \InvalidArgumentException('Chart of account must have both type and subtype defined.');
+
+        $type = ChartOfAccountType::query()->find($typeId);
+        if (!$type)
+            throw new \RuntimeException("Invalid chart of account type: {$typeId}");
+
+        $subType = ChartOfAccountSubType::query()->find($subTypeId);
+        if (!$subType)
+            throw new \RuntimeException("Invalid chart of account subtype: {$subTypeId}");
+
+        if ($subType->{CHTC::COL_TP} !== $type->id)
+            throw new \RuntimeException('Chart of account subtype does not belong to the provided type.');
+
+        $typeCalcRules = self::decodeRules($type->{CHTC::COL_CC_RL} ?? null);
+        $typeValRules  = self::decodeRules($type->{CHTC::COL_VL_RL} ?? null);
+
+        $subCalcRules  = self::decodeRules($subType->{CHTC::COL_CC_RL} ?? null);
+        $subValRules   = self::decodeRules($subType->{CHTC::COL_VL_RL} ?? null);
+
+        $calcRules     = array_replace_recursive($typeCalcRules, $subCalcRules);
+        $validation    = array_replace_recursive($typeValRules, $subValRules);
+
+        self::applyCalculationRules($coa, $calcRules);
+        self::applyValidationRules($coa, $validation);
+    }
+
+    protected static function decodeRules(mixed $value): array
+    {
+        if (is_array($value)) return $value;
+        if (is_string($value) && $value !== '') {
+            $decoded = json_decode($value, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+        return [];
+    }
+
+    protected static function applyCalculationRules(self $coa, array $rules): void
+    {
+        foreach ($rules as $field => $default) {
+            if (!is_string($field)) continue;
+            if (!array_key_exists($field, $coa->getAttributes())) continue;
+            if ($coa->{$field} === null)
+                $coa->{$field} = $default;
+        }
+    }
+
+    protected static function applyValidationRules(self $coa, array $rules): void
+    {
+        $allowNegative = false;
+        if (array_key_exists('allow_negative_balances', $rules)) {
+            $allowNegative = (bool) $rules['allow_negative_balances'];
+            unset($rules['allow_negative_balances']);
+        }
+
+        foreach ($rules as $field => $constraints) {
+            if (!is_string($field) || !is_array($constraints)) continue;
+            if (!array_key_exists($field, $coa->getAttributes())) continue;
+
+            $value = $coa->{$field};
+
+            if (array_key_exists('min', $constraints) && is_numeric($constraints['min']) && $value !== null && is_numeric($value)) {
+                if ($value < $constraints['min'])
+                    $coa->{$field} = $constraints['min'];
+            }
+
+            if (array_key_exists('max', $constraints) && is_numeric($constraints['max']) && $value !== null && is_numeric($value)) {
+                if ($value > $constraints['max'])
+                    $coa->{$field} = $constraints['max'];
+            }
+
+            if (array_key_exists('allowed', $constraints) && is_array($constraints['allowed'])) {
+                if ($value !== null && !in_array($value, $constraints['allowed'], true))
+                    $coa->{$field} = null;
+            }
+        }
+
+        if (!$allowNegative) {
+            foreach ([CHTC::CUR_BL, CHTC::INIT_BL, CHTC::EXP_NXT_MN_BL] as $balField)
+                if ($coa->{$balField} !== null && $coa->{$balField} < 0)
+                    $coa->{$balField} = 0;
+        }
+    }
+
+    protected static function normalizeFields(self $coa): void
+    {
+        foreach ([CHTC::COL_NM, 'currency_id'] as $field)
+            if (isset($coa->{$field}) && is_string($coa->{$field}))
+                $coa->{$field} = trim($coa->{$field});
+
+        if ($coa->currency_id)
+            $coa->currency_id = strtoupper(substr($coa->currency_id, 0, 3));
+
+        foreach (['attributes', 'restrictions'] as $jsonField) {
+            if ($coa->{$jsonField} === null)
+                $coa->{$jsonField} = [];
+            elseif (!is_array($coa->{$jsonField}))
+                $coa->{$jsonField} = (array) $coa->{$jsonField};
+        }
+
+        if ($coa->depth === null || $coa->depth < 0)
+            $coa->depth = 0;
+
+        if ($coa->{DC::TABLE_CREATOR} === DC::DEFAULT_UUID)
+            $coa->{UC::COL_IS_SYS} = true;
+        elseif ($coa->{UC::COL_IS_SYS} === null)
+            $coa->{UC::COL_IS_SYS} = false;
+
+        if (!$coa->{UC::COL_RSP_ID} && !empty($coa->{UC::COL_USER_ID}))
+            $coa->{UC::COL_RSP_ID} = $coa->{UC::COL_USER_ID};
+
+        if ($coa->isDirty([
+            'attributes',
+            'restrictions',
+            CHTC::CUR_BL,
+            CHTC::EXP_NXT_MN_BL,
+        ]))
+            $coa->{UC::COL_PD_UPD} = true;
+    }
+
+    public function getNetBalanceAttribute(): float
+    {
+        $balances = $this->balance();
+        return (float) ($balances['netAmount'] ?? 0);
     }
 
     public function types(): HasOne
     {
-        return $this
-            ->hasOne(ChartOfAccountType::class, 'id', self::COL_TYPE);
-        // * consider using belongsTo(ChartOfAccountType::class, self::COL_TYPE)
+        return $this->hasOne(
+            ChartOfAccountType::class,
+            'id',
+            CHTC::COL_TP
+        );
     }
 
     public function accounts(): HasOne
     {
-        return $this
-            ->hasOne(JournalItem::class, 'account', 'id');
-        // * consider using belongsTo(JournalItem::class, 'account')
+        return $this->hasOne(
+            JournalItem::class,
+            'account',
+            'id'
+        );
     }
 
     public function balance(): array
@@ -65,17 +246,20 @@ class ChartOfAccount extends Model
         )
             ->where('account', $this->id)
             ->first();
+
         return [
-            'totalCredit' => $item->totalCredit,
-            'totalDebit'  => $item->totalDebit,
-            'netAmount'   => $item->netAmount,
+            'totalCredit' => $item->totalCredit ?? 0,
+            'totalDebit'  => $item->totalDebit ?? 0,
+            'netAmount'   => $item->netAmount ?? 0,
         ];
     }
 
     public function subType(): HasOne
     {
-        return $this
-            ->hasOne(ChartOfAccountSubType::class, 'id', self::COL_SUB_TYPE);
-        // * consider using belongsTo(ChartOfAccountSubType::class, self::COL_SUB_TYPE)
+        return $this->hasOne(
+            ChartOfAccountSubType::class,
+            'id',
+            CHTC::COL_SUBTP
+        );
     }
 }

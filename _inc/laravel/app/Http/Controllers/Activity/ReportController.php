@@ -3537,8 +3537,8 @@ final class ReportController extends Controller
         $totSatDed = $totOther = $totOT = 0;
 
         foreach ($payslips as $p) {
-            $totBasic += $p->basic_salary;
-            $totNet   += $p->net_payble;
+            $totBasic += $p->gross_salary;
+            $totNet   += $p->net_payable;
             foreach (json_decode($p->allowance) as $x) {
                 $totAllw += $x->amount;
             }

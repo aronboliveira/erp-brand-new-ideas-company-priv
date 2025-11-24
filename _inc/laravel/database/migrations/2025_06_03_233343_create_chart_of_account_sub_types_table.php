@@ -1,51 +1,71 @@
 <?php
 
-use App\Config\Constants\{ChartsConstants, DatabaseConstants};
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use App\Config\Constants\{
+    ChartsConstants as CHTC,
+    DatabaseConstants as DC
+};
+use App\Traits\HasNullableAuditColumns;
+use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateChartOfAccountSubTypesTable extends Migration
 {
-    private const TABLE = DatabaseConstants::TABLE_COA_SUBTYPES;
+    use HasNullableAuditColumns;
 
-    private array $foreignKeys = [
-        ChartsConstants::COL_TP         => DatabaseConstants::TABLE_COA_TYPES,
-        DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-    ];
+    private const TABLE = DC::TABLE_COA_SUBTYPES;
 
     public function up(): void
     {
-        Schema::create(self::TABLE, function (Blueprint $table) {
+        if (Schema::hasTable(self::TABLE)) return;
+
+        Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->string(ChartsConstants::COL_NM)->default('');
-            $table->uuid(ChartsConstants::COL_TP);
-            $table->string(ChartsConstants::COL_TP_NM)->default('Undefined');
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);
-            $table->timestamps();
-            foreach ($this->foreignKeys as $column => $refTable)
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($refTable)
-                    ->cascadeOnDelete();
+            $table->string(CHTC::COL_CD)->unique()->index()->nullable();
+            $table->string(CHTC::COL_NM)->nullable();
+            $table->text('description')->nullable();
+            $table->uuid(CHTC::COL_TP)->index();
+            $table->string(CHTC::COL_TP_NM);
+            $table->json(CHTC::COL_DR_TP)
+                ->default(json_encode([
+                    'type'   => 'line',
+                    'colors' => [
+                        'primary'   => '#3b82f6',
+                        'secondary' => '#93c5fd',
+                        'tertiary'  => '#bfdbfe',
+                    ],
+                    'options' => [],
+                ]))
+                ->nullable();
+            $table->json(CHTC::COL_CC_RL)->nullable();
+            $table->json(CHTC::COL_VL_RL)->nullable();
+            $table->boolean(CHTC::COL_RQ_APV)->default(false)->nullable()->index();
+            $table->boolean(CHTC::COL_ALW_MNL_ENT)->default(true)->nullable()->index();
+            $table->json('attributes')->nullable();
+            $this->addAuditColumns($table);
+            $table->foreign(CHTC::COL_TP)
+                ->references('id')
+                ->on(DC::TABLE_COA_TYPES)
+                ->cascadeOnDelete();
         });
     }
 
     public function down(): void
     {
-        if (!Schema::hasTable(self::TABLE))
-            return;
-        Schema::table(self::TABLE, function (Blueprint $table) {
-            foreach (array_keys($this->foreignKeys) as $column) {
-                if (!Schema::hasColumn(self::TABLE, $column))
-                    continue;
-                try {
-                    $table->dropForeign([$column]);
-                } catch (\Exception $e) {
-                    Log::warning("Failed to drop foreign key on `{$column}`: {$e->getMessage()}");
-                }
+        Schema::table(self::TABLE, function (Blueprint $table): void {
+            try {
+                if (Schema::hasColumn(self::TABLE, CHTC::COL_TP))
+                    $table->dropForeign([CHTC::COL_TP]);
+            } catch (\Exception $e) {
+                Log::warning(
+                    "Failed to drop foreign key on `" .
+                        CHTC::COL_TP .
+                        "`: {$e->getMessage()}"
+                );
             }
+
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
+
         Schema::dropIfExists(self::TABLE);
     }
 }

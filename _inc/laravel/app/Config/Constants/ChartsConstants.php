@@ -55,6 +55,14 @@ class ChartsConstants
 	public const ICM = 'income';
 	public const CGS = 'costs of goods sold';
 	public const EXP = 'expenses';
+	public const COL_DR_TP = 'drawing_types';
+	public const COL_CC_RL = 'calculation_rules';
+	public const COL_VL_RL = 'validation_rules';
+	public const COL_RQ_APV = 'requires_approval';
+	public const COL_ALW_MNL_ENT = 'allows_manual_entries';
+	public const CUR_BL = 'current_balance';
+	public const INIT_BL = 'initial_balance';
+	public const EXP_NXT_MN_BL = 'expected_next_month_balance';
 	public const COA_TPS = [
 		self::AST => 'Assets',
 		self::LBL => 'Liabilities',
@@ -216,7 +224,8 @@ class ChartsConstants
 			'name' => 'Purchase Tax',
 			'type' => self::TP_LIABILITIES,
 			'sub_type' => self::ST_CURRENT_LIABILITIES,
-		], [
+		],
+		[
 			'code' => '2150',
 			'name' => 'VAT Pay / Refund',
 			'type' => self::TP_LIABILITIES,
@@ -287,7 +296,8 @@ class ChartsConstants
 			'name' => 'Accr. Benefits - Central Provident Fund',
 			'type' => self::TP_LIABILITIES,
 			'sub_type' => self::ST_CURRENT_LIABILITIES,
-		], [
+		],
+		[
 			'code' => '2320',
 			'name' => 'Accr. Benefits - Stock Purchase',
 			'type' => self::TP_LIABILITIES,
@@ -888,7 +898,8 @@ class ChartsConstants
 			'name' => 'Purchase Tax',
 			'type' => 'Liabilities',
 			'sub_type' => 'Current Liabilities',
-		], [
+		],
+		[
 			'code' => '2150',
 			'name' => 'VAT Pay / Refund',
 			'type' => 'Liabilities',
@@ -959,7 +970,8 @@ class ChartsConstants
 			'name' => 'Accr. Benefits - Central Provident Fund',
 			'type' => 'Liabilities',
 			'sub_type' => 'Current Liabilities',
-		], [
+		],
+		[
 			'code' => '2320',
 			'name' => 'Accr. Benefits - Stock Purchase',
 			'type' => 'Liabilities',

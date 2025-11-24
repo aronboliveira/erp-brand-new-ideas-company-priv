@@ -100,7 +100,7 @@
                                             <td>-</td>
                                             <td>-</td>
                                             <td class="text-end">
-                                                {{ $canPrice ? $user->priceFormat($payslip->basic_salary ?? 0) : number_format((float)($payslip->basic_salary ?? 0),2) }}
+                                                {{ $canPrice ? $user->priceFormat($payslip->gross_salary ?? 0) : number_format((float)($payslip->gross_salary ?? 0),2) }}
                                             </td>
                                         </tr>
 
@@ -118,7 +118,7 @@
                                                             </td>
                                                         @else
                                                             <td class="text-end">
-                                                                {{ ($all->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($all->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($all->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                                {{ ($all->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($all->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100) : number_format((float)((($all->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100),2) }})
                                                             </td>
                                                         @endif
                                                     </tr>
@@ -142,7 +142,7 @@
                                                             </td>
                                                         @else
                                                             <td class="text-end">
-                                                                {{ ($empcom->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($empcom->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($empcom->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                                {{ ($empcom->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($empcom->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100) : number_format((float)((($empcom->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100),2) }})
                                                             </td>
                                                         @endif
                                                     </tr>
@@ -166,7 +166,7 @@
                                                             </td>
                                                         @else
                                                             <td class="text-end">
-                                                                {{ ($op->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($op->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($op->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                                {{ ($op->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($op->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100) : number_format((float)((($op->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100),2) }})
                                                             </td>
                                                         @endif
                                                     </tr>
@@ -226,7 +226,7 @@
                                                             </td>
                                                         @else
                                                             <td class="text-end">
-                                                                {{ ($l->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($l->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($l->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                                {{ ($l->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($l->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100) : number_format((float)((($l->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100),2) }})
                                                             </td>
                                                         @endif
                                                     </tr>
@@ -250,7 +250,7 @@
                                                             </td>
                                                         @else
                                                             <td class="text-end">
-                                                                {{ ($d->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($d->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100) : number_format((float)((($d->amount ?? 0) * ($payslip->basic_salary ?? 0)) / 100),2) }})
+                                                                {{ ($d->amount ?? 0) }}% ({{ $canPrice ? $user->priceFormat((($d->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100) : number_format((float)((($d->amount ?? 0) * ($payslip->gross_salary ?? 0)) / 100),2) }})
                                                             </td>
                                                         @endif
                                                     </tr>
@@ -283,7 +283,7 @@
                                 <div class="invoice-detail-item">
                                     <div class="invoice-detail-name font-bold">{{ __('Net Salary') }}</div>
                                     <div class="invoice-detail-value invoice-detail-value-lg">
-                                        {{ $canPrice ? $user->priceFormat($payslip->net_payble ?? 0) : number_format((float)($payslip->net_payble ?? 0),2) }}
+                                        {{ $canPrice ? $user->priceFormat($payslip->net_payable ?? 0) : number_format((float)($payslip->net_payable ?? 0),2) }}
                                     </div>
                                 </div>
                             </div>

@@ -67,8 +67,8 @@
                                                     $emp = $canStaticEmployee ? (Payslip::employee($empId) ?? null) : null;
                                                     $empName = data_get($emp,'name',__('No employee name available'));
                                                     $month = data_get($row,'salary_month',__('No payroll month available'));
-                                                    $basic = data_get($row,'basic_salary',__('No salary available'));
-                                                    $net = data_get($row,'net_payble',__('No net salary available'));
+                                                    $basic = data_get($row,'gross_salary',__('No salary available'));
+                                                    $net = data_get($row,'net_payable',__('No net salary available'));
                                                     $paid = (int) data_get($row,'status',0) === 1;
                                                     $showEmpUrl = Route::has($showEmpBase) ? route($showEmpBase,$rowId) : '#';
                                                     $pdfUrl = Route::has($pdfBase) ? route($pdfBase,[$empId,$month]) : '#';

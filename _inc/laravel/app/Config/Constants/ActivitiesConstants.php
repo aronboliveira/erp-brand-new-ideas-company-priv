@@ -32,4 +32,7 @@ class ActivitiesConstants
 	public const COL_IA = 'is_active';
 	public const COL_PW = 'password';
 	public const COL_CPT = 'complete';
+	public const COL_MUNIT = 'measurement_unit';
+	public const COL_AV_FROM = 'available_from';
+	public const COL_AV_UNTIL = 'available_until';
 }

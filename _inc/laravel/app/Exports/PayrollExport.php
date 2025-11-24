@@ -41,14 +41,14 @@ class PayrollExport implements FromCollection, WithHeadings, WithStyles, WithEve
                 ->get();
             Log::info(__CLASS__ . '::fetched records', ['count' => count($rows)]);
 
-            return $rows->map(fn ($p) => [
+            return $rows->map(fn($p) => [
                 ...(array)$p,
                 'employeeId'   => $p->employees
                     ? $user?->employeeIdFormat($p->employees->employee_id)
                     : '',
                 'employeeName' => $p->name ?? '',
-                'salary'       => $user?->priceFormat($p->basic_salary),
-                'netSalary'    => $user?->priceFormat($p->net_payble),
+                'salary'       => $user?->priceFormat($p->gross_salary),
+                'netSalary'    => $user?->priceFormat($p->net_payable),
                 'month'        => $p->salary_month,
                 'status'       => $p->status === 0 ? 'UnPaid' : 'Paid'
             ]);

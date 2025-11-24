@@ -577,8 +577,8 @@
                                         @endif
                                     </td>
                                     <td>{{ optional($payslip->employees)->name ?? __('No employee name available') }}</td>
-                                    <td>{{ $user?->priceFormat($payslip->basic_salary ?? 0) }}</td>
-                                    <td>{{ $user?->priceFormat($payslip->net_payble ?? 0) }}</td>
+                                    <td>{{ $user?->priceFormat($payslip->gross_salary ?? 0) }}</td>
+                                    <td>{{ $user?->priceFormat($payslip->net_payable ?? 0) }}</td>
                                     <td>{{ $payslip->salary_month ?? __('No salary month available') }}</td>
                                     <td>
                                         @if(isset($payslip->status) && $payslip->status == 0)

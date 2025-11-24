@@ -269,7 +269,7 @@ class SetSalaryController extends Controller
     public function employeeBasicSalary(Request $request, string|int $id): ViewContract|RedirectResponse
     {
         $action = __METHOD__;
-        $view   = ViewsConstants::S_SLR . '.basic_salary';
+        $view   = ViewsConstants::S_SLR . '.gross_salary';
 
         return $this->measureProfile($action, function () use ($request, $id, $action, $view) {
             if (($user = $this->requireLogin($request)) instanceof RedirectResponse) return $user;

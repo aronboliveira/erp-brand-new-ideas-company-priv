@@ -70,8 +70,8 @@ class PayslipExport implements FromCollection, WithHeadings, WithEvents
                 return [
                     'empId'             => $emp?->employeeIdFormat($emp->employee_id) ?? '',
                     'name'              => $emp?->name                        ?? '',
-                    'salary'            => $user?->priceFormat($payslip->basic_salary),
-                    'netSalary'         => $user?->priceFormat($payslip->net_payble),
+                    'salary'            => $user?->priceFormat($payslip->gross_salary),
+                    'netSalary'         => $user?->priceFormat($payslip->net_payable),
                     'status'            => $payslip->status === 0 ? 'UnPaid' : 'Paid',
                     'accountHolderName' => $emp?->account_holder_name        ?? '',
                     'accountNumber'     => $emp?->account_number             ?? '',
