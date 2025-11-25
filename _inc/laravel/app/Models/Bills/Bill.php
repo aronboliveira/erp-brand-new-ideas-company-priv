@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
 use App\Traits\UsesUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{HasMany, HasOne};
@@ -79,7 +80,7 @@ class Bill extends Model
 
     public function getTotalDiscount(): float
     {
-        return $this->items->sum(fn ($product) => $product->discount);
+        return $this->items->sum(fn($product) => $product->discount);
     }
 
     public function getTotalTax(): float
@@ -154,5 +155,11 @@ class Bill extends Model
     public function taxes(): HasOne
     {
         return $this->hasOne(Tax::class, 'id', 'tax');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'payment_id')
+            ->where('payment_type', TransactionType::Bill);
     }
 }

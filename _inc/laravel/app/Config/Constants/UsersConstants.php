@@ -62,5 +62,9 @@ class UsersConstants
 	public const COL_IS_SYS = 'is_system_account';
 	public const COL_PD_UPD = 'has_pending_updates';
 	public const COL_RSP_ID = 'responsible_id';
+	public const COL_RSP_NM = 'responsible_name';
+	public const COL_RSP_TEL = 'responsible_phone';
+	public const COL_RSP_EM = 'responsible_email';
+	public const COL_RSP_ADDR = 'responsible_address';
 	public const COL_AVG_RT = 'average_rating';
 }

@@ -81,11 +81,14 @@ class DatabaseSeeder extends Seeder
                     ContractSeeder::class,
                     PerformanceTypeSeeder::class,
                     PayslipSeeder::class,
+                    ProductServiceCategorySeeder::class,
                     ProductServiceUnitSeeder::class,
                     ChartOfAccountTypeSeeder::class,
                     ChartOfAccountSubTypeSeeder::class,
                     ChartOfAccountSeeder::class,
                     CustomerSeeder::class,
+                    BankAccountSeeder::class,
+                    BankTransferSeeder::class,
                     BasicFavoritesSeeder::class
                 ] as $mockSeeder
             ) {

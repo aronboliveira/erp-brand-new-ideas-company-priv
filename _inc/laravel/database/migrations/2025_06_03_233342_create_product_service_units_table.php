@@ -6,6 +6,7 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     SettingsConstants as SC
 };
+use App\Enums\ProductStatus;
 use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Schema};
@@ -24,13 +25,14 @@ class CreateProductServiceUnitsTable extends Migration
             $table->uuid('id')->primary();
             $table->string('name')->index();
             $table->string('code')->unique()->index()->nullable(); // ? nullable para testes
-            $table->enum('status', ['active', 'paused', 'inactive', 'undefined'])->default('inactive')
+            $table->enum('status', [ProductStatus::Active->value, ProductStatus::Paused->value, ProductStatus::Inactive->value, ProductStatus::Undefined->value])->default(ProductStatus::Inactive->value)
                 ->index()->nullable(); // ? nullable para testes
             $table->string(AC::COL_MUNIT)->nullable(); // * e.g.: hour, session, item, license, etc
             $table->bigInteger('quantity')->default(1)->nullable(); // ? nullable para testes
             $table->decimal(BC::COL_BS_PRC, 15, 4)->default(0.0000)->nullable(); // ? nullable para testes
             $table->string(BC::COL_CUR_ID, 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? nullable para testes
             $table->json('attributes')->nullable();
+            $table->json('categories')->nullable(); // ? nullable para testes
             $table->text('description')->nullable(); // ? nullable para testes
             $table->text('notes')->nullable(); // ? nullable para testes
             $table->timestamp(AC::COL_AV_FROM)->index()->default(now())->nullable();

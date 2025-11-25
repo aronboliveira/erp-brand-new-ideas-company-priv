@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
 use App\Traits\{ChecksLogin, UsesUuids};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
@@ -122,5 +123,11 @@ class Pos extends Model
         }
 
         return $posesArray;
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'payment_id')
+            ->where('payment_type', TransactionType::Pos);
     }
 }

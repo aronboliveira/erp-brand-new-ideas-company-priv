@@ -44,6 +44,7 @@ class DatabaseConstants
 	public const TABLE_DEDUCTION_OPTS = 'deductions_options';
 	public const TABLE_CONTRACT_TYPES = 'contract_types';
 	public const TABLE_BANK_ACC = 'bank_accounts';
+	public const TABLE_BNK_TRF = 'bank_transfers';
 	public const TABLE_INVS = 'invoices';
 	public const TABLE_LEAVE_TYPES = 'leave_types';
 	public const TABLE_LEADS = 'leads';
@@ -133,6 +134,13 @@ class DatabaseConstants
 	public const DEFAULT_NOTES = 'No notes taken';
 	public const COL_C_AT = 'created_at';
 	public const COL_U_AT = 'updated_at';
+	public const COL_FL_AT = 'failed_at';
+	public const COL_FLD_RS = 'failed_reason';
+	public const COL_ER_LG = 'error_log';
+	public const COL_RTR_CT = 'retry_count';
+	public const COL_LST_RTR_AT = 'last_retry_at';
+	public const COL_TP_LB = 'type_label';
+	public const COL_RL_CAT = 'related_categories';
 	public const ORDER_ID = 'orderById';
 	public const ORDER_C_AT = 'orderByCreatedAt';
 	public const ORDER_NEW = 'orderByNewest';

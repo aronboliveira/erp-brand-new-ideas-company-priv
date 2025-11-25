@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\{
     Relations\HasOne
 };
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 class ProductServiceUnit extends Model
 {
@@ -33,6 +34,7 @@ class ProductServiceUnit extends Model
         BC::COL_BS_PRC,
         BC::COL_CUR_ID,
         'attributes',
+        'categories',
         'description',
         'notes',
         AC::COL_AV_FROM,
@@ -50,6 +52,7 @@ class ProductServiceUnit extends Model
         BC::COL_BS_PRC       => 'decimal:4',
         BC::COL_CUR_ID       => 'string',
         'attributes'         => 'array',
+        'categories'         => 'array',
         AC::COL_AV_FROM      => 'datetime',
         AC::COL_AV_UNTIL     => 'datetime',
         'status'             => ProductStatus::class,
@@ -82,7 +85,52 @@ class ProductServiceUnit extends Model
             $until = $m->{AC::COL_AV_UNTIL};
             if ($from && $until && $until < $from)
                 $m->{AC::COL_AV_UNTIL} = $from;
+            try {
+                $m->categories = self::sanitizeCategories($m->categories ?? null);
+            } catch (\Exception $e) {
+                Log::warning('Failed to normalize categories for ProductServiceUnit ' . $m->id, [
+                    'error' => $e->getMessage(),
+                ]);
+                $m->categories = [];
+            }
         });
+    }
+
+    protected static function sanitizeCategories(mixed $raw): ?array
+    {
+        if ($raw === null)
+            return null;
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            $items   = is_array($decoded) ? $decoded : [];
+        } elseif (is_array($raw)) $items = $raw;
+        else $items = [];
+        if (!$items) return null;
+        $valid = [];
+        foreach ($items as $item) {
+            if (!is_array($item))
+                continue;
+            if (!self::categoryHasRequiredKey($item))
+                continue;
+            $valid[] = $item;
+        }
+        return $valid ?: null;
+    }
+
+    protected static function categoryHasRequiredKey(array $item): bool
+    {
+        foreach (['key', 'id', 'category_id'] as $k) {
+            if (!array_key_exists($k, $item))
+                continue;
+            $value = $item[$k];
+            if ($value === null)
+                continue;
+            if (is_string($value) && trim($value) === '')
+                continue;
+            if (ProductServiceCategory::where('id', $value)->exists())
+                return true;
+        }
+        return false;
     }
 
     public static function statusLabels(): array
@@ -108,7 +156,7 @@ class ProductServiceUnit extends Model
 
     public function user(): HasOne
     {
-        return $this->hasOne(\App\Models\User::class, 'id', DC::TABLE_CREATOR);
+        return $this->hasOne(User::class, 'id', DC::TABLE_CREATOR);
         // * consider belongsTo(User::class, DC::TABLE_CREATOR, 'id')
     }
 }

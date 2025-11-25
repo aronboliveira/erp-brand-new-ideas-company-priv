@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
 use App\Models\{
     Customer,
     InvoiceBankTransfer,
@@ -162,5 +163,11 @@ class Invoice extends Model
         $invoice        = self::find($invoiceId);
         $invoice->status = $status;
         $invoice->update();
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'payment_id')
+            ->where('payment_type', TransactionType::Invoice);
     }
 }

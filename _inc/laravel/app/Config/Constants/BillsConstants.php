@@ -69,6 +69,35 @@ class BillsConstants
 	public const COL_OT_TX_ID = 'other_taxes_ids';
 	public const COL_OD_C = 'order_counter';
 	public const COL_IS_PRM = 'is_premium';
+	public const COL_AUTORCC = 'autoreconcile';
+	public const COL_RCC_RL = 'reconcile_rules';
+	public const COL_RCC_AT = 'reconciled_at';
+	public const COL_RCC_BY = 'reconciled_by';
+	public const COL_SYNC_ER = 'sync_errors';
+	public const COL_PAY_MTD = 'payment_method';
+	public const COL_PAY_MTD_LB = 'payment_method_label';
+	public const COL_ACC_FROM = 'from_account';
+	public const COL_ACC_TO = 'to_account';
+	public const COL_SVC_FEE = 'service_fee';
+	public const COL_TXS_FEE = 'taxes_fee';
+	public const COL_TXS_LST = 'taxes_list';
+	public const COL_SCHD_TRF_TS = 'scheduled_transfer_timestamp';
+	public const COL_IS_SCD = 'is_secured';
+	public const COL_CAN_CHG_BK = 'can_be_charged_back';
+	public const COL_EXC_AT = 'executed_at';
+	public const COL_CNC_AT = 'cancelled_at';
+	public const COL_CMP_AT = 'completed_at';
+	public const COL_CNC_RS = 'cancelled_reason';
+	public const COL_PPS_CD = 'purpose_code';
+	public const COL_TRF_TP = 'transfer_type';
+	public const COL_PPS_DS = 'purpose_description';
+	public const COL_PRC_AMT = 'principal_amount';
+	public const COL_INTR_AMT = 'interest_amount';
+	public const COL_N_INTR = 'number_of_installments';
+	public const COL_CURR_N_INTR = 'current_installment_number';
+	public const COL_PRD_SV_UNT = 'product_service_unit';
+	public const COL_PAY_ID = 'payment_id';
+	public const COL_PAY_TP = 'payment_type';
 
 	// * VALORES
 
@@ -77,4 +106,8 @@ class BillsConstants
 	public const VL_SPC_AMT = 'specific_amount';
 	public const VL_PRG_TBL = 'progressive_table';
 	public const VL_CTRB_SL = 'contribution_salary';
+	public const VL_SPL_PAY = 'supplier_payment';
+	public const VL_TAX_PAY = 'tax_payment';
+	public const VL_LN_PAY = 'loan_payment';
+	public const VL_WR_TRF = 'wire_transfer';
 }

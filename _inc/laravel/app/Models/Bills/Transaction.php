@@ -2,82 +2,241 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{
+    BillsConstants as BC,
+    DatabaseConstants as DC,
+    UsersConstants as UC
+};
+use App\Enums\{
+    TransactionType,
+    PaymentMethod,
+    MimeType
+};
+use App\Traits\{
+    HasAuditFields,
+    UsesUuids
+};
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\{
+    Model,
+    Relations\BelongsTo
+};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\{
+    DB,
+    Log
+};
 
 class Transaction extends Model
 {
-    use UsesUuids;
+    use UsesUuids, HasAuditFields;
 
-    private const COL_ACCOUNT     = 'account';
-    private const COL_TYPE        = 'type';
-    private const COL_AMOUNT      = 'amount';
-    private const COL_DESCRIPTION = 'description';
-    private const COL_DATE        = 'date';
-    private const COL_CREATED_BY  = 'created_by';
-    private const COL_CUSTOMER_ID = 'customer_id';
-    private const COL_PAYMENT_ID  = 'payment_id';
-    private const COL_USER_ID     = 'user_id';
-    private const COL_USER_TYPE   = 'user_type';
-    private const COL_CATEGORY    = 'category';
-    private const FILLABLE        = [
-        self::COL_USER_ID,
-        self::COL_USER_TYPE,
-        self::COL_ACCOUNT,
-        self::COL_TYPE,
-        self::COL_AMOUNT,
-        self::COL_DESCRIPTION,
-        self::COL_DATE,
-        self::COL_CREATED_BY,
-        self::COL_CUSTOMER_ID,
-        self::COL_PAYMENT_ID,
-        self::COL_CATEGORY,
+    public const TABLE = DC::TABLE_TRS;
+
+    protected $table = self::TABLE;
+
+    protected $fillable = [
+        'account',
+        UC::COL_USER_ID,
+        UC::COL_U_TP,
+        BC::COL_PAY_TP,
+        BC::COL_PAY_ID,
+        'category',
+        BC::COL_CUR_ID,
+        'amount',
+        BC::COL_SVC_FEE,
+        BC::COL_TXS_FEE,
+        BC::COL_TXS_LST,
+        BC::COL_PAY_MTD,
+        BC::COL_PAY_MTD_LB,
+        BC::COL_N_INTR,
+        BC::COL_CURR_N_INTR,
+        BC::COL_SCHD_TRF_TS,
+        BC::COL_EXC_AT,
+        BC::COL_CNC_AT,
+        DC::COL_FL_AT,
+        BC::COL_CMP_AT,
+        DC::COL_FLD_RS,
+        BC::COL_CNC_RS,
+        BC::COL_IS_SCD,
+        BC::COL_CAN_CHG_BK,
+        BC::COL_PPS_CD,
+        BC::COL_TRF_TP,
+        BC::COL_PPS_DS,
+        BC::COL_TC,
+        BC::COL_AUTORCC,
+        BC::COL_RCC_RL,
+        BC::COL_RCC_AT,
+        BC::COL_RCC_BY,
+        'reference',
+        'description',
+        'notes',
+        'attachments',
+        'contract',
+        'loan',
+        'invoice',
+        'payslip',
+        BC::COL_PRD_SV_UNT,
+        DC::COL_ER_LG,
+        DC::COL_RTR_CT,
+        DC::COL_LST_RTR_AT,
+        'type',
+        'date',
     ];
 
-    private const EDITABLE_FIELDS = [
-        self::COL_ACCOUNT,
-        self::COL_AMOUNT,
-        self::COL_DESCRIPTION,
-        self::COL_DATE,
-        self::COL_CATEGORY,
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
     ];
 
-    protected $fillable = self::FILLABLE;
+    protected $casts = [
+        'amount'                    => 'decimal:2',
+        BC::COL_SVC_FEE             => 'decimal:2',
+        BC::COL_TXS_FEE             => 'decimal:2',
+        BC::COL_N_INTR              => 'integer',
+        BC::COL_CURR_N_INTR         => 'integer',
+        DC::COL_RTR_CT              => 'integer',
 
-    public function bankAccount(): HasOne
+        BC::COL_TXS_LST             => 'array',
+        BC::COL_TC                  => 'array',
+        BC::COL_RCC_RL              => 'array',
+        DC::COL_ER_LG               => 'array',
+        'attachments'               => 'array',
+
+        BC::COL_SCHD_TRF_TS         => 'datetime',
+        BC::COL_EXC_AT              => 'datetime',
+        BC::COL_CNC_AT              => 'datetime',
+        DC::COL_FL_AT               => 'datetime',
+        BC::COL_CMP_AT              => 'datetime',
+        BC::COL_RCC_AT              => 'datetime',
+        DC::COL_LST_RTR_AT          => 'datetime',
+
+        BC::COL_IS_SCD              => 'boolean',
+        BC::COL_CAN_CHG_BK          => 'boolean',
+        BC::COL_AUTORCC             => 'boolean',
+
+        BC::COL_PAY_TP              => 'string',
+        BC::COL_PAY_MTD_LB          => 'string',
+        BC::COL_PPS_CD              => 'string',
+        BC::COL_TRF_TP              => 'string',
+        BC::COL_CUR_ID              => 'string',
+    ];
+
+    protected $with = [
+        'bankAccount',
+    ];
+
+    protected static function booted(): void
     {
-        return $this->hasOne(BankAccount::class, 'id', self::COL_ACCOUNT);
-        // * consider belongsTo(BankAccount::class, self::COL_ACCOUNT, 'id')
+        static::saving(function (self $transaction): void {
+            self::normalizePaymentType($transaction);
+            self::sanitizeNumericFields($transaction);
+            self::normalizeDates($transaction);
+            self::normalizePaymentMethodLabel($transaction);
+            self::sanitizeAttachments($transaction);
+            self::sanitizeTaxConfig($transaction);
+            self::ensureDefaults($transaction);
+        });
     }
 
-    public function payment(): HasOne
+    public function bankAccount(): BelongsTo
     {
-        return $this->hasOne(InvoicePayment::class, 'id', self::COL_PAYMENT_ID);
-        // * consider polymorphic relation with InvoicePayment vs. BillPayment
+        return $this->belongsTo(BankAccount::class, 'account');
     }
 
-    public function billPayment(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(BillPayment::class, 'id', self::COL_PAYMENT_ID);
-        // * consider polymorphic as above
+        return $this->belongsTo(User::class, UC::COL_USER_ID);
     }
 
-    public static function addTransaction(Request|Model $source): void // ! CHANGED
+    public function bill(): BelongsTo
     {
-        DB::transaction(function () use ($source) {
+        return $this->belongsTo(Bill::class, BC::COL_PAY_ID);
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, BC::COL_PAY_ID);
+    }
+
+    public function pos(): BelongsTo
+    {
+        return $this->belongsTo(Pos::class, BC::COL_PAY_ID);
+    }
+
+    public function payment(): ?Model
+    {
+        $type = TransactionType::tryFrom((string)($this->{BC::COL_PAY_TP} ?? ''));
+
+        return match ($type) {
+            TransactionType::Bill    => $this->bill,
+            TransactionType::Invoice => $this->invoice,
+            TransactionType::Pos     => $this->pos,
+            default                  => null,
+        };
+    }
+
+    public function scopeForBill($query, string $billId)
+    {
+        return $query
+            ->where(BC::COL_PAY_TP, TransactionType::Bill->value)
+            ->where(BC::COL_PAY_ID, $billId);
+    }
+
+    public function scopeForInvoice($query, string $invoiceId)
+    {
+        return $query
+            ->where(BC::COL_PAY_TP, TransactionType::Invoice->value)
+            ->where(BC::COL_PAY_ID, $invoiceId);
+    }
+
+    public function scopeForPos($query, string $posId)
+    {
+        return $query
+            ->where(BC::COL_PAY_TP, TransactionType::Pos->value)
+            ->where(BC::COL_PAY_ID, $posId);
+    }
+
+    public function scopeBills($query)
+    {
+        return $query->where(BC::COL_PAY_TP, TransactionType::Bill->value);
+    }
+
+    public function scopeInvoices($query)
+    {
+        return $query->where(BC::COL_PAY_TP, TransactionType::Invoice->value);
+    }
+
+    public function scopePosPayments($query)
+    {
+        return $query->where(BC::COL_PAY_TP, TransactionType::Pos->value);
+    }
+
+    public static function addTransaction(Request|Model $source): ?self
+    {
+        return DB::transaction(function () use ($source) {
             try {
                 $trx = new self();
-                foreach (self::FILLABLE as $field) {
+                foreach ($trx->getFillable() as $field) {
                     $value = $source instanceof Request
-                        ? ($source->input($field) ?? null)
-                        : ($source->{$field}        ?? null);
-                    $trx->{$field} = $value;
+                        ? $source->input($field)
+                        : ($source->{$field} ?? null);
+
+                    if ($value !== null) {
+                        $trx->{$field} = $value;
+                    }
                 }
+
                 $trx->save();
+
+                return $trx;
             } catch (\Throwable $e) {
-                Log::error(static::class . '::' . __FUNCTION__ . " failed to add transaction: {$e->getMessage()}");
+                Log::error(
+                    self::class . '::addTransaction failed: ' . $e->getMessage(),
+                    ['exception' => $e]
+                );
+
+                return null;
             }
         });
     }
@@ -87,46 +246,444 @@ class Transaction extends Model
         DB::transaction(function () use ($source) {
             try {
                 $paymentId = $source instanceof Request
-                    ? $source->input(self::COL_PAYMENT_ID)
-                    : ($source->{self::COL_PAYMENT_ID} ?? null);
-                $type = $source instanceof Request
-                    ? $source->input(self::COL_TYPE)
-                    : ($source->{self::COL_TYPE} ?? null);
-                $trx = self::where(self::COL_PAYMENT_ID, $paymentId)
-                    ->where(self::COL_TYPE, $type)
+                    ? $source->input(BC::COL_PAY_ID)
+                    : ($source->{BC::COL_PAY_ID} ?? null);
+
+                $paymentType = $source instanceof Request
+                    ? $source->input(BC::COL_PAY_TP)
+                    : ($source->{BC::COL_PAY_TP} ?? null);
+
+                if (!$paymentId || !$paymentType) {
+                    return;
+                }
+
+                /** @var self|null $trx */
+                $trx = self::query()
+                    ->where(BC::COL_PAY_ID, $paymentId)
+                    ->where(BC::COL_PAY_TP, $paymentType)
                     ->first();
-                if (!$trx) return;
-                foreach (self::EDITABLE_FIELDS as $field)
-                    $trx->{$field} = $source instanceof Request
-                        ? ($source->input($field) ?? $trx->{$field})
-                        : ($source->{$field}        ?? $trx->{$field});
+
+                if (!$trx) {
+                    return;
+                }
+
+                $editable = [
+                    'account',
+                    'amount',
+                    'description',
+                    'date',
+                    'category',
+                ];
+
+                foreach ($editable as $field) {
+                    $value = $source instanceof Request
+                        ? $source->input($field)
+                        : ($source->{$field} ?? $trx->{$field});
+
+                    if ($value !== null) {
+                        $trx->{$field} = $value;
+                    }
+                }
+
                 $trx->save();
             } catch (\Throwable $e) {
-                Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed to edit transaction: {$e->getMessage()}");
+                Log::error(
+                    self::class . '::editTransaction failed: ' . $e->getMessage(),
+                    ['exception' => $e]
+                );
             }
         });
     }
 
-    public static function destroyTransaction(string $paymentId, string $type, string $userType): void
+    public static function destroyTransaction(string $paymentId, string $paymentType, string $userType): void
     {
         try {
-            self::where(self::COL_PAYMENT_ID, $paymentId)
-                ->where(self::COL_TYPE, $type)
-                ->where(self::COL_USER_TYPE, $userType)
+            self::query()
+                ->where(BC::COL_PAY_ID, $paymentId)
+                ->where(BC::COL_PAY_TP, $paymentType)
+                ->where(UC::COL_U_TP, $userType)
                 ->delete();
         } catch (\Throwable $e) {
-            Log::error(__CLASS__ . '::' . __FUNCTION__ . " failed to destroy transaction: {$e->getMessage()}");
+            Log::error(
+                self::class . '::destroyTransaction failed: ' . $e->getMessage(),
+                ['exception' => $e]
+            );
         }
     }
 
-    public static function accounts(string $account): string
+    public static function accounts(string $accountIds): string
     {
         $names = '';
-        foreach (explode(',', $account) as $acctId) {
-            if (!$acctId) continue;
+
+        foreach (explode(',', $accountIds) as $acctId) {
+            $acctId = trim($acctId);
+            if ($acctId === '') {
+                continue;
+            }
+
+            /** @var BankAccount|null $acct */
             $acct = BankAccount::find($acctId);
-            $names = ($acct?->bank_name ?? '') . '  ' . ($acct?->holder_name ?? '');
+            if (!$acct) {
+                continue;
+            }
+
+            $names = ($acct->bank_name ?? '') . '  ' . ($acct->holder_name ?? '');
         }
+
         return $names;
+    }
+
+    protected static function normalizePaymentType(self $transaction): void
+    {
+        $raw = $transaction->{BC::COL_PAY_TP} ?? null;
+
+        if ($raw === null || $raw === '') {
+            $transaction->{BC::COL_PAY_TP} = TransactionType::Other->value;
+            return;
+        }
+
+        $type = TransactionType::tryFrom((string)$raw);
+
+        if (!$type) {
+            Log::warning(
+                self::class . '::normalizePaymentType invalid payment type',
+                ['value' => $raw]
+            );
+            $type = TransactionType::Other;
+        }
+
+        $transaction->{BC::COL_PAY_TP} = $type->value;
+
+        if (empty($transaction->category)) {
+            $transaction->category = $type->value;
+        }
+    }
+
+    protected static function sanitizeNumericFields(self $transaction): void
+    {
+        $floatFields = [
+            'amount',
+            BC::COL_SVC_FEE,
+            BC::COL_TXS_FEE,
+        ];
+
+        $intFields = [
+            BC::COL_N_INTR,
+            BC::COL_CURR_N_INTR,
+            DC::COL_RTR_CT,
+        ];
+
+        $codeFields = [
+            BC::COL_PPS_CD,
+        ];
+
+        foreach ($floatFields as $field) {
+            if (!array_key_exists($field, $transaction->attributes)) {
+                continue;
+            }
+
+            $value = $transaction->{$field};
+
+            if ($value === null || $value === '' || !is_numeric($value)) {
+                $transaction->{$field} = 0.0;
+                continue;
+            }
+
+            $numeric = (float) $value;
+            if ($numeric < 0) {
+                $numeric = 0.0;
+            }
+
+            $transaction->{$field} = $numeric;
+        }
+
+        foreach ($intFields as $field) {
+            if (!array_key_exists($field, $transaction->attributes)) {
+                continue;
+            }
+
+            $value = $transaction->{$field};
+
+            if ($value === null || $value === '' || !is_numeric($value)) {
+                $transaction->{$field} = 0;
+                continue;
+            }
+
+            $numeric = (int) $value;
+            if ($numeric < 0) {
+                $numeric = 0;
+            }
+
+            $transaction->{$field} = $numeric;
+        }
+
+        foreach ($codeFields as $field) {
+            if (!array_key_exists($field, $transaction->attributes)) {
+                continue;
+            }
+
+            $value = $transaction->{$field};
+            if ($value === null || $value === '') {
+                $transaction->{$field} = '0';
+                continue;
+            }
+
+            if (is_numeric($value)) {
+                $numeric = (int) $value;
+                if ($numeric < 0) {
+                    $numeric = 0;
+                }
+                $transaction->{$field} = (string) $numeric;
+            }
+        }
+    }
+
+    protected static function normalizeDates(self $transaction): void
+    {
+        $now = now();
+
+        if (empty($transaction->date))
+            $transaction->date = $now->format('Y-m-d');
+        $dateFields = [
+            BC::COL_SCHD_TRF_TS,
+            BC::COL_EXC_AT,
+            BC::COL_CNC_AT,
+            DC::COL_FL_AT,
+            BC::COL_CMP_AT,
+        ];
+
+        foreach ($dateFields as $field) {
+            if (!array_key_exists($field, $transaction->attributes)) {
+                continue;
+            }
+
+            $value = $transaction->{$field};
+            if (!$value) {
+                continue;
+            }
+
+            try {
+                $dt = $value instanceof Carbon ? $value : Carbon::parse($value);
+
+                if ($dt->lt($now)) {
+                    $transaction->{$field} = $now;
+                }
+            } catch (\Throwable $e) {
+                Log::warning(
+                    self::class . '::normalizeDates invalid datetime',
+                    ['field' => $field, 'value' => $value, 'error' => $e->getMessage()]
+                );
+                $transaction->{$field} = null;
+            }
+        }
+    }
+
+    protected static function normalizePaymentMethodLabel(self $transaction): void
+    {
+        if (!array_key_exists(BC::COL_PAY_MTD_LB, $transaction->attributes)) {
+            return;
+        }
+
+        $raw = $transaction->{BC::COL_PAY_MTD_LB};
+
+        if ($raw === null || $raw === '') {
+            $transaction->{BC::COL_PAY_MTD_LB} = PaymentMethod::Other->value;
+            return;
+        }
+
+        $normalized = strtolower(trim((string) $raw));
+
+        $channel = match ($normalized) {
+            'debit', 'card_debit', 'debit_card'       => PaymentMethod::CardDebit,
+            'credit', 'card_credit', 'credit_card'    => PaymentMethod::CardCredit,
+            'pix'                                     => PaymentMethod::Pix,
+            'ted'                                     => PaymentMethod::Ted,
+            'doc'                                     => PaymentMethod::Doc,
+            'wire', 'wire_transfer', 'bank_transfer'  => PaymentMethod::WireTransfer,
+            'cash', 'dinheiro'                        => PaymentMethod::Cash,
+            default                                   => PaymentMethod::Other,
+        };
+
+        $dbLabel = match ($channel) {
+            PaymentMethod::CardDebit  => 'debit',
+            PaymentMethod::CardCredit => 'credit',
+            default                    => $channel->value,
+        };
+
+        if (!in_array(
+            $dbLabel,
+            ['debit', 'credit', 'pix', 'ted', 'doc', BC::VL_WR_TRF, 'other'],
+            true
+        )) {
+            Log::warning(
+                self::class . '::normalizePaymentMethodLabel produced invalid label',
+                ['raw' => $raw, 'normalized' => $dbLabel]
+            );
+            $dbLabel = 'other';
+        }
+
+        $transaction->{BC::COL_PAY_MTD_LB} = $dbLabel;
+    }
+
+    protected static function sanitizeAttachments(self $transaction): void
+    {
+        if (!array_key_exists('attachments', $transaction->attributes)) {
+            return;
+        }
+
+        $raw = $transaction->attachments;
+
+        if ($raw === null) {
+            return;
+        }
+
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            $items   = is_array($decoded) ? $decoded : [];
+        } elseif (is_array($raw)) {
+            $items = $raw;
+        } else {
+            $items = [];
+        }
+
+        $valid = [];
+
+        foreach ($items as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $path = $item['path'] ?? null;
+            $ext  = $item['extension'] ?? null;
+
+            if ($path === null && $ext === null) {
+                Log::warning(
+                    self::class . '::sanitizeAttachments missing path/extension, dropping item',
+                    ['index' => $index]
+                );
+                continue;
+            }
+
+            if (!$ext && is_string($path)) {
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+            }
+
+            if (!is_string($ext) || $ext === '') {
+                Log::warning(
+                    self::class . '::sanitizeAttachments empty extension, dropping item',
+                    ['index' => $index, 'path' => $path]
+                );
+                continue;
+            }
+
+            $mime = MimeType::fromExtension($ext);
+
+            if ($mime === null) {
+                Log::warning(
+                    self::class . '::sanitizeAttachments unsupported extension, dropping item',
+                    ['index' => $index, 'extension' => $ext]
+                );
+                continue;
+            }
+
+            $item['extension'] = strtolower(ltrim($ext, '.'));
+            $item['mime']      = $mime->value;
+
+            $valid[] = $item;
+        }
+
+        $transaction->attachments = $valid ?: null;
+    }
+
+    protected static function sanitizeTaxConfig(self $transaction): void
+    {
+        if (!array_key_exists(BC::COL_TC, $transaction->attributes)) {
+            return;
+        }
+
+        $raw = $transaction->{BC::COL_TC};
+
+        if ($raw === null) {
+            return;
+        }
+
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            $items   = is_array($decoded) ? $decoded : [];
+        } elseif (is_array($raw)) {
+            $items = $raw;
+        } else {
+            $items = [];
+        }
+
+        if ($items === []) {
+            $transaction->{BC::COL_TC} = null;
+            return;
+        }
+
+        $valid = [];
+
+        foreach ($items as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $tax = null;
+
+            if (!empty($item['id'])) {
+                $tax = Tax::find($item['id']);
+            }
+
+            if (!$tax && !empty($item['name'])) {
+                $tax = Tax::where(BC::COL_TAX_NM, $item['name'])->first();
+            }
+
+            if (!$tax && !empty($item['label'])) {
+                $tax = Tax::where(BC::COL_TAX_NM, $item['label'])->first();
+            }
+
+            if (!$tax) {
+                Log::warning(
+                    self::class . '::sanitizeTaxConfig could not resolve tax entry, dropping item',
+                    ['index' => $index, 'item' => $item]
+                );
+                continue;
+            }
+
+            $item['id']   = $tax->id;
+            $item['name'] = $tax->{BC::COL_TAX_NM} ?? $item['name'] ?? null;
+
+            $valid[] = $item;
+        }
+
+        $transaction->{BC::COL_TC} = $valid ?: null;
+    }
+
+    protected static function ensureDefaults(self $transaction): void
+    {
+        if (empty($transaction->{BC::COL_CUR_ID})) {
+            $transaction->{BC::COL_CUR_ID} = config('app.currency', 'BRL');
+        }
+
+        foreach ([BC::COL_IS_SCD, BC::COL_CAN_CHG_BK, BC::COL_AUTORCC] as $flag) {
+            if (!array_key_exists($flag, $transaction->attributes)) {
+                continue;
+            }
+
+            if ($transaction->{$flag} === null) {
+                $transaction->{$flag} = false;
+            }
+        }
+
+        if (
+            array_key_exists(BC::COL_AUTORCC, $transaction->attributes)
+            && !$transaction->{BC::COL_AUTORCC}
+        ) {
+            foreach ([BC::COL_RCC_RL, BC::COL_RCC_AT, BC::COL_RCC_BY] as $field) {
+                if (array_key_exists($field, $transaction->attributes)) {
+                    $transaction->{$field} = null;
+                }
+            }
+        }
     }
 }
