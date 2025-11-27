@@ -1,51 +1,63 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateAnnouncementsTable extends Migration
 {
-    private const TABLE = 'announcements';
-    private const DATE = 'date';
-    private const COL_BRANCH = 'branch_id';
-    private const COL_DEP = 'department_id';
-    private const COL_EMPLOYEE = 'employee_id';
+    use HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_ANC;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                                    // ! CHANGED
-            $table->string('title')->nullable();
-            $table->date('start_' . self::DATE);
-            $table->date('end_' . self::DATE);
-            $table->uuid(self::COL_BRANCH)->index();                                // ! CHANGED
-            $table->uuid(self::COL_DEP)->index();                            // ! CHANGED
-            $table->uuid(self::COL_EMPLOYEE)->index();                              // ! CHANGED
+            $table->uuid('id')->primary();
+            $table->string('title')->nullable()->index();
+            $table->date(PJC::COL_S_DT)->default(now()->format('Y-m-d'));
+            $table->date(PJC::COL_E_DT)->nullable();
+            $table->uuid(CC::COL_BRC_ID)->index();
+            $table->uuid(CC::COL_DEP_ID)->index()->nullable();
+            $table->uuid(UC::COL_EMP_ID)->index()->nullable(); // ? the employee who made the announcement
+            $table->uuid('recruiter')->index()->nullable(); // ? the employee who is responsible for recruiting
             $table->text('description')->nullable();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->index();                               // ! CHANGED
-            $table->timestamps();
-            foreach ([
-                self::COL_BRANCH                       => DatabaseConstants::TABLE_BRANCHES,
-                self::COL_DEP                   => DatabaseConstants::TABLE_DEPARTMENTS,
-                self::COL_EMPLOYEE                     => DatabaseConstants::TABLE_EMPLOYEES,
-                DatabaseConstants::TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->boolean(UC::COL_IA)->default(true)->index()->nullable(); // ? nullable for tests
+            $table->boolean(UC::COL_IS_RD)->default(true)->index()->nullable(); // ? nullable for tests
+            $table->date(PJC::COL_PLN_ST)->default()->nullable(); // ? nullable for tests, when the job is planned to start
+            $table->json('requirements')->nullable();
+            $table->json('tags')->nullable();
+            $table->json('steps')->nullable();
+            $table->foreign(CC::COL_BRC_ID)
+                ->references('id')
+                ->on(DC::TABLE_BRANCHES)
+                ->cascadeOnDelete();
+            foreach (
+                [
+                    CC::COL_DEP_ID     => DC::TABLE_DEPARTMENTS,
+                    UC::COL_EMP_ID     => DC::TABLE_EMPLOYEES,
+                    'recruiter'        => DC::TABLE_EMPLOYEES,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete();
+                    ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_BRANCH,
-                self::COL_DEP,
-                self::COL_EMPLOYEE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            foreach (
+                [
+                    'recruiter',
+                    CC::COL_BRC_ID,
+                    CC::COL_DEP_ID,
+                    UC::COL_EMP_ID,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

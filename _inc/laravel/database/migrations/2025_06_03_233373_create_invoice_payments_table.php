@@ -23,7 +23,7 @@ class CreateInvoicePaymentsTable extends Migration
             $table->integer(self::P . '_method')->default(0);
             $table->string(self::P . '_type')->default('Manually');
             $table->uuid(self::COL_ORDER)->nullable(); // ! CHANGED
-            $table->uuid('txn_id')->nullable(); // ! CHANGED
+            $table->uuid('tax_id')->nullable(); // ! CHANGED
             $table->string('currency')->nullable();
             $table->string(self::R)->nullable();
             $table->string('add_' . self::R)->nullable();
@@ -31,12 +31,14 @@ class CreateInvoicePaymentsTable extends Migration
             $table->text('description')->nullable();
             $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
             $table->timestamps();
-            foreach ([
-                self::COL_INV => DatabaseConstants::TABLE_INVS,
-                self::COL_ACC => DatabaseConstants::TABLE_BANK_ACC,
-                self::COL_ORDER => DatabaseConstants::TABLE_ORDERS,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS
-            ] as $col => $tbl) {
+            foreach (
+                [
+                    self::COL_INV => DatabaseConstants::TABLE_INVS,
+                    self::COL_ACC => DatabaseConstants::TABLE_BANK_ACC,
+                    self::COL_ORDER => DatabaseConstants::TABLE_ORDERS,
+                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS
+                ] as $col => $tbl
+            ) {
                 $table->foreign($col)
                     ->references('id')->on($tbl)
                     ->cascadeOnDelete(); // * ADDED
@@ -47,12 +49,14 @@ class CreateInvoicePaymentsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_INV,
-                self::COL_ACC,
-                self::COL_ORDER,
-                DatabaseConstants::TABLE_CREATOR
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_INV,
+                    self::COL_ACC,
+                    self::COL_ORDER,
+                    DatabaseConstants::TABLE_CREATOR
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

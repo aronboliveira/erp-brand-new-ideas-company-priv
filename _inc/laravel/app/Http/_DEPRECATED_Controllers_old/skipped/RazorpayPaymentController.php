@@ -88,7 +88,7 @@ class RazorpayPaymentController extends Controller
                             'plan_id' => $plan->id,
                             'price' => $price == null ? 0 : $price,
                             'price_currency' => $this->currency,
-                            'txn_id' => '',
+                            'tax_id' => '',
                             'payment_type' => 'Razorpay',
                             'payment_status' => 'success',
                             'receipt' => null,
@@ -160,7 +160,7 @@ class RazorpayPaymentController extends Controller
                     $order->plan_id       = $plan->id;
                     $order->price         = isset($response->amount) ? $response->amount / 100 : 0;
                     $order->price_currency = $this->currency;
-                    $order->txn_id        = isset($response->id) ? $response->id : $pay_id;
+                    $order->tax_id        = isset($response->id) ? $response->id : $pay_id;
                     $order->payment_type  = __('Razorpay');
                     $order->payment_status = 'success';
                     $order->receipt       = '';

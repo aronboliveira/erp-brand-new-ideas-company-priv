@@ -80,7 +80,7 @@ class YooKassaController extends Controller
                                     'plan_id' => $plan->id,
                                     'price' => $get_amount == null ? 0 : $get_amount,
                                     'price_currency' => $currency,
-                                    'txn_id' => '',
+                                    'tax_id' => '',
                                     'payment_type' => 'PayTR',
                                     'payment_status' => 'success',
                                     'receipt' => null,
@@ -195,10 +195,10 @@ class YooKassaController extends Controller
                     $order->plan_id = $plan->id;
                     $order->price = $getAmount;
                     $order->price_currency = $currency;
-                    $order->txn_id = $request->orderID;
+                    $order->tax_id = $request->orderID;
                     $order->payment_type = __('Yookassa');
                     $order->payment_status = 'success';
-                    $order->txn_id = '';
+                    $order->tax_id = '';
                     $order->receipt = '';
                     $order->user_id = $user?->id;
                     $order->save();

@@ -10,6 +10,8 @@ class BanksConstants
 	public const COL_ADR = 'bank_address';
 	public const COL_NM = 'bank_name';
 	public const COL_COA = 'chart_account_id';
+	public const COL_SL_COA = 'sale_' . self::COL_COA;
+	public const COL_EXP_COA = 'expense_' . self::COL_COA;
 	public const COL_CT = 'contact_number';
 	public const COL_HNM = 'holder_name';
 	public const COL_OB = 'opening_balance';

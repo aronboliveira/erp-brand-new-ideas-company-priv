@@ -128,8 +128,8 @@ final class ProductServiceController extends Controller
                 'unit_id',
                 'quantity',
                 'type',
-                'sale_chartaccount_id',
-                'expense_chartaccount_id',
+                'sale_chart_account_id',
+                'expense_chart_account_id',
                 'category_id'
             ]))->merge([
                 'tax_id' => $req->filled('tax_id') ? implode(',', $req->tax_id) : '',
@@ -211,8 +211,8 @@ final class ProductServiceController extends Controller
                 'unit_id',
                 'quantity',
                 'type',
-                'sale_chartaccount_id',
-                'expense_chartaccount_id',
+                'sale_chart_account_id',
+                'expense_chart_account_id',
                 'category_id'
             ]))->merge([
                 'tax_id' => $req->filled('tax_id') ? implode(',', $req->tax_id) : '',

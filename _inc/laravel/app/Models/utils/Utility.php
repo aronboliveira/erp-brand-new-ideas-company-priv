@@ -2887,7 +2887,7 @@ class Utility extends Model
         $user = $userOrRedirect;
         $start = $startDate ?: date('Y-01-01');
         $end  = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
-        $invoiceProductIds = ProductService::where('sale_chartaccount_id', $accountId)->pluck('id');
+        $invoiceProductIds = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
         $invoiceAmount = InvoiceProduct::whereIn('product_id', $invoiceProductIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
@@ -2900,7 +2900,7 @@ class Utility extends Model
         $revenueAmount = Revenue::whereIn('account_id', $accountIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
-        $billProductIds = ProductService::where('expense_chartaccount_id', $accountId)->pluck('id');
+        $billProductIds = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
         $billProductAmount = BillProduct::whereIn('product_id', $billProductIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
@@ -2937,7 +2937,7 @@ class Utility extends Model
         $user = $userOrRedirect;
         $start = $startDate ?: date('Y-01-01');
         $end  = $endDate   ?: date('Y-m-d', strtotime('+1 day'));
-        $invoiceProducts = ProductService::where('sale_chartaccount_id', $accountId)->pluck('id');
+        $invoiceProducts = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
         $invoice = InvoiceProduct::whereIn('product_id', $invoiceProducts)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->get();
@@ -2949,7 +2949,7 @@ class Utility extends Model
         $revenue = Revenue::whereIn('account_id', $accountIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->get();
-        $billProducts = ProductService::where('expense_chartaccount_id', $accountId)->pluck('id');
+        $billProducts = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
         $bill = BillProduct::whereIn('product_id', $billProducts)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->get();
@@ -2984,7 +2984,7 @@ class Utility extends Model
     {
         $start = $startDate ?: date('Y-m-01');
         $end  = $endDate   ?: date('Y-m-t');
-        $invoiceProducts = ProductService::where('sale_chartaccount_id', $accountId)->pluck('id');
+        $invoiceProducts = ProductService::where('sale_chart_account_id', $accountId)->pluck('id');
         $invoiceAmount = InvoiceProduct::whereIn('product_id', $invoiceProducts)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
@@ -3002,7 +3002,7 @@ class Utility extends Model
     {
         $start = $startDate ?: date('Y-m-01');
         $end  = $endDate   ?: date('Y-m-t');
-        $billProducts = ProductService::where('expense_chartaccount_id', $accountId)->pluck('id');
+        $billProducts = ProductService::where('expense_chart_account_id', $accountId)->pluck('id');
         $billProductAmount = BillProduct::whereIn('product_id', $billProducts)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->sum(DB::raw('price * quantity'));
@@ -3050,11 +3050,11 @@ class Utility extends Model
             DB::raw('sum(price * invoice_products.quantity) as totalCredit')
         )
             ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'invoice_products.product_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.sale_chartaccount_id', DC::TABLE_COAS . '.id')
+            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.sale_chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
             ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('invoice_products.created_at', [$start, $end])
-            ->groupBy(DC::TABLE_PROD_SERVS . '.sale_chartaccount_id')
+            ->groupBy(DC::TABLE_PROD_SERVS . '.sale_chart_account_id')
             ->get()->toArray();
         $invoicePayment = InvoicePayment::select(
             DC::TABLE_COAS . '.id',
@@ -3092,11 +3092,11 @@ class Utility extends Model
             DB::raw('0 as totalCredit')
         )
             ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'bill_products.product_id')
-            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.expense_chartaccount_id', DC::TABLE_COAS . '.id')
+            ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.expense_chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
             ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
             ->whereBetween('bill_products.created_at', [$start, $end])
-            ->groupBy(DC::TABLE_PROD_SERVS . '.expense_chartaccount_id')
+            ->groupBy(DC::TABLE_PROD_SERVS . '.expense_chart_account_id')
             ->get()->toArray();
         $billAccount = BillAccount::select(
             DC::TABLE_COAS . '.id',

@@ -101,7 +101,7 @@ class MercadoPaymentController extends Controller
                             'plan_id' => $plan->id,
                             'price' => $price == null ? 0 : $price,
                             'price_currency' => ($this->currency),
-                            'txn_id' => '',
+                            'tax_id' => '',
                             'payment_type' => __('Mercado'),
                             'payment_status' => 'success',
                             'receipt' => null,
@@ -233,7 +233,7 @@ class MercadoPaymentController extends Controller
                         $order->plan_id       = $plan->id;
                         $order->price         = $price;
                         $order->price_currency = $this->currency;
-                        $order->txn_id        = isset($request->TXNID) ? $request->TXNID : '';
+                        $order->tax_id        = isset($request->TXNID) ? $request->TXNID : '';
                         $order->payment_type  = __('Mercado');
                         $order->payment_status = 'success';
                         $order->receipt       = '';

@@ -15,39 +15,41 @@ enum PaymentMethod: string
 	case CardCredit   = 'card_credit';
 	case Cash         = 'cash';
 	case Other        = 'other';
+
+	public static function values(): array
+	{
+		return [
+			self::BankTransfer->value,
+			self::Pix->value,
+			self::Ted->value,
+			self::Doc->value,
+			self::WireTransfer->value,
+			self::CardDebit->value,
+			self::CardCredit->value,
+			self::Cash->value,
+			self::Other->value,
+		];
+	}
+
 	public static function labels($lang = DatabaseConstants::DEFAULT_LANG): array
 	{
 		$lang = preg_replace('/_/', '-', strtolower(trim($lang ?? '')));
-		match ($lang) {
-			'pt-br' => fn() => self::labelsPtBr(),
-			'pt' => fn() => self::labelsPtBr(),
-			'es' => fn() => self::labelsEs(),
-			'es-es' => fn() => self::labelsEs(),
-			'ar' => fn() => self::labelsAr(),
-			'ar-sa' => fn() => self::labelsAr(),
-			'da' => fn() => self::labelsDa(),
-			'da-dk' => fn() => self::labelsDa(),
-			'de' => fn() => self::labelsDe(),
-			'de-de' => fn() => self::labelsDe(),
-			'fr' => fn() => self::labelsFr(),
-			'fr-fr' => fn() => self::labelsFr(),
-			'he' => fn() => self::labelsHe(),
-			'he-il' => fn() => self::labelsHe(),
-			'it' => fn() => self::labelsIt(),
-			'it-it' => fn() => self::labelsIt(),
-			'ja' => fn() => self::labelsJa(),
-			'ja-jp' => fn() => self::labelsJa(),
-			'nl' => fn() => self::labelsNl(),
-			'nl-nl' => fn() => self::labelsNl(),
-			'pl' => fn() => self::labelsPl(),
-			'pl-pl' => fn() => self::labelsPl(),
-			'ru' => fn() => self::labelsRu(),
-			'ru-ru' => fn() => self::labelsRu(),
-			'tr' => fn() => self::labelsTr(),
-			'tr-tr' => fn() => self::labelsTr(),
-			'zh' => fn() => self::labelsZh(),
-			'zh-cn' => fn() => self::labelsZh(),
-			default => fn() => self::labelsEn(),
+		return match ($lang) {
+			'pt-br', 'pt' => self::labelsPtBr(),
+			'es', 'es-es' => self::labelsEs(),
+			'ar', 'ar-sa' => self::labelsAr(),
+			'da', 'da-dk' => self::labelsDa(),
+			'de', 'de-de' => self::labelsDe(),
+			'fr', 'fr-fr' => self::labelsFr(),
+			'he', 'he-il' => self::labelsHe(),
+			'it', 'it-it' => self::labelsIt(),
+			'ja', 'ja-jp' => self::labelsJa(),
+			'nl', 'nl-nl' => self::labelsNl(),
+			'pl', 'pl-pl' => self::labelsPl(),
+			'ru', 'ru-ru' => self::labelsRu(),
+			'tr', 'tr-tr' => self::labelsTr(),
+			'zh', 'zh-cn' => self::labelsZh(),
+			default => self::labelsEn(),
 		};
 		return [
 			self::BankTransfer->value => 'Bank Transfer',

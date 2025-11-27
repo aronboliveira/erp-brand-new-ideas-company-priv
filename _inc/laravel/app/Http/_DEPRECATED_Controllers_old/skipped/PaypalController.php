@@ -152,7 +152,7 @@ class PaypalController extends Controller
                     'payment_method' => 0,
                     'order_id' => $order_id,
                     'currency' => Utility::getValByName('site_currency'),
-                    'txn_id' => $payment_id,
+                    'tax_id' => $payment_id,
                     'payment_type' => __('PAYPAL'),
                     'receipt' => '',
                     'reference' => '',
@@ -344,8 +344,8 @@ class PaypalController extends Controller
                 $order->price = $plan->price;
                 $order->price_currency = config('paypal.currency');
 
-                // $order->txn_id        = $payment_id;
-                $order->txn_id = '';
+                // $order->tax_id        = $payment_id;
+                $order->tax_id = '';
                 $order->payment_type  = __('PAYPAL');
                 // $order->payment_status = $result['state'];
                 $order->payment_status = 'success';
@@ -535,7 +535,7 @@ class PaypalController extends Controller
     //                    $order->plan_id       = $plan->id;
     //                    $order->price         = $result['transactions'][0]['amount']['total'];
     //                    $order->price_currency = env('CURRENCY');
-    //                    $order->txn_id        = $payment_id;
+    //                    $order->tax_id        = $payment_id;
     //                    $order->payment_type  = __('PAYPAL');
     //                    $order->payment_status = $result['state'];
     //                    $order->receipt       = '';

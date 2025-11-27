@@ -20,6 +20,12 @@ class CreateProductServiceCategoriesTable extends Migration
             $table->enum(DC::COL_TP_LB, [
                 ConsumableType::Product->value,
                 ConsumableType::Service->value,
+                ConsumableType::Income->value,
+                ConsumableType::Expense->value,
+                ConsumableType::Asset->value,
+                ConsumableType::Liability->value,
+                ConsumableType::Equity->value,
+                ConsumableType::CostsOfGoodsSold->value,
                 ConsumableType::Other->value,
             ])->default(ConsumableType::Service->value)->nullable()->index();
             $table->uuid(BKC::COL_COA)->nullable();

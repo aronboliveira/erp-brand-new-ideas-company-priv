@@ -20,7 +20,7 @@ class InvoicePayment extends Model
         'payment_method',
         'order_id',
         'currency',
-        'txn_id',
+        'tax_id',
         'payment_type',
         'receipt',
         'add_receipt',

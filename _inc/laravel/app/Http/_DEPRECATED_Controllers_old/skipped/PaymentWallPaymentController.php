@@ -108,7 +108,7 @@ class PaymentWallPaymentController extends Controller
                             'plan_id' => $plan->id,
                             'price' => $price,
                             'price_currency' => !empty($this->currancy) ? $this->currancy : 'usd',
-                            'txn_id' => '',
+                            'tax_id' => '',
                             'payment_type' => __('Zero Price'),
                             'payment_status' => 'success',
                             'receipt' => null,
@@ -192,7 +192,7 @@ class PaymentWallPaymentController extends Controller
                         $order->plan_id       = $plan->id;
                         $order->price         = isset($result['data']['amount']) ? ($result['data']['amount'] / 100) : 0;
                         $order->price_currency = $this->currancy;
-                        $order->txn_id        = isset($result['data']['id']) ? $result['data']['id'] : $pay_id;
+                        $order->tax_id        = isset($result['data']['id']) ? $result['data']['id'] : $pay_id;
                         $order->payment_type  = 'Paystack';
                         $order->payment_status = 'success';
                         $order->receipt       = '';

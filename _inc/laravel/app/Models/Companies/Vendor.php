@@ -2,14 +2,31 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{PermissionsConstants, SettingsConstants as SC};
-use App\Traits\UsesUuids;
-use Illuminate\{
-    Database\Eloquent\Collection,
-    Foundation\Auth\User as Authenticatable,
-    Notifications\Notifiable,
-    Support\Facades\Auth
+use App\Config\Constants\{
+    BillsConstants as BC,
+    DatabaseConstants as DC,
+    PermissionsConstants,
+    SettingsConstants as SC,
+    UsersConstants as UC
 };
+use App\Enums\{
+    BrazilState,
+    ChinaState,
+    CountryName,
+    MonthName,
+    PortugalState,
+    UnitedStatesState
+};
+use App\Models\Utility;
+use App\Traits\{
+    HasAuditFields,
+    NormalizesAddresses,
+    UsesUuids
+};
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\{Auth, Log};
 use Spatie\Permission\Traits\HasRoles;
 
 class Vendor extends Authenticatable
@@ -17,51 +34,411 @@ class Vendor extends Authenticatable
     use HasRoles;
     use Notifiable;
     use UsesUuids;
+    use HasAuditFields;
+    use NormalizesAddresses;
 
-    private const FILLABLE = [
-        'vendor_id',
-        'name',
-        'email',
-        'password',
+    public const TABLE = DC::TABLE_VENDORS;
+
+    protected $table = self::TABLE;
+
+    protected $fillable = [
+        UC::COL_VD_ID,
+
+        UC::COL_NM,
+        UC::COL_EM,
+        UC::COL_PW,
         'contact',
-        'avatar',
-        'is_active',
-        'created_by',
-        'email_verified_at',
-        'billing_name',
-        'billing_country',
-        'billing_state',
-        'billing_city',
-        'billing_phone',
-        'billing_zip',
-        'billing_address',
-        'shipping_name',
-        'shipping_country',
-        'shipping_state',
-        'shipping_city',
-        'shipping_phone',
-        'shipping_zip',
-        'shipping_address',
-        'tax_number',
-        'lang',
-        'balance'
-    ];
-    protected $fillable = self::FILLABLE;
+        UC::COL_AV,
+        UC::COL_IA,
+        UC::COL_LG,
+        'preferences',
+        UC::COL_EM_V_AT,
 
-    private const MONTHS = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December'
+        BC::COL_BL_NAME,
+        BC::COL_BL_EMAIL,
+        BC::COL_BL_CTR,
+        BC::COL_BL_ST,
+        BC::COL_BL_CTY,
+        BC::COL_BL_TEL,
+        BC::COL_BL_ZIP,
+        BC::COL_BL_ADR,
+        BC::COL_BL_DTL,
+
+        BC::COL_SHIP_NAME,
+        BC::COL_SHIP_CTR,
+        BC::COL_SHIP_ST,
+        BC::COL_SHIP_CTY,
+        BC::COL_SHIP_TEL,
+        BC::COL_SHIP_ZIP,
+        BC::COL_SHIP_ADR,
+        BC::COL_SHIP_DTL,
+
+        BC::COL_TX_N,
+        BC::COL_OT_TX_ID,
+        BC::COL_IS_PRM,
+
+        'balance',
+        'offers',
     ];
+
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
+        DC::TABLE_UPDATER,
+    ];
+
+    protected $hidden = [
+        UC::COL_PW,
+        'remember_token',
+    ];
+
+    protected $casts = [
+        UC::COL_EM_V_AT  => 'datetime',
+        UC::COL_IA       => 'boolean',
+        'preferences'    => 'array',
+        BC::COL_OT_TX_ID => 'array',
+        BC::COL_IS_PRM   => 'boolean',
+        'balance'        => 'decimal:2',
+        'offers'         => 'array',
+    ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::saving(function (self $vendor): void {
+            foreach (
+                [
+                    UC::COL_NM,
+                    UC::COL_EM,
+                    'contact',
+                    BC::COL_BL_NAME,
+                    BC::COL_BL_EMAIL,
+                    BC::COL_BL_CTR,
+                    BC::COL_BL_ST,
+                    BC::COL_BL_CTY,
+                    BC::COL_BL_TEL,
+                    BC::COL_BL_ZIP,
+                    BC::COL_BL_ADR,
+                    BC::COL_BL_DTL,
+                    BC::COL_SHIP_NAME,
+                    BC::COL_SHIP_CTR,
+                    BC::COL_SHIP_ST,
+                    BC::COL_SHIP_CTY,
+                    BC::COL_SHIP_TEL,
+                    BC::COL_SHIP_ZIP,
+                    BC::COL_SHIP_ADR,
+                    BC::COL_SHIP_DTL,
+                    BC::COL_TX_N,
+                    UC::COL_LG,
+                ] as $field
+            )
+                if (isset($vendor->{$field}) && is_string($vendor->{$field}))
+                    $vendor->{$field} = trim($vendor->{$field});
+
+            if ($vendor->{UC::COL_EM} ?? null)
+                $vendor->{UC::COL_EM} = self::normalizeEmail(
+                    $vendor->{UC::COL_EM},
+                    'main',
+                    $vendor->id ?? null
+                );
+
+            if ($vendor->{BC::COL_BL_EMAIL} ?? null)
+                $vendor->{BC::COL_BL_EMAIL} = self::normalizeEmail(
+                    $vendor->{BC::COL_BL_EMAIL},
+                    'billing',
+                    $vendor->id ?? null
+                );
+
+            $vendor->contact = self::normalizePhone(
+                $vendor->contact ?? null,
+                'contact',
+                $vendor->id ?? null
+            );
+
+            $vendor->{BC::COL_BL_TEL} = self::normalizePhone(
+                $vendor->{BC::COL_BL_TEL} ?? null,
+                'billing',
+                $vendor->id ?? null
+            );
+
+            $vendor->{BC::COL_SHIP_TEL} = self::normalizePhone(
+                $vendor->{BC::COL_SHIP_TEL} ?? null,
+                'shipping',
+                $vendor->id ?? null
+            );
+
+            if (!$vendor->{UC::COL_LG})
+                $vendor->{UC::COL_LG} = DC::DEFAULT_LANG;
+
+            $billingCountryEnum = CountryName::normalize($vendor->{BC::COL_BL_CTR} ?? null)
+                ?? CountryName::Brazil;
+            $shippingCountryEnum = CountryName::normalize($vendor->{BC::COL_SHIP_CTR} ?? null)
+                ?? CountryName::Brazil;
+
+            $vendor->{BC::COL_BL_CTR}   = $billingCountryEnum->value;
+            $vendor->{BC::COL_SHIP_CTR} = $shippingCountryEnum->value;
+
+            self::normalizeStateField(
+                $vendor,
+                BC::COL_BL_ST,
+                $billingCountryEnum
+            );
+
+            self::normalizeStateField(
+                $vendor,
+                BC::COL_SHIP_ST,
+                $shippingCountryEnum
+            );
+
+            $vendor->{BC::COL_BL_ZIP} = self::normalizeZip(
+                $vendor->{BC::COL_BL_ZIP} ?? null,
+                $vendor->{BC::COL_BL_CTR},
+                'billing',
+                $vendor->id ?? null
+            );
+
+            $vendor->{BC::COL_SHIP_ZIP} = self::normalizeZip(
+                $vendor->{BC::COL_SHIP_ZIP} ?? null,
+                $vendor->{BC::COL_SHIP_CTR},
+                'shipping',
+                $vendor->id ?? null
+            );
+
+            if ($vendor->balance === null || !is_numeric($vendor->balance) || $vendor->balance < 0)
+                $vendor->balance = 0.00;
+
+            if ($vendor->{UC::COL_IA} === null)
+                $vendor->{UC::COL_IA} = true;
+
+            if ($vendor->{BC::COL_IS_PRM} === null)
+                $vendor->{BC::COL_IS_PRM} = false;
+
+            try {
+                $vendor->preferences = self::normalizeArrayField($vendor->preferences ?? []);
+            } catch (\Throwable $e) {
+                Log::warning(self::class . ' failed to normalize preferences', [
+                    UC::COL_VD_ID => $vendor->id ?? null,
+                    'error'     => $e->getMessage(),
+                ]);
+                $vendor->preferences = [];
+            }
+
+            try {
+                $vendor->{BC::COL_OT_TX_ID} = self::normalizeArrayField($vendor->{BC::COL_OT_TX_ID} ?? []);
+            } catch (\Throwable $e) {
+                Log::warning(self::class . ' failed to normalize other_taxes_ids', [
+                    UC::COL_VD_ID => $vendor->id ?? null,
+                    'error'     => $e->getMessage(),
+                ]);
+                $vendor->{BC::COL_OT_TX_ID} = [];
+            }
+
+            try {
+                $vendor->offers = self::sanitizeOffers($vendor->offers ?? []);
+            } catch (\Throwable $e) {
+                Log::error(self::class . ' failed to normalize offers', [
+                    UC::COL_VD_ID => $vendor->id ?? null,
+                    'error'     => $e->getMessage(),
+                ]);
+                $vendor->offers = [];
+            }
+        });
+    }
+
+    protected static function normalizeStateField(self $vendor, string $column, CountryName $country): void
+    {
+        $raw = $vendor->{$column} ?? null;
+        $normalized = null;
+
+        switch ($country) {
+            case CountryName::Brazil:
+                $normalized = BrazilState::normalize($raw) ?? BrazilState::RJ;
+                break;
+            case CountryName::Portugal:
+                $normalized = PortugalState::normalize($raw) ?? PortugalState::LS;
+                break;
+            case CountryName::UnitedStates:
+                $normalized = UnitedStatesState::normalize($raw) ?? UnitedStatesState::CA;
+                break;
+            case CountryName::China:
+                $normalized = ChinaState::normalize($raw) ?? ChinaState::BJ;
+                break;
+            default:
+                if (is_string($raw))
+                    $vendor->{$column} = strtoupper(trim($raw));
+                return;
+        }
+
+        $vendor->{$column} = $normalized->value;
+    }
+
+    protected static function sanitizeOffers(mixed $raw): array
+    {
+        $items = self::normalizeArrayField($raw);
+        if (!$items)
+            return [];
+
+        $valid = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item))
+                continue;
+
+            $hasKey = false;
+
+            foreach (['id', 'key', 'product_service_id', 'unit_id'] as $k) {
+                if (!array_key_exists($k, $item))
+                    continue;
+
+                $v = $item[$k];
+
+                if (is_string($v) && trim($v) !== '') {
+                    $hasKey = true;
+                    break;
+                }
+
+                if (is_int($v) || is_float($v)) {
+                    $hasKey = true;
+                    break;
+                }
+            }
+
+            if (!$hasKey)
+                continue;
+
+            $valid[] = $item;
+        }
+
+        return $valid;
+    }
+
+    protected function resolveOfferProductService(mixed $identifier): ?ProductService
+    {
+        try {
+            if (is_array($identifier))
+                $identifier = $identifier['id'] ?? $identifier['key'] ?? null;
+
+            if ($identifier === null)
+                return null;
+
+            $identifier = is_string($identifier)
+                ? trim($identifier)
+                : (string) $identifier;
+
+            if ($identifier === '')
+                return null;
+
+            if (self::looksLikeUuid($identifier))
+                return ProductService::find($identifier);
+
+            $product = ProductService::query()
+                ->where('sku', $identifier)
+                ->orWhere('name', $identifier)
+                ->first();
+
+            return $product ?: null;
+        } catch (\Throwable $e) {
+            Log::warning(self::class . '::resolveOfferProductService failed', [
+                UC::COL_VD_ID  => $this->id ?? null,
+                'identifier' => $identifier,
+                'error'      => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    protected function classifyOffers(): array
+    {
+        $result = [
+            'registered'   => [],
+            'unregistered' => [],
+        ];
+
+        try {
+            $offers = $this->offers ?? [];
+            if (!is_array($offers))
+                $offers = self::normalizeArrayField($offers);
+
+            if (!$offers)
+                return $result;
+
+            foreach ($offers as $offer) {
+                if (!is_array($offer))
+                    continue;
+
+                $identifier = $offer['id'] ?? $offer['key'] ?? null;
+                if ($identifier === null)
+                    continue;
+
+                $productService = $this->resolveOfferProductService($identifier);
+
+                if ($productService) {
+                    $result['registered'][] = [
+                        'offer'           => $offer,
+                        'product_service' => $productService,
+                    ];
+                } else {
+                    $result['unregistered'][] = [
+                        'offer'           => $offer,
+                        'product_service' => null,
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error(self::class . '::classifyOffers failed', [
+                UC::COL_VD_ID => $this->id ?? null,
+                'error'     => $e->getMessage(),
+            ]);
+        }
+
+        return $result;
+    }
+
+    public function getRegisteredOffers(): array
+    {
+        try {
+            $classified = $this->classifyOffers();
+            return $classified['registered'] ?? [];
+        } catch (\Throwable $e) {
+            Log::error(self::class . '::getRegisteredOffers failed', [
+                UC::COL_VD_ID => $this->id ?? null,
+                'error'     => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
+    public function getUnregisteredOffers(): array
+    {
+        try {
+            $classified = $this->classifyOffers();
+            return $classified['unregistered'] ?? [];
+        } catch (\Throwable $e) {
+            Log::error(self::class . '::getUnregisteredOffers failed', [
+                UC::COL_VD_ID => $this->id ?? null,
+                'error'     => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
+    public function getAllOffers(): array
+    {
+        try {
+            $classified = $this->classifyOffers();
+            return array_merge(
+                $classified['registered'] ?? [],
+                $classified['unregistered'] ?? []
+            );
+        } catch (\Throwable $e) {
+            Log::error(self::class . '::getAllOffers failed', [
+                UC::COL_VD_ID => $this->id ?? null,
+                'error'     => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
 
     public function authId(): string|int
     {
@@ -70,27 +447,29 @@ class Vendor extends Authenticatable
 
     public function creatorId(): string|int
     {
-        return in_array($this->type, [
+        return in_array($this->type ?? null, [
             PermissionsConstants::CPN,
-            PermissionsConstants::SA
+            PermissionsConstants::SA,
         ])
             ? $this->id
-            : $this->created_by;
+            : ($this->{DC::TABLE_CREATOR} ?? $this->id);
     }
 
     public function currentLanguage(): string
     {
-        return $this->lang;
+        return $this->{UC::COL_LG};
     }
 
     public function priceFormat(float|int $price): string
     {
         $s = Utility::settings();
         return ($s[SC::CR_SB_P] === 'pre'
-            ? $s[SC::CR_SB] : '')
+            ? $s[SC::CR_SB]
+            : '')
             . number_format($price, $s['decimal_number'])
             . ($s[SC::CR_SB_P] === 'post'
-                ? $s[SC::CR_SB] : '');
+                ? $s[SC::CR_SB]
+                : '');
     }
 
     public function currencySymbol(): string
@@ -117,82 +496,106 @@ class Vendor extends Authenticatable
     public function invoiceNumberFormat(int $num): string
     {
         return Utility::settings()[SC::INV_PFX]
-            . sprintf("%05d", $num);
+            . sprintf('%05d', $num);
     }
 
     public function purchaseNumberFormat(int $num): string
     {
         return Utility::settings()[SC::PRC_PFX]
-            . sprintf("%05d", $num);
+            . sprintf('%05d', $num);
     }
 
     public function billNumberFormat(int $num): string
     {
         return Utility::settings()[SC::BL_PFX]
-            . sprintf("%05d", $num);
+            . sprintf('%05d', $num);
+    }
+
+    public function representative()
+    {
+        return $this->belongsTo(User::class, UC::COL_VD_ID, 'id');
+    }
+
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class, BC::COL_TX_N, 'id');
     }
 
     public function billChartData(): array
     {
-        $data['month'] = self::MONTHS;
-        $data['currentYear'] = date('M-Y');
-        $user = Auth::user();
-        foreach (self::MONTHS as $i => $m) {
-            $i++;
-            $unpaid = Bill::where('vendor_id', $user?->id)
+        $monthsEnum = MonthName::ordered();
+
+        $data['month']       = array_map(
+            fn(MonthName $m) => $m->label(),
+            $monthsEnum
+        );
+        $data['currentYear'] = date('Y');
+        $user                = Auth::user();
+
+        foreach ($monthsEnum as $monthEnum) {
+            $i = $monthEnum->isoIndex();
+
+            $unpaid = Bill::where(UC::COL_VD_ID, $user?->id)
                 ->whereYear('send_date', date('Y'))
                 ->whereMonth('send_date', $i)
                 ->where('status', '1')
                 ->where('due_date', '>', date('Y-m-d'))
                 ->get()
                 ->sum(fn($b) => $b->getDue());
-            $paid = Bill::where('vendor_id', $user?->id)
+
+            $paid = Bill::where(UC::COL_VD_ID, $user?->id)
                 ->whereYear('send_date', date('Y'))
                 ->whereMonth('send_date', $i)
                 ->where('status', '4')
                 ->get()
                 ->sum(fn($b) => $b->getTotal());
-            $partial = Bill::where('vendor_id', $user?->id)
+
+            $partial = Bill::where(UC::COL_VD_ID, $user?->id)
                 ->whereYear('send_date', date('Y'))
                 ->whereMonth('send_date', $i)
                 ->where('status', '3')
                 ->get()
                 ->sum(fn($b) => $b->getDue());
-            $due = Bill::where('vendor_id', $user?->id)
+
+            $due = Bill::where(UC::COL_VD_ID, $user?->id)
                 ->whereYear('send_date', date('Y'))
                 ->whereMonth('send_date', $i)
                 ->where('status', '1')
                 ->where('due_date', '<', date('Y-m-d'))
                 ->get()
                 ->sum(fn($b) => $b->getDue());
-            $data['data']['unpaid'][] = $unpaid;
-            $data['data']['paid'][]   = $paid;
+
+            $data['data']['unpaid'][]  = $unpaid;
+            $data['data']['paid'][]    = $paid;
             $data['data']['partial'][] = $partial;
-            $data['data']['due'][]    = $due;
+            $data['data']['due'][]     = $due;
         }
-        $total = Bill::where('vendor_id', $user?->id)
+
+        $total = Bill::where(UC::COL_VD_ID, $user?->id)
             ->whereYear('send_date', date('Y'))
             ->count();
+
         foreach (['unpaid', 'paid', 'partial', 'due'] as $k) {
-            $cnt = count($data['data'][$k]);
+            $cnt = count($data['data'][$k] ?? []);
             $data['progressData']["total{$k}Bill"] = $cnt;
-            $data['progressData']["{$k}Pr"] = $total
+            $data['progressData']["{$k}Pr"]        = $total
                 ? ($cnt * 100) / $total
                 : 0;
         }
+
         return $data;
     }
 
     public function vendorBill(int $vendorId): Collection
     {
-        return Bill::where('vendor_id', $vendorId)
+        return Bill::where(UC::COL_VD_ID, $vendorId)
             ->orderBy('bill_date', 'desc')
             ->get();
     }
 
     public function vendorOverdue(int $vendorId): float|int
     {
-        return Bill::where('vendor_id', $vendorId)
+        return Bill::where(UC::COL_VD_ID, $vendorId)
             ->whereNotIn('status', ['0', '4'])
             ->where('due_date', '<', date('Y-m-d'))
             ->get()
@@ -201,12 +604,12 @@ class Vendor extends Authenticatable
 
     public function vendorTotalBill(int $vendorId): int
     {
-        return Bill::where('vendor_id', $vendorId)->count();
+        return Bill::where(UC::COL_VD_ID, $vendorId)->count();
     }
 
     public function vendorTotalBillSum(int $vendorId): float|int
     {
-        return Bill::where('vendor_id', $vendorId)
+        return Bill::where(UC::COL_VD_ID, $vendorId)
             ->get()
             ->sum(fn($b) => $b->getTotal());
     }

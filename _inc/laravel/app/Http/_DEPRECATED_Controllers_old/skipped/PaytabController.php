@@ -87,7 +87,7 @@ class PaytabController extends Controller
                                         'plan_id' => $plan->id,
                                         'price' => $get_amount == null ? 0 : $get_amount,
                                         'price_currency' => config('paytabs.currency'),
-                                        'txn_id' => '',
+                                        'tax_id' => '',
                                         'payment_type' => 'Paytab',
                                         'payment_status' => 'success',
                                         'receipt' => null,
@@ -157,7 +157,7 @@ class PaytabController extends Controller
                 $order->price_currency = config('paytabs.currency');
                 $order->payment_type = __('Paytab');
                 $order->payment_status = 'success';
-                $order->txn_id = '';
+                $order->tax_id = '';
                 $order->receipt = '';
                 $order->user_id = $user?->id;
                 $order->save();

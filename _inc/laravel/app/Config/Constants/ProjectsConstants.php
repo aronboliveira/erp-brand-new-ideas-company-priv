@@ -16,6 +16,7 @@ class ProjectsConstants
 	public const COL_STG = 'stage';
 	public const COL_S_DT = 'start_date';
 	public const COL_E_DT = 'end_date';
+	public const COL_PLN_ST = 'planned_start';
 	public const COL_D_DATE = 'due_date';
 	public const COL_E_HRS = 'estimated_hrs';
 	public const COL_PRT = 'priority';

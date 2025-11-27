@@ -76,7 +76,7 @@ class PayFastController extends Controller
                 $order->plan_id       = $plan->id;
                 $order->price         = $plan_amount;
                 $order->price_currency = $this->currency;
-                $order->txn_id        = '';
+                $order->tax_id        = '';
                 $order->payment_type  = __('PayFast');
                 $order->payment_status = 'success';
                 $order->receipt       = '';
@@ -165,10 +165,10 @@ class PayFastController extends Controller
             $order->plan_id = $data['plan']['id'];
             $order->price = $data['plan_amount'];
             $order->price_currency = $this->currency;
-            $order->txn_id = $data['order_id'];
+            $order->tax_id = $data['order_id'];
             $order->payment_type = __('PayFast');
             $order->payment_status = 'success';
-            $order->txn_id = '';
+            $order->tax_id = '';
             $order->receipt = '';
             $order->user_id = $user?->id;
             $order->save();
@@ -242,7 +242,7 @@ class PayFastController extends Controller
                     'payment_method' => 1,
                     'order_id' =>  $data['order_id'],
                     'currency' => Utility::getValByName('site_currency'),
-                    'txn_id' =>  $data['order_id'],
+                    'tax_id' =>  $data['order_id'],
                     'payment_type' => __('Payfast'),
                     'receipt' => '',
                     'reference' => '',

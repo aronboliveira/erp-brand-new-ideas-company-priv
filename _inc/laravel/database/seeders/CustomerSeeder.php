@@ -53,6 +53,7 @@ final class CustomerSeeder extends Seeder
 				$shipCty  = $faker->city();
 				$shipZip  = preg_replace('/\D+/', '', $faker->postcode()); // CEP somente dígitos
 				$shipAdr  = $faker->streetAddress();
+				$shipDtl = $faker->boolean(30) ? ', ' . $faker->secondaryAddress() : '';
 				$shipTel  = preg_replace('/\D+/', '', $faker->cellphoneNumber());
 
 				// --- Endereço de cobrança (50% igual ao de entrega)
@@ -63,6 +64,7 @@ final class CustomerSeeder extends Seeder
 				$billCty  = $billSame ? $shipCty  : $faker->city();
 				$billZip  = $billSame ? $shipZip  : preg_replace('/\D+/', '', $faker->postcode());
 				$billAdr  = $billSame ? $shipAdr  : $faker->streetAddress();
+				$billDtl = $billSame ? $shipDtl  : ($faker->boolean(30) ? ', ' . $faker->secondaryAddress() : '');
 				$billTel  = $billSame ? $shipTel  : preg_replace('/\D+/', '', $faker->cellphoneNumber());
 				$billMail = $billSame ? $email    : 'financeiro+' . Str::random(6) . '@' . $faker->freeEmailDomain();
 
@@ -104,6 +106,7 @@ final class CustomerSeeder extends Seeder
 					BC::COL_SHIP_ST       => $shipSt,
 					BC::COL_SHIP_CTY      => $shipCty,
 					BC::COL_SHIP_TEL      => $shipTel,
+					BC::COL_SHIP_DTL      => ltrim($shipDtl, ', '),
 
 					// Billing
 					BC::COL_BL_NAME       => $billName,
@@ -114,6 +117,7 @@ final class CustomerSeeder extends Seeder
 					BC::COL_BL_ST         => $billSt,
 					BC::COL_BL_CTY        => $billCty,
 					BC::COL_BL_CTR        => $billCtr,
+					BC::COL_BL_DTL        => ltrim($billDtl, ', '),
 
 					// Idioma
 					'lang'                => 'pt_BR',

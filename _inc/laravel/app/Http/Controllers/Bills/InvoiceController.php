@@ -1193,7 +1193,7 @@ final class InvoiceController extends Controller
             str_replace('.', '', uniqid('', true))
         );
         Log::info(__CLASS__ . '::' . __FUNCTION__ . ' txn', [
-            'txn_id' => $id
+            'tax_id' => $id
         ]);
         return $id;
     }

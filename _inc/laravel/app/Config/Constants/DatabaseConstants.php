@@ -115,6 +115,7 @@ class DatabaseConstants
 	public const TABLE_OVT = 'overtimes';
 	public const TABLE_PRF_TP = 'performance_types';
 	public const TABLE_PSLP = 'pay_slips';
+	public const TABLE_ANC = 'announcements';
 
 	// * FIELD NAMES
 
@@ -141,6 +142,7 @@ class DatabaseConstants
 	public const COL_LST_RTR_AT = 'last_retry_at';
 	public const COL_TP_LB = 'type_label';
 	public const COL_RL_CAT = 'related_categories';
+	public const COL_PRO_IMG = 'pro_image';
 	public const ORDER_ID = 'orderById';
 	public const ORDER_C_AT = 'orderByCreatedAt';
 	public const ORDER_NEW = 'orderByNewest';

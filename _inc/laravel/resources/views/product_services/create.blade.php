@@ -62,8 +62,8 @@
     $saleAttrs = ['id' => 'sale_price', 'class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01', 'inputmode' => 'decimal'];
     $purchaseAttrs = ['id' => 'purchase_price', 'class' => VC::FM_CT, 'required' => 'required', 'step' => '0.01', 'inputmode' => 'decimal'];
 
-    $incomeAttrs = ['id' => 'sale_chartaccount_id', 'class' => trim(VC::FM_CT_SL . ' select' . ($incomeIsList ? '' : ' is-invalid')), 'required' => 'required'] + ($incomeIsList ? [] : ['disabled' => 'disabled']);
-    $expenseAttrs = ['id' => 'expense_chartaccount_id', 'class' => trim(VC::FM_CT_SL . ' select' . ($expenseIsList ? '' : ' is-invalid')), 'required' => 'required'] + ($expenseIsList ? [] : ['disabled' => 'disabled']);
+    $incomeAttrs = ['id' => 'sale_chart_account_id', 'class' => trim(VC::FM_CT_SL . ' select' . ($incomeIsList ? '' : ' is-invalid')), 'required' => 'required'] + ($incomeIsList ? [] : ['disabled' => 'disabled']);
+    $expenseAttrs = ['id' => 'expense_chart_account_id', 'class' => trim(VC::FM_CT_SL . ' select' . ($expenseIsList ? '' : ' is-invalid')), 'required' => 'required'] + ($expenseIsList ? [] : ['disabled' => 'disabled']);
 
     $taxAttrs = ['id' => 'choices-multiple1', 'class' => 'form-control select2', 'multiple' => 'multiple'] + ($taxIsList ? [] : ['disabled' => 'disabled']);
     $catAttrs = ['id' => 'category_id', 'class' => trim(VC::FM_CT_SL . ' select' . ($catIsList ? '' : ' is-invalid')), 'required' => 'required'] + ($catIsList ? [] : ['disabled' => 'disabled']);
@@ -111,8 +111,8 @@
                 {{ Form::number('sale_price', null, $saleAttrs) }}
             </div>
             <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('sale_chartaccount_id', __('Income Account'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('sale_chartaccount_id', $incomeOptions, null, $incomeAttrs) }}
+                {{ Form::label('sale_chart_account_id', __('Income Account'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('sale_chart_account_id', $incomeOptions, null, $incomeAttrs) }}
                 @unless($incomeIsList)<span class="d-block {{ VC::TXT_MT }}">{{ __('No income accounts available') }}</span>@endunless
             </div>
             <div class="{{ VC::FM_GCB6 }}">
@@ -120,8 +120,8 @@
                 {{ Form::number('purchase_price', null, $purchaseAttrs) }}
             </div>
             <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('expense_chartaccount_id', __('Expense Account'), ['class' => VC::FM_LB]) }}
-                {{ Form::select('expense_chartaccount_id', $expenseOptions, null, $expenseAttrs) }}
+                {{ Form::label('expense_chart_account_id', __('Expense Account'), ['class' => VC::FM_LB]) }}
+                {{ Form::select('expense_chart_account_id', $expenseOptions, null, $expenseAttrs) }}
                 @unless($expenseIsList)<span class="d-block {{ VC::TXT_MT }}">{{ __('No expense accounts available') }}</span>@endunless
             </div>
             <div class="{{ VC::FM_GCB6 }}">

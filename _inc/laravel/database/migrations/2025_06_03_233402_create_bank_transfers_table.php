@@ -9,6 +9,7 @@ class CreateBankTransfersTable extends Migration
 {
     use AcceptsSchedule, HasPaymentColumns, HasNullableAuditColumns, TracksFailures;
     private const TABLE = DC::TABLE_BNK_TRF;
+    // * models linked: users,contracts,loans,invoices,payslips,product_service_units,bank_account
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {

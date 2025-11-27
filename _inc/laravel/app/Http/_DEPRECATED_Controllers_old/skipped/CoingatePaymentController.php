@@ -93,7 +93,7 @@ class CoingatePaymentController extends Controller
                                 'plan_id' => $plan->id,
                                 'price' => $price == null ? 0 : $price,
                                 'price_currency' => $this->currency,
-                                'txn_id' => '',
+                                'tax_id' => '',
                                 'payment_type' => 'coingate',
                                 'payment_status' => 'success',
                                 'receipt' => null,
@@ -204,7 +204,7 @@ class CoingatePaymentController extends Controller
             $order->plan_id       = $plan->id;
             $order->price         = $price;
             $order->price_currency = !empty($admin_payment_setting['currency']) ? $admin_payment_setting['currency'] : 'USD';
-            $order->txn_id        = isset($request->transaction_id) ? $request->transaction_id : '';
+            $order->tax_id        = isset($request->transaction_id) ? $request->transaction_id : '';
             $order->payment_type  = __('Coingate');
             $order->payment_status = 'success';
             $order->receipt       = '';
@@ -267,7 +267,7 @@ class CoingatePaymentController extends Controller
     //                $order->plan_id       = $plan->id;
     //                $order->price         = $price;
     //                $order->price_currency = env('CURRENCY_CODE');
-    //                $order->txn_id        = isset($request->transaction_id) ? $request->transaction_id : '';
+    //                $order->tax_id        = isset($request->transaction_id) ? $request->transaction_id : '';
     //                $order->payment_type  = __('Coingate');
     //                $order->payment_status = 'success';
     //                $order->receipt       = '';

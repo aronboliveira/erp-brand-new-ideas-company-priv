@@ -2,72 +2,320 @@
 
 namespace App\Models;
 
-use App\Config\Constants\DatabaseConstants;
-use App\Traits\{ChecksLogin, UsesUuids};
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
-use Illuminate\Support\Facades\{Auth, DB};
+use App\Config\Constants\{
+    ActivitiesConstants as AC,
+    BanksConstants as BKC,
+    BillsConstants as BC,
+    DatabaseConstants as DC,
+    SettingsConstants as SC
+};
+use App\Traits\{
+    ChecksLogin,
+    HasAuditFields,
+    UsesUuids
+};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model,
+    Relations\BelongsTo,
+    Relations\HasMany
+};
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\{DB, Log};
 
 class ProductService extends Model
 {
-    use ChecksLogin, UsesUuids;
+    use HasFactory, UsesUuids, HasAuditFields, ChecksLogin;
 
-    private const COL_CATEGORY_ID            = 'category_id';
-    private const COL_CREATED_BY             = DatabaseConstants::TABLE_CREATOR;
-    private const COL_EXPENSE_CHARTACCOUNT_ID = 'expense_chartaccount_id';
-    private const COL_NAME                   = 'name';
-    private const COL_PURCHASE_PRICE         = 'purchase_price';
-    private const COL_SALE_CHARTACCOUNT_ID   = 'sale_chartaccount_id';
-    private const COL_SALE_PRICE             = 'sale_price';
-    private const COL_SKU                    = 'sku';
-    private const COL_TAX_ID                 = 'tax_id';
-    private const COL_TYPE                   = 'type';
-    private const COL_UNIT_ID                = 'unit_id';
+    public const TABLE = DC::TABLE_PROD_SERVS;
 
-    private const FILLABLE = [
-        self::COL_NAME,
-        self::COL_SKU,
-        self::COL_SALE_PRICE,
-        self::COL_PURCHASE_PRICE,
-        self::COL_TAX_ID,
-        self::COL_CATEGORY_ID,
-        self::COL_UNIT_ID,
-        self::COL_TYPE,
-        self::COL_SALE_CHARTACCOUNT_ID,
-        self::COL_EXPENSE_CHARTACCOUNT_ID,
-        self::COL_CREATED_BY,
+    protected $table = self::TABLE;
+
+    protected $fillable = [
+        'name',
+        'sku',
+        BC::COL_SL_PRC,
+        BC::COL_PC_PRC,
+        BC::COL_AC_CUR,
+        BC::COL_AC_MUNITS,
+        'description',
+        'attributes',
+        'tags',
+        DC::COL_PRO_IMG,
+        'icon',
+        'quantity',
+        BC::COL_TAX_ID,
+        BC::COL_CAT_ID,
+        'categories',
+        DC::COL_RL_CAT,
+        BC::COL_UNIT_ID,
+        BC::COL_UNITS_SOLD,
+        BC::COL_UNITS_CNC,
+        BC::COL_UNITS_RTRN,
+        'type',
+        BKC::COL_SL_COA,
+        BKC::COL_EXP_COA,
+        AC::COL_AV_FROM,
+        AC::COL_AV_UNTIL,
+        AC::COL_IA,
+        BC::COL_ON_SALE,
+        BC::COL_IS_LK,
+        BC::COL_IS_TRS,
     ];
 
-    protected $fillable = self::FILLABLE;
+    protected $guarded = [
+        'id',
+        DC::TABLE_CREATOR,
+        DC::TABLE_UPDATER,
+    ];
 
-    public function taxes(): HasOne
+    protected $casts = [
+        BC::COL_SL_PRC       => 'decimal:4',
+        BC::COL_PC_PRC       => 'decimal:4',
+        'quantity'           => 'float',
+        BC::COL_AC_CUR       => 'array',
+        BC::COL_AC_MUNITS    => 'array',
+        'attributes'         => 'array',
+        'tags'               => 'array',
+        'categories'         => 'array',
+        DC::COL_RL_CAT       => 'array',
+        BC::COL_UNITS_SOLD   => 'integer',
+        BC::COL_UNITS_CNC    => 'integer',
+        BC::COL_UNITS_RTRN   => 'integer',
+        AC::COL_AV_FROM      => 'datetime',
+        AC::COL_AV_UNTIL     => 'datetime',
+        AC::COL_IA           => 'boolean',
+        BC::COL_ON_SALE      => 'boolean',
+        BC::COL_IS_LK        => 'boolean',
+        BC::COL_IS_TRS       => 'boolean',
+    ];
+
+    protected $with = [
+        'category',
+        'taxes',
+    ];
+
+    protected $appends = [
+        'is_available',
+    ];
+
+    protected static function booted(): void
     {
-        return $this->hasOne(Tax::class, 'id', self::COL_TAX_ID);
-        // * consider belongsTo(Tax::class, self::COL_TAX_ID, 'id')
+        parent::booted();
+
+        static::saving(function (self $m): void {
+            foreach (['name', 'sku', 'type', 'icon', DC::COL_PRO_IMG] as $field)
+                if (isset($m->{$field}) && is_string($m->{$field}))
+                    $m->{$field} = trim($m->{$field});
+
+            if (isset($m->sku) && is_string($m->sku))
+                $m->sku = strtoupper($m->sku);
+
+            foreach ([BC::COL_SL_PRC, BC::COL_PC_PRC] as $priceField)
+                if ($m->{$priceField} === null || $m->{$priceField} < 0)
+                    $m->{$priceField} = 0.0000;
+
+            if ($m->quantity === null || $m->quantity < 0)
+                $m->quantity = 0.0;
+
+            foreach ([BC::COL_UNITS_SOLD, BC::COL_UNITS_CNC, BC::COL_UNITS_RTRN] as $cField)
+                if ($m->{$cField} === null || $m->{$cField} < 0)
+                    $m->{$cField} = 0;
+
+            $from  = $m->{AC::COL_AV_FROM};
+            $until = $m->{AC::COL_AV_UNTIL};
+            if ($from && $until && $until < $from)
+                $m->{AC::COL_AV_UNTIL} = $from;
+
+            foreach ([AC::COL_IA, BC::COL_ON_SALE, BC::COL_IS_LK, BC::COL_IS_TRS] as $boolField)
+                if ($m->{$boolField} === null)
+                    $m->{$boolField} = false;
+
+            try {
+                $m->{BC::COL_AC_CUR} = self::sanitizeCurrencies($m->{BC::COL_AC_CUR} ?? null);
+            } catch (\Throwable $e) {
+                Log::warning(
+                    'Failed to normalize accepted currencies for ProductService ' . ($m->id ?? 'new'),
+                    ['error' => $e->getMessage()]
+                );
+                $m->{BC::COL_AC_CUR} = [strtoupper(SC::DEF_SITE_CURRENCY_ID)];
+            }
+
+            $m->{BC::COL_AC_MUNITS} = self::sanitizeMeasurementUnits($m->{BC::COL_AC_MUNITS} ?? null);
+
+            foreach (['attributes', 'tags'] as $jsonField)
+                $m->{$jsonField} = self::normalizeArrayField($m->{$jsonField} ?? null);
+
+            try {
+                $m->categories        = self::sanitizeCategoriesArray($m->categories ?? null);
+                $m->{DC::COL_RL_CAT}  = self::sanitizeCategoriesArray($m->{DC::COL_RL_CAT} ?? null);
+            } catch (\Throwable $e) {
+                Log::warning(
+                    'Failed to normalize categories for ProductService ' . ($m->id ?? 'new'),
+                    ['error' => $e->getMessage()]
+                );
+            }
+
+            if ($m->{BC::COL_UNIT_ID}) {
+                $exists = ProductServiceUnit::query()
+                    ->where('id', $m->{BC::COL_UNIT_ID})
+                    ->exists();
+                if (!$exists)
+                    $m->{BC::COL_UNIT_ID} = null;
+            }
+        });
     }
 
-    public function unit(): HasOne
+    protected static function normalizeArrayField(mixed $value): array
     {
-        return $this->hasOne(ProductServiceUnit::class, 'id', self::COL_UNIT_ID);
-        // * consider belongsTo(ProductServiceUnit::class, self::COL_UNIT_ID, 'id')
+        if ($value === null)
+            return [];
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return is_array($value) ? $value : (array) $value;
     }
 
-    public function category(): HasOne
+    protected static function sanitizeCurrencies(mixed $raw): array
     {
-        return $this->hasOne(ProductServiceCategory::class, 'id', self::COL_CATEGORY_ID);
-        // * consider belongsTo(ProductServiceCategory::class, self::COL_CATEGORY_ID, 'id')
+        $items = self::normalizeArrayField($raw);
+        $normalized = [];
+
+        foreach ($items as $item) {
+            if (!is_string($item))
+                continue;
+            $code = strtoupper(substr(trim($item), 0, 3));
+            if ($code === '')
+                continue;
+            $normalized[$code] = $code;
+        }
+
+        $default = strtoupper(SC::DEF_SITE_CURRENCY_ID);
+        if (!isset($normalized[$default]))
+            $normalized[$default] = $default;
+
+        return array_values($normalized);
     }
+
+    protected static function sanitizeMeasurementUnits(mixed $raw): array
+    {
+        $items = self::normalizeArrayField($raw);
+        $normalized = [];
+
+        foreach ($items as $item) {
+            if (!is_string($item))
+                continue;
+            $v = trim($item);
+            if ($v === '')
+                continue;
+            $normalized[strtolower($v)] = $v;
+        }
+
+        if (!$normalized)
+            $normalized['other'] = 'other';
+
+        return array_values($normalized);
+    }
+
+    protected static function sanitizeCategoriesArray(mixed $raw): array
+    {
+        $items = self::normalizeArrayField($raw);
+        if (!$items)
+            return [];
+
+        $valid = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item))
+                continue;
+
+            $id = null;
+            foreach (['id', 'category_id'] as $key) {
+                if (!array_key_exists($key, $item))
+                    continue;
+                $value = $item[$key];
+                if (!is_string($value))
+                    continue;
+                $value = trim($value);
+                if ($value === '')
+                    continue;
+                $id = $value;
+                break;
+            }
+
+            if (!$id)
+                continue;
+
+            if (!ProductServiceCategory::query()->where('id', $id)->exists())
+                continue;
+
+            $item['id'] = $id;
+            unset($item['category_id']);
+
+            $valid[$id] = $item;
+        }
+
+        return array_values($valid);
+    }
+
+    public function getIsAvailableAttribute(): bool
+    {
+        $now   = now();
+        $from  = $this->{AC::COL_AV_FROM};
+        $until = $this->{AC::COL_AV_UNTIL};
+
+        if (!$this->{AC::COL_IA})
+            return false;
+
+        return (!$from || $from <= $now) && (!$until || $until >= $now);
+    }
+
+    public function taxes(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class, BC::COL_TAX_ID, 'id');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID, 'id');
+    }
+
+    public function saleChartAccount(): BelongsTo
+    {
+        return $this->belongsTo(ChartOfAccount::class, BKC::COL_SL_COA, 'id');
+    }
+
+    public function expenseChartAccount(): BelongsTo
+    {
+        return $this->belongsTo(ChartOfAccount::class, BKC::COL_EXP_COA, 'id');
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(ProductServiceUnit::class, 'product_service_id', 'id');
+    }
+
+    public function legacyUnit(): BelongsTo
+    {
+        return $this->belongsTo(ProductServiceUnit::class, BC::COL_UNIT_ID, 'id');
+    }
+
+    // --------- MÉTODOS LEGADOS UTILITÁRIOS (mantidos) ---------
 
     public function tax(string $taxes): array
     {
         $ids = explode(',', $taxes);
-        return array_map(fn ($id) => Tax::find($id), $ids);
+        return array_map(fn($id) => Tax::find($id), $ids);
     }
 
     public function taxRate(string $taxes): float
     {
         return array_reduce(
             explode(',', $taxes),
-            fn ($sum, $id) => $sum + optional(Tax::find($id))->rate,
+            fn($sum, $id) => $sum + (optional(Tax::find($id))->rate ?? 0),
             0.0
         );
     }
@@ -75,7 +323,7 @@ class ProductService extends Model
     public static function taxData(string $taxes): string
     {
         $names = array_map(
-            fn ($id) => optional(Tax::find($id))->name ?: '',
+            fn($id) => optional(Tax::find($id))->name ?: '',
             explode(',', $taxes)
         );
         return implode(',', $names);
@@ -83,65 +331,66 @@ class ProductService extends Model
 
     public static function getAllProducts()
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
+        if (($userOrRedirect = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse)
             return $userOrRedirect;
-        $user = $userOrRedirect;
-        return self::select(DatabaseConstantS::TABLE_PROD_SERVS . '.*', 'c.name as categoryname')
-            ->where(DatabaseConstantS::TABLE_PROD_SERVS . '.type', 'product')
-            ->leftJoin(
-                'product_service_categories as c',
-                'c.id',
-                DatabaseConstantS::TABLE_PROD_SERVS . '.category_id'
-            )
-            ->where(DatabaseConstantS::TABLE_PROD_SERVS . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
-            ->orderByDesc(DatabaseConstantS::TABLE_PROD_SERVS . '.id');
+
+        $user  = $userOrRedirect;
+        $table = self::TABLE;
+
+        return self::select($table . '.*', 'c.name as categoryname')
+            ->where($table . '.type', 'product')
+            ->leftJoin(DC::TABLE_PROD_SERV_CATS . ' as c', 'c.id', '=', $table . '.' . BC::COL_CAT_ID)
+            ->where($table . '.' . DC::TABLE_CREATOR, $user?->creatorId())
+            ->orderByDesc($table . '.id');
     }
 
-    public function getTotalProductQuantity(): float
+    public function getTotalProductQuantity(): float | RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
             return $userOrRedirect;
-        $user = $userOrRedirect;
-        $userId   = $user?->creatorId();
-        $pid      = $this->id;
-        $purchases = \App\Models\Purchase::where(DatabaseConstants::TABLE_CREATOR, $userId);
+
+        $user   = $userOrRedirect;
+        $userId = $user?->creatorId();
+        $pid    = $this->id;
+
+        $purchases = Purchase::where(DC::TABLE_CREATOR, $userId);
         if ($user?->isUser())
             $purchases->where('warehouse_id', $user?->warehouse_id);
-        $purchasedQty = $purchases->get()->sum(fn ($p) => optional(
-            \App\Models\PurchaseProduct::where('purchase_id', $p->id)
-                ->where('product_id', $pid)
-                ->first()
-        )->quantity ?: 0);
-        $poses = \App\Models\Pos::where(DatabaseConstants::TABLE_CREATOR, $userId);
+
+        $purchasedQty = $purchases->get()->sum(
+            fn($p) => optional(
+                PurchaseProduct::where('purchase_id', $p->id)
+                    ->where('product_id', $pid)
+                    ->first()
+            )->quantity ?: 0
+        );
+
+        $poses = Pos::where(DC::TABLE_CREATOR, $userId);
         if ($user?->isUser())
             $poses->where('warehouse_id', $user?->warehouse_id);
-        $posQty = $poses->get()->sum(fn ($p) => optional(
-            \App\Models\PosProduct::where('pos_id', $p->id)
-                ->where('product_id', $pid)
-                ->first()
-        )->quantity ?: 0);
+
+        $posQty = $poses->get()->sum(
+            fn($p) => optional(
+                PosProduct::where('pos_id', $p->id)
+                    ->where('product_id', $pid)
+                    ->first()
+            )->quantity ?: 0
+        );
+
         return $purchasedQty - $posQty;
-        // * consider caching or eager loading for performance
     }
 
-    public static function taxId(int $productId): int
+    public static function taxId(int $productId): int | RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
             return $userOrRedirect;
+
         $user = $userOrRedirect;
-        return DB::table('product_services')
+
+        return DB::table(self::TABLE)
             ->where('id', $productId)
-            ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
-            ->value('tax_id') ?: 0;
+            ->where(DC::TABLE_CREATOR, $user?->creatorId())
+            ->value(BC::COL_TAX_ID) ?: 0;
     }
 
     public function warehouseProduct(string $productId, string $warehouseId): float
@@ -149,6 +398,7 @@ class ProductService extends Model
         $wp = WarehouseProduct::where('warehouse_id', $warehouseId)
             ->where('product_id', $productId)
             ->first();
+
         return $wp->quantity ?? 0;
     }
 }

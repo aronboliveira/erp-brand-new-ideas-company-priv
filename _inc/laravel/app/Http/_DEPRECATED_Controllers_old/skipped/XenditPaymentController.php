@@ -80,7 +80,7 @@ class XenditPaymentController extends Controller
                                     'plan_id' => $plan->id,
                                     'price' => $get_amount == null ? 0 : $get_amount,
                                     'price_currency' => $currency,
-                                    'txn_id' => '',
+                                    'tax_id' => '',
                                     'payment_type' => 'Xendit',
                                     'payment_status' => 'success',
                                     'receipt' => null,
@@ -147,10 +147,10 @@ class XenditPaymentController extends Controller
             $order->plan_id = $plan->id;
             $order->price = $getAmount;
             $order->price_currency = $request->currency;
-            $order->txn_id = $request->orderID;
+            $order->tax_id = $request->orderID;
             $order->payment_type = __('Xendit   ');
             $order->payment_status = 'success';
-            $order->txn_id = '';
+            $order->tax_id = '';
             $order->receipt = '';
             $order->user_id = $authuser->id;
             $order->save();

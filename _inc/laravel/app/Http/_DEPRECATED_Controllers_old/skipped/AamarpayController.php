@@ -79,7 +79,7 @@ class AamarpayController extends Controller
                                             'plan_id' => $plan->id,
                                             'price' => $get_amount == null ? 0 : $get_amount,
                                             'price_currency' => !empty($payment_setting['currency']) ? $payment_setting['currency'] : 'BDT',
-                                            'txn_id' => '',
+                                            'tax_id' => '',
                                             'payment_type' => 'Aamarpay',
                                             'payment_status' => 'success',
                                             'receipt' => null,
@@ -215,7 +215,7 @@ class AamarpayController extends Controller
             $order->price_currency = !empty($payment_setting['currency']) ? $payment_setting['currency'] : 'BDT';
             $order->payment_type = __('Aamarpay');
             $order->payment_status = 'success';
-            $order->txn_id = '';
+            $order->tax_id = '';
             $order->receipt = '';
             $order->user_id = $user?->id;
             $order->save();

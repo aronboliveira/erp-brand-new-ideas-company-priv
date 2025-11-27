@@ -91,7 +91,7 @@ class MolliePaymentController extends Controller
                             'plan_id' => $plan->id,
                             'price' => $price == null ? 0 : $price,
                             'price_currency' => $this->currency,
-                            'txn_id' => '',
+                            'tax_id' => '',
                             'payment_type' => __('Mollie'),
                             'payment_status' => 'success',
                             'receipt' => null,
@@ -180,7 +180,7 @@ class MolliePaymentController extends Controller
                         $order->plan_id       = $plan->id;
                         $order->price         = isset($request->TXNAMOUNT) ? $request->TXNAMOUNT : 0;
                         $order->price_currency = $this->currency;
-                        $order->txn_id        = isset($request->TXNID) ? $request->TXNID : '';
+                        $order->tax_id        = isset($request->TXNID) ? $request->TXNID : '';
                         $order->payment_type  = __('Mollie');
                         $order->payment_status = 'success';
                         $order->receipt       = '';

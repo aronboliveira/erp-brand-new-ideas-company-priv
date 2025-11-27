@@ -38,10 +38,10 @@ trait HasPaymentColumns
 		$table->text(BC::COL_PPS_DS)->nullable();
 
 		$table->json(BC::COL_TXS_LST)->nullable(); // ? nullable for testing purposes
-		$table->unsignedInteger(BC::COL_PAY_MTD)->default(0); // * this is not clear in the old implementation, so it will be kept for now for compatibility, so just randomize it on seeders between 0 and 1
+		$table->unsignedTinyInteger(BC::COL_PAY_MTD)->default(0); // * this is not clear in the old implementation, so it will be kept for now for compatibility, so just randomize it on seeders between 0 and 1
 		$table->enum(BC::COL_PAY_MTD_LB, ['debit', 'credit', 'pix', 'ted', 'doc', BC::VL_WR_TRF, 'other'])->default('other')->nullable(); // ? nullable for testing purposes
-		$table->unsignedInteger(BC::COL_N_INTR)->default(1)->nullable(); // ? nullable for testing purposes
-		$table->unsignedInteger(BC::COL_CURR_N_INTR)->default(1)->nullable(); // ? nullable for testing purposes
+		$table->unsignedSmallInteger(BC::COL_N_INTR)->default(1)->nullable(); // ? nullable for testing purposes
+		$table->unsignedSmallInteger(BC::COL_CURR_N_INTR)->default(1)->nullable(); // ? nullable for testing purposes
 
 		$table->string('reference')->nullable();
 		$table->text('description');

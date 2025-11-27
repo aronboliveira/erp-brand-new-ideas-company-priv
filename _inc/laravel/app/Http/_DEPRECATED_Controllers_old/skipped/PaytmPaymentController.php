@@ -91,7 +91,7 @@ class PaytmPaymentController extends Controller
                             'plan_id' => $plan->id,
                             'price' => $price == null ? 0 : $price,
                             'price_currency' => config('services.paytm-wallet.currency'),
-                            'txn_id' => '',
+                            'tax_id' => '',
                             'payment_type' => 'Paytm',
                             'payment_status' => 'succeeded',
                             'receipt' => null,
@@ -182,7 +182,7 @@ class PaytmPaymentController extends Controller
             $order->plan_id       = $plan->id;
             $order->price         = isset($request->TXNAMOUNT) ? $request->TXNAMOUNT : 0;
             $order->price_currency = config('services.paytm-wallet.currency');
-            $order->txn_id        = isset($request->TXNID) ? $request->TXNID : '';
+            $order->tax_id        = isset($request->TXNID) ? $request->TXNID : '';
             $order->payment_type  = __('paytm');
             $order->payment_status = 'success';
             $order->receipt       = '';

@@ -86,7 +86,7 @@ class PaystackPaymentController extends Controller
                             'plan_id' => $plan->id,
                             'price' => $price,
                             'price_currency' => $this->currency,
-                            'txn_id' => '',
+                            'tax_id' => '',
                             'payment_type' => 'Paystack',
                             'payment_status' => 'success',
                             'receipt' => null,
@@ -173,7 +173,7 @@ class PaystackPaymentController extends Controller
                     $order->plan_id       = $plan->id;
                     $order->price         = $result['data']['amount'] / 100;
                     $order->price_currency = $this->currency;
-                    $order->txn_id        = $pay_id;
+                    $order->tax_id        = $pay_id;
                     $order->payment_type  = __('Paystack');
                     $order->payment_status = $result['data']['status'];
                     $order->receipt       = '';

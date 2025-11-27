@@ -88,7 +88,7 @@ class MidtransPaymentController extends Controller
                     'plan_id' => $plan->id,
                     'price' => $get_amount == null ? 0 : $get_amount,
                     'price_currency' => $currency,
-                    'txn_id' => '',
+                    'tax_id' => '',
                     'payment_type' => __('Midtrans'),
                     'payment_status' => 'pending',
                     'receipt' => null,

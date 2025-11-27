@@ -131,7 +131,7 @@ class PlanRequestController extends Controller
                             'plan_id'        => $plan->id,
                             'price'          => $price,
                             'price_currency' => Utility::getAdminPaymentSetting()['currency'] ?? 'USD',
-                            'txn_id'         => '',
+                            'tax_id'         => '',
                             'payment_type'   => __('Manually Upgrade By Super Admin'),
                             'payment_status' => 'success',
                             'receipt'        => null,

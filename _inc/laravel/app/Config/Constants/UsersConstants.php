@@ -21,6 +21,7 @@ class UsersConstants
 	public const COL_MD = 'mode';
 	public const COL_DM = 'dark_mode';
 	public const COL_IA = 'is_active';
+	public const COL_IS_RD = 'is_ready';
 	public const COL_IB = 'is_banned';
 	public const COL_LLA = 'last_login_at';
 	public const COL_PL = 'plan';
@@ -67,4 +68,5 @@ class UsersConstants
 	public const COL_RSP_EM = 'responsible_email';
 	public const COL_RSP_ADDR = 'responsible_address';
 	public const COL_AVG_RT = 'average_rating';
+	public const COL_VD_ID = 'vendor_id';
 }

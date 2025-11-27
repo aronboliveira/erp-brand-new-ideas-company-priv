@@ -48,6 +48,7 @@ class BillsConstants
 	public const COL_P_DAY = 'pay_day';
 	public const COL_BS_PRC = 'base_price';
 	public const COL_CUR_ID = 'currency_id';
+	public const COL_PRC_CUR = 'price_currency';
 	public const COL_TX_N = 'tax_number';
 	public const COL_BL_NAME = 'bill_name';
 	public const COL_BL_EMAIL = 'bill_email';
@@ -57,6 +58,7 @@ class BillsConstants
 	public const COL_BL_CTY = 'bill_city';
 	public const COL_BL_ST = 'bill_state';
 	public const COL_BL_CTR = 'bill_country';
+	public const COL_BL_DTL = 'bill_details';
 	public const COL_SHIP_NAME = 'shipping_name';
 	public const COL_SHIP_EMAIL = 'shipping_email';
 	public const COL_SHIP_ADR = 'shipping_address';
@@ -65,6 +67,7 @@ class BillsConstants
 	public const COL_SHIP_CTY = 'shipping_city';
 	public const COL_SHIP_ST = 'shipping_state';
 	public const COL_SHIP_CTR = 'shipping_country';
+	public const COL_SHIP_DTL = 'shipping_details';
 	public const COL_CST_ID = 'customer_id';
 	public const COL_OT_TX_ID = 'other_taxes_ids';
 	public const COL_OD_C = 'order_counter';
@@ -75,6 +78,7 @@ class BillsConstants
 	public const COL_RCC_BY = 'reconciled_by';
 	public const COL_SYNC_ER = 'sync_errors';
 	public const COL_PAY_MTD = 'payment_method';
+	public const COL_PAY_STT = 'payment_status';
 	public const COL_PAY_MTD_LB = 'payment_method_label';
 	public const COL_ACC_FROM = 'from_account';
 	public const COL_ACC_TO = 'to_account';
@@ -95,9 +99,35 @@ class BillsConstants
 	public const COL_INTR_AMT = 'interest_amount';
 	public const COL_N_INTR = 'number_of_installments';
 	public const COL_CURR_N_INTR = 'current_installment_number';
+	public const COL_SL_PRC = 'sale_price';
+	public const COL_PC_PRC = 'purchase_price';
+	public const COL_AC_CUR = 'accepted_currencies';
 	public const COL_PRD_SV_UNT = 'product_service_unit';
+	public const COL_PRD_SV_ID = 'product_service_id';
+	public const COL_OD_ID = 'order_id';
 	public const COL_PAY_ID = 'payment_id';
 	public const COL_PAY_TP = 'payment_type';
+	public const COL_PSLP_ID = 'payslip_id';
+	public const COL_PRC_IDX = 'purchase_index';
+	public const COL_TAX_ID = 'tax_id';
+	public const COL_CAT_ID = 'category_id';
+	public const COL_UNIT_ID = 'unit_id';
+	public const COL_UNITS_SOLD = 'units_sold';
+	public const COL_UNITS_CNC = 'units_cancelled';
+	public const COL_UNITS_RTRN = 'units_returned';
+	public const COL_AC_MUNITS = 'accepted_measurement_units';
+	public const COL_ON_SALE = 'on_sale';
+	public const COL_IS_LK = 'is_locked';
+	public const COL_IS_TRS = 'is_trashed';
+	public const COL_CD_NB = 'card_number';
+	public const COL_CD_DG = 'card_digits';
+	public const COL_CD_EX_M = 'card_exp_month';
+	public const COL_CD_EX_Y = 'card_exp_year';
+	public const COL_CD_FLG = 'card_flag';
+	public const COL_CD_HNM = 'card_holder_name';
+	public const COL_PIX_KEY = 'pix_key';
+	public const COL_INV_ID = 'invoice_id';
+	public const COL_RCP_MD = 'receipt_metadata';
 
 	// * VALORES
 
