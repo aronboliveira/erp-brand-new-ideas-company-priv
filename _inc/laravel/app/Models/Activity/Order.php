@@ -375,22 +375,6 @@ class Order extends Model
     }
 
     /**
-     * Normaliza campo JSON em array.
-     */
-    protected static function normalizeArrayField(mixed $value): array
-    {
-        if ($value === null)
-            return [];
-
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return is_array($value) ? $value : (array) $value;
-    }
-
-    /**
      * Garante que os IDs em other_taxes_ids referenciam tributos existentes.
      */
     protected static function normalizeOtherTaxes(mixed $raw): array

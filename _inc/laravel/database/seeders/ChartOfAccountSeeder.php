@@ -85,7 +85,7 @@ final class ChartOfAccountSeeder extends Seeder
 							CHTC::INIT_BL        => $initBalance,
 							CHTC::EXP_NXT_MN_BL  => $expectedNext,
 							'currency_id'        => SC::DEF_SITE_CURRENCY_ID, // e.g. 'BRL'
-							'attributes'         => [
+							'rules'         => [
 								'tags'        => $faker->randomElements(['fixo', 'operacional', 'financeiro', 'impostos', 'cloud', 'folha'], $faker->numberBetween(1, 3)),
 								'reconciled'  => $faker->boolean(65),
 								'visibility'  => $faker->randomElement(['public', 'internal']),

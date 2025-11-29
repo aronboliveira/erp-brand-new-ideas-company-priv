@@ -53,7 +53,7 @@ if (empty($bill)) {
 try {
     $billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id'));
 } catch (\Throwable $e) {
-    $billNumber = __('Could not find bill number');
+    $billNumber = __('Could not find Bill Identifier');
 }
 try {
     $billDate   = Utility::dateFormat($settings, data_get($bill, 'issue_date'));

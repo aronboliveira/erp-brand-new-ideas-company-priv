@@ -74,8 +74,8 @@
             </div>
 
             <div class="{{ VC::FM_GCB6 }}">
-                {{ Form::label('city_zip', __('Zip Code'), ['class' => VC::FM_LB]) }}
-                {{ Form::text('city_zip', null, [ 'class' => VC::FM_CT ]) }}
+                {{ Form::label('zip', __('Zip Code'), ['class' => VC::FM_LB]) }}
+                {{ Form::text('zip', null, [ 'class' => VC::FM_CT ]) }}
             </div>
         </div>
     </div>

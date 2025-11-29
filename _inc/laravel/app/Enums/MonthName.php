@@ -19,8 +19,12 @@ enum MonthName: string
 	case November  = 'november';
 	case December  = 'december';
 
-	public static function normalize(?string $value): self
+	public static function normalize(string|null|self $value): ?self
 	{
+		if ($value instanceof self)
+			return $value;
+		if ($value === null)
+			return null;
 		$v = strtolower(trim((string) $value));
 
 		if ($v === '')

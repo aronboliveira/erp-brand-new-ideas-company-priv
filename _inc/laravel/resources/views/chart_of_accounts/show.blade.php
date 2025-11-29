@@ -244,7 +244,7 @@
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
-                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? $user?->billNumberFormat($num) : __('No bill number available')) : __('Failed to format bill number') }}</td>
+                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? $user?->billNumberFormat($num) : __('No Bill Identifier available')) : __('Failed to format Bill Identifier') }}</td>
                                                 <td>{{ ($d = data_get($billProduct,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
                                                 <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($total) : __('Failed to format total') }}</td>
                                                 <td>-</td>
@@ -266,7 +266,7 @@
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
-                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? $user?->billNumberFormat($num) : __('No bill number available')) : __('Failed to format bill number') }}</td>
+                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? $user?->billNumberFormat($num) : __('No Bill Identifier available')) : __('Failed to format Bill Identifier') }}</td>
                                                 <td>{{ ($d = data_get($billData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
                                                 <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($price) : __('Failed to format amount') }}</td>
                                                 <td>-</td>
@@ -289,7 +289,7 @@
                                             <tr>
                                                 <td>{{ $accountLabel }}</td>
                                                 <td>{{ data_get($vendor,'name') ?: __('No vendor name available') }}</td>
-                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? ($user?->billNumberFormat($num).' '.__('Manually Payment')) : __('No bill number available')) : __('Failed to format bill number') }}</td>
+                                                <td>{{ ($num = data_get($bill,'bill_id')) ? ($isBillNumberFormatAvailable ? ($user?->billNumberFormat($num).' '.__('Manually Payment')) : __('No Bill Identifier available')) : __('Failed to format Bill Identifier') }}</td>
                                                 <td>{{ ($d = data_get($billPaymentData,'created_at')) ? $d->format('d-m-Y') : __('No transaction date available') }}</td>
                                                 <td>{{ $isPriceFormatAvailable ? $user?->priceFormat($amt) : __('Failed to format amount') }}</td>
                                                 <td>-</td>

@@ -40,14 +40,20 @@ class Tax extends Model
             $m->name = $name;
         }
         if ($isCreating || $m->isDirty('rate')) {
-            $raw = (string) $m->rate;
-            $normalized = str_replace(['.', ' '], ['', ''], $raw);
-            $normalized = str_replace(',', '.', $normalized);
+            $normalized = $m->rate;
+            if (gettype($m->rate) === 'string' && !is_numeric($m->rate)) {
+                $raw = (string) $m->rate;
+                $normalized = str_replace(['.', ' '], ['', ''], $raw);
+                $normalized = str_replace(',', '.', $normalized);
+                if (!is_numeric($normalized))
+                    throw new \InvalidArgumentException('A alíquota (rate) deve ser numérica.');
+                $m->rate = $normalized;
+            }
             if (!is_numeric($normalized))
                 throw new \InvalidArgumentException('A alíquota (rate) deve ser numérica.');
             $value = (float) $normalized;
             if ($value < 0 || $value > 100)
-                throw new \OutOfRangeException('A alíquota deve estar entre 0 e 100.');
+                throw new \OutOfRangeException('A alíquota deve estar entre 0 e 100, foi registrada como ' . $value . '.');
             $m->rate = number_format($value, 2, '.', '');
         }
     }

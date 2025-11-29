@@ -63,7 +63,16 @@ class ProjectsConstants
 	public const COL_APV_BY = 'approved_by';
 	public const COL_M_METRIC = 'main_metric';
 	public const COL_CRT = 'is_critical';
-
+	public const COL_EXT_DY = 'extensible_days';
+	public const COL_HLT_RL = 'is_health_related';
+	public const COL_SL_MIN_DD_PCT = 'salary_minimum_deduction_percent';
+	public const COL_SL_MAX_DD_PCT = 'salary_maximum_deduction_percent';
+	public const COL_APL_ON = 'applied_on';
+	public const COL_TT_LV_DY = 'total_leave_days';
+	public const COL_LV_RS = 'leave_reason';
+	public const COL_MIN_DR = 'minimum_duration';
+	public const COL_EXP_DR = 'expected_duration';
+	public const COL_MAX_DR = 'maximum_duration';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

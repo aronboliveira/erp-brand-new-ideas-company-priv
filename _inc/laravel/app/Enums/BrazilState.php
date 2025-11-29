@@ -32,9 +32,13 @@ enum BrazilState: string
 	case SE = 'SE';
 	case TO = 'TO';
 
-	public static function normalize(?string $value): ?self
+	public static function normalize(string|null|BrazilState $value): ?self
 	{
-		$v = strtoupper(trim((string) $value));
+		if ($value instanceof self)
+			return $value;
+		if ($value === null)
+			return null;
+		$v = strtoupper(trim($value));
 		if ($v === '')
 			return null;
 

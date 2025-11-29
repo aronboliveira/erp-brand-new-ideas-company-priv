@@ -6,22 +6,19 @@ use App\Config\Constants\{
     ChartsConstants as CHTC,
     DatabaseConstants as DC
 };
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{HasAuditFields, HasInheritedRules, NormalizesArrays, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
     Relations\BelongsTo
 };
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Illuminate\Support\{Arr, Str};
 
 class ChartOfAccountSubType extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields;
+    use HasFactory, HasAuditFields, HasInheritedRules, NormalizesArrays, UsesUuids;
 
-    public const TABLE = DC::TABLE_COA_SUBTYPES;
-
-    protected $table = self::TABLE;
+    protected $table = DC::TABLE_COA_SUBTYPES;
 
     protected $fillable = [
         CHTC::COL_CD,
@@ -34,7 +31,7 @@ class ChartOfAccountSubType extends Model
         CHTC::COL_VL_RL,
         CHTC::COL_RQ_APV,
         CHTC::COL_ALW_MNL_ENT,
-        'attributes',
+        'rules',
     ];
 
     protected $guarded = [
@@ -49,7 +46,7 @@ class ChartOfAccountSubType extends Model
         CHTC::COL_VL_RL        => 'array',
         CHTC::COL_RQ_APV       => 'boolean',
         CHTC::COL_ALW_MNL_ENT  => 'boolean',
-        'attributes'           => 'array',
+        'rules'           => 'array',
     ];
 
     protected $with = [
@@ -57,37 +54,37 @@ class ChartOfAccountSubType extends Model
         'createdBy',
     ];
 
-    protected $appends = [
-        'chart_type',
-    ];
-
     protected static function booted(): void
     {
         parent::booted();
-
+        static::creating(function ($model) {
+            if (empty($model->{CHTC::COL_DR_TP})) {
+                $model->{CHTC::COL_DR_TP} = [
+                    'type'   => 'line',
+                    'colors' => [
+                        'primary'   => '#3b82f6',
+                        'secondary' => '#93c5fd',
+                        'tertiary'  => '#bfdbfe',
+                    ],
+                    'options' => [],
+                ];
+            }
+        });
         static::saving(function (self $m): void {
-            foreach ([CHTC::COL_CD, CHTC::COL_NM, CHTC::COL_TP_NM] as $field) {
-                if (isset($m->{$field}) && is_string($m->{$field})) {
+            foreach ([CHTC::COL_CD, CHTC::COL_NM, CHTC::COL_TP_NM] as $field)
+                if (isset($m->{$field}) && is_string($m->{$field}))
                     $m->{$field} = trim($m->{$field});
-                }
-            }
-            if ($m->attributes === null)          $m->attributes = [];
-            elseif (!is_array($m->attributes))    $m->attributes = (array) $m->attributes;
-
-            foreach ([CHTC::COL_DR_TP, CHTC::COL_CC_RL, CHTC::COL_VL_RL] as $jsonField) {
-                if ($m->{$jsonField} !== null && !is_array($m->{$jsonField})) {
+            if ($m->rules === null)          $m->rules = [];
+            elseif (!is_array($m->rules))    $m->rules = (array) $m->rules;
+            foreach ([CHTC::COL_DR_TP, CHTC::COL_CC_RL, CHTC::COL_VL_RL] as $jsonField)
+                if ($m->{$jsonField} !== null && !is_array($m->{$jsonField}))
                     $m->{$jsonField} = (array) $m->{$jsonField};
-                }
-            }
-
             $m->{CHTC::COL_DR_TP} = static::normalizeDrawingConfig($m->{CHTC::COL_DR_TP} ?? []);
-
             if ($m->{CHTC::COL_TP}) {
                 /** @var \App\Models\ChartOfAccountType|null $type */
                 $type = $m->type()->first();
-                if ($type) {
+                if ($type)
                     static::applyTypeConstraints($m, $type);
-                }
             }
 
             if (empty($m->{CHTC::COL_CD})) {
@@ -107,33 +104,40 @@ class ChartOfAccountSubType extends Model
      * - Mescla atributos: os do tipo são baseline e podem ser sobrescritos localmente
      * - Injeta unidade/metadata de eixo do "type->units" como defaults em draw_type.options (se ausentes)
      */
+
     protected static function applyTypeConstraints(self $m, \App\Models\ChartOfAccountType $type): void
     {
         $m->{CHTC::COL_TP_NM} = (string) ($type->{CHTC::COL_NM} ?? $m->{CHTC::COL_TP_NM});
-
-        $typeAttrs = is_array($type->attributes) ? $type->attributes : [];
-        $m->attributes = array_replace_recursive($typeAttrs, $m->attributes ?? []);
-
-        $units    = is_array($type->units) ? $type->units : [];
-        $xUnit    = Arr::get($units, 'X.unit');
-        $xValues  = Arr::get($units, 'X.values', []);
-        $yUnit    = Arr::get($units, 'Y.unit');
-        $yValues  = Arr::get($units, 'Y.values', []);
-
-        $draw = $m->{CHTC::COL_DR_TP} ?? [];
+        $typeRules = NormalizesArrays::normalizeArrayField($type->rules ?? []);
+        $subRules  = NormalizesArrays::normalizeArrayField($m->rules ?? []);
+        $mergedRules = static::mergeRulesRecursively($typeRules, $subRules);
+        $m->rules = $mergedRules;
+        if (isset($mergedRules['description']) && is_array($mergedRules['description'])) {
+            $descCfg = $mergedRules['description'];
+            $maxLen  = $descCfg['max_length'] ?? null;
+            if (
+                is_numeric($maxLen)
+                && (int) $maxLen > 0
+                && is_string($m->description ?? null)
+            )
+                $m->description = mb_substr($m->description, 0, (int) $maxLen);
+        }
+        $units   = NormalizesArrays::normalizeArrayField($type->units ?? []);
+        $xUnit   = Arr::get($units, 'X.unit');
+        $xValues = Arr::get($units, 'X.values', []);
+        $yUnit   = Arr::get($units, 'Y.unit');
+        $yValues = Arr::get($units, 'Y.values', []);
+        $draw = is_array($m->{CHTC::COL_DR_TP} ?? null)
+            ? $m->{CHTC::COL_DR_TP}
+            : [];
+        $draw = static::normalizeDrawingConfig($draw);
         $opts = $draw['options'] ?? [];
-
         $opts['x_unit']   = $opts['x_unit']   ?? $xUnit;
         $opts['x_values'] = $opts['x_values'] ?? $xValues;
         $opts['y_unit']   = $opts['y_unit']   ?? $yUnit;
         $opts['y_values'] = $opts['y_values'] ?? $yValues;
-
-        $draw['options'] = $opts;
+        $draw['options']      = $opts;
         $m->{CHTC::COL_DR_TP} = $draw;
-
-        if (!isset($m->attributes['category']) && !empty($type->category)) {
-            $m->attributes['category'] = (string) $type->category;
-        }
     }
 
     protected static function normalizeDrawingConfig(array $cfg): array

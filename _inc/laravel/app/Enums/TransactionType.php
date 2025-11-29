@@ -11,9 +11,21 @@ enum TransactionType: string
 	case Pos = 'pos';
 	case Other = 'other';
 
-	public static function normalize(?string $value): ?self
+	public static function values(): array
 	{
-		if ($value === null) return null;
+		return [
+			self::Bill->value,
+			self::Invoice->value,
+			self::Pos->value,
+			self::Other->value,
+		];
+	}
+
+	public static function normalize(string|null|self $value): ?self
+	{
+		if ($value instanceof self)
+			return $value;
+		if ($value === null) return self::Other;
 
 		return match (strtolower(trim($value))) {
 			'bill', 'bills', 'billing' => self::Bill,

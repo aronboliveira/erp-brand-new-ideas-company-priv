@@ -76,8 +76,8 @@ final class ChartOfAccountSubTypeSeeder extends Seeder
 					],
 					CHTC::COL_RQ_APV        => $needApproval,
 					CHTC::COL_ALW_MNL_ENT   => $allowManual,
-					'attributes'            => [
-						'category' => (string) ($type->category ?? 'general'),
+					'rules'            => [
+						// 'category' => (string) ($type->category ?? 'general'),
 						'source'   => 'seeder',
 					],
 					DC::TABLE_CREATOR       => $systemUserId,

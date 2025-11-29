@@ -658,7 +658,7 @@
                                       </div>
                                       <div class="{{ VC::CM6 }}">
                                           <div class="form-group">
-                                              {{ Form::label('bill_number', __('Expense Number'), ['class' => VC::FM_LB]) }}
+                                              {{ Form::label('bill_id', __('Expense Number'), ['class' => VC::FM_LB]) }}
                                               <input type="text" class="{{ VC::FM_CT }}" value="{{ $expense_number }}" readonly>
                                           </div>
                                       </div>

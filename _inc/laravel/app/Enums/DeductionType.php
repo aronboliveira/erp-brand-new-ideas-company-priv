@@ -19,7 +19,7 @@ enum DeductionType: string
 	public static function normalize(null|string|BackedEnum $v): ?self
 	{
 		if ($v instanceof self) return $v;
-		if ($v === null) return null;
+		if ($v === null) return self::Other;
 		$k = strtolower(trim((string)$v));
 		return self::tryFrom($k);
 	}

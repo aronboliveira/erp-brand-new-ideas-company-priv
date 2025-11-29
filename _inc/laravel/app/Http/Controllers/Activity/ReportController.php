@@ -3504,9 +3504,9 @@ final class ReportController extends Controller
             'type'          => __('Monthly'),
             'dateYearRange' => '',
         ];
-        $q = Payslip::select('pay_slips.*', 'employees.' . UC::COL_NM)
-            ->leftJoin('employees', 'pay_slips.' . UC::COL_EMP_ID, '=', 'employees.id')
-            ->where('pay_slips.' . DC::TABLE_CREATOR, $creatorId);
+        $q = Payslip::select('payslips.*', 'employees.' . UC::COL_NM)
+            ->leftJoin('employees', 'payslips.' . UC::COL_EMP_ID, '=', 'employees.id')
+            ->where('payslips.' . DC::TABLE_CREATOR, $creatorId);
         if (($t = $request->type) === 'monthly' && $request->month) {
             $q->where('salary_month', $request->month);
             $filterYear['dateYearRange'] = date('M-Y', strtotime($request->month));

@@ -16,19 +16,84 @@ enum PaymentMethod: string
 	case Cash         = 'cash';
 	case Other        = 'other';
 
+	public static function normalize(?string $value): self
+	{
+		if ($value === null)
+			return self::Other;
+		$v = strtolower(trim($value));
+		foreach (self::cases() as $case)
+			if ($case->value === $v)
+				return $case;
+		$map = [
+			// Bank Transfer
+			'bank_transfer' => self::BankTransfer,
+			'bank'          => self::BankTransfer,
+			'transfer'      => self::BankTransfer,
+			'bank transfer' => self::BankTransfer,
+
+			// Pix
+			'pix'           => self::Pix,
+
+			// TED
+			'ted'           => self::Ted,
+
+			// DOC
+			'doc'           => self::Doc,
+
+			// Wire Transfer
+			'wire_transfer' => self::WireTransfer,
+			'wire'          => self::WireTransfer,
+			'wire transfer' => self::WireTransfer,
+			'electronic'    => self::WireTransfer,
+
+			// Card Debit
+			'card_debit'    => self::CardDebit,
+			'debit'         => self::CardDebit,
+			'debit card'    => self::CardDebit,
+			'cartao debito' => self::CardDebit,
+			'cartão débito' => self::CardDebit,
+
+			// Card Credit
+			'card_credit'   => self::CardCredit,
+			'credit'        => self::CardCredit,
+			'credit card'   => self::CardCredit,
+			'cartao credito' => self::CardCredit,
+			'cartão crédito' => self::CardCredit,
+
+			// Cash
+			'cash'          => self::Cash,
+			'dinheiro'      => self::Cash,
+			'money'         => self::Cash,
+			'efectivo'      => self::Cash,
+			'especie'       => self::Cash,
+
+			// Other
+			'other'         => self::Other,
+			'outro'         => self::Other,
+			'otro'          => self::Other,
+		];
+
+		return $map[$v] ?? self::Other;
+	}
+
 	public static function values(): array
 	{
-		return [
-			self::BankTransfer->value,
-			self::Pix->value,
-			self::Ted->value,
-			self::Doc->value,
-			self::WireTransfer->value,
-			self::CardDebit->value,
-			self::CardCredit->value,
-			self::Cash->value,
-			self::Other->value,
-		];
+		return array_map(fn($case) => $case->value, self::cases());
+	}
+
+	public function label(): string
+	{
+		return match ($this) {
+			self::BankTransfer => 'Bank Transfer',
+			self::Pix          => 'Pix',
+			self::Ted          => 'TED',
+			self::Doc          => 'DOC',
+			self::WireTransfer => 'Wire Transfer',
+			self::CardDebit    => 'Card Debit',
+			self::CardCredit   => 'Card Credit',
+			self::Cash         => 'Cash',
+			self::Other        => 'Other',
+		};
 	}
 
 	public static function labels($lang = DatabaseConstants::DEFAULT_LANG): array
@@ -51,19 +116,9 @@ enum PaymentMethod: string
 			'zh', 'zh-cn' => self::labelsZh(),
 			default => self::labelsEn(),
 		};
-		return [
-			self::BankTransfer->value => 'Bank Transfer',
-			self::Pix->value          => 'Pix',
-			self::Ted->value          => 'TED',
-			self::Doc->value          => 'DOC',
-			self::WireTransfer->value => 'Wire Transfer',
-			self::CardDebit->value    => 'Card Debit',
-			self::CardCredit->value   => 'Card Credit',
-			self::Cash->value         => 'Cash',
-			self::Other->value        => 'Other',
-		];
 	}
-	public function labelsPtBr(): array
+
+	public static function labelsPtBr(): array
 	{
 		return [
 			self::BankTransfer->value => 'Transferência Bancária',
@@ -77,7 +132,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Outro',
 		];
 	}
-	public function labelsEn(): array
+
+	public static function labelsEn(): array
 	{
 		return [
 			self::BankTransfer->value => 'Bank Transfer',
@@ -91,7 +147,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Other',
 		];
 	}
-	public function labelsEs(): array
+
+	public static function labelsEs(): array
 	{
 		return [
 			self::BankTransfer->value => 'Transferencia Bancaria',
@@ -105,7 +162,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Otro',
 		];
 	}
-	public function labelsAr(): array
+
+	public static function labelsAr(): array
 	{
 		return [
 			self::BankTransfer->value => 'التحويل المصرفي',
@@ -119,7 +177,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'آخر',
 		];
 	}
-	public function labelsDa(): array
+
+	public static function labelsDa(): array
 	{
 		return [
 			self::BankTransfer->value => 'Bankoverførsel',
@@ -133,7 +192,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Andet',
 		];
 	}
-	public function labelsDe(): array
+
+	public static function labelsDe(): array
 	{
 		return [
 			self::BankTransfer->value => 'Banküberweisung',
@@ -147,7 +207,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Andere',
 		];
 	}
-	public function labelsFr(): array
+
+	public static function labelsFr(): array
 	{
 		return [
 			self::BankTransfer->value => 'Virement Bancaire',
@@ -161,7 +222,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Autre',
 		];
 	}
-	public function labelsHe(): array
+
+	public static function labelsHe(): array
 	{
 		return [
 			self::BankTransfer->value => 'העברה בנקאית',
@@ -175,7 +237,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'אחר',
 		];
 	}
-	public function labelsIt(): array
+
+	public static function labelsIt(): array
 	{
 		return [
 			self::BankTransfer->value => 'Bonifico Bancario',
@@ -189,7 +252,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Altro',
 		];
 	}
-	public function labelsJa(): array
+
+	public static function labelsJa(): array
 	{
 		return [
 			self::BankTransfer->value => '銀行振込',
@@ -203,7 +267,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'その他',
 		];
 	}
-	public function labelsNl(): array
+
+	public static function labelsNl(): array
 	{
 		return [
 			self::BankTransfer->value => 'Bankoverschrijving',
@@ -217,7 +282,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Anders',
 		];
 	}
-	public function labelsPl(): array
+
+	public static function labelsPl(): array
 	{
 		return [
 			self::BankTransfer->value => 'Przelew Bankowy',
@@ -231,7 +297,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Inne',
 		];
 	}
-	public function labelsRu(): array
+
+	public static function labelsRu(): array
 	{
 		return [
 			self::BankTransfer->value => 'Банковский перевод',
@@ -245,7 +312,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Другое',
 		];
 	}
-	public function labelsTr(): array
+
+	public static function labelsTr(): array
 	{
 		return [
 			self::BankTransfer->value => 'Banka Havalesi',
@@ -259,7 +327,8 @@ enum PaymentMethod: string
 			self::Other->value        => 'Diğer',
 		];
 	}
-	public function labelsZh(): array
+
+	public static function labelsZh(): array
 	{
 		return [
 			self::BankTransfer->value => '银行转账',
@@ -272,5 +341,48 @@ enum PaymentMethod: string
 			self::Cash->value         => '现金',
 			self::Other->value        => '其他',
 		];
+	}
+
+	// Helper methods for business logic
+	public function isCard(): bool
+	{
+		return match ($this) {
+			self::CardDebit, self::CardCredit => true,
+			default => false,
+		};
+	}
+
+	public function isBankTransfer(): bool
+	{
+		return match ($this) {
+			self::BankTransfer, self::Pix, self::Ted, self::Doc, self::WireTransfer => true,
+			default => false,
+		};
+	}
+
+	public function isInstant(): bool
+	{
+		return match ($this) {
+			self::Pix, self::Cash => true,
+			default => false,
+		};
+	}
+
+	public function requiresProcessing(): bool
+	{
+		return match ($this) {
+			self::BankTransfer, self::Ted, self::Doc, self::WireTransfer, self::CardDebit, self::CardCredit => true,
+			default => false,
+		};
+	}
+
+	public function getCategory(): string
+	{
+		return match ($this) {
+			self::CardDebit, self::CardCredit => 'card',
+			self::BankTransfer, self::Pix, self::Ted, self::Doc, self::WireTransfer => 'bank',
+			self::Cash => 'cash',
+			self::Other => 'other',
+		};
 	}
 }

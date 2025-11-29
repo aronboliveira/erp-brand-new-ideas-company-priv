@@ -59,6 +59,8 @@ class BillsConstants
 	public const COL_BL_ST = 'bill_state';
 	public const COL_BL_CTR = 'bill_country';
 	public const COL_BL_DTL = 'bill_details';
+	public const COL_BL_ID = 'bill_id';
+	public const COL_BL_DT = 'bill_date';
 	public const COL_SHIP_NAME = 'shipping_name';
 	public const COL_SHIP_EMAIL = 'shipping_email';
 	public const COL_SHIP_ADR = 'shipping_address';
@@ -68,8 +70,10 @@ class BillsConstants
 	public const COL_SHIP_ST = 'shipping_state';
 	public const COL_SHIP_CTR = 'shipping_country';
 	public const COL_SHIP_DTL = 'shipping_details';
+	public const COL_SHIP_DSP = 'shipping_display';
 	public const COL_CST_ID = 'customer_id';
 	public const COL_OT_TX_ID = 'other_taxes_ids';
+	public const COL_OT_TX = 'other_taxes';
 	public const COL_OD_C = 'order_counter';
 	public const COL_IS_PRM = 'is_premium';
 	public const COL_AUTORCC = 'autoreconcile';
@@ -79,6 +83,7 @@ class BillsConstants
 	public const COL_SYNC_ER = 'sync_errors';
 	public const COL_PAY_MTD = 'payment_method';
 	public const COL_PAY_STT = 'payment_status';
+	public const COL_STT_LB = 'status_label';
 	public const COL_PAY_MTD_LB = 'payment_method_label';
 	public const COL_ACC_FROM = 'from_account';
 	public const COL_ACC_TO = 'to_account';
@@ -128,6 +133,30 @@ class BillsConstants
 	public const COL_PIX_KEY = 'pix_key';
 	public const COL_INV_ID = 'invoice_id';
 	public const COL_RCP_MD = 'receipt_metadata';
+	public const COL_SD_DT = 'send_date';
+	public const COL_DSC_APL = 'discount_apply';
+	public const COL_PRD_ID = 'product_id';
+	public const COL_POS_ID = 'pos_id';
+	public const COL_POS_DT = 'pos_date';
+	public const COL_WRH_ID = 'warehouse_id';
+	public const COL_IO = 'is_online';
+	public const COL_ACP_CRD = 'accepts_credit_cards';
+	public const COL_ACP_DBT = 'accepts_debit_cards';
+	public const COL_ACP_PIX = 'accepts_pix';
+	public const COL_ACP_CSH = 'accepts_cash';
+	public const COL_ACP_FLG = 'accepted_flags';
+	public const COL_PIX_QR = 'pix_qr_code';
+	public const COL_DVC_SR = 'device_serial_number';
+	public const COL_DVC_MD = 'device_model';
+	public const COL_OPS_SYS = 'operating_system';
+	public const COL_MAC_ADR = 'mac_address';
+	public const COL_IP_ADR = 'ip_address';
+	public const COL_LST_TRS = 'last_transaction_at';
+	public const COL_TRS_CNT = 'transactions_count';
+	public const COL_ACC_TTL = 'accumulated_total';
+	public const COL_BACC_ID = 'account_id';
+	public const COL_DSC_AMT = 'discount_amount';
+	public const COL_ADD_RCP = 'add_receipt';
 
 	// * VALORES
 

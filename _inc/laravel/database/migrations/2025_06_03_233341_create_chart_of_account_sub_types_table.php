@@ -22,30 +22,20 @@ class CreateChartOfAccountSubTypesTable extends Migration
             $table->uuid('id')->primary();
             $table->string(CHTC::COL_CD)->unique()->index()->nullable();
             $table->string(CHTC::COL_NM)->nullable();
-            $table->text('description')->nullable();
             $table->uuid(CHTC::COL_TP)->index();
             $table->string(CHTC::COL_TP_NM);
-            $table->json(CHTC::COL_DR_TP)
-                ->default(json_encode([
-                    'type'   => 'line',
-                    'colors' => [
-                        'primary'   => '#3b82f6',
-                        'secondary' => '#93c5fd',
-                        'tertiary'  => '#bfdbfe',
-                    ],
-                    'options' => [],
-                ]))
-                ->nullable();
+            $table->text('description')->nullable();
+            $table->json(CHTC::COL_DR_TP)->nullable();
             $table->json(CHTC::COL_CC_RL)->nullable();
             $table->json(CHTC::COL_VL_RL)->nullable();
             $table->boolean(CHTC::COL_RQ_APV)->default(false)->nullable()->index();
             $table->boolean(CHTC::COL_ALW_MNL_ENT)->default(true)->nullable()->index();
-            $table->json('attributes')->nullable();
+            $table->json('rules')->nullable();
             $this->addAuditColumns($table);
             $table->foreign(CHTC::COL_TP)
                 ->references('id')
                 ->on(DC::TABLE_COA_TYPES)
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
         });
     }
 

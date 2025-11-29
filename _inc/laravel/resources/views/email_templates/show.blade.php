@@ -294,7 +294,7 @@
                                                             <p class="col-4">{{ __('Vendor Name') }} : <span class="pull-right text-primary">{vendor_name}</span></p>
                                                             <p class="col-4">{{ __('Vendor Email') }} : <span class="pull-right text-primary">{vendor_email}</span></p>
                                                             <p class="col-4">{{ __('Bill Name') }} : <span class="pull-right text-primary">{bill_name}</span></p>
-                                                            <p class="col-4">{{ __('Bill Number') }} : <span class="pull-right text-primary">{bill_number}</span></p>
+                                                            <p class="col-4">{{ __('Bill Identifier') }} : <span class="pull-right text-primary">{bill_id}</span></p>
                                                             <p class="col-4">{{ __('Bill Url') }} : <span class="pull-right text-primary">{bill_url}</span></p>
                                                         </div>
                                                     @elseif($emailTemplate->slug=='proposal_sent')
@@ -401,7 +401,7 @@
                                                             <p class="col-4">{{ __('Company Name') }} : <span class="pull-right text-primary">{company_name}</span></p>
                                                             <p class="col-4">{{ __('App Url') }} : <span class="pull-right text-primary">{app_url}</span></p>
                                                             <p class="col-4">{{ __('Vendor Name') }} : <span class="pull-right text-primary">{vendor_bill_name}</span></p>
-                                                            <p class="col-4">{{ __('Bill Number') }} : <span class="pull-right text-primary">{vendor_bill_number}</span></p>
+                                                            <p class="col-4">{{ __('Bill Identifier') }} : <span class="pull-right text-primary">{vendor_bill_id}</span></p>
                                                             <p class="col-4">{{ __('Bill Url') }} : <span class="pull-right text-primary">{vendor_bill_url}</span></p>
                                                         </div>
                                                     @elseif($emailTemplate->slug=='warning_sent')

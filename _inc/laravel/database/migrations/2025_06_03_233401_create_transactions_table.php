@@ -15,8 +15,8 @@ class CreateTransactionsTable extends Migration
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->uuid('account')->index();
-                $table->uuid(UC::COL_USER_ID)->index();
+                $table->uuid('account')->nullable()->index();
+                $table->uuid(UC::COL_USER_ID)->nullable()->index();
                 $table->string(UC::COL_U_TP);
                 $table->enum(BC::COL_PAY_TP, [TransactionType::Bill->value, TransactionType::Invoice->value, TransactionType::Pos->value, TransactionType::Other->value])->default(TransactionType::Other->value)->index()->nullable();
                 $table->uuid(BC::COL_PAY_ID)->index()->nullable(); // ? Referes to a bill payment OR an invoice payment OR a POS payment
@@ -36,6 +36,7 @@ class CreateTransactionsTable extends Migration
                         ->references('id')
                         ->on($referencedTable)
                         ->nullOnDelete();
+                $table->softDeletes();
                 $this->addAuditColumns($table);
             });
     }

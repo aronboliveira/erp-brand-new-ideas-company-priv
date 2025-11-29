@@ -31,7 +31,7 @@ class ChartOfAccount extends Model
         CHTC::INIT_BL,
         CHTC::EXP_NXT_MN_BL,
         'currency_id',
-        'attributes',
+        'rules',
         'restrictions',
         UC::COL_RSP_ID,
         UC::COL_PD_UPD,
@@ -56,7 +56,7 @@ class ChartOfAccount extends Model
         CHTC::INIT_BL       => 'decimal:6',
         CHTC::EXP_NXT_MN_BL => 'decimal:6',
         'currency_id'       => 'string',
-        'attributes'        => 'array',
+        'rules'        => 'array',
         'restrictions'      => 'array',
         UC::COL_RSP_ID      => 'string',
         UC::COL_PD_UPD      => 'boolean',
@@ -97,14 +97,14 @@ class ChartOfAccount extends Model
             throw new \InvalidArgumentException('Chart of account must have both type and subtype defined.');
 
         $type = ChartOfAccountType::query()->find($typeId);
-        if (!$type)
+        if ($typeId && !$type)
             throw new \RuntimeException("Invalid chart of account type: {$typeId}");
 
         $subType = ChartOfAccountSubType::query()->find($subTypeId);
-        if (!$subType)
+        if ($subTypeId && !$subType)
             throw new \RuntimeException("Invalid chart of account subtype: {$subTypeId}");
 
-        if ($subType->{CHTC::COL_TP} !== $type->id)
+        if ($typeId && $subTypeId && $subType->{CHTC::COL_TP} !== $type->id)
             throw new \RuntimeException('Chart of account subtype does not belong to the provided type.');
 
         $typeCalcRules = self::decodeRules($type->{CHTC::COL_CC_RL} ?? null);
@@ -186,7 +186,7 @@ class ChartOfAccount extends Model
         if ($coa->currency_id)
             $coa->currency_id = strtoupper(substr($coa->currency_id, 0, 3));
 
-        foreach (['attributes', 'restrictions'] as $jsonField) {
+        foreach (['rules', 'restrictions'] as $jsonField) {
             if ($coa->{$jsonField} === null)
                 $coa->{$jsonField} = [];
             elseif (!is_array($coa->{$jsonField}))
@@ -205,7 +205,7 @@ class ChartOfAccount extends Model
             $coa->{UC::COL_RSP_ID} = $coa->{UC::COL_USER_ID};
 
         if ($coa->isDirty([
-            'attributes',
+            'rules',
             'restrictions',
             CHTC::CUR_BL,
             CHTC::EXP_NXT_MN_BL,

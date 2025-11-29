@@ -54,7 +54,7 @@ class WarehouseController extends Controller
                     'name'     => 'required|string|max:255',
                     'address'  => 'nullable|string',
                     'city'     => 'nullable|string',
-                    'city_zip' => 'nullable|string',
+                    'zip' => 'nullable|string',
                 ]);
 
                 DB::transaction(function () use ($data, $request) {
@@ -133,7 +133,7 @@ class WarehouseController extends Controller
                     'name'     => 'required|string|max:255',
                     'address'  => 'nullable|string',
                     'city'     => 'nullable|string',
-                    'city_zip' => 'nullable|string',
+                    'zip' => 'nullable|string',
                 ]);
 
                 DB::transaction(function () use ($data, $warehouse) {

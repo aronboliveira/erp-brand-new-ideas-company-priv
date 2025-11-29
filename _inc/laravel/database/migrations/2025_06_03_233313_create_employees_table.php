@@ -49,7 +49,7 @@ class CreateEmployeesTable extends Migration
                     UC::COL_DSG_ID     => DC::TABLE_DESIGNS,
                     CPC::COL_DEP_ID    => DC::TABLE_DEPARTMENTS,
                     UC::COL_TAX_ID     => DC::TABLE_TAXES,
-                    UC::COL_SLR_TP     => DC::TABLE_PAY_SLP,
+                    UC::COL_SLR_TP     => DC::TABLE_PAY_SLP_TP,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)

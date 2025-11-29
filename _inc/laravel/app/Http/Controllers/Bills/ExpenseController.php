@@ -206,8 +206,8 @@ final class ExpenseController extends Controller
                     'status' => 4,
                     'type' => 'Expense',
                     'user_type' => $request->type,
-                    'category_id' => $request->category_id ?? 0,
-                    'order_number' => 0,
+                    'category_id' => $request->category_id ?? '0',
+                    'order_id' => '0',
                     DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId(),
                 ]);
                 $bill->save();

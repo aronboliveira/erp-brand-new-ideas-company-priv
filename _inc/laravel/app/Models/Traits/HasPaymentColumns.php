@@ -3,6 +3,8 @@
 namespace App\Traits;
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, SettingsConstants as SC};
+use App\Enums\PaymentMethod;
+use App\Enums\TransferType;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\{Log, Schema};
 
@@ -11,9 +13,9 @@ trait HasPaymentColumns
 	protected function addPaymentColumns(Blueprint $table, $nullableReconcile = true): void
 	{
 		$table->string(BC::COL_CUR_ID, 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? nullable for testing purposes
-		$table->unsignedDecimal('amount', 15, 2)->default(0.00); // * it is not clear yet if this is the gross or net amount, so keeping it as is from the old implementation
-		$table->unsignedDecimal(BC::COL_SVC_FEE, 15, 2)->default(0.00)->nullable(); // ? nullable for testing purposes
-		$table->unsignedDecimal(BC::COL_TXS_FEE, 15, 2)->default(0.00)->nullable(); // ? nullable for testing purposes
+		$table->unsignedDecimal('amount', 16, 2)->default(0.00); // * it is not clear yet if this is the gross or net amount, so keeping it as is from the old implementation
+		$table->unsignedDecimal(BC::COL_SVC_FEE, 16, 2)->default(0.00)->nullable(); // ? nullable for testing purposes
+		$table->unsignedDecimal(BC::COL_TXS_FEE, 16, 2)->default(0.00)->nullable(); // ? nullable for testing purposes
 
 		// ? a transfer can be scheduled for a future date
 		$table->boolean(BC::COL_IS_SCD)->default(false)->nullable(); // ? nullable for testing purposes
@@ -21,25 +23,12 @@ trait HasPaymentColumns
 
 		// * Requisitos do BACEN para empresas de larga escala
 		$table->string(BC::COL_PPS_CD)->index()->default('300')->nullable(); // ? nullable for testing purposes
-		$table->enum(BC::COL_TRF_TP, [
-			'salary',
-			BC::VL_SPL_PAY,
-			BC::VL_TAX_PAY,
-			BC::VL_LN_PAY,
-			'investment',
-			'withdrawal',
-			'internal',
-			'rent',
-			'service',
-			'purchase',
-			'refund',
-			'other'
-		])->default('other')->nullable(); // ? nullable for testing purposes
+		$table->enum(BC::COL_TRF_TP, TransferType::values())->default(TransferType::Other)->nullable(); // ? nullable for testing purposes
 		$table->text(BC::COL_PPS_DS)->nullable();
 
 		$table->json(BC::COL_TXS_LST)->nullable(); // ? nullable for testing purposes
 		$table->unsignedTinyInteger(BC::COL_PAY_MTD)->default(0); // * this is not clear in the old implementation, so it will be kept for now for compatibility, so just randomize it on seeders between 0 and 1
-		$table->enum(BC::COL_PAY_MTD_LB, ['debit', 'credit', 'pix', 'ted', 'doc', BC::VL_WR_TRF, 'other'])->default('other')->nullable(); // ? nullable for testing purposes
+		$table->enum(BC::COL_PAY_MTD_LB, PaymentMethod::values())->default(PaymentMethod::Other)->nullable(); // ? nullable for testing purposes
 		$table->unsignedSmallInteger(BC::COL_N_INTR)->default(1)->nullable(); // ? nullable for testing purposes
 		$table->unsignedSmallInteger(BC::COL_CURR_N_INTR)->default(1)->nullable(); // ? nullable for testing purposes
 

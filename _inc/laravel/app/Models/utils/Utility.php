@@ -1088,7 +1088,7 @@ class Utility extends Model
             '{vendor_name}',
             '{vendor_email}',
             '{bill_name}',
-            '{bill_number}',
+            '{bill_id}',
             '{bill_url}',
             '{proposal_name}',
             '{proposal_number}',
@@ -1133,7 +1133,7 @@ class Utility extends Model
             '{place_of_visit}',
             '{trip_description}',
             '{vendor_bill_name}',
-            '{vendor_bill_number}',
+            '{vendor_bill_id}',
             '{vendor_bill_url}',
             '{employee_warning_name}',
             '{warning_subject}',
@@ -1224,7 +1224,7 @@ class Utility extends Model
             'vendor_name' => '-',
             'vendor_email' => '-',
             'bill_name' => '-',
-            'bill_number' => '-',
+            'bill_id' => '-',
             'bill_url' => '-',
             'proposal_name' => '-',
             'proposal_number' => '-',
@@ -1269,7 +1269,7 @@ class Utility extends Model
             'place_of_visit' => '-',
             'trip_description' => '-',
             'vendor_bill_name' => '-',
-            'vendor_bill_number' => '-',
+            'vendor_bill_id' => '-',
             'vendor_bill_url' => '-',
             'employee_warning_name' => '-',
             'warning_subject' => '-',
@@ -2829,7 +2829,7 @@ class Utility extends Model
         return $snippet;
     }
 
-    public static function languageCreate(string $createdBy): void
+    public static function languageCreate(?string $createdBy = DB::DEFAULT_UUID): void
     {
         foreach (self::langList() as $code => $fullName) {
             try {

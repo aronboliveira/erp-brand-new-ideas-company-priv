@@ -351,13 +351,13 @@
                         try {
                             return isset($user) && method_exists($user, 'billNumberFormat')
                                 ? $user->billNumberFormat($value ?? null)
-                                : $asString($value, 'bill number');
+                                : $asString($value, 'Bill Identifier');
                         } catch (\Throwable $e) {
                             Log::error('billNumberFormat error', [
                                 'file' => __FILE__, 'line' => __LINE__, 'class' => $e::class,
                                 'message' => $e->getMessage(),
                             ]);
-                            return __('Failed to get bill number');
+                            return __('Failed to get Bill Identifier');
                         }
                     };
                     $invoiceStatusClasses ??= [

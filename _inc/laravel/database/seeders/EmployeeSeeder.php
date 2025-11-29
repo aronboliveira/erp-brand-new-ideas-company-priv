@@ -118,7 +118,8 @@ final class EmployeeSeeder extends Seeder
 				$emp->notes                  = $faker->optional()->sentence();
 				$emp->password               = \Illuminate\Support\Str::password(); // cast hashed
 				$emp->address                = $faker->optional()->address();
-				$emp->dob                    = $faker->optional()->dateTimeBetween('-60 years', '-18 years')->format('Y-m-d');
+				$dob = $faker->dateTimeBetween('-60 years', '-18 years');
+				$emp->dob = $faker->boolean(80) ? $dob->format('Y-m-d') : null;
 				$emp->{CPC::COL_BRC_ID}      = $branchId;
 				$emp->{CPC::COL_DEP_ID}      = $deptId;
 				$emp->{UC::COL_DSG_ID}       = $dsgId;

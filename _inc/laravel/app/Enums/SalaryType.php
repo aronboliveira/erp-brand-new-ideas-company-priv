@@ -12,9 +12,11 @@ enum SalaryType: string
 	case Freelancer = 'freelancer';
 	case Other      = 'other';
 
-	public static function normalize(?string $v): ?self
+	public static function normalize(string|null|self $v): ?self
 	{
-		if ($v === null) return null;
+		if ($v instanceof self)
+			return $v;
+		if ($v === null) return self::Other;
 		$v = strtolower(trim($v));
 		return match ($v) {
 			'clt', 'consolidação das leis do trabalho', 'consolidation of labor laws' => self::CLT,

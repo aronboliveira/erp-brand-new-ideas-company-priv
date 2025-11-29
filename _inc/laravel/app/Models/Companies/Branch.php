@@ -53,8 +53,11 @@ class Branch extends Model
         return end($departments) ?: null;
     }
 
-    public function setDepartmentsAttribute(array $values): void
+    public function setDepartmentsAttribute(array|string $values): void
     {
-        $this->attributes['departments'] = implode(',', $values);
+        if (is_array($values))
+            $this->attributes['departments'] = implode(',', $values);
+        else
+            $this->attributes['departments'] = $values;
     }
 }

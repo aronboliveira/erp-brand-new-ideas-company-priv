@@ -45,7 +45,7 @@ class CreateOrdersTable extends Migration
             $table->uuid(BC::COL_PSLP_ID)->index()->nullable();
 
             $table->enum(BC::COL_PAY_STT, PaymentStatus::values())->default(PaymentStatus::Undefined->value)->index()->nullable(); // * model should ensure valid transitions between statuses
-            $table->enum(BC::COL_PAY_TP, PaymentMethod::values())->default(PaymentMethod::Manually->value)->index();
+            $table->enum(BC::COL_PAY_TP, PaymentMethod::values())->default(PaymentMethod::Other->value)->index();
             $table->longText('receipt')->nullable(); // * not clear for now, so kept for legacy purposes
             $table->json(BC::COL_RCP_MD)->nullable(); // * saving all useful receipt data here
             $table->foreign(UC::COL_PLAN_ID)

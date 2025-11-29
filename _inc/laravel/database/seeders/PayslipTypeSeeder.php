@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-final class PayslipTypeSeeder extends Seeder
+class PayslipTypeSeeder extends Seeder
 {
 	use EnsuresSystemUser;
 

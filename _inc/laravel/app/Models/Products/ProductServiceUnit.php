@@ -11,6 +11,7 @@ use App\Config\Constants\{
 use App\Enums\ProductStatus;
 use App\Traits\{
     HasAuditFields,
+    NormalizesArrays,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -24,11 +25,9 @@ use Illuminate\Support\Str;
 
 class ProductServiceUnit extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields, SoftDeletes;
+    use HasAuditFields, HasFactory, NormalizesArrays, SoftDeletes, UsesUuids;
 
-    public const TABLE = DC::TABLE_PROD_SERV_UNITS;
-
-    protected $table = self::TABLE;
+    protected $table = DC::TABLE_PROD_SERV_UNITS;
 
     protected $fillable = [
         'product_service_id',
@@ -133,19 +132,6 @@ class ProductServiceUnit extends Model
             if ($m->{BC::COL_CUR_ID})
                 $m->{BC::COL_CUR_ID} = strtoupper(substr((string) $m->{BC::COL_CUR_ID}, 0, 3));
         });
-    }
-
-    protected static function normalizeArrayField(mixed $value): array
-    {
-        if ($value === null)
-            return [];
-
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return is_array($value) ? $value : (array) $value;
     }
 
     protected static function buildUnitName(string $baseName, string $currentName): string

@@ -97,7 +97,7 @@
                                         <td>{{ (string) (data_get($warehouse,'name') ?: __('No name available')) }}</td>
                                         <td>{{ (string) (data_get($warehouse,'address') ?: __('No address available')) }}</td>
                                         <td>{{ (string) (data_get($warehouse,'city') ?: __('No city available')) }}</td>
-                                        <td>{{ (string) (data_get($warehouse,'city_zip') ?: __('No zip code available')) }}</td>
+                                        <td>{{ (string) (data_get($warehouse,'zip') ?: __('No zip code available')) }}</td>
 
                                         @if(Gate::check('show warehouse') || Gate::check('edit warehouse') || Gate::check('delete warehouse'))
                                             <td class="Action">

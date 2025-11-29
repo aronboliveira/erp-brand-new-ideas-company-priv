@@ -23,7 +23,7 @@ class CreateAnnouncementsTable extends Migration
             $table->text('description')->nullable();
             $table->boolean(UC::COL_IA)->default(true)->index()->nullable(); // ? nullable for tests
             $table->boolean(UC::COL_IS_RD)->default(true)->index()->nullable(); // ? nullable for tests
-            $table->date(PJC::COL_PLN_ST)->default()->nullable(); // ? nullable for tests, when the job is planned to start
+            $table->date(PJC::COL_PLN_ST)->default(now()->format('Y-m-d'))->nullable(); // ? nullable for tests, when the job is planned to start
             $table->json('requirements')->nullable();
             $table->json('tags')->nullable();
             $table->json('steps')->nullable();

@@ -11,6 +11,7 @@ use App\Enums\ConsumableType;
 use App\Traits\{
     ChecksLogin,
     HasAuditFields,
+    NormalizesArrays,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -24,7 +25,7 @@ use Illuminate\Http\RedirectResponse;
 
 class ProductServiceCategory extends Model
 {
-    use ChecksLogin, UsesUuids, HasAuditFields;
+    use ChecksLogin, HasAuditFields, NormalizesArrays, UsesUuids;
 
     public const TABLE = DC::TABLE_PROD_SERV_CATS;
 
@@ -137,19 +138,6 @@ class ProductServiceCategory extends Model
             $int = 9;
 
         return $int;
-    }
-
-    protected static function normalizeArrayField(mixed $value): array
-    {
-        if ($value === null)
-            return [];
-
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return is_array($value) ? $value : (array) $value;
     }
 
     protected static function normalizeAndFilterRelatedCategories(mixed $value): array

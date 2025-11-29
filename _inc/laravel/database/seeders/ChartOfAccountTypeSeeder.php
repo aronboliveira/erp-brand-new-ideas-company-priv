@@ -46,7 +46,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Receita Mensal',
 					'category'   => 'finance',
 					'description' => 'Total de receitas por mês.',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 2,
 						'palette'    => 'emerald',
 						'y_format'   => 'currency',
@@ -62,7 +62,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Despesas Mensais',
 					'category'   => 'finance',
 					'description' => 'Despesas operacionais por mês.',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 2,
 						'palette'    => 'rose',
 						'y_format'   => 'currency',
@@ -78,7 +78,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Lucro Mensal',
 					'category'   => 'finance',
 					'description' => 'Lucro estimado (receita – despesa).',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 2,
 						'palette'    => 'indigo',
 						'y_format'   => 'currency',
@@ -94,7 +94,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Saldo de Caixa',
 					'category'   => 'finance',
 					'description' => 'Saldo de caixa/contas ao fim de cada mês.',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 2,
 						'palette'    => 'sky',
 						'y_format'   => 'currency',
@@ -110,7 +110,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Headcount Mensal',
 					'category'   => 'operations',
 					'description' => 'Quantidade de colaboradores ativos ao final do mês.',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 0,
 						'palette'    => 'amber',
 						'y_format'   => 'integer',
@@ -126,7 +126,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Chamados (Mensal)',
 					'category'   => 'support',
 					'description' => 'Volume de chamados recebidos por mês.',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 0,
 						'palette'    => 'violet',
 						'y_format'   => 'integer',
@@ -142,7 +142,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Uptime Mensal',
 					'category'   => 'operations',
 					'description' => 'Percentual de disponibilidade por mês.',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 2,
 						'palette'    => 'emerald',
 						'y_format'   => 'percentage',
@@ -158,7 +158,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 					CHTC::COL_NM => 'Aging de Recebíveis',
 					'category'   => 'finance',
 					'description' => 'Distribuição de contas a receber por faixa de atraso.',
-					'attributes' => [
+					'rules' => [
 						'decimals'   => 2,
 						'palette'    => 'cyan',
 						'y_format'   => 'currency',

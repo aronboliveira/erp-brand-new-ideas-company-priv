@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Utility;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\{Artisan, Log, Route};
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,10 +15,18 @@ class DatabaseSeeder extends Seeder
         $this->call(NotificationSeeder::class);
         Artisan::call('module:migrate ' . self::LP);
         Artisan::call('module:seed ' . self::LP);
+        $output = new ConsoleOutput();
+        $startTime = microtime(true);
         if ($this->shouldSeedStandardTables()) {
+            $output->writeln('<info>Starting at ' . date('Y-m-d H:i:s') . '</info>');
             foreach ([UsersTableSeeder::class, PlansTableSeeder::class, AiTemplateSeeder::class] as $seeder)
                 $this->call($seeder);
             $this->runMocks();
+            $finishedIn = round(microtime(true) - $startTime, 2);
+            $finishedAt = date('Y-m-d H:i:s');
+            $output->writeln('<info>Finished at ' . $finishedAt . '</info>');
+            $output->writeln('<info>Duration: ' . $finishedIn . ' seconds</info>');
+            Log::info('Database seeding completed in ' . $finishedIn . ' seconds, at ' . $finishedAt . ', taking a total of ' . ($finishedIn * 1000) . ' milliseconds');
         } else Utility::languageCreate();
     }
     private function shouldSeedStandardTables(): bool
@@ -28,6 +37,7 @@ class DatabaseSeeder extends Seeder
     private function runMocks(): void
     {
         $lastSeeder = null;
+        $output = new ConsoleOutput();
         try {
             foreach (
                 [
@@ -93,14 +103,33 @@ class DatabaseSeeder extends Seeder
                     VendorSeeder::class,
                     AnnouncementSeeder::class,
                     OrderSeeder::class,
+                    LeaveTypeSeeder::class,
+                    LeaveSeeder::class,
+                    MeetingSeeder::class,
+                    MeetingEmployeeSeeder::class,
+                    BillSeeder::class,
+                    BillProductSeeder::class,
+                    WarehouseSeeder::class,
+                    PosSeeder::class,
+                    PaymentSeeder::class,
+                    PosPaymentSeeder::class,
                     BasicFavoritesSeeder::class
                 ] as $mockSeeder
             ) {
-                $this->call($mockSeeder);
-                $lastSeeder = $mockSeeder;
-                Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');
+                try {
+                    $output->writeln('<info>Seeding: ' . $mockSeeder . '</info>');
+                    $this->call($mockSeeder);
+                    $lastSeeder = $mockSeeder;
+                    $output->writeln('<info>Seeding mocks for: ' . $mockSeeder . '</info>');
+                    Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');
+                    sleep(2);
+                } catch (\Exception $e) {
+                    $output->writeln('<error>Seeding mocks for ' . $mockSeeder . ' failed: ' . $e->getMessage() . '</error>');
+                    Log::warning('Seeding mocks for ' . $mockSeeder . ' failed: ', ['message' => $e->getMessage()]);
+                }
             }
         } catch (\Exception $e) {
+            $output->writeln('<error>Seeding mocks failed: ' . $e->getMessage() . ' in ' . $lastSeeder . '</error>');
             Log::warning('Seeding mocks failed: ', ['message' => $e->getMessage(), 'seeder' => $lastSeeder]);
         }
     }

@@ -56,10 +56,10 @@ try {
 }
 
 try {
-    $billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id')) ?: __('Could not find bill number');
+    $billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id')) ?: __('Could not find Bill Identifier');
 } catch (\Throwable $e) {
     Log::error('billNumber: ' . $e->getMessage());
-    $billNumber = __('Could not find bill number');
+    $billNumber = __('Could not find Bill Identifier');
 }
 
 try {

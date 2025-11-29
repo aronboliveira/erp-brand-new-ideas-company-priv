@@ -21,9 +21,9 @@ class PayrollExport implements FromCollection, WithHeadings, WithStyles, WithEve
 
     private const HEADINGS          = ['Employee Id', 'Status', 'Employee Name', 'Salary', 'Net Salary', 'Month'];
     private const JOIN_FOREIGN_FIELD = 'employees.id';
-    private const JOIN_LOCAL_FIELD  = 'pay_slips.employee_id';
+    private const JOIN_LOCAL_FIELD  = 'payslips.employee_id';
     private const JOIN_TABLE        = 'employees';
-    private const SELECT_COLUMNS    = ['pay_slips.*', 'employees.name'];
+    private const SELECT_COLUMNS    = ['payslips.*', 'employees.name'];
 
     public function collection(): Collection
     {
@@ -36,7 +36,7 @@ class PayrollExport implements FromCollection, WithHeadings, WithStyles, WithEve
             Log::info(__CLASS__ . '::building query', ['month' => $month, 'user_id' => $user?->id]);
             $rows = Payslip::select(...self::SELECT_COLUMNS)
                 ->leftJoin(self::JOIN_TABLE, self::JOIN_LOCAL_FIELD, '=', self::JOIN_FOREIGN_FIELD)
-                ->where('pay_slips.created_by', $user?->creatorId())
+                ->where('payslips.created_by', $user?->creatorId())
                 ->where('salary_month', $month)
                 ->get();
             Log::info(__CLASS__ . '::fetched records', ['count' => count($rows)]);

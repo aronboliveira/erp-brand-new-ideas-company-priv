@@ -56,8 +56,12 @@ enum UnitedStatesState: string
 	case WY = 'WY';
 	case DC = 'DC';
 
-	public static function normalize(?string $value): ?self
+	public static function normalize(string|null|self $value): ?self
 	{
+		if ($value instanceof self)
+			return $value;
+		if ($value === null)
+			return null;
 		$v = strtoupper(trim((string) $value));
 		if ($v === '')
 			return null;

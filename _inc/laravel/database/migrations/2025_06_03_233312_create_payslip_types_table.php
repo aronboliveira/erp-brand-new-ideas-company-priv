@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\{Log, Schema};
 class CreatePayslipTypesTable extends Migration
 {
     use HasNullableAuditColumns;
-    private const TABLE = DC::TABLE_PAY_SLP;
+    private const TABLE = DC::TABLE_PAY_SLP_TP;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {

@@ -7,13 +7,15 @@ use App\Config\Constants\{
     BillsConstants as BLC,
     ChartsConstants as CHTC,
     DatabaseConstants as DC,
-    UsersConstants as UC
+    UsersConstants as UC,
+    SettingsConstants as SC
 };
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
     Model,
     Relations\HasOne
 };
+use Illuminate\Support\Str;
 
 class BankAccount extends Model
 {
@@ -129,7 +131,58 @@ class BankAccount extends Model
     protected static function booted(): void
     {
         parent::booted();
-
+        static::creating(function ($model) {
+            if (empty($model->{BKC::COL_PIX_KEYS}))
+                $model->{BKC::COL_PIX_KEYS} = [
+                    'primary' => [
+                        'alias'        => 'Email',
+                        'key'          => 'test@example.com',
+                        'type'         => 'email',
+                        'use_count'    => 0,
+                        'last_used_at' => null,
+                    ],
+                    'secondary' => [
+                        'alias'        => 'CPF',
+                        'key'          => '00000000000',
+                        'type'         => 'cpf',
+                        'use_count'    => 0,
+                        'last_used_at' => null,
+                    ],
+                ];
+            if (empty($model->vaults))
+                $model->vaults = [
+                    'main_vault' => [
+                        'name' => 'Main Vault',
+                        'code' => Str::uuid()->toString(),
+                        'stored' => 0.00,
+                        'can_be_retrieved_in' => now()->addDays(30)->format('Y-m-d'),
+                    ],
+                ];
+            if (empty($model->{BKC::COL_CRD_CD}))
+                $model->{BKC::COL_CRD_CD} = [
+                    'mock_primary' => [
+                        'alias'        => 'Main credit card',
+                        'masked_pan'   => '0000 **** **** 0000',
+                        'brand'        => 'MASTER CARD',
+                        'limit'        => 0.00,
+                        'closing_day'  => 1,
+                        'due_day'      => 10,
+                        'currency_id'  => SC::DEF_SITE_CURRENCY_ID,
+                        'is_active'    => false,
+                    ],
+                ];
+            if (empty($model->{BKC::COL_DBT_CD}))
+                $model->{BKC::COL_DBT_CD} = [
+                    'mock_primary' => [
+                        'alias'        => 'Main debit card',
+                        'masked_pan'   => '0000 **** **** 0000',
+                        'brand'        => 'VISA',
+                        'daily_limit'  => 0.00,
+                        'currency_id'  => SC::DEF_SITE_CURRENCY_ID,
+                        'is_active'    => false,
+                    ],
+                ];
+        });
         static::saving(function (self $account): void {
             self::normalizeStrings($account);
             self::normalizeJson($account);

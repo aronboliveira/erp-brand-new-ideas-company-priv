@@ -17,8 +17,8 @@ class CreateProductServicesTable extends Migration
             $table->string('sku')->unique()->index();
             $table->decimal(BC::COL_SL_PRC, 15, 4)->default(0.0000);
             $table->decimal(BC::COL_PC_PRC, 15, 4)->default(0.0000);
-            $table->json(BC::COL_AC_CUR)->default(json_encode([SC::DEF_SITE_CURRENCY_ID]))->nullable(); // * kept nullable for tests, but should be imposed as at least accepting the site default currency at booted and save
-            $table->json(BC::COL_AC_MUNITS)->default(json_encode(['other']))->nullable(); // * array of accepted measurement units 
+            $table->json(BC::COL_AC_CUR)->nullable(); // * kept nullable for tests, but should be imposed as at least accepting the site default currency at booted and save
+            $table->json(BC::COL_AC_MUNITS)->nullable(); // * array of accepted measurement units 
             $table->text('description')->nullable();
             $table->json('attributes')->nullable();
             $table->json('tags')->nullable();
@@ -29,7 +29,7 @@ class CreateProductServicesTable extends Migration
             $table->uuid(BC::COL_CAT_ID)->nullable(); // ? the main category
             $table->json('categories')->nullable(); // ? constrained in booted and saving for filtering only arrays that have id/cateogry_id of existing categories
             $table->json(DC::COL_RL_CAT)->nullable(); // ? constrained in booted and saving for filtering only arrays that have id/cateogry_id of existing categories // ? used for graph connections of user preferences
-            $table->uuid(BC::COL_UNIT_ID); // * kept for legacy code only, not funcional due to inheritance to ProductServiceUnit, but usable to query a unit
+            $table->uuid(BC::COL_UNIT_ID)->nullable(); // * kept for legacy code only, not funcional due to inheritance to ProductServiceUnit, but usable to query a unit
             $table->unsignedBigInteger(BC::COL_UNITS_SOLD)->default(0)->nullable(); // ? nullable for tests
             $table->unsignedBigInteger(BC::COL_UNITS_CNC)->default(0)->nullable(); // ? nullable for tests
             $table->unsignedBigInteger(BC::COL_UNITS_RTRN)->default(0)->nullable(); // ? nullable for tests

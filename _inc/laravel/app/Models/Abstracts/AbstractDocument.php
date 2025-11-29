@@ -14,19 +14,19 @@ abstract class AbstractDocument extends Model
 
 	protected $guarded = ['id', DC::TABLE_CREATOR];
 	protected $fillable = [
-		'file_path',
+		DC::COL_FL_PT,
 		'extension',
-		'mime_type',
+		DC::COL_MM_TP,
 		'type',
 		'size',
 		'description',
 		'notes',
-		'expiration_date',
-		'last_accessed',
+		DC::COL_EXP_DT,
+		DC::COL_LA,
 		'viewers',
 		'editors',
 		'executors',
-		'permission_rules',
+		DC::COL_PERM_RLS,
 	];
 	// Ordem de papéis para o vetor de permissões (octal RWX por papel)
 	// Ex.: permission_rules = '7776444' → [superAdmin, admin, company, accountant, vendor, customer, client]
@@ -99,19 +99,40 @@ abstract class AbstractDocument extends Model
 		return in_array($uid, array_filter(explode(',', $raw)), true);
 	}
 
-	public function setExecutorsAttribute(array $ids): void
+	public function setExecutorsAttribute(array|string|null $ids): void
 	{
-		$this->attributes['executors'] = implode(',', $ids);
+		if (is_null($ids)) {
+			$this->attributes['executors'] = null;
+			return;
+		}
+		if (is_array($ids))
+			$this->attributes['executors'] = implode(',', $ids);
+		else
+			$this->attributes['executors'] = $ids;
 	}
 
-	public function setEditorsAttribute(array $ids): void
+	public function setEditorsAttribute(array|string|null $ids): void
 	{
-		$this->attributes['editors'] = implode(',', $ids);
+		if (is_null($ids)) {
+			$this->attributes['editors'] = null;
+			return;
+		}
+		if (is_array($ids))
+			$this->attributes['editors'] = implode(',', $ids);
+		else
+			$this->attributes['editors'] = $ids;
 	}
 
-	public function setViewersAttribute(array $ids): void
+	public function setViewersAttribute(array|string|null $ids): void
 	{
-		$this->attributes['viewers'] = implode(',', $ids);
+		if (is_null($ids)) {
+			$this->attributes['viewers'] = null;
+			return;
+		}
+		if (is_array($ids))
+			$this->attributes['viewers'] = implode(',', $ids);
+		else
+			$this->attributes['viewers'] = $ids;
 	}
 
 	public function setRolePermission(string $role, int $permission): void

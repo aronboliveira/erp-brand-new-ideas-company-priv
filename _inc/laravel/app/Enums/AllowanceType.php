@@ -10,9 +10,11 @@ enum AllowanceType: string
 	case Percentage = 'percentage';
 	case Other      = 'other';
 
-	public static function normalize(?string $v): ?self
+	public static function normalize(string|AllowanceType|null $v): ?self
 	{
-		$v = strtolower(trim((string) $v));
+		if ($v instanceof self) return $v;
+		if ($v === null) return self::Other;
+		$v = strtolower(trim($v));
 		return match ($v) {
 			'fixed'      => self::Fixed,
 			'percentage' => self::Percentage,

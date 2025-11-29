@@ -6,18 +6,7 @@ use Illuminate\Support\Facades\Log;
 
 trait NormalizesAddresses
 {
-	public static function normalizeArrayField(mixed $value): array
-	{
-		if ($value === null)
-			return [];
-
-		if (is_string($value)) {
-			$decoded = json_decode($value, true);
-			return is_array($decoded) ? $decoded : [];
-		}
-
-		return is_array($value) ? $value : (array) $value;
-	}
+	use NormalizesArrays;
 
 	public static function normalizeEmail(?string $email, string $context, string|int|null $ownerId): ?string
 	{

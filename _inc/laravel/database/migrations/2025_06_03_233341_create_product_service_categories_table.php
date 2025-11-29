@@ -17,17 +17,7 @@ class CreateProductServiceCategoriesTable extends Migration
             $table->string('name')->index();
             $table->string('code')->unique()->index()->nullable(); // ? nullable for testing
             $table->string('type')->default('0'); // * this is not clear yet, so it will be kept for compatibility, but probably referes to the index of the label, so 0 to 9
-            $table->enum(DC::COL_TP_LB, [
-                ConsumableType::Product->value,
-                ConsumableType::Service->value,
-                ConsumableType::Income->value,
-                ConsumableType::Expense->value,
-                ConsumableType::Asset->value,
-                ConsumableType::Liability->value,
-                ConsumableType::Equity->value,
-                ConsumableType::CostsOfGoodsSold->value,
-                ConsumableType::Other->value,
-            ])->default(ConsumableType::Service->value)->nullable()->index();
+            $table->enum(DC::COL_TP_LB, ConsumableType::values())->default(ConsumableType::Service->value)->nullable()->index();
             $table->uuid(BKC::COL_COA)->nullable();
             $table->string('color')->default('#fc544b')->nullable();
             $table->string('icon')->nullable();

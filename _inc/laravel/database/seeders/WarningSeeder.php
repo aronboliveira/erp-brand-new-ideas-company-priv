@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Config\Constants\UsersConstants as UC;
-use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, UsersConstants as UC};
 use App\Models\{Employee, Warning};
 use App\Traits\EnsuresSystemUser;
 use Illuminate\Database\Seeder;
@@ -52,9 +51,9 @@ final class WarningSeeder extends Seeder
 				// idempotência: evita duplicar o mesmo aviso "lógico"
 				$exists = Warning::query()
 					->where(UC::COL_EMP_ID, $toId)
-					->where(UC::COL_WRN_TO, $toId)
-					->where(UC::COL_WRN_BY, $byId)
-					->whereDate(UC::COL_WRN_DATE, $date)
+					->where(CC::COL_WRN_TO, $toId)
+					->where(CC::COL_WRN_BY, $byId)
+					->whereDate(CC::COL_WRN_DATE, $date)
 					->when($subject, fn($q) => $q->where('subject', $subject))
 					->exists();
 
@@ -64,9 +63,9 @@ final class WarningSeeder extends Seeder
 
 				$w = new Warning();
 				$w->{UC::COL_EMP_ID}   = $toId;      // funcionário "alvo" do registro
-				$w->{UC::COL_WRN_TO}   = $toId;      // destinatário
-				$w->{UC::COL_WRN_BY}   = $byId;      // emissor
-				$w->{UC::COL_WRN_DATE} = $date;
+				$w->{CC::COL_WRN_TO}   = $toId;      // destinatário
+				$w->{CC::COL_WRN_BY}   = $byId;      // emissor
+				$w->{CC::COL_WRN_DATE} = $date;
 				$w->subject            = $subject;
 				$w->description        = $description;
 				$w->{DC::TABLE_CREATOR} = $systemUserId; // auditoria sem depender de auth()

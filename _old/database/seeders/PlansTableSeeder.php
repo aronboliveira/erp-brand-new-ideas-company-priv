@@ -1,6 +1,8 @@
 <?php
 
 namespace Database\Seeders;
+
+use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\Plan;
 use Illuminate\Database\Seeder;
 
@@ -15,6 +17,7 @@ class PlansTableSeeder extends Seeder
     {
         Plan::create(
             [
+                'query_key' => DC::DEFAULT_PLAN,
                 'name' => 'Free Plan',
                 'price' => 0,
                 'duration' => 'lifetime',
@@ -29,7 +32,7 @@ class PlansTableSeeder extends Seeder
                 'project' => 1,
                 'pos' => 1,
                 'chatgpt' => 1,
-                'image'=>'free_plan.png',
+                'image' => 'free_plan.png',
             ]
         );
     }

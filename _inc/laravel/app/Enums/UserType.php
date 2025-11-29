@@ -14,8 +14,12 @@ enum UserType: string
 	case Vendor     = PC::VD;
 	case Accountant = PC::ACT;
 
-	public static function normalize(string $value): ?self
+	public static function normalize(string|null|self $value): ?self
 	{
+		if ($value instanceof self)
+			return $value;
+		if ($value === null)
+			return self::Customer;
 		$slug = mb_strtolower(trim($value));
 		return self::tryFrom($slug);
 	}

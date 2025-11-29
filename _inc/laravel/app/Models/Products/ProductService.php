@@ -12,6 +12,7 @@ use App\Config\Constants\{
 use App\Traits\{
     ChecksLogin,
     HasAuditFields,
+    NormalizesArrays,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -25,7 +26,7 @@ use Illuminate\Support\Facades\{DB, Log};
 
 class ProductService extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields, ChecksLogin;
+    use ChecksLogin, HasAuditFields, HasFactory, NormalizesArrays, UsesUuids;
 
     public const TABLE = DC::TABLE_PROD_SERVS;
 
@@ -102,7 +103,12 @@ class ProductService extends Model
     protected static function booted(): void
     {
         parent::booted();
-
+        static::creating(function ($model) {
+            if (empty($model->{BC::COL_AC_CUR}))
+                $model->{BC::COL_AC_CUR} = [SC::DEF_SITE_CURRENCY_ID];
+            if (empty($model->{BC::COL_AC_MUNITS}))
+                $model->{BC::COL_AC_MUNITS} = ['other'];
+        });
         static::saving(function (self $m): void {
             foreach (['name', 'sku', 'type', 'icon', DC::COL_PRO_IMG] as $field)
                 if (isset($m->{$field}) && is_string($m->{$field}))
@@ -164,19 +170,6 @@ class ProductService extends Model
                     $m->{BC::COL_UNIT_ID} = null;
             }
         });
-    }
-
-    protected static function normalizeArrayField(mixed $value): array
-    {
-        if ($value === null)
-            return [];
-
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return is_array($value) ? $value : (array) $value;
     }
 
     protected static function sanitizeCurrencies(mixed $raw): array

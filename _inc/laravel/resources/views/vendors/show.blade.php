@@ -308,7 +308,7 @@
                                         $statusLbl   = is_array($statusesArr) && array_key_exists($statusIdx, $statusesArr) ? __($statusesArr[$statusIdx]) : __('Unknown');
                                         $colors      = ['primary','warning','danger','info','success'];
                                         $colorKey    = $colors[$statusIdx] ?? 'secondary';
-                                        $numFmt      = $user?->billNumberFormat($billIdCode) ?? ($billIdCode !== '' ? $billIdCode : __('No bill number available'));
+                                        $numFmt      = $user?->billNumberFormat($billIdCode) ?? ($billIdCode !== '' ? $billIdCode : __('No Bill Identifier available'));
                                         $billDateFmt = $user?->dateFormat($billDate) ?? ($billDate !== '' ? $billDate : __('No bill date available'));
                                         $dueDateFmt  = $user?->dateFormat($dueDate) ?? ($dueDate !== '' ? $dueDate : __('No due date available'));
                                         $dueAmtFmt   = isset($dueAmount) ? ($user?->priceFormat($dueAmount) ?? (string) $dueAmount) : __('No due amount available');

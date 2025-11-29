@@ -200,9 +200,9 @@ final class BankTransferSeeder extends Seeder
 
 					// Anexos e logs
 					'attachments'         => $attachments,
-					BC::COL_ER_LG         => [],
-					BC::COL_RTR_CT        => 0,
-					BC::COL_LST_RTR_AT    => null,
+					DC::COL_ER_LG         => [],
+					DC::COL_RTR_CT        => 0,
+					DC::COL_LST_RTR_AT    => null,
 
 					// Auditoria
 					DC::TABLE_CREATOR     => $creator,

@@ -4,7 +4,8 @@ namespace App\Models;
 
 use App\Config\Constants\{
     ChartsConstants as CHTC,
-    DatabaseConstants as DC
+    DatabaseConstants as DC,
+    SettingsConstants as SC
 };
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{
@@ -14,18 +15,16 @@ use Illuminate\Database\Eloquent\{
 
 class ChartOfAccountType extends Model
 {
-    use HasFactory, UsesUuids, HasAuditFields;
+    use UsesUuids, HasAuditFields;
 
-    public const TABLE = DC::TABLE_COA_TYPES;
-
-    protected $table = self::TABLE;
+    protected $table = DC::TABLE_COA_TYPES;
 
     protected $fillable = [
         CHTC::COL_NM,
         CHTC::COL_CD,
         'category',
         'description',
-        'attributes',
+        'rules',
         'units',
     ];
 
@@ -36,7 +35,7 @@ class ChartOfAccountType extends Model
     ];
 
     protected $casts = [
-        'attributes' => 'array',
+        'rules' => 'array',
         'units'      => 'array',
     ];
 
@@ -48,16 +47,31 @@ class ChartOfAccountType extends Model
     protected static function booted(): void
     {
         parent::booted();
-
+        static::creating(function ($model) {
+            if (empty($model->units)) {
+                $model->units = [
+                    'X' => [
+                        'type'   => 'timestamp',
+                        'unit'   => 'MM',
+                        'values' => ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
+                    ],
+                    'Y' => [
+                        'type'   => 'value',
+                        'unit'   => SC::DEF_SITE_CURRENCY_SB,
+                        'values' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                ];
+            }
+        });
         static::saving(function (self $m): void {
             foreach ([CHTC::COL_NM, CHTC::COL_CD, 'category'] as $field)
                 if (isset($m->{$field}) && is_string($m->{$field}))
                     $m->{$field} = trim($m->{$field});
 
-            if ($m->attributes === null)
-                $m->attributes = [];
-            elseif (!is_array($m->attributes))
-                $m->attributes = (array) $m->attributes;
+            if ($m->rules === null)
+                $m->rules = [];
+            elseif (!is_array($m->rules))
+                $m->rules = (array) $m->rules;
 
             if ($m->units !== null && !is_array($m->units))
                 $m->units = (array) $m->units;

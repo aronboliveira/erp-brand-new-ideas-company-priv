@@ -729,7 +729,7 @@ Object.keys(t).forEach(
                                     <div class="{{ VC::C12 }} {{ VC::CL3 }} {{ VC::FEND }}">
                                         @php
                                             $formattedBillNumber = ($user ?? null) && method_exists($user, 'billNumberFormat') && isset($bill->bill_id) ? (string) $user->billNumberFormat($bill->bill_id) : '';
-                                            $billNumberOutput    = $formattedBillNumber !== '' ? $formattedBillNumber : __('No bill number available');
+                                            $billNumberOutput    = $formattedBillNumber !== '' ? $formattedBillNumber : __('No Bill Identifier available');
                                         @endphp
                                         <h4 class="{{ VC::H6 }} {{ VC::TXT_WT }} invoice-number">
                                             {{ $billNumberOutput }}

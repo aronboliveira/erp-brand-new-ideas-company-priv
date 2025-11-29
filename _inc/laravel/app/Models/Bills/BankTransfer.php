@@ -104,7 +104,12 @@ class BankTransfer extends Model
     protected static function booted(): void
     {
         parent::booted();
-
+        static::creating(function (self $model): void {
+            if (empty($model->{BC::COL_ACC_FROM}))
+                throw new \InvalidArgumentException('account_from is required');
+            if (empty($model->{BC::COL_ACC_TO}))
+                throw new \InvalidArgumentException('account_to is required');
+        });
         static::saving(function (self $transfer): void {
             self::normalizeNumericFields($transfer);
             self::normalizeTimestamps($transfer);

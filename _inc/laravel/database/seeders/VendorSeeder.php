@@ -46,7 +46,7 @@ class VendorSeeder extends Seeder
 
 			foreach ($seed as [$name, $email, $ctr, $uf]) {
 				$offers = $this->buildOffers($productIds);
-
+				$mainTaxId = $this->requireAnyId(DC::TABLE_TAXES, 'tributário');
 				$payload = [
 					UC::COL_NM          => $name,
 					UC::COL_EM          => $email,
@@ -83,8 +83,8 @@ class VendorSeeder extends Seeder
 					BC::COL_SHIP_DTL    => $faker->secondaryAddress(),
 
 					// Tributário e flags
-					BC::COL_TX_N        => $faker->optional(0.6)->numerify('###########'), // CPF/CNPJ limpo; normalizador decidirá
-					BC::COL_OT_TX_ID    => [],
+					BC::COL_TX_N        => $mainTaxId, // CPF/CNPJ limpo; normalizador decidirá
+					BC::COL_OT_TX_ID    => [...array_filter($this->idPool(DC::TABLE_TAXES), fn($t) => $t !== $mainTaxId)],
 					BC::COL_IS_PRM      => (bool) random_int(0, 1),
 
 					'balance'           => 0.00,
@@ -143,5 +143,18 @@ class VendorSeeder extends Seeder
 		}
 
 		return $offers;
+	}
+
+	private function idPool(string $table): array
+	{
+		return array_values(array_map('strval', DB::table($table)->pluck('id')->all()));
+	}
+
+	private function requireAnyId(string $table, string $humanName): string
+	{
+		$id = (string) (DB::table($table)->value('id') ?? '');
+		if ($id !== '') return $id;
+
+		throw new \RuntimeException("VendorSeeder: nenhuma linha encontrada em '{$table}' para '{$humanName}'. Crie ao menos 1 registro antes de semear Vendors.");
 	}
 }

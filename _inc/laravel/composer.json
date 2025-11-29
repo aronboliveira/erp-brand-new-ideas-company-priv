@@ -252,7 +252,6 @@
       "@php artisan migrate:status",
       "@php artisan migrate:reset",
       "@php artisan migrate:fresh --seed",
-      "@php artisan route:list --sort=uri",
       "@php artisan serve"
     ],
     "artisan-serve--reset--sh--soft": [

@@ -16,9 +16,28 @@ enum ConsumableType: string
 	case Equity = 'equity';
 	case CostsOfGoodsSold = 'costs of goods sold';
 
-	public static function normalize(?string $v): ?self
+	public static function values(): array
 	{
-		$v = strtolower(trim((string) $v));
+		return [
+			self::Product->value,
+			self::Service->value,
+			self::Income->value,
+			self::Expense->value,
+			self::Asset->value,
+			self::Liability->value,
+			self::Equity->value,
+			self::CostsOfGoodsSold->value,
+			self::Other->value,
+		];
+	}
+
+	public static function normalize(string|null|self $v): ?self
+	{
+		if ($v instanceof self)
+			return $v;
+		if ($v === null)
+			return self::Other;
+		$v = strtolower(trim($v));
 		return match ($v) {
 			'product', 'produto', 'producto' => self::Product,
 			'service', 'serviço', 'servicio' => self::Service,

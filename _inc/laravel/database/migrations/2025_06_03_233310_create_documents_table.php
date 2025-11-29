@@ -17,8 +17,8 @@ class CreateDocumentsTable extends Migration
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->string('name');
-                $table->string('is_required')->default('false');
-                $table->boolean('is_private')->default(false)->nullable();
+                $table->string(DC::COL_IR)->default('false'); // todo must be changed to bool later
+                $table->boolean(DC::COL_IPV)->default(false)->nullable();
                 $this->addDocumentColumns($table);
                 $this->addAuditColumns($table);
             });

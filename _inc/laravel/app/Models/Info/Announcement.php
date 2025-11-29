@@ -10,6 +10,7 @@ use App\Config\Constants\{
 };
 use App\Traits\{
     HasAuditFields,
+    NormalizesArrays,
     UsesUuids
 };
 use Carbon\Carbon;
@@ -21,7 +22,7 @@ use Illuminate\Support\Facades\Log;
 
 class Announcement extends Model
 {
-    use UsesUuids, HasAuditFields;
+    use UsesUuids, HasAuditFields, NormalizesArrays;
 
     protected $table = DC::TABLE_ANC;
 
@@ -113,19 +114,6 @@ class Announcement extends Model
             if ($m->{PJC::COL_PLN_ST} === null)
                 $m->{PJC::COL_PLN_ST} = (clone $today)->addDays(14);
         });
-    }
-
-    protected static function normalizeArrayField(mixed $value): array
-    {
-        if ($value === null)
-            return [];
-
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return is_array($value) ? $value : (array) $value;
     }
 
     public function branch(): BelongsTo

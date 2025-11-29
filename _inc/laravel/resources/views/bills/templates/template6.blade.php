@@ -52,10 +52,10 @@ try {
 $dir = (data_get($settings_data, SettingsConstants::RTL) === 'on') ? 'rtl' : '';
 
 try {
-    $billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id')) ?: __('Could not find bill number');
+    $billNumber = Utility::billNumberFormat($settings, data_get($bill, 'bill_id')) ?: __('Could not find Bill Identifier');
 } catch (\Throwable $e) {
     Log::error('billNumber: ' . $e->getMessage());
-    $billNumber = __('Could not find bill number');
+    $billNumber = __('Could not find Bill Identifier');
 }
 try {
     $billDate = Utility::dateFormat($settings, data_get($bill, 'issue_date')) ?: __('Failed to get bill date');

@@ -56,10 +56,10 @@ try {
 }
 
 try {
-    $billNumber = \App\Models\Utility::billNumberFormat($settings, data_get($bill, 'bill_id')) ?: __('Could not find bill number');
+    $billNumber = \App\Models\Utility::billNumberFormat($settings, data_get($bill, 'bill_id')) ?: __('Could not find Bill Identifier');
 } catch (\Throwable $e) {
-    Log::error('Bill Number Throwable: ' . $e->getMessage());
-    $billNumber = __('Could not find bill number');
+    Log::error('Bill Identifier Throwable: ' . $e->getMessage());
+    $billNumber = __('Could not find Bill Identifier');
 }
 
 try {

@@ -24,21 +24,8 @@ class CreateChartOfAccountTypesTable extends Migration
             $table->string(CHTC::COL_CD)->unique()->index()->nullable(); // ? nullable para testes
             $table->string('category')->index()->nullable();
             $table->text('description')->nullable();
-            $table->json('attributes')->nullable();
-            $table->json('units')
-                ->default(json_encode([
-                    'X' => [
-                        'type'   => 'timestamp',
-                        'unit'   => 'MM',
-                        'values' => ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'],
-                    ],
-                    'Y' => [
-                        'type'   => 'value',
-                        'unit'   => SC::DEF_SITE_CURRENCY_SB,
-                        'values' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    ],
-                ]))
-                ->nullable(); // ? mock para testes
+            $table->json('rules')->nullable();
+            $table->json('units')->nullable();
             $table->string(CHTC::COL_NM)->nullable();
             $this->addAuditColumns($table);
         });

@@ -330,9 +330,9 @@
                             $fields = [
                                 ['bill_date','date', __('Bill Date'), true],
                                 ['due_date','date', __('Due Date'), true],
-                                ['bill_number','readonly', __('Bill Number'), false, $bill_number],
+                                ['bill_id','readonly', __('Bill Identifier'), false, $bill_id],
                                 ['category_id','select', __('Category'), false, null, $category],
-                                ['order_number','number', __('Order Number'), false],
+                                ['order_id','text', __('Order Identifier'), false],
                             ];
                         @endphp
                         <div class="{{ VC::CM6 }}">

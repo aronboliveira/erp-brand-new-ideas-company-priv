@@ -188,7 +188,7 @@
                                         $billShowLinkId = 'bill-show-' . ($bill->id ?? 'unknown');
                                         $billShowMsg = Utility::fetchLinkMessage($lang, ViewsConstants::BIL, 'bill_show_route_unavailable') ?? 'Bill view route is unavailable. Please contact technical support or your domain administrator.';
                                         $billNumberText = (is_object($user ?? null) && method_exists($user, 'billNumberFormat')) ? (string) ($user->billNumberFormat($bill->bill_id ?? null) ?? '') : (string) ($bill->bill_id ?? '');
-                                        $billNumberText = $billNumberText !== '' ? $billNumberText : __('No bill number available');
+                                        $billNumberText = $billNumberText !== '' ? $billNumberText : __('No Bill Identifier available');
                                         $billDateText = (is_object($user ?? null) && method_exists($user, 'dateFormat')) ? (string) ($user->dateFormat($bill->bill_date ?? null) ?? '') : (string) ($bill->bill_date ?? '');
                                         $billDateText = $billDateText !== '' ? $billDateText : __('No bill date available');
                                         $dueDateText = (is_object($user ?? null) && method_exists($user, 'dateFormat')) ? (string) ($user->dateFormat($bill->due_date ?? null) ?? '') : (string) ($bill->due_date ?? '');

@@ -81,7 +81,7 @@ class User extends Authenticatable implements MustVerifyEmail
         UC::COL_NM     => 'North Warehouse',
         'address'  => '723 N. Tillamook Street Portland, OR Portland, United States',
         'city'     => 'Portland',
-        'city_zip' => 97227,
+        'zip' => 97227,
     ];
 
     private const DEFAULT_BANK_ACCOUNT = [
@@ -980,7 +980,7 @@ class User extends Authenticatable implements MustVerifyEmail
             UC::COL_NM => 'North Warehouse',
             'address' => '723 N. Tillamook Street Portland, OR Portland, United States',
             'city' => 'Portland',
-            'city_zip' => 97227,
+            'zip' => 97227,
             DC::TABLE_CREATOR => DC::DEFAULT_UUID,
         ]);
     }
@@ -992,7 +992,7 @@ class User extends Authenticatable implements MustVerifyEmail
             UC::COL_NM => 'North Warehouse',
             'address' => '723 N. Tillamook Street Portland, OR Portland, United States',
             'city' => 'Portland',
-            'city_zip' => 97227,
+            'zip' => 97227,
             DC::TABLE_CREATOR => $userId
         ]);
     }

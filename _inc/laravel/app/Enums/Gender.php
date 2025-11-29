@@ -12,9 +12,11 @@ enum Gender: string
 	case Other = 'other';
 	case PreferNotToSay = 'prefer_not_to_say';
 
-	public static function normalize(?string $v): ?self
+	public static function normalize(string|null|self $v): ?self
 	{
-		if ($v === null) return null;
+		if ($v instanceof self)
+			return $v;
+		if ($v === null) return self::PreferNotToSay;
 		$v = strtolower(trim($v));
 		return match ($v) {
 			'm', 'masc', 'male', 'homem', 'masculino'                   => self::Male,

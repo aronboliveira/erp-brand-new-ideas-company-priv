@@ -325,9 +325,9 @@
                 $fields = [
                     ['name' => 'bill_date',    'type' => 'date',     'label' => __('Bill Date'),   'cols' => 6, 'attrs' => ['required' => true]],
                     ['name' => 'due_date',     'type' => 'date',     'label' => __('Due Date'),    'cols' => 6, 'attrs' => ['required' => true]],
-                    ['name' => 'bill_number',  'type' => 'readonly', 'label' => __('Bill Number'), 'cols' => 6, 'value' => ($bill_number ?? '') !== '' ? $bill_number : 'No bill number available'],
+                    ['name' => 'bill_id',  'type' => 'readonly', 'label' => __('Bill Identifier'), 'cols' => 6, 'value' => ($bill_id ?? '') !== '' ? $bill_id : 'No Bill Identifier available'],
                     ['name' => 'category_id',  'type' => 'select',   'label' => __('Category'),    'cols' => 6, 'options' => $category ?? [], 'attrs' => ['class' => VC::FM_CT_SL]],
-                    ['name' => 'order_number', 'type' => 'number',   'label' => __('Order Number'),'cols' => 6, 'attrs' => []],
+                    ['name' => 'order_id', 'type' => 'text',   'label' => __('Order Identifier'),'cols' => 6, 'attrs' => []],
                 ];
                 $resolvedVendorName = Route::has(ViewsConstants::BIL . '.vendor') ? (ViewsConstants::BIL . '.vendor') : (Route::has(Str::kebab(ViewsConstants::BIL . '.vendor')) ? Str::kebab(ViewsConstants::BIL . '.vendor') : null);
                 $vendorRoute = $resolvedVendorName ? route($resolvedVendorName) : '#';

@@ -175,8 +175,8 @@ final class BillController extends Controller
                         'status' => 0,
                         'type' => 'Bill',
                         'user_type' => 'vendor',
-                        'category_id' => $request->category_id ?: 0,
-                        'order_number' => $request->order_number ?: 0,
+                        'category_id' => $request->category_id ?: '0',
+                        'order_id' => $request->order_id ?: '0',
                         DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createBill');
@@ -394,7 +394,7 @@ final class BillController extends Controller
                 $txnStart = microtime(true);
                 DB::beginTransaction();
                 $updStart = microtime(true);
-                $bill->update(['vendor_id' => $request->vendor_id, 'bill_date' => $request->bill_date, 'due_date' => $request->due_date, 'order_number' => $request->order_number, 'category_id' => $request->category_id]);
+                $bill->update(['vendor_id' => $request->vendor_id, 'bill_date' => $request->bill_date, 'due_date' => $request->due_date, 'order_id' => $request->order_id, 'category_id' => $request->category_id]);
                 $this->logExecutionTime($updStart, $action, 'updateBill');
                 $cfStart = microtime(true);
                 CustomField::saveData($bill, $request->customField ?? []);
@@ -674,7 +674,7 @@ final class BillController extends Controller
                 $mailStart = microtime(true);
                 $resp = Utility::sendEmailTemplate('vendor_bill_sent', [$vendor->id => $vendor->email ?? ''], [
                     'vendor_bill_name' => $bill->name,
-                    'vendor_bill_number' => $bill->bill,
+                    'vendor_bill_id' => $bill->bill,
                     'vendor_bill_url' => $bill->url
                 ]);
                 $this->logExecutionTime($mailStart, $action, 'sendEmail');
@@ -723,7 +723,7 @@ final class BillController extends Controller
                     'vendor_name' => $vendor->name ?? '',
                     'vendor_email' => $vendor->email ?? '',
                     'bill_name' => $bill->name,
-                    'bill_number' => $bill->bill,
+                    'bill_id' => $bill->bill,
                     'bill_url' => $bill->url
                 ]);
                 $this->logExecutionTime($mailStart, $action, 'sendEmail');
@@ -1522,11 +1522,11 @@ final class BillController extends Controller
         $last = Bill::where(DatabaseConstants::TABLE_CREATOR, $uid)->latest('bill_id')->value('bill_id');
         if (!$last) {
             $next = 1;
-            Log::info('Next bill number', [UsersConstants::COL_USER_ID => $user?->id, 'next' => $next]);
+            Log::info('Next Bill Identifier', [UsersConstants::COL_USER_ID => $user?->id, 'next' => $next]);
             return $next;
         }
         $next = is_numeric($last) ? ((int)$last + 1) : $last;
-        Log::info('Next bill number', [UsersConstants::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
+        Log::info('Next Bill Identifier', [UsersConstants::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
         return $next;
     }
 }

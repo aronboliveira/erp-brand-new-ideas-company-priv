@@ -424,7 +424,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($creditStart, $action, 'creditVendorBalance');
                 Log::info("[{$class}::{$action}] vendor balance credited", ['vendor_id' => $vendor->id, 'amount' => $purchase->getTotal()]);
                 $emailStart = microtime(true);
-                $vendorArr = ['vendor_bill_name' => $name, 'vendor_bill_number' => $purchase->purchase, 'vendor_bill_url' => $purchase->url];
+                $vendorArr = ['vendor_bill_name' => $name, 'vendor_bill_id' => $purchase->purchase, 'vendor_bill_url' => $purchase->url];
                 $resp = Utility::sendEmailTemplate('vendor_bill_sent', [$vendor->id => $vendor->email], $vendorArr);
                 $this->logExecutionTime($emailStart, $action, 'sendEmailTemplate');
                 Log::info("[{$class}::{$action}] email template sent", ['template' => 'vendor_bill_sent', 'is_success' => $resp['is_success'] ?? false]);
@@ -461,7 +461,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($prepStart, $action, 'prepareResendData');
                 Log::debug("[{$class}::{$action}] data prepared for resend", ['purchase_id' => $purchase->id]);
                 $emailStart = microtime(true);
-                $vendorArr = ['vendor_bill_name' => $name, 'vendor_bill_number' => $purchase->purchase, 'vendor_bill_url' => $purchase->url];
+                $vendorArr = ['vendor_bill_name' => $name, 'vendor_bill_id' => $purchase->purchase, 'vendor_bill_url' => $purchase->url];
                 $resp = Utility::sendEmailTemplate('vendor_bill_sent', [$vendor->id => $vendor->email], $vendorArr);
                 $this->logExecutionTime($emailStart, $action, 'sendEmailTemplateResent');
                 Log::info("[{$class}::{$action}] email template resent", ['template' => 'vendor_bill_sent', 'is_success' => $resp['is_success'] ?? false]);

@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Config\Constants\{
     ActivitiesConstants,
-    BanksConstants,
-    ChartsConstants,
+    BanksConstants as BKC,
+    ChartsConstants as CHTC,
     DatabaseConstants as DC,
     PermissionsConstants as PMC,
     ProjectsConstants,
@@ -315,7 +315,7 @@ class UsersTableSeeder extends Seeder
                     UC::COL_AV =>  $faker->imageUrl(200, 200, 'people'),
                     UC::COL_EM_V_AT => now()->toDateTimeString(),
                     UC::COL_DPL => DC::DEFAULT_PIPELINE,
-                    UC::COL_PL => PlansTableSeeder::$planId ?? DC::DEFAULT_PLAN,
+                    UC::COL_PL => DC::DEFAULT_PLAN,
                     DC::TABLE_CREATOR => DC::DEFAULT_UUID,
                 ]
             );
@@ -511,63 +511,98 @@ class UsersTableSeeder extends Seeder
             }
             try {
                 $baAcc = 0;
-                $output->writeln('<comment>Creating bank account instance...</comment>');
-                $ids = ['baId', 'coaId', 'coaTpId', 'coaSbTpId'];
-                foreach ($ids as $varName) {
-                    $$varName = '';
+                $output->writeln('<comment>Creating bank account related models...</comment>');
+                $usedUuids = is_array($uuids ?? null) ? $uuids : [];
+                $ids = [
+                    'baId'     => null,
+                    'coaId'    => null,
+                    'coaTpId'  => null,
+                    'coaSbTpId' => null,
+                ];
+                foreach (array_keys($ids) as $key) {
                     $acc = 0;
                     do {
-                        if (str_starts_with('ba', $varName)) $baAcc += 1;
                         if ($acc > 100_000) {
-                            Log::warning(SDT::SCAPE_MSG);
+                            Log::warning('Safe-guard hit while generating UUIDs for bank account mocks.');
                             break;
                         }
-                        $$varName = (string) Str::uuid();
+                        $uuid = (string) Str::uuid();
                         $acc += 1;
-                    } while (in_array($$varName, $uuids, true));
+                    } while (in_array($uuid, $usedUuids, true));
+
+                    $ids[$key]  = $uuid;
+                    $usedUuids[] = $uuid;
                 }
-                ChartOfAccountType::create(
-                    [
-                        'id' => $coaTpId,
-                        ChartsConstants::COL_NM => 'admin-type-chart',
-                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID
 
-                    ]
-                );
-                ChartOfAccountSubType::create(
-                    [
-                        'id' => $coaSbTpId,
-                        ChartsConstants::COL_NM => 'admin-subtype-chart',
-                        ChartsConstants::COL_TP => $coaTpId,
-                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID
+                $baId    = $ids['baId'];
+                $coaId   = $ids['coaId'];
+                $coaTpId = $ids['coaTpId'];
+                $coaSbTpId = $ids['coaSbTpId'];
 
-                    ]
-                );
-                ChartOfAccount::create(
-                    [
-                        'id' => $coaId,
-                        ChartsConstants::COL_NM => 'admin-chart',
-                        ChartsConstants::COL_TP => $coaTpId,
-                        ChartsConstants::COL_SUBTP => $coaSbTpId,
-                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID
+                $typeAttributes = [
+                    'X' => [
+                        'type'   => 'timestamp',
+                        'unit'   => 'MM',     // mês
+                        'values' => [],
                     ],
-                );
-                BankAccount::create(
-                    [
-                        'id' => $baId,
-                        BanksConstants::COL_HNM => 'cash',
-                        BanksConstants::COL_NM => 'Nova Prestech Teste',
-                        BanksConstants::COL_ACC_N => $baAcc + 1,
-                        BanksConstants::COL_OB => 'R$0.00',
-                        BanksConstants::COL_CT => '+55 21 9000-000',
-                        BanksConstants::COL_ADR => 'Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro, RJ, Brasil',
-                        BanksConstants::COL_COA => $coaId,
-                        DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
-                    ]
-                );
+                    'Y' => [
+                        'type'   => 'value',
+                        'unit'   => null,
+                        'values' => [],
+                    ],
+                ];
+
+                $output->writeln('<comment>Creating chart of account type instance...</comment>');
+                $type = ChartOfAccountType::create([
+                    'id'              => $coaTpId,
+                    CHTC::COL_CD      => 'ADMIN-TYPE-CHART',
+                    'category'        => CHTC::AST,
+                    'description'     => 'Admin chart type created for bootstrap and tests.',
+                    'rules'           => $typeAttributes,
+                    'units'           => $typeAttributes,
+                    CHTC::COL_NM      => 'admin-type-chart',
+                    DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
+                ]);
+
+                $output->writeln('<comment>Creating chart of account subtype instance...</comment>');
+                $subType = ChartOfAccountSubType::create([
+                    'id'              => $coaSbTpId,
+                    CHTC::COL_CD      => 'ADMIN-SUBTYPE-CHART',
+                    CHTC::COL_NM      => 'admin-subtype-chart',
+                    CHTC::COL_TP      => $type->id,
+                    'description'     => 'Admin chart subtype created for bootstrap and tests.',
+                    'rules'           => [], // deixa o modelo aplicar defaults
+                    DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
+                ]);
+
+                $output->writeln('<comment>Creating chart of account instance...</comment>');
+                ChartOfAccount::create([
+                    'id'              => $coaId,
+                    CHTC::COL_CD      => 'ADMIN-CHART',
+                    CHTC::COL_NM      => 'admin-chart',
+                    CHTC::COL_TP      => $type->id,
+                    CHTC::COL_SUBTP   => $subType->id,
+                    DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
+                ]);
+
+                $output->writeln('<comment>Creating bank account instance...</comment>');
+                $output->writeln('<comment> Using Chart of Account ID: ' . $coaId . ' for Bank Account </comment>');
+                $output->writeln('<comment> Using Bank Account ID: ' . $baId . ' and Account Number: ' . $baAcc . '</comment>');
+                $output->writeln('<comment>' . ($company?->id ?? DC::DEFAULT_UUID) . '</comment>');
+
+                BankAccount::create([
+                    'id'              => $baId,
+                    BKC::COL_HNM      => 'cash',
+                    BKC::COL_NM       => 'Nova Prestech Teste',
+                    BKC::COL_ACC_N    => $baAcc,
+                    BKC::COL_OB       => '0.00',
+                    BKC::COL_CT       => '+55 21 9000-000',
+                    BKC::COL_ADR      => 'Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro, RJ, Brasil',
+                    BKC::COL_COA      => $coaId,
+                    DC::TABLE_CREATOR => $company?->id ?? DC::DEFAULT_UUID,
+                ]);
                 $doneTime = now()->toDateTimeString();
-                $output->writeln('<info>                     Done creating bank accounts at '
-                    . $doneTime . ' !</info>');
+                $output->writeln('<info>                     Done creating bank accounts at ' . $doneTime . ' !</info>');
             } catch (QueryException $e) {
                 $msg = 'Database error while creating bank account: ' . $e->getMessage();
                 Log::error($msg, ['exception' => $e]);

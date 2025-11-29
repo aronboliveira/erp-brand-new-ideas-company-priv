@@ -155,7 +155,7 @@
                                                             <td>
                                                                 @if ($isBill)
                                                                     @if (($payableSummary['type'] ?? '') === 'Bill')
-                                                                        {{ $user?->billNumberFormat($payableSummary['bill']) ?? __('Could not format bill number') }}
+                                                                        {{ $user?->billNumberFormat($payableSummary['bill']) ?? __('Could not format Bill Identifier') }}
                                                                     @elseif(($payableSummary['type'] ?? '') === 'Expense')
                                                                         {{ $user?->expenseNumberFormat($payableSummary['bill']) ?? __('Could not format expense number') }}
                                                                     @else
@@ -247,7 +247,7 @@
                                                             <td>
                                                                 @if ($isBill)
                                                                     @if (($payableDetail['type'] ?? '') === 'Bill')
-                                                                        {{ $user?->billNumberFormat($payableDetail['bill']) ?? __('Could not format bill number') }}
+                                                                        {{ $user?->billNumberFormat($payableDetail['bill']) ?? __('Could not format Bill Identifier') }}
                                                                     @elseif(($payableDetail['type'] ?? '') === 'Expense')
                                                                         {{ $user?->expenseNumberFormat($payableDetail['bill']) ?? __('Could not format expense number') }}
                                                                     @else

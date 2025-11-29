@@ -19,7 +19,7 @@ class CreateCommissionsTable extends Migration
             $table->uuid('id')->primary();
             $this->addEmployeeColumns($table, unique: false, nullable: false);
             $table->string('title')->nullable()->index();
-            $table->text('description')->nullable()->index();
+            $table->text('description')->nullable();
             $table->decimal('amount', 15, 2)->default(0.00);
             $table->string('type')->nullable()->index(); // TODO: considerar enum dedicado (fixed/percentage)
             $this->addAuditColumns($table);

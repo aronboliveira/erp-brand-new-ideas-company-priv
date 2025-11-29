@@ -24,9 +24,13 @@ enum CountryName: string
 	case Australia     = 'Australia';
 	case SouthAfrica   = 'South Africa';
 
-	public static function normalize(?string $value): ?self
+	public static function normalize(string|null|self $value): ?self
 	{
-		$v = strtolower(trim((string) $value));
+		if ($value instanceof self)
+			return $value;
+		if ($value === null)
+			return null;
+		$v = strtolower(trim($value));
 		if ($v === '')
 			return null;
 

@@ -47,6 +47,7 @@ class DatabaseConstants
 	public const TABLE_BNK_TRF = 'bank_transfers';
 	public const TABLE_INVS = 'invoices';
 	public const TABLE_LEAVE_TYPES = 'leave_types';
+	public const TABLE_LV = 'leaves';
 	public const TABLE_LEADS = 'leads';
 	public const TABLE_COUPONS = 'coupons';
 	public const TABLE_CUSTOM_FIELDS = 'custom_fields';
@@ -98,7 +99,8 @@ class DatabaseConstants
 	public const TABLE_JL = 'joining_letters';
 	public const TABLE_TRS = 'transactions';
 	public const TABLE_LBL = 'labels';
-	public const TABLE_PAY_SLP = 'payslip_types';
+	public const TABLE_PAY_SLP_TP = 'payslip_types';
+	public const TABLE_PAY_SLP = 'payslips';
 	public const TABLE_AWD = 'awards';
 	public const TABLE_AWD_TPS = 'award_types';
 	public const TABLE_TRAVELS = 'travels';
@@ -114,8 +116,13 @@ class DatabaseConstants
 	public const TABLE_OT_PYMTS = 'other_payments';
 	public const TABLE_OVT = 'overtimes';
 	public const TABLE_PRF_TP = 'performance_types';
-	public const TABLE_PSLP = 'pay_slips';
+	public const TABLE_PSLP = 'payslips';
 	public const TABLE_ANC = 'announcements';
+	public const TABLE_BL_PRD = 'bill_products';
+	public const TABLE_WRH = 'warehouses';
+	public const TABLE_PAY = 'payments';
+	public const TABLE_POS_PAY = 'pos_payments';
+	public const TABLE_MET_EMP = 'meeting_employees';
 
 	// * FIELD NAMES
 
@@ -143,6 +150,14 @@ class DatabaseConstants
 	public const COL_TP_LB = 'type_label';
 	public const COL_RL_CAT = 'related_categories';
 	public const COL_PRO_IMG = 'pro_image';
+	public const COL_FL_PT = 'file_path';
+	public const COL_MM_TP = 'mime_type';
+	public const COL_EXP_DT = 'expiration_date';
+	public const COL_DL_TP = 'download_count';
+	public const COL_PERM_RLS = 'permission_rules';
+	public const COL_IR = 'is_required';
+	public const COL_IPV = 'is_private';
+	public const COL_LA = 'last_accessed';
 	public const ORDER_ID = 'orderById';
 	public const ORDER_C_AT = 'orderByCreatedAt';
 	public const ORDER_NEW = 'orderByNewest';

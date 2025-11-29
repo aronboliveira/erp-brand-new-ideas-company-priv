@@ -383,7 +383,7 @@
                                                             data-url="{{ $billShowUrl }}"
                                                             data-guard-msg="{{ $billShowGuardMsg }}"
                                                             data-sv-localized="true">
-                                                                {{ $user?->billNumberFormat(data_get($bill,'bill_id')) ?? __('Failed to get bill number') }}
+                                                                {{ $user?->billNumberFormat(data_get($bill,'bill_id')) ?? __('Failed to get Bill Identifier') }}
                                                             </a>
                                                         </td>
                                                         <td>{{ $user?->dateFormat(data_get($bill,'send_date')) ?? __('Failed to get date') }}</td>

@@ -2,36 +2,115 @@
 
 namespace App\Models;
 
-use App\Models\BankAccount;
+use App\Config\Constants\{
+    BillsConstants as BC,
+    DatabaseConstants as DC
+};
 use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use Illuminate\Database\Eloquent\{
+    Model,
+    Relations\BelongsTo
+};
+use Illuminate\Support\Facades\Log;
 
 class PosPayment extends Model
 {
     use UsesUuids;
 
-    private const COL_POS_ID         = 'pos_id';
-    private const COL_DATE           = 'date';
-    private const COL_AMOUNT         = 'amount';
-    private const COL_DISCOUNT       = 'discount';
-    private const COL_DISCOUNT_AMOUNT = 'discount_amount';
-    private const COL_ACCOUNT_ID     = 'account_id';      // ! CHANGED
-    private const COL_CREATED_BY     = 'created_by';
-    private const FILLABLE           = [
-        self::COL_POS_ID,
-        self::COL_DATE,
-        self::COL_AMOUNT,
-        self::COL_DISCOUNT,
-        self::COL_DISCOUNT_AMOUNT,
-        self::COL_ACCOUNT_ID,                         // ! CHANGED
-        self::COL_CREATED_BY,
+    protected $table = 'pos_payments';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        BC::COL_POS_ID,     // 'pos_id'
+        'payment',          // FK para payments.id
+        BC::COL_BACC_ID,    // 'bank_account_id'
+        'date',
+        'amount',
+        'discount',
+        BC::COL_DSC_AMT,    // 'discount_amount'
     ];
 
-    protected $fillable = self::FILLABLE;
+    protected $guarded = [];
 
-    public function bankAccount(): HasOne
+    protected $with = [
+        'pos',
+        'payment',
+        'bankAccount',
+    ];
+
+    protected $casts = [
+        'date'               => 'date',
+        'amount'             => 'decimal:2',
+        'discount'           => 'decimal:2',
+        BC::COL_DSC_AMT      => 'decimal:2',
+    ];
+
+    protected static function booted(): void
     {
-        return $this->hasOne(BankAccount::class, 'id', self::COL_ACCOUNT_ID);
-        // * consider belongsTo(BankAccount::class, self::COL_ACCOUNT_ID)
+        parent::booted();
+
+        static::saving(function (self $m): void {
+            foreach (['amount', 'discount', BC::COL_DSC_AMT] as $field) {
+                if ($m->{$field} !== null) {
+                    $val = (float) $m->{$field};
+                    if ($val < 0.0)
+                        $val = 0.0;
+                    $m->{$field} = $val;
+                }
+            }
+
+            if (!empty($m->payment)) {
+                try {
+                    /** @var \App\Models\Payment|null $payment */
+                    $payment = $m->relationLoaded('payment')
+                        ? $m->getRelation('payment')
+                        : Payment::find($m->payment);
+                    if ($payment) {
+                        if ($m->date !== null)
+                            $payment->date = $m->date;
+                        if ($m->{BC::COL_BACC_ID} !== null)
+                            $payment->{BC::COL_BACC_ID} = $m->{BC::COL_BACC_ID};
+                        if ($m->discount !== null)
+                            $payment->discount = $m->discount;
+                        if ($m->amount !== null)
+                            $payment->{BC::COL_PRC_AMT} = $m->amount;
+                        $payment->save();
+                    }
+                } catch (\Throwable $e) {
+                    Log::error(
+                        static::class . '::saving failed to sync Payment: ' . $e->getMessage(),
+                        ['pos_payment_id' => $m->id ?? null]
+                    );
+                }
+            }
+        });
+    }
+
+    public function pos(): BelongsTo
+    {
+        return $this->belongsTo(
+            Pos::class,
+            BC::COL_POS_ID,
+            'id'
+        );
+    }
+
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(
+            Payment::class,
+            'payment',
+            'id'
+        );
+    }
+
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(
+            BankAccount::class,
+            BC::COL_BACC_ID,
+            'id'
+        );
     }
 }

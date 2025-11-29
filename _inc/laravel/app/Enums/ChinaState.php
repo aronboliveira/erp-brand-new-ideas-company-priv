@@ -39,9 +39,13 @@ enum ChinaState: string
 	case HK = 'HK';
 	case MO = 'MO';
 
-	public static function normalize(?string $value): ?self
+	public static function normalize(string|null|ChinaState $value): ?self
 	{
-		$v = strtoupper(trim((string) $value));
+		if ($value instanceof self)
+			return $value;
+		if ($value === null)
+			return null;
+		$v = strtoupper(trim($value));
 		if ($v === '')
 			return null;
 

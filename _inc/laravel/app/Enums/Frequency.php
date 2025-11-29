@@ -20,7 +20,7 @@ enum Frequency: string
 	public static function normalize(null|string|BackedEnum $v): ?self
 	{
 		if ($v instanceof self) return $v;
-		if ($v === null) return null;
+		if ($v === null) return self::Variable;
 
 		$k = strtolower(trim((string)$v));
 		$aliases = [
