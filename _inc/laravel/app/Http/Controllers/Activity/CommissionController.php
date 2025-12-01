@@ -75,7 +75,7 @@ class CommissionController extends Controller
           return $resp;
         }
         $creatorId = $user?->creatorId();
-        $commissions = Commission::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->orderByDesc('id')->get();
+        $commissions = Commission::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderByDesc('id')->get();
         Log::info("[{$class}::{$action}] fetched commissions", ['count' => $commissions->count()]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('commissions'));
@@ -141,7 +141,7 @@ class CommissionController extends Controller
         $creatorId = $user?->creatorId();
         $txnStart = microtime(true);
         DB::transaction(function () use ($data, $creatorId, $action, $class) {
-          $commission = Commission::create([UsersConstants::COL_EMP_ID => $data[UsersConstants::COL_EMP_ID], 'title' => $data['title'], 'type' => $data['type'], 'amount' => $data['amount'], DatabaseConstants::TABLE_CREATOR => $creatorId]);
+          $commission = Commission::create([UsersConstants::COL_EMP_ID => $data[UsersConstants::COL_EMP_ID], 'title' => $data['title'], 'type' => $data['type'], 'amount' => $data['amount'], DatabaseConstants::COL_TABLE_CREATOR => $creatorId]);
           Log::info("[{$class}::{$action}] created", ['commission_id' => $commission->id]);
         });
         $this->logExecutionTime($txnStart, $action, 'storeTransaction');

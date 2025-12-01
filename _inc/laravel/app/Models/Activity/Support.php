@@ -26,7 +26,7 @@ class Support extends Model
         SupportsConstants::COL_TKT_CD,
         SupportsConstants::COL_TKT_CR,
         ActivitiesConstants::COL_TSK_STT,
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
         SupportsConstants::COL_ATC,
         ActivitiesConstants::COL_DESC
     ];

@@ -47,7 +47,7 @@ final class BankTransferController extends Controller
           throw new \Illuminate\Auth\Access\AuthorizationException;
         }
         $buildStart = microtime(true);
-        $query = BankTransfer::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+        $query = BankTransfer::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
         if ($range = $req->input('date')) {
           [$start, $end] = count($p = explode(' to ', $range)) > 1 ? $p : [$range, $range];
           $query->whereBetween('date', [$start, $end]);
@@ -60,7 +60,7 @@ final class BankTransferController extends Controller
         $this->logExecutionTime($fetchStart, $action, 'fetchTransfers');
         Log::info("[{$base}::{$action}] loaded transfers", ['count' => $transfers->count()]);
         $acctStart = microtime(true);
-        $accounts = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('holder_name', 'id')->prepend(__('Select Account'), '');
+        $accounts = BankAccount::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('holder_name', 'id')->prepend(__('Select Account'), '');
         $this->logExecutionTime($acctStart, $action, 'fetchAccounts');
         if (!ViewFacade::exists($viewPath)) {
           Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -104,7 +104,7 @@ final class BankTransferController extends Controller
           throw new \Illuminate\Auth\Access\AuthorizationException;
         }
         $acctStart = microtime(true);
-        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
         $this->logExecutionTime($acctStart, $action, 'fetchAccounts');
         if (!ViewFacade::exists($viewPath)) {
           Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -160,7 +160,7 @@ final class BankTransferController extends Controller
             'payment_method' => 0,
             'reference' => $req->input('reference'),
             'description' => $req->input('description'),
-            DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+            DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
           ]);
           $this->logExecutionTime($createStart, $action, 'createTransfer');
           $balStart = microtime(true);
@@ -248,7 +248,7 @@ final class BankTransferController extends Controller
         if (($r = $this->authorizeOwnership($req, $transfer, 'edit bank transfer')) !== true) return $r;
         $this->logExecutionTime($authStart, $action, 'authorizeOwnership');
         $acctStart = microtime(true);
-        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
+        $bankAccounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
         $this->logExecutionTime($acctStart, $action, 'fetchAccounts');
         if (!ViewFacade::exists($viewPath)) {
           Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);

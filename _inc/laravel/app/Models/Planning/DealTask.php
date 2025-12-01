@@ -19,7 +19,7 @@ class DealTask extends Model
         PJC::COL_PRT,
         AC::COL_TSK_STT,
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['deal'];
 
     public static $priorities = [

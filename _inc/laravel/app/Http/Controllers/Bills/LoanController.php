@@ -42,7 +42,7 @@ final class LoanController extends Controller
                 $this->logExecutionTime($empStart, $action, 'findEmployee');
                 $optStart = microtime(true);
                 $creatorId = $request->user()?->creatorId() ?? null;
-                $options = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+                $options = LoanOption::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
                 $this->logExecutionTime($optStart, $action, 'loadOptions');
                 $typeStart = microtime(true);
                 $types = self::loanTypes();
@@ -96,7 +96,7 @@ final class LoanController extends Controller
                         'amount'                         => (float) $request->amount,
                         'reason'                         => $request->reason,
                         'type'                           => $request->type ?? null,
-                        DatabaseConstants::TABLE_CREATOR => $request->user()?->creatorId() ?? null,
+                        DatabaseConstants::COL_TABLE_CREATOR => $request->user()?->creatorId() ?? null,
                     ];
                     $createStart = microtime(true);
                     $new = Loan::create($data);
@@ -133,7 +133,7 @@ final class LoanController extends Controller
                     return defaultPermissionDenial($request, new \Exception('owner'), "{$class}::{$action}");
                 }
                 $optStart = microtime(true);
-                $options = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $request->user()?->creatorId() ?? null)->pluck('name', 'id');
+                $options = LoanOption::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()?->creatorId() ?? null)->pluck('name', 'id');
                 $this->logExecutionTime($optStart, $action, 'loadOptions');
                 $typeStart = microtime(true);
                 $types = self::loanTypes();

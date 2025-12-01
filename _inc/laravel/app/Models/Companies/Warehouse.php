@@ -64,8 +64,8 @@ class Warehouse extends Model
         CC::COL_CL_TM,
         CC::COL_WK_DYS,
         UC::COL_AVG_RT,
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
     protected $with = [
         'company',
@@ -110,7 +110,7 @@ class Warehouse extends Model
                 $m->{$field} = static::normalizeArrayField($m->{$field} ?? null);
             }
 
-            $ownerId = $m->{DC::TABLE_CREATOR} ?? $m->{CC::COL_CP_ID} ?? $m->{CC::COL_OWN_ID} ?? null;
+            $ownerId = $m->{DC::COL_TABLE_CREATOR} ?? $m->{CC::COL_CP_ID} ?? $m->{CC::COL_OWN_ID} ?? null;
 
             $m->email = static::normalizeEmail(
                 $m->email ?? null,
@@ -224,7 +224,7 @@ class Warehouse extends Model
 
             $id = DB::table((new self())->getTable())
                 ->where('id', $warehouseId)
-                ->where(DC::TABLE_CREATOR, $user?->creatorId())
+                ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
                 ->value('id');
 
             return (int) ($id ?? 0);

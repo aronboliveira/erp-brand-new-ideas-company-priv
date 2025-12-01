@@ -51,12 +51,12 @@ class ContractController extends Controller
                 if ($user->type == PermissionsConstants::CPN) {
                     $companyStart = microtime(true);
                     $all = Contract::with([DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS, 'types'])
-                        ->where(DatabaseConstants::TABLE_CREATOR, $creator)->get();
-                    $byMonth = Contract::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->get();
+                    $byMonth = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                         ->whereMonth(ProjectsConstants::COL_S_DT, now()->month)->get();
-                    $byWeek = Contract::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                    $byWeek = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                         ->whereBetween(ProjectsConstants::COL_S_DT, [now()->startOfWeek(), now()->endOfWeek()])->get();
-                    $last30 = Contract::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                    $last30 = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                         ->whereDate(ProjectsConstants::COL_S_DT, '>', now()->subDays(30))->get();
                     $summarize = fn($set) => \App\Models\Contract::getContractSummary($set);
                     $cnt = [
@@ -92,7 +92,7 @@ class ContractController extends Controller
                 // fallback: all for other user types
                 $allStart = microtime(true);
                 $all = Contract::with([DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS, 'types'])
-                    ->where(DatabaseConstants::TABLE_CREATOR, $creator)->get();
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->get();
                 $this->logExecutionTime($allStart, $action . '::fallbackAll', 'completed');
                 return view(self::ENTITY . '.' . $function, compact('all'));
             } catch (\Throwable $e) {
@@ -117,17 +117,17 @@ class ContractController extends Controller
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             $creator = $user?->creatorId();
             $stepStart = microtime(true);
-            $contractTypes = ContractType::where(DatabaseConstants::TABLE_CREATOR, $creator)
+            $contractTypes = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                 ->pluck('name', 'id');
             $this->logExecutionTime($stepStart, 'fetchContractTypes', 'completed');
             $stepStart = microtime(true);
             $clients = User::where(UsersConstants::COL_TP, PermissionsConstants::CL)
-                ->where(DatabaseConstants::TABLE_CREATOR, $creator)
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                 ->pluck(UsersConstants::COL_NM, 'id');
             $clients->prepend(__('Select Client'), 0);
             $this->logExecutionTime($stepStart, 'fetchClients', 'completed');
             $stepStart = microtime(true);
-            $projects = Project::where(DatabaseConstants::TABLE_CREATOR, $creator)
+            $projects = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                 ->pluck(ProjectsConstants::COL_NM, 'id');
             $this->logExecutionTime($stepStart, 'fetchProjects', 'completed');
             return view(self::ENTITY . '.' . $function, compact('contractTypes', DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS));
@@ -179,7 +179,7 @@ class ContractController extends Controller
                     ProjectsConstants::COL_S_DT  => $request->start_date,
                     'end_date'    => $request->end_date,
                     'description' => $request->description,
-                    DatabaseConstants::TABLE_CREATOR  => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR  => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($startCreate, $function . '::createContract', 'completed');
 
@@ -275,15 +275,15 @@ class ContractController extends Controller
                 $this->logExecutionTime($findStart, $action . '::findOrFail', 'completed');
                 $creator = $user?->creatorId();
                 $typesStart = microtime(true);
-                $types = ContractType::where(DatabaseConstants::TABLE_CREATOR, $creator)->pluck('name', 'id');
+                $types = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->pluck('name', 'id');
                 $this->logExecutionTime($typesStart, $action . '::types', 'completed');
                 $clientsStart = microtime(true);
                 $clients = User::where('type', PermissionsConstants::CL)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $creator)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                     ->pluck(UsersConstants::COL_NM, 'id');
                 $this->logExecutionTime($clientsStart, $action . '::clients', 'completed');
                 $projectsStart = microtime(true);
-                $projects = Project::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                $projects = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                     ->pluck(ProjectsConstants::COL_NM, 'id');
                 $this->logExecutionTime($projectsStart, $action . '::projects', 'completed');
                 return view(self::ENTITY . '.' . $function, compact('c', 'types', DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS));
@@ -411,7 +411,7 @@ class ContractController extends Controller
                 $qry = Contract::query();
                 $qry->where(
                     ($user->type == PermissionsConstants::CPN || $user->type == PermissionsConstants::SA)
-                        ? DatabaseConstants::TABLE_CREATOR
+                        ? DatabaseConstants::COL_TABLE_CREATOR
                         : 'client_id',
                     ($user->type == PermissionsConstants::CPN || $user->type == PermissionsConstants::SA)
                         ? $user?->creatorId()
@@ -785,17 +785,17 @@ class ContractController extends Controller
 
                 $clientsStart = microtime(true);
                 $clients = User::where('type', PermissionsConstants::CL)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $creator)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                     ->pluck('name', 'id');
                 $this->logExecutionTime($clientsStart, $action . '::clients', 'completed');
 
                 $typesStart = microtime(true);
-                $types = ContractType::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                $types = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                     ->pluck('name', 'id');
                 $this->logExecutionTime($typesStart, $action . '::types', 'completed');
 
                 $projectsStart = microtime(true);
-                $projects = Project::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                $projects = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                     ->pluck('title', 'id');
                 $this->logExecutionTime($projectsStart, $action . '::projects', 'completed');
 
@@ -851,7 +851,7 @@ class ContractController extends Controller
                     ProjectsConstants::COL_S_DT => $request->start_date,
                     'end_date' => $request->end_date,
                     'description' => $request->description,
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($stepStart, 'createContract', 'completed');
                 // --- prepare notification payload once ---

@@ -17,12 +17,14 @@ class CreateEmployeeAnnouncementsTable extends Migration
             $table->uuid(self::COL_ANNOUNCEMENT);         // ! CHANGED
             $table->uuid(self::COL_EMPLOYEE);             // ! CHANGED
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);              // ! CHANGED
-            foreach ([
-                self::COL_ANNOUNCEMENT                   => self::TABLE,
-                self::COL_EMPLOYEE                       => DatabaseConstants::TABLE_EMPLOYEES,
-                DatabaseConstants::TABLE_CREATOR     => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);              // ! CHANGED
+            foreach (
+                [
+                    self::COL_ANNOUNCEMENT                   => self::TABLE,
+                    self::COL_EMPLOYEE                       => DatabaseConstants::TABLE_EMPLOYEES,
+                    DatabaseConstants::COL_TABLE_CREATOR     => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -33,11 +35,13 @@ class CreateEmployeeAnnouncementsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_ANNOUNCEMENT,
-                self::COL_EMPLOYEE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_ANNOUNCEMENT,
+                    self::COL_EMPLOYEE,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

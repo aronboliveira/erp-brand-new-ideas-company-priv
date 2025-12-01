@@ -23,7 +23,7 @@ class BugStatus extends Model
   ];
   protected $guarded = [
     'id',
-    DC::TABLE_CREATOR,
+    DC::COL_TABLE_CREATOR,
   ];
 
   public function bugs(int $projectId): Collection

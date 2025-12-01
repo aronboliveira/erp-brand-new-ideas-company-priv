@@ -99,7 +99,7 @@ final class LoanSeeder extends Seeder
 							'reason'          => 'Necessidade financeira pontual / política interna.',
 							BC::COL_DD_TYPE   => $deductionType,   // DeductionType::loan
 							'installments'    => $installments,
-							DC::TABLE_CREATOR => $systemUserId,
+							DC::COL_TABLE_CREATOR => $systemUserId,
 						]
 					);
 

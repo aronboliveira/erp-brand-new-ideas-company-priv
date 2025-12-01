@@ -36,7 +36,7 @@ class ComplaintController extends AppController
         if (strtolower($user[UsersConstants::COL_TP]) === 'employee') {
           $empId = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value('id');
           $complaints = Complaint::where('complaint_from', $empId)->with(['complaintFrom'])->get();
-        } else $complaints = Complaint::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->with(['complaintFrom'])->get();
+        } else $complaints = Complaint::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->with(['complaintFrom'])->get();
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('complaints'));
       } catch (\Throwable $e) {
@@ -60,7 +60,7 @@ class ComplaintController extends AppController
         $currentEmployee = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->get()->pluck('name', 'id');
         $employees = strtolower($user[UsersConstants::COL_TP]) === 'employee'
           ? Employee::where(UsersConstants::COL_USER_ID, '!=', $user?->id)->get()->pluck('name', 'id')
-          : Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get()->pluck('name', 'id');
+          : Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get()->pluck('name', 'id');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('employees', 'currentEmployee'));
       } catch (\Throwable $e) {
@@ -142,7 +142,7 @@ class ComplaintController extends AppController
         $user = $req->user();
         if (!$user?->can('edit complaint') || $complaint->created_by !== $user?->creatorId()) return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
         $currentEmployee = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->get()->pluck('name', 'id');
-        $employees = strtolower($user[UsersConstants::COL_TP]) === 'employee' ? Employee::where(UsersConstants::COL_USER_ID, '!=', $user?->id)->get()->pluck('name', 'id') : Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get()->pluck('name', 'id');
+        $employees = strtolower($user[UsersConstants::COL_TP]) === 'employee' ? Employee::where(UsersConstants::COL_USER_ID, '!=', $user?->id)->get()->pluck('name', 'id') : Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get()->pluck('name', 'id');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('complaint', 'employees', 'currentEmployee'));
       } catch (\Throwable $e) {

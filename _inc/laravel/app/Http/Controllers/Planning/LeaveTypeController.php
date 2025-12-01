@@ -29,7 +29,7 @@ class LeaveTypeController extends Controller
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'manage leave type', VW::LV_TP . '.index')) !== true) return $redirect;
             $leaveTypes = LeaveType::query()
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->get();
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(VW::LV_TP . '.index'));
             return view($view, compact('leaveTypes'));
@@ -68,7 +68,7 @@ class LeaveTypeController extends Controller
                 ]);
                 if ($validator->fails()) return redirect()->back()->with('error', $validator->errors()->first());
                 $data = Arr::only($request->all(), ['title', 'days']);
-                $data[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                $data[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
                 LeaveType::create($data);
                 return redirect()->route(VW::LV_TP . '.index')->with('success', __('LeaveType successfully created.'));
             } catch (\Throwable $e) {

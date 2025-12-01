@@ -29,7 +29,7 @@ class Deal extends Model
     ];
     protected $guarded  = [
         'id',
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
     private const PERM_BASE         = 'Client';
     private const PERM_VIEW_TARGETS = [

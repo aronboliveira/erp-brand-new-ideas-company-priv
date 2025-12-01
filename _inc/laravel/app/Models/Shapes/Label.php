@@ -17,7 +17,7 @@ class Label extends Model
     ];
     protected $guarded  = [
         'id',
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
 
     public static array $colors = [

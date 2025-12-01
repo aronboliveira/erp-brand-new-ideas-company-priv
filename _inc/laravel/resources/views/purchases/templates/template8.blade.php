@@ -55,7 +55,7 @@ if (empty($purchase)) {
 }
 
 try {
-    $settings_data = Utility::settingsById(data_get($purchase, DatabaseConstants::TABLE_CREATOR));
+    $settings_data = Utility::settingsById(data_get($purchase, DatabaseConstants::COL_TABLE_CREATOR));
 } catch (\Throwable $e) {
     Log::error('settingsById Throwable: ' . get_class($e) . ' | "' . $e->getMessage() . '" | file=' . __FILE__ . ' | line=' . __LINE__);
     $settings_data = [];

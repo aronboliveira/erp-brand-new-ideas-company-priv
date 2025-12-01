@@ -42,7 +42,7 @@ class WarningController extends Controller
                         ->with('warningTo')
                         ->get();
                 } else {
-                    $warnings = Warning::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                    $warnings = Warning::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                         ->with('warningTo')
                         ->get();
                 }
@@ -81,7 +81,7 @@ class WarningController extends Controller
                 $employees = Employee::where(UsersConstants::COL_USER_ID, '!=', $user?->id)->pluck('name', 'id');
             } else {
                 $currentEmployee = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->pluck('name', 'id');
-                $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
             }
 
             if (!ViewFacade::exists($view))
@@ -202,7 +202,7 @@ class WarningController extends Controller
                     $employees = Employee::where(UsersConstants::COL_USER_ID, '!=', $user?->id)->pluck('name', 'id');
                 } else {
                     $currentEmployee = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->pluck('name', 'id');
-                    $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+                    $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
                 }
 
                 if (!ViewFacade::exists($view))

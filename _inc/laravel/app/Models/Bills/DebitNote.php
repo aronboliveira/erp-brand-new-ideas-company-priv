@@ -2,28 +2,39 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class DebitNote extends Model
+class DebitNote extends CardNote
 {
-    use UsesUuids;
+    protected $table = DC::TABLE_DB_NOTES;
 
-    private const COL_BILL  = 'bill';
-    private const COL_VENDOR = 'vendor';
-
-    protected $fillable = [
-        self::COL_BILL,
-        self::COL_VENDOR,
-        'amount',
-        'date',
-        'description', // * added to match migration
+    private const EXTRA_FILLABLE = [
+        UC::COL_VD_ID,
     ];
 
-    public function vendor(): HasOne
+    protected $fillable = [
+        ...parent::BASE_FILLABLE,
+        ...self::EXTRA_FILLABLE,
+    ];
+
+    protected $with = [
+        ...parent::BASE_WITH,
+        'vendor',
+    ];
+
+    protected function monetarySign(): int
     {
-        return $this
-            ->hasOne(Vendor::class, 'vendor_id', self::COL_VENDOR);
-        // * consider using belongsTo(Vendor::class, self::COL_VENDOR)
+        return 1;
+    }
+
+    public function getFillable(): array
+    {
+        return array_merge(parent::getFillable(), self::EXTRA_FILLABLE);
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, UC::COL_VD_ID);
     }
 }

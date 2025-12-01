@@ -205,7 +205,7 @@ final class BankTransferSeeder extends Seeder
 					DC::COL_LST_RTR_AT    => null,
 
 					// Auditoria
-					DC::TABLE_CREATOR     => $creator,
+					DC::COL_TABLE_CREATOR     => $creator,
 				];
 
 				// Critério de upsert por referência única

@@ -71,7 +71,7 @@ final class CommissionSeeder extends Seeder
 							'title'           => $title,
 							'type'            => $type,
 							'amount'          => $amount,
-							DC::TABLE_CREATOR => $systemUserId,
+							DC::COL_TABLE_CREATOR => $systemUserId,
 						]
 					);
 

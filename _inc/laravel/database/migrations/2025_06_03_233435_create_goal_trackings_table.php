@@ -25,12 +25,14 @@ class CreateGoalTrackingsTable extends Migration
             $table->integer('status')->default(0);
             $table->integer('progress')->default(0);
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->index();      // ! CHANGED
-            foreach ([
-                self::COL_BRANCH                 => DatabaseConstants::TABLE_BRANCHES,
-                self::COL_GOAL_TYPE              => DatabaseConstants::TABLE_GOAL_TYPES,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();      // ! CHANGED
+            foreach (
+                [
+                    self::COL_BRANCH                 => DatabaseConstants::TABLE_BRANCHES,
+                    self::COL_GOAL_TYPE              => DatabaseConstants::TABLE_GOAL_TYPES,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -41,11 +43,13 @@ class CreateGoalTrackingsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_BRANCH,
-                self::COL_GOAL_TYPE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_BRANCH,
+                    self::COL_GOAL_TYPE,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

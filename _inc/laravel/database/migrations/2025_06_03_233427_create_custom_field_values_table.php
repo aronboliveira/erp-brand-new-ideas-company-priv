@@ -18,7 +18,7 @@ class CreateCustomFieldValuesTable extends Migration
             $table->string('value')->nullable();
             $table->timestamps();
             $table->unique([self::COL_RECORD, self::COL_FIELD]);
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
             $table->foreign(self::COL_FIELD)
                 ->references('id')
                 ->on(DatabaseConstants::TABLE_CUSTOM_FIELDS)

@@ -16,10 +16,10 @@ class CreateCompanyPaymentSettingsTable extends Migration
                 $table->uuid('id')->primary(); // ! CHANGED
                 $table->string(self::COL_NAME);
                 $table->string('value');
-                $table->uuid(DatabaseConstants::TABLE_CREATOR); // ! CHANGED
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR); // ! CHANGED
                 $table->timestamps();
-                $table->unique([self::COL_NAME, DatabaseConstants::TABLE_CREATOR]);
-                $table->foreign(DatabaseConstants::TABLE_CREATOR)
+                $table->unique([self::COL_NAME, DatabaseConstants::COL_TABLE_CREATOR]);
+                $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
                     ->references('id')
                     ->on(DatabaseConstants::TABLE_USERS)
                     ->cascadeOnDelete();
@@ -31,12 +31,12 @@ class CreateCompanyPaymentSettingsTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR)
-                    && $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR)
+                    && $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
+                        . DatabaseConstants::COL_TABLE_CREATOR
                         . ' on table '
                         . self::TABLE
                         . ': '

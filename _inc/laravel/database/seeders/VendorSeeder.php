@@ -91,7 +91,7 @@ class VendorSeeder extends Seeder
 					'offers'            => $offers,
 
 					// Auditoria
-					DC::TABLE_CREATOR   => null,  // se quiser atrelar a um "system user", injete aqui o ID
+					DC::COL_TABLE_CREATOR   => null,  // se quiser atrelar a um "system user", injete aqui o ID
 				];
 
 				$found = Vendor::query()->where(UC::COL_EM, $email)->first();

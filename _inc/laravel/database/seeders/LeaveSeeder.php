@@ -52,7 +52,7 @@ final class LeaveSeeder extends Seeder
 							'categories'                              => ['administrativo'],
 							'conditions'                              => [],
 							'attachments'                             => [],
-							DC::TABLE_CREATOR                          => $systemUserId,
+							DC::COL_TABLE_CREATOR                          => $systemUserId,
 						]
 					);
 				}
@@ -145,7 +145,7 @@ final class LeaveSeeder extends Seeder
 							'aceite_do_gestor' => $faker->boolean(80),
 							'pode_ser_remoto'  => $faker->boolean(40),
 						],
-						DC::TABLE_CREATOR         => $systemUserId,
+						DC::COL_TABLE_CREATOR         => $systemUserId,
 					];
 
 					// Upsert reexecutável

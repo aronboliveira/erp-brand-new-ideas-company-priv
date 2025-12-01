@@ -90,7 +90,7 @@ final class TransferSeeder extends Seeder
 				$t->notes            = $faker->boolean(35) ? $faker->sentence(10) : null;
 
 				// Auditoria explícita (sem auth() no seeding).
-				$t->{DC::TABLE_CREATOR} = $systemUserId;
+				$t->{DC::COL_TABLE_CREATOR} = $systemUserId;
 
 				try {
 					$t->save();

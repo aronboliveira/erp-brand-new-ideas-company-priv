@@ -54,7 +54,7 @@ class ClientController extends Controller
                 $this->logExecutionTime($t, $action . '::authorize', 'ok');
 
                 $t = microtime(true);
-                $clients = User::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                $clients = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->where(UsersConstants::COL_TP, self::SINGULAR)
                     ->get();
                 $this->logExecutionTime($t, $action . '::loadClients', 'completed');
@@ -135,7 +135,7 @@ class ClientController extends Controller
                 $t = microtime(true);
                 $defaultLang = DB::table(DatabaseConstants::TABLE_SETTINGS)
                     ->where('name', SettingsConstants::DEF_LNG)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->value('value') ?? DatabaseConstants::DEFAULT_LANG;
                 $this->logExecutionTime($t, $action . '::loadDefaultLang', 'completed');
 
@@ -149,7 +149,7 @@ class ClientController extends Controller
 
                 $t = microtime(true);
                 $plan  = Plan::find($creator->plan());
-                $total = User::where(DatabaseConstants::TABLE_CREATOR, $creator->creatorId())
+                $total = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creator->creatorId())
                     ->where(UsersConstants::COL_TP, self::SINGULAR)
                     ->count();
                 $this->logExecutionTime($t, $action . '::planCheck', 'completed');
@@ -166,7 +166,7 @@ class ClientController extends Controller
                     'password'          => Hash::make($request->password),
                     UsersConstants::COL_TP => self::SINGULAR,
                     'lang'              => $defaultLang,
-                    DatabaseConstants::TABLE_CREATOR => $creator->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $creator->creatorId(),
                     'email_verified_at' => now()->toDateTimeString(),
                 ]);
                 $this->logExecutionTime($t, $action . '::persistClient', 'completed');

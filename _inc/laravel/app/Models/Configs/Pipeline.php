@@ -15,7 +15,7 @@ class Pipeline extends Model
 {
     use ChecksLogin, UsesUuids, HasAuditFields;
 
-    private const CREATED_BY     = DC::TABLE_CREATOR;
+    private const CREATED_BY     = DC::COL_TABLE_CREATOR;
     private const ORDER          = AC::COL_OD;
     private const FILLABLE_FIELDS = [
         'id', //! REMOVE AFTER TESTS
@@ -24,7 +24,7 @@ class Pipeline extends Model
     ];
     // protected $guarded = [ //! UNCOMMENT AFTER TESTS
     //     'id',
-    //     DC::TABLE_CREATOR,
+    //     DC::COL_TABLE_CREATOR,
     // ];
 
     protected $fillable = self::FILLABLE_FIELDS;

@@ -13,9 +13,9 @@ class CreateProductCategoriesTable extends Migration
 			$table->uuid('id')->primary();                // ! CHANGED
 			$table->string('name');
 			$table->text('description')->nullable();       // * nullable description
-			$table->uuid(DatabaseConstants::TABLE_CREATOR)->index();           // ! CHANGED
+			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();           // ! CHANGED
 			$table->timestamps();
-			$table->foreign(DatabaseConstants::TABLE_CREATOR)
+			$table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
 				->references('id')
 				->on(DatabaseConstants::TABLE_USERS)
 				->cascadeOnDelete();
@@ -26,12 +26,12 @@ class CreateProductCategoriesTable extends Migration
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
 			try {
-				if (Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR))
-					$table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+				if (Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR))
+					$table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
 			} catch (\Exception $e) {
 				Log::warning(
 					'Failed to drop foreign key for '
-						. DatabaseConstants::TABLE_CREATOR
+						. DatabaseConstants::COL_TABLE_CREATOR
 						. ' on table '
 						. self::TABLE
 						. ': '

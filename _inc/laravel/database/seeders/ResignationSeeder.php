@@ -58,7 +58,7 @@ final class ResignationSeeder extends Seeder
 				$r->notes                         = $faker->boolean(30) ? $faker->paragraph() : null;
 
 				// Guardado, mas permitido via atribuição direta antes do save
-				$r->{DC::TABLE_CREATOR} = $systemUserId;
+				$r->{DC::COL_TABLE_CREATOR} = $systemUserId;
 
 				try {
 					$r->save();

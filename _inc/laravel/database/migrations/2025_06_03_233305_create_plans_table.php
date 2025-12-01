@@ -31,12 +31,12 @@ class CreatePlansTable extends Migration
                 $table->text(PLC::COL_DESC)->nullable();
                 $table->string(PLC::COL_IMG)->nullable();
                 $table->timestamps();
-                $table->uuid(DC::TABLE_CREATOR)->default(DC::DEFAULT_UUID)->nullable();
-                $table->uuid(DC::TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
+                $table->uuid(DC::COL_TABLE_CREATOR)->default(DC::DEFAULT_UUID)->nullable();
+                $table->uuid(DC::COL_TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
                 foreach (
                     [
-                        DC::TABLE_CREATOR  => DC::TABLE_USERS,
-                        DC::TABLE_UPDATER  => DC::TABLE_USERS,
+                        DC::COL_TABLE_CREATOR  => DC::TABLE_USERS,
+                        DC::COL_TABLE_UPDATER  => DC::TABLE_USERS,
                     ] as $column => $referencedTable
                 )
                     $table->foreign($column)
@@ -51,14 +51,14 @@ class CreatePlansTable extends Migration
         Schema::table(self::TABLE, function (Blueprint $table): void {
             try {
                 foreach (
-                    [DC::TABLE_UPDATER, DC::TABLE_CREATOR] as $col
+                    [DC::COL_TABLE_UPDATER, DC::COL_TABLE_CREATOR] as $col
                 )
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DC::TABLE_CREATOR
+                        . DC::COL_TABLE_CREATOR
                         . ' on table '
                         . self::TABLE
                         . ': '

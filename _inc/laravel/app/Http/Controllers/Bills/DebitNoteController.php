@@ -50,7 +50,7 @@ final class DebitNoteController extends Controller
             }
             try {
                 $fetchStart = microtime(true);
-                $bills = Bill::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $bills = Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchBills');
                 Log::info("[{$base}::{$action}] bills fetched", [UsersConstants::COL_USER_ID => $user?->id ?? null, 'bill_count' => $bills->count()]);
                 if (!ViewFacade::exists($viewPath)) {
@@ -152,7 +152,7 @@ final class DebitNoteController extends Controller
                         'date' => $req->input('date'),
                         'amount' => $amt,
                         'description' => $req->input('description') ?? null,
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createDebitNote');
                     $balStart = microtime(true);
@@ -338,7 +338,7 @@ final class DebitNoteController extends Controller
             }
             try {
                 $fetchStart = microtime(true);
-                $bills = Bill::where([[DatabaseConstants::TABLE_CREATOR, $user?->creatorId()], ['type', 'Bill']])->pluck('bill_id', 'id');
+                $bills = Bill::where([[DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()], ['type', 'Bill']])->pluck('bill_id', 'id');
                 $this->logExecutionTime($fetchStart, $action, 'fetchBills');
                 Log::info("[{$base}::{$action}] bills fetched", [UsersConstants::COL_USER_ID => $user?->id ?? null, 'count' => $bills->count()]);
                 if (!ViewFacade::exists($viewPath)) {

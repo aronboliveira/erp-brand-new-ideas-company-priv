@@ -12,7 +12,7 @@ class UserDeal extends Model
     use HasFactory, UsesUuids, HasAuditFields;
 
     protected $fillable = ['user_id', 'deal_id'];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['deal', 'user'];
 
     private const FK_DEAL = 'deal_id';

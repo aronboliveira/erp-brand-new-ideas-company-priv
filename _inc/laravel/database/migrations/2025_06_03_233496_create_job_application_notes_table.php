@@ -18,13 +18,15 @@ class CreateJobApplicationNotesTable extends Migration
                 $table->uuid(self::COL_APP);                  // ! CHANGED
                 $table->uuid(self::COL_NOTE);                    // ! CHANGED
                 $table->text(self::N)->nullable();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR);                      // ! CHANGED
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                      // ! CHANGED
                 $table->timestamps();
-                foreach ([
-                    self::COL_APP                   => DatabaseConstants::TABLE_JOB_APPS,
-                    self::COL_NOTE                  => DatabaseConstants::TABLE_USERS,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl)
+                foreach (
+                    [
+                        self::COL_APP                   => DatabaseConstants::TABLE_JOB_APPS,
+                        self::COL_NOTE                  => DatabaseConstants::TABLE_USERS,
+                        DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    ] as $col => $tbl
+                )
                     $table->foreign($col)
                         ->references('id')
                         ->on($tbl)
@@ -35,11 +37,13 @@ class CreateJobApplicationNotesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_APP,
-                self::COL_NOTE,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_APP,
+                    self::COL_NOTE,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

@@ -21,7 +21,7 @@ class Complaint extends Model
         'title',
         'reason'
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $casts = [
         CC::COL_CPT_DT => 'date',
     ];

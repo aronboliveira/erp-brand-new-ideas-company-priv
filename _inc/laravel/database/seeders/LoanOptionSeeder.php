@@ -143,9 +143,9 @@ final class LoanOptionSeeder extends Seeder
 				$model = LoanOption::firstOrNew(['name' => $data['name']]);
 				$model->fill($data);
 
-				if (!$model->exists && empty($model->{DC::TABLE_CREATOR})) {
+				if (!$model->exists && empty($model->{DC::COL_TABLE_CREATOR})) {
 					// atribuição direta (guardado contra mass-assignment)
-					$model->{DC::TABLE_CREATOR} = $systemUserId;
+					$model->{DC::COL_TABLE_CREATOR} = $systemUserId;
 				}
 
 				$model->save();

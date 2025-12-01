@@ -133,7 +133,7 @@ final class EmployeeSeeder extends Seeder
 				$emp->salary                 = $faker->randomFloat(2, 1500, 14000);
 				$emp->{UC::COL_SLR_TP}       = $maybePayId;
 				$emp->{UC::COL_IA}           = 1;
-				$emp->{DC::TABLE_CREATOR}    = DC::DEFAULT_UUID;
+				$emp->{DC::COL_TABLE_CREATOR}    = DC::DEFAULT_UUID;
 
 				$emp->save();
 			}

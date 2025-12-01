@@ -19,8 +19,8 @@ class CreateDepartmentsTable extends Migration
             $table->string('phone', 32)->nullable()->index();
             $table->string('email')->nullable();
             $table->uuid(CPC::COL_MNG)->nullable();
-            $table->uuid(DC::TABLE_CREATOR)->default(DC::DEFAULT_UUID)->nullable();
-            $table->uuid(DC::TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
+            $table->uuid(DC::COL_TABLE_CREATOR)->default(DC::DEFAULT_UUID)->nullable();
+            $table->uuid(DC::COL_TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
             $table->timestamps();
             $table->decimal('budget', 10, 2)->default(0.00);
             $table->decimal('expenses', 10, 2)->default(0.00);
@@ -32,8 +32,8 @@ class CreateDepartmentsTable extends Migration
                 ->cascadeOnDelete();
             foreach (
                 [
-                    DC::TABLE_CREATOR  => DC::TABLE_USERS,
-                    DC::TABLE_UPDATER  => DC::TABLE_USERS,
+                    DC::COL_TABLE_CREATOR  => DC::TABLE_USERS,
+                    DC::COL_TABLE_UPDATER  => DC::TABLE_USERS,
                     CPC::COL_MNG       => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
@@ -58,8 +58,8 @@ class CreateDepartmentsTable extends Migration
             foreach (
                 [
                     self::COL_BRANCH,
-                    DC::TABLE_CREATOR,
-                    DC::TABLE_UPDATER,
+                    DC::COL_TABLE_CREATOR,
+                    DC::COL_TABLE_UPDATER,
                     CPC::COL_MNG,
                 ] as $column
             ) {

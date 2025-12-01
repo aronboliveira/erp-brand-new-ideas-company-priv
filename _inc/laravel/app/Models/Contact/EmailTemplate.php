@@ -19,7 +19,7 @@ class EmailTemplate extends Model
     private const COL_TITLE      = EmailsConstants::COL_TT;
     private const SLUG = EmailsConstants::COL_SLG;
     private static ?self $templateData = null;
-    private const COL_CREATED_BY = DatabaseConstants::TABLE_CREATOR;
+    private const COL_CREATED_BY = DatabaseConstants::COL_TABLE_CREATOR;
     private const FILLABLE      = [
         self::COL_TITLE,
         self::COL_FROM,

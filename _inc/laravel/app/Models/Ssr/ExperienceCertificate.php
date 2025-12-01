@@ -14,7 +14,7 @@ class ExperienceCertificate extends Model
     protected $fillable = [
         TemplatesConstants::COL_LG,
         TemplatesConstants::COL_CT,
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
     private const DEFAULT_XP_CERTIFICATE = [
 
@@ -1005,7 +1005,7 @@ class ExperienceCertificate extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, DatabaseConstants::TABLE_CREATOR, 'id');
+        return $this->belongsTo(User::class, DatabaseConstants::COL_TABLE_CREATOR, 'id');
         // * allows fetching the User who created this certificate
     }
 
@@ -1057,7 +1057,7 @@ class ExperienceCertificate extends Model
                 self::firstOrCreate(
                     [
                         TemplatesConstants::COL_LG                     => $lang,
-                        DatabaseConstants::TABLE_CREATOR => $userId,
+                        DatabaseConstants::COL_TABLE_CREATOR => $userId,
                     ],
                     [TemplatesConstants::COL_CT => $content]
                 );
@@ -1079,7 +1079,7 @@ class ExperienceCertificate extends Model
                 [
                     TemplatesConstants::COL_LG => $lang,
                     TemplatesConstants::COL_CT => $content,
-                    DatabaseConstants::TABLE_CREATOR => $userId,
+                    DatabaseConstants::COL_TABLE_CREATOR => $userId,
 
                 ]
             );

@@ -12,7 +12,7 @@ abstract class AbstractDocument extends Model
 
 	use UsesUuids, HasAuditFields;
 
-	protected $guarded = ['id', DC::TABLE_CREATOR];
+	protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 	protected $fillable = [
 		DC::COL_FL_PT,
 		'extension',
@@ -43,7 +43,7 @@ abstract class AbstractDocument extends Model
 
 	public function user(): HasOne
 	{
-		return $this->hasOne(User::class, 'id', DC::TABLE_CREATOR);
+		return $this->hasOne(User::class, 'id', DC::COL_TABLE_CREATOR);
 	}
 
 	public function userRoleHasPermission(?string $id, string|int $type): bool

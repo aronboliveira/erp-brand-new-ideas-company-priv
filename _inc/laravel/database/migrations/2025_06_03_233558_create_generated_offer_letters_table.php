@@ -13,9 +13,9 @@ class CreateGeneratedOfferLettersTable extends Migration
 			$table->uuid('id')->primary();
 			$table->string(TemplatesConstants::COL_LG, 10)->default(DatabaseConstants::DEFAULT_LANG);
 			$table->text(TemplatesConstants::COL_CT);
-			$table->uuid(DatabaseConstants::TABLE_CREATOR)->index();
+			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();
 			$table->timestamps();
-			$table->foreign(DatabaseConstants::TABLE_CREATOR)
+			$table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
 				->references('id')
 				->on(DatabaseConstants::TABLE_USERS)
 				->onDelete('cascade');
@@ -26,12 +26,12 @@ class CreateGeneratedOfferLettersTable extends Migration
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
 			try {
-				Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR)
-					&& $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+				Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR)
+					&& $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
 			} catch (\Exception $e) {
 				Log::warning(
 					'Failed to execute down for '
-						. DatabaseConstants::TABLE_CREATOR
+						. DatabaseConstants::COL_TABLE_CREATOR
 						. ' foreign key column: '
 						. $e->getMessage()
 				);

@@ -47,8 +47,8 @@ class StageController extends Controller
                 $fetchStart = microtime(true);
                 $stages = Stage::select(DatabaseConstants::TABLE_STAGES . '.*', DatabaseConstants::TABLE_PIPELINES . '.name as pipeline')
                     ->join(DatabaseConstants::TABLE_PIPELINES, DatabaseConstants::TABLE_PIPELINES . '.id', '=', DatabaseConstants::TABLE_STAGES . '.pipeline_id')
-                    ->where(DatabaseConstants::TABLE_PIPELINES . '.' . DatabaseConstants::TABLE_CREATOR, $ownerId)
-                    ->where(DatabaseConstants::TABLE_STAGES . '.' . DatabaseConstants::TABLE_CREATOR, $ownerId)
+                    ->where(DatabaseConstants::TABLE_PIPELINES . '.' . DatabaseConstants::COL_TABLE_CREATOR, $ownerId)
+                    ->where(DatabaseConstants::TABLE_STAGES . '.' . DatabaseConstants::COL_TABLE_CREATOR, $ownerId)
                     ->orderBy(DatabaseConstants::TABLE_STAGES . '.pipeline_id')
                     ->orderBy(DatabaseConstants::TABLE_STAGES . '.order')
                     ->get();

@@ -32,7 +32,7 @@ class TaxController extends Controller
             Log::debug($action . ' start', [UC::COL_USER_ID => $user?->id]);
             if (($denial = self::guard($request, PermissionsConstants::MNG_CT_TX, self::INDEX_ROUTE)) !== true) return $denial;
 
-            $taxes = Tax::where(DC::TABLE_CREATOR, $user?->creatorId())->get();
+            $taxes = Tax::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
 
             $view = ViewsConstants::TX . '.' . $func;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::INDEX_ROUTE));
@@ -104,13 +104,13 @@ class TaxController extends Controller
                     if (!is_float($rate)) {
                         throw new \InvalidArgumentException('Invalid rate value');
                     }
-                    if (Tax::where('name', $request->name)->where(DC::TABLE_CREATOR, $user?->creatorId())->exists()) {
+                    if (Tax::where('name', $request->name)->where(DC::COL_TABLE_CREATOR, $user?->creatorId())->exists()) {
                         throw new \InvalidArgumentException('Tax name already exists');
                     }
                     $tax = Tax::create([
                         'name' => $request->name,
                         'rate' => $rate,
-                        DC::TABLE_CREATOR => $user?->creatorId()
+                        DC::COL_TABLE_CREATOR => $user?->creatorId()
                     ]);
                     Log::info($action . ' created', ['tax_id' => $tax->id]);
                 });

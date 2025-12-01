@@ -20,11 +20,13 @@ class CreateLeadStagesTable extends Migration
             $table->uuid(self::COL_PL);        // ! CHANGED
             $table->integer(ActivitiesConstants::COL_OD)->default(0);
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);         // ! CHANGED
-            foreach ([
-                self::COL_PL                        => DatabaseConstants::TABLE_PIPELINES,
-                DatabaseConstants::TABLE_CREATOR     => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable) {
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);         // ! CHANGED
+            foreach (
+                [
+                    self::COL_PL                        => DatabaseConstants::TABLE_PIPELINES,
+                    DatabaseConstants::COL_TABLE_CREATOR     => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            ) {
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -35,10 +37,12 @@ class CreateLeadStagesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PL,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_PL,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

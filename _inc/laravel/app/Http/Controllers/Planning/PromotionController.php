@@ -47,7 +47,7 @@ class PromotionController extends Controller
             try {
                 $buildStart = microtime(true);
                 $promotions = Promotion::query()
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->when(
                         strtolower($user[UsersConstants::COL_TP]) === 'employee',
                         function ($q) use ($user) {
@@ -96,12 +96,12 @@ class PromotionController extends Controller
             Log::info("[{$class}::{$action}] start");
             try {
                 $desStart = microtime(true);
-                $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id');
                 $this->logExecutionTime($desStart, $action, 'pluckDesignations');
 
                 $empStart = microtime(true);
-                $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id');
                 $this->logExecutionTime($empStart, $action, 'pluckEmployees');
 
@@ -172,7 +172,7 @@ class PromotionController extends Controller
                     'promotion_date',
                 ]);
                 $data['description'] = $req->description ?? '';
-                $data[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                $data[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
 
                 $createStart = microtime(true);
                 $promotion = Promotion::create($data);
@@ -276,12 +276,12 @@ class PromotionController extends Controller
             Log::info("[{$class}::{$action}] start", ['promotion_id' => $promotion->id]);
             try {
                 $desStart = microtime(true);
-                $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id');
                 $this->logExecutionTime($desStart, $action, 'pluckDesignations');
 
                 $empStart = microtime(true);
-                $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id');
                 $this->logExecutionTime($empStart, $action, 'pluckEmployees');
 

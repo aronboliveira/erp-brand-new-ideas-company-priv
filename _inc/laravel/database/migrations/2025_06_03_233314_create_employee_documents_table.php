@@ -30,7 +30,7 @@ class CreateEmployeeDocumentsTable extends Migration
     {
         Schema::table(self::TABLE_NAME, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE_NAME);
-            $this->dropEmployeeForeign($table, self::TABLE_NAME);
+            $this->dropEmployeeColumnForeign($table, self::TABLE_NAME);
             foreach (
                 [
                     TC::COL_DC_ID,

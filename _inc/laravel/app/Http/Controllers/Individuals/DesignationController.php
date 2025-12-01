@@ -40,7 +40,7 @@ class DesignationController extends Controller
 
             // query
             $t = microtime(true);
-            $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
             $this->logExecutionTime($t, $action . '::query', 'rows: ' . $designations->count());
 
             // view check
@@ -75,7 +75,7 @@ class DesignationController extends Controller
 
             // load form data
             $t = microtime(true);
-            $departmentList = Department::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+            $departmentList = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                 ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
             $this->logExecutionTime($t, $action . '::loadFormData', 'deps: ' . $departmentList->count());
 
@@ -126,7 +126,7 @@ class DesignationController extends Controller
             $designation = Designation::create([
                 CompaniesConstants::COL_DEP_ID   => $request->input(CompaniesConstants::COL_DEP_ID),
                 'name'                           => $request->input('name'),
-                DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
             ]);
             $this->logExecutionTime($t, $action . '::persist', 'id: ' . $designation->id);
             Log::info('Designation created', ['id' => $designation->id]);
@@ -170,7 +170,7 @@ class DesignationController extends Controller
 
             // load data
             $t = microtime(true);
-            $departmentList = Department::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+            $departmentList = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                 ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
             $this->logExecutionTime($t, $action . '::loadFormData', 'deps: ' . $departmentList->count());
 

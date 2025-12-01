@@ -13,7 +13,7 @@ class PayslipType extends Model
     use UsesUuids, HasAuditFields;
 
     protected $fillable = ['name', 'description', BC::COL_MIN_AMT, BC::COL_MAX_AMT, BC::COL_RL_APL];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $casts    = [
         BC::COL_MIN_AMT => 'decimal:2',
         BC::COL_MAX_AMT => 'decimal:2',

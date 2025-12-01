@@ -12,7 +12,7 @@ class ClientDeal extends Model
     use UsesUuids, HasAuditFields;
 
     protected $fillable = ['client_id', 'deal_id'];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['deal', 'client'];
 
     public function deal(): BelongsTo

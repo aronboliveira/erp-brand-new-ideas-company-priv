@@ -270,7 +270,7 @@ class SystemController extends Controller
                         $filename = $user?->id . '-' . lcfirst($field) . '.png';
                         $path = Utility::uploadFile($request, $field, $filename, $dir, ['mimes:png', 'max:' . SettingsConstants::MAX_U_SIZE_DEF]);
                         if (($path['flag'] ?? 0) !== 1) throw new \RuntimeException($path['msg'] ?? 'Upload failed');
-                        $creatorCol = DatabaseConstants::TABLE_CREATOR;
+                        $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
                         DB::insert(
                             'insert into settings (`value`,`name`,`' . $creatorCol . '`) values(?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)',
                             [$filename, lcfirst($field), $user?->creatorId()]
@@ -310,15 +310,15 @@ class SystemController extends Controller
                     'timezones' => config('timezones'),
                     'companyPaymentSetting' => Utility::getCompanyPaymentSetting($user?->creatorId()),
                     'emailTemplates' => EmailTemplate::all(),
-                    'ips' => IpRestrict::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get(),
+                    'ips' => IpRestrict::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get(),
                     'offerLetters' => GeneratedOfferLetter::all(),
-                    'currOfferLetter' => GeneratedOfferLetter::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->where('lang', $offer)->first(),
+                    'currOfferLetter' => GeneratedOfferLetter::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)->where('lang', $offer)->first(),
                     'joiningLetters' => JoiningLetter::all(),
-                    'currJoiningLetter' => JoiningLetter::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->where('lang', $joining)->first(),
+                    'currJoiningLetter' => JoiningLetter::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)->where('lang', $joining)->first(),
                     'expCertificates' => ExperienceCertificate::all(),
-                    'currExpCert' => ExperienceCertificate::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->where('lang', $exp)->first(),
+                    'currExpCert' => ExperienceCertificate::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)->where('lang', $exp)->first(),
                     'nocCertificates' => Noc::all(),
-                    'currNocCert' => Noc::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->where('lang', $noc)->first(),
+                    'currNocCert' => Noc::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)->where('lang', $noc)->first(),
                 ]);
                 Log::debug($action . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 $view = VW::SET . '.company';
@@ -350,7 +350,7 @@ class SystemController extends Controller
                         'stripe' => ['stripe_key', 'stripe_secret'],
                         'xendit' => ['xendit_token', 'xendit_api'],
                     ];
-                    $creatorCol = DatabaseConstants::TABLE_CREATOR;
+                    $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
                     foreach ($methods as $k => $fields) {
                         $enable = 'is_' . $k . '_enabled';
                         if ($request->input($enable) === 'on') {
@@ -551,7 +551,7 @@ class SystemController extends Controller
                     }
                 }
                 $userId = $request->user()->creatorId();
-                $creatorCol = DatabaseConstants::TABLE_CREATOR;
+                $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
                 foreach ($settings as $name => $value) {
                     DB::insert(
                         'insert into admin_payment_settings (`value`,`name`,`' . $creatorCol . '`) values(?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)',
@@ -843,7 +843,7 @@ class SystemController extends Controller
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
             try {
                 DB::transaction(fn() => GeneratedOfferLetter::updateOrCreate(
-                    ['lang' => $lang, DatabaseConstants::TABLE_CREATOR => $user?->id],
+                    ['lang' => $lang, DatabaseConstants::COL_TABLE_CREATOR => $user?->id],
                     ['content' => $request->input('content', '')]
                 ));
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -865,7 +865,7 @@ class SystemController extends Controller
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
             try {
                 DB::transaction(fn() => JoiningLetter::updateOrCreate(
-                    ['lang' => $lang, DatabaseConstants::TABLE_CREATOR => $user?->id],
+                    ['lang' => $lang, DatabaseConstants::COL_TABLE_CREATOR => $user?->id],
                     ['content' => $request->input('content', '')]
                 ));
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -887,7 +887,7 @@ class SystemController extends Controller
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
             try {
                 DB::transaction(fn() => ExperienceCertificate::updateOrCreate(
-                    ['lang' => $lang, DatabaseConstants::TABLE_CREATOR => $user?->id],
+                    ['lang' => $lang, DatabaseConstants::COL_TABLE_CREATOR => $user?->id],
                     ['content' => $request->input('content', '')]
                 ));
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -909,7 +909,7 @@ class SystemController extends Controller
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
             try {
                 DB::transaction(fn() => Noc::updateOrCreate(
-                    ['lang' => $lang, DatabaseConstants::TABLE_CREATOR => $user?->id],
+                    ['lang' => $lang, DatabaseConstants::COL_TABLE_CREATOR => $user?->id],
                     ['content' => $request->input('content', '')]
                 ));
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'lang' => $lang]);
@@ -1001,7 +1001,7 @@ class SystemController extends Controller
             if (($redirect = self::guard($request, 'create webhook', self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::debug(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id]);
             try {
-                $webhookSettings = WebhookSettings::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $webhookSettings = WebhookSettings::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $view = 'webhook.index';
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id, 'count' => $webhookSettings->count()]);
                 return ViewFacade::exists($view)
@@ -1057,7 +1057,7 @@ class SystemController extends Controller
                     'module'                         => $data['module'],
                     'url'                            => $data['url'],
                     'method'                         => $data['method'],
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                 ]);
                 Log::debug(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
                 return redirect()->back()->with('success', __('Webhook successfully created.'));
@@ -1373,7 +1373,7 @@ class SystemController extends Controller
         try {
             DB::transaction(fn() => IpRestrict::create([
                 'ip'                              => $data['ip'],
-                DatabaseConstants::TABLE_CREATOR  => $user?->creatorId()
+                DatabaseConstants::COL_TABLE_CREATOR  => $user?->creatorId()
             ]));
             Log::info(__METHOD__ . ' succeeded', [UsersConstants::COL_USER_ID => $user?->id]);
 
@@ -1396,7 +1396,7 @@ class SystemController extends Controller
         Log::info(__METHOD__ . ' started', [UsersConstants::COL_USER_ID => $user?->id, 'id' => $id]);
 
         $ip = IpRestrict::findOrFail($id);
-        if ($ip[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+        if ($ip[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
             return defaultPermissionDenial($request, null, __METHOD__, route(self::REDIRECT_INDEX));
         }
 
@@ -1420,7 +1420,7 @@ class SystemController extends Controller
 
         try {
             $ip = IpRestrict::findOrFail($id);
-            if ($ip[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($ip[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, null, __METHOD__, route(self::REDIRECT_INDEX));
             }
 
@@ -1447,7 +1447,7 @@ class SystemController extends Controller
 
         try {
             $ip = IpRestrict::findOrFail($id);
-            if ($ip[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($ip[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, null, __METHOD__, route(self::REDIRECT_INDEX));
             }
 

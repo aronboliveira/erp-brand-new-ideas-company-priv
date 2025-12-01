@@ -52,8 +52,8 @@ class ProjectTaskController extends Controller
             if (($redirect = self::guard($req, PermissionsConstants::MNG_PRJ_TSK, self::REDIRECT_INDEX)) !== true) return $redirect;
             try {
                 $creatorId = $user?->creatorId();
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->firstOrFail();
-                $stages = TaskStage::orderBy(ActivitiesConstants::COL_OD)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
+                $stages = TaskStage::orderBy(ActivitiesConstants::COL_OD)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
                 foreach ($stages as $stage) {
                     $stage->cssClass = 'task-list-' . $stage->id;
                     $stage[DatabaseConstants::TABLE_TASKS] = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $projectId)->where('stage_id', $stage->id)->orderBy(ActivitiesConstants::COL_OD)->get();
@@ -80,7 +80,7 @@ class ProjectTaskController extends Controller
             if (($redirect = self::guard($req, 'create project task', self::REDIRECT_INDEX)) !== true) return $redirect;
             try {
                 $creatorId = $user?->creatorId();
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
                 $hrs = Project::projectHrs($projectId);
                 $settings = Utility::settings($creatorId);
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -108,9 +108,9 @@ class ProjectTaskController extends Controller
             DB::beginTransaction();
             try {
                 $creatorId = $user?->creatorId();
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->firstOrFail();
-                $data = array_merge($validator, [ProjectsConstants::COL_PJ_ID => $project->id, 'stage_id' => $stageId, ProjectsConstants::COL_ASGN => $req->input(ProjectsConstants::COL_ASGN), ProjectsConstants::COL_S_DT => $req->input(ProjectsConstants::COL_S_DT), ProjectsConstants::COL_E_DT => $req->input(ProjectsConstants::COL_E_DT), DatabaseConstants::TABLE_CREATOR => $creatorId]);
-                if ($stageId == TaskStage::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->orderByDesc(ActivitiesConstants::COL_OD)->first()->id) $data['marked_at'] = now()->toDateString();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
+                $data = array_merge($validator, [ProjectsConstants::COL_PJ_ID => $project->id, 'stage_id' => $stageId, ProjectsConstants::COL_ASGN => $req->input(ProjectsConstants::COL_ASGN), ProjectsConstants::COL_S_DT => $req->input(ProjectsConstants::COL_S_DT), ProjectsConstants::COL_E_DT => $req->input(ProjectsConstants::COL_E_DT), DatabaseConstants::COL_TABLE_CREATOR => $creatorId]);
+                if ($stageId == TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderByDesc(ActivitiesConstants::COL_OD)->first()->id) $data['marked_at'] = now()->toDateString();
                 $task = ProjectTask::create($data);
                 ActivityLog::create([UsersConstants::COL_USER_ID => $user?->id, ProjectsConstants::COL_PJ_ID => $project->id, ActivitiesConstants::COL_TSK_ID => $task->id, 'log_type' => 'Create Task', 'remark' => json_encode(['title' => $task[ProjectsConstants::COL_NM]])]);
                 $settings = Utility::settings($creatorId);
@@ -159,9 +159,9 @@ class ProjectTaskController extends Controller
                 $userProjects = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
                 $tasks = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects);
                 if (($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN && $user->{UsersConstants::COL_TP} != PermissionsConstants::SA))
-                    $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                    $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
                 else
-                    $tasks = $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                    $tasks = $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 $tasks = $tasks->get();
                 Log::info("[{$class}::{$action}] fetched tasks", ['count' => $tasks->count()]);
                 $viewPath = self::SINGULAR . 's.grid';
@@ -195,8 +195,8 @@ class ProjectTaskController extends Controller
                 $userProjects = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray() : $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID, ProjectsConstants::COL_PJ_ID)->toArray();
                 [$col, $dir] = explode('-', $req->sort);
                 $tasks = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects)->orderBy($col, $dir);
-                if ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
-                else $tasks->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                if ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) $tasks = $user->{UsersConstants::COL_TP} == PermissionsConstants::CL ? $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId) : $tasks->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                else $tasks->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 if ($keyword = $req->keyword) $tasks->where(ProjectsConstants::COL_NM, 'LIKE', "$keyword%");
                 if ($statuses = (array)$req[ActivitiesConstants::COL_TSK_ID]) {
                     $today = now()->toDateString();
@@ -232,12 +232,12 @@ class ProjectTaskController extends Controller
             Log::info("[{$class}::{$action}] start", ['view' => $view, UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $creatorId = $user?->creatorId();
-                $bug_status = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-                if ($user->{UsersConstants::COL_TP} == PermissionsConstants::CPN) $bugs = Bug::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::TABLE_CREATOR, 'project_bug'])->get();
+                $bug_status = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
+                if ($user->{UsersConstants::COL_TP} == PermissionsConstants::CPN) $bugs = Bug::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::COL_TABLE_CREATOR, 'project_bug'])->get();
                 elseif ($user->{UsersConstants::COL_TP} == PermissionsConstants::CL) {
                     $ids = Project::where('client_id', $user?->id)->pluck('id', 'id')->toArray();
-                    $bugs = Bug::whereIn(ProjectsConstants::COL_PJ_ID, $ids)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::TABLE_CREATOR])->get();
-                } else $bugs = Bug::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")")->with([self::ENTITY, DatabaseConstants::TABLE_CREATOR])->get();
+                    $bugs = Bug::whereIn(ProjectsConstants::COL_PJ_ID, $ids)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->with([self::ENTITY, DatabaseConstants::COL_TABLE_CREATOR])->get();
+                } else $bugs = Bug::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")")->with([self::ENTITY, DatabaseConstants::COL_TABLE_CREATOR])->get();
                 Log::info("[{$class}::{$action}] fetched bugs", ['count' => $bugs->count()]);
                 $tpl = $view === 'list' ? 'projects.allBugListView' : 'projects.allBugGridView';
                 if (!ViewFacade::exists($tpl)) return redirect()->back()->with('error', "HTTP 404: Page {$tpl} not found!");
@@ -323,7 +323,7 @@ class ProjectTaskController extends Controller
             $data = $req->validate([ProjectsConstants::COL_NM => 'required|string', ProjectsConstants::COL_E_HRS => 'required|numeric', ProjectsConstants::COL_PRT => 'required|string']);
             $this->logExecutionTime($valStart, $action, 'validateUpdate');
             try {
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 $task->update($data);
                 Log::info("[{$class}::{$action}] updated", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
@@ -354,7 +354,7 @@ class ProjectTaskController extends Controller
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             DB::beginTransaction();
             try {
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 ProjectTask::deleteTask([$task->id]);
                 DB::commit();
@@ -406,10 +406,10 @@ class ProjectTaskController extends Controller
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 $creatorId = $user?->creatorId();
-                $stage = $task[ProjectsConstants::COL_IS_CP] == 0 ? TaskStage::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->orderByDesc(ActivitiesConstants::COL_OD)->first() : TaskStage::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->orderBy(ActivitiesConstants::COL_OD)->first();
+                $stage = $task[ProjectsConstants::COL_IS_CP] == 0 ? TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderByDesc(ActivitiesConstants::COL_OD)->first() : TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderBy(ActivitiesConstants::COL_OD)->first();
                 $task[ProjectsConstants::COL_IS_CP] = $task[ProjectsConstants::COL_IS_CP] ? 0 : 1;
                 $task->marked_at = $task[ProjectsConstants::COL_IS_CP] ? now()->toDateString() : null;
                 $task->stage_id = $stage->id;
@@ -436,7 +436,7 @@ class ProjectTaskController extends Controller
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 $task[ProjectsConstants::COL_IS_FV] = $task[ProjectsConstants::COL_IS_FV] ? 0 : 1;
                 $task->save();
@@ -462,7 +462,7 @@ class ProjectTaskController extends Controller
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId, ProjectsConstants::COL_PGR => $req->progress]);
             try {
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 $task->progress = (float)$req->progress;
                 $task->save();
@@ -491,9 +491,9 @@ class ProjectTaskController extends Controller
                 $valStart = microtime(true);
                 $data = $req->validate([ProjectsConstants::COL_NM => 'required|string']);
                 $this->logExecutionTime($valStart, $action, 'validateChecklistStore');
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
-                $check = TaskChecklist::create([ActivitiesConstants::COL_TSK_ID => $taskId, ProjectsConstants::COL_NM => $data[ProjectsConstants::COL_NM], 'user_type' => 'User', DatabaseConstants::TABLE_CREATOR => $user?->creatorId()]);
+                $check = TaskChecklist::create([ActivitiesConstants::COL_TSK_ID => $taskId, ProjectsConstants::COL_NM => $data[ProjectsConstants::COL_NM], 'user_type' => 'User', DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()]);
                 $check->updateUrl = route('projects.tasks.checklist.update', [$projectId, $check->id]);
                 $check->deleteUrl = route('projects.tasks.checklist.destroy', [$projectId, $check->id]);
                 Log::info("[{$class}::{$action}] created", ['checklistId' => $check->id]);
@@ -578,12 +578,12 @@ class ProjectTaskController extends Controller
                 $valStart = microtime(true);
                 $req->validate(['file' => 'required|file']);
                 $this->logExecutionTime($valStart, $action, 'validateUpload');
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 $file = $req->file('file');
                 $fileName = $taskId . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $file->storeAs(DatabaseConstants::TABLE_TASKS, $fileName);
-                $tf = TaskFile::create([ActivitiesConstants::COL_TSK_ID => $taskId, 'file' => $fileName, 'name' => $file->getClientOriginalName(), 'extension' => $file->getClientOriginalExtension(), 'file_size' => round($file->getSize() / 1024 / 1024, 2) . ' MB', 'user_type' => 'User', DatabaseConstants::TABLE_CREATOR => $user?->creatorId()]);
+                $tf = TaskFile::create([ActivitiesConstants::COL_TSK_ID => $taskId, 'file' => $fileName, 'name' => $file->getClientOriginalName(), 'extension' => $file->getClientOriginalExtension(), 'file_size' => round($file->getSize() / 1024 / 1024, 2) . ' MB', 'user_type' => 'User', DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()]);
                 $tf->deleteUrl = route('projects.tasks.comment.file.destroy', [$projectId, $taskId, $tf->id]);
                 Log::info("[{$class}::{$action}] uploaded", ['fileId' => $tf->id]);
                 return response()->json($tf);
@@ -667,9 +667,9 @@ class ProjectTaskController extends Controller
                 $valStart = microtime(true);
                 $data = $req->validate(['comment' => 'required|string']);
                 $this->logExecutionTime($valStart, $action, 'validateCommentStore');
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
-                $c = TaskComment::create([ActivitiesConstants::COL_TSK_ID => $taskId, UsersConstants::COL_USER_ID => $user?->id, DatabaseConstants::TABLE_CREATOR => $user?->creatorId(), 'user_type' => $user?->type, 'comment' => $data['comment']]);
+                $c = TaskComment::create([ActivitiesConstants::COL_TSK_ID => $taskId, UsersConstants::COL_USER_ID => $user?->id, DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(), 'user_type' => $user?->type, 'comment' => $data['comment']]);
                 $c->deleteUrl = route('projects.tasks.comment.destroy', [$projectId, $taskId, $c->id]);
                 $c->current_time = $c->created_at->diffForHumans();
                 $c->default_img = asset(Storage::url('uploads/avatar/avatar.png'));
@@ -697,7 +697,7 @@ class ProjectTaskController extends Controller
             try {
                 $txnStart = microtime(true);
                 DB::beginTransaction();
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 foreach ($req->input('sort', []) as $idx => $tid) ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($tid)->update([ActivitiesConstants::COL_OD => $idx]);
                 DB::commit();
                 $this->logExecutionTime($txnStart, $action, 'taskOrderUpdateTransaction');
@@ -725,7 +725,7 @@ class ProjectTaskController extends Controller
             if (($resp = self::guard($req, 'view project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 if (!ViewFacade::exists($viewPath)) return response()->json(['error' => "HTTP 404: Page {$viewPath} not found!"], 404);
                 $html = view($viewPath, compact('task'))->render();
@@ -750,7 +750,7 @@ class ProjectTaskController extends Controller
             if (self::guard($req, 'view project task', self::REDIRECT_INDEX)) return response()->json(['error' => __('Permission denied.')], Response::HTTP_UNAUTHORIZED);
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
             try {
-                $project = Project::whereKey($projectId)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
                 Log::info("[{$class}::{$action}] loaded", [ActivitiesConstants::COL_TSK_ID => $task->id]);
                 return response()->json(['task_name' => $task[ProjectsConstants::COL_NM], 'task_due_date' => $task->due_date]);
@@ -782,7 +782,7 @@ class ProjectTaskController extends Controller
                 if ($projectId) $userProjects = [$projectId];
                 $tasksQuery = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $userProjects);
                 if ($type !== PermissionsConstants::CPN && $type !== PermissionsConstants::CL) $tasksQuery->whereRaw("find_in_set('{$usrId}'," . ProjectsConstants::COL_ASGN . ")");
-                if ($type === PermissionsConstants::CL && $taskBy === 'all') $tasksQuery->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                if ($type === PermissionsConstants::CL && $taskBy === 'all') $tasksQuery->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 elseif ($type !== PermissionsConstants::CL && $taskBy === 'my') $tasksQuery->whereRaw("find_in_set('{$usrId}'," . ProjectsConstants::COL_ASGN . ")");
                 $tasks = $tasksQuery->get();
                 $transdate = date('Y-m-d');
@@ -868,8 +868,8 @@ class ProjectTaskController extends Controller
                         $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj);
                     } elseif ($user->{UsersConstants::COL_TP} != PermissionsConstants::CPN) {
                         $proj = $user?->projects()->pluck(ProjectsConstants::COL_PJ_ID);
-                        $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
-                    } else $q->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                        $q->whereIn(ProjectsConstants::COL_PJ_ID, $proj)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereRaw("find_in_set('{$user?->id}'," . ProjectsConstants::COL_ASGN . ")");
+                    } else $q->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                     $data = $q->get();
                     $arrayJson = $data->map(function ($val) {
                         $end = date_create($val[ProjectsConstants::COL_E_DT]);

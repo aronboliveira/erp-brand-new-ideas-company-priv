@@ -30,7 +30,7 @@ class CreateComplaintsTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE);
-            $this->dropEmployeeForeign($table, self::TABLE);
+            $this->dropEmployeeColumnForeign($table, self::TABLE);
             foreach ([CC::COL_CPT_FRM, CC::COL_CPT_AGST,] as $col) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) && $table->dropForeign([$col]);

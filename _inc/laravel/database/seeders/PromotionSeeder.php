@@ -108,7 +108,7 @@ final class PromotionSeeder extends Seeder
 					$p->description       = $faker->boolean(55) ? $faker->sentence(12) : null;
 
 					// Auditoria
-					$p->{DC::TABLE_CREATOR} = $systemUserId;
+					$p->{DC::COL_TABLE_CREATOR} = $systemUserId;
 
 					try {
 						$p->save();

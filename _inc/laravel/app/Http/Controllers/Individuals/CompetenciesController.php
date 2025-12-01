@@ -25,7 +25,7 @@ class CompetenciesController extends Controller
 
             $t = microtime(true);
             $competencies = Competencies::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $req->user()->creatorId()
             )->get();
             $this->logExecutionTime($t, $action . '::query', 'completed');
@@ -46,7 +46,7 @@ class CompetenciesController extends Controller
 
             $t = microtime(true);
             $performanceTypes = PerformanceType::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $req->user()->creatorId()
             )->pluck('name', 'id')->prepend('Select Type', '');
             $this->logExecutionTime($t, $action . '::loadPerformanceTypes', 'completed');
@@ -75,7 +75,7 @@ class CompetenciesController extends Controller
                 Competencies::create([
                     'name'       => $req->name,
                     'type'       => $req->type,
-                    DatabaseConstants::TABLE_CREATOR => $req->user()->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId(),
                 ]);
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
@@ -113,7 +113,7 @@ class CompetenciesController extends Controller
 
             $t = microtime(true);
             $performanceTypes = PerformanceType::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $req->user()->creatorId()
             )->pluck('name', 'id')->prepend('Select Type', '');
             $this->logExecutionTime($t, $action . '::loadPerformanceTypes', 'completed');

@@ -90,13 +90,13 @@ class ProjectController extends Controller
             $creatorId = $request->user()->creatorId();
 
             $t = microtime(true);
-            $users = User::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                 ->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)
                 ->pluck(UsersConstants::COL_NM, 'id');
             $this->logExecutionTime($t, $action . '::fetchUsers', 'completed');
 
             $t = microtime(true);
-            $clients = User::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+            $clients = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                 ->where(UsersConstants::COL_TP, '=', PermissionsConstants::CL)
                 ->pluck(UsersConstants::COL_NM, 'id');
             $this->logExecutionTime($t, $action . '::fetchClients', 'completed');
@@ -169,7 +169,7 @@ class ProjectController extends Controller
                     $this->logExecutionTime($t, $action . '::storeImage', 'completed');
                 }
 
-                $pd[DatabaseConstants::TABLE_CREATOR] = $request->user()->creatorId();
+                $pd[DatabaseConstants::COL_TABLE_CREATOR] = $request->user()->creatorId();
                 $pd['copylinksetting'] = json_encode([
                     'member' => 'on',
                     'milestone' => 'off',
@@ -266,7 +266,7 @@ class ProjectController extends Controller
 
                 // users assigned
                 $t = microtime(true);
-                $totalUsers = User::where(DatabaseConstants::TABLE_CREATOR, $usr->id)->count();
+                $totalUsers = User::where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id)->count();
                 $pd['user_assigned'] = ['total' => "$totalUsers/$totalUsers", 'percentage' => Utility::getPercentage($totalUsers, $totalUsers)];
                 $this->logExecutionTime($t, $action . '::usersAssigned', 'completed');
 
@@ -281,7 +281,7 @@ class ProjectController extends Controller
                 $t = microtime(true);
                 $open = ProjectTask::where(ActivitiesConstants::COL_PJ, $project->id)
                     ->where(ProjectsConstants::COL_IS_CP, 0)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $usr->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->creatorId())
                     ->count();
                 $pd['open_task'] = [DatabaseConstants::TABLE_TASKS => "$open/{$project->tasks->count()}", 'percentage' => Utility::getPercentage($open, $project->tasks->count())];
                 $this->logExecutionTime($t, $action . '::openTasks', 'completed');
@@ -295,7 +295,7 @@ class ProjectController extends Controller
 
                 // time spent
                 $t = microtime(true);
-                $times = $project->timesheets()->where(DatabaseConstants::TABLE_CREATOR, $usr->id)->pluck('time')->toArray();
+                $times = $project->timesheets()->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id)->pluck('time')->toArray();
                 $hrs = str_replace(':', '.', Utility::timeToHr($times));
                 $pd['time_spent'] = ['total' => "$hrs/$hrs", 'percentage' => Utility::getPercentage($hrs, $hrs)];
                 $this->logExecutionTime($t, $action . '::timeSpent', 'completed');
@@ -320,7 +320,7 @@ class ProjectController extends Controller
                         ->where(ProjectsConstants::COL_M_AT, 'LIKE', $date)
                         ->count();
                     $tHrs = str_replace(':', '.', Utility::timeToHr(
-                        $project->timesheets()->where(DatabaseConstants::TABLE_CREATOR, $usr->id)->where('date', 'LIKE', $date)->pluck('time')->toArray()
+                        $project->timesheets()->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id)->where('date', 'LIKE', $date)->pluck('time')->toArray()
                     ));
                     $ct[] = $c;
                     $ts[] = $tHrs;
@@ -332,7 +332,7 @@ class ProjectController extends Controller
                 $this->logExecutionTime($t, $action . '::charts', 'completed');
 
                 $t = microtime(true);
-                $lastTask = \App\Models\TaskStage::where(DatabaseConstants::TABLE_CREATOR, $usr->creatorId())
+                $lastTask = \App\Models\TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $usr->creatorId())
                     ->orderBy(ActivitiesConstants::COL_OD, 'DESC')->first();
                 $this->logExecutionTime($t, $action . '::lastTaskStage', 'completed');
 
@@ -373,7 +373,7 @@ class ProjectController extends Controller
                 }
 
                 $t = microtime(true);
-                $clients = User::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $clients = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where(UsersConstants::COL_TP, PermissionsConstants::CL)
                     ->pluck(UsersConstants::COL_NM, 'id');
                 $this->logExecutionTime($t, $action . '::fetchClients', 'completed');
@@ -502,7 +502,7 @@ class ProjectController extends Controller
                 $t = microtime(true);
                 $project  = Project::findOrFail($projectId);
                 $existing = $project->users->pluck('id')->toArray();
-                $users    = User::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                $users    = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)
                     ->whereNotIn('id', $existing)
                     ->get();
@@ -875,7 +875,7 @@ class ProjectController extends Controller
                 $usr = $request->user();
                 $userProjects = $usr->type === PermissionsConstants::CL
                     ? Project::where('client_id', $usr->id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $usr->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->creatorId())
                     ->pluck('id')
                     ->toArray()
                     : $usr->projects()->pluck(ActivitiesConstants::COL_PJ)->toArray();
@@ -889,7 +889,7 @@ class ProjectController extends Controller
                 }
                 if ($status = $request->status) $query->whereIn(ActivitiesConstants::COL_TSK_STT, $status);
                 $projects = $query->get();
-                $lastTask = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $usr->creatorId())
+                $lastTask = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $usr->creatorId())
                     ->orderBy(ActivitiesConstants::COL_OD, 'DESC')->first();
                 $this->logExecutionTime($t, $action . '::buildAndRunQuery', 'completed');
 
@@ -1045,7 +1045,7 @@ class ProjectController extends Controller
             $this->logExecutionTime($t, $action . '::authzCheck', 'completed');
 
             $t = microtime(true);
-            $status = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->pluck(ActivitiesConstants::COL_TT, 'id');
+            $status = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->pluck(ActivitiesConstants::COL_TT, 'id');
             $ids    = ProjectUser::where(ActivitiesConstants::COL_PJ, $projectId)->pluck(UsersConstants::COL_USER_ID)->toArray();
             $users  = User::whereIn('id', $ids)->pluck(UsersConstants::COL_NM, 'id');
             $priority = Bug::$priority;
@@ -1099,7 +1099,7 @@ class ProjectController extends Controller
                     ProjectsConstants::COL_S_DT      => Carbon::parse($data[ProjectsConstants::COL_S_DT])->toDateString(),
                     'due_date'                        => Carbon::parse($data['due_date'])->toDateString(),
                     ActivitiesConstants::COL_DESC     => $data[ActivitiesConstants::COL_DESC] ?? null,
-                    DatabaseConstants::TABLE_CREATOR  => $request->user()->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR  => $request->user()->creatorId(),
                 ]);
                 ActivityLog::create([
                     UsersConstants::COL_USER_ID => Auth::id(),
@@ -1134,7 +1134,7 @@ class ProjectController extends Controller
 
             $t = microtime(true);
             $bug = Bug::findOrFail($bugId);
-            $status = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->pluck(ActivitiesConstants::COL_TT, 'id');
+            $status = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->pluck(ActivitiesConstants::COL_TT, 'id');
             $ids   = ProjectUser::where(ActivitiesConstants::COL_PJ, $projectId)->pluck(UsersConstants::COL_USER_ID)->toArray();
             $users = User::whereIn('id', $ids)->pluck(UsersConstants::COL_NM, 'id');
             $priority = Bug::$priority;
@@ -1246,7 +1246,7 @@ class ProjectController extends Controller
                 $project = Project::findOrFail($projectId);
                 if ($project->created_by !== $request->user()->creatorId())
                     return defaultPermissionDenial($request, new \Exception, $method);
-                $bugStatus = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                $bugStatus = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->orderBy(ActivitiesConstants::COL_OD, 'ASC')->get();
                 $this->logExecutionTime($t, $action . '::fetchKanbanData', 'completed');
 
@@ -1351,7 +1351,7 @@ class ProjectController extends Controller
             $comment = BugComment::create([
                 'bug_id'     => $bugId,
                 'comment'    => $data['comment'],
-                DatabaseConstants::TABLE_CREATOR => Auth::id(),
+                DatabaseConstants::COL_TABLE_CREATOR => Auth::id(),
                 'user_type'  => Auth::user()->type,
             ]);
             $comment->deleteUrl = route(VW::PRJ_BUG_CM . '.destroy', $comment->id);
@@ -1404,7 +1404,7 @@ class ProjectController extends Controller
                 ProjectsConstants::COL_NM       => $file->getClientOriginalName(),
                 'extension'  => '.' . $file->getClientOriginalExtension(),
                 'file_size'  => round($file->getSize() / 1024 / 1024, 2) . ' MB',
-                DatabaseConstants::TABLE_CREATOR => Auth::id(),
+                DatabaseConstants::COL_TABLE_CREATOR => Auth::id(),
                 'user_type'  => Auth::user()->type,
             ]);
             $bf->deleteUrl = route(VW::PRJ_BUG_CM . '.file.destroy', $bf->id);
@@ -1474,7 +1474,7 @@ class ProjectController extends Controller
             $this->logExecutionTime($t, $action . '::buildDateRange', 'completed');
 
             $t = microtime(true);
-            $stages = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $params[DatabaseConstants::TABLE_CREATOR])
+            $stages = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $params[DatabaseConstants::COL_TABLE_CREATOR])
                 ->orderBy(ActivitiesConstants::COL_OD)
                 ->pluck(ProjectsConstants::COL_NM, 'id')
                 ->toArray();
@@ -1553,7 +1553,7 @@ class ProjectController extends Controller
                     ProjectsConstants::COL_E_HRS
                 ];
                 $dupData = Arr::only($orig->toArray(), $baseFields)
-                    + [DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId()];
+                    + [DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId()];
 
                 $new = Project::create($dupData);
 
@@ -1586,14 +1586,14 @@ class ProjectController extends Controller
 
                         if (in_array('task_comment', $request->task))
                             foreach ($task->comments as $c) {
-                                $nc = $c->replicate(['comment', UsersConstants::COL_USER_ID, 'user_type', DatabaseConstants::TABLE_CREATOR]);
+                                $nc = $c->replicate(['comment', UsersConstants::COL_USER_ID, 'user_type', DatabaseConstants::COL_TABLE_CREATOR]);
                                 $nc->task_id = $clone->id;
                                 $nc->save();
                             }
 
                         if (in_array('task_files', $request->task))
                             foreach ($task->files as $f) {
-                                $nf = $f->replicate(['ile', ProjectsConstants::COL_NM, 'extension', 'file_size', DatabaseConstants::TABLE_CREATOR, 'user_type']);
+                                $nf = $f->replicate(['ile', ProjectsConstants::COL_NM, 'extension', 'file_size', DatabaseConstants::COL_TABLE_CREATOR, 'user_type']);
                                 $nf->task_id = $clone->id;
                                 $nf->save();
                             }
@@ -1619,7 +1619,7 @@ class ProjectController extends Controller
 
                         if (in_array('bug_comment', $request->bug)) {
                             foreach ($bug->comments as $c) {
-                                $nc = $c->replicate(['comment', 'user_type', DatabaseConstants::TABLE_CREATOR]);
+                                $nc = $c->replicate(['comment', 'user_type', DatabaseConstants::COL_TABLE_CREATOR]);
                                 $nc->bug_id = $clone->id;
                                 $nc->save();
                             }
@@ -1627,7 +1627,7 @@ class ProjectController extends Controller
 
                         if (in_array('bug_files', $request->bug)) {
                             foreach ($bug->files as $f) {
-                                $nf = $f->replicate(['file', ProjectsConstants::COL_NM, 'extension', 'file_size', 'user_type', DatabaseConstants::TABLE_CREATOR]);
+                                $nf = $f->replicate(['file', ProjectsConstants::COL_NM, 'extension', 'file_size', 'user_type', DatabaseConstants::COL_TABLE_CREATOR]);
                                 $nf->bug_id = $clone->id;
                                 $nf->save();
                             }
@@ -1795,7 +1795,7 @@ class ProjectController extends Controller
                 'percentage' => Utility::getPercentage($expAmt, $project->budget),
             ];
 
-            $totalUsers = User::where(DatabaseConstants::TABLE_CREATOR, $usr->id)->count();
+            $totalUsers = User::where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id)->count();
             $project_data['user_assigned'] = [
                 'total'      => number_format($totalUsers) . '/' . number_format($totalUsers),
                 'percentage' => Utility::getPercentage($totalUsers, $totalUsers),
@@ -1833,7 +1833,7 @@ class ProjectController extends Controller
 
             $timesQuery = $usr->checkProject($id) === 'Owner'
                 ? $project->timesheets()
-                : $project->timesheets()->where(DatabaseConstants::TABLE_CREATOR, $usr->id);
+                : $project->timesheets()->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id);
             $times = $timesQuery->pluck('time')->toArray();
             $totTime = str_replace(':', '.', Utility::timeToHr($times));
             $estHrs = $project->estimated_hrs ?: 0;
@@ -1852,7 +1852,7 @@ class ProjectController extends Controller
                     ->when($usr->checkProject($id) !== 'Owner', fn($q) => $q->whereRaw("find_in_set('{$usr->id}'," . ProjectsConstants::COL_ASGN . ")"))
                     ->count();
                 $tsArr = $project->timesheets()
-                    ->when($usr->checkProject($id) !== 'Owner', fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $usr->id))
+                    ->when($usr->checkProject($id) !== 'Owner', fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $usr->id))
                     ->where('date', 'LIKE', $date)
                     ->pluck('time')->toArray();
                 $tsCnt = str_replace(':', '.', $tsArr ? Utility::timeToHr($tsArr) : 0);
@@ -1865,7 +1865,7 @@ class ProjectController extends Controller
             $project_data['timesheet_chart'] = ['chart' => $chartTs,   'total' => $sumTs];
 
             $stages = TaskStage::orderBy(ActivitiesConstants::COL_OD)
-                ->where(DatabaseConstants::TABLE_CREATOR, $project->created_by)
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $project->created_by)
                 ->get()
                 ->map(function ($s) use ($usr, $id) {
                     $tasks = ProjectTask::where(ActivitiesConstants::COL_PJ, $id)
@@ -1877,7 +1877,7 @@ class ProjectController extends Controller
                 });
 
             $trackers = TimeTracker::where(ActivitiesConstants::COL_PJ, $id)
-                ->when(Auth::check(), fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, Auth::id()))
+                ->when(Auth::check(), fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, Auth::id()))
                 ->get();
             $bugs  = Bug::where(ActivitiesConstants::COL_PJ, $id)->get();
             $tasks = ProjectTask::where(ActivitiesConstants::COL_PJ, $id)->get();
@@ -1911,7 +1911,7 @@ class ProjectController extends Controller
             instanceof RedirectResponse
         ) return $userOrRedirect;
         $user = $userOrRedirect;
-        $max = Bug::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $max = Bug::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->max('bug_id');
         return is_numeric($max) ? $max + 1 : $max;
     }

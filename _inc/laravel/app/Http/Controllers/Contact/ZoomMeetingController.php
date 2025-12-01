@@ -43,7 +43,7 @@ class ZoomMeetingController extends Controller
             try {
                 $t = microtime(true);
                 $meetings = ZoomMeeting::when($user?->isClient(), fn($q) => $q->where('client_id', $user?->id))
-                    ->unless($user?->isClient(), fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId()))
+                    ->unless($user?->isClient(), fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()))
                     ->with(ActivitiesConstants::COL_PJ_NM)
                     ->get();
                 $this->logExecutionTime($t, $action . '::loadMeetings', 'completed');
@@ -80,9 +80,9 @@ class ZoomMeetingController extends Controller
             try {
                 $t = microtime(true);
                 $creatorId = $user?->creatorId();
-                $projects  = Project::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $projects  = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(ProjectsConstants::COL_NM, 'id')->prepend('Select Project', '');
-                $users     = User::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $users     = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id');
                 $settings  = Utility::settings();
                 $this->logExecutionTime($t, $action . '::loadFormData', 'completed');
@@ -172,7 +172,7 @@ class ZoomMeetingController extends Controller
                     'join_url'                            => $created['data']['join_url']  ?? '',
                     ActivitiesConstants::COL_TSK_STT      => $created['data'][ActivitiesConstants::COL_TSK_STT] ?? '',
                     'client_id'                           => $data['client_id'] ?? 0,
-                    DatabaseConstants::TABLE_CREATOR      => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR      => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
@@ -201,7 +201,7 @@ class ZoomMeetingController extends Controller
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
 
             $t = microtime(true);
-            $ownerOk = $zoomMeeting[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+            $ownerOk = $zoomMeeting[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
             $this->logExecutionTime($t, $action . '::authorizeOwner', $ownerOk ? 'ok' : 'denied');
             if (!$ownerOk) {
                 return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX));
@@ -237,7 +237,7 @@ class ZoomMeetingController extends Controller
             if ($guard !== true) return $guard;
 
             $t = microtime(true);
-            $ownerOk = $zoomMeeting[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+            $ownerOk = $zoomMeeting[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
             $this->logExecutionTime($t, $action . '::authorizeOwner', $ownerOk ? 'ok' : 'denied');
             if (!$ownerOk) {
                 return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX));
@@ -303,7 +303,7 @@ class ZoomMeetingController extends Controller
 
             try {
                 $t = microtime(true);
-                $meetingIds = ZoomMeeting::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('meeting_id');
+                $meetingIds = ZoomMeeting::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('meeting_id');
                 foreach ($meetingIds as $meetingId) {
                     $data = $this->get($meetingId);
                     $status = $data['data'][ActivitiesConstants::COL_TSK_STT] ?? null;
@@ -343,7 +343,7 @@ class ZoomMeetingController extends Controller
                     PermissionsConstants::HR,
                     PermissionsConstants::ACT
                 ]), true)) {
-                    $zoomMeetings = ZoomMeeting::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                    $zoomMeetings = ZoomMeeting::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 }
                 $events = $zoomMeetings->map(fn($m) => [
                     'id'        => $m->id,
@@ -405,7 +405,7 @@ class ZoomMeetingController extends Controller
                 }
 
                 $t = microtime(true);
-                $meetings = ZoomMeeting::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $meetings = ZoomMeeting::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $payload  = $meetings->map(fn($m) => [
                     'id'        => $m->id,
                     ActivitiesConstants::COL_TT => $m[ActivitiesConstants::COL_TT],
@@ -441,7 +441,7 @@ class ZoomMeetingController extends Controller
             if ($guard !== true) return $guard;
 
             $t = microtime(true);
-            $ownerOk = $zoomMeeting[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+            $ownerOk = $zoomMeeting[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
             $this->logExecutionTime($t, $action . '::authorizeOwner', $ownerOk ? 'ok' : 'denied');
             if (!$ownerOk) {
                 return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX));
@@ -451,9 +451,9 @@ class ZoomMeetingController extends Controller
                 $t = microtime(true);
                 $zoomMeeting->load('project', PermissionsConstants::CL);
                 $creatorId = $user?->creatorId();
-                $projects  = Project::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $projects  = Project::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(ProjectsConstants::COL_NM, 'id')->prepend('Select Project', '');
-                $users     = User::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $users     = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id');
                 $settings  = Utility::settings();
                 $this->logExecutionTime($t, $action . '::loadFormData', 'completed');
@@ -497,7 +497,7 @@ class ZoomMeetingController extends Controller
             if ($guard !== true) return $guard;
 
             $t = microtime(true);
-            $ownerOk = $zoomMeeting[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+            $ownerOk = $zoomMeeting[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
             $this->logExecutionTime($t, $action . '::authorizeOwner', $ownerOk ? 'ok' : 'denied');
             if (!$ownerOk) {
                 return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX));

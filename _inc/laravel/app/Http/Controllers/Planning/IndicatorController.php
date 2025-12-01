@@ -31,7 +31,7 @@ class IndicatorController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, PermissionsConstants::MNG_IND, ViewsConstants::IND . '.index')) instanceof RedirectResponse) return $guard;
             $user = $request->user();
-            $query = Indicator::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+            $query = Indicator::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
             if (strtolower($user[UsersConstants::COL_TP]) === 'employee') {
                 $query->where('branch', $user?->employee->branch_id)
                     ->where('department', $user?->employee->department_id);
@@ -53,9 +53,9 @@ class IndicatorController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, 'create indicator', ViewsConstants::IND . '.index')) instanceof RedirectResponse) return $guard;
             $creatorId = $request->user()->creatorId();
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-            $performance = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-            $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $performance = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
+            $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_DEP_NM, 'id');
             $departments->prepend('Select Department', '');
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
             return view($view, compact('branches', 'departments', 'performance'));
@@ -77,7 +77,7 @@ class IndicatorController extends Controller
             $createData = Arr::only($data, ['branch', 'department', 'designation']);
             $createData['rating'] = json_encode($data['rating'] ?? [], true);
             $createData['created_user'] = $request->user()->type === 'company' ? $request->user()->creatorId() : $request->user()->id;
-            $createData[DatabaseConstants::TABLE_CREATOR] = $request->user()->creatorId();
+            $createData[DatabaseConstants::COL_TABLE_CREATOR] = $request->user()->creatorId();
             Indicator::create($createData);
             return Redirect::route(ViewsConstants::IND . '.index')->with('success', __('Indicator successfully created.'));
         });
@@ -94,7 +94,7 @@ class IndicatorController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, 'view indicator', ViewsConstants::IND . '.index')) instanceof RedirectResponse) return $guard;
             $ratings = json_decode($indicator->rating, true);
-            $performance = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
+            $performance = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->get();
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
             return view($view, compact('indicator', 'ratings', 'performance'));
         });
@@ -111,9 +111,9 @@ class IndicatorController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, 'edit indicator', ViewsConstants::IND . '.index')) instanceof RedirectResponse) return $guard;
             $creatorId = $request->user()->creatorId();
-            $performance = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-            $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+            $performance = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_DEP_NM, 'id');
             $departments->prepend('Select Department', '');
             $ratings = json_decode($indicator->rating, true);
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
@@ -149,7 +149,7 @@ class IndicatorController extends Controller
         return $this->measureProfile($action, function () use ($request, $indicator, $action) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($guard = self::guard($request, 'delete indicator', ViewsConstants::IND . '.index')) instanceof RedirectResponse) return $guard;
-            if ($indicator[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+            if ($indicator[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception, $action, route(ViewsConstants::IND . '.index'));
             }
             $indicator->delete();

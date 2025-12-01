@@ -41,7 +41,7 @@ final class AllowanceOptionController extends Controller
       try {
         $creatorId = $req->user()->creatorId();
         $fetchStart = microtime(true);
-        $options = AllowanceOption::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $options = AllowanceOption::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($fetchStart, $action, 'fetchOptions');
         Log::info("[{$base}::{$action}] fetched options", ['count' => $options->count()]);
         if (!ViewFacade::exists($viewPath)) {
@@ -112,7 +112,7 @@ final class AllowanceOptionController extends Controller
           $createStart = microtime(true);
           $opt = AllowanceOption::create([
             'name' => $req->name,
-            DatabaseConstants::TABLE_CREATOR => $req->user()->creatorId()
+            DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId()
           ]);
           $this->logExecutionTime($createStart, $action, 'createOption');
           Log::info("[{$base}::{$action}] created", ['id' => $opt->id, 'name' => $opt->name]);

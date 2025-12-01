@@ -74,7 +74,7 @@ final class SaturationDeductionSeeder extends Seeder
 							'title'           => $title,
 							'amount'          => $amount,
 							'type'            => $type,            // 'fixed' | 'percentage'
-							DC::TABLE_CREATOR => $systemUserId,
+							DC::COL_TABLE_CREATOR => $systemUserId,
 						]
 					);
 

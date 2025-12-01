@@ -59,8 +59,8 @@ class BankTransfer extends Model
         DC::COL_ER_LG,
         DC::COL_RTR_CT,
         DC::COL_LST_RTR_AT,
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $guarded = [

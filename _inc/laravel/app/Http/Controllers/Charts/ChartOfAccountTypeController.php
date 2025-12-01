@@ -44,7 +44,7 @@ final class ChartOfAccountTypeController extends Controller
 
             try {
                 $t = microtime(true);
-                $types = ChartOfAccountType::where(DatabaseConstants::TABLE_CREATOR, $req->user()?->creatorId())->get();
+                $types = ChartOfAccountType::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()?->creatorId())->get();
                 $this->logExecutionTime($t, $action, 'fetchTypes');
 
                 $view = self::SINGULAR . '.' . $func;
@@ -89,7 +89,7 @@ final class ChartOfAccountTypeController extends Controller
                 $t = microtime(true);
                 ChartOfAccountType::create([
                     ChartsConstants::COL_NM          => $req->name,
-                    DatabaseConstants::TABLE_CREATOR => $req->user()?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $req->user()?->creatorId(),
                 ]);
                 $this->logExecutionTime($t, $action, 'createType');
 

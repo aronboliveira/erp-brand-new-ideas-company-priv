@@ -18,11 +18,13 @@ class CreateProjectUsersTable extends Migration
             $table->uuid(self::COL_USER);                   // ! CHANGED from integer
             $table->uuid(self::COL_INVITE)->nullable();    // ! CHANGED from integer default 0
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_PROJ => DatabaseConstants::TABLE_PROJECTS,
-                self::COL_USER => DatabaseConstants::TABLE_USERS,
-            ] as $col => $tbl)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_PROJ => DatabaseConstants::TABLE_PROJECTS,
+                    self::COL_USER => DatabaseConstants::TABLE_USERS,
+                ] as $col => $tbl
+            )
                 $table->foreign($col)
                     ->references('id')
                     ->on($tbl)
@@ -37,11 +39,13 @@ class CreateProjectUsersTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PROJ,
-                self::COL_USER,
-                self::COL_INVITE,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_PROJ,
+                    self::COL_USER,
+                    self::COL_INVITE,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

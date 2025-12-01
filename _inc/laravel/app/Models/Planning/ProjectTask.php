@@ -34,7 +34,7 @@ class ProjectTask extends Model
     private const COL_PRIORITY_COLOR = ProjectsConstants::COL_PR_CL;
     private const COL_PROJECT_ID    = ProjectsConstants::COL_PJ_ID;
     private const COL_STAGE_ID      = ProjectsConstants::COL_STAGE_ID;
-    private const COL_CREATED_BY    = DatabaseConstants::TABLE_CREATOR;
+    private const COL_CREATED_BY    = DatabaseConstants::COL_TABLE_CREATOR;
 
     private const FILLABLE = [
         self::COL_NAME,
@@ -226,9 +226,9 @@ class ProjectTask extends Model
         Request $request,
         $controller
     ): array {
-        $tasks = array_map(fn ($tid) => tap(
+        $tasks = array_map(fn($tid) => tap(
             self::find($tid)->toArray(),
-            fn (&$t) => $t['taskinfo'] = json_decode(
+            fn(&$t) => $t['taskinfo'] = json_decode(
                 $controller->getDefaultTaskInfo($request, $tid),
                 true
             )

@@ -50,7 +50,7 @@ class SetSalaryController extends Controller
                 return $denial;
             }
 
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->with('salary_type')
                 ->get();
 
@@ -79,10 +79,10 @@ class SetSalaryController extends Controller
             }
 
             // dropdowns
-            $payslipTypes     = PayslipType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $allowanceOptions = AllowanceOption::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $loanOptions      = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $deductionOptions = DeductionOption::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $payslipTypes     = PayslipType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $allowanceOptions = AllowanceOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $loanOptions      = LoanOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $deductionOptions = DeductionOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
 
             // Which employee?
             $empId = strtolower($user[UsersConstants::COL_TP]) === 'employee'
@@ -150,10 +150,10 @@ class SetSalaryController extends Controller
             }
 
             // Common dropdowns
-            $payslipTypes     = PayslipType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $allowanceOptions = AllowanceOption::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $loanOptions      = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-            $deductionOptions = DeductionOption::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $payslipTypes     = PayslipType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $allowanceOptions = AllowanceOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $loanOptions      = LoanOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $deductionOptions = DeductionOption::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
 
             // Which employee?
             $empId = strtolower($user[UsersConstants::COL_TP]) === 'employee'
@@ -280,7 +280,7 @@ class SetSalaryController extends Controller
                 return $denial;
             }
 
-            $payslipTypes = PayslipType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $payslipTypes = PayslipType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
             $employee     = Employee::findOrFail($id);
 
             if (!ViewFacade::exists($view)) {

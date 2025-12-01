@@ -68,7 +68,7 @@ final class WarningSeeder extends Seeder
 				$w->{CC::COL_WRN_DATE} = $date;
 				$w->subject            = $subject;
 				$w->description        = $description;
-				$w->{DC::TABLE_CREATOR} = $systemUserId; // auditoria sem depender de auth()
+				$w->{DC::COL_TABLE_CREATOR} = $systemUserId; // auditoria sem depender de auth()
 
 				try {
 					$w->save();

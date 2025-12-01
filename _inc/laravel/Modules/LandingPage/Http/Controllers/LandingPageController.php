@@ -61,7 +61,7 @@ class LandingPageController extends AppController
             try {
                 $stepStart = microtime(true);
                 $setting = LandingPageSetting::where('id', $id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $userId)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $userId)
                     ->firstOrFail();
                 $this->logExecutionTime($stepStart, 'loadSetting', 'completed');
                 Log::info($method . ' loaded setting', ['user_id' => $userId, 'setting_id' => $id]);
@@ -120,7 +120,7 @@ class LandingPageController extends AppController
                         $startUpdate = microtime(true);
                         $existingSetting = LandingPageSetting::where([
                             LandingPageConstants::COL_LPS_NM => $name,
-                            DatabaseConstants::TABLE_CREATOR => $user?->id
+                            DatabaseConstants::COL_TABLE_CREATOR => $user?->id
                         ])->first();
                         if ($existingSetting)
                             $existingSetting->update([
@@ -130,7 +130,7 @@ class LandingPageController extends AppController
                             LandingPageSetting::create([
                                 LandingPageConstants::COL_LPS_NM => $name,
                                 LandingPageConstants::COL_LPS_V => $value,
-                                DatabaseConstants::TABLE_CREATOR => $user?->id
+                                DatabaseConstants::COL_TABLE_CREATOR => $user?->id
                             ]);
                         $this->logExecutionTime($startUpdate, $function . '::updateOrCreate', 'completed');
                         Log::info(ucfirst(static::TP) . ' settings saved', [
@@ -140,7 +140,7 @@ class LandingPageController extends AppController
                         ]);
                     }
                     DB::commit();
-                    $savedSettings = LandingPageSetting::where(DatabaseConstants::TABLE_CREATOR, $user?->id);
+                    $savedSettings = LandingPageSetting::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id);
                     Log::notice('Verified saved settings from DB', [
                         'saved' => $savedSettings->pluck(LandingPageConstants::COL_LPS_V, LandingPageConstants::COL_LPS_NM)->toArray()
                     ]);
@@ -201,7 +201,7 @@ class LandingPageController extends AppController
             DB::beginTransaction();
             $stepStart = microtime(true);
             try {
-                $setting = LandingPageSetting::where('id', $id)->where(DatabaseConstants::TABLE_CREATOR, $user?->id)->firstOrFail();
+                $setting = LandingPageSetting::where('id', $id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)->firstOrFail();
                 $old = $setting->value;
                 $setting->value = $payload[LandingPageConstants::COL_LPS_V];
                 $setting->save();
@@ -255,7 +255,7 @@ class LandingPageController extends AppController
             try {
                 $fetchStart = microtime(true);
                 $setting = LandingPageSetting::where('id', $id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->id)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)
                     ->firstOrFail();
                 $this->logExecutionTime($fetchStart, $action . '::fetchSetting', 'completed');
                 $delStart = microtime(true);
@@ -325,7 +325,7 @@ class LandingPageController extends AppController
             try {
                 $startFetch = microtime(true);
                 $setting = LandingPageSetting::where('id', $id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->id)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)
                     ->firstOrFail();
                 $this->logExecutionTime($startFetch, $function . '::fetchSetting', 'completed');
                 Log::info($method . ' rendering edit form', [UsersConstants::COL_USER_ID => $user?->id, 'setting_id' => $id]);

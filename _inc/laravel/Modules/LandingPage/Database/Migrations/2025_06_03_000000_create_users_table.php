@@ -31,7 +31,7 @@ class CreateUsersTable extends Migration
             $table->uuid(UsersConstants::COL_DPL)->default(DatabaseConstants::DEFAULT_PIPELINE);
             $table->uuid(UsersConstants::COL_PL)->default(DatabaseConstants::DEFAULT_PLAN);
             $table->uuid(UsersConstants::COL_RP)->default(DatabaseConstants::DEFAULT_PLAN);       // * ADDED
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->default(DatabaseConstants::DEFAULT_UUID);
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->default(DatabaseConstants::DEFAULT_UUID);
             $table->rememberToken();
             $table->timestamps();
         });

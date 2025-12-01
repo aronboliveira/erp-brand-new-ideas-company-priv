@@ -75,7 +75,7 @@ class PermissionController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::ED_PERM, self::ROUTE_INDEX)) !== true) return $c;
 
-            $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $userOrRedirect?->creatorId())->get();
+            $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $userOrRedirect?->creatorId())->get();
 
             return view(self::SINGULAR . '.' . $function, compact(self::SINGULAR, DatabaseConstants::TABLE_ROLES)); // ! ALERT
         }, ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);

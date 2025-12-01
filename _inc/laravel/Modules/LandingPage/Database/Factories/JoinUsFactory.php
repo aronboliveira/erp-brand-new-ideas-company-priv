@@ -22,7 +22,7 @@ class JoinUsFactory extends Factory
 			'id' => $candidateId,
 			'query_key' => $candidateQueryKey,
 			'email' => $this->faker->unique()->safeEmail(),
-			DatabaseConstants::TABLE_CREATOR => $user?->id ?? DatabaseConstants::DEFAULT_UUID,
+			DatabaseConstants::COL_TABLE_CREATOR => $user?->id ?? DatabaseConstants::DEFAULT_UUID,
 		];
 	}
 }

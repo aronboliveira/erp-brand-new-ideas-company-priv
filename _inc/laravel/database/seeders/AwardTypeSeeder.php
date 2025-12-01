@@ -38,7 +38,7 @@ final class AwardTypeSeeder extends Seeder
 			foreach ($defaults as $name) {
 				AwardType::query()->firstOrCreate(
 					['name' => $name],
-					[DC::TABLE_CREATOR => $creatorId]
+					[DC::COL_TABLE_CREATOR => $creatorId]
 				);
 			}
 		}, 3);

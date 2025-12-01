@@ -32,15 +32,17 @@ class CreatePurchasesTable extends Migration
             $table->integer('shipping_display')->default(1);
             $table->date('send_' . self::D)->nullable();      // ! CHANGED
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);                 // ! CHANGED
-            foreach ([
-                self::COL_PARENT                 => self::TABLE,                         // self-reference
-                self::COL_VENDOR                 => DatabaseConstants::TABLE_VENDORS,
-                self::COL_WAREHOUSE              => DatabaseConstants::TABLE_WHS,
-                self::COL_CATEGORY               => DatabaseConstants::TABLE_PROD_SERV_CATS,
-                self::COL_TAX                    => DatabaseConstants::TABLE_TAXES,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                 // ! CHANGED
+            foreach (
+                [
+                    self::COL_PARENT                 => self::TABLE,                         // self-reference
+                    self::COL_VENDOR                 => DatabaseConstants::TABLE_VENDORS,
+                    self::COL_WAREHOUSE              => DatabaseConstants::TABLE_WHS,
+                    self::COL_CATEGORY               => DatabaseConstants::TABLE_PROD_SERV_CATS,
+                    self::COL_TAX                    => DatabaseConstants::TABLE_TAXES,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -51,14 +53,16 @@ class CreatePurchasesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PARENT,
-                self::COL_VENDOR,
-                self::COL_WAREHOUSE,
-                self::COL_CATEGORY,
-                self::COL_TAX,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_PARENT,
+                    self::COL_VENDOR,
+                    self::COL_WAREHOUSE,
+                    self::COL_CATEGORY,
+                    self::COL_TAX,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

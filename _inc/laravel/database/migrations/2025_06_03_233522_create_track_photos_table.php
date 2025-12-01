@@ -18,11 +18,13 @@ class CreateTrackPhotosTable extends Migration
             $table->dateTime('time')->nullable();
             $table->string('status')->nullable();
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_USER                   => DatabaseConstants::TABLE_USERS,
-                DatabaseConstants::TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-            ] as $col => $tbl)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_USER                   => DatabaseConstants::TABLE_USERS,
+                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
+                ] as $col => $tbl
+            )
                 $table->foreign($col)
                     ->references('id')
                     ->on($tbl)
@@ -33,10 +35,12 @@ class CreateTrackPhotosTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_USER,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_USER,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

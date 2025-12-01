@@ -38,8 +38,8 @@ final class AwardSeeder extends Seeder
 					$payload[] = [
 						'id'              => (string) Str::uuid(),
 						'name'            => $name,
-						DC::TABLE_CREATOR => $systemUserId,
-						DC::TABLE_UPDATER => null,
+						DC::COL_TABLE_CREATOR => $systemUserId,
+						DC::COL_TABLE_UPDATER => null,
 						'created_at'      => $now,
 						'updated_at'      => $now,
 					];
@@ -78,8 +78,8 @@ final class AwardSeeder extends Seeder
 						null,
 					]),
 					'description'      => $faker->optional(0.7)->sentence(12),
-					DC::TABLE_CREATOR  => $systemUserId,
-					DC::TABLE_UPDATER  => null,
+					DC::COL_TABLE_CREATOR  => $systemUserId,
+					DC::COL_TABLE_UPDATER  => null,
 					'created_at'       => $now,
 					'updated_at'       => $now,
 				];

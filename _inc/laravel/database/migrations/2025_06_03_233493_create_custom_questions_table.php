@@ -13,9 +13,9 @@ class CreateCustomQuestionsTable extends Migration
             $table->uuid('id')->primary();
             $table->string('question');
             $table->string('is_required')->nullable();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
             $table->timestamps();
-            $table->foreign(DatabaseConstants::TABLE_CREATOR)
+            $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
                 ->references('id')
                 ->on(DatabaseConstants::TABLE_USERS)
                 ->onDelete('cascade'); // * ADDED
@@ -26,12 +26,12 @@ class CreateCustomQuestionsTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR) &&
-                    $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR) &&
+                    $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
+                        . DatabaseConstants::COL_TABLE_CREATOR
                         . ': '
                         . $e->getMessage()
                 );

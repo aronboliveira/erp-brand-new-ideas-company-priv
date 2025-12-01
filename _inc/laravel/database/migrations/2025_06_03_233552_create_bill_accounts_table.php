@@ -19,12 +19,14 @@ class CreateBillAccountsTable extends Migration
 			$table->string('type');
 			$table->uuid(self::COL_REF);                      // ! CHANGED
 			$table->timestamps();
-			$table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-			foreach ([
-				self::COL_COA                      => DatabaseConstants::TABLE_COAS,
-				self::COL_REF                      => DatabaseConstants::TABLE_BILLS,
-				DatabaseConstants::TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
-			] as $column => $referencedTable)
+			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+			foreach (
+				[
+					self::COL_COA                      => DatabaseConstants::TABLE_COAS,
+					self::COL_REF                      => DatabaseConstants::TABLE_BILLS,
+					DatabaseConstants::COL_TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
+				] as $column => $referencedTable
+			)
 				$table->foreign($column)
 					->references('id')
 					->on($referencedTable)
@@ -35,11 +37,13 @@ class CreateBillAccountsTable extends Migration
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
-			foreach ([
-				self::COL_COA,
-				self::COL_REF,
-				DatabaseConstants::TABLE_CREATOR,
-			] as $column) {
+			foreach (
+				[
+					self::COL_COA,
+					self::COL_REF,
+					DatabaseConstants::COL_TABLE_CREATOR,
+				] as $column
+			) {
 				try {
 					Schema::hasColumn(self::TABLE, $column)
 						&& $table->dropForeign([$column]);

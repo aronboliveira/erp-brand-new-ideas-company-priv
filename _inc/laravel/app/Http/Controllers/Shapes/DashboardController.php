@@ -136,14 +136,14 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startCreator, "{$action} getCreatorId", 'completed');
                 $startIncome = microtime(true);
                 try {
-                    $data['latestIncome'] = Revenue::latest()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->limit(5)->get();
+                    $data['latestIncome'] = Revenue::latest()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->limit(5)->get();
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed latestIncome", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
                 }
                 $this->logExecutionTime($startIncome, "{$action} fetchLatestIncome", 'completed');
                 $startExpense = microtime(true);
                 try {
-                    $data['latestExpense'] = Payment::latest()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->limit(5)->get();
+                    $data['latestExpense'] = Payment::latest()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->limit(5)->get();
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed latestExpense", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
                 }
@@ -185,14 +185,14 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startConst, "{$action} loadConstants", 'completed');
                 $startBank = microtime(true);
                 try {
-                    $data['bankAccountDetail'] = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+                    $data['bankAccountDetail'] = BankAccount::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed bankAccountDetail", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
                 }
                 $this->logExecutionTime($startBank, "{$action} fetchBankAccount", 'completed');
                 $startInv = microtime(true);
                 try {
-                    $data['recentInvoice'] = Invoice::latest()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->limit(5)->get();
+                    $data['recentInvoice'] = Invoice::latest()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->limit(5)->get();
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed recentInvoice", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
                 }
@@ -213,7 +213,7 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startMthInv, "{$action} monthlyInvoice", 'completed');
                 $startBill = microtime(true);
                 try {
-                    $data['recentBill'] = Bill::latest()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->limit(5)->get();
+                    $data['recentBill'] = Bill::latest()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->limit(5)->get();
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed recentBill", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
                 }
@@ -234,7 +234,7 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startMthBill, "{$action} monthlyBill", 'completed');
                 $startGoals = microtime(true);
                 try {
-                    $data['goals'] = Goal::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->where('is_display', 1)->get();
+                    $data['goals'] = Goal::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('is_display', 1)->get();
                 } catch (\Throwable $e) {
                     Log::error("[$action] failed fetchGoals", ['error' => $e->getMessage(), 'creator_id' => $creatorId]);
                 }
@@ -270,7 +270,8 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] error", [
                     'error' => $e->getMessage(),
-                    'file' => $e->getFile(), $e->getLine()
+                    'file' => $e->getFile(),
+                    $e->getLine()
                 ]);
                 Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
@@ -359,13 +360,13 @@ class DashboardController extends Controller
                         $emp = Employee::where(UsersConstants::COL_USER_ID, $user->id)->first();
                         $this->logExecutionTime($startEmp, "{$action} fetchEmployee", 'completed');
                         $startAnn = microtime(true);
-                        $announcements = Announcement::join('employee_announcements', 'announcements.id', '=', 'employee_announcements.announcement_id')->where('employee_announcements.' . UsersConstants::COL_EMP_ID, $emp->id)->orWhere(fn ($q) => $q->where(CompaniesConstants::COL_DEP_ID, '["0"]')->where(UsersConstants::COL_EMP_ID, '["0"]'))->orderByDesc('announcements.id')->limit(5)->get();
+                        $announcements = Announcement::join('employee_announcements', 'announcements.id', '=', 'employee_announcements.announcement_id')->where('employee_announcements.' . UsersConstants::COL_EMP_ID, $emp->id)->orWhere(fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, '["0"]')->where(UsersConstants::COL_EMP_ID, '["0"]'))->orderByDesc('announcements.id')->limit(5)->get();
                         $this->logExecutionTime($startAnn, "{$action} fetchAnnouncements", 'completed');
                         $startMeet = microtime(true);
-                        $meetings = Meeting::join('meeting_employees', 'meetings.id', '=', 'meeting_employees.meeting_id')->where('meeting_employees.' . UsersConstants::COL_EMP_ID, $emp->id)->orWhere(fn ($q) => $q->where(CompaniesConstants::COL_DEP_ID, '["0"]')->where(UsersConstants::COL_EMP_ID, '["0"]'))->orderByDesc('meetings.id')->limit(5)->get();
+                        $meetings = Meeting::join('meeting_employees', 'meetings.id', '=', 'meeting_employees.meeting_id')->where('meeting_employees.' . UsersConstants::COL_EMP_ID, $emp->id)->orWhere(fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, '["0"]')->where(UsersConstants::COL_EMP_ID, '["0"]'))->orderByDesc('meetings.id')->limit(5)->get();
                         $this->logExecutionTime($startMeet, "{$action} fetchMeetings", 'completed');
                         $startEvents = microtime(true);
-                        $events = Event::join('event_employees', 'events.id', '=', 'event_employees.event_id')->where('event_employees.' . UsersConstants::COL_EMP_ID, $emp->id)->orWhere(fn ($q) => $q->where(CompaniesConstants::COL_DEP_ID, '["0"]')->where(UsersConstants::COL_EMP_ID, '["0"]'))->get();
+                        $events = Event::join('event_employees', 'events.id', '=', 'event_employees.event_id')->where('event_employees.' . UsersConstants::COL_EMP_ID, $emp->id)->orWhere(fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, '["0"]')->where(UsersConstants::COL_EMP_ID, '["0"]'))->get();
                         $this->logExecutionTime($startEvents, "{$action} fetchEvents", 'completed');
                         $startBuild = microtime(true);
                         $arrEvents = [];
@@ -405,41 +406,41 @@ class DashboardController extends Controller
                     $creatorId = $user->creatorId();
                     $this->logExecutionTime($startCreator, "{$action} getCreatorId", 'completed');
                     $startEv = microtime(true);
-                    $events = Event::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+                    $events = Event::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
                     $this->logExecutionTime($startEv, "{$action} fetchEvents", 'completed');
                     $startArr2 = microtime(true);
                     $arrEvents = [];
                     foreach ($events as $e) $arrEvents[] = ['id' => $e->id, 'title' => $e[ActivitiesConstants::COL_TT], 'start' => $e[ProjectsConstants::COL_S_DT], 'end' => $e[ProjectsConstants::COL_E_DT], 'backgroundColor' => $e->color, 'borderColor' => '#fff', 'textColor' => 'white', 'url' => route('event.edit', $e->id)];
                     $this->logExecutionTime($startArr2, "{$action} buildArrEvents", 'completed');
                     $startAnn2 = microtime(true);
-                    $announcements = Announcement::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->orderByDesc('id')->limit(5)->get();
+                    $announcements = Announcement::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderByDesc('id')->limit(5)->get();
                     $this->logExecutionTime($startAnn2, "{$action} fetchAnnouncements", 'completed');
                     $startCountUser = microtime(true);
-                    $countUser = User::whereNotIn(UsersConstants::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->count();
+                    $countUser = User::whereNotIn(UsersConstants::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count();
                     $this->logExecutionTime($startCountUser, "{$action} countUser", 'completed');
                     $startCountTrainer = microtime(true);
-                    $countTrainer = Trainer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->count();
+                    $countTrainer = Trainer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count();
                     $this->logExecutionTime($startCountTrainer, "{$action} countTrainer", 'completed');
                     $startOnGoing = microtime(true);
-                    $onGoingTraining = Training::whereStatus(1)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->count();
+                    $onGoingTraining = Training::whereStatus(1)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count();
                     $this->logExecutionTime($startOnGoing, "{$action} countOnGoingTraining", 'completed');
                     $startDone = microtime(true);
-                    $doneTraining = Training::whereStatus(2)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->count();
+                    $doneTraining = Training::whereStatus(2)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count();
                     $this->logExecutionTime($startDone, "{$action} countDoneTraining", 'completed');
                     $startEmpList = microtime(true);
-                    $employees = User::where(UsersConstants::COL_TP, PermissionsConstants::CL)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+                    $employees = User::where(UsersConstants::COL_TP, PermissionsConstants::CL)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
                     $countClient = $employees->count();
                     $this->logExecutionTime($startEmpList, "{$action} fetchEmployees", 'completed');
                     $startNotClock = microtime(true);
                     $notClockIn = EmployeeAttendance::whereDate('date', now()->toDateString())->pluck(UsersConstants::COL_EMP_ID)->toArray();
-                    $notClockIns = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereNotIn('id', $notClockIn)->get();
+                    $notClockIns = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereNotIn('id', $notClockIn)->get();
                     $this->logExecutionTime($startNotClock, "{$action} fetchNotClockIns", 'completed');
                     $startJobs = microtime(true);
-                    $activeJob = Job::whereStatus('active')->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->count();
-                    $inActiveJob = Job::whereStatus('in_active')->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->count();
+                    $activeJob = Job::whereStatus('active')->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count();
+                    $inActiveJob = Job::whereStatus('in_active')->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count();
                     $this->logExecutionTime($startJobs, "{$action} countJobs", 'completed');
                     $startMeet2 = microtime(true);
-                    $meetings = Meeting::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->limit(5)->get();
+                    $meetings = Meeting::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->limit(5)->get();
                     $this->logExecutionTime($startMeet2, "{$action} fetchMeetings", 'completed');
                     $viewName = ViewsConstants::DSB . '.' . self::ENTITY;
                     if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
@@ -453,7 +454,8 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] error", [
                     'error' => $e->getMessage(),
-                    'file' => $e->getFile(), $e->getLine()
+                    'file' => $e->getFile(),
+                    $e->getLine()
                 ]);
                 Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
@@ -485,12 +487,12 @@ class DashboardController extends Controller
                 try {
                     $startFetch = microtime(true);
                     $creatorId = $user->creatorId();
-                    $leads = Lead::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-                    $deals = Deal::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+                    $leads = Lead::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
+                    $deals = Deal::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
                     $crmData = [
                         'total_' . DatabaseConstants::TABLE_LEADS    => $leads->count(),
                         'total_' . DatabaseConstants::TABLE_DEALS    => $deals->count(),
-                        'total_' . DatabaseConstants::TABLE_CONTRACTS => Contract::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->count(),
+                        'total_' . DatabaseConstants::TABLE_CONTRACTS => Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->count(),
                     ];
                     $this->logExecutionTime($startFetch, "{$action} fetchCounts", 'completed');
                     $startBuild = microtime(true);
@@ -498,7 +500,7 @@ class DashboardController extends Controller
                     $crmData['deal_status'] = $this->buildPipelineStats(Stage::class, 'deal', $crmData['total_' . DatabaseConstants::TABLE_DEALS]);
                     $this->logExecutionTime($startBuild, "{$action} buildStats", 'completed');
                     $startLatest = microtime(true);
-                    $crmData['latestContract'] = Contract::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                    $crmData['latestContract'] = Contract::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                         ->with([DatabaseConstants::TABLE_CLIENTS, DatabaseConstants::TABLE_PROJECTS, 'types'])
                         ->latest()->limit(5)->get();
                     $this->logExecutionTime($startLatest, "{$action} fetchLatestContracts", 'completed');
@@ -514,7 +516,8 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] error", [
                     'error' => $e->getMessage(),
-                    'file' => $e->getFile(), $e->getLine()
+                    'file' => $e->getFile(),
+                    $e->getLine()
                 ]);
                 Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
@@ -563,7 +566,8 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] error", [
                     'error' => $e->getMessage(),
-                    'file' => $e->getFile(), $e->getLine()
+                    'file' => $e->getFile(),
+                    $e->getLine()
                 ]);
                 Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
@@ -583,7 +587,7 @@ class DashboardController extends Controller
                 $this->logExecutionTime($startOverall, "{$action} ajaxCheck", 'completed');
                 $users = User::where('id', '!=', Auth::id());
                 if ($kw = $req->keyword) {
-                    $users->where(fn ($q) => $q->where(UsersConstants::COL_NM, 'like', "{$kw}%")->orWhereRaw('find_in_set(?,skills)', [$kw]));
+                    $users->where(fn($q) => $q->where(UsersConstants::COL_NM, 'like', "{$kw}%")->orWhereRaw('find_in_set(?,skills)', [$kw]));
                     Log::info("[$action] applied filter", ['keyword' => $kw]);
                 }
                 $list = $users->get();
@@ -624,7 +628,7 @@ class DashboardController extends Controller
                     try {
                         $startClient = microtime(true);
                         $today = now()->toDateString();
-                        $weekLabels = collect(range(0, 6))->map(fn ($i) => now()->subDays($i)->format('D'));
+                        $weekLabels = collect(range(0, 6))->map(fn($i) => now()->subDays($i)->format('D'));
                         $chartData = ['date' => $weekLabels, 'invoice' => array_fill(0, 7, 10), 'payment' => array_fill(0, 7, 20)];
                         $calendarTasks = [];
                         foreach ($user->clientDeals as $deal) {
@@ -633,24 +637,24 @@ class DashboardController extends Controller
                         }
                         $dealIds = $user->clientDeals->pluck('id');
                         $arrCount = ['deal' => $dealIds->count(), 'task' => $dealIds->isEmpty() ? 0 : DealTask::whereIn(ActivitiesConstants::COL_DL, [$dealIds->first()])->count()];
-                        $projects = Project::where('client_id', $user->id)->where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->where(ProjectsConstants::COL_E_DT, '>', $today)->orderBy(ProjectsConstants::COL_E_DT)->limit(5)->get();
+                        $projects = Project::where('client_id', $user->id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->where(ProjectsConstants::COL_E_DT, '>', $today)->orderBy(ProjectsConstants::COL_E_DT)->limit(5)->get();
                         $projectIds = $projects->pluck('id');
-                        $tasksCount = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->count();
+                        $tasksCount = ProjectTask::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->count();
                         $projectBudget = Project::where('client_id', $user->id)->sum('budget');
                         $projectMetrics = [DatabaseConstants::TABLE_PROJECTS => $projects, 'projects_count' => $projects->count(), 'projects_tasks_count' => $tasksCount, 'project_budget' => $projectBudget];
                         $totalProjects = $user->userProject();
                         $totalTasks = $user->createdTotalProjectTask();
-                        $allProjects = Project::where('client_id', $user->id)->where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->get();
+                        $allProjects = Project::where('client_id', $user->id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->get();
                         $allCount = $allProjects->count();
-                        $completedCount = Project::where('client_id', $user->id)->where(ActivitiesConstants::COL_TSK_STT, ProjectsConstants::STT_CPT_K)->where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->count();
-                        $bugs = Bug::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->get();
+                        $completedCount = Project::where('client_id', $user->id)->where(ActivitiesConstants::COL_TSK_STT, ProjectsConstants::STT_CPT_K)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->count();
+                        $bugs = Bug::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->get();
                         $bugLastStatus = BugStatus::latest(ActivitiesConstants::COL_OD)->first();
-                        $completedBugs = $bugLastStatus ? Bug::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(ActivitiesConstants::COL_TSK_STT, $bugLastStatus->id)->where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->count() : 0;
+                        $completedBugs = $bugLastStatus ? Bug::whereIn(ProjectsConstants::COL_PJ_ID, $projectIds)->where(ActivitiesConstants::COL_TSK_STT, $bugLastStatus->id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->count() : 0;
                         $projectMetrics += ['projects_bugs_count' => $bugs->count(), 'project_bug_percentage' => $allCount ? intval($completedBugs / $allCount * 100) : 0, 'project_percentage' => $allCount ? intval($completedCount / $allCount * 100) : 0, 'project_task_percentage' => $totalTasks ? intval($user->projectCompleteTask($user->lastProjectStage()?->id ?? 0) / $totalTasks * 100) : 0];
-                        $invoices = Invoice::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->where('client_id', $user->id)->get();
-                        $dueInvoices = $invoices->filter(fn ($inv) => $inv->getDue() > 0);
-                        $invoiceMetrics = ['total_invoice' => $invoices->count(), 'complete_invoice' => $invoices->where(fn ($inv) => $inv->getDue() === 0)->count(), 'due_amount' => $dueInvoices->sum(fn ($inv) => $inv->getDue()), 'top_due_invoice' => $dueInvoices->sortByDesc(fn ($inv) => $inv->getDue())->take(5)->values()];
-                        $usersMetrics = ['staff' => User::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->count(), 'user' => User::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->count(), PermissionsConstants::CL => User::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->where(UsersConstants::COL_TP, PermissionsConstants::CL)->count()];
+                        $invoices = Invoice::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->where('client_id', $user->id)->get();
+                        $dueInvoices = $invoices->filter(fn($inv) => $inv->getDue() > 0);
+                        $invoiceMetrics = ['total_invoice' => $invoices->count(), 'complete_invoice' => $invoices->where(fn($inv) => $inv->getDue() === 0)->count(), 'due_amount' => $dueInvoices->sum(fn($inv) => $inv->getDue()), 'top_due_invoice' => $dueInvoices->sortByDesc(fn($inv) => $inv->getDue())->take(5)->values()];
+                        $usersMetrics = ['staff' => User::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->count(), 'user' => User::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->count(), PermissionsConstants::CL => User::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->where(UsersConstants::COL_TP, PermissionsConstants::CL)->count()];
                         $projectStatus = array_values(Project::$project_status);
                         $projectData = Project::getProjectStatus();
                         $taskData = \App\Models\TaskStage::getChartData();
@@ -669,7 +673,8 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] error", [
                     'error' => $e->getMessage(),
-                    'file' => $e->getFile(), $e->getLine()
+                    'file' => $e->getFile(),
+                    $e->getLine()
                 ]);
                 Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
@@ -689,7 +694,7 @@ class DashboardController extends Controller
                 if (($d = $params['duration'] ?? null) === 'week') {
                     Log::info("[$action] building weekly chart", ['duration' => $d]);
                     $start = now()->subDays(13);
-                    $labels = collect()->times(14)->mapWithKeys(fn ($i) => [$start->copy()->addDays($i)->toDateString() => $start->copy()->addDays($i)->format('d-M')])->all();
+                    $labels = collect()->times(14)->mapWithKeys(fn($i) => [$start->copy()->addDays($i)->toDateString() => $start->copy()->addDays($i)->format('d-M')])->all();
                 }
                 $data = ['label' => array_values($labels), 'data' => []];
                 foreach ($labels as $date => $lbl) {
@@ -701,7 +706,8 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] error", [
                     'error' => $e->getMessage(),
-                    'file' => $e->getFile(), $e->getLine()
+                    'file' => $e->getFile(),
+                    $e->getLine()
                 ]);
                 return $data;
             }
@@ -736,7 +742,7 @@ class DashboardController extends Controller
                 DB::beginTransaction();
                 try {
                     $startTrack = microtime(true);
-                    $tracker = TimeTracker::where(DatabaseConstants::TABLE_CREATOR, $user->id)->where(ActivitiesConstants::COL_IA, 1)->firstOrFail();
+                    $tracker = TimeTracker::where(DatabaseConstants::COL_TABLE_CREATOR, $user->id)->where(ActivitiesConstants::COL_IA, 1)->firstOrFail();
                     $end = $req->input(ActivitiesConstants::COL_E_TIME, now()->toDateTimeString());
                     $tracker->update([ActivitiesConstants::COL_E_TIME => $end, ActivitiesConstants::COL_IA => 0, ActivitiesConstants::COL_TTL_TIME => Utility::differenceToTime($tracker[ActivitiesConstants::COL_ST_TIME], $end)]);
                     DB::commit();
@@ -752,7 +758,8 @@ class DashboardController extends Controller
             } catch (\Throwable $e) {
                 Log::error("[$action] error", [
                     'error' => $e->getMessage(),
-                    'file' => $e->getFile(), $e->getLine()
+                    'file' => $e->getFile(),
+                    $e->getLine()
                 ]);
                 Redirect::back()->with('error', "HTTP 500: Unexpected error");
             }
@@ -763,19 +770,19 @@ class DashboardController extends Controller
     {
         return [
             DatabaseConstants::TABLE_TAXES => Tax::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $creatorId
             )->count(),
             'category'    => ProductServiceCategory::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $creatorId
             )->count(),
             'units'       => ProductServiceUnit::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $creatorId
             )->count(),
             'bankAccount' => BankAccount::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $creatorId
             )->count(),
         ];
@@ -783,12 +790,12 @@ class DashboardController extends Controller
 
     private function buildCategoryChart(string $type, int|string $creatorId): array
     {
-        $cats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $cats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
             ->where(UsersConstants::COL_TP, $type)->get();
-        $colors = $cats->map(fn ($c) => "#{$c->color}")->toArray();
+        $colors = $cats->map(fn($c) => "#{$c->color}")->toArray();
         $names = $cats->pluck('name')->toArray();
         $amounts = $cats->map(
-            fn ($c) =>
+            fn($c) =>
             $type === 'income'
                 ? $c->incomeCategoryRevenueAmount()
                 : $c->expenseCategoryAmount()

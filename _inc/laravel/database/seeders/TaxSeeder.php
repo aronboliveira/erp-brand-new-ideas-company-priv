@@ -53,8 +53,8 @@ final class TaxSeeder extends Seeder
 				$t->id                   = $taxId;
 				$t->name                 = $def['name'];
 				$t->rate                 = $def['rate'];
-				$t->{DC::TABLE_CREATOR}  = $systemUserId;
-				$t->setAttribute(DC::TABLE_UPDATER, null);
+				$t->{DC::COL_TABLE_CREATOR}  = $systemUserId;
+				$t->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$t->save();
 			}
 		}, 3);

@@ -41,7 +41,7 @@ class InterviewScheduleController extends Controller
             $user = $userOrRedirect;
             try {
                 $transDate = now()->format('Y-m-d');
-                $schedules = InterviewSchedule::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $schedules = InterviewSchedule::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $arrSchedule = $schedules->map(fn($schedule) => [
                     'id'        => $schedule->id,
                     'title'     => $schedule->applications->jobs->title ?? '',
@@ -70,12 +70,12 @@ class InterviewScheduleController extends Controller
             if (($redirect = self::guard($request, PermissionsConstants::CR_ITV_SCHD, self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
             try {
                 $user = $userOrRedirect;
-                $employees = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $employees = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->where(UsersConstants::COL_TP, class_basename(strtolower(Employee::class)))
                     ->orWhere('id', $user?->creatorId())
                     ->pluck(UsersConstants::COL_NM, 'id')
                     ->prepend('--', '');
-                $candidates = JobApplication::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $candidates = JobApplication::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id')
                     ->prepend('--', '');
                 $settings = Utility::settings();
@@ -114,7 +114,7 @@ class InterviewScheduleController extends Controller
                     $createData[$field] = $data[$field];
                 }
                 $createData['comment'] = $request->comment ?? '';
-                $createData[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                $createData[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
                 $schedule = InterviewSchedule::create($createData);
                 $request->input('synchronizeType') === 'googleCalendar' ? Utility::addCalendarData($schedule, 'interview_schedule') : null;
                 return redirect()->back()->with('success', __('Interview schedule successfully created.'));
@@ -139,7 +139,7 @@ class InterviewScheduleController extends Controller
             if (($redirect = self::guard($request, 'view interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
             try {
                 $user = $userOrRedirect;
-                $stages = JobStage::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $stages = JobStage::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
                 return view($view, compact('interviewSchedule', 'stages'));
             } catch (\Throwable $e) {
@@ -161,12 +161,12 @@ class InterviewScheduleController extends Controller
             if (($redirect = self::guard($request, 'edit interview schedule', self::ENTITY . '.index')) instanceof RedirectResponse) return $redirect;
             try {
                 $user = $userOrRedirect;
-                $employees = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $employees = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->where(UsersConstants::COL_TP, class_basename(strtolower(Employee::class)))
                     ->orWhere('id', $user?->creatorId())
                     ->pluck(UsersConstants::COL_NM, 'id')
                     ->prepend('--', '');
-                $candidates = JobApplication::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $candidates = JobApplication::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id')
                     ->prepend('--', '');
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
@@ -246,7 +246,7 @@ class InterviewScheduleController extends Controller
                 $user = $userOrRedirect;
                 return $request->input('calendarType') === 'googleCalendar'
                     ? Utility::getCalendarData('interview_schedule')
-                    : InterviewSchedule::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                    : InterviewSchedule::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->get()
                     ->map(fn($val) => [
                         'id'        => $val->id,

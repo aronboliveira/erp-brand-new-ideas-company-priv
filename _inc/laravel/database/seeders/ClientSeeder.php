@@ -43,7 +43,7 @@ class ClientSeeder extends Seeder
 				$c->{UC::COL_AV}      = 'default.png';
 				$c->{UC::COL_MSG_CL}  = '#2180f3';
 				$c->{UC::COL_DEL_STT} = 1;
-				$c->{DC::TABLE_CREATOR} = $creatorId;
+				$c->{DC::COL_TABLE_CREATOR} = $creatorId;
 
 				$c->save();
 			}

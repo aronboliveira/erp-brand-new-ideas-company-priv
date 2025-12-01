@@ -25,7 +25,7 @@ class Schedule extends Model
 		ActivitiesConstants::COL_ST_TIME,
 		ActivitiesConstants::COL_MI,
 		ActivitiesConstants::COL_MT,
-		DatabaseConstants::TABLE_CREATOR,
+		DatabaseConstants::COL_TABLE_CREATOR,
 	];
 	protected $casts = [
 		ProjectsConstants::COL_S_DT => 'date',
@@ -34,7 +34,7 @@ class Schedule extends Model
 
 	public function creator(): BelongsTo
 	{
-		return $this->belongsTo(User::class, DatabaseConstants::TABLE_CREATOR);
+		return $this->belongsTo(User::class, DatabaseConstants::COL_TABLE_CREATOR);
 	}
 
 	protected static function booted(): void

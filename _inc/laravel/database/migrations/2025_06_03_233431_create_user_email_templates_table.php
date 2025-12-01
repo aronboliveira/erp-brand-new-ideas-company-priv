@@ -22,12 +22,14 @@ class CreateUserEmailTemplatesTable extends Migration
                 $table->uuid(self::COL_USER);                       // ! CHANGED
                 $table->boolean(EmailsConstants::COL_IA)->default(true);   // ! CHANGED
                 $table->timestamps();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-                foreach ([
-                    self::COL_TEMPLATE                 => DatabaseConstants::TABLE_EMAIL_TEMPLATES,
-                    self::COL_USER                     => DatabaseConstants::TABLE_USERS,
-                    DatabaseConstants::TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl)
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+                foreach (
+                    [
+                        self::COL_TEMPLATE                 => DatabaseConstants::TABLE_EMAIL_TEMPLATES,
+                        self::COL_USER                     => DatabaseConstants::TABLE_USERS,
+                        DatabaseConstants::COL_TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
+                    ] as $col => $tbl
+                )
                     $table->foreign($col)
                         ->references('id')
                         ->on($tbl)
@@ -38,11 +40,13 @@ class CreateUserEmailTemplatesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_TEMPLATE,
-                self::COL_USER,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_TEMPLATE,
+                    self::COL_USER,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

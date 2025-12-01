@@ -116,7 +116,7 @@ final class OtherPaymentController extends Controller
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($req, $method) {
                     $data = $req->only([UsersConstants::COL_EMP_ID, 'title', 'type', 'amount']);
-                    $data[DatabaseConstants::TABLE_CREATOR] = $req->user()?->creatorId() ?? null;
+                    $data[DatabaseConstants::COL_TABLE_CREATOR] = $req->user()?->creatorId() ?? null;
                     Log::info($method . ' creating OtherPayment', ['data' => $data]);
                     $crtStart = microtime(true);
                     $op = OtherPayment::create($data);

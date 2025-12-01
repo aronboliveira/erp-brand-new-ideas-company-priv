@@ -63,8 +63,8 @@ final class DealFileSeeder extends Seeder
 					$df->deal_id    = $dealId;
 					$df->file_name  = $fileName;
 					$df->file_path  = $filePath;
-					$df->{DC::TABLE_CREATOR} = $systemUserId;
-					$df->setAttribute(DC::TABLE_UPDATER, null);
+					$df->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$df->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$df->setAttribute('created_at', $ts);
 					$df->setAttribute('updated_at', $ts);
 					$df->save();

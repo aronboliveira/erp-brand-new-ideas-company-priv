@@ -33,7 +33,7 @@ class RoleController extends Controller
             $user = $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::MNG_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             try {
-                $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $view = VW::RL . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View ' . $view . ' not found'), $method, route(self::REDIRECT_ROUTE)); // ! ALERT
                 Log::debug($method . ' loaded', ['count' => $roles->count()]);
@@ -76,14 +76,14 @@ class RoleController extends Controller
             $user = $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::CR_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             $request->validate([
-                'name' => 'required|max:100|unique:roles,name,NULL,id,' . DatabaseConstants::TABLE_CREATOR . ',' . $user?->creatorId(),
+                'name' => 'required|max:100|unique:roles,name,NULL,id,' . DatabaseConstants::COL_TABLE_CREATOR . ',' . $user?->creatorId(),
                 DatabaseConstants::TABLE_PERMISSIONS => 'required|array'
             ]);
             DB::beginTransaction();
             try {
                 $role = Role::create([
                     'name' => $request->input('name'),
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                 ]);
                 foreach ($request->input(DatabaseConstants::TABLE_PERMISSIONS) as $pid) {
                     $role->givePermissionTo(Permission::findOrFail($pid));
@@ -130,7 +130,7 @@ class RoleController extends Controller
             $user = $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::ED_ROLE, self::REDIRECT_ROUTE)) !== true) return $c;
             $request->validate([
-                'name' => 'required|max:100|unique:roles,name,' . $role->id . ',id,' . DatabaseConstants::TABLE_CREATOR . ',' . $user?->creatorId(),
+                'name' => 'required|max:100|unique:roles,name,' . $role->id . ',id,' . DatabaseConstants::COL_TABLE_CREATOR . ',' . $user?->creatorId(),
                 DatabaseConstants::TABLE_PERMISSIONS => 'required|array'
             ]);
             DB::beginTransaction();

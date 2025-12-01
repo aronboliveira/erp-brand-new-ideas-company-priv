@@ -39,7 +39,7 @@ class ContractTypeController extends Controller
                     return defaultPermissionDenial($request, null, $action);
                 }
                 $typesStart = microtime(true);
-                $types = ContractType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $types = ContractType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($typesStart, $action . '::fetchTypes', 'completed');
                 Log::info("[$action] loaded types", ['count' => $types->count(), 'user_id' => $user?->id]);
                 return view(ViewsConstants::CTC_TP . '.' . $function, compact('types'));
@@ -102,7 +102,7 @@ class ContractTypeController extends Controller
                 $startCreate = microtime(true);
                 ContractType::create([
                     'name' => $request->input('name'),
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($startCreate, $function . '::createContractType', 'completed');
                 Log::info($method . ' created type', ['name' => $request->input('name'), UsersConstants::COL_USER_ID => $user?->id]);
@@ -133,7 +133,7 @@ class ContractTypeController extends Controller
                     Log::warning("$action permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
                     return defaultPermissionDenial($request, null, $action);
                 }
-                if ($contractType[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+                if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                     Log::warning("$action ownership denied", [
                         UsersConstants::COL_USER_ID => $user?->id,
                         'contract_type_id' => $contractType->id
@@ -166,7 +166,7 @@ class ContractTypeController extends Controller
                 Log::warning("[$action] permission denied", ['user_id' => $user?->id]);
                 return defaultPermissionDenial($request, null, $action);
             }
-            if ($contractType[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning("[$action] ownership denied", ['user_id' => $user?->id, 'contract_type_id' => $contractType->id]);
                 return defaultPermissionDenial($request, null, $action);
             }
@@ -192,7 +192,7 @@ class ContractTypeController extends Controller
             }
             $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
             $stepStart = microtime(true);
-            if ($contractType[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning($method . ' ownership denied', ['user_id' => $user?->id, 'contract_type_id' => $contractType->id]);
                 return defaultPermissionDenial($request, null, $method);
             }
@@ -208,7 +208,7 @@ class ContractTypeController extends Controller
             try {
                 $contractType->update([
                     'name' => $request->input('name'),
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($stepStart, 'updateContractType', 'completed');
                 Log::info($method . ' updated', ['contract_type_id' => $contractType->id]);
@@ -239,7 +239,7 @@ class ContractTypeController extends Controller
                 Log::warning($method . ' permission denied', [UsersConstants::COL_USER_ID => $user?->id]);
                 return defaultPermissionDenial($request, null, $method);
             }
-            if ($contractType[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($contractType[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning($method . ' ownership denied', [UsersConstants::COL_USER_ID => $user?->id, 'contract_type_id' => $contractType->id]);
                 return defaultPermissionDenial($request, null, $method);
             }

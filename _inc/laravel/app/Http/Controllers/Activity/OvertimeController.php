@@ -29,7 +29,7 @@ class OvertimeController extends Controller
       try {
         $creatorId = $req->user()->creatorId();
         $fetchStart = microtime(true);
-        $overtimes = Overtime::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $overtimes = Overtime::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($fetchStart, $action, 'fetchOvertimes');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         Log::info("[{$class}::{$action}] complete", ['count' => is_countable($overtimes) ? count($overtimes) : null]);

@@ -17,11 +17,13 @@ class CreateCompanyPoliciesTable extends Migration
             $table->text('description');
             $table->string('file')->nullable();                               // ! CHANGED (was 'attachment')
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);
-            foreach ([
-                self::COL_BRANCH                 => DatabaseConstants::TABLE_BRANCHES,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
+            foreach (
+                [
+                    self::COL_BRANCH                 => DatabaseConstants::TABLE_BRANCHES,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -32,10 +34,12 @@ class CreateCompanyPoliciesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_BRANCH,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_BRANCH,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

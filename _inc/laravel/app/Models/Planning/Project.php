@@ -44,7 +44,7 @@ class Project extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $appends = ['img_image'];
@@ -114,7 +114,7 @@ class Project extends Model
     public function projectProgressCopy(int|string $userId): array
     {
         $last = TaskStage::orderBy('order', 'desc')
-            ->where(DC::TABLE_CREATOR, $userId)
+            ->where(DC::COL_TABLE_CREATOR, $userId)
             ->first();
         $total = $this->tasks->count();
         $completed = $this->tasks()
@@ -179,7 +179,7 @@ class Project extends Model
                     if (!$task) continue;
                     $users = $projectsTimesheet
                         ?->where(AC::COL_TSK_ID, $tid)
-                        ->pluck(DC::TABLE_CREATOR)
+                        ->pluck(DC::COL_TABLE_CREATOR)
                         ->unique()
                         ->toArray() ?? [];
                     $dateArray = [];
@@ -188,7 +188,7 @@ class Project extends Model
                         foreach ($days['datePeriod'] as $dateObj) {
                             $date = $dateObj->format('Y-m-d');
                             $entry = collect($sheet)
-                                ->first(fn($v) => $v[DC::TABLE_CREATOR] === $uid
+                                ->first(fn($v) => $v[DC::COL_TABLE_CREATOR] === $uid
                                     && $v['date'] === $date);
                             $time = $entry
                                 ? Carbon::parse($entry['time'])->format('H:i')
@@ -292,7 +292,7 @@ class Project extends Model
     ): \Illuminate\Database\Eloquent\Builder {
         $project = self::find($projectId);
         $user = Auth::user()
-            ?: User::where('id', $project[DC::TABLE_CREATOR])->first();
+            ?: User::where('id', $project[DC::COL_TABLE_CREATOR])->first();
         $ids = $user?->tasks()->pluck('id')->toArray();
         $q = ProjectTask::whereIn('id', $ids);
         $q = $project
@@ -382,7 +382,7 @@ class Project extends Model
         foreach ($keys as $status) {
             $counts[$status] = match ($type) {
                 PMC::CPN => self::where(AC::COL_TSK_STT, $status)
-                    ->where(DC::TABLE_CREATOR, $u->id)->count(),
+                    ->where(DC::COL_TABLE_CREATOR, $u->id)->count(),
                 PMC::CL => self::where(AC::COL_TSK_STT, $status)
                     ->where('client_id', $u->id)->count(),
                 default => \App\Models\ProjectUser::join(
@@ -412,7 +412,7 @@ class Project extends Model
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        return TaskStage::where(DC::TABLE_CREATOR, $user?->creatorId())
+        return TaskStage::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->orderBy('order', 'desc')
             ->first();
     }

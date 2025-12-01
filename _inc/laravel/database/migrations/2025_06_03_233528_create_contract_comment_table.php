@@ -18,12 +18,14 @@ class CreateContractCommentTable extends Migration
             $table->uuid(self::COL_USER);                                    // ! CHANGED
             $table->string('comment')->nullable();
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);                                 // ! CHANGED
-            foreach ([
-                self::COL_CONTRACT               => DatabaseConstants::TABLE_CONTRACTS,
-                self::COL_USER                   => DatabaseConstants::TABLE_USERS,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                                 // ! CHANGED
+            foreach (
+                [
+                    self::COL_CONTRACT               => DatabaseConstants::TABLE_CONTRACTS,
+                    self::COL_USER                   => DatabaseConstants::TABLE_USERS,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -34,11 +36,13 @@ class CreateContractCommentTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_CONTRACT,
-                self::COL_USER,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_CONTRACT,
+                    self::COL_USER,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

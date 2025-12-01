@@ -33,7 +33,7 @@ class TimeTrackerController extends Controller
             if (($resp = self::guard($request, 'manage time tracker', self::REDIRECT_INDEX)) !== true) return $resp;
             try {
                 Log::info($action . ' called', ['user' => $user?->id]);
-                $trackers = TimeTracker::where(DatabaseConstants::TABLE_CREATOR, $user?->id)->get();
+                $trackers = TimeTracker::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id)->get();
                 Log::info($action . ' fetched', ['count' => $trackers->count(), 'user' => $user?->id]);
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
                 return view($view, compact('trackers'));
@@ -96,7 +96,7 @@ class TimeTrackerController extends Controller
                         ActivitiesConstants::COL_E_TIME,
                         ActivitiesConstants::COL_TTL_TIME,
                     ]);
-                    $data[DatabaseConstants::TABLE_CREATOR] = $user?->id;
+                    $data[DatabaseConstants::COL_TABLE_CREATOR] = $user?->id;
                     $tracker = TimeTracker::create($data);
                     Log::info($action . ' created', ['id' => $tracker->id]);
                 });
@@ -118,7 +118,7 @@ class TimeTrackerController extends Controller
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
             if ($resp = $this->guard($request, 'view time tracker', self::REDIRECT_INDEX)) return $resp;
-            if ($timeTracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
+            if ($timeTracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('timeTracker'));
         });
@@ -134,7 +134,7 @@ class TimeTrackerController extends Controller
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id]);
             if ($resp = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) return $resp;
-            if ($timeTracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
+            if ($timeTracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('timeTracker'));
         });
@@ -149,7 +149,7 @@ class TimeTrackerController extends Controller
             $user = $userOrRedirect;
             Log::info($action . ' called', ['user' => $user?->id, 'tracker' => $timeTracker->id, 'input' => $request->all()]);
             if ($resp = $this->guard($request, 'edit time tracker', self::REDIRECT_INDEX)) return $resp;
-            if ($timeTracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
+            if ($timeTracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX), false);
             $v = Validator::make($request->all(), [
                 ProjectsConstants::COL_PJ_ID      => 'required|integer|exists:projects,id',
                 ActivitiesConstants::COL_TSK_ID   => 'required|integer|exists:project_tasks,id',
@@ -219,7 +219,7 @@ class TimeTrackerController extends Controller
             try {
                 $id = $request->input('id');
                 $tracker = TimeTracker::findOrFail($id);
-                if ($tracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action);
+                if ($tracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 $images = TrackPhoto::where('track_id', $id)->where('user_id', $user?->id)->get();
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
                 return view($view, compact('images', 'tracker'));
@@ -273,7 +273,7 @@ class TimeTrackerController extends Controller
             }
             try {
                 $track = TimeTracker::findOrFail($request->input('id'));
-                if ($track[DatabaseConstants::TABLE_CREATOR] !== auth()->id()) {
+                if ($track[DatabaseConstants::COL_TABLE_CREATOR] !== auth()->id()) {
                     Log::warning($action . ' permission denied', ['track' => $track->id]);
                     return response()->json(['error' => 'Permission denied.'], 403);
                 }
@@ -292,7 +292,7 @@ class TimeTrackerController extends Controller
         $action = __METHOD__;
         Log::info($action . ' deleting', ['user' => $user?->id, 'tracker' => $trackerId]);
         $tracker = TimeTracker::findOrFail($trackerId);
-        if ($tracker[DatabaseConstants::TABLE_CREATOR] !== $user?->id) {
+        if ($tracker[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->id) {
             Log::warning($action . ' permission denied', ['user' => $user?->id]);
             return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX));
         }

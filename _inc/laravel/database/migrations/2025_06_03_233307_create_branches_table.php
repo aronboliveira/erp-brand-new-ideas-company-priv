@@ -28,9 +28,9 @@ class CreateBranchesTable extends Migration
                 $table->decimal('expenses', 10, 2)->default(0.00);
                 $table->decimal('profit', 10, 2)->default(0.00);
                 $table->timestamps();
-                $table->uuid(DC::TABLE_CREATOR)->nullable()->default(DC::DEFAULT_UUID);
-                $table->uuid(DC::TABLE_UPDATER)->nullable()->default(DC::DEFAULT_UUID);
-                foreach ([DC::TABLE_CREATOR, DC::TABLE_UPDATER, CPC::COL_ADM, CPC::COL_MNG] as $col)
+                $table->uuid(DC::COL_TABLE_CREATOR)->nullable()->default(DC::DEFAULT_UUID);
+                $table->uuid(DC::COL_TABLE_UPDATER)->nullable()->default(DC::DEFAULT_UUID);
+                foreach ([DC::COL_TABLE_CREATOR, DC::COL_TABLE_UPDATER, CPC::COL_ADM, CPC::COL_MNG] as $col)
                     $table->foreign($col)
                         ->references('id')
                         ->on(DC::TABLE_USERS)
@@ -42,14 +42,14 @@ class CreateBranchesTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             try {
-                foreach ([CPC::COL_ADM, CPC::COL_MNG, DC::TABLE_UPDATER, DC::TABLE_CREATOR] as $col) {
+                foreach ([CPC::COL_ADM, CPC::COL_MNG, DC::COL_TABLE_UPDATER, DC::COL_TABLE_CREATOR] as $col) {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);
                 }
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DC::TABLE_CREATOR
+                        . DC::COL_TABLE_CREATOR
                         . ': '
                         . $e->getMessage()
                 );

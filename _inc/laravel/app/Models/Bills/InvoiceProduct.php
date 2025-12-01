@@ -2,35 +2,126 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use App\Traits\{HasAuditFields, UsesUuids};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model,
+    Relations\BelongsTo
+};
 
 class InvoiceProduct extends Model
 {
+    use HasAuditFields;
+    use HasFactory;
     use UsesUuids;
 
-    private const COL_DESCRIPTION  = 'description';
-    private const COL_DISCOUNT     = 'discount';
-    private const COL_INVOICE_ID   = 'invoice_id';
-    private const COL_PRICE        = 'price';
-    private const COL_PRODUCT_ID   = 'product_id';
-    private const COL_QUANTITY     = 'quantity';
-    private const COL_TAX          = 'tax';
+    protected $table = DC::TABLE_INV_PRD;
 
     protected $fillable = [
-        self::COL_PRODUCT_ID,
-        self::COL_INVOICE_ID,
-        self::COL_QUANTITY,
-        self::COL_TAX,
-        self::COL_DISCOUNT,
-        self::COL_PRICE,
-        self::COL_DESCRIPTION,
+        BC::COL_INV_ID,
+        BC::COL_PRD_ID,
+        'quantity',
+        'tax',
+        'price',
+        BC::COL_CUR_ID,
+        'discount',
+        BC::COL_SVC_FEE,
+        BC::COL_IS_SCD,
+        BC::COL_CAN_CHG_BK,
+        'reference',
+        'description',
+        'notes',
+        BC::COL_TXS_LST,
+        'attachments',
+        'contract',
+        'loan',
+        BC::COL_WRH_ID,
     ];
 
-    public function product(): HasOne
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+    ];
+
+    protected $with = [
+        'productService'
+    ];
+
+    protected $casts = [
+        'quantity'          => 'integer',
+        'price'             => 'decimal:2',
+        'discount'          => 'decimal:2',
+        BC::COL_SVC_FEE     => 'decimal:2',
+        BC::COL_IS_SCD      => 'boolean',
+        BC::COL_CAN_CHG_BK  => 'boolean',
+        BC::COL_TXS_LST     => 'array',
+        'attachments'       => 'array',
+    ];
+
+    protected static function booted(): void
     {
-        return $this
-            ->hasOne(ProductService::class, 'id', self::COL_PRODUCT_ID);
-        // * consider belongsTo(ProductService::class, self::COL_PRODUCT_ID)
+        static::creating(function (self $model): void {
+            if (empty($model->quantity) || $model->quantity < 1)
+                $model->quantity = 1;
+            if ($model->discount === null)
+                $model->discount = 0.0;
+        });
+        static::saving(function (self $model): void {
+            if ($model->quantity < 1)
+                $model->quantity = 1;
+            if ($model->discount === null || $model->discount < 0)
+                $model->discount = 0.0;
+            $maxDiscount = $model->getLineSubtotal();
+            if ($model->discount > $maxDiscount)
+                $model->discount = $maxDiscount;
+        });
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, BC::COL_INV_ID);
+    }
+
+    public function productService(): BelongsTo
+    {
+        return $this->belongsTo(ProductService::class, BC::COL_PRD_ID);
+    }
+
+    public function product(): BelongsTo // * legacy, don't use in new code
+    {
+        return $this->productService();
+    }
+
+    public function getLineSubtotal(): float
+    {
+        return (float) $this->quantity * (float) $this->price;
+    }
+
+    public function getLineDiscountAmount(): float
+    {
+        return (float) $this->discount;
+    }
+
+    public function getLineTotal(): float
+    {
+        $total = $this->getLineSubtotal() - $this->getLineDiscountAmount();
+
+        return $total > 0 ? $total : 0.0;
+    }
+
+    public function hasDiscount(): bool
+    {
+        return (float) $this->discount > 0;
+    }
+
+    public function isSecured(): bool
+    {
+        return (bool) $this->{BC::COL_IS_SCD};
+    }
+
+    public function canBeChargedBack(): bool
+    {
+        return (bool) $this->{BC::COL_CAN_CHG_BK};
     }
 }

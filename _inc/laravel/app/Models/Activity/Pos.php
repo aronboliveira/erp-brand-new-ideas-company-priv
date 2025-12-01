@@ -95,8 +95,8 @@ class Pos extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [
@@ -136,7 +136,7 @@ class Pos extends Model
         parent::booted();
 
         static::saving(function (self $m): void {
-            $ownerId = $m->{DC::TABLE_CREATOR} ?? $m->{BC::COL_CST_ID} ?? null;
+            $ownerId = $m->{DC::COL_TABLE_CREATOR} ?? $m->{BC::COL_CST_ID} ?? null;
 
             $m->{BC::COL_BL_EMAIL} = static::normalizeEmail(
                 $m->{BC::COL_BL_EMAIL} ?? null,
@@ -304,7 +304,7 @@ class Pos extends Model
         }
 
         $user  = $userOrRedirect;
-        $query = self::where(DC::TABLE_CREATOR, $user?->creatorId());
+        $query = self::where(DC::COL_TABLE_CREATOR, $user?->creatorId());
 
         if ($month) {
             $query->whereRaw('MONTH(created_at) = ?', [date('m')]);
@@ -342,7 +342,7 @@ class Pos extends Model
             '>',
             Carbon::now()->subDays(10)
         )
-            ->where(DC::TABLE_CREATOR, $user?->creatorId())
+            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->orderBy('created_at')
             ->get()
             ->groupBy(fn($v) => Carbon::parse($v->created_at)->format('dm'));

@@ -41,7 +41,7 @@ class TravelController extends Controller
             Log::info("$action start", [UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $creatorId = $user?->creatorId();
-                $query = Travel::with('employee')->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                $query = Travel::with('employee')->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 if (strtolower($user[UsersConstants::COL_TP]) === 'employee') {
                     $emp = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->first();
                     $query->where(UsersConstants::COL_EMP_ID, $emp->id);
@@ -68,7 +68,7 @@ class TravelController extends Controller
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'create travel', self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::info("$action start", [UsersConstants::COL_USER_ID => $user?->id]);
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('employees'));
         });
@@ -105,7 +105,7 @@ class TravelController extends Controller
                         'purpose_of_visit' => $request->purpose_of_visit,
                         'place_of_visit' => $request->place_of_visit,
                         'description' => $request->description,
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                 });
                 if (!empty(Utility::settings()['trip_sent'])) {
@@ -146,10 +146,10 @@ class TravelController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'edit travel', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($travel[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($travel[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             Log::info("$action start", ['travelId' => $travel->id]);
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return view($view, compact('travel', 'employees'));
         });
@@ -164,7 +164,7 @@ class TravelController extends Controller
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'edit travel', self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::info("$action start", ['travelId' => $travel->id, 'input' => $request->all()]);
-            if ($travel[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($travel[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             $rules = [
                 UsersConstants::COL_EMP_ID => 'required|exists:employees,id',
@@ -206,7 +206,7 @@ class TravelController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'delete travel', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($travel[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($travel[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             Log::info("$action start", ['travelId' => $travel->id]);
             try {

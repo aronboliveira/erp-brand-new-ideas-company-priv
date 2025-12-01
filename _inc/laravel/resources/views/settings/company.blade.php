@@ -44,7 +44,7 @@
 		$currentLang=Utility::languages()?:[];
 		$lang=Utility::getValByName(SC::DEF_LNG)?:'';
 		$webhookSetting=WebhookSettings::where(
-			DC::TABLE_CREATOR,
+			DC::COL_TABLE_CREATOR,
 			Auth::user()?->creatorId()
 		)->get()?:collect([]);
 		$faviconUrl=Utility::getCompanyLogo()?:'';

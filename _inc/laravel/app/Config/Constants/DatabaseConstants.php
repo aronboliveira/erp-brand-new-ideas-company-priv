@@ -12,8 +12,8 @@ class DatabaseConstants
 
 	public const COA = 'chart_of_account';
 	public const TABLE_USERS = 'users';
-	public const TABLE_CREATOR = 'created_by';
-	public const TABLE_UPDATER = 'updated_by';
+	public const COL_TABLE_CREATOR = 'created_by';
+	public const COL_TABLE_UPDATER = 'updated_by';
 	public const TABLE_PLANS = 'plans';
 	public const TABLE_PROJECTS = 'projects';
 	public const TABLE_TASKS = 'tasks';
@@ -23,6 +23,7 @@ class DatabaseConstants
 	public const TABLE_EMPLOYEES = 'employees';
 	public const TABLE_DOCS = 'documents';
 	public const TABLE_EDOCS = 'employee_documents';
+	public const TABLE_EATD = 'employee_attendances';
 	public const TABLE_TERMINATIONS = 'terminations';
 	public const TABLE_TERMINATION_TYPES = 'termination_types';
 	public const TABLE_RSG = 'resignations';
@@ -123,9 +124,15 @@ class DatabaseConstants
 	public const TABLE_PAY = 'payments';
 	public const TABLE_POS_PAY = 'pos_payments';
 	public const TABLE_MET_EMP = 'meeting_employees';
+	public const TABLE_EV_EMP = 'event_employees';
+	public const TABLE_RVN = 'revenues';
+	public const TABLE_INV_PAY = 'invoice_payments';
+	public const TABLE_INV_PRD = 'invoice_products';
+	public const TABLE_BL_PAY = 'bill_payments';
+	public const TABLE_CR_NOTES = 'credit_notes';
+	public const TABLE_DB_NOTES = 'debit_notes';
 
 	// * FIELD NAMES
-
 	// invoice
 	public const INV_BANK_TRANSFER_INV = 'invoice_id';
 	public const INV_BANK_TRANSFER_ORDER = 'order_id';

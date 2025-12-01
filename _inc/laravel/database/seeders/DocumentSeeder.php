@@ -123,8 +123,8 @@ final class DocumentSeeder extends Seeder
 				$d->viewers              = $viewers;
 				$d->editors              = $editors;
 				$d->executors            = $executors;
-				$d->{DC::TABLE_CREATOR}  = $creatorId;
-				$d->setAttribute(DC::TABLE_UPDATER, null);
+				$d->{DC::COL_TABLE_CREATOR}  = $creatorId;
+				$d->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$d->save();
 			}
 		}, 3);

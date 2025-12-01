@@ -42,7 +42,7 @@ class LanguageController extends Controller
                 $user->update(['lang' > $lang]);
                 $this->logExecutionTime($startUpdate, "{$action} updateLang", 'completed');
                 $rtlValue = in_array($lang, ['ar', 'he']) ? 'on' : 'off';
-                $creatorCol = DatabaseConstants::TABLE_CREATOR;
+                $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
                 $startDB = microtime(true);
                 DB::transaction(fn() => DB::insert(
                     'insert into settings (`value`,`name`,`' . $creatorCol . '`) values (?,?,?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)',
@@ -318,7 +318,7 @@ class LanguageController extends Controller
                     $message = __('Language enabled successfully');
                 }
                 $value = implode(',', $disabled);
-                $creatorCol = DatabaseConstants::TABLE_CREATOR;
+                $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
                 DB::insert('insert into settings (`value`,`name`,`' . $creatorCol . '`) values (?,?,?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)', [$value, SettingsConstants::DSB_LNG, $request->user()->creatorId()]);
                 $this->logExecutionTime($startProcess, "{$action} processSettings", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');

@@ -37,7 +37,7 @@ class EmployeeDocument extends AbstractDocument
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, DC::TABLE_CREATOR, 'id');
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
         // * Optionally fetch the User who uploaded/created this record
     }
 }

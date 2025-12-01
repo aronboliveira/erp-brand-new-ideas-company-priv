@@ -46,8 +46,8 @@ final class UserDealSeeder extends Seeder
 					$ud->id        = $pivotId;
 					$ud->deal_id   = $dealId;
 					$ud->user_id   = $uid;
-					$ud->{DC::TABLE_CREATOR} = $systemUserId;
-					$ud->setAttribute(DC::TABLE_UPDATER, null);
+					$ud->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$ud->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$ud->save();
 				}
 			}

@@ -20,7 +20,7 @@ class ProjectStages extends Model
     private const COL_NAME      = PJC::COL_NM;
     private const COL_COLOR     = PJC::COL_CL;
     private const COL_ORDER     = AC::COL_OD;
-    private const COL_CREATED_BY = DC::TABLE_CREATOR;
+    private const COL_CREATED_BY = DC::COL_TABLE_CREATOR;
 
     protected $fillable = [
         self::COL_NAME,
@@ -30,7 +30,7 @@ class ProjectStages extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR
+        DC::COL_TABLE_CREATOR
     ];
 
     public function tasks(string $projectId): Collection

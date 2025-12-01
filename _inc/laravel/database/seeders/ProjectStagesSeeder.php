@@ -38,8 +38,8 @@ class ProjectStagesSeeder extends Seeder
 				$s->{PJC::COL_NM} = $nm;
 				$s->{PJC::COL_CL} = $faker->hexColor();
 				$s->{AC::COL_OD}  = $order++;
-				$s->{DC::TABLE_CREATOR} = $creatorId;
-				$s->{DC::TABLE_UPDATER} = null;
+				$s->{DC::COL_TABLE_CREATOR} = $creatorId;
+				$s->{DC::COL_TABLE_UPDATER} = null;
 
 				$s->save();
 			}

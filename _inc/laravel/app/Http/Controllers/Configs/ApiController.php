@@ -167,7 +167,7 @@ class ApiController extends Controller
           $projects = Project::with(DatabaseConstants::TABLE_TASKS)->whereIn('id', $ids)->get();
         } else {
           Log::debug($method . ' - fetching own projects', ['user_id' => $user->id]);
-          $projects = Project::with(DatabaseConstants::TABLE_TASKS)->where(DatabaseConstants::TABLE_CREATOR, $user->id)->get();
+          $projects = Project::with(DatabaseConstants::TABLE_TASKS)->where(DatabaseConstants::COL_TABLE_CREATOR, $user->id)->get();
         }
         $this->logExecutionTime($stepStart, 'fetchProjects', 'completed');
         Log::info($method . ' - retrieved', ['count' => $projects->count(), 'user_id' => $user->id]);
@@ -219,7 +219,7 @@ class ApiController extends Controller
             $output->writeln("{$action} Invalid task");
             return $this->error('Invalid task', 404);
           }
-          TimeTracker::where(DatabaseConstants::TABLE_CREATOR, $user->id)
+          TimeTracker::where(DatabaseConstants::COL_TABLE_CREATOR, $user->id)
             ->where(ActivitiesConstants::COL_IA, 1)
             ->update([ActivitiesConstants::COL_E_TIME => now()]);
           $tracker = TimeTracker::create([
@@ -229,7 +229,7 @@ class ApiController extends Controller
             'tag_id'                        => $request->input('tagId', ''),
             ActivitiesConstants::COL_ST_TIME => now(),
             ActivitiesConstants::COL_TSK_ID  => $task->id,
-            DatabaseConstants::TABLE_CREATOR => $user->id,
+            DatabaseConstants::COL_TABLE_CREATOR => $user->id,
           ]);
           $tracker->action = 'start';
           Log::info("{$action} started", ['tracker_id' => $tracker->id, 'user_id' => $user->id]);

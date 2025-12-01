@@ -31,7 +31,7 @@ class JobCategoryController extends Controller
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $user->id, 'method' => $method]);
             try {
                 $qStart = microtime(true);
-                $categories = JobCategory::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->get();
+                $categories = JobCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->get();
                 $this->logExecutionTime($qStart, $action, 'fetchCategories');
                 Log::debug("[{$base}::{$action}] fetched", ['count' => $categories->count()]);
                 $viewPath = ViewsConstants::JB_CAT . '.' . $action;
@@ -116,7 +116,7 @@ class JobCategoryController extends Controller
                 $crtStart = microtime(true);
                 $category = JobCategory::create([
                     'title' => $request->title,
-                    DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId()
+                    DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId()
                 ]);
                 $this->logExecutionTime($crtStart, $action, 'createJobCategory');
                 Log::info("[{$base}::{$action}] created", ['category_id' => $category->id]);

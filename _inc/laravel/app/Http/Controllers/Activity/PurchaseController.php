@@ -71,9 +71,9 @@ class PurchaseController extends Controller
             try {
                 $fetchStart = microtime(true);
                 Log::debug("[{$class}::{$action}] fetching vendors and purchases", ['creator_id' => $user?->creatorId()]);
-                $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
                 $status = Purchase::$statuses;
-                $purchases = Purchase::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->with(['vendor', 'category'])->get();
+                $purchases = Purchase::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->with(['vendor', 'category'])->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchIndexData');
                 Log::info("[{$class}::{$action}] dataset ready", ['purchase_count' => $purchases->count(), 'vendor_options' => $vendors->count()]);
                 $renderStart = microtime(true);
@@ -104,12 +104,12 @@ class PurchaseController extends Controller
             try {
                 $loadStart = microtime(true);
                 Log::debug("[{$class}::{$action}] loading form data", ['creator_id' => $user?->creatorId()]);
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where('module', 'purchase')->get();
-                $category = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where('type', 'expense')->pluck('name', 'id')->prepend('Select Category', '');
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('module', 'purchase')->get();
+                $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('type', 'expense')->pluck('name', 'id')->prepend('Select Category', '');
                 $purchaseNumber = $user?->purchaseNumberFormat($this->purchaseNumber());
-                $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
-                $warehouse = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
-                $productServices = ProductService::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where('type', '!=', 'service')->pluck('name', 'id')->prepend('--', '');
+                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $warehouse = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
+                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('type', '!=', 'service')->pluck('name', 'id')->prepend('--', '');
                 $this->logExecutionTime($loadStart, $action, 'loadCreateFormData');
                 Log::info("[{$class}::{$action}] form data ready", ['custom_fields' => $customFields->count(), 'product_services' => $productServices->count()]);
                 $renderStart = microtime(true);
@@ -153,7 +153,7 @@ class PurchaseController extends Controller
                     $purchase->purchase_number = $request->purchase_number ?? 0;
                     $purchase->status = 0;
                     $purchase->category_id = $request->category_id;
-                    $purchase[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                    $purchase[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
                     $purchase->save();
                     Log::info("[{$class}::{$action}] purchase created", ['purchase_id' => $purchase->id]);
                     $loopStart = microtime(true);
@@ -205,7 +205,7 @@ class PurchaseController extends Controller
                 Log::debug("[{$class}::{$action}] id decrypted", ['id' => $id]);
                 $loadStart = microtime(true);
                 $purchase = Purchase::findOrFail($id);
-                if ($purchase[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
+                if ($purchase[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
                 $purchasePayment = PurchasePayment::where('purchase_id', $id)->first();
                 $vendor = $purchase->vendor;
                 $items = $purchase->items;
@@ -248,11 +248,11 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($decryptStart, $action, 'decryptPurchaseId');
                 $loadStart = microtime(true);
                 $purchase = Purchase::findOrFail($id);
-                if ($purchase[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
-                $category = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where('type', 'expense')->pluck('name', 'id')->prepend('Select Category', '');
-                $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Vendor', '');
-                $warehouse = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
-                $productServices = ProductService::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where('type', '!=', 'service')->pluck('name', 'id')->prepend('--', '');
+                if ($purchase[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
+                $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('type', 'expense')->pluck('name', 'id')->prepend('Select Category', '');
+                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Vendor', '');
+                $warehouse = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
+                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where('type', '!=', 'service')->pluck('name', 'id')->prepend('--', '');
                 $purchaseNumber = $user?->purchaseNumberFormat($purchase->purchase_id);
                 $this->logExecutionTime($loadStart, $action, 'loadEditData');
                 Log::info("[{$class}::{$action}] data ready", ['purchase_id' => $id]);
@@ -287,7 +287,7 @@ class PurchaseController extends Controller
             if (($r = self::guard($request, 'edit purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method, 'purchase_id' => $purchase->id]);
             try {
-                if ($purchase[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
+                if ($purchase[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
                 $valStart = microtime(true);
                 $validator = Validator::make($request->all(), ['vendor_id' => 'required', 'purchase_date' => 'required', 'items' => 'required']);
                 if ($validator->fails()) {
@@ -495,7 +495,7 @@ class PurchaseController extends Controller
                 $loadStart = microtime(true);
                 $purchase = Purchase::findOrFail($id);
                 $settings = Utility::settings();
-                $rows = DB::table('settings')->where(DatabaseConstants::TABLE_CREATOR, $purchase[DatabaseConstants::TABLE_CREATOR])->get();
+                $rows = DB::table('settings')->where(DatabaseConstants::COL_TABLE_CREATOR, $purchase[DatabaseConstants::COL_TABLE_CREATOR])->get();
                 foreach ($rows as $row) $settings[$row->name] = $row->value;
                 $this->logExecutionTime($loadStart, $action, 'loadPurchaseAndSettings');
                 Log::debug("[{$class}::{$action}] settings loaded", ['count' => (is_countable($settings) ? count($settings) : 0), 'template' => $settings[BillsConstants::COL_PRC_TMP] ?? null]);
@@ -602,11 +602,11 @@ class PurchaseController extends Controller
             $purchase->totalRate = 300;
             $purchase->totalDiscount = 10;
             $purchase->taxesData = $taxesData;
-            $purchase[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+            $purchase[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
             $brandStart = microtime(true);
             $logo = asset(Storage::url('uploads/logo/'));
             $company_logo = Utility::getValByName(SettingsConstants::CPN_LG_DK);
-            $settingsData = Utility::settingsById($purchase[DatabaseConstants::TABLE_CREATOR]);
+            $settingsData = Utility::settingsById($purchase[DatabaseConstants::COL_TABLE_CREATOR]);
             $purchase_logo = $settingsData['purchase_logo'] ?? null;
             $img = $purchase_logo ? Utility::getFile('purchase_logo/') . $purchase_logo : asset($logo . '/' . ($company_logo ?? SettingsConstants::CPN_LG_DK_DEF));
             $this->logExecutionTime($brandStart, $action, 'prepareBranding');
@@ -642,7 +642,7 @@ class PurchaseController extends Controller
                     $post['purchase_logo'] = $filename;
                 }
                 $this->logExecutionTime($prepStart, $action, 'prepareSettingsPayload');
-                $creatorCol = DatabaseConstants::TABLE_CREATOR;
+                $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
                 $dbStart = microtime(true);
                 foreach ($post as $key => $value)
                     DB::insert('insert into settings (`value`,`name`,`' . $creatorCol . '`) values(?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)', [$value, $key, $user?->creatorId()]);
@@ -706,7 +706,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($decryptStart, $action, 'decryptPurchaseId');
                 $loadStart = microtime(true);
                 $purchase = Purchase::findOrFail($id);
-                $user = User::findOrFail($purchase[DatabaseConstants::TABLE_CREATOR]);
+                $user = User::findOrFail($purchase[DatabaseConstants::COL_TABLE_CREATOR]);
                 $purchasePayment = PurchasePayment::where('purchase_id', $purchase->id)->first();
                 $vendor = $purchase->vendor;
                 $items = $purchase->items;
@@ -740,9 +740,9 @@ class PurchaseController extends Controller
                 $loadStart = microtime(true);
                 $purchase = Purchase::findOrFail($purchaseId);
                 Log::debug("[{$class}::{$action}] purchase loaded", ['purchase_id' => $purchaseId]);
-                $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-                $categories = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-                $accounts = BankAccount::select('*', DB::raw("CONCAT(bank_name,' ',holder_name) AS name"))->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+                $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+                $accounts = BankAccount::select('*', DB::raw("CONCAT(bank_name,' ',holder_name) AS name"))->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
                 $this->logExecutionTime($loadStart, $action, 'loadPaymentData');
                 Log::info("[{$class}::{$action}] dataset ready", ['vendors_count' => $vendors->count(), 'categories_count' => $categories->count(), 'accounts_count' => $accounts->count()]);
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -816,7 +816,7 @@ class PurchaseController extends Controller
                     $pp->user_id = $purchase->vendor_id;
                     $pp->user_type = 'Vendor';
                     $pp->type = 'Partial';
-                    $pp[DatabaseConstants::TABLE_CREATOR] = $user?->id;
+                    $pp[DatabaseConstants::COL_TABLE_CREATOR] = $user?->id;
                     $pp->payment_id = $pp->id;
                     $pp->category = 'Bill';
                     $pp->account = $request->account_id;
@@ -987,7 +987,7 @@ class PurchaseController extends Controller
                     $this->logExecutionTime($ppLoadStart, $action, 'loadPurchaseProduct');
                     Log::debug("[{$class}::{$action}] purchase product loaded", ['id' => $res->id, 'product_id' => $res->product_id, 'qty' => $res->quantity]);
                     $purchaseLoadStart = microtime(true);
-                    $purchase = Purchase::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                    $purchase = Purchase::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                     $this->logExecutionTime($purchaseLoadStart, $action, 'loadPurchase');
                     $warehouseId = $purchase->warehouse_id;
                     $whpLoadStart = microtime(true);
@@ -1034,7 +1034,7 @@ class PurchaseController extends Controller
                 'creator_id' => $user?->creatorId()
             ]);
             $latest = Purchase::where(
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
                 $user?->creatorId()
             )->latest()->first();
             return $latest

@@ -20,7 +20,7 @@ class Transfer extends Model
         'description',
         'notes',
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $casts = [
         UC::COL_TRF_DT => 'date',
     ];

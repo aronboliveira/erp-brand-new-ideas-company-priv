@@ -21,7 +21,7 @@ class Award extends Model
     protected $casts = [
         'date' => 'date',
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = [
         'awardType',
         'employee',

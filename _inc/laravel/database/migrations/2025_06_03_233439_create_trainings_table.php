@@ -29,15 +29,17 @@ class CreateTrainingsTable extends Migration
             $table->integer('performance')->default(0);
             $table->integer('status')->default(0);
             $table->text('remarks')->nullable();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR);                // ! CHANGED
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                // ! CHANGED
             $table->timestamps();
-            foreach ([
-                self::B                       => DatabaseConstants::TABLE_BRANCHES,
-                self::TYPE                    => DatabaseConstants::TABLE_TRAINING_TYPES,
-                self::T                       => DatabaseConstants::TABLE_TRAINERS,
-                self::E                       => DatabaseConstants::TABLE_EMPLOYEES,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $col => $tbl)
+            foreach (
+                [
+                    self::B                       => DatabaseConstants::TABLE_BRANCHES,
+                    self::TYPE                    => DatabaseConstants::TABLE_TRAINING_TYPES,
+                    self::T                       => DatabaseConstants::TABLE_TRAINERS,
+                    self::E                       => DatabaseConstants::TABLE_EMPLOYEES,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $col => $tbl
+            )
                 $table->foreign($col)
                     ->references('id')
                     ->on($tbl)
@@ -49,13 +51,15 @@ class CreateTrainingsTable extends Migration
     {
         try {
             Schema::table(self::TABLE, function (Blueprint $table): void {
-                foreach ([
-                    self::B,
-                    self::TYPE,
-                    self::T,
-                    self::E,
-                    DatabaseConstants::TABLE_CREATOR,
-                ] as $col) {
+                foreach (
+                    [
+                        self::B,
+                        self::TYPE,
+                        self::T,
+                        self::E,
+                        DatabaseConstants::COL_TABLE_CREATOR,
+                    ] as $col
+                ) {
                     try {
                         Schema::hasColumn(self::TABLE, $col) &&
                             $table->dropForeign([$col]);

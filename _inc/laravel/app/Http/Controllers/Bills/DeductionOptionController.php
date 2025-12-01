@@ -44,7 +44,7 @@ final class DeductionOptionController extends Controller
                 $userId = $user?->creatorId();
                 $this->logExecutionTime($uidStart, $action, 'resolveCreatorId');
                 $fetchStart = microtime(true);
-                $opts = DeductionOption::where(DatabaseConstants::TABLE_CREATOR, $userId)->get();
+                $opts = DeductionOption::where(DatabaseConstants::COL_TABLE_CREATOR, $userId)->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchOptions');
                 Log::info("[{$base}::{$action}] fetched", ['creator_id' => $userId, 'count' => $opts->count()]);
                 if (!ViewFacade::exists($viewPath)) {
@@ -113,9 +113,9 @@ final class DeductionOptionController extends Controller
                 $userId = $u?->creatorId();
                 $this->logExecutionTime($uidStart, $action, 'resolveCreatorId');
                 $createStart = microtime(true);
-                $opt = DeductionOption::create(['name' => $req->name ?? null, DatabaseConstants::TABLE_CREATOR => $userId]);
+                $opt = DeductionOption::create(['name' => $req->name ?? null, DatabaseConstants::COL_TABLE_CREATOR => $userId]);
                 $this->logExecutionTime($createStart, $action, 'createOption');
-                Log::info("[{$base}::{$action}] created", ['id' => $opt->id ?? null, 'name' => $opt->name ?? null, DatabaseConstants::TABLE_CREATOR => $userId]);
+                Log::info("[{$base}::{$action}] created", ['id' => $opt->id ?? null, 'name' => $opt->name ?? null, DatabaseConstants::COL_TABLE_CREATOR => $userId]);
                 return redirect()->route(VW::DDT_OPT . '.index')->with('success', __('DeductionOption successfully created.'));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'input_keys' => array_keys($req->all() ?? [])]);
@@ -158,7 +158,7 @@ final class DeductionOptionController extends Controller
                 $opt = DeductionOption::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findOption');
                 $ownStart = microtime(true);
-                $isOwner = ($opt[DatabaseConstants::TABLE_CREATOR] ?? null) === ($user?->creatorId());
+                $isOwner = ($opt[DatabaseConstants::COL_TABLE_CREATOR] ?? null) === ($user?->creatorId());
                 $this->logExecutionTime($ownStart, $action, 'ownerCheck');
                 if (!$isOwner) {
                     Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $user?->id ?? null, 'opt_id' => $id]);
@@ -195,7 +195,7 @@ final class DeductionOptionController extends Controller
             $guard = self::guard($req, 'edit deduction option', VW::DDT_OPT . '.index');
             if ($guard !== true) return $guard;
             $ownStart = microtime(true);
-            $isOwner = ($deductionOption[DatabaseConstants::TABLE_CREATOR] ?? null) === ($user?->creatorId());
+            $isOwner = ($deductionOption[DatabaseConstants::COL_TABLE_CREATOR] ?? null) === ($user?->creatorId());
             $this->logExecutionTime($ownStart, $action, 'ownerCheck');
             if (!$isOwner) {
                 Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $user?->id ?? null, 'opt_id' => $deductionOption->id ?? null]);
@@ -232,7 +232,7 @@ final class DeductionOptionController extends Controller
             $guard = self::guard($req, 'delete deduction option', VW::DDT_OPT . '.index');
             if ($guard !== true) return $guard;
             $ownStart = microtime(true);
-            $isOwner = ($deductionOption[DatabaseConstants::TABLE_CREATOR] ?? null) === ($user?->creatorId());
+            $isOwner = ($deductionOption[DatabaseConstants::COL_TABLE_CREATOR] ?? null) === ($user?->creatorId());
             $this->logExecutionTime($ownStart, $action, 'ownerCheck');
             if (!$isOwner) {
                 Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $user?->id ?? null, 'opt_id' => $deductionOption->id ?? null]);

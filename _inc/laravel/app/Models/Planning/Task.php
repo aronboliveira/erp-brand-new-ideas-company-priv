@@ -22,7 +22,7 @@ class Task extends Model
     private const COL_MODULE_ID       = ActivitiesConstants::COL_MI;
     private const COL_MODULE_TYPE     = ActivitiesConstants::COL_MT;
     private const COL_TITLE           = ActivitiesConstants::COL_TT;
-    private const COL_CREATED_BY      = DatabaseConstants::TABLE_CREATOR;
+    private const COL_CREATED_BY      = DatabaseConstants::COL_TABLE_CREATOR;
 
     private const FILLABLE = [
         self::COL_TITLE,

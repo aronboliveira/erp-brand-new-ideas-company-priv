@@ -36,8 +36,8 @@ final class SourceSeeder extends Seeder
 				$s = new Src();
 				$s->id = $sourceId;
 				$s->name = $nm;
-				$s->{DC::TABLE_CREATOR} = $systemUserId;
-				$s->{DC::TABLE_UPDATER} = null;
+				$s->{DC::COL_TABLE_CREATOR} = $systemUserId;
+				$s->{DC::COL_TABLE_UPDATER} = null;
 				$s->save();
 			}
 		}, 3);

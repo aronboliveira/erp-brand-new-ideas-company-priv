@@ -62,9 +62,9 @@ final class AppraisalController extends Controller
           Log::warning("[{$class}::{$action}] denied", [UsersConstants::COL_USER_ID => $user?->id]);
           throw new AuthorizationException();
         }
-        $competencyCount = Competencies::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->count();
+        $competencyCount = Competencies::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->count();
         Log::info("[{$class}::{$action}] competency count", ['count' => $competencyCount]);
-        $query = Appraisal::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->with([DatabaseConstants::TABLE_EMPLOYEES, DatabaseConstants::TABLE_BRANCHES]);
+        $query = Appraisal::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->with([DatabaseConstants::TABLE_EMPLOYEES, DatabaseConstants::TABLE_BRANCHES]);
         if (strtolower($user->type ?? '') == strtolower(class_basename(Employee::class))) {
           $employee = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->firstOrFail();
           $query->where(strtolower(class_basename(Branch::class)), $employee->branch_id)->where(strtolower(class_basename(Employee::class)), $employee->id);
@@ -103,8 +103,8 @@ final class AppraisalController extends Controller
           throw new AuthorizationException();
         }
         $creatorId = $user?->creatorId();
-        $performanceTypes = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-        $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $performanceTypes = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
+        $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         Log::info("[{$class}::{$action}] data loaded", ['performanceTypes' => $performanceTypes->count(), DatabaseConstants::TABLE_BRANCHES => $branches->count()]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact(DatabaseConstants::TABLE_BRANCHES, 'performanceTypes'));
@@ -172,7 +172,7 @@ final class AppraisalController extends Controller
         Log::info("[{$class}::{$action}] start", ['appraisal_id' => $appraisal->id]);
         $rating = json_decode($appraisal->rating, true);
         $creatorId = $user?->creatorId();
-        $performanceTypes = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $performanceTypes = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $employee = Employee::findOrFail($appraisal->employee);
         $indicator = Indicator::where([[strtolower(class_basename(Branch::class)), $employee->branch_id], [strtolower(class_basename(Department::class)), $employee->department_id], [strtolower(class_basename(Designation::class)), $employee->designation_id]])->first();
         $ratings = $indicator ? json_decode($indicator->rating, true) : [];
@@ -205,8 +205,8 @@ final class AppraisalController extends Controller
           throw new AuthorizationException();
         }
         $creatorId = $user?->creatorId();
-        $performanceTypes = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-        $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $performanceTypes = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
+        $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $ratings = json_decode($appraisal->rating, true);
         Log::info("[{$class}::{$action}] data loaded", ['performanceTypes' => $performanceTypes->count(), DatabaseConstants::TABLE_BRANCHES => $branches->count(), 'ratings' => count($ratings)]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -274,7 +274,7 @@ final class AppraisalController extends Controller
         $user = $userOrRedirect;
         Log::info("[{$class}::{$action}] start", ['appraisal_id' => $appraisal->id]);
         Log::info("[{$class}::{$action}] checking permission", [strtolower(class_basename(Permission::class)) => 'delete appraisal']);
-        if (!$user?->can('delete appraisal') || $appraisal[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+        if (!$user?->can('delete appraisal') || $appraisal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
           Log::warning("[{$class}::{$action}] denied", [UsersConstants::COL_USER_ID => $user?->id]);
           throw new AuthorizationException();
         }
@@ -309,7 +309,7 @@ final class AppraisalController extends Controller
         $employee = Employee::findOrFail($req->employee);
         $indicator = Indicator::where([[strtolower(class_basename(Branch::class)), $employee->branch_id], [strtolower(class_basename(Department::class)), $employee->department_id], [strtolower(class_basename(Designation::class)), $employee->designation_id]])->first();
         $ratings = $indicator ? json_decode($indicator->rating, true) : [];
-        $performanceTypes = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->get();
+        $performanceTypes = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
         if (!ViewFacade::exists($viewPath)) return response()->json(['error' => "HTTP 404: Page {$viewPath} not found!"], 404);
         $html = view($viewPath, compact('ratings', 'performanceTypes'))->render();
         Log::info("[{$class}::{$action}] rendered", ['ratings' => count($ratings), 'performanceTypes' => $performanceTypes->count()]);
@@ -337,7 +337,7 @@ final class AppraisalController extends Controller
         $indicator = Indicator::where([[strtolower(class_basename(Branch::class)), $employee->branch_id], [strtolower(class_basename(Department::class)), $employee->department_id], [strtolower(class_basename(Designation::class)), $employee->designation_id]])->first();
         $ratings = $indicator ? json_decode($indicator->rating, true) : [];
         $rating = json_decode($appraisal->rating, true);
-        $performanceTypes = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->get();
+        $performanceTypes = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
         if (!ViewFacade::exists($viewPath)) return response()->json(['error' => "HTTP 404: Page {$viewPath} not found!"], 404);
         $html = view($viewPath, compact('ratings', 'rating', 'performanceTypes'))->render();
         Log::info("[{$class}::{$action}] rendered", ['ratings' => count($ratings), 'rating' => count($rating), 'performanceTypes' => $performanceTypes->count()]);
@@ -384,7 +384,7 @@ final class AppraisalController extends Controller
     $appraisal->remark        = $data['remark'] ?? null;
     $appraisal->appraisal_date = $data['appraisal_date'];
     $appraisal->rating        = json_encode($data['rating'] ?? []);
-    $appraisal[DatabaseConstants::TABLE_CREATOR]    = $creatorId;
+    $appraisal[DatabaseConstants::COL_TABLE_CREATOR]    = $creatorId;
     $appraisal->save();
     Log::info(__CLASS__ . '::' . __FUNCTION__ . ' saved', [
       'appraisal_id' => $appraisal->id

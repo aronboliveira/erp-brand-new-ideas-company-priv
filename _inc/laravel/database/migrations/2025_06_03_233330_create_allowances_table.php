@@ -33,7 +33,7 @@ class CreateAllowancesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            $this->dropEmployeeForeign($table, self::TABLE);
+            $this->dropEmployeeColumnForeign($table, self::TABLE);
             $this->dropAuditColumnForeigns($table, self::TABLE);
             try {
                 if (Schema::hasColumn(self::TABLE, BC::COL_ALW_OPT))

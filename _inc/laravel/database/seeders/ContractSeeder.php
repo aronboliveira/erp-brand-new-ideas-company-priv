@@ -229,7 +229,7 @@ final class ContractSeeder extends Seeder
 					PJC::COL_CO_SIGN_AT     => in_array(($r['status'] ?? ''), ['active', 'completed'], true) ? $start->addDays(1)->format('Y-m-d') : null,
 
 					// Arquivo/Anexos propositalmente omitidos (requerem FKs e storage)
-					DC::TABLE_CREATOR       => $systemUserId,
+					DC::COL_TABLE_CREATOR       => $systemUserId,
 				];
 
 				/** @var Contract $model */

@@ -35,7 +35,7 @@ class CustomFieldController extends Controller
 
             try {
                 $t = microtime(true);
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->get();
                 $this->logExecutionTime($t, $action . '::fetchCustomFields', 'completed');
 
                 $viewPath = ViewsConstants::CST_FD . '.' . $action;
@@ -105,7 +105,7 @@ class CustomFieldController extends Controller
                     'name'       => $request->input('name'),
                     'type'       => $request->input('type'),
                     'module'     => $request->input('module'),
-                    DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId(),
                 ]);
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 

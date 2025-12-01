@@ -8,7 +8,7 @@
     use Milon\Barcode\DNS2D;
     use Illuminate\Support\Facades\Crypt;
 
-    $settings_data = Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR] ?? null);
+    $settings_data = Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR] ?? null);
 
     $hasInvoiceNumberFormat = is_callable([Utility::class, 'invoiceNumberFormat']);
     $hasDateFormat = is_callable([Utility::class, 'dateFormat']);

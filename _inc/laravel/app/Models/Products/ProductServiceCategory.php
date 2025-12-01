@@ -48,8 +48,8 @@ class ProductServiceCategory extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [
@@ -197,12 +197,12 @@ class ProductServiceCategory extends Model
         $year   = date('Y');
 
         $revenue = $this->categories()
-            ->where(DC::TABLE_CREATOR, $userId)
+            ->where(DC::COL_TABLE_CREATOR, $userId)
             ->whereYear('date', $year)
             ->sum('amount');
 
         $invoices = Invoice::where('category_id', $this->id)
-            ->where(DC::TABLE_CREATOR, $userId)
+            ->where(DC::COL_TABLE_CREATOR, $userId)
             ->whereYear('send_date', $year)
             ->get();
 
@@ -226,12 +226,12 @@ class ProductServiceCategory extends Model
         $year   = date('Y');
 
         $payment = Payment::where('category_id', $this->id)
-            ->where(DC::TABLE_CREATOR, $userId)
+            ->where(DC::COL_TABLE_CREATOR, $userId)
             ->whereYear('date', $year)
             ->sum('amount');
 
         $bills = Bill::where('category_id', $this->id)
-            ->where(DC::TABLE_CREATOR, $userId)
+            ->where(DC::COL_TABLE_CREATOR, $userId)
             ->whereYear('send_date', $year)
             ->get();
 
@@ -256,7 +256,7 @@ class ProductServiceCategory extends Model
         return DB::table(self::TABLE . ' as c')
             ->select('c.*', DB::raw('COUNT(p.category_id) as product_services'))
             ->leftJoin('product_services as p', 'c.id', '=', 'p.category_id')
-            ->where('c.' . DC::TABLE_CREATOR, $creator)
+            ->where('c.' . DC::COL_TABLE_CREATOR, $creator)
             ->where('c.type', 0)
             ->groupBy('c.id')
             ->orderBy('c.id', 'desc')

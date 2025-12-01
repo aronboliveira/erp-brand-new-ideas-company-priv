@@ -78,7 +78,7 @@ final class LeaveTypeSeeder extends Seeder
 					'categories'                      => $categories,
 					'conditions'                      => $conditions,
 					'attachments'                     => $attachments,
-					DC::TABLE_CREATOR                 => $systemUserId,
+					DC::COL_TABLE_CREATOR                 => $systemUserId,
 				];
 
 				// Upsert por título
@@ -127,7 +127,7 @@ final class LeaveTypeSeeder extends Seeder
 					'attachments'                     => $isHealth
 						? [['type' => 'pdf', 'required' => true, 'label' => 'Atestado']]
 						: [['type' => 'pdf', 'required' => false, 'label' => 'Comprovante']],
-					DC::TABLE_CREATOR                 => $systemUserId,
+					DC::COL_TABLE_CREATOR                 => $systemUserId,
 				];
 
 				LeaveType::updateOrCreate(['title' => $title], $payload);

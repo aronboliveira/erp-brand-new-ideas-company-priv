@@ -43,7 +43,7 @@ final class TerminationTypeSeeder extends Seeder
 
 				if (!$model->exists) {
 					// created_by é guarded; definir por atribuição direta antes do save()
-					$model->{DC::TABLE_CREATOR} = $systemUserId;
+					$model->{DC::COL_TABLE_CREATOR} = $systemUserId;
 				}
 
 				$model->save();

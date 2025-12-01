@@ -46,8 +46,8 @@
     }
 
     try {
-        $settings_data = method_exists(Utility::class, 'settingsById') && isset($invoice[DatabaseConstants::TABLE_CREATOR])
-            ? (Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR]) ?? [])
+        $settings_data = method_exists(Utility::class, 'settingsById') && isset($invoice[DatabaseConstants::COL_TABLE_CREATOR])
+            ? (Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR]) ?? [])
             : ($settings_data ?? []);
     } catch (\Throwable $e) {
         Log::error('settings_by_id_failed', ['file'=>$e->getFile(),'line'=>$e->getLine(),'code'=>$e->getCode(),'error_class'=>get_class($e),'message'=>$e->getMessage()]);

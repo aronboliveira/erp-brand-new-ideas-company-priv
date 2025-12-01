@@ -234,7 +234,7 @@
                     </div>
 
                     @php
-                        $lastStage = TaskStage::where(DB::TABLE_CREATOR, $user?->creatorId())->orderBy('id','desc')->first();
+                        $lastStage = TaskStage::where(DB::COL_TABLE_CREATOR, $user?->creatorId())->orderBy('id','desc')->first();
                     @endphp
 
                     <div class="col-md-5">
@@ -268,7 +268,7 @@
                                                         }
 
                                                         $timesheets = Timesheet::where(PJ::COL_PJ_ID, $project->id)
-                                                            ->where(DB::TABLE_CREATOR, $usr?->id)
+                                                            ->where(DB::COL_TABLE_CREATOR, $usr?->id)
                                                             ->get();
 
                                                         $logged_hours = 0;

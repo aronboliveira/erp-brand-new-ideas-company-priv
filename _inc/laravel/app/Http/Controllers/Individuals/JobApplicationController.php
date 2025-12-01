@@ -129,7 +129,7 @@ class JobApplicationController extends Controller
 				'city'            => $request->city,
 				'stage'           => $stageId,
 				'custom_question' => json_encode($request->question ?? []),
-				DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+				DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
 			]);
 			return redirect()->route(ViewsConstants::JB_APL . '.index')->with('success', __('Job application successfully created.'));
 		}, ['route' => Route::getCurrentRoute()?->getName()]);
@@ -150,7 +150,7 @@ class JobApplicationController extends Controller
 				return redirect()->back()->with('error', __('Job application not found.'));
 			}
 			$jobApplication = JobApplication::findOrFail($id);
-			if (($jobApplication[DatabaseConstants::TABLE_CREATOR] ?? null) !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $method);
+			if (($jobApplication[DatabaseConstants::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $method);
 			$notes = JobApplicationNote::whereApplicationId($id)->get();
 			$stages = JobStage::whereCreatedBy($user?->creatorId())->get();
 			$view = ViewsConstants::JB_APL . '.show';
@@ -167,7 +167,7 @@ class JobApplicationController extends Controller
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
 			if (($c = self::guard($request, 'delete job application', ViewsConstants::JB_APL . '.index'))) return $c;
-			if (($jobApplication[DatabaseConstants::TABLE_CREATOR] ?? null) !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $method, route(ViewsConstants::JB_APL . '.index'));
+			if (($jobApplication[DatabaseConstants::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $method, route(ViewsConstants::JB_APL . '.index'));
 			$jobApplication->delete();
 			collect([
 				$jobApplication->profile ? 'uploads/job/profile/' . $jobApplication->profile : '',
@@ -216,7 +216,7 @@ class JobApplicationController extends Controller
 				'application_id' => $id,
 				'note'           => $request->note,
 				'note_created'   => auth()->id(),
-				DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+				DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
 			]);
 			return back()->with('success', __('Note added.'));
 		}, ['route' => Route::getCurrentRoute()?->getName(), 'id' => $id]);
@@ -343,7 +343,7 @@ class JobApplicationController extends Controller
 			$application = $id === '0' ? $request->application : $id;
 			JobOnBoard::create(array_merge($validated, [
 				'application' => $application,
-				DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+				DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
 			]));
 			InterviewSchedule::whereCandidate($application)->delete();
 			return redirect()->route(ViewsConstants::JB_APL . '.onboard')->with('success', __('Candidate added to board.'));
@@ -473,7 +473,7 @@ class JobApplicationController extends Controller
 						'password'                   => Hash::make($request->password),
 						'type'                       => 'employee',
 						UsersConstants::COL_LG       => DatabaseConstants::DEFAULT_LANG,
-						DatabaseConstants::TABLE_CREATOR => $creator,
+						DatabaseConstants::COL_TABLE_CREATOR => $creator,
 					]
 				);
 				$newUser = tap(User::create($userData), fn($u) => $u->assignRole('Employee'));
@@ -500,7 +500,7 @@ class JobApplicationController extends Controller
 					'password'                      => Hash::make($request->password),
 					UsersConstants::COL_EMP_ID      => $this->employeeNumber(),
 					'documents'                     => $request->hasFile('document') ? implode(',', array_keys($request->file('document'))) : null,
-					DatabaseConstants::TABLE_CREATOR => $creator,
+					DatabaseConstants::COL_TABLE_CREATOR => $creator,
 				])->all();
 				$employee = Employee::create($employeeData);
 
@@ -518,7 +518,7 @@ class JobApplicationController extends Controller
 						UsersConstants::COL_EMP_ID         => $employee->employee_id,
 						'document_id'                      => $docId,
 						'document_value'                   => $storedName,
-						DatabaseConstants::TABLE_CREATOR   => $creator,
+						DatabaseConstants::COL_TABLE_CREATOR   => $creator,
 					]);
 				}
 
@@ -575,7 +575,7 @@ class JobApplicationController extends Controller
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
 			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index')) !== true) return $c;
-			$tpl = GeneratedOfferLetter::where(['lang' => $user?->currentLanguage(), DatabaseConstants::TABLE_CREATOR => $user?->creatorId()])->firstOrFail();
+			$tpl = GeneratedOfferLetter::where(['lang' => $user?->currentLanguage(), DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()])->firstOrFail();
 			$tpl->content = GeneratedOfferLetter::replaceVariable($tpl->content, $this->loadOfferLetterData($id));
 			$candidate = JobApplication::find($id);
 			$view = ViewsConstants::JB_APL . '.template.$method';
@@ -594,7 +594,7 @@ class JobApplicationController extends Controller
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
 			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index')) !== true) return $c;
-			$tpl = GeneratedOfferLetter::where(['lang' => $user?->currentLanguage(), DatabaseConstants::TABLE_CREATOR => $user?->creatorId()])->firstOrFail();
+			$tpl = GeneratedOfferLetter::where(['lang' => $user?->currentLanguage(), DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()])->firstOrFail();
 			$tpl->content = GeneratedOfferLetter::replaceVariable($tpl->content, $this->loadOfferLetterData($id));
 			$candidate = JobApplication::find($id);
 			$view = ViewsConstants::JB_APL . '.template.offerletterdocx';

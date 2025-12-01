@@ -30,12 +30,14 @@ class CreatePlanRequestsTable extends Migration
             $table->uuid(self::COL_PLAN);                  // ! CHANGED from integer
             $table->string('duration', 20)->default('monthly');
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_USER                  => DatabaseConstants::TABLE_USERS,
-                self::COL_PLAN                  => DatabaseConstants::TABLE_PLANS,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_USER                  => DatabaseConstants::TABLE_USERS,
+                    self::COL_PLAN                  => DatabaseConstants::TABLE_PLANS,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -46,11 +48,13 @@ class CreatePlanRequestsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_USER,
-                self::COL_PLAN,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_USER,
+                    self::COL_PLAN,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);

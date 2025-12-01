@@ -45,7 +45,7 @@ class SupportController extends Controller
             try {
                 $buildStart = microtime(true);
                 $ownerId = $user?->creatorId();
-                $query = Support::with([DatabaseConstants::TABLE_CREATOR, ProjectsConstants::COL_ASGN])->where(DatabaseConstants::TABLE_CREATOR, $ownerId);
+                $query = Support::with([DatabaseConstants::COL_TABLE_CREATOR, ProjectsConstants::COL_ASGN])->where(DatabaseConstants::COL_TABLE_CREATOR, $ownerId);
                 if ($user[UsersConstants::COL_TP] !== PermissionsConstants::CPN) $query->where(SupportsConstants::COL_USR, $user?->id);
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
                 $fetchStart = microtime(true);
@@ -96,7 +96,7 @@ class SupportController extends Controller
             if (!$statusListAvailable) Log::warning("[{$base}::{$action}] status list method missing", []);
             $this->logExecutionTime($listsStart, $action, 'loadLists');
             $usersStart = microtime(true);
-            $users = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
+            $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
             $this->logExecutionTime($usersStart, $action, 'fetchUsers');
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -125,7 +125,7 @@ class SupportController extends Controller
             if ($denial = $this->guard($req, 'view support', self::INDEX_ROUTE)) return $denial;
             try {
                 $authStart = microtime(true);
-                if ($support[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+                if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 Log::info("[{$base}::{$action}] authorized", ['support_id' => $support->id]);
                 if (!ViewFacade::exists($viewPath)) {
@@ -176,7 +176,7 @@ class SupportController extends Controller
                         ProjectsConstants::COL_E_DT => $req->input(ProjectsConstants::COL_E_DT),
                         SupportsConstants::COL_TKT_CD => now()->format('His'),
                         ActivitiesConstants::COL_TSK_STT => 'open',
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                         SupportsConstants::COL_TKT_CR => $user?->id,
                         SupportsConstants::COL_USR => $user[UsersConstants::COL_TP] === PermissionsConstants::CL ? $user?->id : $req->input(SupportsConstants::COL_USR),
                         ActivitiesConstants::COL_DESC => $req->input(ActivitiesConstants::COL_DESC),
@@ -263,7 +263,7 @@ class SupportController extends Controller
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) return $denial;
-            if ($support[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+            if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
             $listsStart = microtime(true);
             $prioListAvailable = is_callable([Support::class, 'priorityList']);
             $priority = $prioListAvailable ? Support::priorityList() : [];
@@ -273,7 +273,7 @@ class SupportController extends Controller
             if (!$statusListAvailable) Log::warning("[{$base}::{$action}] status list method missing", []);
             $this->logExecutionTime($listsStart, $action, 'loadLists');
             $usersStart = microtime(true);
-            $users = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
+            $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->pluck(UsersConstants::COL_NM, 'id');
             $this->logExecutionTime($usersStart, $action, 'fetchUsers');
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -299,7 +299,7 @@ class SupportController extends Controller
             if (($user = $this->requireLogin($req)) instanceof RedirectResponse) return $user;
             Log::info("[{$base}::{$action}] start", [SupportsConstants::COL_USR => $user?->id, self::ENTITY => $support->id, 'method' => $method]);
             if ($denial = $this->guard($req, 'edit support', self::INDEX_ROUTE)) return $denial;
-            if ($support[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+            if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
             $valStart = microtime(true);
             $v = Validator::make($req->all(), [
                 SupportsConstants::COL_SBJ => 'required|string',
@@ -410,9 +410,9 @@ class SupportController extends Controller
             }
             try {
                 $fetchStart = microtime(true);
-                $support = Support::with([ProjectsConstants::COL_ASGN, DatabaseConstants::TABLE_CREATOR])->findOrFail($id);
+                $support = Support::with([ProjectsConstants::COL_ASGN, DatabaseConstants::COL_TABLE_CREATOR])->findOrFail($id);
                 $this->logExecutionTime($fetchStart, $action, 'fetchSupport');
-                if ($support[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
+                if ($support[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::INDEX_ROUTE), false);
                 $repliesStart = microtime(true);
                 $replies = SupportReply::where('support_id', $id)->with(DatabaseConstants::TABLE_USERS)->get();
                 $this->logExecutionTime($repliesStart, $action, 'fetchReplies');
@@ -468,7 +468,7 @@ class SupportController extends Controller
                         'support_id' => $id,
                         SupportsConstants::COL_USR => $user?->id,
                         ActivitiesConstants::COL_DESC => $req[ActivitiesConstants::COL_DESC],
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createReply');
                     Log::info("[{$base}::{$action}] reply saved", [self::ENTITY => $id]);
@@ -497,7 +497,7 @@ class SupportController extends Controller
             try {
                 $ownerId = $user?->creatorId();
                 $buildStart = microtime(true);
-                $query = Support::with([ProjectsConstants::COL_ASGN, DatabaseConstants::TABLE_CREATOR])->where(DatabaseConstants::TABLE_CREATOR, $ownerId);
+                $query = Support::with([ProjectsConstants::COL_ASGN, DatabaseConstants::COL_TABLE_CREATOR])->where(DatabaseConstants::COL_TABLE_CREATOR, $ownerId);
                 if ($user[UsersConstants::COL_TP] === PermissionsConstants::CL || strtolower($user[UsersConstants::COL_TP]) === 'employee') $query->where(function ($q) use ($user) {
                     $q->where(SupportsConstants::COL_USR, $user?->id)->orWhere(SupportsConstants::COL_TKT_CR, $user?->id);
                 });

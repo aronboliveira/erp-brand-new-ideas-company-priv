@@ -190,7 +190,7 @@ final class ChartOfAccountTypeSeeder extends Seeder
 			foreach ($rows as $data) {
 				// Garantia de CODE único, compacto
 				$data[CHTC::COL_CD] = strtoupper(Str::snake($data[CHTC::COL_CD]));
-				$data[DC::TABLE_CREATOR] = $systemUserId;
+				$data[DC::COL_TABLE_CREATOR] = $systemUserId;
 
 				/** @var ChartOfAccountType $model */
 				$model = ChartOfAccountType::query()

@@ -26,13 +26,15 @@ class CreatePosProductsTable extends Migration
             $table->float(self::COL_DISCOUNT, 15, 2)->default(0.00)->nullable();
             $table->decimal(self::COL_PRICE, 15, 2)->default(0.00);    // ! CHANGED
             $table->text(self::COL_DESCRIPTION)->nullable();           // * matches model
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
             $table->timestamps();
-            foreach ([
-                self::COL_POS_ID                  => DatabaseConstants::TABLE_POS,
-                self::COL_PRODUCT_ID              => DatabaseConstants::TABLE_PROD_SERVS,
-                DatabaseConstants::TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            foreach (
+                [
+                    self::COL_POS_ID                  => DatabaseConstants::TABLE_POS,
+                    self::COL_PRODUCT_ID              => DatabaseConstants::TABLE_PROD_SERVS,
+                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -43,11 +45,13 @@ class CreatePosProductsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_POS_ID,
-                self::COL_PRODUCT_ID,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_POS_ID,
+                    self::COL_PRODUCT_ID,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

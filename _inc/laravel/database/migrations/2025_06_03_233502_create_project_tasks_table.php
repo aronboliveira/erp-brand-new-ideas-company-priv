@@ -32,19 +32,21 @@ class CreateProjectTasksTable extends Migration
                 $table->uuid(self::COL_MSS)->default(DatabaseConstants::DEFAULT_UUID);       // ! CHANGED
                 $table->uuid(self::COL_STG)->default(DatabaseConstants::DEFAULT_UUID);           // ! CHANGED
                 $table->integer(ActivitiesConstants::COL_OD)->default(0);
-                $table->uuid(DatabaseConstants::TABLE_CREATOR)->default(DatabaseConstants::DEFAULT_UUID);         // ! CHANGED
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->default(DatabaseConstants::DEFAULT_UUID);         // ! CHANGED
                 $table->boolean(ProjectsConstants::COL_IS_FV)->default(false);  // ! CHANGED
                 $table->boolean(ProjectsConstants::COL_IS_CP)->default(false);   // ! CHANGED
                 $table->date(ProjectsConstants::COL_M_AT)->nullable();
                 $table->string(ProjectsConstants::COL_PGR, 5)->default('0');
                 $table->timestamps();
-                foreach ([
-                    self::COL_PROJ                 => DatabaseConstants::TABLE_PROJECTS,
-                    self::COL_MSS                  => DatabaseConstants::TABLE_MSS,
-                    self::COL_STG                  => DatabaseConstants::TABLE_TSK_STGS,
-                    ProjectsConstants::COL_ASGN    => DatabaseConstants::TABLE_USERS,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl)
+                foreach (
+                    [
+                        self::COL_PROJ                 => DatabaseConstants::TABLE_PROJECTS,
+                        self::COL_MSS                  => DatabaseConstants::TABLE_MSS,
+                        self::COL_STG                  => DatabaseConstants::TABLE_TSK_STGS,
+                        ProjectsConstants::COL_ASGN    => DatabaseConstants::TABLE_USERS,
+                        DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    ] as $col => $tbl
+                )
                     $table->foreign($col)
                         ->references('id')
                         ->on($tbl)
@@ -55,13 +57,15 @@ class CreateProjectTasksTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PROJ,
-                self::COL_MSS,
-                self::COL_STG,
-                ProjectsConstants::COL_ASGN,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_PROJ,
+                    self::COL_MSS,
+                    self::COL_STG,
+                    ProjectsConstants::COL_ASGN,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

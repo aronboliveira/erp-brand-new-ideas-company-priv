@@ -40,8 +40,8 @@ final class PipelineSeeder extends Seeder
 				$p->id = $pipelineId;
 				$p->{PJC::COL_PPL_NM} = $nm;
 				$p->{AC::COL_OD}      = $order++;
-				$p->{DC::TABLE_CREATOR} = $systemUserId;
-				$p->setAttribute(DC::TABLE_UPDATER, null);
+				$p->{DC::COL_TABLE_CREATOR} = $systemUserId;
+				$p->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 				$p->save();
 			}

@@ -44,10 +44,10 @@ class EventController extends Controller
         $creatorId = $req->user()->creatorId();
         Log::info("[{$class}::{$action}] start", ['creator_id' => $creatorId]);
         $empQStart = microtime(true);
-        $employees = Employee::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $employees = Employee::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($empQStart, $action, 'fetchEmployees');
         $evtQStart = microtime(true);
-        $events = Event::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $events = Event::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($evtQStart, $action, 'fetchEvents');
         $transDate = date('Y-m-d');
         $todayMonth = date('m');
@@ -85,13 +85,13 @@ class EventController extends Controller
         $creatorId = $req->user()->creatorId();
         Log::info("[{$class}::{$action}] start", ['creator_id' => $creatorId]);
         $empStart = microtime(true);
-        $employees = Employee::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
+        $employees = Employee::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
         $this->logExecutionTime($empStart, $action, 'pluckEmployees');
         $brStart = microtime(true);
-        $branch = Branch::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $branch = Branch::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($brStart, $action, 'fetchBranches');
         $depStart = microtime(true);
-        $departments = Department::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $departments = Department::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($depStart, $action, 'fetchDepartments');
         $settingsStart = microtime(true);
         $settings = Utility::settings();
@@ -138,7 +138,7 @@ class EventController extends Controller
         $event->end_date = $req->input('end_date');
         $event->color = $req->input('color');
         $event->description = $req->input('description');
-        $event[DatabaseConstants::TABLE_CREATOR] = $req->user()->creatorId();
+        $event[DatabaseConstants::COL_TABLE_CREATOR] = $req->user()->creatorId();
         $saveStart = microtime(true);
         $event->save();
         $this->logExecutionTime($saveStart, $action, 'saveEvent');
@@ -146,7 +146,7 @@ class EventController extends Controller
         $deptEmployees = in_array('0', $req->input(UsersConstants::COL_EMP_ID, [])) ? Employee::query()->whereIn(UsersConstants::COL_DEP_ID, [$req->input(UsersConstants::COL_DEP_ID)])->pluck('id') : $req->input(UsersConstants::COL_EMP_ID);
         $this->logExecutionTime($deptStart, $action, 'resolveDeptEmployees');
         $linkStart = microtime(true);
-        foreach ($deptEmployees as $emp) EventEmployee::create(['event_id' => $event->id, UsersConstants::COL_EMP_ID => $emp, DatabaseConstants::TABLE_CREATOR => $req->user()->creatorId()]);
+        foreach ($deptEmployees as $emp) EventEmployee::create(['event_id' => $event->id, UsersConstants::COL_EMP_ID => $emp, DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId()]);
         $this->logExecutionTime($linkStart, $action, 'linkEventEmployees');
         $settingsStart = microtime(true);
         $setting = Utility::settings($req->user()->creatorId());
@@ -223,9 +223,9 @@ class EventController extends Controller
         $findStart = microtime(true);
         $event = Event::findOrFail($id);
         $this->logExecutionTime($findStart, $action, 'findEvent');
-        if ($event[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) throw new AuthorizationException;
+        if ($event[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) throw new AuthorizationException;
         $empStart = microtime(true);
-        $employees = Employee::query()->where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id');
+        $employees = Employee::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id');
         $this->logExecutionTime($empStart, $action, 'pluckEmployees');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         Log::info("[{$class}::{$action}] ready", ['event_id' => $event->id, 'employees' => count($employees ?? [])]);
@@ -251,7 +251,7 @@ class EventController extends Controller
         $authStart = microtime(true);
         self::_setAuth($req, 'edit event');
         $this->logExecutionTime($authStart, $action, 'setAuth');
-        if ($event[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) throw new AuthorizationException;
+        if ($event[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) throw new AuthorizationException;
         Log::info("[{$class}::{$action}] start", ['event_id' => $event->id]);
         $valStart = microtime(true);
         $validator = Validator::make($req->all(), ['title' => 'required', 'start_date' => 'required', 'end_date' => 'required', 'color' => 'required']);
@@ -293,7 +293,7 @@ class EventController extends Controller
         $authStart = microtime(true);
         self::_setAuth($req, 'delete event');
         $this->logExecutionTime($authStart, $action, 'setAuth');
-        if ($event[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) throw new AuthorizationException;
+        if ($event[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) throw new AuthorizationException;
         Log::info("[{$class}::{$action}] start", ['event_id' => $event->id]);
         $delStart = microtime(true);
         $event->delete();
@@ -322,7 +322,7 @@ class EventController extends Controller
         $creatorId = $req->user()->creatorId();
         Log::info("[{$class}::{$action}] start", ['creator_id' => $creatorId, UsersConstants::COL_BRC_ID => $req->input(UsersConstants::COL_BRC_ID)]);
         $depStart = microtime(true);
-        $departments = $req->input(UsersConstants::COL_BRC_ID) == 0 ? Department::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_DEP_ID, 'id')->toArray() : Department::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->where(UsersConstants::COL_BRC_ID, $req->input(UsersConstants::COL_BRC_ID))->pluck(CompaniesConstants::COL_DEP_ID, 'id')->toArray();
+        $departments = $req->input(UsersConstants::COL_BRC_ID) == 0 ? Department::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_DEP_ID, 'id')->toArray() : Department::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where(UsersConstants::COL_BRC_ID, $req->input(UsersConstants::COL_BRC_ID))->pluck(CompaniesConstants::COL_DEP_ID, 'id')->toArray();
         $this->logExecutionTime($depStart, $action, 'fetchDepartments');
         Log::info("[{$class}::{$action}] ready", ['count' => count($departments)]);
         return response()->json($departments);
@@ -346,7 +346,7 @@ class EventController extends Controller
         $deptIds = $req->input(UsersConstants::COL_DEP_ID, []);
         Log::info("[{$class}::{$action}] start", ['creator_id' => $creatorId, UsersConstants::COL_DEP_ID => $deptIds]);
         $empStart = microtime(true);
-        $employees = in_array('0', $deptIds) ? Employee::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id')->toArray() : Employee::query()->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereIn(UsersConstants::COL_DEP_ID, $deptIds)->pluck(UsersConstants::COL_NM, 'id')->toArray();
+        $employees = in_array('0', $deptIds) ? Employee::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id')->toArray() : Employee::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereIn(UsersConstants::COL_DEP_ID, $deptIds)->pluck(UsersConstants::COL_NM, 'id')->toArray();
         $this->logExecutionTime($empStart, $action, 'fetchEmployees');
         Log::info("[{$class}::{$action}] ready", ['count' => count($employees)]);
         return response()->json($employees);
@@ -374,7 +374,7 @@ class EventController extends Controller
           $this->logExecutionTime($gcStart, $action, 'getGoogleCalendarData');
         } else {
           $qStart = microtime(true);
-          $data = Event::query()->where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->get();
+          $data = Event::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
           $this->logExecutionTime($qStart, $action, 'fetchEvents');
           $mapStart = microtime(true);
           foreach ($data as $val) {

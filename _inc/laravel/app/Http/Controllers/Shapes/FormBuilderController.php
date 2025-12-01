@@ -66,7 +66,7 @@ class FormBuilderController extends Controller
             if ($r = $this->_authorize(request(), PermissionsConstants::MNG_FM_BD)) return $r;
 
             $t = microtime(true);
-            $forms = FormBuilder::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $forms = FormBuilder::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
             $this->logExecutionTime($t, "$sig::fetchForms", 'completed');
 
             $t = microtime(true);
@@ -126,7 +126,7 @@ class FormBuilderController extends Controller
                     'name'        => $req->name,
                     'code'        => uniqid() . time(),
                     'is_active'   => $req->boolean('is_active'),
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 DB::commit();
                 $this->logExecutionTime($t, "$sig::createFormTransaction", 'completed');
@@ -156,7 +156,7 @@ class FormBuilderController extends Controller
             Log::info("$sig start", ['id' => $form->id, UsersConstants::COL_USER_ID => $user?->id]);
 
             if ($r = $this->_authorize(request(), 'manage form field')) return $r;
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning("$sig denied", ['id' => $form->id]);
                 return response()->json(['error' => __('Permission Denied.')], 401);
             }
@@ -186,7 +186,7 @@ class FormBuilderController extends Controller
             Log::info("$sig start", ['id' => $form->id, UsersConstants::COL_USER_ID => $user?->id]);
 
             if ($r = $this->_authorize(request(), 'edit form builder')) return $r;
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning("$sig denied", ['id' => $form->id]);
                 return response()->json(['error' => __('Permission Denied.')], 401);
             }
@@ -212,7 +212,7 @@ class FormBuilderController extends Controller
             Log::info("$sig start", ['id' => $form->id, 'input' => $req->all()]);
 
             if ($r = $this->_authorize($req, 'edit form builder')) return $r;
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
@@ -244,7 +244,7 @@ class FormBuilderController extends Controller
             Log::info("$sig start", ['id' => $form->id, UsersConstants::COL_USER_ID => $user?->id]);
 
             if ($r = $this->_authorize(request(), 'delete form builder')) return $r;
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
@@ -282,7 +282,7 @@ class FormBuilderController extends Controller
             $form = FormBuilder::findOrFail($formId);
             $this->logExecutionTime($t, "$sig::findForm", 'completed');
 
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $types = FormBuilder::$fieldTypes;
@@ -311,7 +311,7 @@ class FormBuilderController extends Controller
             if ($r = $this->_authorize($req, 'create form field')) return $r;
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $names = $req->input('name', []);
@@ -324,7 +324,7 @@ class FormBuilderController extends Controller
                     'form_id'     => $formId,
                     'name'        => $val,
                     'type'        => $types[$key] ?? null,
-                    DatabaseConstants::TABLE_CREATOR => $req->user()->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId(),
                 ]);
             }
             $this->logExecutionTime($t, "$sig::createFields", 'completed');
@@ -354,7 +354,7 @@ class FormBuilderController extends Controller
             $field = FormField::findOrFail($fieldId);
             $this->logExecutionTime($t, "$sig::findFormAndField", 'completed');
 
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $types = FormBuilder::$fieldTypes;
@@ -387,7 +387,7 @@ class FormBuilderController extends Controller
             $this->logExecutionTime($t, "$sig::validate", 'completed');
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
@@ -415,7 +415,7 @@ class FormBuilderController extends Controller
             if ($r = $this->_authorize(request(), 'delete form field')) return $r;
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $t = microtime(true);
@@ -460,7 +460,7 @@ class FormBuilderController extends Controller
             $form = FormBuilder::findOrFail($formId);
             $this->logExecutionTime($t, "$sig::findForm", 'completed');
 
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return response()->json(['error' => __('Permission Denied.')], 401);
 
             $t = microtime(true);
@@ -495,7 +495,7 @@ class FormBuilderController extends Controller
             $form = FormBuilder::findOrFail($resp->form_id);
             $this->logExecutionTime($t, "$sig::findResponseAndForm", 'completed');
 
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return response()->json(['error' => __('Permission Denied.')], 401);
 
             $data = json_decode($resp->response, true);
@@ -581,7 +581,7 @@ class FormBuilderController extends Controller
                     }
 
                     $stage = LeadStage::where(ProjectsConstants::COL_PPL_ID, $mapping->pipeline_id)
-                        ->where(DatabaseConstants::TABLE_CREATOR, $form[DatabaseConstants::TABLE_CREATOR])
+                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $form[DatabaseConstants::COL_TABLE_CREATOR])
                         ->firstOrFail();
 
                     $lead = Lead::create([
@@ -591,14 +591,14 @@ class FormBuilderController extends Controller
                         UsersConstants::COL_USER_ID    => $mapping->user_id,
                         ProjectsConstants::COL_PPL_ID  => $mapping->pipeline_id,
                         'stage_id'   => $stage->id,
-                        DatabaseConstants::TABLE_CREATOR => $form[DatabaseConstants::TABLE_CREATOR],
+                        DatabaseConstants::COL_TABLE_CREATOR => $form[DatabaseConstants::COL_TABLE_CREATOR],
                         'date'       => now()->toDateString(),
                     ]);
 
                     UserLead::insert(array_map(fn($uid) => [
                         UsersConstants::COL_USER_ID => $uid,
                         'lead_id'                   => $lead->id
-                    ], [$form[DatabaseConstants::TABLE_CREATOR], $mapping->user_id]));
+                    ], [$form[DatabaseConstants::COL_TABLE_CREATOR], $mapping->user_id]));
                 });
                 $this->logExecutionTime($t, "$sig::leadTransaction", 'completed');
             }
@@ -628,14 +628,14 @@ class FormBuilderController extends Controller
             $form = FormBuilder::findOrFail($formId);
             $this->logExecutionTime($t, "$sig::findForm", 'completed');
 
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $types     = $form->form_field->pluck('name', 'id');
             $binding   = FormFieldResponse::firstOrNew(['form_id' => $formId]);
-            $users     = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $users     = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->where('type', '!=', 'client')->pluck('name', 'id');
-            $pipelines = Pipeline::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+            $pipelines = Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
 
             $t = microtime(true);
             if (!ViewFacade::exists($viewPath)) {
@@ -665,7 +665,7 @@ class FormBuilderController extends Controller
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $form = FormBuilder::findOrFail($formId);
-            if ($form[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+            if ($form[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                 return redirect()->route(self::REDIRECT_BACK)->with('error', __('Permission Denied.'));
 
             $form->is_lead_active = $req->boolean('is_lead_active');

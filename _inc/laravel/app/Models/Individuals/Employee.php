@@ -33,7 +33,7 @@ class Employee extends Model
     use UsesUuids, HasAuditFields;
 
     protected $table = DC::TABLE_EMPLOYEES;
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['branch', 'department', 'designation'];
     protected $hidden = ['password'];
     protected $casts = [

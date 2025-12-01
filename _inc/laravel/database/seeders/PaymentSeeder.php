@@ -177,8 +177,8 @@ final class PaymentSeeder extends Seeder
 					DC::COL_ER_LG      => in_array($status, [PaymentStatus::Failed->value], true) ? [['code' => 'GW-' . random_int(100, 999), 'msg' => 'Gateway error']] : null,
 
 					// Auditoria mínima
-					DC::TABLE_CREATOR => $this->maybe($userIds),
-					DC::TABLE_UPDATER => $this->maybe($userIds),
+					DC::COL_TABLE_CREATOR => $this->maybe($userIds),
+					DC::COL_TABLE_UPDATER => $this->maybe($userIds),
 					DC::COL_C_AT      => $createdAt,
 					DC::COL_U_AT      => $createdAt->copy()->addMinutes(random_int(5, 400)),
 				];

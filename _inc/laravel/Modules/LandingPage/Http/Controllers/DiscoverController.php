@@ -180,7 +180,7 @@ class DiscoverController extends AppController
                     static::ENTITY . '_buy_now_link'  => $payload[static::ENTITY . '_buy_now_link']   ?? ''
                 ];
                 foreach ($update as $name => $value)
-                    LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value, DatabaseConstants::TABLE_CREATOR => $user?->id]);
+                    LandingPageSetting::updateOrCreate(['name' => $name], ['value' => $value, DatabaseConstants::COL_TABLE_CREATOR => $user?->id]);
                 $commitTime = microtime(true);
                 DB::commit();
                 $this->logExecutionTime($commitTime, explode("::", $method)[1] . '::commit', 'completed');
@@ -358,7 +358,7 @@ class DiscoverController extends AppController
                 $features[$key][self::ENTITY . 'Description'] = $payload[self::ENTITY . 'Description'] ?? $features[$key][self::ENTITY . 'Description'];
                 LandingPageSetting::updateOrCreate(
                     ['name'   => LPC::DC_OF_FTS_K],
-                    ['value'  => json_encode(array_values($features)), DatabaseConstants::TABLE_CREATOR => $user->id]
+                    ['value'  => json_encode(array_values($features)), DatabaseConstants::COL_TABLE_CREATOR => $user->id]
                 );
                 DB::commit();
                 Log::info("{$action} • feature updated successfully", ['user_id' => $user->id, 'key' => $key]);
@@ -402,7 +402,7 @@ class DiscoverController extends AppController
                 }
                 unset($features[$key]);
                 $updateStart = microtime(true);
-                LandingPageSetting::updateOrCreate(['name' => LPC::DC_OF_FTS_K], ['value' => json_encode(array_values($features)), DatabaseConstants::TABLE_CREATOR => $user?->id]);
+                LandingPageSetting::updateOrCreate(['name' => LPC::DC_OF_FTS_K], ['value' => json_encode(array_values($features)), DatabaseConstants::COL_TABLE_CREATOR => $user?->id]);
                 $this->logExecutionTime($updateStart, $action . '::updateOrCreate', 'completed');
                 DB::commit();
                 Log::info("[$action] feature deleted", ['user_id' => $user?->id, 'key' => $key]);
@@ -489,7 +489,7 @@ class DiscoverController extends AppController
             $startUpdate = microtime(true);
             LandingPageSetting::updateOrCreate(
                 ['name' => static::ENTITY . '_of_features'],
-                ['value' => json_encode(array_values($data)), DatabaseConstants::TABLE_CREATOR => $user->id]
+                ['value' => json_encode(array_values($data)), DatabaseConstants::COL_TABLE_CREATOR => $user->id]
             );
             $this->logExecutionTime($startUpdate, explode("::", $method)[1] . '::updateOrCreate', 'completed');
             return redirect()->back()->with('success', __('Feature added successfully'));

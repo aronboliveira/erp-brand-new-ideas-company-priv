@@ -64,7 +64,7 @@ class VendorController extends Controller
             try {
                 if (($c = self::guard($request, PermissionsConstants::MNG_VD, self::ROUTE_INDEX)) !== true) return $c;
                 $t = microtime(true);
-                $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
+                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->get();
                 $this->logExecutionTime($t, $action, 'loadVendors');
                 Log::info("[$base::$action] vendors loaded", ['count' => $vendors->count()]);
                 $view = self::SINGULAR . '.index';
@@ -86,7 +86,7 @@ class VendorController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($request, 'create vendor', self::ROUTE_INDEX)) !== true) return $c;
             $t = microtime(true);
-            $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+            $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                 ->where('module', 'vendor')
                 ->get();
             $this->logExecutionTime($t, $action, 'loadCustomFields');
@@ -127,7 +127,7 @@ class VendorController extends Controller
                     $vendor->contact = $data['contact'];
                     $vendor->email = $data['email'];
                     $vendor->tax_number = $request->tax_number;
-                    $vendor[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                    $vendor[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
                     foreach (['billing', 'shipping'] as $zone) {
                         foreach (['name', 'country', 'state', 'city', 'phone', 'zip', 'address'] as $field) {
                             $key = "{$zone}_{$field}";
@@ -187,12 +187,12 @@ class VendorController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) !== true) return $c;
             $user = $request->user();
-            if ($vendor[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($vendor[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $base . '::' . $action, route(self::ROUTE_INDEX));
             }
             $vendor->customField = CustomField::getData($vendor, 'vendor');
             $t = microtime(true);
-            $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->where('module', 'vendor')
                 ->get();
             $this->logExecutionTime($t, $action, 'loadCustomFields');
@@ -212,7 +212,7 @@ class VendorController extends Controller
             try {
                 if (($c = self::guard($request, 'edit vendor', self::ROUTE_INDEX)) !== true) return $c;
                 $user = $request->user();
-                if ($vendor[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new \Exception('owner');
+                if ($vendor[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new \Exception('owner');
                 $rules = [
                     'name'    => 'required',
                     'contact' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/'
@@ -252,7 +252,7 @@ class VendorController extends Controller
             try {
                 if (($c = self::guard($request, 'delete vendor', self::ROUTE_INDEX)) !== true) return $c;
                 $user = $request->user();
-                if ($vendor[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new \Exception('owner');
+                if ($vendor[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new \Exception('owner');
                 DB::transaction(fn() => $vendor->delete());
                 return redirect()->route(self::ROUTE_INDEX)->with('success', __('Vendor successfully deleted.'));
             } catch (\Throwable $e) {
@@ -290,7 +290,7 @@ class VendorController extends Controller
             $category = ['Bill' => 'Bill', 'Deposit' => 'Deposit', 'Sales' => 'Sales'];
             $t = microtime(true);
             $payments = Transaction::where('user_id', $user?->id)
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->where('user_type', 'Vendor')
                 ->where('type', 'Payment')
                 ->when($request->date, function ($q) use ($request) {
@@ -343,7 +343,7 @@ class VendorController extends Controller
             Log::debug("[$base::$action] start", ['user_id' => $user?->id]);
             $t = microtime(true);
             $user->customField = CustomField::getData($user, 'vendor');
-            $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->where('module', 'vendor')
                 ->get();
             $this->logExecutionTime($t, $action, 'loadCustomFields');
@@ -537,7 +537,7 @@ class VendorController extends Controller
                             $vendor->shipping_zip,
                             $vendor->shipping_address,
                         ] = $row;
-                        $vendor[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                        $vendor[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
                         if (!$vendor->save()) $errors[] = 'failed to save row ' . $idx;
                     }
                     if (empty($errors)) {
@@ -570,7 +570,7 @@ class VendorController extends Controller
         return $this->measureProfile($action, function () {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
-            $latest = Vendor::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->latest()->first();
+            $latest = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->latest()->first();
             if ($latest && is_numeric($latest->vendor_id)) return (int) $latest->vendor_id + 1;
             return $latest ? (string) $latest->vendor_id : -1;
         }, ['method' => $method, 'class' => class_basename(static::class)]);

@@ -18,12 +18,14 @@ class CreateLeadActivityLogsTable extends Migration
             $table->string('log_type');
             $table->text('remark')->nullable();
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_USER                   => DatabaseConstants::TABLE_USERS,
-                self::COL_LEAD                   => DatabaseConstants::TABLE_LEADS,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_USER                   => DatabaseConstants::TABLE_USERS,
+                    self::COL_LEAD                   => DatabaseConstants::TABLE_LEADS,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -33,11 +35,13 @@ class CreateLeadActivityLogsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_USER,
-                self::COL_LEAD,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_USER,
+                    self::COL_LEAD,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

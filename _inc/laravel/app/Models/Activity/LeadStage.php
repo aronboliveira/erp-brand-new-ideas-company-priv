@@ -16,7 +16,7 @@ class LeadStage extends Model
     protected $fillable = [
         ProjectsConstants::COL_STG_NM,
         ProjectsConstants::COL_PPL_ID,
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
         ActivitiesConstants::COL_OD
     ];
     private const USER_TYPE_COMPANY = 'company';
@@ -32,7 +32,7 @@ class LeadStage extends Model
             return $userOrRedirect;
         $user = $userOrRedirect;
         return $user->type == self::USER_TYPE_COMPANY
-            ? Lead::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            ? Lead::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->where('stage_id', $this->id)
             ->orderBy(self::ORDER_COLUMN)
             ->get()

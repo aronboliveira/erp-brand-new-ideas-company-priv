@@ -16,8 +16,8 @@ class CreateEmailTemplatesTable extends Migration
                 $table->string(EmailsConstants::COL_FROM)->nullable();
                 $table->string(EmailsConstants::COL_SLG)->nullable();
                 $table->timestamps();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR);          // ! CHANGED
-                $table->foreign(DatabaseConstants::TABLE_CREATOR)
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);          // ! CHANGED
+                $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
                     ->references('id')
                     ->on(DatabaseConstants::TABLE_USERS)
                     ->cascadeOnDelete(); // * ADDED
@@ -28,12 +28,12 @@ class CreateEmailTemplatesTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR) &&
-                    $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR) &&
+                    $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
+                        . DatabaseConstants::COL_TABLE_CREATOR
                         . ': '
                         . $e->getMessage()
                 );

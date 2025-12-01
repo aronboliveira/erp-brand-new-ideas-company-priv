@@ -17,7 +17,7 @@ class Department extends Model
         CPC::COL_DEP_NM
     ];
     protected $table    = DC::TABLE_DEPARTMENTS;
-    protected $guarded  = ['id', DC::TABLE_CREATOR];
+    protected $guarded  = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['branch'];
     protected $casts     = [
         'budget'   => 'decimal:2',

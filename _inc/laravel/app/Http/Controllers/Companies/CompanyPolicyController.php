@@ -41,7 +41,7 @@ final class CompanyPolicyController extends Controller
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $r->user()?->id, 'method' => $method]);
             try {
                 $qStart = microtime(true);
-                $companyPolicy = CompanyPolicy::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->with('branches')->get();
+                $companyPolicy = CompanyPolicy::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->with('branches')->get();
                 $this->logExecutionTime($qStart, $action, 'fetchPolicies');
                 $viewPath = ViewsConstants::CPN_PL . '.' . $action;
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -97,7 +97,7 @@ final class CompanyPolicyController extends Controller
                     'title' => $r->title,
                     'description' => $r->description,
                     'attachment' => $file,
-                    DatabaseConstants::TABLE_CREATOR => $u->creatorId()
+                    DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId()
                 ]);
                 $this->logExecutionTime($crtStart, $action, 'createPolicy');
                 try {
@@ -237,7 +237,7 @@ final class CompanyPolicyController extends Controller
     private static function branches(int $creator): array
     {
         try {
-            return Branch::where(DatabaseConstants::TABLE_CREATOR, $creator)
+            return Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                 ->pluck(CompaniesConstants::COL_BRC_NM, 'id')
                 ->prepend(__('Select Branch'), '')
                 ->all();

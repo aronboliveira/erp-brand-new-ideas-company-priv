@@ -14,8 +14,8 @@ class CreateJobStagesTable extends Migration
             $table->string(ActivitiesConstants::COL_TT);
             $table->integer(ActivitiesConstants::COL_OD)->default(0);
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->index();          // ! CHANGED
-            $table->foreign(DatabaseConstants::TABLE_CREATOR)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();          // ! CHANGED
+            $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
                 ->references('id')
                 ->on(DatabaseConstants::TABLE_USERS)
                 ->cascadeOnDelete();
@@ -26,12 +26,12 @@ class CreateJobStagesTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR)
-                    && $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR)
+                    && $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
+                        . DatabaseConstants::COL_TABLE_CREATOR
                         . ' on table '
                         . self::TABLE
                         . ': '

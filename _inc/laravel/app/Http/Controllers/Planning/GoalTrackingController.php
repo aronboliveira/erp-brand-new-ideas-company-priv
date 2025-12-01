@@ -48,11 +48,11 @@ final class GoalTrackingController extends Controller
                 $user = $userOrRedirect;
                 $goalTrackings = strtolower($user[UsersConstants::COL_TP]) === 'employee'
                     ? GoalTracking::with(['goal_type', 'branches'])
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->where('branch', Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value(CompaniesConstants::COL_BRC_ID))
                     ->get()
                     : GoalTracking::with(['goalType', 'branches'])
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->get();
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
                 return view($view, compact('goalTrackings'));
@@ -74,9 +74,9 @@ final class GoalTrackingController extends Controller
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 if (($resp = self::guard($request, 'create goal tracking', self::REDIRECT_INDEX)) !== true) return $resp;
                 $user = $userOrRedirect;
-                $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Branch', '');
-                $goalTypes = GoalType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $goalTypes = GoalType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Goal Type', '');
                 $status = GoalTracking::$status;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
@@ -114,7 +114,7 @@ final class GoalTrackingController extends Controller
                     'subject'            => $request->subject,
                     'target_achievement' => $request->target_achievement,
                     'description'        => $request->description,
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
 
                 return redirect()->route(ViewsConstants::GL_TRC . '.index')
@@ -140,7 +140,7 @@ final class GoalTrackingController extends Controller
                 Log::warning("$action permission denied", [UsersConstants::COL_USER_ID => $user?->id]);
                 return $resp;
             }
-            if ($goalTracking[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($goalTracking[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 Log::warning("$action ownership denied", [UsersConstants::COL_USER_ID => $user?->id, 'goal_tracking_id' => $goalTracking->id]);
                 return defaultPermissionDenial($request, new AuthorizationException(), $action, route(self::REDIRECT_INDEX));
             }
@@ -168,11 +168,11 @@ final class GoalTrackingController extends Controller
                 if (($resp = self::guard($request, 'edit goal tracking', self::REDIRECT_INDEX)) !== true) return $resp;
                 $user = $userOrRedirect;
                 $goalTracking = GoalTracking::findOrFail($id);
-                if ($goalTracking[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($goalTracking[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new AuthorizationException(), $action);
-                $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
-                $goalTypes = GoalType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $goalTypes = GoalType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->pluck('name', 'id')->prepend('Select Goal Type', '');
                 $status = GoalTracking::$status;
                 $ratings = json_decode($goalTracking->rating, true);
@@ -204,7 +204,7 @@ final class GoalTrackingController extends Controller
                 $user = $userOrRedirect;
 
                 $gt = GoalTracking::findOrFail($id);
-                if ($gt[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($gt[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new AuthorizationException(), $action);
 
                 $gt->fill([
@@ -241,7 +241,7 @@ final class GoalTrackingController extends Controller
                 $user = $userOrRedirect;
 
                 $gt = GoalTracking::findOrFail($id);
-                if ($gt[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($gt[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new AuthorizationException(), $action);
 
                 $gt->delete();

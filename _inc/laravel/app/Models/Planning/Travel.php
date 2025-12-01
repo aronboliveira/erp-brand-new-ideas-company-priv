@@ -19,7 +19,7 @@ class Travel extends Model
         PJC::VST_PLC,
         'description',
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $casts = [
         PJC::COL_S_DT => 'date',
         PJC::COL_E_DT => 'date',

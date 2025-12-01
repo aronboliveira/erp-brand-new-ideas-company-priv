@@ -80,7 +80,7 @@ final class ChartOfAccountSubTypeSeeder extends Seeder
 						// 'category' => (string) ($type->category ?? 'general'),
 						'source'   => 'seeder',
 					],
-					DC::TABLE_CREATOR       => $systemUserId,
+					DC::COL_TABLE_CREATOR       => $systemUserId,
 				];
 			};
 

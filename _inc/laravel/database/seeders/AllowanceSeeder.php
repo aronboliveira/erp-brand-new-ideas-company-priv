@@ -55,7 +55,7 @@ final class AllowanceSeeder extends Seeder
 								'title'           => $title,
 								'type'            => $type->value,
 								'amount'          => $amount,
-								DC::TABLE_CREATOR => $systemUserId,
+								DC::COL_TABLE_CREATOR => $systemUserId,
 							]
 						);
 
@@ -81,7 +81,7 @@ final class AllowanceSeeder extends Seeder
 							'title'           => $title,
 							'type'            => $type->value,
 							'amount'          => $amount,
-							DC::TABLE_CREATOR => $systemUserId,
+							DC::COL_TABLE_CREATOR => $systemUserId,
 						]
 					);
 

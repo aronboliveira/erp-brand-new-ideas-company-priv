@@ -38,7 +38,7 @@ class CreatePermissionTables extends Migration
             $table->uuid('id')->primary(); // ! CHANGED
             $table->string(self::COL_NAME);
             $table->string(self::GUARD);
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)
                 ->default(DatabaseConstants::DEFAULT_UUID);
             $table->timestamps();
         });

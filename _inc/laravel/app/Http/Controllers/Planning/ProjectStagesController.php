@@ -29,7 +29,7 @@ class ProjectStagesController extends Controller
                 Log::info($method . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
 
                 $buildStart = microtime(true);
-                $query = ProjectStages::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $query = ProjectStages::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->orderBy('order');
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
 
@@ -78,7 +78,7 @@ class ProjectStagesController extends Controller
                 $user = $request->user();
 
                 $lastStart = microtime(true);
-                $last = ProjectStages::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $last = ProjectStages::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->orderByDesc('order')
                     ->first();
                 $this->logExecutionTime($lastStart, $action, 'fetchLastStage');
@@ -87,7 +87,7 @@ class ProjectStagesController extends Controller
                 $stage = ProjectStages::create([
                     'name'       => $request->name,
                     'color'      => '#' . $request->input('color', '000000'),
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                     'order'      => $last ? $last->order + 1 : 0,
                 ]);
                 $this->logExecutionTime($createStart, $action, 'createStage');
@@ -115,7 +115,7 @@ class ProjectStagesController extends Controller
                 $stage = ProjectStages::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
-                if ($stage[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+                if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                     return defaultPermissionDenial(
                         $request,
                         new AuthorizationException('edit project stage'),
@@ -159,7 +159,7 @@ class ProjectStagesController extends Controller
                 $stage = ProjectStages::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
-                if ($stage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     throw new AuthorizationException('edit project stage');
 
                 $updStart = microtime(true);
@@ -194,7 +194,7 @@ class ProjectStagesController extends Controller
                 $stage = ProjectStages::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findStage');
 
-                if ($stage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     throw new AuthorizationException('delete project stage');
 
                 $usedCheckStart = microtime(true);

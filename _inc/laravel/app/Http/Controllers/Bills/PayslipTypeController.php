@@ -39,7 +39,7 @@ final class PayslipTypeController extends Controller
 
             try {
                 $creatorId = $request->user()?->creatorId() ?? null;
-                $payslipTypes = PayslipType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+                $payslipTypes = PayslipType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
 
                 Log::info($action . ' fetched types', ['creator_id' => $creatorId, 'count' => $payslipTypes->count()]);
 
@@ -87,7 +87,7 @@ final class PayslipTypeController extends Controller
                 DB::transaction(function () use ($request, $action) {
                     $data = [
                         'name' => $request->name,
-                        DatabaseConstants::TABLE_CREATOR => $request->user()?->creatorId() ?? null,
+                        DatabaseConstants::COL_TABLE_CREATOR => $request->user()?->creatorId() ?? null,
                     ];
                     Log::info($action . ' creating PayslipType', ['data' => $data]);
                     $type = PayslipType::create($data);
@@ -234,7 +234,7 @@ final class PayslipTypeController extends Controller
         $isOwner = $type->created_by === $user?->creatorId();
         Log::info(__METHOD__ . ' ownership check', [
             'type_id'   => $type->id,
-            DatabaseConstants::TABLE_CREATOR => $type->created_by,
+            DatabaseConstants::COL_TABLE_CREATOR => $type->created_by,
             'current'   => $user?->creatorId(),
             'is_owner'  => $isOwner
         ]);

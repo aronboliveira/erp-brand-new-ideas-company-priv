@@ -16,7 +16,7 @@ class JoinUsFactory extends Factory
 		return [
 			'id' => (string) Str::uuid(),
 			'email' => $this->faker->unique()->safeEmail(),
-			DatabaseConstants::TABLE_CREATOR => null,
+			DatabaseConstants::COL_TABLE_CREATOR => null,
 		];
 	}
 }

@@ -44,7 +44,7 @@ final class AllowanceController extends Controller
       try {
         $creatorId = $user?->creatorId();
         $listsStart = microtime(true);
-        $options = AllowanceOption::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+        $options = AllowanceOption::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
         $types = Allowance::$Allowancetype;
         $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
         $empStart = microtime(true);
@@ -114,7 +114,7 @@ final class AllowanceController extends Controller
             'title' => $req->title,
             'type' => $req->type,
             'amount' => $req->amount,
-            DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+            DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
           ]);
           $this->logExecutionTime($createStart, $action, 'createAllowance');
           Log::info("[{$base}::{$action}] allowance record created", ['allowance_id' => $allowance->id, UsersConstants::COL_EMP_ID => $allowance->employee_id]);
@@ -151,10 +151,10 @@ final class AllowanceController extends Controller
         $fetchStart = microtime(true);
         $allowance = Allowance::findOrFail($allowanceId);
         $this->logExecutionTime($fetchStart, $action, 'fetchAllowance');
-        if ($allowance[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
+        if ($allowance[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
         $creatorId = $user?->creatorId();
         $listsStart = microtime(true);
-        $options = AllowanceOption::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+        $options = AllowanceOption::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
         $types = Allowance::$Allowancetype;
         $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
         if (!ViewFacade::exists($viewPath)) {
@@ -190,7 +190,7 @@ final class AllowanceController extends Controller
       }
       $user = $u;
       if ($r = self::_authorize($req, 'edit allowance')) return $r;
-      if ($allowance[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+      if ($allowance[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
         Log::warning("[{$base}::{$action}] permission denied", [UsersConstants::COL_USER_ID => $user?->id, 'allowance_id' => $allowance->id]);
         return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
       }
@@ -240,7 +240,7 @@ final class AllowanceController extends Controller
       if ($r = self::_authorize($req, 'delete allowance')) return $r;
       Log::info("[{$base}::{$action}] deleting allowance", [UsersConstants::COL_USER_ID => $user?->id, 'allowance_id' => $allowance->id, 'method' => $method]);
       try {
-        if ($allowance[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
+        if ($allowance[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
         $txnStart = microtime(true);
         DB::transaction(function () use ($allowance, $action, $base) {
           $lockStart = microtime(true);

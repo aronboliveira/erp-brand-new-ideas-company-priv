@@ -46,8 +46,8 @@ final class DealDiscussionSeeder extends Seeder
 					$d->id                     = $discussionId;
 					$d->{AC::COL_DL}           = $dealId;
 					$d->comment                = $body;
-					$d->{DC::TABLE_CREATOR}    = $systemUserId;
-					$d->setAttribute(DC::TABLE_UPDATER, null);
+					$d->{DC::COL_TABLE_CREATOR}    = $systemUserId;
+					$d->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$d->setAttribute('created_at', $ts);
 					$d->setAttribute('updated_at', $ts);
 					$d->save();

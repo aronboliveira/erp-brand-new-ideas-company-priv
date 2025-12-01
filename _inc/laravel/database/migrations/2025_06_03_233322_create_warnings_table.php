@@ -27,7 +27,7 @@ class CreateWarningsTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE);
-            $this->dropEmployeeForeign($table, self::TABLE);
+            $this->dropEmployeeColumnForeign($table, self::TABLE);
             foreach ([CC::COL_WRN_TO, CC::COL_WRN_BY,] as $col) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) && $table->dropForeign([$col]);

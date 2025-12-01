@@ -158,8 +158,8 @@ final class PlanSeeder extends Seeder
 				$pl->{PLC::COL_POS}          = $p[PLC::COL_POS];
 				$pl->{PLC::COL_DESC}         = $p[PLC::COL_DESC];
 				$pl->{PLC::COL_IMG}          = $p[PLC::COL_IMG];
-				$pl->{DC::TABLE_CREATOR}     = $creatorId;
-				$pl->setAttribute(DC::TABLE_UPDATER, null);
+				$pl->{DC::COL_TABLE_CREATOR}     = $creatorId;
+				$pl->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$pl->save();
 			}
 		}, 3);

@@ -197,7 +197,7 @@ final class BankAccountSeeder extends Seeder
 					BLC::COL_SYNC_ER       => [],
 
 					// Auditoria
-					DC::TABLE_CREATOR      => $systemUserId,
+					DC::COL_TABLE_CREATOR      => $systemUserId,
 				];
 
 				// Critério de upsert: (Banco + Agência + Número da Conta)

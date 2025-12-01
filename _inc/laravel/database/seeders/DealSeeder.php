@@ -103,8 +103,8 @@ final class DealSeeder extends Seeder
 				$d->status      = $faker->randomElement($statusKeys);
 				$d->order       = $i;
 				$d->is_active   = 1;
-				$d->{DC::TABLE_CREATOR} = $systemUserId;
-				$d->setAttribute(DC::TABLE_UPDATER, null);
+				$d->{DC::COL_TABLE_CREATOR} = $systemUserId;
+				$d->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$d->save();
 
 				$userIds = Usr::query()->inRandomOrder()->limit(random_int(0, 3))->pluck('id')->all();

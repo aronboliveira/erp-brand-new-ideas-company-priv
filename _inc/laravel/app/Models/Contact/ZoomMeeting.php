@@ -18,9 +18,17 @@ class ZoomMeeting extends Model
 
     private const APPENDS = ['client_name', ActivitiesConstants::COL_PJ_NM];             // ! CHANGED
     private const FILLABLE = [                                         // ! CHANGED
-        ActivitiesConstants::COL_TT, 'meeting_id', 'client_id', ProjectsConstants::COL_PJ_ID,
-        ProjectsConstants::COL_S_DT, 'duration', 'start_url', ActivitiesConstants::COL_PW,
-        'join_url', ActivitiesConstants::COL_TSK_STT, DatabaseConstants::TABLE_CREATOR
+        ActivitiesConstants::COL_TT,
+        'meeting_id',
+        'client_id',
+        ProjectsConstants::COL_PJ_ID,
+        ProjectsConstants::COL_S_DT,
+        'duration',
+        'start_url',
+        ActivitiesConstants::COL_PW,
+        'join_url',
+        ActivitiesConstants::COL_TSK_STT,
+        DatabaseConstants::COL_TABLE_CREATOR
     ];
     protected $appends = self::APPENDS;
     protected $fillable = self::FILLABLE;
@@ -66,7 +74,7 @@ class ZoomMeeting extends Model
     public function users(string $users): array
     {
         return collect(explode(',', $users))
-            ->map(fn ($id) => User::find($id))
+            ->map(fn($id) => User::find($id))
             ->toArray();
     }
 }

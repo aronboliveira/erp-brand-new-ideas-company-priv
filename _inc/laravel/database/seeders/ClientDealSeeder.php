@@ -48,8 +48,8 @@ final class ClientDealSeeder extends Seeder
 					$cd->id         = $pivotId;
 					$cd->deal_id    = $dealId;
 					$cd->client_id  = $clientId;
-					$cd->{DC::TABLE_CREATOR} = $systemUserId;
-					$cd->setAttribute(DC::TABLE_UPDATER, null);
+					$cd->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$cd->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$cd->save();
 				}
 			}

@@ -26,13 +26,15 @@ class CreateIndicatorsTable extends Migration
             $table->integer('professionalism')->default(0);
             $table->uuid('created_user')->index();        // ! CHANGED
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->index();          // ! CHANGED
-            foreach ([
-                self::COL_BRANCH                 => DatabaseConstants::TABLE_BRANCHES,
-                self::COL_DEP                    => DatabaseConstants::TABLE_DEPARTMENTS,
-                self::COL_DESIGN                 => DatabaseConstants::TABLE_DESIGNS,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable) {
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();          // ! CHANGED
+            foreach (
+                [
+                    self::COL_BRANCH                 => DatabaseConstants::TABLE_BRANCHES,
+                    self::COL_DEP                    => DatabaseConstants::TABLE_DEPARTMENTS,
+                    self::COL_DESIGN                 => DatabaseConstants::TABLE_DESIGNS,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            ) {
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -44,12 +46,14 @@ class CreateIndicatorsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_BRANCH,
-                self::COL_DEP,
-                self::COL_DESIGN,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_BRANCH,
+                    self::COL_DEP,
+                    self::COL_DESIGN,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

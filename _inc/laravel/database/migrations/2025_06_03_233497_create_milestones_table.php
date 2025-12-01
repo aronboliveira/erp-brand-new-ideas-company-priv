@@ -22,11 +22,13 @@ class CreateMilestonesTable extends Migration
             $table->date('due_' . self::D)->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_PROJECT                 => DatabaseConstants::TABLE_PROJECTS,
-                DatabaseConstants::TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_PROJECT                 => DatabaseConstants::TABLE_PROJECTS,
+                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -37,10 +39,12 @@ class CreateMilestonesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PROJECT,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_PROJECT,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

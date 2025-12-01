@@ -19,13 +19,18 @@ class Email extends Model
     public $incrementing = false; // ! CHANGED
     protected $keyType  = 'string'; // ! CHANGED
     private const CREATED_BY_FIELD = EmailsConstants::COL_EM . '_'
-        . DatabaseConstants::TABLE_CREATOR;
+        . DatabaseConstants::COL_TABLE_CREATOR;
     private const GLOBAL_SCOPE   = DatabaseConstants::ORDER_C_AT;
     private const FILLABLE_FIELDS = [ // ! CHANGED
-        'id', ActivitiesConstants::COL_TT, ActivitiesConstants::COL_DESC,
-        self::CREATED_BY_FIELD, EmailsConstants::COL_D_URL,
-        EmailsConstants::COL_ATC, EmailsConstants::COL_EM,
-        ActivitiesConstants::COL_MT, ActivitiesConstants::COL_MI
+        'id',
+        ActivitiesConstants::COL_TT,
+        ActivitiesConstants::COL_DESC,
+        self::CREATED_BY_FIELD,
+        EmailsConstants::COL_D_URL,
+        EmailsConstants::COL_ATC,
+        EmailsConstants::COL_EM,
+        ActivitiesConstants::COL_MT,
+        ActivitiesConstants::COL_MI
     ];
 
     protected $fillable = self::FILLABLE_FIELDS;
@@ -62,7 +67,7 @@ class Email extends Model
         return $this->notes()->create(
             [
                 ActivitiesConstants::COL_NT => $text,
-                DatabaseConstants::TABLE_CREATOR => $createdBy ?? Auth::id()
+                DatabaseConstants::COL_TABLE_CREATOR => $createdBy ?? Auth::id()
             ]
         );
     }
@@ -74,7 +79,7 @@ class Email extends Model
 
     public function getAllNotes(): string
     {
-        $notes = $this->notes()->orderBy(DatabaseConstants::TABLE_CREATOR)->get();
+        $notes = $this->notes()->orderBy(DatabaseConstants::COL_TABLE_CREATOR)->get();
         if ($notes->isEmpty()) return DatabaseConstants::DEFAULT_NOTES;
         return $notes->pluck(ActivitiesConstants::COL_NT)->implode(' | ');
     }

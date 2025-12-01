@@ -45,8 +45,8 @@ final class BugStatusSeeder extends Seeder
 				$bs->id                   = $statusId;
 				$bs->{AC::COL_OD}         = $r['ord'];
 				$bs->{AC::COL_TT}         = $r['title'];
-				$bs->{DC::TABLE_CREATOR}  = $systemUserId;
-				$bs->setAttribute(DC::TABLE_UPDATER, null);
+				$bs->{DC::COL_TABLE_CREATOR}  = $systemUserId;
+				$bs->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$bs->save();
 			}
 		}, 3);

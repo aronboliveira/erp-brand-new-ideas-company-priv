@@ -61,7 +61,7 @@ final class TerminationSeeder extends Seeder
 				$termination->description               = $faker->boolean(50) ? $faker->sentence(10) : null;
 
 				// created_by é guarded — atribuição direta antes do save
-				$termination->{DC::TABLE_CREATOR} = $systemUserId;
+				$termination->{DC::COL_TABLE_CREATOR} = $systemUserId;
 
 				try {
 					$termination->save();

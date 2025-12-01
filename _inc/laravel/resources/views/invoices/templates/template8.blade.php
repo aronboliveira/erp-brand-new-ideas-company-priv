@@ -1,7 +1,7 @@
 @php
     use App\Config\Constants\{DatabaseConstants, ViewsConstants};
     use App\Models\Utility;
-    $settings_data = Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR] ?? null);
+    $settings_data = Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR] ?? null);
     $hasInvoiceNumberFormat = is_callable([Utility::class, 'invoiceNumberFormat']);
     $hasDateFormat = is_callable([Utility::class, 'dateFormat']);
     $hasPriceFormat = is_callable([Utility::class, 'priceFormat']);

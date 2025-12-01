@@ -162,8 +162,8 @@ final class PerformanceTypeSeeder extends Seeder
 				);
 
 				// Força o criador (pois HasAuditFields depende de auth())
-				if (empty($model->{DC::TABLE_CREATOR})) {
-					$model->{DC::TABLE_CREATOR} = $systemUserId;
+				if (empty($model->{DC::COL_TABLE_CREATOR})) {
+					$model->{DC::COL_TABLE_CREATOR} = $systemUserId;
 					$model->save();
 				}
 

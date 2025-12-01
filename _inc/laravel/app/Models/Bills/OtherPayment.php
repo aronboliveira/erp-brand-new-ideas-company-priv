@@ -32,8 +32,8 @@ class OtherPayment extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [

@@ -54,7 +54,7 @@ class TrainingController extends Controller
             try {
                 $buildStart = microtime(true);
                 $creatorId = $user?->creatorId();
-                $query = Training::with(['branches', 'types'])->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                $query = Training::with(['branches', 'types'])->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
                 $fetchStart = microtime(true);
                 $trainings = $query->get();
@@ -93,10 +93,10 @@ class TrainingController extends Controller
             Log::info("[{$base}::{$action}] called", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
             $creatorId = $user?->creatorId();
             $listsStart = microtime(true);
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-            $trainingTypes = TrainingType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $trainers = Trainer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $trainingTypes = TrainingType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $trainers = Trainer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
             $options = Training::$options;
             $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
             if (!ViewFacade::exists($viewPath)) {
@@ -154,7 +154,7 @@ class TrainingController extends Controller
                         'start_date' => $req->start_date,
                         'end_date' => $req->end_date,
                         'description' => $req->description,
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createTraining');
                 });
@@ -229,10 +229,10 @@ class TrainingController extends Controller
             Log::info("[{$base}::{$action}] called", ['trainingId' => $training->id, 'user_id' => $user?->id, 'method' => $method]);
             $creatorId = $user?->creatorId();
             $listsStart = microtime(true);
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-            $trainingTypes = TrainingType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $trainers = Trainer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $trainingTypes = TrainingType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $trainers = Trainer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('first_name', 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
             $options = Training::$options;
             $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
             if (!ViewFacade::exists($viewPath)) {

@@ -93,7 +93,7 @@ class SourceController extends Controller
         return $this->measureProfile($action, function () use ($req, $source, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($req, 'view source', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($source[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($source[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             Log::info("[{$class}::{$action}] start", ['source_id' => $source->id, 'user_id' => $req->user()->id, 'method' => $method]);
             try {
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -155,7 +155,7 @@ class SourceController extends Controller
         return $this->measureProfile($action, function () use ($req, $source, $action, $method, $class, $viewPath) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($req, 'edit source', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($source[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($source[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             Log::info("[{$class}::{$action}] start", ['source_id' => $source->id, 'user_id' => $req->user()->id, 'method' => $method]);
             try {
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -180,7 +180,7 @@ class SourceController extends Controller
         return $this->measureProfile($action, function () use ($req, $source, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($req, 'edit source', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($source[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($source[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             $rules = ['name' => 'required|string|max:20'];
             $valStart = microtime(true);
             $v = Validator::make($req->all(), $rules);
@@ -216,7 +216,7 @@ class SourceController extends Controller
         return $this->measureProfile($action, function () use ($req, $source, $action, $method, $class) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($redirect = self::guard($req, 'delete source', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($source[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($source[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             try {
                 Log::info("[{$class}::{$action}] start", ['source_id' => $source->id, 'user_id' => $req->user()->id, 'method' => $method]);
                 $txnStart = microtime(true);

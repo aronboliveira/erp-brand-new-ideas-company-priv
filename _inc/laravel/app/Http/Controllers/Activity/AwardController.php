@@ -37,13 +37,13 @@ final class AwardController extends Controller
       try {
         $user = $req->user();
         $creatorId = $user?->creatorId();
-        $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
-        $types = AwardType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
+        $types = AwardType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $query = Award::with(['employee', 'awardType']);
         if (strtolower($user[UsersConstants::COL_TP]) === 'employee') {
           $empId = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value('id');
           $query->where('employee_id', $empId);
-        } else $query->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+        } else $query->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
         $awards = $query->get();
         Log::info("[{$class}::{$action}] success", ['count' => $awards->count()]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -68,8 +68,8 @@ final class AwardController extends Controller
       if ($deny = $this->authorizeOrDeny($req, 'create award', $action)) return $deny;
       try {
         $creatorId = $req->user()->creatorId();
-        $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-        $types = AwardType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+        $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+        $types = AwardType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
         Log::info("[{$class}::{$action}] success");
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('employees', 'types'));
@@ -100,7 +100,7 @@ final class AwardController extends Controller
       try {
         $txnStart = microtime(true);
         $award = DB::transaction(function () use ($req) {
-          return Award::create(['employee_id' => $req->input('employee_id'), 'award_type' => $req->input('award_type'), 'date' => $req->input('date'), 'gift' => $req->input('gift'), 'description' => $req->input('description'), DatabaseConstants::TABLE_CREATOR => $req->user()->creatorId()]);
+          return Award::create(['employee_id' => $req->input('employee_id'), 'award_type' => $req->input('award_type'), 'date' => $req->input('date'), 'gift' => $req->input('gift'), 'description' => $req->input('description'), DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId()]);
         });
         $this->logExecutionTime($txnStart, $action, 'storeTransaction');
         Log::info("[{$class}::{$action}] created award", ['award_id' => $award->id]);
@@ -157,8 +157,8 @@ final class AwardController extends Controller
       }
       try {
         $creatorId = $req->user()->creatorId();
-        $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-        $types = AwardType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+        $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+        $types = AwardType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
         Log::info("[{$class}::{$action}] success");
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, compact('award', 'employees', 'types'));

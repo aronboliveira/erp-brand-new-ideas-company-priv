@@ -62,9 +62,9 @@ final class EmployeeAttendanceController extends Controller
 
       // dropdown data
       $t = microtime(true);
-      $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
-      $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend('Select Department', '');
       $this->logExecutionTime($t, $action . '::loadFilters', 'branches:' . $branches->count() . ', departments:' . $departments->count());
 
@@ -75,7 +75,7 @@ final class EmployeeAttendanceController extends Controller
         $empId = $user?->employee->id ?? 0;
         $query->where(UsersConstants::COL_EMP_ID, $empId);
       } else {
-        $empIds = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $empIds = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
           ->when($req->branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $req->branch))
           ->when($req->department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $req->department))
           ->pluck('id');
@@ -125,7 +125,7 @@ final class EmployeeAttendanceController extends Controller
 
       // load employees
       $t = microtime(true);
-      $employees = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      $employees = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->where(UsersConstants::COL_TP, 'employee')
         ->pluck(UsersConstants::COL_NM, 'id');
       $this->logExecutionTime($t, $action . '::loadEmployees', 'count: ' . $employees->count());
@@ -206,7 +206,7 @@ final class EmployeeAttendanceController extends Controller
           'early_leaving' => $early,
           'overtime'      => $overtime,
           'total_rest'    => '00:00:00',
-          DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+          DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
         ]);
         $this->logExecutionTime($t, $action . '::persist', 'created');
 
@@ -245,7 +245,7 @@ final class EmployeeAttendanceController extends Controller
       // load data
       $t = microtime(true);
       $attendance = EmployeeAttendance::findOrFail($id);
-      $employees  = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      $employees  = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->pluck(UsersConstants::COL_NM, 'id');
       $this->logExecutionTime($t, $action . '::loadData', 'employees: ' . $employees->count());
 
@@ -343,7 +343,7 @@ final class EmployeeAttendanceController extends Controller
       $t = microtime(true);
       if (
         $settings['ip_restrict'] === 'on' &&
-        IpRestrict::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        IpRestrict::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->where('ip', request()->ip())->exists()
       ) {
         $this->logExecutionTime($t, $action . '::ipCheck', 'blocked');
@@ -378,7 +378,7 @@ final class EmployeeAttendanceController extends Controller
           'early_leaving' => '00:00:00',
           'overtime'      => '00:00:00',
           'total_rest'    => '00:00:00',
-          DatabaseConstants::TABLE_CREATOR => $user?->id,
+          DatabaseConstants::COL_TABLE_CREATOR => $user?->id,
         ]);
         $this->logExecutionTime($t, $action . '::persist', 'clock-in');
 
@@ -410,11 +410,11 @@ final class EmployeeAttendanceController extends Controller
 
       // load data
       $t = microtime(true);
-      $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
-      $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend('Select Department', '');
-      $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+      $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
         ->when($req->branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $req->branch))
         ->when($req->department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $req->department))
         ->get();
@@ -545,7 +545,7 @@ final class EmployeeAttendanceController extends Controller
         foreach ($rows as $i => $row) if ($i) {
           [$email, $date, $inRaw, $outRaw] = $row;
           $emp = Employee::where('email', $email)
-            ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->first();
           if (!$emp) {
             $errors[] = $email;

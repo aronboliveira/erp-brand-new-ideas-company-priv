@@ -40,7 +40,7 @@ class TrainerController extends Controller
             Log::debug("$action called", [UsersConstants::COL_USER_ID => $user?->id]);
             try {
                 $trainers = Trainer::with('branches')
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->get();
                 Log::debug("$action fetched", ['count' => $trainers->count()]);
                 $view = ViewsConstants::TNR . '.' . $action;
@@ -63,7 +63,7 @@ class TrainerController extends Controller
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'create trainer', self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::debug("$action called", [UsersConstants::COL_USER_ID => $user?->id]);
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
             $view = ViewsConstants::TNR . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return ViewFacade::make($view, compact('branches'));
@@ -100,7 +100,7 @@ class TrainerController extends Controller
                     'email'      => $request->email,
                     'address'    => $request->address,
                     'expertise'  => $request->expertise,
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                 ]));
                 Log::debug("$action committed");
                 return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Trainer successfully created.'));
@@ -119,7 +119,7 @@ class TrainerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'view trainer', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($trainer[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+            if ($trainer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             Log::debug("$action called", ['trainer_id' => $trainer->id]);
             $view = ViewsConstants::TNR . '.show';
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
@@ -134,9 +134,9 @@ class TrainerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'edit trainer', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($trainer[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+            if ($trainer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             Log::debug("$action called", ['trainer_id' => $trainer->id]);
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
             $view = ViewsConstants::TNR . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
             return ViewFacade::make($view, compact('branches', 'trainer'));
@@ -150,7 +150,7 @@ class TrainerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'edit trainer', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($trainer[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+            if ($trainer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             Log::debug("$action called", ['trainer_id' => $trainer->id, 'input' => $request->all()]);
             $rules = [
                 'branch'     => 'required|exists:branches,id',
@@ -192,7 +192,7 @@ class TrainerController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($request, 'delete trainer', self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($trainer[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
+            if ($trainer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             Log::debug("$action called", ['trainer_id' => $trainer->id]);
             try {
                 DB::transaction(fn() => $trainer->delete());

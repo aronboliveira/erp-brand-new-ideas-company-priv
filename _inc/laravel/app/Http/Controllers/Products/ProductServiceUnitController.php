@@ -40,7 +40,7 @@ class ProductServiceUnitController extends Controller
         if (($resp = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $resp;
         try {
             return $this->measureProfile($action, function () use ($userOrRedirect, $view) {
-                $units = ProductServiceUnit::where(DatabaseConstants::TABLE_CREATOR, $userOrRedirect->creatorId())->get();
+                $units = ProductServiceUnit::where(DatabaseConstants::COL_TABLE_CREATOR, $userOrRedirect->creatorId())->get();
                 return view($view, compact('units'));
             });
         } catch (\Throwable $e) {
@@ -75,7 +75,7 @@ class ProductServiceUnitController extends Controller
             return $this->measureProfile($action, function () use ($req, $userOrRedirect) {
                 ProductServiceUnit::create([
                     'name'       => $req->input('name'),
-                    DatabaseConstants::TABLE_CREATOR => $userOrRedirect->creatorId()
+                    DatabaseConstants::COL_TABLE_CREATOR => $userOrRedirect->creatorId()
                 ]);
                 return redirect()->route(ViewsConstants::PRD_SV_UNT . '.index')->with('success', __('Unit successfully created.'));
             });

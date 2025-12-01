@@ -41,7 +41,7 @@ class CustomQuestionController extends Controller
             }
             try {
                 $t = microtime(true);
-                $questions = CustomQuestion::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $questions = CustomQuestion::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($t, "$sig::fetchQuestions", 'completed');
 
                 $viewPath = ViewsConstants::CST_QT . '.index';
@@ -124,7 +124,7 @@ class CustomQuestionController extends Controller
                     foreach (['question', 'is_required'] as $field) {
                         $q->$field = $request->input($field);
                     }
-                    $q[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                    $q[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
                     $q->save();
                     Log::info('store: created', ['id' => $q->id]);
                 });
@@ -290,6 +290,6 @@ class CustomQuestionController extends Controller
             return $userOrRedirect;
         }
         $user = $userOrRedirect;
-        return $question[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+        return $question[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
     }
 }

@@ -40,7 +40,7 @@ class GoalController extends Controller
                 if ($resp = self::_authorize($request, self::PERM_MANAGE)) return $resp;
                 $user = $userOrRedirect;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
-                $goals = Goal::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $goals = Goal::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 return view($view, compact('goals'));
             } catch (\Throwable $e) {
                 return defaultUndefinedException($request, $e, $action);
@@ -94,7 +94,7 @@ class GoalController extends Controller
                     'to'         => $request->input('to'),
                     'amount'     => $request->input('amount'),
                     'is_display' => $request->boolean('is_display'),
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 return redirect()->route(ViewsConstants::GL . '.index')->with('success', __('Goal successfully created.'));
             } catch (\Throwable $e) {
@@ -131,7 +131,7 @@ class GoalController extends Controller
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
                 if ($resp = self::_authorize($request, self::PERM_EDIT)) return $resp;
-                if ($goal[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
+                if ($goal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
                 $types = Goal::$goalType;
                 return view($view, compact('goal', 'types'));
@@ -152,7 +152,7 @@ class GoalController extends Controller
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
                 if ($resp = self::_authorize($request, self::PERM_EDIT)) return $resp;
-                if ($goal[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
+                if ($goal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 $v = Validator::make($request->all(), [
                     'name'   => 'required',
                     'type'   => 'required',
@@ -187,7 +187,7 @@ class GoalController extends Controller
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 $user = $userOrRedirect;
                 if ($resp = self::_authorize($request, self::PERM_DELETE)) return $resp;
-                if ($goal[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
+                if ($goal[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 $goal->delete();
                 return redirect()->route(ViewsConstants::GL . '.index')->with('success', __('Goal successfully deleted.'));
             } catch (\Throwable $e) {

@@ -53,7 +53,7 @@ class NotificationTemplatesController extends Controller
                 $langName   = Language::where('code', $lang)->first();
                 $translation = NotificationTemplateLangs::where('parent_id', $template->id)
                     ->where('lang', $lang)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->first()
                     ?: NotificationTemplateLangs::where('parent_id', $template->id)
                     ->where('lang', $lang)
@@ -110,7 +110,7 @@ class NotificationTemplatesController extends Controller
 
                 $record = NotificationTemplateLangs::where('parent_id', $id)
                     ->where('lang', $lang)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->first();
 
                 if (!$record) {

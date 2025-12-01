@@ -20,7 +20,7 @@
 		$segment=Request::segment(3)?:'';
 		$id=Crypt::decrypt($segment)?:'';
 		$project=Project::find($id);
-		$user=User::find($project[DatabaseConstants::TABLE_CREATOR]??null);
+		$user=User::find($project[DatabaseConstants::COL_TABLE_CREATOR]??null);
         $lang = Utility::fetchUserLang(user:$user);
 		$data=Utility::prepareCommonViewData($user?->creatorId(),'uploads/logo')?:[];
 		$colorSettings=$data[SettingsConstants::CLR_STG]??[];

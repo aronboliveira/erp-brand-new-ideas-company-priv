@@ -26,7 +26,7 @@ class CreateUsersTable extends Migration
             $table->uuid(UC::COL_RP)->default(DC::DEFAULT_PLAN);       // * ADDED
             $table->uuid(UC::COL_PL)->default(DC::DEFAULT_PLAN);
             $table->date(UC::COL_PED)->nullable();
-            $table->uuid(DC::TABLE_CREATOR)->default(DC::DEFAULT_UUID);
+            $table->uuid(DC::COL_TABLE_CREATOR)->default(DC::DEFAULT_UUID);
             $table->timestamps();
         });
     }

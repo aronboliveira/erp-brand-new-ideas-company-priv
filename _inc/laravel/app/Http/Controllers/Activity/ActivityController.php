@@ -70,7 +70,7 @@ class ActivityController extends Controller
         ];
         $allResults = [];
         foreach ($models as $alias => $modelClass) {
-          $items = $modelClass::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+          $items = $modelClass::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
             ->orderBy('id', 'desc')
             ->get();
           Log::debug("{$action} fetched items", ['alias' => $alias, 'count' => $items->count()]);
@@ -117,7 +117,7 @@ class ActivityController extends Controller
       try {
         $fetchStart = microtime(true);
         [$notes, $tasks, $emails, $logActivities, $schedules] = array_map(function ($m) use ($user) {
-          return $m::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+          return $m::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         }, [Note::class, Task::class, Email::class, ActivityLog::class, Schedule::class]);
         $this->logExecutionTime($fetchStart, $action . '::fetchData', 'completed');
         $processStart = microtime(true);
@@ -185,7 +185,7 @@ class ActivityController extends Controller
       $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
       try {
         $stepStart = microtime(true);
-        $data = Note::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = Note::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         $this->logExecutionTime($stepStart, 'fetchNotes', 'completed');
         $stepStart = microtime(true);
         $processed = self::_processItems($data, function ($note) {
@@ -219,7 +219,7 @@ class ActivityController extends Controller
       }
       try {
         Log::debug("{$action} • fetching tasks", ['creator_id' => $user->creatorId()]);
-        $data = Task::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = Task::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         Log::debug("{$action} • processing {$data->count()} tasks");
         $processed = self::_processItems($data, function ($task) {
           $item = Activity::getActivity($task[ActivitiesConstants::COL_MT], $task[ActivitiesConstants::COL_MI]);
@@ -255,7 +255,7 @@ class ActivityController extends Controller
         return defaultPermissionDenial($request, new AuthorizationException(), $action);
       try {
         $fetchStart = microtime(true);
-        $data = Email::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = Email::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         $this->logExecutionTime($fetchStart, $action . '::fetchEmails', 'completed');
         $processStart = microtime(true);
         $processed = self::_processItems($data, function ($email) {
@@ -294,7 +294,7 @@ class ActivityController extends Controller
       $this->logExecutionTime($stepStart, 'checkPermission', 'completed');
       try {
         $stepStart = microtime(true);
-        $data = ActivityLog::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
+        $data = ActivityLog::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->orderBy('id', 'desc')->get();
         $this->logExecutionTime($stepStart, 'fetchLogs', 'completed');
         $stepStart = microtime(true);
         $processed = self::_processItems($data, function ($log) {
@@ -332,7 +332,7 @@ class ActivityController extends Controller
       }
       try {
         Log::debug("{$action} • fetching schedules", ['creator_id' => $user->creatorId()]);
-        $data = Schedule::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())
+        $data = Schedule::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())
           ->orderBy('id', 'desc')
           ->get();
         Log::debug("{$action} • processing {$data->count()} schedules", ['count' => $data->count()]);

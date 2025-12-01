@@ -52,7 +52,7 @@ class MeetingController extends Controller
         $this->logExecutionTime($empStart, $action, 'fetchEmployees');
         $type = strtolower(Auth::user()?->{UsersConstants::COL_TP});
         $mtStart = microtime(true);
-        $meetings = $type === 'employee' ? $this->_employeeMeetings() : Meeting::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->get();
+        $meetings = $type === 'employee' ? $this->_employeeMeetings() : Meeting::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
         $this->logExecutionTime($mtStart, $action, 'fetchMeetings');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         Log::info("[{$class}::{$action}] complete", ['employees' => is_countable($employees) ? count($employees) : null, 'meetings' => is_countable($meetings) ? count($meetings) : null]);
@@ -81,19 +81,19 @@ class MeetingController extends Controller
         $type = strtolower(Auth::user()[UsersConstants::COL_TP]);
         if ($type === 'employee') {
           $empStart = microtime(true);
-          $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->where(UsersConstants::COL_USER_ID, '!=', $req->user()->id)->pluck(UsersConstants::COL_NM, 'id');
+          $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where(UsersConstants::COL_USER_ID, '!=', $req->user()->id)->pluck(UsersConstants::COL_NM, 'id');
           $this->logExecutionTime($empStart, $action, 'fetchEmployees');
           $branches = collect();
           $departments = collect();
         } else {
           $brStart = microtime(true);
-          $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->get();
+          $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
           $this->logExecutionTime($brStart, $action, 'fetchBranches');
           $depStart = microtime(true);
-          $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->get();
+          $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
           $this->logExecutionTime($depStart, $action, 'fetchDepartments');
           $empStart = microtime(true);
-          $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id');
+          $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id');
           $this->logExecutionTime($empStart, $action, 'fetchEmployees');
         }
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -118,14 +118,14 @@ class MeetingController extends Controller
       if ($resp = self::_validate($req->all(), [CompaniesConstants::COL_BRC_ID => 'required', UsersConstants::COL_EMP_ID => 'required', CompaniesConstants::COL_DEP_ID => 'required', 'title' => 'required', 'date' => 'required', 'time' => 'required'])) return $resp;
       try {
         $createStart = microtime(true);
-        $meeting = Meeting::create([CompaniesConstants::COL_BRC_ID => $req->branch_id, CompaniesConstants::COL_DEP_ID => json_encode($req->department_id), UsersConstants::COL_EMP_ID => json_encode($req->employee_id), 'title' => $req->title, 'date' => $req->date, 'time' => $req->time, 'note' => $req->note, DatabaseConstants::TABLE_CREATOR => $req->user()->creatorId()]);
+        $meeting = Meeting::create([CompaniesConstants::COL_BRC_ID => $req->branch_id, CompaniesConstants::COL_DEP_ID => json_encode($req->department_id), UsersConstants::COL_EMP_ID => json_encode($req->employee_id), 'title' => $req->title, 'date' => $req->date, 'time' => $req->time, 'note' => $req->note, DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId()]);
         $this->logExecutionTime($createStart, $action, 'createMeeting');
         $resolveStart = microtime(true);
         $deptEmployees = in_array('0', $req->employee_id, true) ? Employee::whereIn(CompaniesConstants::COL_DEP_ID, $req->department_id)->pluck('id') : collect($req->employee_id);
         $this->logExecutionTime($resolveStart, $action, 'resolveEmployees');
         $attachStart = microtime(true);
         $deptEmployees->each(static function ($emp) use ($meeting, $req) {
-          MeetingEmployee::create(['meeting_id' => $meeting->id, UsersConstants::COL_EMP_ID => $emp, DatabaseConstants::TABLE_CREATOR => $req->user()->creatorId()]);
+          MeetingEmployee::create(['meeting_id' => $meeting->id, UsersConstants::COL_EMP_ID => $emp, DatabaseConstants::COL_TABLE_CREATOR => $req->user()->creatorId()]);
         });
         $this->logExecutionTime($attachStart, $action, 'attachEmployees');
         $notifyStart = microtime(true);
@@ -181,7 +181,7 @@ class MeetingController extends Controller
         if ($meeting->created_by !== $req->user()->creatorId()) return defaultPermissionDenial($req, new \Exception('permission denied'), $class . '::' . $action);
         $type = strtolower(Auth::user()[UsersConstants::COL_TP]);
         $empStart = microtime(true);
-        $employees = $type === 'employee' ? Employee::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->where(UsersConstants::COL_USER_ID, '!=', $req->user()->id)->pluck(UsersConstants::COL_NM, 'id') : Employee::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id');
+        $employees = $type === 'employee' ? Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where(UsersConstants::COL_USER_ID, '!=', $req->user()->id)->pluck(UsersConstants::COL_NM, 'id') : Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id');
         $this->logExecutionTime($empStart, $action, 'fetchEmployees');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
@@ -256,7 +256,7 @@ class MeetingController extends Controller
       Log::info("[{$class}::{$action}] start", ['branch_id' => $req->branch_id, 'creator_id' => $user?->creatorId()]);
       try {
         $buildStart = microtime(true);
-        $deps = $req->branch_id == 0 ? Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId()) : Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(CompaniesConstants::COL_BRC_ID, $req->branch_id);
+        $deps = $req->branch_id == 0 ? Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()) : Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(CompaniesConstants::COL_BRC_ID, $req->branch_id);
         $this->logExecutionTime($buildStart, $action, 'buildDepartmentsQuery');
         $pluckStart = microtime(true);
         $list = $deps->pluck(UsersConstants::COL_NM, 'id')->toArray();
@@ -283,7 +283,7 @@ class MeetingController extends Controller
       Log::info("[{$class}::{$action}] start", ['department_ids' => $req->department_id, 'creator_id' => $user?->creatorId()]);
       try {
         $buildStart = microtime(true);
-        $emps = in_array('0', $req->department_id, true) ? Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId()) : Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->whereIn(CompaniesConstants::COL_DEP_ID, $req->department_id);
+        $emps = in_array('0', $req->department_id, true) ? Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()) : Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->whereIn(CompaniesConstants::COL_DEP_ID, $req->department_id);
         $this->logExecutionTime($buildStart, $action, 'buildEmployeesQuery');
         $pluckStart = microtime(true);
         $list = $emps->pluck(UsersConstants::COL_NM, 'id')->toArray();
@@ -302,7 +302,7 @@ class MeetingController extends Controller
   ): Response|RedirectResponse|JsonResponse|null {
     if ($resp = self::_authorize($request, PermissionsConstants::MNG_MT)) return $resp;
     try {
-      $meetings = Meeting::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+      $meetings = Meeting::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
         ->when(
           $request->start_date,
           static fn($q, $v) => $q->where('date', '>=', $v)
@@ -352,7 +352,7 @@ class MeetingController extends Controller
           return $data;
         }
         $qStart = microtime(true);
-        $q = Meeting::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+        $q = Meeting::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
         $this->logExecutionTime($qStart, $action, 'buildMeetingsQuery');
         $getStart = microtime(true);
         $items = $q->get();

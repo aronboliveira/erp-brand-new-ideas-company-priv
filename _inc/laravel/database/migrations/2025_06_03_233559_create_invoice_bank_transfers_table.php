@@ -19,13 +19,15 @@ class CreateInvoiceBankTransfersTable extends Migration
 			$table->string('status');
 			$table->date('date');
 			$table->string('receipt')->nullable();
-			$table->uuid(DatabaseConstants::TABLE_CREATOR);
+			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
 			$table->timestamps();
-			foreach ([
-				self::COL_INV                     => DatabaseConstants::TABLE_INVS,
-				self::COL_ORDER                   => DatabaseConstants::TABLE_ORDERS,
-				DatabaseConstants::TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-			] as $column => $referencedTable)
+			foreach (
+				[
+					self::COL_INV                     => DatabaseConstants::TABLE_INVS,
+					self::COL_ORDER                   => DatabaseConstants::TABLE_ORDERS,
+					DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
+				] as $column => $referencedTable
+			)
 				$table->foreign($column)
 					->references('id')
 					->on($referencedTable)
@@ -36,11 +38,13 @@ class CreateInvoiceBankTransfersTable extends Migration
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
-			foreach ([
-				self::COL_INV,
-				self::COL_ORDER,
-				DatabaseConstants::TABLE_CREATOR,
-			] as $column) {
+			foreach (
+				[
+					self::COL_INV,
+					self::COL_ORDER,
+					DatabaseConstants::COL_TABLE_CREATOR,
+				] as $column
+			) {
 				try {
 					Schema::hasColumn(self::TABLE, $column)
 						&& $table->dropForeign([$column]);

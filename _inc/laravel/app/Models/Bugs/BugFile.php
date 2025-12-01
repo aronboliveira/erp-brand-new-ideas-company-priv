@@ -21,7 +21,7 @@ class BugFile extends Model
     ];
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
     protected $casts = [
         UC::COL_U_TP => UserType::class,

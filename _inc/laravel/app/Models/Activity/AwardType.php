@@ -11,5 +11,5 @@ class AwardType extends Model
     use HasAuditFields, HasFactory, UsesUuids;
     protected $table = DC::TABLE_AWD_TPS;
     protected $fillable = ['name'];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 }

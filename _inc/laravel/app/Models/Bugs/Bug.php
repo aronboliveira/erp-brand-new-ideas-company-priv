@@ -25,7 +25,7 @@ class Bug extends Model
     private const COL_START_DATE = PJC::COL_S_DT;
     private const COL_STATUS     = AC::COL_TSK_STT;
     private const COL_TITLE      = AC::COL_TT;
-    private const COL_CREATED_BY = DC::TABLE_CREATOR;
+    private const COL_CREATED_BY = DC::COL_TABLE_CREATOR;
 
     protected $fillable = [
         self::COL_BUG_ID,
@@ -41,7 +41,7 @@ class Bug extends Model
     ];
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
 
     public static $priority = [

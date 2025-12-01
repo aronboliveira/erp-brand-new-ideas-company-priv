@@ -39,7 +39,7 @@ class JobStageController extends Controller
 			if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
 			if (($c = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $c;
 			try {
-				$stages = JobStage::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->orderBy('order')->get();
+				$stages = JobStage::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->orderBy('order')->get();
 				$view = ViewsConstants::JB_STG . '.' . $action;
 				if (!ViewFacade::exists($view)) return defaultUndefinedException($req, new \RuntimeException('View not found'), $method);
 				Log::debug($method . ' loaded', ['count' => $stages->count()]);
@@ -95,7 +95,7 @@ class JobStageController extends Controller
 			$v = Validator::make($req->all(), ['title' => 'required']);
 			if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
 			try {
-				JobStage::create(['title' => $req->input('title'), DatabaseConstants::TABLE_CREATOR => $u->creatorId()]);
+				JobStage::create(['title' => $req->input('title'), DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId()]);
 				Log::debug($method . ' created');
 				return redirect()->back()->with('success', __('Job stage successfully created.'));
 			} catch (\Throwable $e) {
@@ -128,7 +128,7 @@ class JobStageController extends Controller
 			$v = Validator::make($req->all(), ['title' => 'required']);
 			if ($v->fails()) return redirect()->back()->with('error', $v->errors()->first());
 			try {
-				$jobStage->update(['title' => $req->input('title'), DatabaseConstants::TABLE_CREATOR => $u->creatorId()]);
+				$jobStage->update(['title' => $req->input('title'), DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId()]);
 				Log::debug($method . ' updated', ['stage_id' => $jobStage->id]);
 				return redirect()->back()->with('success', __('Job stage successfully updated.'));
 			} catch (\Throwable $e) {

@@ -40,7 +40,7 @@ final class BudgetController extends Controller
             if (($g = self::guard($req, 'manage budget plan')) !== true) return $g;
             try {
                 $fetchStart = microtime(true);
-                $budgets = Budget::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $budgets = Budget::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($fetchStart, $action, 'fetchBudgets');
                 Log::info("[{$base}::{$action}] loaded budgets", ['count' => $budgets->count()]);
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -70,10 +70,10 @@ final class BudgetController extends Controller
             if (($g = self::guard($req, 'create budget plan')) !== true) return $g;
             try {
                 $incStart = microtime(true);
-                $incomeCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
+                $incomeCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
                 $this->logExecutionTime($incStart, $action, 'fetchIncomeCategories');
                 $expStart = microtime(true);
-                $expenseCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
+                $expenseCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
                 $this->logExecutionTime($expStart, $action, 'fetchExpenseCategories');
                 Log::info("[{$base}::{$action}] rendering form", ['income_count' => $incomeCats->count(), 'expense_count' => $expenseCats->count()]);
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -121,7 +121,7 @@ final class BudgetController extends Controller
                     'period' => $req->period,
                     'income_data' => json_encode(!empty($req->income) ? $req->income : []),
                     'expense_data' => json_encode(!empty($req->expense) ? $req->expense : []),
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($createStart, $action, 'createBudget');
                 Log::info("[{$base}::{$action}] created budget", ['budget_id' => $budget->id]);
@@ -212,10 +212,10 @@ final class BudgetController extends Controller
                 $budget->expense_data = json_decode($budget->expense_data, true);
                 $this->logExecutionTime($decodeStart, $action, 'decodeBudgetData');
                 $incStart = microtime(true);
-                $incomeCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
+                $incomeCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'income')->get();
                 $this->logExecutionTime($incStart, $action, 'fetchIncomeCategories');
                 $expStart = microtime(true);
-                $expenseCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
+                $expenseCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(UsersConstants::COL_TP, 'expense')->get();
                 $this->logExecutionTime($expStart, $action, 'fetchExpenseCategories');
                 Log::info("[{$base}::{$action}] rendering form", ['budget_id' => $id, 'income_count' => $incomeCats->count(), 'expense_count' => $expenseCats->count()]);
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -366,7 +366,7 @@ final class BudgetController extends Controller
 
     private function isOwner(object $model, object $user): bool
     {
-        return $model[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+        return $model[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
     }
 
     private static function _months(): array
@@ -400,7 +400,7 @@ final class BudgetController extends Controller
     private function _buildReports(Budget $budget): array
     {
         $year  = $budget->from ?: now()->year;
-        $creatorId = $budget[DatabaseConstants::TABLE_CREATOR];
+        $creatorId = $budget[DatabaseConstants::COL_TABLE_CREATOR];
         // 1) Common labels for all views:
         $common = [
             'monthList'             => self::_months(),
@@ -411,9 +411,9 @@ final class BudgetController extends Controller
             'currentYear'           => $year,
         ];
         // 2) Categories
-        $incomeCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $incomeCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 'income')->get();
-        $expenseCats = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $expenseCats = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 'expense')->get();
         // 3) Budget totals from stored JSON
         $incomeData = json_decode($budget->income_data,  true) ?? [];
@@ -449,7 +449,7 @@ final class BudgetController extends Controller
                 else
                     [$start, $end] = explode('-', $key);
                 // 5a) revenue
-                $rev = Revenue::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $rev = Revenue::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('date', $year)
                     ->whereMonth('date', '>=', $start)
@@ -457,7 +457,7 @@ final class BudgetController extends Controller
                     ->sum('amount');
                 // 5b) invoices
                 $invTotal = 0;
-                Invoice::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                Invoice::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('send_date', $year)
                     ->whereMonth('send_date', '>=', $start)
@@ -482,7 +482,7 @@ final class BudgetController extends Controller
                 else
                     [$start, $end] = explode('-', $key);
                 // 6a) payments
-                $pay = Payment::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $pay = Payment::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('date', $year)
                     ->whereMonth('date', '>=', $start)
@@ -490,7 +490,7 @@ final class BudgetController extends Controller
                     ->sum('amount');
                 // 6b) bills
                 $billTotal = 0;
-                Bill::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('category_id', $cat->id)
                     ->whereYear('send_date', $year)
                     ->whereMonth('send_date', '>=', $start)

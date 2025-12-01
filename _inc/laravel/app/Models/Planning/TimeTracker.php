@@ -24,7 +24,7 @@ class TimeTracker extends Model
         ActivitiesConstants::COL_ST_TIME,
         ActivitiesConstants::COL_E_TIME,
         ActivitiesConstants::COL_TTL_TIME,
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
 
     protected $appends = [

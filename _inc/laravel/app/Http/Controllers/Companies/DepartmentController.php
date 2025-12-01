@@ -39,7 +39,7 @@ final class DepartmentController extends Controller
       Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $r->user()?->id, 'method' => $method]);
       try {
         $qStart = microtime(true);
-        $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
+        $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
         $this->logExecutionTime($qStart, $action, 'fetchDepartments');
         $viewPath = ViewsConstants::DPT . '.' . $action;
         if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -97,7 +97,7 @@ final class DepartmentController extends Controller
         Department::create([
           CompaniesConstants::COL_BRC_ID => $r[CompaniesConstants::COL_BRC_ID],
           CompaniesConstants::COL_DEP_NM => $r[CompaniesConstants::COL_DEP_NM],
-          DatabaseConstants::TABLE_CREATOR => $u->creatorId()
+          DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId()
         ]);
         $this->logExecutionTime($crtStart, $action, 'createDepartment');
         return redirect()->route(ViewsConstants::DPT . '.index')->with('success', __('Department successfully created.'));
@@ -118,7 +118,7 @@ final class DepartmentController extends Controller
     return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
-      if ($department[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
+      if ($department[DatabaseConstants::COL_TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
       try {
         $branch = self::branches($u->creatorId());
         $viewPath = ViewsConstants::DPT . '.' . $action;
@@ -144,7 +144,7 @@ final class DepartmentController extends Controller
     return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($c = self::guard($r, 'edit department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
-      if ($department[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
+      if ($department[DatabaseConstants::COL_TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
       if ($c = self::v($r, [CompaniesConstants::COL_BRC_ID => 'required', CompaniesConstants::COL_DEP_NM => 'required|max:20'])) return $c;
       try {
         $updStart = microtime(true);
@@ -171,7 +171,7 @@ final class DepartmentController extends Controller
     return $this->measureProfile($action, function () use ($r, $department, $action, $method, $class, $base) {
       if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
       if (($c = self::guard($r, 'delete department', self::REDIRECT_INDEX)) !== true) return $c; // ! ALERT
-      if ($department[DatabaseConstants::TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
+      if ($department[DatabaseConstants::COL_TABLE_CREATOR] !== $u->creatorId()) return defaultPermissionDenial($r, new \Exception('owner'));
       try {
         $delStart = microtime(true);
         $department->delete();
@@ -207,7 +207,7 @@ final class DepartmentController extends Controller
   private static function branches(int $creator): array
   {
     try {
-      return Branch::where(DatabaseConstants::TABLE_CREATOR, $creator)
+      return Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
         ->pluck(CompaniesConstants::COL_BRC_NM, 'id')
         ->all();
     } catch (\Throwable $e) {

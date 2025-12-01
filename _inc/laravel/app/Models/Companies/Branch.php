@@ -17,7 +17,7 @@ class Branch extends Model
         'expenses' => 'decimal:2',
         'profit'   => 'decimal:2',
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR, CPC::COL_FND];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR, CPC::COL_FND];
 
     public function getDepartmentsAttribute($value): array
     {

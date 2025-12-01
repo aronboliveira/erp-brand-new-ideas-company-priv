@@ -23,14 +23,16 @@ class CreateActivityLogsTable extends Migration
                 $table->string('log_type');
                 $table->text('remark')->nullable();
                 $table->timestamps();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-                foreach ([
-                    self::COL_USER                  => DatabaseConstants::TABLE_USERS,
-                    self::COL_PROJECT               => DatabaseConstants::TABLE_PROJECTS,
-                    self::COL_TASK                  => DatabaseConstants::TABLE_TASKS,
-                    self::COL_DEAL                  => DatabaseConstants::TABLE_DEALS,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable)
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+                foreach (
+                    [
+                        self::COL_USER                  => DatabaseConstants::TABLE_USERS,
+                        self::COL_PROJECT               => DatabaseConstants::TABLE_PROJECTS,
+                        self::COL_TASK                  => DatabaseConstants::TABLE_TASKS,
+                        self::COL_DEAL                  => DatabaseConstants::TABLE_DEALS,
+                        DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    ] as $column => $referencedTable
+                )
                     $table->foreign($column)
                         ->references('id')
                         ->on($referencedTable)
@@ -40,13 +42,15 @@ class CreateActivityLogsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_USER,
-                self::COL_PROJECT,
-                self::COL_TASK,
-                self::COL_DEAL,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_USER,
+                    self::COL_PROJECT,
+                    self::COL_TASK,
+                    self::COL_DEAL,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

@@ -42,7 +42,7 @@ if (empty($bill)) {
 }
 
 try {
-    $settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::TABLE_CREATOR] ?? data_get($bill, 'created_by'));
+    $settings_data = \App\Models\Utility::settingsById($bill[DatabaseConstants::COL_TABLE_CREATOR] ?? data_get($bill, 'created_by'));
 } catch (\Throwable $e) {
     Log::error('settingsById Throwable: ' . $e->getMessage());
     $settings_data = [];

@@ -21,7 +21,7 @@ class Resignation extends Model
         'description',
         'notes'
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['employee'];
     protected $casts = [
         UC::COL_RESIGNATION_NDT => 'date',

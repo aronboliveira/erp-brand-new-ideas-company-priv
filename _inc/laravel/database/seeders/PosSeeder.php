@@ -161,8 +161,8 @@ final class PosSeeder extends Seeder
 					DC::COL_ER_LG      => null,
 
 					// Auditoria mínima (se existir users; não há FK nesses campos por padrão)
-					DC::TABLE_CREATOR => $this->maybe($companyIds),
-					DC::TABLE_UPDATER => $this->maybe($companyIds),
+					DC::COL_TABLE_CREATOR => $this->maybe($companyIds),
+					DC::COL_TABLE_UPDATER => $this->maybe($companyIds),
 					DC::COL_C_AT      => $createdAt,
 					DC::COL_U_AT      => $createdAt->copy()->addMinutes(random_int(5, 400)),
 				];

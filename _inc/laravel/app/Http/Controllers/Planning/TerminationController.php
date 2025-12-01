@@ -44,7 +44,7 @@ class TerminationController extends Controller
             try {
                 $creatorId = $user?->creatorId();
                 $query = Termination::with(['termination_type', 'employee'])
-                    ->where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
 
                 if (strtolower($user[UsersConstants::COL_TP]) === 'employee') {
                     $emp = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->first();
@@ -86,8 +86,8 @@ class TerminationController extends Controller
             Log::info("$action called", [UsersConstants::COL_USER_ID => $user?->id]);
 
             $creatorId = $user?->creatorId();
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $terminationTypes = TerminationType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $terminationTypes = TerminationType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
@@ -110,7 +110,7 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
@@ -159,7 +159,7 @@ class TerminationController extends Controller
                         'notice_date'              => $request->notice_date,
                         'termination_date'         => $request->termination_date,
                         'description'              => $request->description,
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                 });
 
@@ -168,7 +168,7 @@ class TerminationController extends Controller
                 $settings = Utility::settings();
                 if (!empty($settings['termination_sent'])) {
                     $termination = Termination::latest()
-                        ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                         ->first();
 
                     $emp = Employee::find($termination->employee_id);
@@ -227,15 +227,15 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
             Log::info("$action called", ['terminationId' => $termination->id]);
 
             $creatorId = $user?->creatorId();
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
-            $terminationTypes = TerminationType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+            $terminationTypes = TerminationType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));
@@ -257,7 +257,7 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
@@ -312,7 +312,7 @@ class TerminationController extends Controller
                 return $redirect;
             }
 
-            if ($termination[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+            if ($termination[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 

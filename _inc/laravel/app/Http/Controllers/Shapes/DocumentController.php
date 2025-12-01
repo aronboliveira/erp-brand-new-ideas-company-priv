@@ -38,7 +38,7 @@ final class DocumentController extends Controller
 
             try {
                 $t = microtime(true);
-                $docs = Document::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $docs = Document::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($t, "$sig::fetchDocuments", 'completed');
                 Log::info("$sig fetched", ['count' => $docs->count()]);
 
@@ -106,7 +106,7 @@ final class DocumentController extends Controller
             try {
                 $t = microtime(true);
                 $data = $req->only(['name', 'is_required']);
-                $data[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                $data[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
                 Document::create($data);
                 DB::commit();
                 $this->logExecutionTime($t, "$sig::transaction", 'completed');

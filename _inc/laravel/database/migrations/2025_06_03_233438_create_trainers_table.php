@@ -20,12 +20,14 @@ class CreateTrainersTable extends Migration
                 $table->string('email');
                 $table->text('address')->nullable();
                 $table->text('expertise')->nullable();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR);              // ! CHANGED
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);              // ! CHANGED
                 $table->timestamps();
-                foreach ([
-                    self::B                             => DatabaseConstants::TABLE_BRANCHES,
-                    DatabaseConstants::TABLE_CREATOR    => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl)
+                foreach (
+                    [
+                        self::B                             => DatabaseConstants::TABLE_BRANCHES,
+                        DatabaseConstants::COL_TABLE_CREATOR    => DatabaseConstants::TABLE_USERS,
+                    ] as $col => $tbl
+                )
                     $table->foreign($col)
                         ->references('id')
                         ->on($tbl)
@@ -36,10 +38,12 @@ class CreateTrainersTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::B,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::B,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

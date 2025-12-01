@@ -10,15 +10,15 @@ class Source extends Model
 {
     use HasFactory, UsesUuids, HasAuditFields;
 
-    protected $fillable = ['name', DC::TABLE_UPDATER];
-    protected $guarded  = ['id', DC::TABLE_CREATOR];
+    protected $fillable = ['name', DC::COL_TABLE_UPDATER];
+    protected $guarded  = ['id', DC::COL_TABLE_CREATOR];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, DC::TABLE_CREATOR, 'id');
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
     }
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, DC::TABLE_CREATOR, 'id');
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
     }
 }

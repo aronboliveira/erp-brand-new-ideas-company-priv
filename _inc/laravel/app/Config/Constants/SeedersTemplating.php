@@ -2298,7 +2298,7 @@ class SeedersTemplating
 	// Permission::insert($arrPermissions);
 
 	// $superAdminRole = Role::create(
-	//     ['name' => 'super admin', DatabaseConstants::TABLE_CREATOR => 0]
+	//     ['name' => 'super admin', DatabaseConstants::COL_TABLE_CREATOR => 0]
 	// );
 	// $superAdminPermissions = [];
 	// foreach ([
@@ -2325,14 +2325,14 @@ class SeedersTemplating
 	//         'type' => 'super admin',
 	//         'lang' => 'en',
 	//         'avatar' => '',
-	//         DatabaseConstants::TABLE_CREATOR => 0,
+	//         DatabaseConstants::COL_TABLE_CREATOR => 0,
 	//         'email_verified_at' => now(),
 	//     ]
 	// );
 	// $superAdmin->assignRole($superAdminRole);
 
 	// $customerRole = Role::create([
-	//     'name' => 'customer', DatabaseConstants::TABLE_CREATOR => 0,
+	//     'name' => 'customer', DatabaseConstants::COL_TABLE_CREATOR => 0,
 	// ]);
 	// $customerPermissions = [];
 	// foreach ([
@@ -2352,7 +2352,7 @@ class SeedersTemplating
 	// $customerRole->givePermissionTo($customerPermissions);
 
 	// // Vendor
-	// $vendorRole = Role::create(['name' => 'vendor', DatabaseConstants::TABLE_CREATOR => 0]);
+	// $vendorRole = Role::create(['name' => 'vendor', DatabaseConstants::COL_TABLE_CREATOR => 0]);
 	// $vendorPermissions = [];
 	// foreach ([
 	//     'vendor' => ['show'],
@@ -2369,7 +2369,7 @@ class SeedersTemplating
 	// $vendorRole->givePermissionTo($vendorPermissions);
 
 	// // Company
-	// $companyRole = Role::create(['name' => 'company', DatabaseConstants::TABLE_CREATOR => 0]);
+	// $companyRole = Role::create(['name' => 'company', DatabaseConstants::COL_TABLE_CREATOR => 0]);
 	// $companyPermissions = [];
 	// foreach ([
 	//     // dashboards
@@ -2488,13 +2488,13 @@ class SeedersTemplating
 	//     'plan'              => 1,
 	//     'lang'              => 'en',
 	//     'avatar'            => '',
-	//     DatabaseConstants::TABLE_CREATOR        => 1,
+	//     DatabaseConstants::COL_TABLE_CREATOR        => 1,
 	//     'email_verified_at' => now(),
 	// ]);
 	// $company->assignRole($companyRole);
 
 	// // Accountant
-	// $accountantRole = Role::create(['name' => 'accountant', DatabaseConstants::TABLE_CREATOR => $company->id]);
+	// $accountantRole = Role::create(['name' => 'accountant', DatabaseConstants::COL_TABLE_CREATOR => $company->id]);
 	// $accountantPermissions = [];
 	// foreach ([
 	//     'account##dashboard' => ['show'],
@@ -2553,7 +2553,7 @@ class SeedersTemplating
 	//     'default_pipeline' => 1,
 	//     'lang' => 'en',
 	//     'avatar' => '',
-	//     DatabaseConstants::TABLE_CREATOR => $company->id,
+	//     DatabaseConstants::COL_TABLE_CREATOR => $company->id,
 	//     'email_verified_at' => now(),
 	// ]);
 	// $accountant->assignRole($accountantRole);
@@ -2566,12 +2566,12 @@ class SeedersTemplating
 	//         'opening_balance' => '0.00',
 	//         'contact_number' => '-',
 	//         'bank_address' => '-',
-	//         DatabaseConstants::TABLE_CREATOR => $company->id,
+	//         DatabaseConstants::COL_TABLE_CREATOR => $company->id,
 	//     ]
 	// );
 
 	// // Client
-	// $clientRole = Role::create(['name' => 'client', DatabaseConstants::TABLE_CREATOR => $company->id]);
+	// $clientRole = Role::create(['name' => 'client', DatabaseConstants::COL_TABLE_CREATOR => $company->id]);
 	// $clientPermissions = [];
 	// foreach ([
 	//     'client##dashboard' => ['manage'],
@@ -2605,7 +2605,7 @@ class SeedersTemplating
 	//     'default_pipeline' => 1,
 	//     'lang' => 'en',
 	//     'avatar' => '',
-	//     DatabaseConstants::TABLE_CREATOR => $company->id,
+	//     DatabaseConstants::COL_TABLE_CREATOR => $company->id,
 	//     'email_verified_at' => now(),
 	// ]);
 	// $client->assignRole($clientRole);

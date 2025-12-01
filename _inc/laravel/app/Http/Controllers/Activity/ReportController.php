@@ -669,7 +669,7 @@ final class ReportController extends Controller
             $user = $userOrRedirect;
             try {
                 $startFetch = microtime(true);
-                $depts = Department::where(DC::TABLE_CREATOR, $user?->creatorId())->when(($request[CompaniesConstants::COL_BRC_ID] ?? 0) != 0, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $request[CompaniesConstants::COL_BRC_ID]), fn($q) => $q)->pluck(CompaniesConstants::COL_DEP_NM, 'id')->toArray();
+                $depts = Department::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->when(($request[CompaniesConstants::COL_BRC_ID] ?? 0) != 0, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $request[CompaniesConstants::COL_BRC_ID]), fn($q) => $q)->pluck(CompaniesConstants::COL_DEP_NM, 'id')->toArray();
                 $this->logExecutionTime($startFetch, "{$action} fetchDepartments", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return response()->json($depts);
@@ -695,7 +695,7 @@ final class ReportController extends Controller
             try {
                 $startFetch = microtime(true);
                 $depId = $request[CompaniesConstants::COL_DEP_ID] ?? null;
-                $emps = Employee::where(DC::TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck(UC::COL_NM, 'id')->toArray();
+                $emps = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck(UC::COL_NM, 'id')->toArray();
                 $this->logExecutionTime($startFetch, "{$action} fetchEmployees", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return response()->json($emps);
@@ -734,7 +734,7 @@ final class ReportController extends Controller
                 for ($i = 1; $i <= $numDays; $i++) $dates[] = str_pad($i, 2, '0', STR_PAD_LEFT);
                 $this->logExecutionTime($startDates, "{$action} buildDateRange", 'completed');
                 $startEmp = microtime(true);
-                $employees = Employee::select('id', 'name')->where(DC::TABLE_CREATOR, $user?->creatorId())->when($branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $branch), fn($q) => $q)->when($department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $department), fn($q) => $q)->get()->pluck('name', 'id')->toArray();
+                $employees = Employee::select('id', 'name')->where(DC::COL_TABLE_CREATOR, $user?->creatorId())->when($branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $branch), fn($q) => $q)->when($department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $department), fn($q) => $q)->get()->pluck('name', 'id')->toArray();
                 $this->logExecutionTime($startEmp, "{$action} fetchEmployees", 'completed');
                 Log::info("[$action] employees fetched", ['count' => count($employees)]);
                 $startRows = microtime(true);
@@ -791,7 +791,7 @@ final class ReportController extends Controller
             Log::info(get_class($this) . '::productStock', [UC::COL_USER_ID => $user?->id]);
             try {
                 $startFetch = microtime(true);
-                $stocks = StockReport::where(DC::TABLE_CREATOR, $user?->creatorId())->get();
+                $stocks = StockReport::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($startFetch, "{$action} fetchStocks", 'completed');
                 $viewName = ViewsConstants::RPT . '.product_stock_report';
                 if (!ViewFacade::exists($viewName)) return Redirect::back()->with('error', "HTTP 404: Page {$viewName} not found!");
@@ -939,7 +939,7 @@ final class ReportController extends Controller
             try {
                 $startFetch = microtime(true);
                 $branchId = $request[CompaniesConstants::COL_BRC_ID] ?? null;
-                $branch = Branch::where(DC::TABLE_CREATOR, $user?->creatorId())->when($branchId !== 0, fn($q) => $q->where('id', $branchId), fn($q) => $q)->first();
+                $branch = Branch::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->when($branchId !== 0, fn($q) => $q->where('id', $branchId), fn($q) => $q)->first();
                 $depts = $branch ? $branch->departments()->pluck(CompaniesConstants::COL_BRC_NM, 'id')->toArray() : [];
                 $this->logExecutionTime($startFetch, "{$action} fetchDepartments", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
@@ -969,7 +969,7 @@ final class ReportController extends Controller
             try {
                 $startFetch = microtime(true);
                 $depId = $request[CompaniesConstants::COL_DEP_ID] ?? null;
-                $emps = Employee::where(DC::TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck('name', 'id')->toArray();
+                $emps = Employee::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->when($depId, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $depId), fn($q) => $q)->pluck('name', 'id')->toArray();
                 $this->logExecutionTime($startFetch, "{$action} fetchEmployees", 'completed');
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
                 return response()->json($emps);
@@ -1069,7 +1069,7 @@ final class ReportController extends Controller
                 $this->logExecutionTime($startLogin, "{$action} loginCheck", 'completed');
                 $user = $userOrRedirect;
                 $startQuery = microtime(true);
-                self::$dealData = User::where(DC::TABLE_CREATOR, $user?->creatorId())->get();
+                self::$dealData = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($startQuery, "{$action} fetchUsers", 'completed');
                 Log::info("{$class}::{$action} loaded", [UC::COL_USER_ID => $user?->id, 'count' => self::$dealData->count()]);
                 $this->logExecutionTime($startOverall, "{$action} completed", 'completed');
@@ -1919,7 +1919,7 @@ final class ReportController extends Controller
         )
             ->leftJoin('product_services', 'product_services.id', '=', 'invoice_products.product_id')
             ->leftJoin('invoices',         'invoices.id',          '=', 'invoice_products.invoice_id')
-            ->where('product_services.' . DC::TABLE_CREATOR, $creator)
+            ->where('product_services.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoice_products.product_id')
             ->get()
@@ -1939,7 +1939,7 @@ final class ReportController extends Controller
         SQL)
             ->leftJoin('customers', 'customers.id',       '=', 'invoices.customer_id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -1990,7 +1990,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
             ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -2012,7 +2012,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
             ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -2026,7 +2026,7 @@ final class ReportController extends Controller
             ->selectRaw('5 AS status')
             ->leftJoin('customers', 'customers.id', '=', 'credit_notes.customer')
             ->leftJoin('invoices',  'invoices.id',  '=', 'credit_notes.invoice')
-            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('credit_notes.date', [$start, $end])
             ->groupBy('credit_notes.id')
             ->get()
@@ -2042,7 +2042,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',         'customers.id',         '=', 'invoices.customer_id')
             ->leftJoin('invoice_products',  'invoice_products.invoice_id', '=', 'invoices.id')
             ->leftJoin('product_services',  'product_services.id',  '=', 'invoice_products.product_id')
-            ->where('invoices.' . DC::TABLE_CREATOR,  $creator)
+            ->where('invoices.' . DC::COL_TABLE_CREATOR,  $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id', 'product_services.name')
             ->get()
@@ -2058,7 +2058,7 @@ final class ReportController extends Controller
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'credit_notes.invoice')
             ->leftJoin('product_services', 'product_services.id', '=', 'invoice_products.product_id')
             ->leftJoin('invoices',        'invoices.id',        '=', 'credit_notes.invoice')
-            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('credit_notes.date', [$start, $end])
             ->groupBy('credit_notes.id', 'product_services.name')
             ->get()
@@ -2100,7 +2100,7 @@ final class ReportController extends Controller
             ->leftJoin('customers',        'customers.id',        '=', 'invoices.customer_id')
             ->leftJoin('invoice_payments', 'invoice_payments.invoice_id', '=', 'invoices.id')
             ->leftJoin('invoice_products', 'invoice_products.invoice_id', '=', 'invoices.id')
-            ->where('invoices.' . DC::TABLE_CREATOR, $creator)
+            ->where('invoices.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('invoices.issue_date', [$start, $end])
             ->groupBy('invoices.invoice_id')
             ->get()
@@ -2172,7 +2172,7 @@ final class ReportController extends Controller
             ->leftJoin('vendors',      'vendors.id',      '=', 'bills.vendor_id')
             ->leftJoin('bill_payments', 'bill_payments.bill_id', '=', 'bills.id')
             ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
-            ->where('bills.' . DC::TABLE_CREATOR,  $creator)
+            ->where('bills.' . DC::COL_TABLE_CREATOR,  $creator)
             ->whereNotIn('bills.user_type', ['employee', 'customer'])
             ->whereBetween('bills.bill_date', [$start, $end])
             ->groupBy('bills.bill_id')
@@ -2197,7 +2197,7 @@ final class ReportController extends Controller
             ->leftJoin('vendors',      'vendors.id',      '=', 'bills.vendor_id')
             ->leftJoin('bill_payments', 'bill_payments.bill_id', '=', 'bills.id')
             ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
-            ->where('bills.' . DC::TABLE_CREATOR, $creator)
+            ->where('bills.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereNotIn('bills.user_type', ['employee', 'customer'])
             ->whereBetween('bills.bill_date', [$start, $end])
             ->groupBy('bills.id')
@@ -2214,7 +2214,7 @@ final class ReportController extends Controller
             ->selectRaw('5 AS status')
             ->leftJoin('vendors', 'vendors.id', '=', 'debit_notes.vendor')
             ->leftJoin('bills',  'bills.id', '=', 'debit_notes.bill')
-            ->where('bills.' . DC::TABLE_CREATOR, $creator)
+            ->where('bills.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereBetween('debit_notes.date', [$start, $end])
             ->groupBy('debit_notes.id')
             ->get()
@@ -2233,7 +2233,7 @@ final class ReportController extends Controller
             ->leftJoin('vendors',       'vendors.id',       '=', 'bills.vendor_id')
             ->leftJoin('bill_products', 'bill_products.bill_id', '=', 'bills.id')
             ->leftJoin('product_services', 'product_services.id', '=', 'bill_products.product_id')
-            ->where('bills.' . DC::TABLE_CREATOR, $creator)
+            ->where('bills.' . DC::COL_TABLE_CREATOR, $creator)
             ->whereNotIn('bills.user_type', ['employee', 'customer'])
             ->whereBetween('bills.bill_date', [$start, $end])
             ->groupBy('bills.bill_id', 'product_services.name')
@@ -2252,7 +2252,7 @@ final class ReportController extends Controller
             ->leftJoin('bill_products',   'bill_products.bill_id', '=', 'debit_notes.bill')
             ->leftJoin('product_services', 'product_services.id', '=', 'bill_products.product_id')
             ->leftJoin('bills',           'bills.id',           '=', 'debit_notes.bill')
-            ->where('bills.' . DC::TABLE_CREATOR,   $creator)
+            ->where('bills.' . DC::COL_TABLE_CREATOR,   $creator)
             ->whereBetween('debit_notes.date', [$start, $end])
             ->groupBy('debit_notes.id', 'product_services.name')
             ->get()
@@ -2312,13 +2312,13 @@ final class ReportController extends Controller
 
     private function _buildIncomeSummaryView(Request $request, int|string $creatorId): View
     {
-        $account   = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
+        $account   = BankAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
-        $customer  = Customer::where(DC::TABLE_CREATOR, $creatorId)
+        $customer  = Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Customer', '');
-        $category  = ProductServiceCategory::where(DC::TABLE_CREATOR, $creatorId)
+        $category  = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 1)
             ->pluck('name', 'id')
             ->prepend('Select Category', '');
@@ -2342,7 +2342,7 @@ final class ReportController extends Controller
                 'product_service_categories.id'
             )
             ->where('product_service_categories.type', 1)
-            ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
+            ->where('revenues.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->groupBy('category_id', 'month')
             ->get();
@@ -2365,7 +2365,7 @@ final class ReportController extends Controller
         }
 
         $totalRev = Revenue::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where(DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2387,7 +2387,7 @@ final class ReportController extends Controller
             $incomeTotal[] = $totalRev[$m] ?? 0;
         }
 
-        $invoices = Invoice::where(DC::TABLE_CREATOR, $creatorId)
+        $invoices = Invoice::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2448,13 +2448,13 @@ final class ReportController extends Controller
 
     private function _buildExpenseSummaryView(Request $request, int|string $creatorId): View
     {
-        $account   = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
+        $account   = BankAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
-        $vendor    = Vendor::where(DC::TABLE_CREATOR, $creatorId)
+        $vendor    = Vendor::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Vendor', '');
-        $category  = ProductServiceCategory::where(DC::TABLE_CREATOR, $creatorId)
+        $category  = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 2)
             ->pluck('name', 'id')
             ->prepend('Select Category', '');
@@ -2478,7 +2478,7 @@ final class ReportController extends Controller
                 'product_service_categories.id'
             )
             ->where('product_service_categories.type', 2)
-            ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
+            ->where('payments.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2511,7 +2511,7 @@ final class ReportController extends Controller
         }
 
         $totalPay = Payment::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
+            ->where('payments.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2533,7 +2533,7 @@ final class ReportController extends Controller
             $payTotal[] = $totalPay[$m] ?? 0;
         }
 
-        $bills   = Bill::where(DC::TABLE_CREATOR, $creatorId)
+        $bills   = Bill::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2594,16 +2594,16 @@ final class ReportController extends Controller
 
     private function _buildIncomeVsExpenseSummaryView(Request $request, int|string $creatorId): View
     {
-        $account   = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
+        $account   = BankAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
-        $vendor    = Vendor::where(DC::TABLE_CREATOR, $creatorId)
+        $vendor    = Vendor::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Vendor', '');
-        $customer  = Customer::where(DC::TABLE_CREATOR, $creatorId)
+        $customer  = Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Customer', '');
-        $category  = ProductServiceCategory::where(DC::TABLE_CREATOR, $creatorId)
+        $category  = ProductServiceCategory::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereIn('type', [1, 2])
             ->pluck('name', 'id')
             ->prepend('Select Category', '');
@@ -2622,7 +2622,7 @@ final class ReportController extends Controller
         ];
 
         $payData = Payment::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
+            ->where('payments.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2639,7 +2639,7 @@ final class ReportController extends Controller
             ->pluck('amount', 'month')
             ->toArray();
 
-        $bills   = Bill::where(DC::TABLE_CREATOR, $creatorId)
+        $bills   = Bill::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2661,7 +2661,7 @@ final class ReportController extends Controller
         }
 
         $revData = Revenue::selectRaw('sum(amount) as amount, MONTH(date) as month')
-            ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
+            ->where('revenues.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('date', $year)
             ->when(
                 $request->category,
@@ -2678,7 +2678,7 @@ final class ReportController extends Controller
             ->pluck('amount', 'month')
             ->toArray();
 
-        $invData = Invoice::where(DC::TABLE_CREATOR, $creatorId)
+        $invData = Invoice::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->where('status', '!=', 0)
             ->whereYear('send_date', $year)
             ->when(
@@ -2736,7 +2736,7 @@ final class ReportController extends Controller
     {
         $monthList = $this->yearMonth();
         $yearList = $this->yearList();
-        $taxList  = Tax::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $taxList  = Tax::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $year     = $request->year ?? date('Y');
 
         $invoiceProducts = InvoiceProduct::selectRaw(
@@ -2749,7 +2749,7 @@ final class ReportController extends Controller
                 'product_services.id'
             )
             ->whereYear('invoice_products.created_at', $year)
-            ->where('product_services.' . DC::TABLE_CREATOR, $creatorId)
+            ->where('product_services.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->get();
 
         $incomeTaxesData = [];
@@ -2795,7 +2795,7 @@ final class ReportController extends Controller
                 'product_services.id'
             )
             ->whereYear('bill_products.created_at', $year)
-            ->where('product_services.' . DC::TABLE_CREATOR, $creatorId)
+            ->where('product_services.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->get();
 
         $expenseTaxesData = [];
@@ -2852,7 +2852,7 @@ final class ReportController extends Controller
     private function _buildInvoiceSummaryView(Request $request, int|string $creatorId): View|ResponseFactory
     {
         $filter  = ['customer' => __('All'), 'status' => __('All')];
-        $customer = Customer::where(DC::TABLE_CREATOR, $creatorId)
+        $customer = Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Customer', '');
         Log::debug('Creator ID in Invoice Summary: ' . ($creatorId ?? 'null'));
@@ -2866,7 +2866,7 @@ final class ReportController extends Controller
             $filter['status'] = $status[$request->status] ?? '';
         } else $q->where('status', '!=', 0);
         Log::debug('After status filter: ' . (json_encode($q->get()->toArray()) ?? 'null'));
-        $q->where(DC::TABLE_CREATOR, $creatorId);
+        $q->where(DC::COL_TABLE_CREATOR, $creatorId);
         Log::debug('After creator filter: ' . (json_encode($q->get()->toArray()) ?? 'null'));
         $start = !empty($request->start_month)
             ? strtotime($request->start_month)
@@ -2928,7 +2928,7 @@ final class ReportController extends Controller
     private function _buildBillSummaryView(Request $request, int|string $creatorId): View
     {
         $filter = ['vendor' => __('All'), 'status' => __('All')];
-        $vendor = Vendor::where(DC::TABLE_CREATOR, $creatorId)
+        $vendor = Vendor::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('Select Vendor', '');
         $status = Bill::$statuses;
@@ -2941,7 +2941,7 @@ final class ReportController extends Controller
             $q->where('status', '!=', 0);
         }
 
-        $q->where(DC::TABLE_CREATOR, $creatorId);
+        $q->where(DC::COL_TABLE_CREATOR, $creatorId);
 
         $start = !empty($request->start_month)
             ? strtotime($request->start_month)
@@ -3008,7 +3008,7 @@ final class ReportController extends Controller
             'revenueAccounts' => '',
             'paymentAccounts' => '',
         ];
-        $account = BankAccount::where(DC::TABLE_CREATOR, $creatorId)
+        $account = BankAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('holder_name', 'id')
             ->prepend('Select Account', '');
         $types  = ['revenue' => __('Revenue'), 'payment' => __('Payment')];
@@ -3027,8 +3027,8 @@ final class ReportController extends Controller
                 )
                 ->groupBy('payments.account_id')
                 ->selectRaw('sum(amount) as total')
-                ->where('payments.' . DC::TABLE_CREATOR, $creatorId);
-            $payments = Payment::where('payments.' . DC::TABLE_CREATOR, $creatorId)
+                ->where('payments.' . DC::COL_TABLE_CREATOR, $creatorId);
+            $payments = Payment::where('payments.' . DC::COL_TABLE_CREATOR, $creatorId)
                 ->orderBy('id', 'desc');
         } else {
             $revAcc  = Revenue::select(
@@ -3044,8 +3044,8 @@ final class ReportController extends Controller
                 )
                 ->groupBy('revenues.account_id')
                 ->selectRaw('sum(amount) as total')
-                ->where('revenues.' . DC::TABLE_CREATOR, $creatorId);
-            $revenues = Revenue::where('revenues.' . DC::TABLE_CREATOR, $creatorId)
+                ->where('revenues.' . DC::COL_TABLE_CREATOR, $creatorId);
+            $revenues = Revenue::where('revenues.' . DC::COL_TABLE_CREATOR, $creatorId)
                 ->orderBy('id', 'desc');
         }
 
@@ -3069,26 +3069,26 @@ final class ReportController extends Controller
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
+                        ->where('payments.' . DC::COL_TABLE_CREATOR, $creatorId)
                 );
                 $payAcc->orWhere(
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
+                        ->where('payments.' . DC::COL_TABLE_CREATOR, $creatorId)
                 );
             } else {
                 $revenues->orWhere(
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
+                        ->where('revenues.' . DC::COL_TABLE_CREATOR, $creatorId)
                 );
                 $revAcc->orWhere(
                     fn($q) => $q
                         ->whereMonth('date', $m)
                         ->whereYear('date', $y)
-                        ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
+                        ->where('revenues.' . DC::COL_TABLE_CREATOR, $creatorId)
                 );
             }
         }
@@ -3111,13 +3111,13 @@ final class ReportController extends Controller
         if ($request->type === 'payment') {
             $reportData['payments']       = $payments->get();
             $reportData['paymentAccounts'] = $payAcc
-                ->where('payments.' . DC::TABLE_CREATOR, $creatorId)
+                ->where('payments.' . DC::COL_TABLE_CREATOR, $creatorId)
                 ->get();
             $filter['type'] = __('Payment');
         } else {
             $reportData['revenues']       = $revenues->get();
             $reportData['revenueAccounts'] = $revAcc
-                ->where('revenues.' . DC::TABLE_CREATOR, $creatorId)
+                ->where('revenues.' . DC::COL_TABLE_CREATOR, $creatorId)
                 ->get();
         }
 
@@ -3137,7 +3137,7 @@ final class ReportController extends Controller
     ): View {
         $start = $request->start_date ?? date('Y-01-01');
         $end  = $request->end_date ?? date('Y-m-d', strtotime('+1 day'));
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
             ->get();
         $chartAccounts = [];
@@ -3147,7 +3147,7 @@ final class ReportController extends Controller
             $subArr  = [];
 
             foreach ($subTypes as $st) {
-                $accs = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+                $accs = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
                     ->where('type', $type->id)
                     ->where('sub_type', $st->id)
                     ->get();
@@ -3199,7 +3199,7 @@ final class ReportController extends Controller
         string $acc,
         int|string $creatorId
     ): View {
-        $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+        $accounts = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id')
             ->prepend('All', '');
         $start   = $request->start_date ?? date('Y-01-01');
@@ -3207,7 +3207,7 @@ final class ReportController extends Controller
         $items   = ChartOfAccount::whereKey(
             $request->account
                 ? [$request->account]
-                : ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+                : ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->pluck('id')
                 ->all()
         )->get();
@@ -3231,7 +3231,7 @@ final class ReportController extends Controller
     ): View {
         $start = $request->start_date ?? date('Y-01-01');
         $end  = $request->end_date ?? date('Y-m-d', strtotime('+1 day'));
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $accounts = [];
 
         foreach ($types as $type) {
@@ -3260,10 +3260,10 @@ final class ReportController extends Controller
 
     private function _buildLeaveView(Request $request, int|string $creatorId): View
     {
-        $branch    = Branch::where(DC::TABLE_CREATOR, $creatorId)
+        $branch    = Branch::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck(CompaniesConstants::COL_BRC_NM, 'id')
             ->prepend('Select Branch', '');
-        $department = Department::where(DC::TABLE_CREATOR, $creatorId)
+        $department = Department::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck(CompaniesConstants::COL_DEP_NM, 'id')
             ->prepend('Select Department', '');
         $filterYear = [
@@ -3272,7 +3272,7 @@ final class ReportController extends Controller
             'type'          => __('Monthly'),
             'dateYearRange' => date('M-Y'),
         ];
-        $employees = Employee::where(DC::TABLE_CREATOR, $creatorId);
+        $employees = Employee::where(DC::COL_TABLE_CREATOR, $creatorId);
         if ($request->branch) {
             $employees->where(CompaniesConstants::COL_BRC_ID, $request->branch);
             $filterYear['branch'] = Branch::find($request->branch)?->name ?? '';
@@ -3356,7 +3356,7 @@ final class ReportController extends Controller
         int $year,
         int|string $creatorId
     ): View {
-        $leaveTypes = LeaveType::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $leaveTypes = LeaveType::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $leaves    = [];
         foreach ($leaveTypes as $lt) {
             $q = Leave::where(UC::COL_EMP_ID, $employee_id)
@@ -3398,11 +3398,11 @@ final class ReportController extends Controller
         Request $request,
         int|string $creatorId
     ): View {
-        $branch    = Branch::where(DC::TABLE_CREATOR, $creatorId)->get();
-        $department = Department::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $branch    = Branch::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
+        $department = Department::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $data      = ['branch' => __('All'), 'department' => __('All')];
         $emps      = Employee::select('id', 'name')
-            ->where(DC::TABLE_CREATOR, $creatorId);
+            ->where(DC::COL_TABLE_CREATOR, $creatorId);
         if (!empty($request->employee_id) && $request->employee_id[0] != 0) {
             $emps->whereIn('id', $request->employee_id);
         }
@@ -3492,10 +3492,10 @@ final class ReportController extends Controller
 
     private function _buildPayrollView(Request $request, int|string $creatorId): View
     {
-        $branch    = Branch::where(DC::TABLE_CREATOR, $creatorId)->get();
-        $department = Department::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $branch    = Branch::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
+        $department = Department::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $emps      = Employee::select('id', UC::COL_NM)
-            ->where(DC::TABLE_CREATOR, $creatorId);
+            ->where(DC::COL_TABLE_CREATOR, $creatorId);
         if (!empty($request->employee_id) && $request->employee_id[0] != 0)
             $emps->whereIn('id', $request->employee_id);
         $filterYear = [
@@ -3506,7 +3506,7 @@ final class ReportController extends Controller
         ];
         $q = Payslip::select('payslips.*', 'employees.' . UC::COL_NM)
             ->leftJoin('employees', 'payslips.' . UC::COL_EMP_ID, '=', 'employees.id')
-            ->where('payslips.' . DC::TABLE_CREATOR, $creatorId);
+            ->where('payslips.' . DC::COL_TABLE_CREATOR, $creatorId);
         if (($t = $request->type) === 'monthly' && $request->month) {
             $q->where('salary_month', $request->month);
             $filterYear['dateYearRange'] = date('M-Y', strtotime($request->month));
@@ -3585,7 +3585,7 @@ final class ReportController extends Controller
         $weekStart = Carbon::now()->startOfWeek();
         $weekEnd  = Carbon::now()->endOfWeek();
         $period   = CarbonPeriod::create($weekStart, $weekEnd);
-        $grouped  = Lead::where(DC::TABLE_CREATOR, $creatorId)
+        $grouped  = Lead::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('created_at', [$weekStart, $weekEnd])
             ->get()
             ->groupBy(fn($l) => $l->created_at->format('Y-m-d'));
@@ -3598,10 +3598,10 @@ final class ReportController extends Controller
             $deviceData[]  = $grouped[$key]?->count() ?? 0;
         }
 
-        $sources = Source::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $sources = Source::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $srcLabels = $sources->pluck('name')->toArray();
         $srcData  = $sources->map(
-            fn($s) => Lead::where(DC::TABLE_CREATOR, $creatorId)
+            fn($s) => Lead::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->where('sources', $s->id)
                 ->count()
         )->toArray();
@@ -3619,7 +3619,7 @@ final class ReportController extends Controller
             $m = date('m', $cur);
             $y = date('Y', $cur);
             $labels[] = date('M Y', $cur);
-            $count = Lead::where(DC::TABLE_CREATOR, $creatorId)
+            $count = Lead::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->whereMonth('date', $request->start_month ? date('m', strtotime($request->start_month)) : $m)
                 ->whereYear('date', $y)
                 ->count();
@@ -3631,9 +3631,9 @@ final class ReportController extends Controller
         }
 
         $userCounts = [];
-        $users = User::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $users = User::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         foreach ($users as $uData) {
-            $c = Lead::where(DC::TABLE_CREATOR, $creatorId)
+            $c = Lead::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->where(UC::COL_USER_ID, $uData->id)
                 ->when(
                     $request->From_Date && $request->To_Date,
@@ -3650,10 +3650,10 @@ final class ReportController extends Controller
 
         $pipeLabels = [];
         $pipeData  = [];
-        $pipes = Pipeline::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $pipes = Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         foreach ($pipes as $p) {
             $pipeLabels[] = $p->name;
-            $pipeData[]  = Lead::where(DC::TABLE_CREATOR, $creatorId)
+            $pipeData[]  = Lead::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->where('pipeline_id', $p->id)
                 ->count();
         }
@@ -3684,7 +3684,7 @@ final class ReportController extends Controller
         // weekly
         $weekStart = Carbon::now()->startOfWeek();
         $period   = CarbonPeriod::create($weekStart, $weekStart->copy()->endOfWeek());
-        $grouped  = Deal::where(DC::TABLE_CREATOR, $creatorId)
+        $grouped  = Deal::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('created_at', [$weekStart, $weekStart->copy()->endOfWeek()])
             ->get()
             ->groupBy(fn($d) => $d->created_at->format('Y-m-d'));
@@ -3696,10 +3696,10 @@ final class ReportController extends Controller
             $deviceData[]  = $grouped[$key]?->count() ?? 0;
         }
         // source
-        $srcs = Source::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $srcs = Source::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $srcLabels = $srcs->pluck('name')->toArray();
         $srcData  = $srcs->map(
-            fn($s) => Deal::where(DC::TABLE_CREATOR, $creatorId)
+            fn($s) => Deal::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->where('sources', $s->id)->count()
         )->toArray();
         // staff
@@ -3712,7 +3712,7 @@ final class ReportController extends Controller
         }
         // client
         $clientData = [];
-        $clients = ClientDeal::where(DC::TABLE_CREATOR, $creatorId)->pluck('client_id')->unique();
+        $clients = ClientDeal::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('client_id')->unique();
         foreach ($clients as $cid) {
             $name = Customer::find($cid)?->name ?? '';
             $clientData['name'][] = $name;
@@ -3732,7 +3732,7 @@ final class ReportController extends Controller
             $labels[] = date('M Y', $cur);
             $m = date('m', $cur);
             $y = date('Y', $cur);
-            $count = Deal::where(DC::TABLE_CREATOR, $creatorId)
+            $count = Deal::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->whereMonth('created_at', $m)
                 ->whereYear('created_at', $y)
                 ->count();
@@ -3763,13 +3763,13 @@ final class ReportController extends Controller
 
     private function _renderWarehouse(int $userId): View
     {
-        $warehouses     = Warehouse::where(DC::TABLE_CREATOR, $userId)->get();
+        $warehouses     = Warehouse::where(DC::COL_TABLE_CREATOR, $userId)->get();
         $totalWarehouse = $warehouses->count();
-        $totalProduct   = WarehouseProduct::where(DC::TABLE_CREATOR, $userId)->count();
+        $totalProduct   = WarehouseProduct::where(DC::COL_TABLE_CREATOR, $userId)->count();
         $warehousename  = $warehouses->pluck('name')->all();
         $warehouseCounts = $warehouses
             ->map(
-                fn($w) => WarehouseProduct::where(DC::TABLE_CREATOR, $userId)
+                fn($w) => WarehouseProduct::where(DC::COL_TABLE_CREATOR, $userId)
                     ->where('warehouse_id', $w->id)
                     ->count()
             )
@@ -3799,7 +3799,7 @@ final class ReportController extends Controller
             ? $request->end_date
             : now()->subDay()->toDateString();
 
-        $query = Purchase::where(DC::TABLE_CREATOR, $creatorId)
+        $query = Purchase::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3831,9 +3831,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'vendor' => Vendor::find($request->vendor)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $vendors   = Vendor::where(DC::TABLE_CREATOR, $creatorId)
+        $vendors   = Vendor::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         return view(ViewsConstants::RPT . '.daily_purchase', compact(
@@ -3848,7 +3848,7 @@ final class ReportController extends Controller
     private function _buildPurchaseMonthly(Request $request, int|string $creatorId): View
     {
         $year = $request->year ?? now()->year;
-        $query = Purchase::where(DC::TABLE_CREATOR, $creatorId)
+        $query = Purchase::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3879,9 +3879,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'vendor' => Vendor::find($request->vendor)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $vendors   = Vendor::where(DC::TABLE_CREATOR, $creatorId)
+        $vendors   = Vendor::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         $monthList = $this->yearMonth();
@@ -3907,7 +3907,7 @@ final class ReportController extends Controller
             ? $request->end_date
             : now()->subDay()->toDateString();
 
-        $query = Pos::where(DC::TABLE_CREATOR, $creatorId)
+        $query = Pos::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3939,9 +3939,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'customer' => Customer::find($request->customer)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $customers = Customer::where(DC::TABLE_CREATOR, $creatorId)
+        $customers = Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         return view(ViewsConstants::RPT . '.daily_pos', compact(
@@ -3956,7 +3956,7 @@ final class ReportController extends Controller
     private function _buildPosMonthly(Request $request, int|string $creatorId): View
     {
         $year = $request->year ?? now()->year;
-        $query = Pos::where(DC::TABLE_CREATOR, $creatorId)
+        $query = Pos::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->when(
                 $request->warehouse,
                 fn($q, $w) => $q->where('warehouse_id', $w),
@@ -3987,9 +3987,9 @@ final class ReportController extends Controller
             'warehouse' => Branch::find($request->warehouse)?->name ?? '',
             'customer' => Customer::find($request->customer)?->name ?? ''
         ];
-        $warehouses = Warehouse::where(DC::TABLE_CREATOR, $creatorId)
+        $warehouses = Warehouse::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
-        $customers = Customer::where(DC::TABLE_CREATOR, $creatorId)
+        $customers = Customer::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->pluck('name', 'id');
 
         $monthList = $this->yearMonth();
@@ -4010,13 +4010,13 @@ final class ReportController extends Controller
     {
         $year = $request->year ?? now()->year;
 
-        $posTotals = Pos::where(DC::TABLE_CREATOR, $creatorId)
+        $posTotals = Pos::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('pos_date', $year)
             ->get()
             ->groupBy(fn($p) => $p->pos_date->format('n'))
             ->map(fn($col) => $col->sum(fn($p) => $p->getTotal()));
 
-        $purTotals = Purchase::where(DC::TABLE_CREATOR, $creatorId)
+        $purTotals = Purchase::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereYear('purchase_date', $year)
             ->get()
             ->groupBy(fn($p) => $p->purchase_date->format('n'))
@@ -4054,13 +4054,13 @@ final class ReportController extends Controller
         $end  = $request->end_date   ?: now()->addDay()->toDateString();
 
         // only three types
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Income', 'Costs of Goods Sold', 'Expenses'])
             ->get();
 
         $chartAccounts = [];
         foreach ($types as $type) {
-            $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+            $accounts = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->where('type', $type->id)
                 ->get();
 
@@ -4115,7 +4115,7 @@ final class ReportController extends Controller
 
         $sumByMonth = function ($model, string $dateCol, ?int $category = null) use ($creatorId, $year) {
             $q = $model::selectRaw('MONTH(' . $dateCol . ') m, SUM(amount) amt')
-                ->where(DC::TABLE_CREATOR, $creatorId)
+                ->where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->whereYear($dateCol, $year)
                 ->when($category !== null, fn($q) => $q->where('category_id', $category), fn($q) => $q)
                 ->groupBy('m')
@@ -4171,7 +4171,7 @@ final class ReportController extends Controller
         // fetch and group function
         $groupByCategory = function ($model, string $dateCol, string $sumCol) use ($creatorId, $year) {
             return $model::selectRaw("category_id, MONTH($dateCol) m, SUM($sumCol) amt")
-                ->where(DC::TABLE_CREATOR, $creatorId)
+                ->where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->whereYear($dateCol, $year)
                 ->groupBy('category_id', 'm')
                 ->get()
@@ -4241,7 +4241,7 @@ final class ReportController extends Controller
         $start = $request->start_date ?: now()->startOfMonth()->toDateString();
         $end  = $request->end_date   ?: now()->endOfMonth()->toDateString();
 
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $totals = [];
 
         foreach ($types as $type) {
@@ -4271,7 +4271,7 @@ final class ReportController extends Controller
      */
     private function buildTrialBalanceData(int|string $creatorId, string $start, string $end): array
     {
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)->get();
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)->get();
         $totalsByType = [];
         foreach ($types as $type) {
             $totalsByType[$type->name] = Utility::trialBalance($type->id, $start, $end);
@@ -4303,7 +4303,7 @@ final class ReportController extends Controller
         $start = $request->start_date ?: now()->startOfMonth()->toDateString();
         $end  = $request->end_date   ?: now()->endOfMonth()->toDateString();
 
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
             ->get();
 
@@ -4313,7 +4313,7 @@ final class ReportController extends Controller
             $subs = [];
 
             foreach ($subTypes as $sub) {
-                $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+                $accounts = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
                     ->where('type', $type->id)
                     ->where('sub_type', $sub->id)
                     ->get();
@@ -4361,7 +4361,7 @@ final class ReportController extends Controller
 
     private function _doBalanceSheetStructure(int|string $creatorId, string $start, string $end): array
     {
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Assets', 'Liabilities', 'Equity'])
             ->get();
 
@@ -4370,7 +4370,7 @@ final class ReportController extends Controller
             $subTypes = ChartOfAccountSubType::where('type', $type->id)->get();
             $subs = [];
             foreach ($subTypes as $sub) {
-                $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+                $accounts = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
                     ->where('type', $type->id)
                     ->where('sub_type', $sub->id)
                     ->get();
@@ -4403,13 +4403,13 @@ final class ReportController extends Controller
         $start = $request->start_date ?: now()->startOfYear()->toDateString();
         $end  = $request->end_date   ?: now()->addDay()->toDateString();
 
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Income', 'Costs of Goods Sold', 'Expenses'])
             ->get();
 
         $structure = [];
         foreach ($types as $type) {
-            $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+            $accounts = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->where('type', $type->id)
                 ->get();
             $rows = [];
@@ -4464,13 +4464,13 @@ final class ReportController extends Controller
 
     private function _doProfitLossStructure(int|string $creatorId, string $start, string $end): array
     {
-        $types = ChartOfAccountType::where(DC::TABLE_CREATOR, $creatorId)
+        $types = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $creatorId)
             ->whereIn('name', ['Income', 'Costs of Goods Sold', 'Expenses'])
             ->get();
 
         $structure = [];
         foreach ($types as $type) {
-            $accounts = ChartOfAccount::where(DC::TABLE_CREATOR, $creatorId)
+            $accounts = ChartOfAccount::where(DC::COL_TABLE_CREATOR, $creatorId)
                 ->where('type', $type->id)
                 ->get();
             $rows = [];

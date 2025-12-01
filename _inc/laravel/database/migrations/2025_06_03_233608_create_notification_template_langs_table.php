@@ -18,11 +18,13 @@ class CreateNotificationTemplateLangsTable extends Migration
 				$table->text('content');
 				$table->json('variables')->nullable();                    // * stores template variables
 				$table->timestamps();
-				$table->uuid(DatabaseConstants::TABLE_CREATOR);
-				foreach ([
-					self::COL_PARENT                => DatabaseConstants::TABLE_NOTIFICATION_TEMPLATES,
-					DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-				] as $column => $referencedTable) {
+				$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
+				foreach (
+					[
+						self::COL_PARENT                => DatabaseConstants::TABLE_NOTIFICATION_TEMPLATES,
+						DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+					] as $column => $referencedTable
+				) {
 					$table->foreign($column)
 						->references('id')
 						->on($referencedTable)
@@ -34,10 +36,12 @@ class CreateNotificationTemplateLangsTable extends Migration
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
-			foreach ([
-				self::COL_PARENT,
-				DatabaseConstants::TABLE_CREATOR,
-			] as $column) {
+			foreach (
+				[
+					self::COL_PARENT,
+					DatabaseConstants::COL_TABLE_CREATOR,
+				] as $column
+			) {
 				try {
 					Schema::hasColumn(self::TABLE, $column)
 						&& $table->dropForeign([$column]);

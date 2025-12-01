@@ -12,7 +12,7 @@ class DealFile extends Model
     use UsesUuids, HasAuditFields;
 
     protected $fillable = ['deal_id', 'file_name', 'file_path'];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['deal'];
 
     public function deal(): BelongsTo

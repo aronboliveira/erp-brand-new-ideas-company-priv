@@ -22,11 +22,14 @@ class TaskStage extends Model
         ActivitiesConstants::COL_CPT,
         ProjectsConstants::COL_CL,
         ActivitiesConstants::COL_OD,
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
 
     private const STAGES_LIST = [
-        'Todo', 'In Progress', 'Review', 'Done'
+        'Todo',
+        'In Progress',
+        'Review',
+        'Done'
     ];
     public static array $stages = self::STAGES_LIST;
 
@@ -40,14 +43,14 @@ class TaskStage extends Model
         $user = $userOrRedirect;
         $today =  Carbon::now();
         $period = collect(range(0, 6))
-            ->map(fn ($i) => $today->copy()->subDays($i));
-        $labels = $period->map(fn ($d) => __($d->format('D')))->all();
-        $dates = $period->map(fn ($d) => $d->format('Y-m-d'))->all();
-        $stages = self::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            ->map(fn($i) => $today->copy()->subDays($i));
+        $labels = $period->map(fn($d) => __($d->format('D')))->all();
+        $dates = $period->map(fn($d) => $d->format('Y-m-d'))->all();
+        $stages = self::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
         $datasets = [];
         foreach ($stages as $stage) {
             $data = array_map(
-                fn ($d) => match ($user?->type) {
+                fn($d) => match ($user?->type) {
                     PermissionsConstants::CPN => ProjectTask::where(ProjectsConstants::COL_STAGE_ID, $stage->id)
                         ->whereDate(DatabaseConstants::COL_U_AT, $d)->count(),
                     PermissionsConstants::CL => ProjectTask::join(

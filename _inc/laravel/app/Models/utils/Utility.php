@@ -264,7 +264,7 @@ class Utility extends Model
                 Log::debug("{$tag} authenticated user", [UC::COL_USER_ID => $user?->id]);
                 $output->writeln("## {$tag} -- User ID: {$user?->id}");
                 $userId = $user?->creatorId();
-                Log::debug("{$tag} fetching settings by user ID", [DC::TABLE_CREATOR => $userId]);
+                Log::debug("{$tag} fetching settings by user ID", [DC::COL_TABLE_CREATOR => $userId]);
                 $data = self::getSettingsById($userId);
                 if (empty($data)) {
                     Log::info("{$tag} No user settings found. Loading global defaults...");
@@ -314,7 +314,7 @@ class Utility extends Model
         if (!self::$getSettings) {
             try {
                 $data = DB::table(DC::TABLE_SETTINGS)
-                    ->where(DC::TABLE_CREATOR, DC::DEFAULT_UUID)
+                    ->where(DC::COL_TABLE_CREATOR, DC::DEFAULT_UUID)
                     ->pluck('value', 'name')
                     ->toArray();
                 if (empty($data)) {
@@ -391,13 +391,13 @@ class Utility extends Model
         if (!self::$getSettingsId) {
             try {
                 $data = DB::table(DC::TABLE_SETTINGS)
-                    ->where(DC::TABLE_CREATOR, $id)
+                    ->where(DC::COL_TABLE_CREATOR, $id)
                     ->pluck('value', 'name')
                     ->toArray();
                 if (empty($data)) {
                     Log::info("{$tag} no settings for user {$id}, falling back to user defaults");
                     $data = DB::table(DC::TABLE_SETTINGS)
-                        ->where(DC::TABLE_CREATOR, DC::DEFAULT_UUID)
+                        ->where(DC::COL_TABLE_CREATOR, DC::DEFAULT_UUID)
                         ->pluck('value', 'name')
                         ->toArray();
                 }
@@ -875,7 +875,7 @@ class Utility extends Model
                 ['id' => $typeId],
                 [
                     'name'       => $typeNames[$typeId]  ?? 'Undefined',
-                    DC::TABLE_CREATOR => $companyId,
+                    DC::COL_TABLE_CREATOR => $companyId,
                 ]
             );
             foreach ($subtypes as $subTypeId => $subName)
@@ -885,7 +885,7 @@ class Utility extends Model
                         'name'       => $subName,
                         'type'       => $typeId,
                         'type_name'  => $typeNames[$typeId]  ?? 'Undefined',
-                        DC::TABLE_CREATOR => $companyId,
+                        DC::COL_TABLE_CREATOR => $companyId,
                     ]
                 );
         }
@@ -902,7 +902,7 @@ class Utility extends Model
                     CTC::COL_TP          => $acct[CTC::COL_TP],
                     CTC::COL_SUBTP       => $acct[CTC::COL_SUBTP],
                     CTC::COL_ENB         => 1,
-                    DC::TABLE_CREATOR => $user?->id,
+                    DC::COL_TABLE_CREATOR => $user?->id,
                 ]);
             } catch (\Throwable $e) {
                 Log::error(
@@ -920,7 +920,7 @@ class Utility extends Model
         foreach ($chartData as $acct) {
             try {
                 DB::transaction(function () use ($acct, $userId) {
-                    $type = ChartOfAccountType::where(DC::TABLE_CREATOR, $userId)
+                    $type = ChartOfAccountType::where(DC::COL_TABLE_CREATOR, $userId)
                         ->where(CTC::COL_NM, $acct[CTC::COL_TP])
                         ->firstOrFail();
                     $sub = ChartOfAccountSubType::where(CTC::COL_TP, $type->id)
@@ -932,7 +932,7 @@ class Utility extends Model
                         CTC::COL_TP          => $type->id,
                         CTC::COL_SUBTP       => $sub->id,
                         CTC::COL_ENB         => 1,
-                        DC::TABLE_CREATOR => $userId,
+                        DC::COL_TABLE_CREATOR => $userId,
                     ]);
                 });
             } catch (\Throwable $e) {
@@ -1328,7 +1328,7 @@ class Utility extends Model
             DB::transaction(function () use ($createdId) {
                 $pipeline = Pipeline::create([
                     ProjectsConstants::COL_PPL_NM         => 'Sales',
-                    DC::TABLE_CREATOR      => $createdId,
+                    DC::COL_TABLE_CREATOR      => $createdId,
                 ]);
                 $stages = ['Draft', 'Sent', 'Open', 'Revised', 'Declined'];
                 foreach ($stages as $order => $stageName) {
@@ -1336,13 +1336,13 @@ class Utility extends Model
                         ProjectsConstants::COL_STG_NM         => $stageName,
                         ProjectsConstants::COL_PPL_ID         => $pipeline->id,
                         ActivitiesConstants::COL_OD           => $order,
-                        DC::TABLE_CREATOR      => $createdId,
+                        DC::COL_TABLE_CREATOR      => $createdId,
                     ]);
                     Stage::create([
                         ProjectsConstants::COL_STG_NM         => $stageName,
                         ProjectsConstants::COL_PPL_ID         => $pipeline->id,
                         ActivitiesConstants::COL_OD           => $order,
-                        DC::TABLE_CREATOR      => $createdId,
+                        DC::COL_TABLE_CREATOR      => $createdId,
                     ]);
                 }
             });
@@ -1363,7 +1363,7 @@ class Utility extends Model
                         ActivitiesConstants::COL_PJ       => $projectId,
                         ProjectsConstants::COL_STG_NM     => $stageName,
                         ActivitiesConstants::COL_OD       => $order,
-                        DC::TABLE_CREATOR  => $createdBy,
+                        DC::COL_TABLE_CREATOR  => $createdBy,
                     ]);
                 }
             });
@@ -1408,7 +1408,7 @@ class Utility extends Model
                     JobStage::create([
                         ActivitiesConstants::COL_TT        => $title,
                         ActivitiesConstants::COL_OD        => $order,
-                        DC::TABLE_CREATOR   => $creatorId,
+                        DC::COL_TABLE_CREATOR   => $creatorId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1423,7 +1423,7 @@ class Utility extends Model
             DB::transaction(function () use ($creatorId, &$pipeline) {
                 $pipeline = Pipeline::create([
                     ProjectsConstants::COL_PPL_NM      => 'Default Pipeline',
-                    DC::TABLE_CREATOR  => $creatorId,
+                    DC::COL_TABLE_CREATOR  => $creatorId,
                 ]);
             });
         } catch (\Throwable $e) {
@@ -1445,7 +1445,7 @@ class Utility extends Model
                         ProjectsConstants::COL_LB_NM      => $item[ProjectsConstants::COL_LB_NM],
                         ProjectsConstants::COL_CL         => $item[ProjectsConstants::COL_CL],
                         ProjectsConstants::COL_PPL_ID     => $pipeline->id,
-                        DC::TABLE_CREATOR  => $creatorId,
+                        DC::COL_TABLE_CREATOR  => $creatorId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1459,7 +1459,7 @@ class Utility extends Model
                     BugStatus::create([
                         ActivitiesConstants::COL_TT        => $status,
                         ActivitiesConstants::COL_OD        => $order,
-                        DC::TABLE_CREATOR   => $creatorId,
+                        DC::COL_TABLE_CREATOR   => $creatorId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1476,7 +1476,7 @@ class Utility extends Model
                 foreach ($sourceNames as $name)
                     Source::create([
                         'name'                             => $name,
-                        DC::TABLE_CREATOR   => $createdId,
+                        DC::COL_TABLE_CREATOR   => $createdId,
                     ]);
             });
         } catch (\Throwable $e) {
@@ -1500,26 +1500,26 @@ class Utility extends Model
             DB::transaction(function () use ($user, $createdBy, $faker) {
                 $branch = Branch::create([
                     CPC::COL_BRC_NM       => $faker->company,
-                    DC::TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_CREATOR => $createdBy,
                 ]);
                 $department = Department::create([
                     CPC::COL_DEP_NM       => $faker->word,
                     CPC::COL_BRC_ID  => $branch->id,
-                    DC::TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_CREATOR => $createdBy,
                 ]);
                 $designation = Designation::create([
                     UC::COL_DSG_NM           => $faker->jobTitle,
                     CPC::COL_DEP_ID  => $department->id,
-                    DC::TABLE_CREATOR     => $createdBy,
+                    DC::COL_TABLE_CREATOR     => $createdBy,
                 ]);
                 $tax = Tax::create([
                     BillsConstants::COL_TAX_NM       => 'Tax ' . $faker->randomNumber(2),
                     BillsConstants::COL_TAX_RT       => $faker->randomFloat(2, 0, 1),
-                    DC::TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_CREATOR => $createdBy,
                 ]);
                 $payslipType = PayslipType::create([
                     BillsConstants::COL_PAY_SLP_NM       => $faker->randomElement(['Monthly', 'Hourly', 'Daily']),
-                    DC::TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_CREATOR => $createdBy,
                 ]);
                 Employee::create([
                     UC::COL_USER_ID     => $user?->id,
@@ -1533,7 +1533,7 @@ class Utility extends Model
                     UC::COL_TAX_ID    => $tax->id,
                     UC::COL_SLR_TP     => $payslipType->id,
                     UC::COL_SLR          => $faker->numberBetween(30000, 100000),
-                    DC::TABLE_CREATOR => $createdBy,
+                    DC::COL_TABLE_CREATOR => $createdBy,
                 ]);
             });
         } catch (\Throwable $e) {
@@ -1776,7 +1776,7 @@ class Utility extends Model
             $query   = DB::table('admin_payment_settings');
             $user = Auth::user();
             if (Auth::check())
-                $query->where(DC::TABLE_CREATOR, $user?->{UC::COL_TP} === PMC::SA ? $user->id : DC::DEFAULT_UUID);
+                $query->where(DC::COL_TABLE_CREATOR, $user?->{UC::COL_TP} === PMC::SA ? $user->id : DC::DEFAULT_UUID);
             $rows    = $query->get();
             $settings = [];
             foreach ($rows as $row)
@@ -1791,7 +1791,7 @@ class Utility extends Model
     public static function getCompanyPaymentSetting(string|int $userId): array
     {
         $rows    = DB::table('company_payment_settings')
-            ->where(DC::TABLE_CREATOR, $userId)
+            ->where(DC::COL_TABLE_CREATOR, $userId)
             ->get();
         $settings = [];
         foreach ($rows as $row)
@@ -2033,7 +2033,7 @@ class Utility extends Model
             ]);
             if (!$toRecord->exists && $delete !== 'delete') {
                 $toRecord->quantity  = $quantity;
-                $toRecord[DC::TABLE_CREATOR] = $user?->creatorId();
+                $toRecord[DC::COL_TABLE_CREATOR] = $user?->creatorId();
                 $toRecord->save();
             } elseif ($toRecord->exists) {
                 $toRecord->quantity += $quantity;
@@ -2069,7 +2069,7 @@ class Utility extends Model
                 'type'       => $type,
                 'type_id'    => $typeId,
                 'description' => $description,
-                DC::TABLE_CREATOR => $user?->creatorId(),
+                DC::COL_TABLE_CREATOR => $user?->creatorId(),
             ]);
         });
     }
@@ -2121,7 +2121,7 @@ class Utility extends Model
         ], true))
             $rows = $qb
                 ->where('user_id', $userId)
-                ->orWhere(DC::TABLE_CREATOR, $creator)
+                ->orWhere(DC::COL_TABLE_CREATOR, $creator)
                 ->get();
         else
             $rows = $qb
@@ -2837,7 +2837,7 @@ class Utility extends Model
                     ['code'      => $code],
                     [
                         'full_name'         => $fullName,
-                        DC::TABLE_CREATOR => $createdBy,
+                        DC::COL_TABLE_CREATOR => $createdBy,
                     ]
                 );
             } catch (QueryException $e) {
@@ -2914,12 +2914,12 @@ class Utility extends Model
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))
             ->sum('amount');
         $journalCredit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::TABLE_CREATOR, $user?->creatorId())
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->sum('credit');
         $journalDebit = JournalItem::join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::TABLE_CREATOR, $user?->creatorId())
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->sum('debit');
@@ -2964,7 +2964,7 @@ class Utility extends Model
             ->get();
         $journalItems = JournalItem::select(DC::TABLE_JOURNAL_ENTRIES . '.journal_id', DC::TABLE_JOURNAL_ENTRIES . '.date as transaction_date', 'journal_items.*')
             ->join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
-            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::TABLE_CREATOR, $user?->creatorId())
+            ->where(DC::TABLE_JOURNAL_ENTRIES . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->where('journal_items.account', $accountId)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('journal_items.created_at', [$start, $end]))
             ->get();
@@ -3038,7 +3038,7 @@ class Utility extends Model
             ->join(DC::TABLE_JOURNAL_ENTRIES, DC::TABLE_JOURNAL_ENTRIES . '.id', 'journal_items.journal')
             ->join(DC::TABLE_COAS, 'journal_items.account', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('journal_items.created_at', [$start, $end])
             ->groupBy('account')
             ->get()->toArray();
@@ -3052,7 +3052,7 @@ class Utility extends Model
             ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'invoice_products.product_id')
             ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.sale_chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('invoice_products.created_at', [$start, $end])
             ->groupBy(DC::TABLE_PROD_SERVS . '.sale_chart_account_id')
             ->get()->toArray();
@@ -3066,7 +3066,7 @@ class Utility extends Model
             ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'invoice_payments.account_id')
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('invoice_payments.created_at', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();
@@ -3080,7 +3080,7 @@ class Utility extends Model
             ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'revenues.account_id')
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('revenues.created_at', [$start, $end])
             ->groupBy('chart_account_id')
             ->get()->toArray();
@@ -3094,7 +3094,7 @@ class Utility extends Model
             ->join(DC::TABLE_PROD_SERVS, DC::TABLE_PROD_SERVS . '.id', 'bill_products.product_id')
             ->join(DC::TABLE_COAS, DC::TABLE_PROD_SERVS . '.expense_chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('bill_products.created_at', [$start, $end])
             ->groupBy(DC::TABLE_PROD_SERVS . '.expense_chart_account_id')
             ->get()->toArray();
@@ -3107,7 +3107,7 @@ class Utility extends Model
         )
             ->join(DC::TABLE_COAS, 'bill_accounts.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('bill_accounts.created_at', [$start, $end])
             ->groupBy('chart_account_id')
             ->get()->toArray();
@@ -3121,7 +3121,7 @@ class Utility extends Model
             ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'bill_payments.account_id')
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('bill_payments.created_at', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();
@@ -3135,7 +3135,7 @@ class Utility extends Model
             ->join('bank_accounts', DC::TABLE_BANK_ACC . '.id', 'payments.account_id')
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
-            ->where(DC::TABLE_COAS . '.' . DC::TABLE_CREATOR, $creatorId)
+            ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
             ->whereBetween('payments.created_at', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();

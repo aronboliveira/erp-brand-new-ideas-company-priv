@@ -37,7 +37,7 @@ class CreateTransfersTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropAuditColumnForeigns($table, self::TABLE);
-            $this->dropEmployeeForeign($table, self::TABLE);
+            $this->dropEmployeeColumnForeign($table, self::TABLE);
             foreach (
                 [
                     UC::COL_BRC_ID,

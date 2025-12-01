@@ -21,7 +21,7 @@ trait EmployeeConnected
       ->on(DC::TABLE_EMPLOYEES)
       ->cascadeOnDelete();
   }
-  protected function dropEmployeeForeign(Blueprint $table, string $tableName): void
+  protected function dropEmployeeColumnForeign(Blueprint $table, string $tableName): void
   {
     try {
       Schema::hasColumn($tableName, UC::COL_EMP_ID) &&

@@ -25,14 +25,16 @@ class CreateProjectInvoicesTable extends Migration
                 $table->date('due_date');
                 $table->smallInteger('status')->default(1);
                 $table->timestamps();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR); // ! CHANGED
-                foreach ([
-                    self::COL_INVOICE                => DatabaseConstants::TABLE_INVS,
-                    self::COL_PROJECT                => DatabaseConstants::TABLE_PROJECTS,
-                    self::COL_CLIENT                 => DatabaseConstants::TABLE_CLIENTS,
-                    self::COL_TAX                    => DatabaseConstants::TABLE_TAXES,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable)
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR); // ! CHANGED
+                foreach (
+                    [
+                        self::COL_INVOICE                => DatabaseConstants::TABLE_INVS,
+                        self::COL_PROJECT                => DatabaseConstants::TABLE_PROJECTS,
+                        self::COL_CLIENT                 => DatabaseConstants::TABLE_CLIENTS,
+                        self::COL_TAX                    => DatabaseConstants::TABLE_TAXES,
+                        DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    ] as $column => $referencedTable
+                )
                     $table->foreign($column)
                         ->references('id')
                         ->on($referencedTable)
@@ -44,13 +46,15 @@ class CreateProjectInvoicesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_INVOICE,
-                self::COL_PROJECT,
-                self::COL_CLIENT,
-                self::COL_TAX,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_INVOICE,
+                    self::COL_PROJECT,
+                    self::COL_CLIENT,
+                    self::COL_TAX,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

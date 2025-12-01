@@ -31,7 +31,7 @@ class ResignationController extends Controller
 
             try {
                 $query = Resignation::with('employee')
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
 
                 $resignations = strtolower($user[UsersConstants::COL_TP]) === 'employee'
                     ? $query->where(
@@ -62,7 +62,7 @@ class ResignationController extends Controller
 
             try {
                 $employees = $user[UsersConstants::COL_TP] === PermissionsConstants::CPN
-                    ? Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')
+                    ? Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')
                     : Employee::where(UsersConstants::COL_USER_ID, $user?->id)->pluck('name', 'id');
 
                 if (!ViewFacade::exists($view)) {
@@ -86,7 +86,7 @@ class ResignationController extends Controller
             if (($resp = self::guard($request, 'view resignation', self::REDIRECT_INDEX)) !== true) return $resp;
 
             try {
-                if ($resignation[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+                if ($resignation[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                     Log::warning("$action forbidden", [UsersConstants::COL_USER_ID => $user?->id, 'resignation_id' => $resignation->id]);
                     return defaultPermissionDenial($request, new \Illuminate\Auth\Access\AuthorizationException(), $action, route(self::REDIRECT_INDEX));
                 }
@@ -127,7 +127,7 @@ class ResignationController extends Controller
                     'notice_date'        => $request->input('notice_date'),
                     'resignation_date'   => $request->input('resignation_date'),
                     'description'        => $request->input('description'),
-                    DatabaseConstants::TABLE_CREATOR  => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR  => $user?->creatorId(),
                 ]);
                 DB::commit();
 
@@ -168,11 +168,11 @@ class ResignationController extends Controller
 
             try {
                 $resignation = Resignation::findOrFail($id);
-                if ($resignation[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($resignation[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
 
                 $employees = $user[UsersConstants::COL_TP] === PermissionsConstants::CPN
-                    ? Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id')
+                    ? Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id')
                     : Employee::where(UsersConstants::COL_USER_ID, $user?->id)->pluck(UsersConstants::COL_NM, 'id');
 
                 if (!ViewFacade::exists($view)) {
@@ -204,7 +204,7 @@ class ResignationController extends Controller
             DB::beginTransaction();
             try {
                 $resignation = Resignation::findOrFail($id);
-                if ($resignation[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($resignation[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
 
                 if ($user->type != 'Employee' && $request->filled(UsersConstants::COL_EMP_ID)) {
@@ -239,7 +239,7 @@ class ResignationController extends Controller
             DB::beginTransaction();
             try {
                 $resignation = Resignation::findOrFail($id);
-                if ($resignation[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($resignation[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
 
                 $resignation->delete();

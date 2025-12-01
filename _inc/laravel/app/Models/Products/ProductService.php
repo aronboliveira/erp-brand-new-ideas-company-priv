@@ -66,8 +66,8 @@ class ProductService extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [
@@ -333,7 +333,7 @@ class ProductService extends Model
         return self::select($table . '.*', 'c.name as categoryname')
             ->where($table . '.type', 'product')
             ->leftJoin(DC::TABLE_PROD_SERV_CATS . ' as c', 'c.id', '=', $table . '.' . BC::COL_CAT_ID)
-            ->where($table . '.' . DC::TABLE_CREATOR, $user?->creatorId())
+            ->where($table . '.' . DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->orderByDesc($table . '.id');
     }
 
@@ -346,7 +346,7 @@ class ProductService extends Model
         $userId = $user?->creatorId();
         $pid    = $this->id;
 
-        $purchases = Purchase::where(DC::TABLE_CREATOR, $userId);
+        $purchases = Purchase::where(DC::COL_TABLE_CREATOR, $userId);
         if ($user?->isUser())
             $purchases->where('warehouse_id', $user?->warehouse_id);
 
@@ -358,7 +358,7 @@ class ProductService extends Model
             )->quantity ?: 0
         );
 
-        $poses = Pos::where(DC::TABLE_CREATOR, $userId);
+        $poses = Pos::where(DC::COL_TABLE_CREATOR, $userId);
         if ($user?->isUser())
             $poses->where('warehouse_id', $user?->warehouse_id);
 
@@ -382,7 +382,7 @@ class ProductService extends Model
 
         return DB::table(self::TABLE)
             ->where('id', $productId)
-            ->where(DC::TABLE_CREATOR, $user?->creatorId())
+            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->value(BC::COL_TAX_ID) ?: 0;
     }
 

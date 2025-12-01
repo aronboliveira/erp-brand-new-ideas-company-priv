@@ -30,7 +30,7 @@ class BranchController extends Controller
             Log::debug("[{$base}::{$action}] start", [UsersConstants::COL_USER_ID => $request->user()?->id, 'method' => $method]);
             try {
                 $qStart = microtime(true);
-                $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $request->user()?->creatorId())->get();
+                $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()?->creatorId())->get();
                 $this->logExecutionTime($qStart, $action, 'fetchBranches');
                 $viewPath = ViewsConstants::BRC . '.' . $action;
                 if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -82,7 +82,7 @@ class BranchController extends Controller
                 $crtStart = microtime(true);
                 $branch = Branch::create([
                     CompaniesConstants::COL_BRC_NM => $request->input('name'),
-                    DatabaseConstants::TABLE_CREATOR => $request->user()?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $request->user()?->creatorId(),
                 ]);
                 $this->logExecutionTime($crtStart, $action, 'createBranch');
                 Log::info("[{$base}::{$action}] created", ['branch_id' => $branch->id, UsersConstants::COL_USER_ID => $request->user()?->id]);
@@ -115,7 +115,7 @@ class BranchController extends Controller
         return $this->measureProfile($action, function () use ($request, $branch, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'edit branch')) !== true) return $g;
-            if ($branch[DatabaseConstants::TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
+            if ($branch[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
             $viewPath = ViewsConstants::BRC . '.' . $action;
             if (!ViewFacade::exists($viewPath)) return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
             $renderStart = microtime(true);
@@ -134,7 +134,7 @@ class BranchController extends Controller
         return $this->measureProfile($action, function () use ($request, $branch, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'edit branch')) !== true) return $g;
-            if ($branch[DatabaseConstants::TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
+            if ($branch[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
             $valStart = microtime(true);
             $v = validator($request->all(), [CompaniesConstants::COL_BRC_NM => 'required']);
             $this->logExecutionTime($valStart, $action, 'validate');
@@ -162,7 +162,7 @@ class BranchController extends Controller
         return $this->measureProfile($action, function () use ($request, $branch, $action, $method, $class, $base) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete branch')) !== true) return $g;
-            if ($branch[DatabaseConstants::TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
+            if ($branch[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()?->creatorId()) return defaultPermissionDenial($request, null, $class . '::' . $action);
             try {
                 $delStart = microtime(true);
                 $branch->delete();

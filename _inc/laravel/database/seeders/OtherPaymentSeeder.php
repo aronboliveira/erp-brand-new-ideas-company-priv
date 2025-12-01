@@ -83,7 +83,7 @@ final class OtherPaymentSeeder extends Seeder
 						'amount'           => $amount,
 						'type'             => $type, // cast para enum no model
 						'notes'            => self::SEED_TAG,
-						DC::TABLE_CREATOR  => $systemUserId,
+						DC::COL_TABLE_CREATOR  => $systemUserId,
 						'created_at'       => $dt->format('Y-m-d H:i:s'),
 						'updated_at'       => $dt->format('Y-m-d H:i:s'),
 					]);

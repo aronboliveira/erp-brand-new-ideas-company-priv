@@ -52,7 +52,7 @@ final class ChartOfAccountController extends Controller
                 $chartAccounts = $types->mapWithKeys(fn($t) => [
                     $t->name => ChartOfAccount::where([
                         [ChartsConstants::COL_TP, $t->id],
-                        [DatabaseConstants::TABLE_CREATOR, $user?->creatorId()]
+                        [DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()]
                     ])->with(ChartsConstants::COL_SUBTP)->get(),
                 ]);
                 $this->logExecutionTime($t2, $action, 'loadAccountsByType');
@@ -134,7 +134,7 @@ final class ChartOfAccountController extends Controller
                     ChartsConstants::COL_SUBTP => $req->sub_type,
                     ChartsConstants::COL_DESC  => $req->description,
                     ChartsConstants::COL_ENB   => $req->has(ChartsConstants::COL_ENB) ? 1 : 0,
-                    DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($t, $action, 'createAccount');
 
@@ -186,7 +186,7 @@ final class ChartOfAccountController extends Controller
                     'journal_items.credit'
                 )
                     ->join('journal_entries', DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.id', '=', 'journal_items.journal')
-                    ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                    ->where(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.' . DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->where('journal_items.account', $account->id)
                     ->whereBetween(DatabaseConstants::TABLE_JOURNAL_ENTRIES . '.date', [$start, $end])
                     ->get();

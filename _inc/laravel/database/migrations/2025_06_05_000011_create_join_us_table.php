@@ -16,9 +16,9 @@ class CreateJoinUsTable extends Migration
                 $table->uuid('id')->primary();
                 $table->uuid("query_key")->unique()->index();
                 $table->string('email')->unique();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
                 $table->timestamps();
-                $table->foreign(DatabaseConstants::TABLE_CREATOR)
+                $table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
                     ->references('id')
                     ->on(DatabaseConstants::TABLE_USERS)
                     ->cascadeOnDelete();
@@ -30,12 +30,12 @@ class CreateJoinUsTable extends Migration
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
             try {
-                Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR) &&
-                    $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+                Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR) &&
+                    $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
             } catch (\Exception $e) {
                 Log::warning(
                     'Failed to drop foreign key for '
-                        . DatabaseConstants::TABLE_CREATOR
+                        . DatabaseConstants::COL_TABLE_CREATOR
                         . ' on table '
                         . self::TABLE
                         . ': '

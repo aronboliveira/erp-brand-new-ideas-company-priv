@@ -32,7 +32,7 @@ final class ProductStockController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, PermissionsConstants::MNG_PRD_SV, self::REDIRECT_INDEX)) !== true) return $c;
             $productServices = ProductService::query()
-                ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                 ->where('type', 'product')
                 ->get();
             return view(ViewsConstants::PRD_STK . '.index', compact('productServices'));
@@ -47,7 +47,7 @@ final class ProductStockController extends Controller
         return $this->measureProfile($action, function () use ($r) {
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = $this->guard($r, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
-            $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+            $products = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                 ->where('type', 'product')
                 ->pluck('name', 'id');
             return view(ViewsConstants::PRD_STK . '.create', compact('products'));
@@ -68,7 +68,7 @@ final class ProductStockController extends Controller
             ])) return $c;
             try {
                 $p = ProductService::whereKey($r->product_id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                     ->firstOrFail();
                 $p->increment('quantity', $r->quantity);
                 Utility::addProductStock(
@@ -94,7 +94,7 @@ final class ProductStockController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($c = self::guard($r, 'edit product & service', self::REDIRECT_INDEX)) !== true) return $c;
             $productService = ProductService::whereKey($id)
-                ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                 ->firstOrFail();
             return view(ViewsConstants::PRD_STK . '.edit', compact('productService'));
         });
@@ -111,7 +111,7 @@ final class ProductStockController extends Controller
             if ($c = self::v($r, ['quantity' => 'required|integer|min:1'])) return $c;
             try {
                 $p = ProductService::whereKey($id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                     ->firstOrFail();
                 $p->increment('quantity', $r->quantity);
                 Utility::addProductStock(
@@ -138,7 +138,7 @@ final class ProductStockController extends Controller
             if (($c = self::guard($r, 'delete product & service', self::REDIRECT_INDEX)) !== true) return $c;
             try {
                 $product = ProductService::whereKey($id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                     ->firstOrFail();
                 $product->delete();
                 return back()->with('success', __('Product deleted.'));

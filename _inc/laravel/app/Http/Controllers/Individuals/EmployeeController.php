@@ -56,7 +56,7 @@ class EmployeeController extends Controller
             $t = microtime(true);
             $employees = strtolower($u[UsersConstants::COL_TP]) === 'employee'
                 ? Employee::where(UsersConstants::COL_USER_ID, $u->id)->get()
-                : Employee::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
+                : Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
             $this->logExecutionTime($t, $action, 'employeesLoaded');
             $view = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
@@ -74,11 +74,11 @@ class EmployeeController extends Controller
             Log::debug("[$base::$action] preload form data", ['creator' => $u->creatorId()]);
             $t = microtime(true);
             $settings    = Utility::settings();
-            $documents   = Document::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
-            $branches    = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-            $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-            $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
-            $employees   = User::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
+            $documents   = Document::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
+            $branches    = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+            $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
+            $employees   = User::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
             $employeesId = $u->employeeIdFormat(self::nextEmployeeNumber());
             $this->logExecutionTime($t, $action, 'formDataLoaded');
             $view = self::SINGULAR . '.' . $action;
@@ -126,7 +126,7 @@ class EmployeeController extends Controller
                     UsersConstants::COL_PW => Hash::make($r[UsersConstants::COL_PW]),
                     UsersConstants::COL_TP => self::SINGULAR,
                     UsersConstants::COL_LG => DatabaseConstants::DEFAULT_UUID,
-                    DatabaseConstants::TABLE_CREATOR => $u->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId(),
                 ]);
                 $employeeUser->assignRole('Employee');
                 $employee = Employee::create([
@@ -150,7 +150,7 @@ class EmployeeController extends Controller
                     'bank_identifier_code' => $r->bank_identifier_code,
                     'branch_location' => $r->branch_location,
                     'tax_payer_id' => $r->tax_payer_id,
-                    DatabaseConstants::TABLE_CREATOR => $u->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId(),
                 ]);
                 self::syncDocs($r, $employee->employee_id);
                 $settings = Utility::settings($u->creatorId());
@@ -186,12 +186,12 @@ class EmployeeController extends Controller
                 Log::debug("[$base::$action] load employee", ['id' => $id]);
                 $t = microtime(true);
                 $employee = Employee::findOrFail($id);
-                $documents = Document::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
-                $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
-                $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-                $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
+                $documents = Document::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
+                $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend('Select Branch', '');
+                $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+                $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
                 $employeesId = $u->employeeIdFormat($employee->employee_id);
-                $departmentData = Department::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                $departmentData = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                     ->where(CompaniesConstants::COL_BRC_ID, $employee[CompaniesConstants::COL_BRC_ID])
                     ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
                 $this->logExecutionTime($t, $action, 'formDataLoaded');
@@ -282,10 +282,10 @@ class EmployeeController extends Controller
                 Log::debug("[$base::$action] load employee", ['id' => $id]);
                 $t = microtime(true);
                 $employee = Employee::findOrFail($id);
-                $documents  = Document::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
-                $branches   = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-                $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-                $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
+                $documents  = Document::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
+                $branches   = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+                $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+                $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
                 $employeesId = $u->employeeIdFormat($employee->employee_id);
                 $this->logExecutionTime($t, $action, 'detailLoaded');
                 $view = self::SINGULAR . '.' . $action;
@@ -323,14 +323,14 @@ class EmployeeController extends Controller
             if (($c = self::guard($r, 'manage employee profile', self::REDIRECT_INDEX)) !== true) return $c;
             Log::debug("[$base::$action] filters", $r->only(['branch', 'department', 'designation']));
             $t = microtime(true);
-            $employeesQ = Employee::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+            $employeesQ = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                 ->when($r->branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $r->branch))
                 ->when($r->department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $r->department))
                 ->when($r->designation, fn($q) => $q->where('designation_id', $r->designation));
             $employees = $employeesQ->get();
-            $branches    = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend(__('All'), '');
-            $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend(__('All'), '');
-            $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('name', 'id')->prepend(__('All'), '');
+            $branches    = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id')->prepend(__('All'), '');
+            $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id')->prepend(__('All'), '');
+            $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id')->prepend(__('All'), '');
             $this->logExecutionTime($t, $action, 'profileDataLoaded');
             $view = self::SINGULAR . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException($r, new \RuntimeException('View not found'), $base . '::' . $action, route(VW::EMP . '.index')); // ! ALERT
@@ -355,11 +355,11 @@ class EmployeeController extends Controller
                 $empId = Crypt::decrypt($encId);
                 Log::debug("[$base::$action] decrypt ok", ['empId' => $empId]);
                 $t = microtime(true);
-                $employee = Employee::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->whereKey($empId)->firstOrFail();
-                $documents   = Document::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
-                $branches    = Branch::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-                $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-                $designations = Designation::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
+                $employee = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->whereKey($empId)->firstOrFail();
+                $documents   = Document::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
+                $branches    = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+                $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+                $designations = Designation::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->pluck('name', 'id');
                 $employeesId = $u->employeeIdFormat($employee->employee_id);
                 $this->logExecutionTime($t, $action, 'employeeProfileLoaded');
                 $view = VW::EMP . '.show';
@@ -380,7 +380,7 @@ class EmployeeController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             Log::debug("[$base::$action] load users", ['creator' => $u->creatorId()]);
             $t = microtime(true);
-            $users = User::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
+            $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
             $this->logExecutionTime($t, $action, 'usersLoaded');
             $view = VW::EMP . '.' . $action;
             if (!ViewFacade::exists($view)) return defaultUndefinedException(request(), new \RuntimeException('View not found'), $base . '::' . $action, route(self::SINGULAR . '.index'));
@@ -409,7 +409,7 @@ class EmployeeController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             Log::debug("[$base::$action] list departments", [$r[CompaniesConstants::COL_BRC_ID]]);
-            $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->when($r[CompaniesConstants::COL_BRC_ID] != 0, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $r[CompaniesConstants::COL_BRC_ID]))
                 ->pluck(CompaniesConstants::COL_DEP_NM, 'id');
             return response()->json($departments);
@@ -521,7 +521,7 @@ class EmployeeController extends Controller
                             UsersConstants::COL_PW => Hash::make($pwd ?: Str::random(8)),
                             UsersConstants::COL_TP => self::SINGULAR,
                             UsersConstants::COL_LG => DatabaseConstants::DEFAULT_LANG,
-                            DatabaseConstants::TABLE_CREATOR => $u->creatorId(),
+                            DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId(),
                         ]
                     );
                     $user?->assignRole('Employee');
@@ -546,7 +546,7 @@ class EmployeeController extends Controller
                             'bank_identifier_code' => $bic,
                             'branch_location' => $brLoc,
                             'tax_payer_id' => $tax,
-                            DatabaseConstants::TABLE_CREATOR => $u->creatorId(),
+                            DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId(),
                         ]
                     );
                 }
@@ -574,7 +574,7 @@ class EmployeeController extends Controller
             instanceof RedirectResponse
         ) return $userOrRedirect;
         $user = $userOrRedirect;
-        $latest = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $latest = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->latest()
             ->value(UsersConstants::COL_EMP_ID);
         return is_numeric($latest) ? (int)$latest + 1 : $latest;
@@ -639,7 +639,7 @@ class EmployeeController extends Controller
         $lang = $u->currentLanguage() ?? DatabaseConstants::DEFAULT_LANG;
         $tpl = $templateModel::where([
             'lang' => $lang,
-            DatabaseConstants::TABLE_CREATOR => $u->creatorId()
+            DatabaseConstants::COL_TABLE_CREATOR => $u->creatorId()
         ])->first();
         $emp = Employee::find($empId);
         if (!$tpl || !$emp) return redirect()->back()->with('error', __('Template or employee missing.'));

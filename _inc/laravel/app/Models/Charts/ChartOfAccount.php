@@ -45,8 +45,8 @@ class ChartOfAccount extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [
@@ -78,8 +78,8 @@ class ChartOfAccount extends Model
         parent::booted();
 
         static::creating(function (self $coa): void {
-            if (empty($coa->{UC::COL_USER_ID}) && !empty($coa->{DC::TABLE_CREATOR}))
-                $coa->{UC::COL_USER_ID} = $coa->{DC::TABLE_CREATOR};
+            if (empty($coa->{UC::COL_USER_ID}) && !empty($coa->{DC::COL_TABLE_CREATOR}))
+                $coa->{UC::COL_USER_ID} = $coa->{DC::COL_TABLE_CREATOR};
         });
 
         static::saving(function (self $coa): void {
@@ -196,7 +196,7 @@ class ChartOfAccount extends Model
         if ($coa->depth === null || $coa->depth < 0)
             $coa->depth = 0;
 
-        if ($coa->{DC::TABLE_CREATOR} === DC::DEFAULT_UUID)
+        if ($coa->{DC::COL_TABLE_CREATOR} === DC::DEFAULT_UUID)
             $coa->{UC::COL_IS_SYS} = true;
         elseif ($coa->{UC::COL_IS_SYS} === null)
             $coa->{UC::COL_IS_SYS} = false;

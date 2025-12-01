@@ -60,8 +60,8 @@ final class MessageSeeder extends Seeder
 					'seen'            => $faker->boolean(55),
 					'created_at'      => $createdAt,
 					'updated_at'      => $createdAt,
-					DC::TABLE_CREATOR => $systemUserId,
-					DC::TABLE_UPDATER => null,
+					DC::COL_TABLE_CREATOR => $systemUserId,
+					DC::COL_TABLE_UPDATER => null,
 				]);
 			}
 		}, 3);

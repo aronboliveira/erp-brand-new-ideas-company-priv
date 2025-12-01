@@ -77,7 +77,7 @@ class RegisteredUserController extends Controller
           UsersConstants::COL_PL => DatabaseConstants::DEFAULT_PLAN,
           UsersConstants::COL_LG => Utility::getValByName(SettingsConstants::DEF_LNG),
           UsersConstants::COL_AV => '',
-          DatabaseConstants::TABLE_CREATOR => $ctx['requester'],
+          DatabaseConstants::COL_TABLE_CREATOR => $ctx['requester'],
         ]);
         Auth::login($user);
         Log::info("{$action} – user created and logged in", ['user_id' => $user->id]);

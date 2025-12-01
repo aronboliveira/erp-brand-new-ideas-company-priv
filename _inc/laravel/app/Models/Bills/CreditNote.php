@@ -2,28 +2,14 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
+use App\Config\Constants\DatabaseConstants as DC;
 
-class CreditNote extends Model
+class CreditNote extends CardNote
 {
-    use UsesUuids;
+    protected $table = DC::TABLE_CR_NOTES;
 
-    private const COL_CUSTOMER = 'customer';
-    private const COL_INVOICE = 'invoice';
-
-    protected $fillable = [
-        self::COL_INVOICE,
-        self::COL_CUSTOMER,
-        'amount',
-        'date',
-        'description', // * added to match migration
-    ];
-
-    public function customer(): HasOne
+    protected function monetarySign(): int
     {
-        return $this
-            ->hasOne(Customer::class, 'customer_id', self::COL_CUSTOMER);
-        // * consider using belongsTo(Customer::class, self::COL_CUSTOMER)
+        return -1;
     }
 }

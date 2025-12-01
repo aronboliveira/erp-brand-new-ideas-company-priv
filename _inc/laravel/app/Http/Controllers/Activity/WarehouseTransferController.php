@@ -40,7 +40,7 @@ class WarehouseTransferController extends Controller
             if (($redirect = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $redirect;
             try {
                 $buildStart = microtime(true);
-                $query = WarehouseTransfer::with(['product', 'fromWarehouse'])->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+                $query = WarehouseTransfer::with(['product', 'fromWarehouse'])->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
                 $fetchStart = microtime(true);
                 $transfers = $query->get();
@@ -78,8 +78,8 @@ class WarehouseTransferController extends Controller
             try {
                 Log::info("[{$base}::{$action}] view", ['user_id' => $user?->id, 'method' => $method]);
                 $listsStart = microtime(true);
-                $fromWarehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-                $toWarehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
+                $fromWarehouses = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+                $toWarehouses = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
                 $products = WarehouseProduct::join('product_services', 'warehouse_products.product_id', '=', 'product_services.id')->pluck('name', 'product_id')->prepend('Select products', '');
                 $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
                 Log::info("[{$base}::{$action}] view data", ['fromCount' => $fromWarehouses->count(), 'toCount' => $toWarehouses->count(), 'prodCount' => $products->count()]);
@@ -112,7 +112,7 @@ class WarehouseTransferController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, self::PERM_MANAGE, self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($transfer[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($transfer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
             try {
                 Log::info("[{$base}::{$action}] called", ['transferId' => $transfer->id, 'user_id' => $user?->id, 'method' => $method]);
                 if (!ViewFacade::exists($viewPath)) {
@@ -168,7 +168,7 @@ class WarehouseTransferController extends Controller
                         'product_id' => $req->input('productId'),
                         'quantity' => $req->input('quantity'),
                         'date' => $req->input('date'),
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createTransfer');
                     $invStart = microtime(true);
@@ -197,7 +197,7 @@ class WarehouseTransferController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, self::PERM_DELETE, self::REDIRECT_INDEX)) !== true) return $redirect;
-            if ($transfer[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($transfer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
             Log::info("[{$base}::{$action}] start", ['transfer_id' => $transfer->id, 'user_id' => $user?->id, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
@@ -238,7 +238,7 @@ class WarehouseTransferController extends Controller
                 $products = WarehouseProduct::join('product_services', 'warehouse_products.product_id', '=', 'product_services.id')->when($warehouseId != 0, fn($q) => $q->where('warehouse_id', $warehouseId))->pluck('name', 'product_id');
                 $this->logExecutionTime($prodStart, $action, 'fetchProducts');
                 $whStart = microtime(true);
-                $toWarehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->when($warehouseId != 0, fn($q) => $q->where('id', '!=', $warehouseId))->pluck('name', 'id');
+                $toWarehouses = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->when($warehouseId != 0, fn($q) => $q->where('id', '!=', $warehouseId))->pluck('name', 'id');
                 $this->logExecutionTime($whStart, $action, 'fetchWarehouses');
                 Log::info("[{$base}::{$action}] success", ['warehouseId' => $warehouseId, 'productsCount' => $products->count(), 'warehousesCount' => $toWarehouses->count(), 'method' => $method]);
                 return response()->json(['wareProducts' => $products, 'toWarehouses' => $toWarehouses]);
@@ -264,7 +264,7 @@ class WarehouseTransferController extends Controller
             try {
                 $productId = $req->input('productId');
                 $fetchStart = microtime(true);
-                $quantities = WarehouseProduct::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->when($productId != 0, fn($q) => $q->where('product_id', $productId))->pluck('quantity', 'product_id');
+                $quantities = WarehouseProduct::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->when($productId != 0, fn($q) => $q->where('product_id', $productId))->pluck('quantity', 'product_id');
                 $this->logExecutionTime($fetchStart, $action, 'fetchQuantities');
                 Log::info("[{$base}::{$action}] success", ['productId' => $productId, 'count' => $quantities->count(), 'method' => $method]);
                 return response()->json($quantities);

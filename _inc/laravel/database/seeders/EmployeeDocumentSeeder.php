@@ -147,8 +147,8 @@ final class EmployeeDocumentSeeder extends Seeder
 					$m->viewers                  = $viewers;
 					$m->editors                  = $editors;
 					$m->executors                = $executors;
-					$m->{DC::TABLE_CREATOR}      = DC::DEFAULT_UUID;
-					$m->setAttribute(DC::TABLE_UPDATER, null);
+					$m->{DC::COL_TABLE_CREATOR}      = DC::DEFAULT_UUID;
+					$m->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 					$m->save();
 				}

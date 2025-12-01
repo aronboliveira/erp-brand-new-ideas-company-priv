@@ -13,7 +13,7 @@ class Language extends Model
     protected $fillable = [
         'code',
         'full_name',
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
 
     public static function languageData(string $code): ?self
@@ -21,7 +21,7 @@ class Language extends Model
         return cache()->remember(
             'language_data_' . $code,
             now()->addHours(24),
-            fn () => self::where('code', $code)->first()
+            fn() => self::where('code', $code)->first()
         );
     }
 }

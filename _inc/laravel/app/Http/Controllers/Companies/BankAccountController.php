@@ -41,7 +41,7 @@ class BankAccountController extends Controller
                 $this->_authorize($request, 'view bank account');
 
                 $t = microtime(true);
-                $accounts = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $accounts = BankAccount::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($t, $action, 'loadAccounts');
 
                 $view = self::ROUTE_SINGULAR . '.' . $func;
@@ -75,10 +75,10 @@ class BankAccountController extends Controller
 
                 $t = microtime(true);
                 $chartAccounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')
-                    ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck('code_name', 'id')
                     ->prepend(__('Select Account'), '');
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('module', self::SINGULAR)
                     ->get();
                 $this->logExecutionTime($t, $action, 'loadCreateFormData');
@@ -118,7 +118,7 @@ class BankAccountController extends Controller
                     // unique:table,column,NULL,id,created_by,{$creatorId}
                     BanksConstants::COL_ACC_N => 'required|string|unique:' .
                         DatabaseConstants::TABLE_BANK_ACC . ',' . BanksConstants::COL_ACC_N .
-                        ',NULL,id,' . DatabaseConstants::TABLE_CREATOR . ',' . $creatorId,
+                        ',NULL,id,' . DatabaseConstants::COL_TABLE_CREATOR . ',' . $creatorId,
                     BanksConstants::COL_OB    => 'required|numeric',
                     BanksConstants::COL_CT    => 'required|regex:/^([0-9\s\-\+\(\)]*)$/',
                 ]);
@@ -137,7 +137,7 @@ class BankAccountController extends Controller
                     BanksConstants::COL_OB,
                     BanksConstants::COL_CT,
                     BanksConstants::COL_ADR
-                ]) + [DatabaseConstants::TABLE_CREATOR => $creatorId];
+                ]) + [DatabaseConstants::COL_TABLE_CREATOR => $creatorId];
 
                 $account = BankAccount::create($data);
                 CustomField::saveData($account, $request->customField);
@@ -203,11 +203,11 @@ class BankAccountController extends Controller
 
                 $t = microtime(true);
                 $chartAccounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')
-                    ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck('code_name', 'id')
                     ->prepend(__('Select Account'), '');
                 $bankAccount->customField = CustomField::getData($bankAccount, self::SINGULAR);
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('module', self::SINGULAR)
                     ->get();
                 $this->logExecutionTime($t, $action, 'loadEditFormData');
@@ -249,7 +249,7 @@ class BankAccountController extends Controller
                     // unique:table,column,{ignore_id},id,created_by,{$creatorId}
                     BanksConstants::COL_ACC_N => 'required|string|unique:' .
                         DatabaseConstants::TABLE_BANK_ACC . ',' . BanksConstants::COL_ACC_N . ',' .
-                        $bankAccount->id . ',id,' . DatabaseConstants::TABLE_CREATOR . ',' . $creatorId,
+                        $bankAccount->id . ',id,' . DatabaseConstants::COL_TABLE_CREATOR . ',' . $creatorId,
                     BanksConstants::COL_OB    => 'required|numeric',
                     BanksConstants::COL_CT    => 'required|regex:/^([0-9\s\-\+\(\)]*)$/',
                 ]);
@@ -268,7 +268,7 @@ class BankAccountController extends Controller
                     BanksConstants::COL_OB,
                     BanksConstants::COL_CT,
                     BanksConstants::COL_ADR
-                ]) + [DatabaseConstants::TABLE_CREATOR => $creatorId];
+                ]) + [DatabaseConstants::COL_TABLE_CREATOR => $creatorId];
 
                 $bankAccount->update($data);
                 CustomField::saveData($bankAccount, $request->customField);

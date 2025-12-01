@@ -86,7 +86,7 @@ class Transaction extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
 
     protected $casts = [

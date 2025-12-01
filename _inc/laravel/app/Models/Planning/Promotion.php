@@ -18,7 +18,7 @@ class Promotion extends Model
         UC::COL_PRMT_DT,
         'description'
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = [
         'employee',
         'designation',

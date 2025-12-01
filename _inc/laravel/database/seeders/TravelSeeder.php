@@ -99,7 +99,7 @@ final class TravelSeeder extends Seeder
 					$t->notes             = $faker->boolean(35) ? $faker->paragraph() : null;
 
 					// Auditoria
-					$t->{DC::TABLE_CREATOR} = $systemUserId;
+					$t->{DC::COL_TABLE_CREATOR} = $systemUserId;
 
 					try {
 						$t->save();

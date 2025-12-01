@@ -18,7 +18,7 @@ class SetSalary extends Model
 		'frequency',
 		BC::COL_MDAY_LMT,
 	];
-	protected $guarded = ['id', DC::TABLE_CREATOR];
+	protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 	protected $with = [
 		'employee',
 	];
@@ -51,6 +51,6 @@ class SetSalary extends Model
 
 	public function creator(): BelongsTo
 	{
-		return $this->belongsTo(User::class, DC::TABLE_CREATOR, 'id');
+		return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
 	}
 }

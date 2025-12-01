@@ -44,7 +44,7 @@ final class ProjectSeeder extends Seeder
 					$c->{UC::COL_AV}      = 'default.png';
 					$c->{UC::COL_MSG_CL}  = '#2180f3';
 					$c->{UC::COL_DEL_STT} = 1;
-					$c->{DC::TABLE_CREATOR} = $systemUserId;
+					$c->{DC::COL_TABLE_CREATOR} = $systemUserId;
 					$c->save();
 				}
 			}
@@ -61,7 +61,7 @@ final class ProjectSeeder extends Seeder
 					$s->setAttribute(PJC::COL_NM, $nm);
 					$s->setAttribute(PJC::COL_CL, $faker->hexColor());
 					$s->setAttribute(AC::COL_OD, $ord++);
-					$s->setAttribute(DC::TABLE_CREATOR, $systemUserId);
+					$s->setAttribute(DC::COL_TABLE_CREATOR, $systemUserId);
 					$s->save();
 				}
 			}
@@ -94,8 +94,8 @@ final class ProjectSeeder extends Seeder
 				$p->{PJC::COL_PASSWORD}    = null; // crítico: evitar armazenar texto puro
 				$p->{PJC::COL_COPYLINK}    = null;
 				$p->{PJC::COL_TAGS}        = $faker->words(3, true);
-				$p->{DC::TABLE_CREATOR}    = $systemUserId;
-				$p->setAttribute(DC::TABLE_UPDATER, null);
+				$p->{DC::COL_TABLE_CREATOR}    = $systemUserId;
+				$p->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 				$p->save();
 			}

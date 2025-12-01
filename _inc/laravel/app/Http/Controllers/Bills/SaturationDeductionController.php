@@ -34,7 +34,7 @@ class SaturationDeductionController extends Controller
             if (($redirect = self::guard($request, 'create saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
             $employee = Employee::findOrFail($employeeId);
-            $options = DeductionOption::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->pluck('name', 'id');
+            $options = DeductionOption::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->pluck('name', 'id');
             $types = SaturationDeduction::$saturationDeductionType;
 
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $request->user()->id, UsersConstants::COL_EMP_ID => $employeeId]);
@@ -61,7 +61,7 @@ class SaturationDeductionController extends Controller
             Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id, 'deduction_id' => $saturationDeduction->id]);
 
             try {
-                if ($saturationDeduction[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
+                if ($saturationDeduction[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
                     return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
                 }
 
@@ -107,7 +107,7 @@ class SaturationDeductionController extends Controller
                     'title',
                     'type',
                     'amount'
-                ]) + [DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId()];
+                ]) + [DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId()];
 
                 $deduction = SaturationDeduction::create($data);
                 Log::info($action . ' success', ['deduction_id' => $deduction->id]);
@@ -135,11 +135,11 @@ class SaturationDeductionController extends Controller
             if (($redirect = self::guard($request, 'edit saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
             $deduction = SaturationDeduction::findOrFail($id);
-            if ($deduction[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+            if ($deduction[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
-            $options = DeductionOption::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->pluck('name', 'id');
+            $options = DeductionOption::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->pluck('name', 'id');
             $types = SaturationDeduction::$saturationDeductionType;
 
             Log::debug($action . ' start', ['deduction_id' => $id]);
@@ -163,7 +163,7 @@ class SaturationDeductionController extends Controller
             if (($redirect = self::guard($request, 'edit saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
             $deduction = SaturationDeduction::findOrFail($id);
-            if ($deduction[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+            if ($deduction[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 
@@ -205,7 +205,7 @@ class SaturationDeductionController extends Controller
             if (($redirect = self::guard($request, 'delete saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
 
             $deduction = SaturationDeduction::findOrFail($id);
-            if ($deduction[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+            if ($deduction[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
             }
 

@@ -28,7 +28,7 @@ class TerminationTypeController extends Controller
                 return $redirect;
             }
 
-            $terminationTypes = TerminationType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $terminationTypes = TerminationType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
 
             if (!ViewFacade::exists($view)) {
                 return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(self::REDIRECT_INDEX));

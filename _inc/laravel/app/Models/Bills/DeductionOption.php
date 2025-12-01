@@ -24,7 +24,7 @@ class DeductionOption extends Model
         BC::COL_MDAY_LMT,
     ];
 
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
 
     protected $casts = [
         BC::COL_DD_TYPE => DeductionType::class,

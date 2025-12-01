@@ -24,7 +24,7 @@ class WarehouseController extends Controller
         return $this->measureProfile($action, function () use ($request) {
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::MNG_WRH, self::ROUTE_INDEX)) !== true) return $c;
-            $warehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
+            $warehouses = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->get();
             Log::debug(__METHOD__ . ' fetched warehouses', ['count' => $warehouses->count()]);
             return ViewFacade::make(ViewsConstants::WRH . '.index', compact('warehouses'));
         }, ['method' => $method, 'class' => class_basename(static::class)]);
@@ -87,7 +87,7 @@ class WarehouseController extends Controller
                 if ($warehouse->created_by !== $request->user()->creatorId()) return defaultPermissionDenial($request, null, __METHOD__, route(self::ROUTE_INDEX));
 
                 $products = WarehouseProduct::where('warehouse_id', $warehouse->id)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->with('product')
                     ->get();
 

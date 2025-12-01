@@ -18,7 +18,7 @@ class InvoiceBankTransfer extends Model
         'status',
         'date',
         'receipt',
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
 
     protected $casts = [
@@ -47,6 +47,6 @@ class InvoiceBankTransfer extends Model
      **/
     public function createdBy(): BelongsTo // * ADDED
     {
-        return $this->belongsTo(User::class, DatabaseConstants::TABLE_CREATOR, 'id');
+        return $this->belongsTo(User::class, DatabaseConstants::COL_TABLE_CREATOR, 'id');
     }
 }

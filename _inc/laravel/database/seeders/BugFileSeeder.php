@@ -99,8 +99,8 @@ final class BugFileSeeder extends Seeder
 					$bf->extension           = mb_strtolower($ext);
 					$bf->file_size           = $pickSize($ext);
 					$bf->{UC::COL_U_TP}      = $typePool[array_rand($typePool)]; // enum (cast/normalização no model)
-					$bf->{DC::TABLE_CREATOR} = $systemUserId;
-					$bf->setAttribute(DC::TABLE_UPDATER, null);
+					$bf->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$bf->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$bf->setAttribute('created_at', $ts);
 					$bf->setAttribute('updated_at', $ts);
 					$bf->save();

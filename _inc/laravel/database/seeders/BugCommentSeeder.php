@@ -61,8 +61,8 @@ final class BugCommentSeeder extends Seeder
 					$bc->bug_id              = $bugId;
 					$bc->comment             = $faker->realText($faker->numberBetween(120, 600));
 					$bc->user_type           = $typePool[array_rand($typePool)]; // crítico: enum garante valor canônico
-					$bc->{DC::TABLE_CREATOR} = $authorId;
-					$bc->setAttribute(DC::TABLE_UPDATER, null);
+					$bc->{DC::COL_TABLE_CREATOR} = $authorId;
+					$bc->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$bc->setAttribute('created_at', $ts);
 					$bc->setAttribute('updated_at', $ts);
 					$bc->save();

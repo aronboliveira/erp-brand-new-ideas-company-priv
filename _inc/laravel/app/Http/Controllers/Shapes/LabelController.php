@@ -42,8 +42,8 @@ class LabelController extends Controller
                 $ownerId  = $u->ownerId();
                 $rows     = Label::select(DatabaseConstants::TABLE_LBL . '.*', DatabaseConstants::TABLE_PIPELINES . '.name as pipeline')
                     ->join(DatabaseConstants::TABLE_PIPELINES, DatabaseConstants::TABLE_PIPELINES . '.id', '=', DatabaseConstants::TABLE_LBL . '.pipeline_id')
-                    ->where(DatabaseConstants::TABLE_PIPELINES . '.' . DatabaseConstants::TABLE_CREATOR, $ownerId)
-                    ->where(DatabaseConstants::TABLE_LBL . '.' . DatabaseConstants::TABLE_CREATOR, $ownerId)
+                    ->where(DatabaseConstants::TABLE_PIPELINES . '.' . DatabaseConstants::COL_TABLE_CREATOR, $ownerId)
+                    ->where(DatabaseConstants::TABLE_LBL . '.' . DatabaseConstants::COL_TABLE_CREATOR, $ownerId)
                     ->orderBy(DatabaseConstants::TABLE_LBL . '.pipeline_id')
                     ->get();
                 $this->logExecutionTime($t, $sig, 'fetchLabels');
@@ -277,7 +277,7 @@ class LabelController extends Controller
     {
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user  = $userOrRedirect;
-        $owner = $label[DatabaseConstants::TABLE_CREATOR] === $user?->ownerId();
+        $owner = $label[DatabaseConstants::COL_TABLE_CREATOR] === $user?->ownerId();
         Log::info(__METHOD__ . ' ownership', ['label_id' => $label->id, 'is_owner' => $owner]);
         return $owner;
     }

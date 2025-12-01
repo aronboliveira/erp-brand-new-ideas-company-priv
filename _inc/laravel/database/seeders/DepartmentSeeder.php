@@ -60,8 +60,8 @@ final class DepartmentSeeder extends Seeder
 					$d->budget               = $faker->randomFloat(2, 10_000, 800_000);
 					$d->expenses             = $faker->randomFloat(2, 2_000, 600_000);
 					$d->profit               = max(0, $d->budget - $d->expenses);
-					$d->{DC::TABLE_CREATOR}  = DC::DEFAULT_UUID;
-					$d->setAttribute(DC::TABLE_UPDATER, null);
+					$d->{DC::COL_TABLE_CREATOR}  = DC::DEFAULT_UUID;
+					$d->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$d->save();
 				}
 			}

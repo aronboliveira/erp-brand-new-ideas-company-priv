@@ -157,6 +157,8 @@ class BillsConstants
 	public const COL_BACC_ID = 'account_id';
 	public const COL_DSC_AMT = 'discount_amount';
 	public const COL_ADD_RCP = 'add_receipt';
+	public const COL_ISS_DT = 'issue_date';
+	public const COL_REF_N = 'ref_number';
 
 	// * VALORES
 

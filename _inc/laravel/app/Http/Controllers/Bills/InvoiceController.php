@@ -76,13 +76,13 @@ final class InvoiceController extends Controller
             if (($r = self::guard($req, PermissionsConstants::MNG_INV)) !== true) return $r;
             try {
                 $custStart = microtime(true);
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
                 $this->logExecutionTime($custStart, $action, 'fetchCustomers');
                 $stStart = microtime(true);
                 $status = Invoice::$statuses;
                 $this->logExecutionTime($stStart, $action, 'loadStatuses');
                 $qryStart = microtime(true);
-                $q = Invoice::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId());
+                $q = Invoice::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId());
                 if ($req->customer ?? null) $q->where('customer_id', $req->customer);
                 if ($req->issue_date ?? null) {
                     $parts = array_map('trim', explode('to', $req->issue_date));
@@ -122,19 +122,19 @@ final class InvoiceController extends Controller
             if (($r = self::guard($req, 'create invoice', VW::INV . '.index')) !== true) return $r;
             try {
                 $cfStart = microtime(true);
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->where('module', self::SINGULAR)->get();
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where('module', self::SINGULAR)->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $numStart = microtime(true);
                 $invoiceNum = $req->user()->invoiceNumberFormat(self::_nextNumber());
                 $this->logExecutionTime($numStart, $action, 'formatInvoiceNumber');
                 $custStart = microtime(true);
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
                 $this->logExecutionTime($custStart, $action, 'fetchCustomers');
                 $catStart = microtime(true);
-                $category = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
+                $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'fetchCategories');
                 $prodStart = microtime(true);
-                $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id')->prepend('--', '');
+                $products = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id')->prepend('--', '');
                 $this->logExecutionTime($prodStart, $action, 'fetchProducts');
                 Log::info("[{$base}::{$action}] data ready", ['fields' => $customFields->count(), DatabaseConstants::TABLE_CUSTOMERS => $customers->count(), 'categories' => $category->count(), DatabaseConstants::TABLE_PRODUCTS => $products->count()]);
                 if (!ViewFacade::exists($viewPath)) {
@@ -171,7 +171,7 @@ final class InvoiceController extends Controller
                     $invData = Arr::only($req->all(), ['customer_id', 'issue_date', 'due_date', 'ref_number', 'category_id']);
                     $invData['invoice_id'] = self::_nextNumber();
                     $invData['status'] = 0;
-                    $invData[DatabaseConstants::TABLE_CREATOR] = $req->user()->creatorId();
+                    $invData[DatabaseConstants::COL_TABLE_CREATOR] = $req->user()->creatorId();
                     $invoice = Invoice::create($invData);
                     $this->logExecutionTime($invBuildStart, $action, 'createInvoice');
                     Log::info('Invoice created', ['invoice_pk' => $invoice->id, 'customer_id' => $invoice->customer_id]);
@@ -222,19 +222,19 @@ final class InvoiceController extends Controller
                 $invoiceNum = $req->user()->invoiceNumberFormat($invoice->invoice_id);
                 $this->logExecutionTime($numStart, $action, 'formatInvoiceNumber');
                 $custStart = microtime(true);
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
                 $this->logExecutionTime($custStart, $action, 'fetchCustomers');
                 $catStart = microtime(true);
-                $category = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
+                $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'fetchCategories');
                 $prodStart = microtime(true);
-                $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
+                $products = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
                 $this->logExecutionTime($prodStart, $action, 'fetchProducts');
                 $cfDataStart = microtime(true);
                 $invoice->customField = CustomField::getData($invoice, self::SINGULAR);
                 $this->logExecutionTime($cfDataStart, $action, 'loadCustomFieldData');
                 $cfStart = microtime(true);
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->where('module', self::SINGULAR)->get();
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where('module', self::SINGULAR)->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -424,7 +424,7 @@ final class InvoiceController extends Controller
                     PermissionsConstants::CT => $invoice->customer,
                     'items' => $invoice->items,
                     'invoicePayment' => $invoicePayment,
-                    DatabaseConstants::TABLE_CUSTOM_FIELDS => CustomField::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->where('module', self::SINGULAR)->get(),
+                    DatabaseConstants::TABLE_CUSTOM_FIELDS => CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->where('module', self::SINGULAR)->get(),
                     'user' => $req->user(),
                     'invoice_user' => User::find($invoice->created_by),
                     'user_plan' => Plan::getPlan(User::find($invoice->created_by)?->plan),
@@ -464,7 +464,7 @@ final class InvoiceController extends Controller
             Log::debug("[{$base}::{$action}] start", ['user' => $req->user()->id ?? null]);
             if (($r = self::guard($req, 'manage customer invoice', VW::INV . '.index')) !== true) return $r;
             $status = Invoice::$statuses;
-            $q = Invoice::where('customer_id', $req->user()->id ?? null)->where('status', '!=', 0)->where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId() ?? null);
+            $q = Invoice::where('customer_id', $req->user()->id ?? null)->where('status', '!=', 0)->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId() ?? null);
             if ($req->issue_date ?? null) $q->whereBetween('issue_date', explode(' - ', $req->issue_date));
             if ($req->status ?? null) $q->where('status', $req->status);
             $invoices = $q->get();
@@ -545,10 +545,10 @@ final class InvoiceController extends Controller
             $invoice = Invoice::findOrFail($invoiceId);
             $viewData = [
                 self::SINGULAR => $invoice,
-                DatabaseConstants::TABLE_CUSTOMERS => Customer::where(DatabaseConstants::TABLE_CREATOR, $req->user()?->creatorId() ?? null)->pluck('name', 'id'),
-                'categories' => ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $req->user()?->creatorId() ?? null)->pluck('name', 'id'),
+                DatabaseConstants::TABLE_CUSTOMERS => Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()?->creatorId() ?? null)->pluck('name', 'id'),
+                'categories' => ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()?->creatorId() ?? null)->pluck('name', 'id'),
                 'accounts' => BankAccount::select('*', DB::raw("CONCAT(bank_name,' ',holder_name) AS name"))
-                    ->where(DatabaseConstants::TABLE_CREATOR, $req->user()?->creatorId() ?? null)
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()?->creatorId() ?? null)
                     ->pluck('name', 'id'),
             ];
             Log::info("[{$base}::{$action}] view data ready", ['invoice_id' => $invoice->id ?? null]);
@@ -777,8 +777,8 @@ final class InvoiceController extends Controller
             }
             foreach ($post as $k => $v) {
                 DB::table('settings')->updateOrInsert(
-                    ['name' => $k, DatabaseConstants::TABLE_CREATOR => $user?->creatorId()],
-                    ['value' => $v, 'name' => $k, DatabaseConstants::TABLE_CREATOR => $user?->creatorId()]
+                    ['name' => $k, DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()],
+                    ['value' => $v, 'name' => $k, DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()]
                 );
                 Log::info("[{$base}::{$action}] setting saved", ['name' => $k, 'value' => $v]);
             }
@@ -860,7 +860,7 @@ final class InvoiceController extends Controller
                 $invoice->taxesData      = $taxesData;
                 $invoice->customField    = CustomField::getData($invoice, self::SINGULAR);
 
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $request->user()?->creatorId() ?? null)
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()?->creatorId() ?? null)
                     ->where('module', self::SINGULAR)->get();
 
                 $logo    = asset(Storage::url('uploads/logo/'));
@@ -1175,7 +1175,7 @@ final class InvoiceController extends Controller
         }
         $user  = $userOrRedirect;
         $latest = Invoice::where(
-            DatabaseConstants::TABLE_CREATOR,
+            DatabaseConstants::COL_TABLE_CREATOR,
             $user?->creatorId()
         )->latest()->first();
         $next = $latest
@@ -1288,7 +1288,7 @@ final class InvoiceController extends Controller
             UsersConstants::COL_USER_ID     => $invoice->customer_id,
             'user_type'   => ucfirst(PermissionsConstants::CT),
             'type'        => 'Partial',
-            DatabaseConstants::TABLE_CREATOR  => Auth::id(),
+            DatabaseConstants::COL_TABLE_CREATOR  => Auth::id(),
             'payment_id'  => $pay->id,
             'category'    => ucfirst(self::SINGULAR) . '',
             'account'     => $pay->account_id,

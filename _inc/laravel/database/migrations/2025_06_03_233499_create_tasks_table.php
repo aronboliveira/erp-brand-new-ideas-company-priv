@@ -27,14 +27,16 @@ class CreateTasksTable extends Migration
 			$table->uuid(ProjectsConstants::COL_ASGN)->nullable();        // ! CHANGED
 			$table->uuid(self::COL_PROJ)->nullable();       // ! CHANGED
 			$table->uuid(self::COL_MS)->nullable();     // ! CHANGED
-			$table->uuid(DatabaseConstants::TABLE_CREATOR);                   // ! CHANGED
+			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                   // ! CHANGED
 			$table->timestamps();
-			foreach ([
-				self::COL_PROJ                  => DatabaseConstants::TABLE_PROJECTS,
-				self::COL_MS                    => DatabaseConstants::TABLE_MSS,
-				ProjectsConstants::COL_ASGN			=> DatabaseConstants::TABLE_USERS,
-				DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-			] as $col => $tbl)
+			foreach (
+				[
+					self::COL_PROJ                  => DatabaseConstants::TABLE_PROJECTS,
+					self::COL_MS                    => DatabaseConstants::TABLE_MSS,
+					ProjectsConstants::COL_ASGN			=> DatabaseConstants::TABLE_USERS,
+					DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+				] as $col => $tbl
+			)
 				$table->foreign($col)
 					->references('id')
 					->on($tbl)
@@ -45,12 +47,14 @@ class CreateTasksTable extends Migration
 	public function down(): void
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
-			foreach ([
-				self::COL_PROJ,
-				self::COL_MS,
-				ProjectsConstants::COL_ASGN,
-				DatabaseConstants::TABLE_CREATOR,
-			] as $col) {
+			foreach (
+				[
+					self::COL_PROJ,
+					self::COL_MS,
+					ProjectsConstants::COL_ASGN,
+					DatabaseConstants::COL_TABLE_CREATOR,
+				] as $col
+			) {
 				try {
 					Schema::hasColumn(self::TABLE, $col) &&
 						$table->dropForeign([$col]);

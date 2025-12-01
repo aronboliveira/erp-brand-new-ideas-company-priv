@@ -17,12 +17,14 @@ class CreateProjectEmailTemplatesTable extends Migration
             $table->uuid(self::COL_PROJ);  // !CHANGED UUID foreign key to projects.id
             $table->boolean('is_active')->default(false);
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_TEMPLATE                => DatabaseConstants::TABLE_EMAIL_TEMPLATES,
-                self::COL_PROJ                    => DatabaseConstants::TABLE_PROJECTS,
-                DatabaseConstants::TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_TEMPLATE                => DatabaseConstants::TABLE_EMAIL_TEMPLATES,
+                    self::COL_PROJ                    => DatabaseConstants::TABLE_PROJECTS,
+                    DatabaseConstants::COL_TABLE_CREATOR  => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -33,11 +35,13 @@ class CreateProjectEmailTemplatesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_TEMPLATE,
-                self::COL_PROJ,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_TEMPLATE,
+                    self::COL_PROJ,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

@@ -67,8 +67,8 @@ final class BranchSeeder extends Seeder
 				$b->budget              = $faker->randomFloat(2, 50_000, 2_000_000);
 				$b->expenses            = $faker->randomFloat(2, 10_000, 1_500_000);
 				$b->profit              = max(0, $b->budget - $b->expenses);
-				$b->{DC::TABLE_CREATOR} = $systemUserId;
-				$b->setAttribute(DC::TABLE_UPDATER, null);
+				$b->{DC::COL_TABLE_CREATOR} = $systemUserId;
+				$b->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$b->save();
 			}
 		}, 3);

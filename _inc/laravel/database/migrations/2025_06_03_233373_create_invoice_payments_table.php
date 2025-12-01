@@ -1,60 +1,44 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
+use App\Enums\PaymentType;
+use App\Traits\{HasNullableAuditColumns, HasPaymentColumns, HasPaymentConclusionColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateInvoicePaymentsTable extends Migration
 {
-    private const TABLE         = 'invoice_payments';
-    private const COL_ACC = 'account_id';
-    private const COL_INV = 'invoice_id';
-    private const COL_ORDER = 'order_id';
-    private const R = 'receipt';
-    private const P = 'payment';
+    use HasNullableAuditColumns, HasPaymentColumns, HasPaymentConclusionColumns;
+    private const TABLE = DC::TABLE_INV_PAY;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();                          // ! CHANGED
-            $table->uuid(self::COL_INV);                     // ! CHANGED
-            $table->date('date');
-            $table->decimal('amount', 16, 2)->default(0.00);
-            $table->uuid(self::COL_ACC);                     // ! CHANGED
-            $table->integer(self::P . '_method')->default(0);
-            $table->string(self::P . '_type')->default('Manually');
-            $table->uuid(self::COL_ORDER)->nullable(); // ! CHANGED
-            $table->uuid('tax_id')->nullable(); // ! CHANGED
-            $table->string('currency')->nullable();
-            $table->string(self::R)->nullable();
-            $table->string('add_' . self::R)->nullable();
-            $table->string('reference')->nullable();
-            $table->text('description')->nullable();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            $table->timestamps();
-            foreach (
-                [
-                    self::COL_INV => DatabaseConstants::TABLE_INVS,
-                    self::COL_ACC => DatabaseConstants::TABLE_BANK_ACC,
-                    self::COL_ORDER => DatabaseConstants::TABLE_ORDERS,
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS
-                ] as $col => $tbl
-            ) {
-                $table->foreign($col)
-                    ->references('id')->on($tbl)
-                    ->cascadeOnDelete(); // * ADDED
-            }
+            $table->uuid('id')->primary();
+            $table->uuid('code')->unique()->index()->nullable(); // ? nullable for tests, should be booted/created at model level if null
+            $this->addPaymentColumns($table, nullableReconcile: true, nullableInvoice: false);
+            $this->addPaymentConclusionColumns($table, nullableAcc: false, nullableCat: true, onDeleteAcc: 'restrict', onDeleteCat: 'set null');
+            $table->enum(BC::COL_PAY_TP, PaymentType::values())->default(PaymentType::Manual);
+            $table->uuid(BC::COL_OD_ID)->nullable();
+            $table->uuid(BC::COL_TAX_ID)->nullable();
+            $table->string('currency')->nullable(); // * this will be kept for legacy reasons, but should be deprecated in future versions and booted and saving should ensure that the BC::COL_CUR_ID matches the currency of the linked invoice and this one, with the hierarchy: COL_CUR_ID in invoice > COL_CUR_ID in payment, found in the payment columns > 'currency' in payment, here listed
+            $table->string('receipt')->nullable();
+            $table->foreign(BC::COL_OD_ID)
+                ->references('id')
+                ->on(DC::TABLE_ORDERS)
+                ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropPaymentColumnForeigns($table, self::TABLE);
+            $this->dropPaymentConclusionColumnForeigns($table, self::TABLE);
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_INV,
-                    self::COL_ACC,
-                    self::COL_ORDER,
-                    DatabaseConstants::TABLE_CREATOR
+                    BC::COL_OD_ID,
                 ] as $col
             ) {
                 try {

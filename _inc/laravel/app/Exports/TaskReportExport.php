@@ -25,7 +25,7 @@ final class TaskReportExport implements FromCollection, WithHeadings, WithEvents
         ProjectsConstants::COL_PR_CL,
         ProjectsConstants::COL_PJ_ID,
         ActivitiesConstants::COL_OD,
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
         ProjectsConstants::COL_IS_FV,
         ProjectsConstants::COL_IS_CP,
         ProjectsConstants::COL_M_AT,
@@ -53,7 +53,7 @@ final class TaskReportExport implements FromCollection, WithHeadings, WithEvents
             UsersConstants::COL_USER_ID => $user?->id
         ]);
         $tasks = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $this->projectId)
-            ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->get();
         $tasks->each(function ($task) {
             foreach (self::REMOVED_ATTRIBUTES as $attr) unset($task->{$attr});

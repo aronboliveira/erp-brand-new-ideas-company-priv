@@ -85,7 +85,7 @@ final class SetSalarySeeder extends Seeder
 					'salary'            => $salary,
 					'frequency'         => $freq,
 					BC::COL_MDAY_LMT    => $pickPayDay($freq),
-					DC::TABLE_CREATOR   => $systemUserId,
+					DC::COL_TABLE_CREATOR   => $systemUserId,
 				];
 
 				// Cria ou atualiza por employee_id (único)

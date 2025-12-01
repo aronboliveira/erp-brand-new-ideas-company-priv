@@ -43,8 +43,8 @@ final class LabelSeeder extends Seeder
 					$l->{PJC::COL_LB_NM}  = $nm;
 					$l->{PJC::COL_CL}     = $faker->randomElement($colors);
 					$l->{PJC::COL_PPL_ID} = $pipelineId;
-					$l->{DC::TABLE_CREATOR} = $systemUserId;
-					$l->setAttribute(DC::TABLE_UPDATER, null);
+					$l->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$l->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 					$l->save();
 				}

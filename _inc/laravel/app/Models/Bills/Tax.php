@@ -14,7 +14,7 @@ class Tax extends Model
     protected $fillable = ['name', 'rate'];
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
     protected $casts = [
         'rate' => 'decimal:2',

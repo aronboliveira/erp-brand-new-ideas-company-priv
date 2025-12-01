@@ -16,13 +16,15 @@ class CreateTaskChecklistsTable extends Migration
                 $table->string('name');
                 $table->uuid(self::COL_TSK);                     // ! CHANGED
                 $table->string('user_type');
-                $table->uuid(DatabaseConstants::TABLE_CREATOR);                  // ! CHANGED
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                  // ! CHANGED
                 $table->integer('status')->default(0);
                 $table->timestamps();
-                foreach ([
-                    self::COL_TSK                      => DatabaseConstants::TABLE_TASKS,
-                    DatabaseConstants::TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
-                ] as $col => $tbl)
+                foreach (
+                    [
+                        self::COL_TSK                      => DatabaseConstants::TABLE_TASKS,
+                        DatabaseConstants::COL_TABLE_CREATOR   => DatabaseConstants::TABLE_USERS,
+                    ] as $col => $tbl
+                )
                     $table->foreign($col)
                         ->references('id')
                         ->on($tbl)
@@ -33,10 +35,12 @@ class CreateTaskChecklistsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_TSK,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $col) {
+            foreach (
+                [
+                    self::COL_TSK,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $col
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) &&
                         $table->dropForeign([$col]);

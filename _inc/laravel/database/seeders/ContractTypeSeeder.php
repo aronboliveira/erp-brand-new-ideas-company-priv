@@ -230,7 +230,7 @@ final class ContractTypeSeeder extends Seeder
 			foreach ($rows as $data) {
 				$model = ContractType::updateOrCreate(
 					['name' => $data['name']],
-					$data + [DC::TABLE_CREATOR => $systemUserId]
+					$data + [DC::COL_TABLE_CREATOR => $systemUserId]
 				);
 				$model->wasRecentlyCreated ? $created++ : $updated++;
 			}

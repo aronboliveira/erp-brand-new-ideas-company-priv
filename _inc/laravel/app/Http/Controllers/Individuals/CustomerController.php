@@ -83,7 +83,7 @@ class CustomerController extends Controller
 
             try {
                 $t = microtime(true);
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())->get();
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())->get();
                 $this->logExecutionTime($t, $action . '::query', 'completed');
 
                 $view = ViewsConstants::CST . '.index';
@@ -109,7 +109,7 @@ class CustomerController extends Controller
 
             try {
                 $t = microtime(true);
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())
                     ->where('module', 'customer')->get();
                 $this->logExecutionTime($t, $action . '::loadCustomFields', 'completed');
 
@@ -142,7 +142,7 @@ class CustomerController extends Controller
                 'email'   => [
                     'required',
                     Rule::unique(DatabaseConstants::TABLE_CUSTOMERS)
-                        ->where(fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId()))
+                        ->where(fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId()))
                 ]
             ]);
             $this->logExecutionTime($t, $action . '::validate', $v->fails() ? 'failed' : 'completed');
@@ -211,7 +211,7 @@ class CustomerController extends Controller
             try {
                 $t = microtime(true);
                 $customer->customField = CustomField::getData($customer, 'customer');
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $user->creatorId())
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user->creatorId())
                     ->where('module', 'customer')->get();
                 $this->logExecutionTime($t, $action . '::loadFormData', 'completed');
 
@@ -395,7 +395,7 @@ class CustomerController extends Controller
                 $t = microtime(true);
                 $userDetail = $u;
                 $userDetail->customField = CustomField::getData($u, 'customer');
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                     ->where('module', 'customer')
                     ->get();
                 $this->logExecutionTime($t, $action . '::loadProfileData', 'completed');
@@ -725,7 +725,7 @@ class CustomerController extends Controller
                         UsersConstants::COL_EM
                     )
                         ->where(UsersConstants::COL_IA, 1)
-                        ->where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())
+                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())
                         ->where(function ($qr) use ($term) {
                             $qr->where(UsersConstants::COL_NM, 'like', "%{$term}%")
                                 ->orWhere(UsersConstants::COL_EM, 'like', "%{$term}%");
@@ -780,7 +780,7 @@ class CustomerController extends Controller
         ];
         $data = [
             'customer_id' => self::nextCustomerId($creator),
-            DatabaseConstants::TABLE_CREATOR  => $creator,
+            DatabaseConstants::COL_TABLE_CREATOR  => $creator,
             'lang'        => Utility::settingsById($creator)[SettingsConstants::DEF_LNG] ?? ''
         ];
         foreach ($fields as $f) $data[$f] = $req->input($f, '');
@@ -789,7 +789,7 @@ class CustomerController extends Controller
 
     private static function nextCustomerId(int|string $creator): int|string // ! CHANGED
     {
-        $last = Customer::where(DatabaseConstants::TABLE_CREATOR, $creator)->latest()->first();
+        $last = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->latest()->first();
         if (!$last) return 1;
         $cid = $last->customer_id;
         return is_numeric($cid)
@@ -806,7 +806,7 @@ class CustomerController extends Controller
         $user = $userOrRedirect;
         try {
             $creator = $user?->creatorId();
-            $latest = Customer::where(DatabaseConstants::TABLE_CREATOR, $creator)->latest()->first();
+            $latest = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->latest()->first();
             if (!$latest) return 0;
             return is_numeric($latest->customer_id) ? $latest->customer_id + 1 : $latest->customer_id;
         } catch (\Throwable $e) {

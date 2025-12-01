@@ -67,7 +67,7 @@ class ProjectReportController extends Controller
                         )
                         ->when(
                             !$request->filled('all_users'),
-                            fn($q) => $q->where(DatabaseConstants::TABLE_PROJECTS . '.' . DatabaseConstants::TABLE_CREATOR, $user?->id)
+                            fn($q) => $q->where(DatabaseConstants::TABLE_PROJECTS . '.' . DatabaseConstants::COL_TABLE_CREATOR, $user?->id)
                         ),
                     default    => $projQ
                         ->select(DatabaseConstants::TABLE_PROJECTS . '.*')
@@ -90,9 +90,9 @@ class ProjectReportController extends Controller
 
                 $usersStart = microtime(true);
                 $users = match ($user[UsersConstants::COL_TP]) {
-                    PermissionsConstants::SA => User::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                    PermissionsConstants::SA => User::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)
                         ->where(UsersConstants::COL_TP, PermissionsConstants::CPN)->get(),
-                    PermissionsConstants::CPN => User::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                    PermissionsConstants::CPN => User::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)
                         ->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->get(),
                     default => [],
                 };
@@ -107,7 +107,7 @@ class ProjectReportController extends Controller
                 $this->logExecutionTime($fetchStart, $action, 'fetchProjects');
 
                 $lastStageStart = microtime(true);
-                $lastTask = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                $lastTask = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)
                     ->orderByDesc(ActivitiesConstants::COL_OD)
                     ->first();
                 $this->logExecutionTime($lastStageStart, $action, 'fetchLastTaskStage');
@@ -159,7 +159,7 @@ class ProjectReportController extends Controller
                             DatabaseConstants::TABLE_PROJECTS . '.id'
                         )
                         ->where('project_users.' . UsersConstants::COL_USER_ID, $user?->id),
-                    default    => $projQ->where(DatabaseConstants::TABLE_CREATOR, $user?->id),
+                    default    => $projQ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->id),
                 };
                 $this->logExecutionTime($buildQStart, $action, 'buildProjectQuery');
 
@@ -168,7 +168,7 @@ class ProjectReportController extends Controller
                 $this->logExecutionTime($projectStart, $action, 'fetchProject');
 
                 $usersStart = microtime(true);
-                $users = User::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)
                     ->when(
                         $user[UsersConstants::COL_TP] === PermissionsConstants::SA,
                         fn($q) => $q->where(UsersConstants::COL_TP, PermissionsConstants::CPN),
@@ -210,7 +210,7 @@ class ProjectReportController extends Controller
                 $loggedChart = number_format($logged, 2, '.', '');
                 $estimated = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->sum(ProjectsConstants::COL_E_HRS);
                 $tasks = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $id)->get();
-                $lastTask = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $cid)
+                $lastTask = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)
                     ->orderByDesc(ActivitiesConstants::COL_OD)
                     ->first();
                 $this->logExecutionTime($calcStart, $action, 'computeMetrics');
@@ -262,8 +262,8 @@ class ProjectReportController extends Controller
         }
 
         $stages = TaskStage::when(
-            $params[DatabaseConstants::TABLE_CREATOR] ?? null,
-            fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $params[DatabaseConstants::TABLE_CREATOR] ?? null)
+            $params[DatabaseConstants::COL_TABLE_CREATOR] ?? null,
+            fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $params[DatabaseConstants::COL_TABLE_CREATOR] ?? null)
         )
             ->orderBy(ActivitiesConstants::COL_OD)
             ->get(['id', ProjectsConstants::COL_NM]);
@@ -283,9 +283,9 @@ class ProjectReportController extends Controller
             $counts = ProjectTask::select('stage_id', DB::raw('count(*) as total'))
                 ->whereDate(DatabaseConstants::COL_U_AT, $date)
                 ->when(isset($params[ProjectsConstants::COL_PJ_ID]), fn($q) => $q->where(ProjectsConstants::COL_PJ_ID, $params[ProjectsConstants::COL_PJ_ID]))
-                ->when(isset($params[DatabaseConstants::TABLE_CREATOR]), fn($q) => $q->whereIn(
+                ->when(isset($params[DatabaseConstants::COL_TABLE_CREATOR]), fn($q) => $q->whereIn(
                     ProjectsConstants::COL_PJ_ID,
-                    fn($sub) => $sub->select('id')->from(DatabaseConstants::TABLE_PROJECTS)->where(DatabaseConstants::TABLE_CREATOR, $params[DatabaseConstants::TABLE_CREATOR])
+                    fn($sub) => $sub->select('id')->from(DatabaseConstants::TABLE_PROJECTS)->where(DatabaseConstants::COL_TABLE_CREATOR, $params[DatabaseConstants::COL_TABLE_CREATOR])
                 ))
                 ->pluck('total', 'stage_id')
                 ->all();

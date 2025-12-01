@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\{Model, Relations\HasOne};
 class TerminationType extends Model
 {
     use HasAuditFields, UsesUuids;
-    private const COL_CREATED_BY = DC::TABLE_CREATOR;
+    private const COL_CREATED_BY = DC::COL_TABLE_CREATOR;
     private const COL_NAME      = 'name';
 
     protected $table = DC::TABLE_TERMINATION_TYPES;

@@ -44,8 +44,8 @@ final class StageSeeder extends Seeder
 					$s->{PJC::COL_PPL_ID} = $pipelineId;
 					$s->{PJC::COL_STG_NM} = $nm;
 					$s->{AC::COL_OD}      = $order++;
-					$s->{DC::TABLE_CREATOR} = $systemUserId;
-					$s->setAttribute(DC::TABLE_UPDATER, null);
+					$s->{DC::COL_TABLE_CREATOR} = $systemUserId;
+					$s->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 					$s->save();
 				}

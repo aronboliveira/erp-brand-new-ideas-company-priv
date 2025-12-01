@@ -137,7 +137,7 @@ final class AllowanceOptionSeeder extends Seeder
 			foreach ($rows as $payload) {
 				$model = AllowanceOption::updateOrCreate(
 					['name' => $payload['name']],
-					$payload + [DC::TABLE_CREATOR => $systemUserId]
+					$payload + [DC::COL_TABLE_CREATOR => $systemUserId]
 				);
 				$model->wasRecentlyCreated ? $created++ : $updated++;
 			}

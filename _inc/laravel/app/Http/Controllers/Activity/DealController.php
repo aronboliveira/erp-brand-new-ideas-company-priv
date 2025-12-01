@@ -78,7 +78,7 @@ class DealController extends Controller
         $pipeline = $this->getDefaultPipeline($user);
         $this->logExecutionTime($pipeStart, $action, 'getDefaultPipeline');
         $listStart = microtime(true);
-        $pipelines = Pipeline::where(DC::TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
+        $pipelines = Pipeline::where(DC::COL_TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadPipelines');
         $idsStart = microtime(true);
         $ids = $user[UC::COL_TP] === PC::CL ? $user?->clientDeals->pluck('id') : $user?->deals->pluck('id');
@@ -119,7 +119,7 @@ class DealController extends Controller
         $pipeline = $this->getDefaultPipeline($user);
         $this->logExecutionTime($pipeStart, $action, 'getDefaultPipeline');
         $listStart = microtime(true);
-        $pipelines = Pipeline::where(DC::TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
+        $pipelines = Pipeline::where(DC::COL_TABLE_CREATOR, $user?->ownerId())->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadPipelines');
         $idsStart = microtime(true);
         $ids = $user[UC::COL_TP] === PC::CL ? $user?->clientDeals->pluck('id') : $user?->deals->pluck('id');
@@ -168,7 +168,7 @@ class DealController extends Controller
         $ownerId = $user?->ownerId();
         $this->logExecutionTime($ownerStart, $action, 'getOwnerId');
         $listStart = microtime(true);
-        $clients = User::where(DC::TABLE_CREATOR, $ownerId)->where(UC::COL_TP, PC::CL)->pluck('name', 'id');
+        $clients = User::where(DC::COL_TABLE_CREATOR, $ownerId)->where(UC::COL_TP, PC::CL)->pluck('name', 'id');
         $customFields = CustomField::where('module', 'deal')->get();
         $this->logExecutionTime($listStart, $action, 'loadClientsAndCustomFields');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -222,7 +222,7 @@ class DealController extends Controller
             'pipeline_id' => $pipeline->id,
             'stage_id' => $stage->id,
             'status' => 'Active',
-            DC::TABLE_CREATOR => $user?->ownerId(),
+            DC::COL_TABLE_CREATOR => $user?->ownerId(),
           ]);
           $this->logExecutionTime($createStart, $action, 'createDeal');
           Log::info("[{$class}::{$action}] deal created", ['deal_id' => $deal->id]);
@@ -270,9 +270,9 @@ class DealController extends Controller
         $ownerId = $user?->ownerId();
         $this->logExecutionTime($ownerStart, $action, 'getOwnerId');
         $loadStart = microtime(true);
-        $pipelines = Pipeline::where(DC::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
-        $sources = Source::where(DC::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
-        $products = ProductService::where(DC::TABLE_CREATOR, $ownerId)->pluck('name', 'id');
+        $pipelines = Pipeline::where(DC::COL_TABLE_CREATOR, $ownerId)->pluck('name', 'id');
+        $sources = Source::where(DC::COL_TABLE_CREATOR, $ownerId)->pluck('name', 'id');
+        $products = ProductService::where(DC::COL_TABLE_CREATOR, $ownerId)->pluck('name', 'id');
         $customFields = CustomField::where('module', 'deal')->get();
         $this->logExecutionTime($loadStart, $action, 'loadEditLists');
         $prepStart = microtime(true);
@@ -469,7 +469,7 @@ class DealController extends Controller
           return response()->json(['error' => __('Permission Denied.')], 401);
         }
         $listStart = microtime(true);
-        $labels = Label::where('pipeline_id', $deal->pipeline_id)->where(DC::TABLE_CREATOR, $user?->creatorId())->get();
+        $labels = Label::where('pipeline_id', $deal->pipeline_id)->where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
         $selected = $deal->labels()->pluck('id')->toArray();
         $this->logExecutionTime($listStart, $action, 'loadLabelsAndSelected');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -535,7 +535,7 @@ class DealController extends Controller
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
         if ($deal->created_by !== $user?->ownerId()) throw new AuthorizationException;
         $usersStart = microtime(true);
-        $users = User::where(DC::TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, '!=', PC::CL)->whereNotIn('id', function ($q) use ($id) {
+        $users = User::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->where(UC::COL_TP, '!=', PC::CL)->whereNotIn('id', function ($q) use ($id) {
           $q->select(UC::COL_USER_ID)->from('user_deals')->where('deal_id', $id);
         })->get()->filter(fn($u) => $u->can(PC::MNG_DL))->pluck('name', 'id')->prepend(__('Select Users'), '');
         $this->logExecutionTime($usersStart, $action, 'loadAssignableUsers');
@@ -643,7 +643,7 @@ class DealController extends Controller
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $listStart = microtime(true);
         $exclude = ClientDeal::where('deal_id', $id)->pluck('client_id');
-        $clients = User::where(DC::TABLE_CREATOR, $request->user()->ownerId())->where(UC::COL_TP, PC::CL)->whereNotIn('id', $exclude)->pluck('name', 'id');
+        $clients = User::where(DC::COL_TABLE_CREATOR, $request->user()->ownerId())->where(UC::COL_TP, PC::CL)->whereNotIn('id', $exclude)->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadEligibleClients');
         Log::info("[{$class}::{$action}] fetched clients", ['count' => $clients->count()]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -750,7 +750,7 @@ class DealController extends Controller
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $listStart = microtime(true);
         $excluded = explode(',', $deal->products);
-        $products = ProductService::where(DC::TABLE_CREATOR, $request->user()->ownerId())->whereNotIn('id', $excluded)->pluck('name', 'id');
+        $products = ProductService::where(DC::COL_TABLE_CREATOR, $request->user()->ownerId())->whereNotIn('id', $excluded)->pluck('name', 'id');
         $this->logExecutionTime($listStart, $action, 'loadEligibleProducts');
         Log::info("[{$class}::{$action}] fetched products", ['count' => $products->count()]);
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -1229,7 +1229,7 @@ class DealController extends Controller
         }
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $listStart = microtime(true);
-        $sources = Source::where(DC::TABLE_CREATOR, $request->user()->ownerId())->pluck('name', 'id');
+        $sources = Source::where(DC::COL_TABLE_CREATOR, $request->user()->ownerId())->pluck('name', 'id');
         $selected = $deal->sources()?->pluck('id')->toArray() ?: [];
         $this->logExecutionTime($listStart, $action, 'loadSources');
         Log::info("[{$class}::{$action}] fetched sources", ['count' => count($sources)]);
@@ -1493,7 +1493,7 @@ class DealController extends Controller
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
         $createStart = microtime(true);
-        $disc = DealDiscussion::create(['deal_id' => $deal->id, 'comment' => $request->input('comment'), DC::TABLE_CREATOR => $request->user()->id]);
+        $disc = DealDiscussion::create(['deal_id' => $deal->id, 'comment' => $request->input('comment'), DC::COL_TABLE_CREATOR => $request->user()->id]);
         $this->logExecutionTime($createStart, $action, 'createDiscussionRow');
         Log::info("[{$class}::{$action}] added discussion", ['discussion_id' => $disc->id]);
         return redirect()->back()->with('success', __('Message successfully added!'))->with('status', 'discussion');
@@ -1882,7 +1882,7 @@ class DealController extends Controller
     try {
       $isSa = $user->{UC::COL_TP} === PC::SA;
       $creatorId = $isSa ? $user->id : DC::DEFAULT_UUID;
-      $baseQuery = fn() => Pipeline::where(DC::TABLE_CREATOR, $creatorId);
+      $baseQuery = fn() => Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId);
       $pipeline = null;
       if ($user->default_pipeline)
         $pipeline = $baseQuery()->where('id', $user->default_pipeline)->first();

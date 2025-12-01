@@ -240,7 +240,7 @@ final class BenefitPaymentController extends Controller
                 $invoice = Invoice::findOrFail($invoiceId);
                 $this->logExecutionTime($invStart, $action, 'findInvoice');
                 $cfgStart = microtime(true);
-                $settings = Utility::getCompanyPaymentSetting($invoice[DatabaseConstants::TABLE_CREATOR]);
+                $settings = Utility::getCompanyPaymentSetting($invoice[DatabaseConstants::COL_TABLE_CREATOR]);
                 $secret = $settings['benefit_secret_key'] ?? '';
                 $this->logExecutionTime($cfgStart, $action, 'getCompanyPaymentSetting');
                 $amount = (float) $request->input('amount');
@@ -250,10 +250,10 @@ final class BenefitPaymentController extends Controller
                     Log::debug("[{$base}::{$action}] invalid amount context", ['invoice_id' => $invoiceId, 'due' => $invoice->getDue(), 'user_id' => $request->user()?->id]);
                     return back()->with('error', __('Invalid amount.'));
                 }
-                $payer = Auth::check() ? Auth::user() : User::find($invoice[DatabaseConstants::TABLE_CREATOR]);
+                $payer = Auth::check() ? Auth::user() : User::find($invoice[DatabaseConstants::COL_TABLE_CREATOR]);
                 $charge = [
                     'amount' => $amount,
-                    'currency' => Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR])['site_currency'] ?? 'BHD',
+                    'currency' => Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR])['site_currency'] ?? 'BHD',
                     'customer_initiated' => true,
                     'threeDSecure' => true,
                     'save_card' => false,
@@ -301,7 +301,7 @@ final class BenefitPaymentController extends Controller
                 $invoice = Invoice::findOrFail($invoiceId);
                 $this->logExecutionTime($invStart, $action, 'findInvoice');
                 $usrStart = microtime(true);
-                $user = User::findOrFail($invoice[DatabaseConstants::TABLE_CREATOR]);
+                $user = User::findOrFail($invoice[DatabaseConstants::COL_TABLE_CREATOR]);
                 $this->logExecutionTime($usrStart, $action, 'findUser');
                 $cfgStart = microtime(true);
                 $secret = Utility::getCompanyPaymentSetting($user?->id)['benefit_secret_key'] ?? '';
@@ -331,7 +331,7 @@ final class BenefitPaymentController extends Controller
                         'payment_method' => 0,
                         'order_id' => $orderId,
                         'payment_type' => 'Benefit',
-                        'description' => 'Invoice ' . Utility::invoiceNumberFormat(Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR]), $invoice->invoice_id),
+                        'description' => 'Invoice ' . Utility::invoiceNumberFormat(Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR]), $invoice->invoice_id),
                     ]);
                     $this->logExecutionTime($ipStart, $action, 'createInvoicePayment');
                     $stStart = microtime(true);

@@ -61,7 +61,7 @@ class NotificationSeeder extends Seeder
                     NotificationsConstants::COL_NM       => $name,
                     NotificationsConstants::COL_R_SL       => $slug,
                     NotificationsConstants::COL_R_TP       => UsersConstants::COL_EM,
-                    DatabaseConstants::TABLE_CREATOR => $creatorId,
+                    DatabaseConstants::COL_TABLE_CREATOR => $creatorId,
                     NotificationsConstants::COL_C_AT => $now,
                     NotificationsConstants::COL_U_AT => $now,
                 ];
@@ -97,7 +97,7 @@ class NotificationSeeder extends Seeder
                         NotificationsConstants::COL_TEMPL_LG       => $lang,
                         NotificationsConstants::COL_TEMPL_VARS  => $variables,
                         NotificationsConstants::COL_TEMPL_CT    => $content,
-                        DatabaseConstants::TABLE_CREATOR => $creatorId,
+                        DatabaseConstants::COL_TABLE_CREATOR => $creatorId,
                         NotificationsConstants::COL_C_AT => $now,
                         NotificationsConstants::COL_U_AT => $now,
                     ];

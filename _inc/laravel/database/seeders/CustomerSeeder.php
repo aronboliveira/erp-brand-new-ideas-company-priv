@@ -145,7 +145,7 @@ final class CustomerSeeder extends Seeder
 					BC::COL_CST_ID        => $systemUserId,
 
 					// Auditoria
-					DC::TABLE_CREATOR     => $systemUserId,
+					DC::COL_TABLE_CREATOR     => $systemUserId,
 				];
 
 				/** @var Customer|null $model */

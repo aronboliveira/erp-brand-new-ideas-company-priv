@@ -14,7 +14,7 @@ class Note extends Model
     private const COL_MODULE_ID      = ActivitiesConstants::COL_MI;
     private const COL_MODULE_TYPE    = ActivitiesConstants::COL_MT;
     private const COL_NOTE           = ActivitiesConstants::COL_NT;
-    private const COL_NOTE_CREATED_BY = self::COL_NOTE . '_' . DatabaseConstants::TABLE_CREATOR;
+    private const COL_NOTE_CREATED_BY = self::COL_NOTE . '_' . DatabaseConstants::COL_TABLE_CREATOR;
 
     protected $fillable = [
         'id',

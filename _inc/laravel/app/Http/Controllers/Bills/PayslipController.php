@@ -63,7 +63,7 @@ final class PayslipController extends Controller
 
             try {
                 $t = microtime(true);
-                $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null)->get();
+                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null)->get();
                 $this->logExecutionTime($t, $action, 'fetchEmployees');
 
                 return view(VW::PY_SLP . '.index', [
@@ -136,10 +136,10 @@ final class PayslipController extends Controller
                 $t = microtime(true);
                 DB::transaction(function () use ($fmt, $creator) {
                     $exists = Payslip::where('salary_month', $fmt)
-                        ->where(DatabaseConstants::TABLE_CREATOR, $creator)
+                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                         ->pluck('employee_id');
 
-                    $totalEmp = Employee::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                    $totalEmp = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                         ->where('company_doj', '<=', date("{$fmt}-t"))
                         ->count();
 
@@ -147,11 +147,11 @@ final class PayslipController extends Controller
                         throw new \Exception('already created');
                     }
 
-                    if (Employee::where(DatabaseConstants::TABLE_CREATOR, $creator)->where('salary', '<=', 0)->exists()) {
+                    if (Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)->where('salary', '<=', 0)->exists()) {
                         throw new \Exception('salary missing');
                     }
 
-                    $newEmployees = Employee::where(DatabaseConstants::TABLE_CREATOR, $creator)
+                    $newEmployees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creator)
                         ->where('company_doj', '<=', date("{$fmt}-t"))
                         ->whereNotIn('id', $exists)
                         ->get();
@@ -169,7 +169,7 @@ final class PayslipController extends Controller
                             'saturation_deduction' => Employee::saturationDeduction($e->id),
                             'other_payment'        => Employee::otherPayment($e->id),
                             'overtime'             => Employee::overtime($e->id),
-                            DatabaseConstants::TABLE_CREATOR => $creator,
+                            DatabaseConstants::COL_TABLE_CREATOR => $creator,
                         ]);
                     }
                 });
@@ -284,7 +284,7 @@ final class PayslipController extends Controller
             $fmt = $request->datePicker ?? '';
             $t = microtime(true);
             $slips = Payslip::where('salary_month', $fmt)
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null)
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null)
                 ->get();
             $this->logExecutionTime($t, $action, 'queryPayslips');
 
@@ -340,7 +340,7 @@ final class PayslipController extends Controller
                 $t = microtime(true);
                 $p = Payslip::where([
                     ['employee_id', $id],
-                    [DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null],
+                    [DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null],
                     ['salary_month', $date]
                 ])->first();
 
@@ -384,7 +384,7 @@ final class PayslipController extends Controller
 
             $t = microtime(true);
             $all = Payslip::where('salary_month', $date)
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null)
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null)
                 ->get();
             $this->logExecutionTime($t, $action, 'fetchAll');
 
@@ -422,7 +422,7 @@ final class PayslipController extends Controller
                 DB::transaction(function () use ($date, $user) {
                     Payslip::where([
                         ['salary_month', $date],
-                        [DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null],
+                        [DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null],
                         ['status', 0]
                     ])->update(['status' => 1]);
                 });
@@ -491,7 +491,7 @@ final class PayslipController extends Controller
             $p = Payslip::where([
                 ['employee_id', $id],
                 ['salary_month', $month],
-                [DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null]
+                [DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null]
             ])->firstOrFail();
             $detail = Utility::employeePayslipDetail($id, $month);
             $this->logExecutionTime($t, $action, 'loadPayslipAndDetail');
@@ -533,7 +533,7 @@ final class PayslipController extends Controller
             $p = Payslip::where([
                 ['employee_id', $id],
                 ['salary_month', $month],
-                [DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null]
+                [DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null]
             ])->firstOrFail();
             $e = Employee::find($p->employee_id);
             $p->name  = $e->name ?? '';
@@ -576,7 +576,7 @@ final class PayslipController extends Controller
             $t = microtime(true);
             $pid = Crypt::decryptString((string)$id);
             $p = Payslip::whereKey($pid)
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId() ?? null)
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId() ?? null)
                 ->firstOrFail();
             $detail = Utility::employeePayslipDetail($p->employee_id, $month);
             $this->logExecutionTime($t, $action, 'loadPayslipPdf');

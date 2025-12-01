@@ -3,7 +3,7 @@
     use App\Config\Constants\{DatabaseConstants, ViewsConstants};
     use App\Models\Utility as UtilModel;
 
-    $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::TABLE_CREATOR]);
+    $settings_data = \App\Models\Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR]);
 
     // ——— Safe method-existence checks (saved as booleans for repeated use)
     $hasInvoiceNumberFormat = is_callable([UtilModel::class, 'invoiceNumberFormat']);

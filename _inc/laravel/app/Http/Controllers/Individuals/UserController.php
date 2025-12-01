@@ -61,7 +61,7 @@ class UserController extends AppController
                 self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
                 $user = $request->user();
                 Log::debug("$cls::$action start", [UsersConstants::COL_USER_ID => $user?->id]);
-                $query = User::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->with('current_plan');
+                $query = User::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->with('current_plan');
                 $users = $user[UsersConstants::COL_TP] === PermissionsConstants::SA
                     ? $query->where(UsersConstants::COL_TP, PermissionsConstants::CPN)->get()
                     : $query->where(UsersConstants::COL_TP, '!=', PermissionsConstants::CL)->get();
@@ -84,8 +84,8 @@ class UserController extends AppController
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 self::guard($request, PermissionsConstants::CR_USER, ViewsConstants::USR . '.index');
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->where('module', self::SINGULAR)->get();
-                $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PermissionsConstants::CL)->pluck('name', 'id');
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->where('module', self::SINGULAR)->get();
+                $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PermissionsConstants::CL)->pluck('name', 'id');
                 $view = ViewsConstants::USR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact('roles', 'customFields'));
@@ -124,9 +124,9 @@ class UserController extends AppController
                         : Role::findById($request->input('role'))->name,
                     UsersConstants::COL_LG           => DB::table(DatabaseConstants::TABLE_SETTINGS)
                         ->where(UsersConstants::COL_NM, SettingsConstants::DEF_LNG)
-                        ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                         ->value('value') ?: DatabaseConstants::DEFAULT_LANG,
-                    DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId(),
                     UsersConstants::COL_U_AT         => now(),
                 ];
 
@@ -195,7 +195,7 @@ class UserController extends AppController
                 self::guard($request, PermissionsConstants::ED_USER, ViewsConstants::USR . '.index');
                 $userDetail   = User::findOrFail($id);
                 $customFields = CustomField::getData($userDetail, self::SINGULAR);
-                $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PermissionsConstants::CL)->pluck('name', 'id');
+                $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->where('name', '!=', PermissionsConstants::CL)->pluck('name', 'id');
                 $view = ViewsConstants::USR . '.' . $action;
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact('userDetail', DatabaseConstants::TABLE_ROLES, 'customFields'));
@@ -277,7 +277,7 @@ class UserController extends AppController
                 self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
                 $userDetail = $request->user();
                 $userDetail->customField = CustomField::getData($userDetail, self::SINGULAR);
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $userDetail->creatorId())->where('module', self::SINGULAR)->get();
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $userDetail->creatorId())->where('module', self::SINGULAR)->get();
                 $view = ViewsConstants::USR . '.profile';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact('userDetail', 'customFields'));
@@ -569,13 +569,13 @@ class UserController extends AppController
             try {
                 if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
                 self::guard($request, PermissionsConstants::MNG_USER, ViewsConstants::USR . '.index');
-                $filterUser = User::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                $filterUser = User::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                     ->pluck(UsersConstants::COL_NM, 'id')
                     ->prepend(__('Select User'), '');
                 $query = DB::table('login_details')
                     ->join(DatabaseConstants::TABLE_USERS, 'login_details.' . UsersConstants::COL_USER_ID, '=', DatabaseConstants::TABLE_USERS . '.id')
                     ->select('login_details.*', DatabaseConstants::TABLE_USERS . '.id as user_id', DatabaseConstants::TABLE_USERS . '.name as user_name')
-                    ->where('login_details.' . DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId());
+                    ->where('login_details.' . DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId());
                 if ($request->filled('month')) {
                     $query->whereMonth('date', date('m', strtotime($request->month)))
                         ->whereYear('date', date('Y', strtotime($request->month)));
@@ -585,7 +585,7 @@ class UserController extends AppController
                 if ($request->filled(DatabaseConstants::TABLE_USERS))
                     $query->where(UsersConstants::COL_USER_ID, $request->users);
                 $userDetails      = $query->get();
-                $lastLoginDetails = LoginDetail::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())->get();
+                $lastLoginDetails = LoginDetail::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())->get();
                 $view = ViewsConstants::USR . '.userlog';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
                 return ViewFacade::make($view, compact('userDetails', 'lastLoginDetails', 'filterUser'));

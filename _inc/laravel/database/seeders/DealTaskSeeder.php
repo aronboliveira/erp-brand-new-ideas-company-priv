@@ -56,8 +56,8 @@ final class DealTaskSeeder extends Seeder
 					$t->{AC::COL_TSK_TIME}    = $time;
 					$t->{PJC::COL_PRT}        = $faker->randomElement($priorityPool);
 					$t->{AC::COL_TSK_STT}     = $faker->randomElement($statusPool);
-					$t->{DC::TABLE_CREATOR}   = $systemUserId;
-					$t->setAttribute(DC::TABLE_UPDATER, null);
+					$t->{DC::COL_TABLE_CREATOR}   = $systemUserId;
+					$t->setAttribute(DC::COL_TABLE_UPDATER, null);
 					$t->save();
 				}
 			}

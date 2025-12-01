@@ -91,8 +91,8 @@ class Customer extends Authenticatable
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $hidden = [
@@ -306,7 +306,7 @@ class Customer extends Authenticatable
     {
         return ($this->type === PC::CPN || $this->type === PC::SA)
             ? $this->id
-            : ($this->{DC::TABLE_CREATOR} ?? $this->id);
+            : ($this->{DC::COL_TABLE_CREATOR} ?? $this->id);
     }
 
     public function currentLanguage(): string
@@ -501,7 +501,7 @@ class Customer extends Authenticatable
 
         return DB::table(DC::TABLE_CUSTOMERS)
             ->where(UC::COL_NM, $customerName)
-            ->where(DC::TABLE_CREATOR, $user?->creatorId())
+            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->value('id') ?? 0;
     }
 }

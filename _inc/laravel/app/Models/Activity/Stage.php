@@ -20,12 +20,12 @@ class Stage extends Model
     protected $fillable = [
         PJC::COL_STG_NM,
         PJC::COL_PPL_ID,
-        DC::TABLE_CREATOR, // ! REMOVER APÓS TESTES
+        DC::COL_TABLE_CREATOR, // ! REMOVER APÓS TESTES
         AC::COL_OD
     ];
     protected $guarded  = [
         'id',
-        // DC::TABLE_CREATOR // ! ATIVAR APÓS TESTES
+        // DC::COL_TABLE_CREATOR // ! ATIVAR APÓS TESTES
     ];
 
     private const CLIENT_TYPE       = PMC::CL;

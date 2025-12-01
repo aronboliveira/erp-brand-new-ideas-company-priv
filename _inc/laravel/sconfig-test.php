@@ -78,7 +78,7 @@ $extensionsToCheck = [
 ?>
 
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale() ?? DatabaseConstants::TABLE_CREATOR) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale() ?? DatabaseConstants::COL_TABLE_CREATOR) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
 
 <head>
     @include('fragments.std', [

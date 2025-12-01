@@ -23,7 +23,7 @@ class Designation extends Model
         'description',
         'notes',
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['department'];
     protected $casts = [
         CPC::COL_EBDG => 'decimal:2',

@@ -16,9 +16,9 @@ class CreateProductsTable extends Migration
 			$table->text('description')->nullable();
 			$table->string('image')->nullable();
 			$table->string('type')->nullable();
-			$table->uuid(DatabaseConstants::TABLE_CREATOR);                // ! CHANGED: references users.id
+			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);                // ! CHANGED: references users.id
 			$table->timestamps();
-			$table->foreign(DatabaseConstants::TABLE_CREATOR)
+			$table->foreign(DatabaseConstants::COL_TABLE_CREATOR)
 				->references('id')
 				->on(DatabaseConstants::TABLE_USERS)
 				->onDelete('cascade');
@@ -28,12 +28,12 @@ class CreateProductsTable extends Migration
 	{
 		Schema::table(self::TABLE, function (Blueprint $table): void {
 			try {
-				Schema::hasColumn(self::TABLE, DatabaseConstants::TABLE_CREATOR)
-					&& $table->dropForeign([DatabaseConstants::TABLE_CREATOR]);
+				Schema::hasColumn(self::TABLE, DatabaseConstants::COL_TABLE_CREATOR)
+					&& $table->dropForeign([DatabaseConstants::COL_TABLE_CREATOR]);
 			} catch (\Exception $e) {
 				Log::warning(
 					'Failed to execute down for '
-						. DatabaseConstants::TABLE_CREATOR
+						. DatabaseConstants::COL_TABLE_CREATOR
 						. ' foreign key column: '
 						. $e->getMessage()
 				);

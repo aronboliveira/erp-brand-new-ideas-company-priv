@@ -23,12 +23,14 @@ class CreatePurchasePayments extends Migration
             $table->text('description')->nullable();
             $table->string('add_receipt')->nullable();                     // * added
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_PURCHASE_ID               => DatabaseConstants::TABLE_PURCHASES,
-                self::COL_ACCOUNT_ID                => DatabaseConstants::TABLE_BANK_ACC,
-                DatabaseConstants::TABLE_CREATOR    => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_PURCHASE_ID               => DatabaseConstants::TABLE_PURCHASES,
+                    self::COL_ACCOUNT_ID                => DatabaseConstants::TABLE_BANK_ACC,
+                    DatabaseConstants::COL_TABLE_CREATOR    => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -39,11 +41,13 @@ class CreatePurchasePayments extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PURCHASE_ID,
-                self::COL_ACCOUNT_ID,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_PURCHASE_ID,
+                    self::COL_ACCOUNT_ID,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

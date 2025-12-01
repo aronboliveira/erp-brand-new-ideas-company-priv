@@ -39,7 +39,7 @@ class TransferController extends Controller
                 $user = $req->user();
                 Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'method' => $method]);
                 $buildStart = microtime(true);
-                $query = Transfer::with(['employee', 'branch', 'department'])->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+                $query = Transfer::with(['employee', 'branch', 'department'])->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
                 if (strtolower($user[UsersConstants::COL_TP]) === 'employee') {
                     $empId = Employee::where(UsersConstants::COL_USER_ID, $user?->id)->value('id');
                     $query->where(UsersConstants::COL_EMP_ID, $empId);
@@ -80,9 +80,9 @@ class TransferController extends Controller
             $user = $req->user();
             Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'method' => $method]);
             $listsStart = microtime(true);
-            $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id');
+            $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id');
             $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -216,9 +216,9 @@ class TransferController extends Controller
             Log::info("[{$base}::{$action}] start", ['user_id' => $user?->id, 'transfer_id' => $transfer->id, 'method' => $method]);
             if ($transfer->created_by !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::ROUTE_INDEX), false);
             $listsStart = microtime(true);
-            $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
-            $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
-            $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id');
+            $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_DEP_NM, 'id');
+            $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(CompaniesConstants::COL_BRC_NM, 'id');
+            $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck(UsersConstants::COL_NM, 'id');
             $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
             if (!ViewFacade::exists($viewPath)) {
                 Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);

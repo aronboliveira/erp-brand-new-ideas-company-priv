@@ -24,7 +24,7 @@ class AwardTypeController extends Controller
         Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $req->user()->id]);
         self::_setAuth($req, 'manage award type');
         $loadStart = microtime(true);
-        $awardTypes = AwardType::query()->where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->get();
+        $awardTypes = AwardType::query()->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
         $this->logExecutionTime($loadStart, $action, 'loadAwardTypes');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         return view($viewPath, ['awardTypes' => $awardTypes]);

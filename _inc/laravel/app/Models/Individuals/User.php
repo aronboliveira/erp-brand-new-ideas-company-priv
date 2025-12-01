@@ -60,7 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
         UC::COL_IA,
         UC::COL_IB,
         UC::COL_LLA,
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
         UC::COL_MC,
         UC::COL_DPL,
         UC::COL_A_ST,
@@ -113,14 +113,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return in_array($this[UC::COL_TP], [PMC::CPN, PMC::SA], true)
             ? $this->id
-            : $this[DC::TABLE_CREATOR];
+            : $this[DC::COL_TABLE_CREATOR];
     }
 
     public function ownerId(): int|string
     {
         return in_array($this[UC::COL_TP], [PMC::CPN, PMC::SA], true)
             ? $this->id
-            : $this[DC::TABLE_CREATOR];
+            : $this[DC::COL_TABLE_CREATOR];
     }
 
     public function ownerDetails(): ?self
@@ -243,16 +243,16 @@ class User extends Authenticatable implements MustVerifyEmail
         };
         $this->save();
         $userId = $companyId ?: $user?->creatorId();
-        $users = User::where(DC::TABLE_CREATOR, $userId)
+        $users = User::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereNotIn(UC::COL_TP, [
                 PMC::SA,
                 PMC::CPN,
                 PMC::CL
             ])->get();
-        $clients = User::where(DC::TABLE_CREATOR, $userId)
+        $clients = User::where(DC::COL_TABLE_CREATOR, $userId)
             ->where(UC::COL_TP, PMC::CL)->get();
-        $customers = Customer::where(DC::TABLE_CREATOR, $userId)->get();
-        $vendors = Vendor::where(DC::TABLE_CREATOR, $userId)->get();
+        $customers = Customer::where(DC::COL_TABLE_CREATOR, $userId)->get();
+        $vendors = Vendor::where(DC::COL_TABLE_CREATOR, $userId)->get();
         foreach (
             [
                 PLC::COL_MAX_U  => $users,
@@ -289,14 +289,14 @@ class User extends Authenticatable implements MustVerifyEmail
             PMC::CPN,
             PMC::CL
         ])
-            ->where(DC::TABLE_CREATOR, $this->creatorId())
+            ->where(DC::COL_TABLE_CREATOR, $this->creatorId())
             ->count();
     }
 
     public function countCompany(): int
     {
         return User::where(UC::COL_TP, PMC::CPN)
-            ->where(DC::TABLE_CREATOR, $this->creatorId())
+            ->where(DC::COL_TABLE_CREATOR, $this->creatorId())
             ->count();
     }
 
@@ -314,18 +314,18 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return User::where(UC::COL_TP, PMC::CPN)
             ->whereNotIn(UC::COL_PL, [0, 1])
-            ->where(DC::TABLE_CREATOR, Auth::user()->id)
+            ->where(DC::COL_TABLE_CREATOR, Auth::user()->id)
             ->count();
     }
 
     public function countCustomers(): int
     {
-        return Customer::where(DC::TABLE_CREATOR, $this->creatorId())->count();
+        return Customer::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count();
     }
 
     public function countVendors(): int
     {
-        return Vendor::where(DC::TABLE_CREATOR, $this->creatorId())->count();
+        return Vendor::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count();
     }
 
     public function countVenders(): int // * KEPT FOR COMPATIBILITY, DO NOT USE IN ENDPOINT
@@ -335,20 +335,20 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function countInvoices(): int
     {
-        return Invoice::where(DC::TABLE_CREATOR, $this->creatorId())->count();
+        return Invoice::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count();
     }
 
     public function countBills(): int
     {
-        return Bill::where(DC::TABLE_CREATOR, $this->creatorId())->count();
+        return Bill::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count();
     }
 
     public function todayIncome(): float
     {
         $userId = $this->creatorId();
-        $revenue = Revenue::where(DC::TABLE_CREATOR, $userId)
+        $revenue = Revenue::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereDate('date', today())->sum('amount');
-        $invoices = Invoice::where(DC::TABLE_CREATOR, $userId)
+        $invoices = Invoice::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereDate('send_date', today())->get();
         $invoiceTotal = $invoices->sum(fn($inv) => $inv->getTotal());
         return $revenue + $invoiceTotal;
@@ -357,9 +357,9 @@ class User extends Authenticatable implements MustVerifyEmail
     public function todayExpense(): float
     {
         $userId = $this->creatorId();
-        $payment = Payment::where(DC::TABLE_CREATOR, $userId)
+        $payment = Payment::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereDate('date', today())->sum('amount');
-        $bills = Bill::where(DC::TABLE_CREATOR, $userId)
+        $bills = Bill::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereDate('send_date', today())->get();
         $billTotal = $bills->sum(fn($b) => $b->getTotal());
         return $payment + $billTotal;
@@ -369,9 +369,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $userId = $this->creatorId();
         $month = now()->month;
-        $revenue = Revenue::where(DC::TABLE_CREATOR, $userId)
+        $revenue = Revenue::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereMonth('date', $month)->sum('amount');
-        $invoices = Invoice::where(DC::TABLE_CREATOR, $userId)
+        $invoices = Invoice::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereMonth('send_date', $month)->get();
         $invoiceTotal = $invoices->sum(fn($inv) => $inv->getTotal());
         return $revenue + $invoiceTotal;
@@ -396,7 +396,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->pluck('total')
             ->toArray();
         $incomesSum = array_sum($incomeByCategory);
-        $invoiceTotal = Invoice::where(DC::TABLE_CREATOR, $userId)
+        $invoiceTotal = Invoice::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereMonth('send_date', $month)
             ->get()
             ->sum(fn($inv) => $inv->getTotal());
@@ -406,9 +406,9 @@ class User extends Authenticatable implements MustVerifyEmail
     public function expenseCurrentMonth(): float
     {
         $userId = $this->creatorId();
-        $payment = Payment::where(DC::TABLE_CREATOR, $userId)
+        $payment = Payment::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereMonth('date', now()->month)->sum('amount');
-        $billTotal = Bill::where(DC::TABLE_CREATOR, $userId)
+        $billTotal = Bill::where(DC::COL_TABLE_CREATOR, $userId)
             ->whereMonth('send_date', now()->month)
             ->get()->sum(fn($b) => $b->getTotal());
         return $payment + $billTotal;
@@ -442,18 +442,18 @@ class User extends Authenticatable implements MustVerifyEmail
         $incomeArr = [];
         $expenseArr = [];
         for ($i = 1; $i <= 12; $i++) {
-            $monthlyIncome = Revenue::where(DC::TABLE_CREATOR, $userId)
+            $monthlyIncome = Revenue::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereYear('date', $year)->whereMonth('date', $i)
                 ->sum('amount');
-            $invoiceSum = Invoice::where(DC::TABLE_CREATOR, $userId)
+            $invoiceSum = Invoice::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereYear('send_date', $year)->whereMonth('send_date', $i)
                 ->get()->sum(fn($inv) => $inv->getTotal());
             $incomeArr[] = (float) ($monthlyIncome + $invoiceSum);
 
-            $monthlyExpense = Payment::where(DC::TABLE_CREATOR, $userId)
+            $monthlyExpense = Payment::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereYear('date', $year)->whereMonth('date', $i)
                 ->sum('amount');
-            $billSum = Bill::where(DC::TABLE_CREATOR, $userId)
+            $billSum = Bill::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereYear('send_date', $year)->whereMonth('send_date', $i)
                 ->get()->sum(fn($b) => $b->getTotal());
             $expenseArr[] = (float) ($monthlyExpense + $billSum);
@@ -482,17 +482,17 @@ class User extends Authenticatable implements MustVerifyEmail
         )->toArray();
         $incomeArr = $dates->map(
             fn($d) =>
-            Revenue::where(DC::TABLE_CREATOR, $userId)
+            Revenue::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereDate('date', $d)->sum('amount')
-                + Invoice::where(DC::TABLE_CREATOR, $userId)
+                + Invoice::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereDate('send_date', $d)
                 ->get()->sum(fn($inv) => $inv->getTotal())
         )->toArray();
         $expenseArr = $dates->map(
             fn($d) =>
-            Payment::where(DC::TABLE_CREATOR, $userId)
+            Payment::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereDate('date', $d)->sum('amount')
-                + Bill::where(DC::TABLE_CREATOR, $userId)
+                + Bill::where(DC::COL_TABLE_CREATOR, $userId)
                 ->whereDate('send_date', $d)
                 ->get()->sum(fn($b) => $b->getTotal())
         )->toArray();
@@ -505,17 +505,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function totalCompanyUser(int|string $id): int
     {
-        return self::where(DC::TABLE_CREATOR, $id)->count();
+        return self::where(DC::COL_TABLE_CREATOR, $id)->count();
     }
 
     public function totalCompanyCustomer(int|string $id): int
     {
-        return Customer::where(DC::TABLE_CREATOR, $id)->count();
+        return Customer::where(DC::COL_TABLE_CREATOR, $id)->count();
     }
 
     public function totalCompanyVendor(int|string $id): int
     {
-        return Vendor::where(DC::TABLE_CREATOR, $id)->count();
+        return Vendor::where(DC::COL_TABLE_CREATOR, $id)->count();
     }
 
     public function totalCompanyVender(int|string $id): int // * KEPT FOR COMPATIBILITY, DO NOT USE IN ENDPOINT
@@ -528,9 +528,9 @@ class User extends Authenticatable implements MustVerifyEmail
         $user = Auth::user();
         $userId = $user[UC::COL_TP] === PMC::SA
             ? $user?->id
-            : $user[DC::TABLE_CREATOR];
+            : $user[DC::COL_TABLE_CREATOR];
         return DB::table(DC::TABLE_SETTINGS)
-            ->where(DC::TABLE_CREATOR, $userId)
+            ->where(DC::COL_TABLE_CREATOR, $userId)
             ->pluck('value', UC::COL_NM)
             ->toArray();
     }
@@ -545,7 +545,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $start = now()->subWeek()->toDateString();
         $end  = now()->toDateString();
-        $invoices = Invoice::where(DC::TABLE_CREATOR, $this->creatorId())
+        $invoices = Invoice::where(DC::COL_TABLE_CREATOR, $this->creatorId())
             ->whereBetween('issue_date', [$start, $end])->get();
         $invoiceTotal = $invoices->sum(fn($inv) => $inv->getTotal());
         $invoicePaid = $invoices->sum(fn($inv) => $inv->getTotal() - $inv->getDue());
@@ -561,7 +561,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $start = now()->subMonth()->toDateString();
         $end  = now()->toDateString();
-        $invoices = Invoice::where(DC::TABLE_CREATOR, $this->creatorId())
+        $invoices = Invoice::where(DC::COL_TABLE_CREATOR, $this->creatorId())
             ->whereBetween('issue_date', [$start, $end])->get();
         $invoiceTotal = $invoices->sum(fn($inv) => $inv->getTotal());
         $invoicePaid = $invoices->sum(fn($inv) => $inv->getTotal() - $inv->getDue());
@@ -577,7 +577,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $start = now()->subWeek()->toDateString();
         $end  = now()->toDateString();
-        $bills = Bill::where(DC::TABLE_CREATOR, $this->creatorId())
+        $bills = Bill::where(DC::COL_TABLE_CREATOR, $this->creatorId())
             ->whereBetween('bill_date', [$start, $end])->get();
         $billTotal = $bills->sum(fn($b) => $b->getTotal());
         $billPaid = $bills->sum(fn($b) => $b->getTotal() - $b->getDue());
@@ -593,7 +593,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $start = now()->subMonth()->toDateString();
         $end  = now()->toDateString();
-        $bills = Bill::where(DC::TABLE_CREATOR, $this->creatorId())
+        $bills = Bill::where(DC::COL_TABLE_CREATOR, $this->creatorId())
             ->whereBetween('bill_date', [$start, $end])->get();
         $billTotal = $bills->sum(fn($b) => $b->getTotal());
         $billPaid = $bills->sum(fn($b) => $b->getTotal() - $b->getDue());
@@ -683,7 +683,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $user = Auth::check() ? Auth::user() : self::find($this->id);
         if ($user[UC::COL_TP] === PMC::CPN)
-            return ProjectTask::where(DC::TABLE_CREATOR, $user?->creatorId())->get();
+            return ProjectTask::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->get();
         return ProjectTask::whereRaw("find_in_set('{$this->id}'," . PJC::COL_ASGN . ")")->get();
     }
 
@@ -710,7 +710,7 @@ class User extends Authenticatable implements MustVerifyEmail
     public function totalLead(): int
     {
         return Auth::user()[UC::COL_TP] === PMC::CPN
-            ? Lead::where(DC::TABLE_CREATOR, $this->creatorId())->count()
+            ? Lead::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count()
             : (Auth::user()[UC::COL_TP] === PMC::CL
                 ? Lead::where(PMC::CL, $this->authId())->count()
                 : Lead::where('owner', $this->authId())->count());
@@ -718,7 +718,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function lastProjectStage(): ?TaskStage
     {
-        return TaskStage::where(DC::TABLE_CREATOR, $this->creatorId())
+        return TaskStage::where(DC::COL_TABLE_CREATOR, $this->creatorId())
             ->orderByDesc(AC::COL_OD)->first();
     }
 
@@ -745,7 +745,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 '=',
                 DC::TABLE_PROJ_TSKS . '.' . PJC::COL_PJ_ID
             )
-                ->where(DC::TABLE_PROJECTS . DC::TABLE_CREATOR, $userId)->count(),
+                ->where(DC::TABLE_PROJECTS . DC::COL_TABLE_CREATOR, $userId)->count(),
             PMC::CL  => ProjectTask::join(
                 DC::TABLE_PROJECTS,
                 DC::TABLE_PROJECTS . 'id',
@@ -773,7 +773,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 '=',
                 DC::TABLE_PROJ_TSKS . '.' . PJC::COL_PJ_ID
             )
-                ->where(DC::TABLE_PROJECTS . DC::TABLE_CREATOR, $this->creatorId())
+                ->where(DC::TABLE_PROJECTS . DC::COL_TABLE_CREATOR, $this->creatorId())
                 ->where(DC::TABLE_PROJ_TSKS . '.' . PJC::COL_STAGE_ID, $projectLastStage)
                 ->count(),
             PMC::CL  => ProjectTask::whereIn(
@@ -805,7 +805,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 '=',
                 DC::TABLE_PROJ_TSKS . '.' . PJC::COL_PJ_ID
             )
-                ->where(DC::TABLE_PROJECTS . DC::TABLE_CREATOR, $this->creatorId());
+                ->where(DC::TABLE_PROJECTS . DC::COL_TABLE_CREATOR, $this->creatorId());
         } elseif ($user[UC::COL_TP] === PMC::CL) {
             $query->whereIn(PJC::COL_PJ_ID, Project::where('client_id', $user?->id)->pluck('id'));
         } else {
@@ -850,7 +850,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($user instanceof User)
             $user = in_array($user->{UC::COL_TP}, [PMC::CPN, PMC::SA], true)
                 ? $user
-                : self::find($user->{DC::TABLE_CREATOR});
+                : self::find($user->{DC::COL_TABLE_CREATOR});
         return $user?->plan ?? DC::DEFAULT_PLAN;
     }
 
@@ -858,7 +858,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $user = in_array(Auth::user()[UC::COL_TP], [PMC::CPN, PMC::SA], true)
             ? Auth::user()
-            : self::find(Auth::user()[DC::TABLE_CREATOR]);
+            : self::find(Auth::user()[DC::COL_TABLE_CREATOR]);
         return Plan::find($user?->plan)->crm ?? '';
     }
 
@@ -866,7 +866,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $user = in_array(Auth::user()[UC::COL_TP], [PMC::CPN, PMC::SA], true)
             ? Auth::user()
-            : self::find(Auth::user()[DC::TABLE_CREATOR]);
+            : self::find(Auth::user()[DC::COL_TABLE_CREATOR]);
         return Plan::find($user?->plan)->hrm ?? '';
     }
 
@@ -874,7 +874,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $user = in_array(Auth::user()[UC::COL_TP], [PMC::CPN, PMC::SA], true)
             ? Auth::user()
-            : self::find(Auth::user()[DC::TABLE_CREATOR]);
+            : self::find(Auth::user()[DC::COL_TABLE_CREATOR]);
         return Plan::find($user?->plan)->account ?? '';
     }
 
@@ -882,7 +882,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $user = in_array(Auth::user()[UC::COL_TP], [PMC::CPN, PMC::SA], true)
             ? Auth::user()
-            : self::find(Auth::user()[DC::TABLE_CREATOR]);
+            : self::find(Auth::user()[DC::COL_TABLE_CREATOR]);
         return Plan::find($user?->plan)->project ?? '';
     }
 
@@ -890,7 +890,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $user = in_array(Auth::user()[UC::COL_TP], [PMC::CPN, PMC::SA], true)
             ? Auth::user()
-            : self::find(Auth::user()[DC::TABLE_CREATOR]);
+            : self::find(Auth::user()[DC::COL_TABLE_CREATOR]);
         return Plan::find($user?->plan)->pos ?? '';
     }
 
@@ -918,7 +918,7 @@ class User extends Authenticatable implements MustVerifyEmail
                         EmailsConstants::COL_TT       => $title,
                         EmailsConstants::COL_FROM       => config('app.name'),
                         EmailsConstants::COL_SLG           => $slug,
-                        DC::TABLE_CREATOR => $createdBy,
+                        DC::COL_TABLE_CREATOR => $createdBy,
                     ]);
             } catch (ModelNotFoundException $e) {
                 Log::warning("defaultEmail: missing model for slug [{$slug}]", ['exception' => $e]);
@@ -942,7 +942,7 @@ class User extends Authenticatable implements MustVerifyEmail
                     UC::COL_USER_ID     => DC::DEFAULT_UUID,
                 ], [
                     EmailsConstants::COL_IA   => true,
-                    DC::TABLE_CREATOR    => DC::DEFAULT_UUID,
+                    DC::COL_TABLE_CREATOR    => DC::DEFAULT_UUID,
                 ]);
             } catch (QueryException $e) {
                 Log::error("userDefaultData: DB error for template {$tmpl->id}", [
@@ -965,7 +965,7 @@ class User extends Authenticatable implements MustVerifyEmail
                     UC::COL_USER_ID     => $userId,
                 ], [
                     EmailsConstants::COL_IA   => true,
-                    DC::TABLE_CREATOR    => $userId,
+                    DC::COL_TABLE_CREATOR    => $userId,
                 ]);
             } catch (\Throwable $e) {
                 Log::error("userDefaultDataRegister: failed for user {$userId}, tmpl {$tmpl->id}: {$e->getMessage()}");
@@ -981,7 +981,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'address' => '723 N. Tillamook Street Portland, OR Portland, United States',
             'city' => 'Portland',
             'zip' => 97227,
-            DC::TABLE_CREATOR => DC::DEFAULT_UUID,
+            DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
         ]);
     }
 
@@ -993,7 +993,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'address' => '723 N. Tillamook Street Portland, OR Portland, United States',
             'city' => 'Portland',
             'zip' => 97227,
-            DC::TABLE_CREATOR => $userId
+            DC::COL_TABLE_CREATOR => $userId
         ]);
     }
 
@@ -1007,7 +1007,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'opening_balance' => '0.00',
             'contact_number' => '-',
             'bank_address' => '-',
-            DC::TABLE_CREATOR => $userId
+            DC::COL_TABLE_CREATOR => $userId
         ]);
     }
 
@@ -1100,7 +1100,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function countEmployees(): int
     {
-        return Employee::where(DC::TABLE_CREATOR, $this->creatorId())->count();
+        return Employee::where(DC::COL_TABLE_CREATOR, $this->creatorId())->count();
     }
 
     private function _syncActive(Collection $items, int $max): void
@@ -1116,11 +1116,11 @@ class User extends Authenticatable implements MustVerifyEmail
 
     private static function createWarehouse(int|string $userId): void
     {
-        Warehouse::create(self::DEFAULT_WAREHOUSE + [DC::TABLE_CREATOR => $userId]);
+        Warehouse::create(self::DEFAULT_WAREHOUSE + [DC::COL_TABLE_CREATOR => $userId]);
     }
 
     private static function createBankAccount(int|string $userId): void
     {
-        BankAccount::create(self::DEFAULT_BANK_ACCOUNT + [DC::TABLE_CREATOR => $userId]);
+        BankAccount::create(self::DEFAULT_BANK_ACCOUNT + [DC::COL_TABLE_CREATOR => $userId]);
     }
 }

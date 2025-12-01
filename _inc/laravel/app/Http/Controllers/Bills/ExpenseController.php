@@ -74,7 +74,7 @@ final class ExpenseController extends Controller
                 $uid = $request->user()->creatorId();
                 $this->logExecutionTime($uidStart, $action, 'resolveCreatorId');
                 $qryStart = microtime(true);
-                $q = Bill::where('type', 'Expense')->where(DatabaseConstants::TABLE_CREATOR, $uid);
+                $q = Bill::where('type', 'Expense')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid);
                 if ($request->filled('vendor')) $q->where('vendor_id', $request->vendor);
                 if ($request->filled('bill_date')) {
                     $parts = explode(' to ', $request->bill_date);
@@ -87,10 +87,10 @@ final class ExpenseController extends Controller
                 $this->logExecutionTime($qryStart, $action, 'queryExpenses');
                 Log::info("[{$base}::{$action}] expenses loaded", ['count' => $expenses->count()]);
                 $venStart = microtime(true);
-                $vendorLst = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendorLst = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $catStart = microtime(true);
-                $catLst = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
+                $catLst = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $viewPath = ViewsConstants::EXP . '.index';
                 if (!ViewFacade::exists($viewPath)) {
@@ -127,31 +127,31 @@ final class ExpenseController extends Controller
                 $uid = $user?->creatorId();
                 $this->logExecutionTime($uidStart, $action, 'resolveCreatorId');
                 $empStart = microtime(true);
-                $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Employee', '');
+                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Employee', '');
                 $this->logExecutionTime($empStart, $action, 'loadEmployees');
                 $cusStart = microtime(true);
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
                 $this->logExecutionTime($cusStart, $action, 'loadCustomers');
                 $venStart = microtime(true);
-                $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $numStart = microtime(true);
                 $num = $user?->expenseNumberFormat($this->expenseNumber());
                 $this->logExecutionTime($numStart, $action, 'formatExpenseNumber');
                 $itmStart = microtime(true);
-                $items = ProductService::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('Select Item', '');
+                $items = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id')->prepend('Select Item', '');
                 $this->logExecutionTime($itmStart, $action, 'loadItems');
                 $catStart = microtime(true);
-                $categories = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
+                $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $cfStart = microtime(true);
-                $customFields = CustomField::where([[DatabaseConstants::TABLE_CREATOR, $uid], ['module', 'bill']])->get();
+                $customFields = CustomField::where([[DatabaseConstants::COL_TABLE_CREATOR, $uid], ['module', 'bill']])->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $accStart = microtime(true);
-                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
+                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
                 $this->logExecutionTime($accStart, $action, 'loadChartAccounts');
                 $bnkStart = microtime(true);
-                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($bnkStart, $action, 'loadBanks');
                 $data = ['employees' => $employees, 'customers' => $customers, 'vendors' => $vendors, 'num' => $num, 'items' => $items, 'categories' => $categories, 'customFields' => $customFields, 'accounts' => $accounts, 'banks' => $banks, 'id' => $refId];
                 $viewPath = ViewsConstants::EXP . '.create';
@@ -208,7 +208,7 @@ final class ExpenseController extends Controller
                     'user_type' => $request->type,
                     'category_id' => $request->category_id ?? '0',
                     'order_id' => '0',
-                    DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId(),
                 ]);
                 $bill->save();
                 $this->logExecutionTime($buildStart, $action, 'createBill');
@@ -259,9 +259,9 @@ final class ExpenseController extends Controller
                 $findStart = microtime(true);
                 $exp = Bill::with(['items', 'accounts', 'payments'])->findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                     Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::TABLE_CREATOR] ?? null]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $assocStart = microtime(true);
@@ -308,9 +308,9 @@ final class ExpenseController extends Controller
                 $findStart = microtime(true);
                 $exp = Bill::with(['items', 'accounts'])->findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                     Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::TABLE_CREATOR] ?? null]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $uidStart = microtime(true);
@@ -320,28 +320,28 @@ final class ExpenseController extends Controller
                 $num = $request->user()->expenseNumberFormat($exp->bill_id);
                 $this->logExecutionTime($numStart, $action, 'formatExpenseNumber');
                 $empStart = microtime(true);
-                $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Employee', '');
+                $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Employee', '');
                 $this->logExecutionTime($empStart, $action, 'loadEmployees');
                 $cusStart = microtime(true);
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
                 $this->logExecutionTime($cusStart, $action, 'loadCustomers');
                 $venStart = microtime(true);
-                $vendors = Vendor::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
+                $vendors = Vendor::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Vendor', '');
                 $this->logExecutionTime($venStart, $action, 'loadVendors');
                 $prdStart = microtime(true);
-                $products = ProductService::where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $products = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($prdStart, $action, 'loadProducts');
                 $catStart = microtime(true);
-                $categories = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
+                $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->whereNotIn('type', ['product & service', 'income'])->pluck('name', 'id')->prepend('Select Category', '');
                 $this->logExecutionTime($catStart, $action, 'loadCategories');
                 $cfStart = microtime(true);
-                $customFields = CustomField::where([[DatabaseConstants::TABLE_CREATOR, $uid], ['module', 'bill']])->get();
+                $customFields = CustomField::where([[DatabaseConstants::COL_TABLE_CREATOR, $uid], ['module', 'bill']])->get();
                 $this->logExecutionTime($cfStart, $action, 'loadCustomFields');
                 $accStart = microtime(true);
-                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
+                $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
                 $this->logExecutionTime($accStart, $action, 'loadChartAccounts');
                 $bnkStart = microtime(true);
-                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DatabaseConstants::TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($bnkStart, $action, 'loadBanks');
                 $data = ['exp' => $exp, 'num' => $num, 'employees' => $employees, 'customers' => $customers, 'vendors' => $vendors, 'products' => $products, 'categories' => $categories, 'customFields' => $customFields, 'accounts' => $accounts, 'banks' => $banks];
                 Log::info("[{$base}::{$action}] loaded", ['bill_id' => $id]);
@@ -386,9 +386,9 @@ final class ExpenseController extends Controller
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                     Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::TABLE_CREATOR] ?? null]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $updStart = microtime(true);
@@ -472,9 +472,9 @@ final class ExpenseController extends Controller
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
-                if ($exp[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+                if ($exp[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
                     Log::warning("[{$base}::{$action}] unauthorized", [UsersConstants::COL_USER_ID => $request->user()?->id, 'bill_id' => $id]);
-                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::TABLE_CREATOR] ?? null]);
+                    Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DatabaseConstants::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
                 $payLoopStart = microtime(true);
@@ -706,10 +706,10 @@ final class ExpenseController extends Controller
                 $fetchStart = microtime(true);
                 $expense = Bill::with(['items.product.unit', 'items.product'])->whereKey($id)->firstOrFail();
                 $this->logExecutionTime($fetchStart, $action, 'fetchExpense');
-                if ($expense[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action);
+                if ($expense[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $action);
                 $setStart = microtime(true);
-                $settings = Utility::settings($expense[DatabaseConstants::TABLE_CREATOR]);
-                DB::table(DatabaseConstants::TABLE_SETTINGS)->where(DatabaseConstants::TABLE_CREATOR, $expense[DatabaseConstants::TABLE_CREATOR])->get()->each(fn($row) => $settings[$row->name] = $row->value);
+                $settings = Utility::settings($expense[DatabaseConstants::COL_TABLE_CREATOR]);
+                DB::table(DatabaseConstants::TABLE_SETTINGS)->where(DatabaseConstants::COL_TABLE_CREATOR, $expense[DatabaseConstants::COL_TABLE_CREATOR])->get()->each(fn($row) => $settings[$row->name] = $row->value);
                 $this->logExecutionTime($setStart, $action, 'loadSettings');
                 $prepStart = microtime(true);
                 $totals = ['quantity' => 0, 'rate' => 0, 'discount' => 0, 'taxPrice' => 0];
@@ -744,7 +744,7 @@ final class ExpenseController extends Controller
                 $expense->customField = CustomField::getData($expense, 'bill');
                 $logoStart = microtime(true);
                 $logoDir = Storage::url('uploads/logo');
-                $settingsData = Utility::settingsById($expense[DatabaseConstants::TABLE_CREATOR]);
+                $settingsData = Utility::settingsById($expense[DatabaseConstants::COL_TABLE_CREATOR]);
                 $logoFile = $settingsData['bill_logo'] ?? $settings[SettingsConstants::CPN_LG_DK] ?? SettingsConstants::CPN_LG_DK_DEF;
                 $img = asset("$logoDir/$logoFile");
                 $this->logExecutionTime($logoStart, $action, 'resolveLogo');
@@ -864,7 +864,7 @@ final class ExpenseController extends Controller
             return $userOrRedirect;
         $user = $userOrRedirect;
         return optional(
-            Bill::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->latest('bill_id')->first()
         )->bill_id + 1 ?? 1;
     }
@@ -878,7 +878,7 @@ final class ExpenseController extends Controller
             return $userOrRedirect;
         $user = $userOrRedirect;
         $creatorId = $user?->creatorId();
-        $latest   = Bill::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+        $latest   = Bill::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
             ->where('type', 'Bill')
             ->latest('bill_id')
             ->first();

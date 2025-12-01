@@ -18,7 +18,7 @@ class Termination extends Model
         UC::COL_TERMINATION_TP,
         'description',
     ];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = [
         'employee',
         'terminationType',

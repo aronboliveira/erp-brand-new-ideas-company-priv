@@ -34,7 +34,7 @@ class PerformanceTypeController extends Controller
       try {
         $creatorId = $req->user()->creatorId();
         $fetchStart = microtime(true);
-        $types = PerformanceType::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $types = PerformanceType::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($fetchStart, $action, 'fetchPerformanceTypes');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         Log::info("[{$class}::{$action}] complete", ['count' => is_countable($types) ? count($types) : null]);
@@ -86,7 +86,7 @@ class PerformanceTypeController extends Controller
       try {
         $type = new PerformanceType();
         $type->name = $req->input('name');
-        $type[DatabaseConstants::TABLE_CREATOR] = $req->user()->creatorId();
+        $type[DatabaseConstants::COL_TABLE_CREATOR] = $req->user()->creatorId();
         $saveStart = microtime(true);
         $type->save();
         $this->logExecutionTime($saveStart, $action, 'savePerformanceType');
@@ -130,7 +130,7 @@ class PerformanceTypeController extends Controller
     return $this->measureProfile($action, function () use ($req, $performanceType, $action, $method, $class, $viewPath) {
       Log::info("[{$class}::{$action}] start", ['performance_type_id' => $performanceType->getKey(), 'creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizeCompany($req, self::PERM_EDIT)) return redirect()->back();
-      if ($performanceType[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
+      if ($performanceType[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
       try {
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         $renderStart = microtime(true);
@@ -154,7 +154,7 @@ class PerformanceTypeController extends Controller
     return $this->measureProfile($action, function () use ($req, $performanceType, $action, $method, $class) {
       Log::info("[{$class}::{$action}] start", ['performance_type_id' => $performanceType->getKey(), 'creator_id' => $req->user()?->creatorId(), 'input_keys' => array_keys($req->all())]);
       if (!self::authorizeCompany($req, self::PERM_EDIT)) return redirect()->back();
-      if ($performanceType[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
+      if ($performanceType[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
       $valStart = microtime(true);
       $v = Validator::make($req->all(), ['name' => 'required']);
       $this->logExecutionTime($valStart, $action, 'buildValidator');
@@ -182,7 +182,7 @@ class PerformanceTypeController extends Controller
     return $this->measureProfile($action, function () use ($req, $performanceType, $action, $method, $class) {
       Log::info("[{$class}::{$action}] start", ['performance_type_id' => $performanceType->getKey(), 'creator_id' => $req->user()?->creatorId()]);
       if (!self::authorizeCompany($req, self::PERM_DELETE)) return redirect()->back();
-      if ($performanceType[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
+      if ($performanceType[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action);
       try {
         $delStart = microtime(true);
         $performanceType->delete();

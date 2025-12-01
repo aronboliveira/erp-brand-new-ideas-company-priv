@@ -27,8 +27,8 @@ class Allowance extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     /** @var array<string,string> */
@@ -41,8 +41,8 @@ class Allowance extends Model
         'amount'                    => 'decimal:2',
         UC::COL_EMP_ID             => 'string',
         BC::COL_ALW_OPT => 'string',
-        DC::TABLE_CREATOR          => 'string',
-        DC::TABLE_UPDATER          => 'string',
+        DC::COL_TABLE_CREATOR          => 'string',
+        DC::COL_TABLE_UPDATER          => 'string',
         'type' => AllowanceType::class,
     ];
 

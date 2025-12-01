@@ -27,7 +27,7 @@
     $user = Auth::user();
     $lang = Utility::fetchUserLang(user: $user);
 	try {
-		$creatorId = $invoice?->{DatabaseConstants::TABLE_CREATOR} ?? '';
+		$creatorId = $invoice?->{DatabaseConstants::COL_TABLE_CREATOR} ?? '';
 		$data = Utility::prepareCommonViewData($creatorId) ?: [];
 		$logo = $data[SettingsConstants::LOGO] ?? '';
 		$company_favicon = $data[SettingsConstants::FAV_ICN] ?? '';

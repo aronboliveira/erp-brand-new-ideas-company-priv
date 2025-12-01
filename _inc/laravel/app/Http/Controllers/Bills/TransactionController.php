@@ -41,12 +41,12 @@ class TransactionController extends Controller
             $t0 = microtime(true);
             $filter = ['account' => __('All'), 'category' => __('All')];
 
-            $accountList = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $accountList = BankAccount::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->pluck('holder_name', 'id');
             $accountList->prepend(__('Stripe / Paypal'), 'stripe-paypal');
             $accountList->prepend(__('Select Account'), '');
 
-            $categoryList = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $categoryList = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->whereIn('type', [1, 2])
                 ->pluck('name', 'name');
             $categoryList->prepend('Invoice', 'Invoice');
@@ -75,8 +75,8 @@ class TransactionController extends Controller
             while ($currentDate <= $to) {
                 $m = date('m', $currentDate);
                 $y = date('Y', $currentDate);
-                $transactions->orWhere(fn($q) => $q->whereMonth('date', $m)->whereYear('date', $y)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId()));
-                $accountSums->orWhere(fn($q) => $q->whereMonth('date', $m)->whereYear('date', $y)->where(ViewsConstants::TST . '.' . DatabaseConstants::TABLE_CREATOR, $user?->creatorId()));
+                $transactions->orWhere(fn($q) => $q->whereMonth('date', $m)->whereYear('date', $y)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()));
+                $accountSums->orWhere(fn($q) => $q->whereMonth('date', $m)->whereYear('date', $y)->where(ViewsConstants::TST . '.' . DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId()));
                 $currentDate = strtotime('+1 month', $currentDate);
             }
 
@@ -98,7 +98,7 @@ class TransactionController extends Controller
                 $filter['category'] = $request->category;
             }
 
-            $transactions = $transactions->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $transactions = $transactions->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
             $accountSums  = $accountSums->get();
             $this->logExecutionTime($t1, $action, 'loadTransactions');
 

@@ -45,7 +45,7 @@ final class ProductServiceCategoryController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($c = self::guard($request, PermissionsConstants::MNG_CT_CAT, self::REDIRECT_INDEX)) !== true) return $c;
-            $categories = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
             return view($view, compact('categories'));
         });
     }
@@ -63,7 +63,7 @@ final class ProductServiceCategoryController extends Controller
             if (($c = self::guard($request, 'create constant category', self::REDIRECT_INDEX)) !== true) return $c;
             $types = ['' => __('Select Category Type')] + ProductServiceCategory::$catTypes;
             $chartAccounts = ChartOfAccount::select(DB::raw('CONCAT(code," - ",name) AS code_name'), 'id')
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->pluck('code_name', 'id')
                 ->prepend(__('Select Account'), '');
             return view($view, compact('types', 'chartAccounts'));
@@ -192,7 +192,7 @@ final class ProductServiceCategoryController extends Controller
             </div>
         </div>';
 
-            foreach (ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get() as $c) {
+            foreach (ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get() as $c) {
                 $html .= '<div class="mb-3 mr-2 zoom-in cat-list-btn">
             <div class="' . ViewClassNamesConstants::CD . ' rounded-10 card-stats mb-0 overflow-hidden" data-id="'
                     . $c->id . '">

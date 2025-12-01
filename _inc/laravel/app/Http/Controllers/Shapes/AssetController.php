@@ -38,7 +38,7 @@ final class AssetController extends Controller
 
         $t = microtime(true);
         $user   = $request->user();
-        $assets = Asset::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+        $assets = Asset::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
         $this->logExecutionTime($t, $action . '::fetchAssets', 'completed');
 
         $viewPath = ViewsConstants::AST . '.' . $action;
@@ -67,7 +67,7 @@ final class AssetController extends Controller
         $this->logExecutionTime($t, $action . '::authorize', 'completed');
 
         $t = microtime(true);
-        $employeeList = Employee::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+        $employeeList = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
           ->pluck(UsersConstants::COL_NM, 'id');
         $this->logExecutionTime($t, $action . '::pluckEmployees', 'completed');
 
@@ -118,7 +118,7 @@ final class AssetController extends Controller
           UsersConstants::COL_EMP_ID => isset($data[UsersConstants::COL_EMP_ID])
             ? implode(',', $data[UsersConstants::COL_EMP_ID])
             : '',
-          DatabaseConstants::TABLE_CREATOR => $request->user()->creatorId(),
+          DatabaseConstants::COL_TABLE_CREATOR => $request->user()->creatorId(),
         ]);
         $asset->save();
         $this->logExecutionTime($t, $action . '::persist', 'completed');
@@ -146,7 +146,7 @@ final class AssetController extends Controller
         $t = microtime(true);
         if (
           !$request->user()?->can(PermissionsConstants::VIW_AST)
-          || $asset[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()
+          || $asset[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()
         ) {
           return defaultPermissionDenial($request, null, $method);
         }
@@ -179,10 +179,10 @@ final class AssetController extends Controller
 
         $t = microtime(true);
         $asset = Asset::findOrFail($id);
-        if ($asset[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+        if ($asset[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
           return defaultPermissionDenial($request, null, $method);
         }
-        $employeeList = Employee::where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+        $employeeList = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
           ->pluck(UsersConstants::COL_NM, 'id');
         $asset[UsersConstants::COL_EMP_ID] = explode(',', $asset[UsersConstants::COL_EMP_ID]);
         $this->logExecutionTime($t, $action . '::loadAssetAndEmployees', 'completed');
@@ -214,7 +214,7 @@ final class AssetController extends Controller
 
         $t = microtime(true);
         $asset = Asset::findOrFail($id);
-        if ($asset[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+        if ($asset[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
           return defaultPermissionDenial($request, null, $method);
         }
         $this->logExecutionTime($t, $action . '::ownershipCheck', 'completed');
@@ -271,7 +271,7 @@ final class AssetController extends Controller
 
         $t = microtime(true);
         $asset = Asset::findOrFail($id);
-        if ($asset[DatabaseConstants::TABLE_CREATOR] !== $request->user()->creatorId()) {
+        if ($asset[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
           return defaultPermissionDenial($request, null, $method);
         }
         $asset->delete();

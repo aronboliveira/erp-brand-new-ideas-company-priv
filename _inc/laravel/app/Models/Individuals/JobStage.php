@@ -12,7 +12,7 @@ class JobStage extends Model
     use ChecksLogin, UsesUuids;
 
     private const FILLABLE_FIELDS = [
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
         ActivitiesConstants::COL_OD,
         ActivitiesConstants::COL_TT
     ];
@@ -26,7 +26,7 @@ class JobStage extends Model
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        $query = JobApplication::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $query = JobApplication::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->where('is_archive', 0)
             ->where('stage', $this->id)
             ->where('created_at', '>=', $filter['start_date'])

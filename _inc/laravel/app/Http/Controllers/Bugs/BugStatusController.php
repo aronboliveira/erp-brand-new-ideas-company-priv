@@ -56,7 +56,7 @@ class BugStatusController extends Controller
 
             try {
                 $creatorId = $request->user()?->creatorId();
-                $bugStatuses = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $bugStatuses = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->orderBy(ActivitiesConstants::COL_OD)
                     ->get();
 
@@ -117,12 +117,12 @@ class BugStatusController extends Controller
                 ]);
 
                 $creatorId = $request->user()->creatorId();
-                $maxOrder = BugStatus::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->max(ActivitiesConstants::COL_OD);
+                $maxOrder = BugStatus::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->max(ActivitiesConstants::COL_OD);
 
                 BugStatus::create([
                     ActivitiesConstants::COL_TT      => $data[ActivitiesConstants::COL_TT],
                     ActivitiesConstants::COL_OD      => ($maxOrder ?? -1) + 1,
-                    DatabaseConstants::TABLE_CREATOR => $creatorId,
+                    DatabaseConstants::COL_TABLE_CREATOR => $creatorId,
                 ]);
 
                 return redirect()->route(ViewsConstants::BUG_STT . '.index')->with('success', __('Bug status successfully created.'));
@@ -258,7 +258,7 @@ class BugStatusController extends Controller
                 $positions = $request->input(ActivitiesConstants::COL_OD, []);
                 foreach ($positions as $index => $id) {
                     BugStatus::where('id', $id)
-                        ->where(DatabaseConstants::TABLE_CREATOR, $request->user()->creatorId())
+                        ->where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()->creatorId())
                         ->update([ActivitiesConstants::COL_OD => $index]);
                 }
                 return response()->noContent(Response::HTTP_OK);
@@ -295,7 +295,7 @@ class BugStatusController extends Controller
             return false;
         /** @var \App\Models\User $user */
         $user = $userOrRedirect;
-        return $status[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+        return $status[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
     }
 
     /**

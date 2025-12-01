@@ -47,7 +47,7 @@ class RevenueController extends Controller
             try {
                 $creatorId = $user?->creatorId();
                 $revenues = DB::transaction(function () use ($filters, $creatorId, $action) {
-                    $q = Revenue::where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                    $q = Revenue::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                     if ($filters['customer'] ?? null) $q->where('customer_id', $filters['customer']);
                     if ($filters['account'] ?? null) $q->where('account_id', $filters['account']);
                     if ($filters['category'] ?? null) $q->where('category_id', $filters['category']);
@@ -61,9 +61,9 @@ class RevenueController extends Controller
                     return $res;
                 });
 
-                $customerList = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id')->prepend('Select Customer', '');
-                $accountList = BankAccount::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('holder_name', 'id')->prepend('Select Account', '');
-                $categoryList = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
+                $customerList = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id')->prepend('Select Customer', '');
+                $accountList = BankAccount::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('holder_name', 'id')->prepend('Select Account', '');
+                $categoryList = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
 
                 $view = ViewsConstants::RVN . '.index';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
@@ -102,9 +102,9 @@ class RevenueController extends Controller
 
             try {
                 $creatorId = $user?->creatorId();
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id')->prepend('--', 0);
-                $categories = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->where('type', 'income')->pluck('name', 'id');
-                $accounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id')->prepend('--', 0);
+                $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('type', 'income')->pluck('name', 'id');
+                $accounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
 
                 $view = ViewsConstants::RVN . '.create';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
@@ -159,7 +159,7 @@ class RevenueController extends Controller
                 }
 
                 $data['payment_method'] = 0;
-                $data[DatabaseConstants::TABLE_CREATOR] = $creatorId;
+                $data[DatabaseConstants::COL_TABLE_CREATOR] = $creatorId;
 
                 $revenue = Revenue::create($data);
                 Log::info($action . ' created', ['revenueId' => $revenue->id]);
@@ -228,7 +228,7 @@ class RevenueController extends Controller
                 return $redirect;
             }
 
-            if ($revenue[DatabaseConstants::TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
+            if ($revenue[DatabaseConstants::COL_TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
                 Log::debug($action . ' ownership denied', [UsersConstants::COL_USER_ID => $user?->id ?? null, 'revenueId' => $revenue->id ?? null]);
                 return defaultPermissionDenial($request, new \Exception('owner'), $action);
             }
@@ -253,16 +253,16 @@ class RevenueController extends Controller
                 return $redirect;
             }
 
-            if ($revenue[DatabaseConstants::TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
+            if ($revenue[DatabaseConstants::COL_TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
                 Log::debug($action . ' ownership denied', [UsersConstants::COL_USER_ID => $user?->id ?? null, 'revenueId' => $revenue->id ?? null]);
                 return defaultPermissionDenial($request, new \Exception('owner'), $action);
             }
 
             try {
                 $creatorId = $user?->creatorId();
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id')->prepend('--', 0);
-                $categories = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->where('type', 'income')->pluck('name', 'id');
-                $accounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id')->prepend('--', 0);
+                $categories = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('type', 'income')->pluck('name', 'id');
+                $accounts = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
 
                 $view = ViewsConstants::RVN . '.edit';
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
@@ -291,7 +291,7 @@ class RevenueController extends Controller
                 return $redirect;
             }
 
-            if ($revenue[DatabaseConstants::TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
+            if ($revenue[DatabaseConstants::COL_TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
                 Log::debug($action . ' ownership denied', [UsersConstants::COL_USER_ID => $user?->id ?? null, 'revenueId' => $revenue->id ?? null]);
                 return defaultPermissionDenial($request, new \Exception('owner'), $action);
             }
@@ -339,7 +339,7 @@ class RevenueController extends Controller
                 return $redirect;
             }
 
-            if ($revenue[DatabaseConstants::TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
+            if ($revenue[DatabaseConstants::COL_TABLE_CREATOR] !== ($user?->creatorId() ?? null)) {
                 Log::debug($action . ' ownership denied', [UsersConstants::COL_USER_ID => $user?->id ?? null, 'revenueId' => $revenue->id ?? null]);
                 return defaultPermissionDenial($request, new \Exception('owner'), $action);
             }
@@ -347,7 +347,7 @@ class RevenueController extends Controller
             try {
                 DB::transaction(function () use ($revenue, $action) {
                     if ($path = $revenue->add_receipt) {
-                        Utility::changeStorageLimit($revenue[DatabaseConstants::TABLE_CREATOR], "/uploads/revenue/{$path}");
+                        Utility::changeStorageLimit($revenue[DatabaseConstants::COL_TABLE_CREATOR], "/uploads/revenue/{$path}");
                     }
 
                     $rid = $revenue->id;

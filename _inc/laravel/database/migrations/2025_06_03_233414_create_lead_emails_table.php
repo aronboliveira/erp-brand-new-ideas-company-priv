@@ -16,7 +16,7 @@ class CreateLeadEmailsTable extends Migration
             $table->string('to');
             $table->string('subject');
             $table->text('description')->nullable();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
             $table->timestamps();
             $table->foreign(self::COL_LEAD)
                 ->references('id')

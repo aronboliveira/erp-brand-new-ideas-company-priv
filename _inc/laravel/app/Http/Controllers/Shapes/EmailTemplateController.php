@@ -117,7 +117,7 @@ class EmailTemplateController extends Controller
                     EmailsConstants::COL_TT            => $title,
                     EmailsConstants::COL_FROM          => config('app.name'),
                     EmailsConstants::COL_SLG           => Str::slug($title) ?? '',
-                    DatabaseConstants::TABLE_CREATOR   => $user?->id,
+                    DatabaseConstants::COL_TABLE_CREATOR   => $user?->id,
                 ]);
                 DB::commit();
                 $this->logExecutionTime($t, "$sig::transaction", 'completed');

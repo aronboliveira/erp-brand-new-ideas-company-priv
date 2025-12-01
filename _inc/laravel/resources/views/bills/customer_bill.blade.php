@@ -28,7 +28,7 @@
 	$faviconUrl ??= '';
     $lang = Utility::fetchUserLang();
 	try {
-		$creatorId = $bill?->[DatabaseConstants::TABLE_CREATOR] ?? '';
+		$creatorId = $bill?->[DatabaseConstants::COL_TABLE_CREATOR] ?? '';
 		$data = Utility::prepareCommonViewData($creatorId) ?: [];
 		$logo = $data[SettingsConstants::LOGO] ?? '';
 		$company_favicon = $data[SettingsConstants::FAV_ICN] ?? '';

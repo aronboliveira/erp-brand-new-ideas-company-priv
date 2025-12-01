@@ -12,12 +12,12 @@ class DealDiscussion extends Model
 {
     use UsesUuids, HasAuditFields;
     protected $fillable = [AC::COL_DL, 'comment'];
-    protected $guarded = ['id', DC::TABLE_CREATOR];
+    protected $guarded = ['id', DC::COL_TABLE_CREATOR];
     protected $with = ['deal'];
 
     public function user(): HasOne
     {
-        return $this->hasOne(User::class, 'id', DC::TABLE_CREATOR);
+        return $this->hasOne(User::class, 'id', DC::COL_TABLE_CREATOR);
     }
     public function deal(): BelongsTo
     {

@@ -44,7 +44,7 @@ class LeaveController extends Controller
                     )
                     ->when(
                         $user->type != 'Employee',
-                        fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $cid)
+                        fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $cid)
                     )
                     ->get();
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(ViewsConstants::LV . '.index'));
@@ -78,11 +78,11 @@ class LeaveController extends Controller
                     )
                     ->when(
                         $user->type != 'Employee',
-                        fn($q) => $q->where(DatabaseConstants::TABLE_CREATOR, $cid)
+                        fn($q) => $q->where(DatabaseConstants::COL_TABLE_CREATOR, $cid)
                     )
                     ->get()
                     ->pluck(UsersConstants::COL_NM, 'id');
-                $leaveTypes = LeaveType::where(DatabaseConstants::TABLE_CREATOR, $cid)->get();
+                $leaveTypes = LeaveType::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)->get();
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(ViewsConstants::LV . '.index'));
                 return view($view, compact('employees', 'leaveTypes'));
             } catch (AuthorizationException $e) {
@@ -129,7 +129,7 @@ class LeaveController extends Controller
                         'applied_on' => date('Y-m-d'),
                         'total_leave_days' => $days,
                         'status' => 'Pending',
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                     ] as $f => $val
                 ) $data[$f] = $val;
                 Leave::create($data);
@@ -166,11 +166,11 @@ class LeaveController extends Controller
             $user = $u;
             try {
                 if ($r = self::guard($request, 'edit leave', ViewsConstants::LV . '.edit')) return $r;
-                if ($leave[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($leave[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 $cid = $user?->creatorId();
-                $emps = Employee::where(DatabaseConstants::TABLE_CREATOR, $cid)->get()->pluck('name', 'id');
-                $lts = LeaveType::where(DatabaseConstants::TABLE_CREATOR, $cid)->get()->pluck('title', 'id');
+                $emps = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)->get()->pluck('name', 'id');
+                $lts = LeaveType::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)->get()->pluck('title', 'id');
                 if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action, route(ViewsConstants::LV . '.index'));
                 return view($view, compact('leave', 'emps', 'lts'));
             } catch (AuthorizationException $e) {
@@ -194,7 +194,7 @@ class LeaveController extends Controller
             try {
                 if ($r = self::guard($request, 'edit leave', ViewsConstants::LV . '.update')) return $r;
                 $leave = Leave::find($request->input('leave_id'));
-                if ($leave[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($leave[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 $v = Validator::make($request->all(), [
                     'leave_type_id' => 'required',
@@ -234,7 +234,7 @@ class LeaveController extends Controller
             $user = $u;
             try {
                 if ($r = self::guard($request, 'delete leave', ViewsConstants::LV . '.destroy')) return $r;
-                if ($leave[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId())
+                if ($leave[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId())
                     return defaultPermissionDenial($request, new AuthorizationException(), $action);
                 $leave->delete();
                 return redirect()->route(ViewsConstants::LV . '.index')->with('success', 'Leave successfully deleted.');
@@ -297,7 +297,7 @@ class LeaveController extends Controller
                 $leave->update($upd);
                 $set = Utility::settings();
                 if ($set['leave_status'] ?? 0) {
-                    $emp = Employee::where('id', $leave->employee_id)->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->first();
+                    $emp = Employee::where('id', $leave->employee_id)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->first();
                     $arr = [
                         'leave_name' => $emp->name ?? '',
                         'leave_status' => $leave->status,
@@ -332,7 +332,7 @@ class LeaveController extends Controller
             try {
                 if (self::guard($request, 'view leave', ViewsConstants::LV . '.jsoncount')) return [];
                 $cid = $user?->creatorId();
-                $types = LeaveType::where(DatabaseConstants::TABLE_CREATOR, $cid)->get();
+                $types = LeaveType::where(DatabaseConstants::COL_TABLE_CREATOR, $cid)->get();
                 $out = [];
                 foreach ($types as $t) {
                     $sum = Leave::where('leave_type_id', $t->id)

@@ -15,11 +15,13 @@ class CreateFormResponsesTable extends Migration
             $table->uuid(self::COL_FORM)->index();             // ! CHANGED
             $table->text('response')->nullable();
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_FORM    => DatabaseConstants::TABLE_FORM_BUILD,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_FORM    => DatabaseConstants::TABLE_FORM_BUILD,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -30,7 +32,7 @@ class CreateFormResponsesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([self::COL_FORM, DatabaseConstants::TABLE_CREATOR] as $column) {
+            foreach ([self::COL_FORM, DatabaseConstants::COL_TABLE_CREATOR] as $column) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

@@ -70,11 +70,11 @@ class ProposalController extends Controller
                 }
 
                 $creatorId = $user?->creatorId();
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id')->prepend('All', '');
                 $status = Proposal::$statuses;
 
-                $query = Proposal::where(DatabaseConstants::TABLE_CREATOR, $creatorId);
+                $query = Proposal::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId);
                 if ($request->filled('customer')) $query->where('customer_id', $request->customer);
                 if ($request->filled('issue_date')) {
                     $range = explode(' to ', $request->issue_date);
@@ -124,14 +124,14 @@ class ProposalController extends Controller
                 }
 
                 $creatorId = $user?->creatorId();
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('module', 'proposal')->get();
                 $proposalNumber = $user?->proposalNumberFormat($this->proposalNumber());
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id')->prepend('Select Customer', '');
-                $category = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
-                $productServices = ProductService::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck('name', 'id')->prepend('--', '');
 
                 $this->logExecutionTime($stepStart, 'fetch proposal data', 'completed');
@@ -255,7 +255,7 @@ class ProposalController extends Controller
                     'status'                           => 0,
                     'issue_date'                       => $data['issue_date'],
                     'category_id'                      => $data['category_id'],
-                    DatabaseConstants::TABLE_CREATOR   => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR   => $user?->creatorId(),
                 ]);
                 $this->logExecutionTime($startCreate, $function . '::createProposal', 'completed');
 
@@ -330,16 +330,16 @@ class ProposalController extends Controller
                 $proposalNumber = $user?->proposalNumberFormat($proposal->proposal_id);
                 $creatorId = $user?->creatorId();
 
-                $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck(UsersConstants::COL_NM, 'id');
 
-                $category = ProductServiceCategory::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $category = ProductServiceCategory::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('type', 'income')->pluck('name', 'id')->prepend('Select Category', '');
 
-                $productServices = ProductService::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $productServices = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->pluck('name', 'id');
 
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                     ->where('module', 'proposal')->get();
 
                 $items = $proposal->items->map(function ($it) {
@@ -471,7 +471,7 @@ class ProposalController extends Controller
                     return defaultPermissionDenial(request(), new \Exception('ownership'), $method);
                 $this->logExecutionTime($stepStart, 'checkOwnership', 'completed');
                 $proposal->customField = CustomField::getData($proposal, 'proposal');
-                $customFields = CustomField::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                $customFields = CustomField::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                     ->where('module', 'proposal')->get();
                 $this->logExecutionTime($stepStart, 'fetchCustomFields', 'completed');
                 if (!ViewFacade::exists(ViewsConstants::PPS . '.view')) return defaultUndefinedException(request(), new \RuntimeException('View not found: ' . ViewsConstants::PPS . '.view'), $method);
@@ -576,7 +576,7 @@ class ProposalController extends Controller
                 $queryStart = microtime(true);
                 $query = Proposal::where('customer_id', Auth::id())
                     ->where('status', '!=', 0)
-                    ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+                    ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
                 $this->logExecutionTime($queryStart, $action . '::query', 'completed');
 
                 if ($request->filled('issue_date')) {
@@ -839,7 +839,7 @@ class ProposalController extends Controller
                         'send_date' => null,
                         'category_id' => $prop->category_id,
                         'status' => 0,
-                        DatabaseConstants::TABLE_CREATOR => $prop->created_by,
+                        DatabaseConstants::COL_TABLE_CREATOR => $prop->created_by,
                     ]);
                     $this->logExecutionTime($invStart, $action . '::createInvoice', 'completed');
 
@@ -1181,7 +1181,7 @@ class ProposalController extends Controller
                 DB::transaction(function () use ($data, $user) {
                     foreach ($data as $key => $val) {
                         DB::insert(
-                            'INSERT INTO ' . DatabaseConstants::TABLE_SETTINGS . ' (`value`,`name`,`' . DatabaseConstants::TABLE_CREATOR . '`)
+                            'INSERT INTO ' . DatabaseConstants::TABLE_SETTINGS . ' (`value`,`name`,`' . DatabaseConstants::COL_TABLE_CREATOR . '`)
                 VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)',
                             [$val, $key, $user?->creatorId()]
@@ -1256,7 +1256,7 @@ class ProposalController extends Controller
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        $latest = Proposal::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $latest = Proposal::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->latest()->first();
         return $latest ? (is_numeric($latest->proposal_id) ? $latest->proposal_id + 1 : $latest->proposal_id) : 0;
     }
@@ -1270,7 +1270,7 @@ class ProposalController extends Controller
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        $latest = Invoice::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $latest = Invoice::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->latest()->first();
         return $latest ? (is_numeric($latest->invoice_id) ? $latest->invoice_id + 1 : $latest->invoice_id) : 1;
     }

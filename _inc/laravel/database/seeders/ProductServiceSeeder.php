@@ -167,8 +167,8 @@ final class ProductServiceSeeder extends Seeder
 					BC::COL_ON_SALE        => (bool) random_int(0, 1),
 					BC::COL_IS_LK          => false,
 					BC::COL_IS_TRS         => false,
-					DC::TABLE_CREATOR      => $creator,
-					DC::TABLE_UPDATER      => $creator,
+					DC::COL_TABLE_CREATOR      => $creator,
+					DC::COL_TABLE_UPDATER      => $creator,
 				];
 
 				// Limpa nulls residuais de attributes

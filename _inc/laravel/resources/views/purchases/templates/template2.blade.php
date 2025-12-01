@@ -55,8 +55,8 @@ if (isset($purchase) && !empty($purchase)) {
     // Settings data
     try {
         $creatorId = Utility::isFilled($purchase ?? [])
-            ? ($purchase[DatabaseConstants::TABLE_CREATOR] ?? null)
-            : (data_get($purchase, DatabaseConstants::TABLE_CREATOR) ?? data_get($purchase, 'created_by'));
+            ? ($purchase[DatabaseConstants::COL_TABLE_CREATOR] ?? null)
+            : (data_get($purchase, DatabaseConstants::COL_TABLE_CREATOR) ?? data_get($purchase, 'created_by'));
         $settings_data ??= Utility::settingsById($creatorId);
     } catch (\Throwable $e) {
         Log::error('SettingsById Throwable: '.get_class($e).' | "'.$e->getMessage().'" | file='.__FILE__.' | line='.__LINE__);

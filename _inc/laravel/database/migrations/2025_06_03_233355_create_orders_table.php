@@ -1,16 +1,14 @@
 <?php
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC, SettingsConstants as SC, UsersConstants as UC};
-use App\Enums\MonthName;
-use App\Enums\PaymentMethod;
-use App\Enums\PaymentStatus;
-use App\Traits\HasNullableAuditColumns;
+use App\Enums\{MonthName, PaymentMethod, PaymentStatus};
+use App\Traits\{HasCreditCardInfo, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateOrdersTable extends Migration
 {
-    use HasNullableAuditColumns;
+    use HasCreditCardInfo, HasNullableAuditColumns;
     private const TABLE = DC::TABLE_ORDERS;
     public function up(): void
     {
@@ -29,12 +27,7 @@ class CreateOrdersTable extends Migration
             // * booted and saving should error out if the validation for the card AND the pix key AND the payslip id are not met
             $table->unsignedSmallInteger(BC::COL_N_INTR)->default(1)->nullable(); // ? nullable for testing purposes
 
-            $table->string(BC::COL_CD_FLG, 20)->nullable(); // * when the system is more mature, then this can be enumerated
-            $table->string(BC::COL_CD_NB, 19)->nullable(); // ? this should be stored encrypted in the model and strip out any non-numeric characters
-            $table->string(BC::COL_CD_DG, 4)->nullable(); // ? this should be stored encrypted in the model and strip out any non-numeric characters
-            $table->string(BC::COL_CD_HNM, 124)->nullable(); // ? this should be stored encrypted in the model
-            $table->enum(BC::COL_CD_EX_M, MonthName::values())->default(MonthName::January->value)->nullable(); // * model should ensure this is never less than the current month if the year is the current year
-            $table->string(BC::COL_CD_EX_Y, 4)->nullable(); // * model should ensure this is never less than the current year
+            $this->addCreditCardInfoColumns($table);
 
             $table->uuid(BC::COL_TAX_ID)->nullable();
             $table->json(BC::COL_OT_TX_ID)->nullable(); // * model should ensure these taxes exist through queries on the taxes table

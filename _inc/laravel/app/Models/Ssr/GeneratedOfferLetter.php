@@ -16,7 +16,7 @@ class GeneratedOfferLetter extends Model
         protected $fillable = [
                 TemplatesConstants::COL_LG,
                 TemplatesConstants::COL_CT,
-                DatabaseConstants::TABLE_CREATOR,
+                DatabaseConstants::COL_TABLE_CREATOR,
         ];
         private const OFFER_LETTER_TEMPLATE = [
 
@@ -903,7 +903,7 @@ class GeneratedOfferLetter extends Model
 
         public function createdBy(): BelongsTo
         {
-                return $this->belongsTo(User::class, DatabaseConstants::TABLE_CREATOR);
+                return $this->belongsTo(User::class, DatabaseConstants::COL_TABLE_CREATOR);
         }
 
         public static function replaceVariable(string $content, array $obj): string
@@ -957,7 +957,7 @@ class GeneratedOfferLetter extends Model
                                 self::create([
                                         TemplatesConstants::COL_LG                     => $lang,
                                         TemplatesConstants::COL_CT                  => $content,
-                                        DatabaseConstants::TABLE_CREATOR => $createdBy,
+                                        DatabaseConstants::COL_TABLE_CREATOR => $createdBy,
                                 ]);
                         } catch (\Throwable $e) {
                                 \Illuminate\Support\Facades\Log::error(
@@ -977,7 +977,7 @@ class GeneratedOfferLetter extends Model
                                 [
                                         TemplatesConstants::COL_LG => $lang,
                                         TemplatesConstants::COL_CT => $content,
-                                        DatabaseConstants::TABLE_CREATOR => $userId,
+                                        DatabaseConstants::COL_TABLE_CREATOR => $userId,
 
                                 ]
                         );

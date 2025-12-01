@@ -36,20 +36,40 @@ abstract class DeliverableSchema extends BaseSchema
         $table->string('shipping_state')->nullable();
         $table->string('shipping_zip', 20)->nullable();
         $table->text('notes')->nullable();
-        $table->uuid(DatabaseConstants::TABLE_CREATOR)->index();
+        $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->index();
     }
 
     protected function dropFields(Blueprint $table): void
     {
         if (method_exists(parent::class, 'dropFields')) parent::dropFields($table);
         $table->dropColumn([
-            'id', 'lang', 'name', 'email', 'secondary_email', 'contact',
-            'avatar', 'avatar_url', 'email_verified_at', 'is_active',
-            'billing_address', 'billing_city', 'billing_country', 'billing_phone',
-            'billing_phone_verified_at', 'billing_state', 'billing_zip',
-            'shipping_address', 'shipping_city', 'shipping_country', 'shipping_name',
-            'shipping_phone', 'shipping_phone_verified_at', 'shipping_state',
-            'shipping_zip', 'notes', 'created_by'
+            'id',
+            'lang',
+            'name',
+            'email',
+            'secondary_email',
+            'contact',
+            'avatar',
+            'avatar_url',
+            'email_verified_at',
+            'is_active',
+            'billing_address',
+            'billing_city',
+            'billing_country',
+            'billing_phone',
+            'billing_phone_verified_at',
+            'billing_state',
+            'billing_zip',
+            'shipping_address',
+            'shipping_city',
+            'shipping_country',
+            'shipping_name',
+            'shipping_phone',
+            'shipping_phone_verified_at',
+            'shipping_state',
+            'shipping_zip',
+            'notes',
+            'created_by'
         ]);
     }
 }

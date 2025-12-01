@@ -88,7 +88,7 @@ final class ComplaintSeeder extends Seeder
 				$c->reason             = $reason;
 				$c->description        = $desc;
 				$c->notes              = $notes;
-				$c->{DC::TABLE_CREATOR} = $systemUserId;
+				$c->{DC::COL_TABLE_CREATOR} = $systemUserId;
 
 				try {
 					$c->save();

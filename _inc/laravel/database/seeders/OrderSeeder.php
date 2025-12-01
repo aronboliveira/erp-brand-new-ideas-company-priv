@@ -123,7 +123,7 @@ final class OrderSeeder extends Seeder
 					],
 
 					// Auditoria
-					DC::TABLE_CREATOR     => $systemUserId,
+					DC::COL_TABLE_CREATOR     => $systemUserId,
 				];
 
 				try {

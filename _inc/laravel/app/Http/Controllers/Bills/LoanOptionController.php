@@ -36,7 +36,7 @@ final class LoanOptionController extends Controller
             if (($r = self::guard($request, 'manage loan option', VW::LN_OPT . '.index')) !== true) return $r;
             try {
                 $qStart = microtime(true);
-                $loanOptions = LoanOption::where(DatabaseConstants::TABLE_CREATOR, $request->user()?->creatorId() ?? null)->get();
+                $loanOptions = LoanOption::where(DatabaseConstants::COL_TABLE_CREATOR, $request->user()?->creatorId() ?? null)->get();
                 $this->logExecutionTime($qStart, $action, 'fetchLoanOptions');
                 Log::info($class . '::' . $action . ' fetched', ['count' => $loanOptions->count(), UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
                 $viewPath = VW::LN_OPT . '.' . $action;
@@ -94,7 +94,7 @@ final class LoanOptionController extends Controller
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($request, $class, $action) {
                     $crtStart = microtime(true);
-                    $opt = LoanOption::create(['name' => $request->name, DatabaseConstants::TABLE_CREATOR => $request->user()?->creatorId() ?? null]);
+                    $opt = LoanOption::create(['name' => $request->name, DatabaseConstants::COL_TABLE_CREATOR => $request->user()?->creatorId() ?? null]);
                     $this->logExecutionTime($crtStart, $action, 'createLoanOption');
                     Log::info($class . '::' . $action . ' created', ['loan_option_id' => $opt->id ?? null, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
                 });
@@ -235,6 +235,6 @@ final class LoanOptionController extends Controller
         )
             return $userOrRedirect;
         $user = $userOrRedirect;
-        return $opt[DatabaseConstants::TABLE_CREATOR] === $user?->creatorId();
+        return $opt[DatabaseConstants::COL_TABLE_CREATOR] === $user?->creatorId();
     }
 }

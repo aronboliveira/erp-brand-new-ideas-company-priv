@@ -123,14 +123,14 @@ final class PayslipSeeder extends Seeder
 
 							if ($existing) {
 								$existing->fill($payload);
-								if (empty($existing->{DC::TABLE_CREATOR})) {
-									$existing->{DC::TABLE_CREATOR} = $systemUserId;
+								if (empty($existing->{DC::COL_TABLE_CREATOR})) {
+									$existing->{DC::COL_TABLE_CREATOR} = $systemUserId;
 								}
 								$existing->save();
 								$updated++;
 							} else {
 								$m = new Payslip($payload);
-								$m->{DC::TABLE_CREATOR} = $systemUserId;
+								$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
 								$m->save();
 								$created++;
 							}

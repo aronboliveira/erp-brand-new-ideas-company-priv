@@ -56,7 +56,7 @@ class AnnouncementController extends Controller
             ->select('announcements.*')
             ->get();
         } else {
-          $announcements = Announcement::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->orderByDesc('id')->get();
+          $announcements = Announcement::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->orderByDesc('id')->get();
         }
         $view = ViewsConstants::ANC . '.index';
         if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
@@ -76,9 +76,9 @@ class AnnouncementController extends Controller
       $user = $userOrRedirect;
       try {
         if (!$user?->can('create announcement')) return defaultPermissionDenial($request, null, "$cls::$action");
-        $employees = Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-        $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
-        $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+        $employees = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+        $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+        $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
         $view = ViewsConstants::ANC . '.create';
         if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
         return ViewFacade::make($view, ['employees' => $employees, 'branch' => $branches, 'departments' => $departments]);
@@ -118,13 +118,13 @@ class AnnouncementController extends Controller
           'department_id' => json_encode($departmentIds),
           'employee_id' => json_encode($employeeIds),
           'description' => $request->input('description', ''),
-          DatabaseConstants::TABLE_CREATOR => $creatorId
+          DatabaseConstants::COL_TABLE_CREATOR => $creatorId
         ]);
         $announcement->save();
         if (in_array(0, $departmentIds, true)) {
-          $targetEmployeeIds = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('id')->toArray();
+          $targetEmployeeIds = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('id')->toArray();
         } elseif (empty($employeeIds)) {
-          $targetEmployeeIds = Employee::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereIn(CompaniesConstants::COL_DEP_ID, $departmentIds)->pluck('id')->toArray();
+          $targetEmployeeIds = Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereIn(CompaniesConstants::COL_DEP_ID, $departmentIds)->pluck('id')->toArray();
         } else {
           $targetEmployeeIds = $employeeIds;
         }
@@ -132,12 +132,12 @@ class AnnouncementController extends Controller
           EmployeeAnnouncement::create([
             'announcement_id' => $announcement->id,
             'employee_id' => $empId,
-            DatabaseConstants::TABLE_CREATOR => $creatorId
+            DatabaseConstants::COL_TABLE_CREATOR => $creatorId
           ]);
         }
         $settings = Utility::settings($creatorId);
         $branchNames = $branchId === 0
-          ? Branch::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name')->toArray()
+          ? Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name')->toArray()
           : [Branch::whereKey($branchId)->value('name')];
         $payload = [
           'announcement_title' => $announcement->title,
@@ -186,8 +186,8 @@ class AnnouncementController extends Controller
       $user = $userOrRedirect;
       try {
         if (!$user?->can('edit announcement')) return defaultPermissionDenial($request, null, "$cls::$action");
-        $branches = Branch::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
-        $departments = Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+        $branches = Branch::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
+        $departments = Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id');
         $view = ViewsConstants::ANC . '.edit';
         if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), "$cls::$action");
         return ViewFacade::make($view, ['announcement' => $announcement, 'branch' => $branches, 'departments' => $departments]);
@@ -258,8 +258,8 @@ class AnnouncementController extends Controller
       $user = $userOrRedirect;
       $branchId = (int) $request->input(CompaniesConstants::COL_BRC_ID, 0);
       $departments = $branchId === 0
-        ? Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->toArray()
-        : Department::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->where(CompaniesConstants::COL_BRC_ID, $branchId)->pluck('name', 'id')->toArray();
+        ? Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->toArray()
+        : Department::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->where(CompaniesConstants::COL_BRC_ID, $branchId)->pluck('name', 'id')->toArray();
       return response()->json($departments);
     });
   }
@@ -274,8 +274,8 @@ class AnnouncementController extends Controller
       $user = $userOrRedirect;
       $deptIds = (array) $request->input(CompaniesConstants::COL_DEP_ID, []);
       $employees = empty($deptIds)
-        ? Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->toArray()
-        : Employee::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->whereIn(CompaniesConstants::COL_DEP_ID, $deptIds)->pluck('name', 'id')->toArray();
+        ? Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->toArray()
+        : Employee::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->whereIn(CompaniesConstants::COL_DEP_ID, $deptIds)->pluck('name', 'id')->toArray();
       return response()->json($employees);
     });
   }

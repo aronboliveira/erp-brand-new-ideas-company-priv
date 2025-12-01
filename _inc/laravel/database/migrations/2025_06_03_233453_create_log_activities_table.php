@@ -23,10 +23,12 @@ class CreateLogActivitiesTable extends Migration
                 $table->string(ActivitiesConstants::COL_MT);
                 $table->uuid(ActivitiesConstants::COL_MI); // ! CHANGED
                 $table->timestamps();
-                $table->uuid(DatabaseConstants::TABLE_CREATOR); // ! CHANGED
-                foreach ([
-                    DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable)
+                $table->uuid(DatabaseConstants::COL_TABLE_CREATOR); // ! CHANGED
+                foreach (
+                    [
+                        DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    ] as $column => $referencedTable
+                )
                     $table->foreign($column)
                         ->references('id')
                         ->on($referencedTable)
@@ -38,9 +40,11 @@ class CreateLogActivitiesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

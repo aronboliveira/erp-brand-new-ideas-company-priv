@@ -16,17 +16,17 @@ class CreateSettingsTable extends Migration
             $table->uuid('id')->primary();
             $table->string(self::COL_NAME)->nullable();
             $table->text('value')->nullable();
-            $table->unique([self::COL_NAME, DC::TABLE_CREATOR]);
+            $table->unique([self::COL_NAME, DC::COL_TABLE_CREATOR]);
             $table->uuid(UC::COL_USER_ID)->nullable();
             $table->foreign(UC::COL_USER_ID)
                 ->references('id')
                 ->on(DC::TABLE_USERS)
                 ->cascadeOnDelete();
             $table->unique(
-                [self::COL_NAME, DC::TABLE_CREATOR, UC::COL_USER_ID],
+                [self::COL_NAME, DC::COL_TABLE_CREATOR, UC::COL_USER_ID],
                 self::TABLE_NAME
                     . '_' . self::COL_NAME
-                    . '_' . DC::TABLE_CREATOR
+                    . '_' . DC::COL_TABLE_CREATOR
                     . '_' . UC::COL_USER_ID . '_unique'
             );
             $this->addAuditColumns($table);

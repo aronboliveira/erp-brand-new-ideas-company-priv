@@ -139,7 +139,7 @@ class AnnouncementSeeder extends Seeder
 						'requirements'       => $requirements,
 						'tags'               => $tags,
 						'steps'              => $steps,
-						DC::TABLE_CREATOR    => null, // preencha se desejar atrelar usuário criador
+						DC::COL_TABLE_CREATOR    => null, // preencha se desejar atrelar usuário criador
 					]
 				);
 			}

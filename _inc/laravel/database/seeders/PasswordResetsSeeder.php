@@ -41,7 +41,7 @@ final class PasswordResetsSeeder extends Seeder
 					'token'        => $hash,
 					'email'        => $email,
 					'created_at'   => now(),
-					DC::TABLE_CREATOR => $systemUserId,
+					DC::COL_TABLE_CREATOR => $systemUserId,
 				]);
 			}
 		}, 3);

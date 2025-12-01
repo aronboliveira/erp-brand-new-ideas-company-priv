@@ -14,14 +14,26 @@ class Purchase extends Model
     use HasFactory, UsesUuids, ChecksLogin;
 
     protected $fillable = [
-        'purchase_id', 'vendor_id', 'warehouse_id',
-        'purchase_date', 'purchase_number', 'discount_apply',
-        'category_id', DatabaseConstants::TABLE_CREATOR, 'status',
-        'shipping_display', 'send_date', 'tax_id'
+        'purchase_id',
+        'vendor_id',
+        'warehouse_id',
+        'purchase_date',
+        'purchase_number',
+        'discount_apply',
+        'category_id',
+        DatabaseConstants::COL_TABLE_CREATOR,
+        'status',
+        'shipping_display',
+        'send_date',
+        'tax_id'
     ];
 
     public static array $statuses = [
-        'Draft', 'Sent', 'Unpaid', 'Partially Paid', 'Paid'
+        'Draft',
+        'Sent',
+        'Unpaid',
+        'Partially Paid',
+        'Paid'
     ];
 
     public function vendor(): HasOne
@@ -66,7 +78,7 @@ class Purchase extends Model
 
     public function getSubTotal(): float
     {
-        return $this->items->sum(fn ($p) => $p->price * $p->quantity);
+        return $this->items->sum(fn($p) => $p->price * $p->quantity);
     }
 
     public function getTotal(): float
@@ -79,7 +91,7 @@ class Purchase extends Model
     public function getTotalTax(): float
     {
         return $this->items->sum(
-            fn ($p) => (Utility::totalTaxRate($p->tax) / 100) *
+            fn($p) => (Utility::totalTaxRate($p->tax) / 100) *
                 ($p->price * $p->quantity - $p->discount)
         );
     }
@@ -111,9 +123,9 @@ class Purchase extends Model
             instanceof RedirectResponse
         ) return $userOrRedirect;
         $user = $userOrRedirect;
-        $query = self::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+        $query = self::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
         $month && $query->whereRaw('MONTH(created_at)=?', [date('m')]);
-        $total = $query->get()->sum(fn ($p) => $p->getTotal());
+        $total = $query->get()->sum(fn($p) => $p->getTotal());
         return $user?->priceFormat($total);
     }
 
@@ -128,10 +140,10 @@ class Purchase extends Model
             'created_at',
             '>',
             Carbon::now()->subDays(10)
-        )->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        )->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->orderBy('created_at')
             ->get()
-            ->groupBy(fn ($v) => Carbon::parse(
+            ->groupBy(fn($v) => Carbon::parse(
                 $v->created_at
             )->format('dm'));
         $now = Carbon::now();
@@ -140,7 +152,7 @@ class Purchase extends Model
             $key = Carbon::parse($date)->format('dm');
             $purchasesArray['label'][] = $date;
             $purchasesArray['value'][] = $grouped[$key]
-                ? $grouped[$key]->sum(fn ($p) => $p->getTotal())
+                ? $grouped[$key]->sum(fn($p) => $p->getTotal())
                 : 0;
         }
         return $purchasesArray;

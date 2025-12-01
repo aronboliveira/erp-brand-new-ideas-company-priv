@@ -46,7 +46,7 @@ if (empty($bill)) {
 }
 
 try {
-    $settings_data = Utility::settingsById(data_get($bill, DatabaseConstants::TABLE_CREATOR));
+    $settings_data = Utility::settingsById(data_get($bill, DatabaseConstants::COL_TABLE_CREATOR));
 } catch (\Throwable $e) {
     $settings_data = [];
 }

@@ -35,4 +35,17 @@ class ActivitiesConstants
 	public const COL_MUNIT = 'measurement_unit';
 	public const COL_AV_FROM = 'available_from';
 	public const COL_AV_UNTIL = 'available_until';
+	public const COL_RES_ID = 'responsible_id';
+	public const COL_EV_ID = 'event_id';
+	public const COL_CLK_IN = 'clock_in';
+	public const COL_CLK_OUT = 'clock_out';
+	public const COL_ERL_ARV = 'early_arrival';
+	public const COL_ERL_LV = 'early_leaving';
+	public const COL_ERL_AV_CT = 'early_arrival_count';
+	public const COL_LT_CT = 'late_count';
+	public const COL_ERL_LV_CT = 'early_leaving_count';
+	public const COL_OVT_CT = 'overtime_count';
+	public const COL_TT_RST = 'total_rest';
+	public const COL_TT_WRK = 'total_work';
+	public const COL_OVT_ID = 'overtime_id';
 }

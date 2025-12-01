@@ -28,10 +28,6 @@ class BillProduct extends Model
     use NormalizesArrays;
     use UsesUuids;
 
-    public const TABLE = DC::TABLE_BL_PRD;
-
-    protected $table = self::TABLE;
-
     protected $fillable = [
         BC::COL_BL_ID,
         BC::COL_PRD_ID,
@@ -49,8 +45,8 @@ class BillProduct extends Model
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [
@@ -212,7 +208,7 @@ class BillProduct extends Model
 
     public function user(): HasOne
     {
-        return $this->hasOne(User::class, 'id', DC::TABLE_CREATOR);
-        // * considerar belongsTo(User::class, DC::TABLE_CREATOR, 'id')
+        return $this->hasOne(User::class, 'id', DC::COL_TABLE_CREATOR);
+        // * considerar belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id')
     }
 }

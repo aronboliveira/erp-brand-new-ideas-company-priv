@@ -66,10 +66,10 @@ final class PosController extends Controller
         $user = $req->user();
         $creatorId = $user?->creatorId();
         $custStart = microtime(true);
-        $customers = Customer::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_USER_ID, 'name')->prepend('Walk-in-customer', '');
+        $customers = Customer::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_USER_ID, 'name')->prepend('Walk-in-customer', '');
         $this->logExecutionTime($custStart, $action, 'fetchCustomers');
         $whStart = microtime(true);
-        $warehouses = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+        $warehouses = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
         $this->logExecutionTime($whStart, $action, 'fetchWarehouses');
         $detStart = microtime(true);
         $details = ['pos_id' => $user?->posNumberFormat(self::invoiceNumber()), 'customer' => $customers->toArray(), 'user' => $user?->toArray(), 'date' => now()->toDateString(), 'pay' => 'show'];
@@ -106,10 +106,10 @@ final class PosController extends Controller
         $user = $u;
         $creatorId = $user?->creatorId();
         $custStart = microtime(true);
-        $customer = Customer::where('name', $req->vc_name)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->firstOrFail();
+        $customer = Customer::where('name', $req->vc_name)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
         $this->logExecutionTime($custStart, $action, 'findCustomer');
         $whStart = microtime(true);
-        $warehouse = Warehouse::where('id', $req->warehouse_name)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->firstOrFail();
+        $warehouse = Warehouse::where('id', $req->warehouse_name)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
         $this->logExecutionTime($whStart, $action, 'findWarehouse');
         $details = ['posId' => $user?->posNumberFormat(self::invoiceNumber()), 'customer' => $customer->toArray(), 'warehouse' => $warehouse->toArray(), 'user' => $user?->toArray(), 'date' => now()->toDateString(), 'pay' => 'show'];
         $settingsStart = microtime(true);
@@ -161,7 +161,7 @@ final class PosController extends Controller
           }
           $pid = self::invoiceNumber();
           $dupStart = microtime(true);
-          $already = Pos::where('pos_id', $pid)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->exists();
+          $already = Pos::where('pos_id', $pid)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->exists();
           $this->logExecutionTime($dupStart, $action, 'checkDuplicatePayment');
           if ($already) {
             Log::info("[{$class}::{$action}] duplicate payment", ['pos_id' => $pid]);
@@ -174,12 +174,12 @@ final class PosController extends Controller
           $warehouseId = Warehouse::warehouseId($req->warehouse_name);
           $this->logExecutionTime($whIdStart, $action, 'resolveWarehouseId');
           $createPosStart = microtime(true);
-          $pos = Pos::create(['pos_id' => $pid, 'customer_id' => $customer_id, 'warehouse_id' => $warehouseId, 'pos_date' => now()->toDateString(), DatabaseConstants::TABLE_CREATOR => $creatorId]);
+          $pos = Pos::create(['pos_id' => $pid, 'customer_id' => $customer_id, 'warehouse_id' => $warehouseId, 'pos_date' => now()->toDateString(), DatabaseConstants::COL_TABLE_CREATOR => $creatorId]);
           $this->logExecutionTime($createPosStart, $action, 'createPos');
           Log::info("[{$class}::{$action}] Pos record created", ['pos_id' => $pos->id]);
           foreach ($cart as $item) {
             $lockStart = microtime(true);
-            $prod = ProductService::where('id', $item['id'])->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->lockForUpdate()->firstOrFail();
+            $prod = ProductService::where('id', $item['id'])->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->lockForUpdate()->firstOrFail();
             $this->logExecutionTime($lockStart, $action, 'lockProduct');
             if ($prod->quantity < $item['quantity']) {
               Log::error("[{$class}::{$action}] insufficient stock", ['product_id' => $prod->id, 'required' => $item['quantity'], 'available' => $prod->quantity]);
@@ -237,7 +237,7 @@ final class PosController extends Controller
         $findStart = microtime(true);
         $pos = Pos::findOrFail($id);
         $this->logExecutionTime($findStart, $action, 'findPos');
-        if ($pos[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) {
+        if ($pos[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) {
           Log::warning("[{$class}::{$action}] unauthorized access", ['pos_id' => $id]);
           return defaultPermissionDenial($req, new \Exception('permission denied'), $class . '::' . $action);
         }
@@ -271,7 +271,7 @@ final class PosController extends Controller
       }
       try {
         $loadStart = microtime(true);
-        $pps = Pos::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->with(['customer', 'warehouse'])->get();
+        $pps = Pos::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->with(['customer', 'warehouse'])->get();
         $this->logExecutionTime($loadStart, $action, 'loadPosRecords');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         Log::info("[{$class}::{$action}] records loaded", ['method' => $method, 'count' => is_countable($pps) ? count($pps) : null]);
@@ -301,7 +301,7 @@ final class PosController extends Controller
       }
       try {
         $prodStart = microtime(true);
-        $prods = ProductService::where(DatabaseConstants::TABLE_CREATOR, $u->creatorId())->get();
+        $prods = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $u->creatorId())->get();
         $this->logExecutionTime($prodStart, $action, 'fetchProducts');
         $bcStart = microtime(true);
         $barcode = ['barcodeType' => $u->barcodeType(), 'barcodeFormat' => $u->barcodeFormat()];
@@ -366,7 +366,7 @@ final class PosController extends Controller
         $data = $req->only(['barcode_type', 'barcode_format']);
         $txnStart = microtime(true);
         DB::transaction(function () use ($data, $userId, $action) {
-          $creatorCol = DatabaseConstants::TABLE_CREATOR;
+          $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
           $insStart = microtime(true);
           foreach ($data as $key => $value) DB::insert('INSERT INTO settings (`value`,`name`,`' . $creatorCol . '`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)', [$value, $key, $userId]);
           $this->logExecutionTime($insStart, $action, 'upsertSettings');
@@ -396,7 +396,7 @@ final class PosController extends Controller
       }
       try {
         $whStart = microtime(true);
-        $wh = Warehouse::where(DatabaseConstants::TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
+        $wh = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->pluck('name', 'id');
         $this->logExecutionTime($whStart, $action, 'fetchWarehouses');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         Log::info("[{$class}::{$action}] warehouses loaded", ['method' => $method, 'warehouses' => is_countable($wh) ? count($wh) : null]);
@@ -426,10 +426,10 @@ final class PosController extends Controller
       try {
         $creatorId = $u->creatorId();
         $wpStart = microtime(true);
-        $prodIds = WarehouseProduct::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->where('warehouse_id', $req->warehouse_id)->pluck('product_id');
+        $prodIds = WarehouseProduct::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('warehouse_id', $req->warehouse_id)->pluck('product_id');
         $this->logExecutionTime($wpStart, $action, 'pluckWarehouseProductIds');
         $psStart = microtime(true);
-        $prods = ProductService::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->whereIn('id', $prodIds)->pluck('name', 'id');
+        $prods = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereIn('id', $prodIds)->pluck('name', 'id');
         $this->logExecutionTime($psStart, $action, 'pluckProductServices');
         Log::info("[{$class}::{$action}] products fetched", ['method' => $method, 'product_count' => is_countable($prods) ? count($prods) : null]);
         return response()->json($prods->toArray());
@@ -487,12 +487,12 @@ final class PosController extends Controller
         $findStart = microtime(true);
         $pos = Pos::findOrFail($id);
         $this->logExecutionTime($findStart, $action, 'findPos');
-        if ($pos[DatabaseConstants::TABLE_CREATOR] !== $req->user()->creatorId()) {
+        if ($pos[DatabaseConstants::COL_TABLE_CREATOR] !== $req->user()->creatorId()) {
           Log::warning("[{$class}::{$action}] unauthorized access", ['pos_id' => $id]);
           return defaultPermissionDenial($req, new \Exception('permission denied'), $class . '::' . $action);
         }
         $tplStart = microtime(true);
-        $tpl = $this->_template($pos[DatabaseConstants::TABLE_CREATOR]);
+        $tpl = $this->_template($pos[DatabaseConstants::COL_TABLE_CREATOR]);
         $this->logExecutionTime($tplStart, $action, 'resolveTemplate');
         $viewPath = $viewBase . $tpl;
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
@@ -569,7 +569,7 @@ final class PosController extends Controller
         }
         $txnStart = microtime(true);
         DB::transaction(function () use ($data, $userId, $action) {
-          $creatorCol = DatabaseConstants::TABLE_CREATOR;
+          $creatorCol = DatabaseConstants::COL_TABLE_CREATOR;
           $insStart = microtime(true);
           foreach ($data as $k => $v) DB::insert('INSERT INTO settings (`value`,`name`,`' . $creatorCol . '`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `value`=VALUES(`value`)', [$v, $k, $userId]);
           $this->logExecutionTime($insStart, $action, 'upsertSettings');
@@ -609,10 +609,10 @@ final class PosController extends Controller
         }
         $creatorId = $u->creatorId();
         $custStart = microtime(true);
-        $customer = Customer::where('name', $req->vc_name)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->firstOrFail();
+        $customer = Customer::where('name', $req->vc_name)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
         $this->logExecutionTime($custStart, $action, 'findCustomer');
         $whStart = microtime(true);
-        $warehouse = Warehouse::where('id', $req->warehouse_name)->where(DatabaseConstants::TABLE_CREATOR, $creatorId)->firstOrFail();
+        $warehouse = Warehouse::where('id', $req->warehouse_name)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
         $this->logExecutionTime($whStart, $action, 'findWarehouse');
         $details = ['pos_id' => $u->posNumberFormat(self::invoiceNumber()), 'customer' => $customer->toArray(), 'warehouse' => $warehouse->toArray(), 'user' => $u->toArray(), 'date' => now()->toDateString(), 'pay' => 'show'];
         $settingsStart = microtime(true);
@@ -630,7 +630,7 @@ final class PosController extends Controller
         $sales['total'] = $u->priceFormat($subtotal - $disc);
         $barcode = ['barcodeType' => $u->barcodeType(), 'barcodeFormat' => $u->barcodeFormat()];
         $prodStart = microtime(true);
-        $prodList = ProductService::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get();
+        $prodList = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get();
         $this->logExecutionTime($prodStart, $action, 'fetchProducts');
         if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
         Log::info("[{$class}::{$action}] view data ready", ['method' => $method, 'cart_count' => count($cart), 'products_count' => is_countable($prodList) ? count($prodList) : null]);
@@ -659,7 +659,7 @@ final class PosController extends Controller
       Log::info("[{$class}::{$action}] calculating next POS number", [UsersConstants::COL_USER_ID => $user?->id]);
       try {
         $latestStart = microtime(true);
-        $latest = Pos::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->latest()->first();
+        $latest = Pos::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->latest()->first();
         $this->logExecutionTime($latestStart, $action, 'fetchLatestPos');
         $calcStart = microtime(true);
         $next = $latest ? $latest->pos_id + 1 : 1;
@@ -728,12 +728,12 @@ final class PosController extends Controller
         $findStart = microtime(true);
         $pos = Pos::with('items.product', 'customer')->findOrFail($id);
         $this->logExecutionTime($findStart, $action, 'findPosWithRelations');
-        if ($pos[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('permission denied'), $class . '::' . $action);
+        if ($pos[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('permission denied'), $class . '::' . $action);
         $payStart = microtime(true);
         $posPayment = PosPayment::where('pos_id', $pos->id)->first();
         $this->logExecutionTime($payStart, $action, 'findPosPayment');
         $setStart = microtime(true);
-        $settings = Utility::settingsById($pos[DatabaseConstants::TABLE_CREATOR]);
+        $settings = Utility::settingsById($pos[DatabaseConstants::COL_TABLE_CREATOR]);
         $this->logExecutionTime($setStart, $action, 'loadSettingsById');
         $customer = $pos->customer;
         $aggStart = microtime(true);
@@ -905,7 +905,7 @@ final class PosController extends Controller
       'pos_id' => $pos->id,
       'method' => __METHOD__,
     ]);
-    $settings = Utility::settingsById($pos[DatabaseConstants::TABLE_CREATOR]);
+    $settings = Utility::settingsById($pos[DatabaseConstants::COL_TABLE_CREATOR]);
     $logoPath = Utility::getFile('pos_logo/') . ($settings['pos_logo'] ?? '');
 
     $data = [
@@ -949,7 +949,7 @@ final class PosController extends Controller
       'totalRate'      => 0,
       'totalDiscount'  => 0,
       'taxesData'      => [],
-      DatabaseConstants::TABLE_CREATOR     => $userOrRedirect->creatorId(),
+      DatabaseConstants::COL_TABLE_CREATOR     => $userOrRedirect->creatorId(),
     ]);
 
     $view = [
@@ -1034,7 +1034,7 @@ final class PosController extends Controller
       throw new \Exception('unauthenticated');
     }
     $uid   = $userOrRedirect->creatorId();
-    $latest = Pos::where(DatabaseConstants::TABLE_CREATOR, $uid)->latest()->first();
+    $latest = Pos::where(DatabaseConstants::COL_TABLE_CREATOR, $uid)->latest()->first();
     $next  = $latest ? $latest->pos_id + 1 : 1;
     Log::info('Next POS invoice number', [
       UsersConstants::COL_USER_ID => $userOrRedirect->id,

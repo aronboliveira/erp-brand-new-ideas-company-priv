@@ -16,8 +16,11 @@ class SupportReply extends Model
     use UsesUuids;
 
     private const FILLABLE = [
-        SupportsConstants::COL_SPT_ID, SupportsConstants::COL_USR, ActivitiesConstants::COL_DESC,
-        DatabaseConstants::TABLE_CREATOR, MessagesConstants::COL_IS_RD
+        SupportsConstants::COL_SPT_ID,
+        SupportsConstants::COL_USR,
+        ActivitiesConstants::COL_DESC,
+        DatabaseConstants::COL_TABLE_CREATOR,
+        MessagesConstants::COL_IS_RD
     ];
     protected $fillable  = self::FILLABLE;
 

@@ -36,7 +36,7 @@ class TaskStageController extends Controller
             Log::info("[{$base}::{$action}] called", ['user_id' => $user?->id, 'method' => $method]);
             try {
                 $buildStart = microtime(true);
-                $query = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->orderBy('order', 'asc');
+                $query = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->orderBy('order', 'asc');
                 $this->logExecutionTime($buildStart, $action, 'buildQuery');
                 $fetchStart = microtime(true);
                 $stages = $query->get();
@@ -98,7 +98,7 @@ class TaskStageController extends Controller
             if (($redirect = self::guard($req, PermissionsConstants::MNG_PRJ_TSK_STG, self::REDIRECT_INDEX)) !== true) return $redirect;
             Log::info("[{$base}::{$action}] called", ['stage_id' => $taskStage->id, UsersConstants::COL_USER_ID => $user?->id, 'method' => $method]);
             $authStart = microtime(true);
-            if ($taskStage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($taskStage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             $this->logExecutionTime($authStart, $action, 'authorizeOwner');
             try {
                 if ($req->wantsJson()) return response()->json($taskStage);
@@ -148,14 +148,14 @@ class TaskStageController extends Controller
                 $txnStart = microtime(true);
                 $stage = DB::transaction(function () use ($req, $user, $action) {
                     $orderStart = microtime(true);
-                    $order = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $user?->ownerId())->count() + 1;
+                    $order = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->ownerId())->count() + 1;
                     $this->logExecutionTime($orderStart, $action, 'computeOrder');
                     $createStart = microtime(true);
                     $result = TaskStage::create([
                         'name' => $req->name,
                         'order' => $order,
                         'color' => '#' . $req->color,
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createStage');
                     return $result;
@@ -204,7 +204,7 @@ class TaskStageController extends Controller
                 return redirect()->back()->with('errors', Utility::errorFormat($validator->getMessageBag()));
             }
             $existStart = microtime(true);
-            $existing = TaskStage::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->pluck('id')->all();
+            $existing = TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('id')->all();
             $this->logExecutionTime($existStart, $action, 'fetchExisting');
             try {
                 $txnStart = microtime(true);
@@ -217,7 +217,7 @@ class TaskStageController extends Controller
                             'name' => $st['name'],
                             'order' => $order++,
                             'color' => '#' . $req->color,
-                            DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                            DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
                         ]);
                         $obj->save();
                         $existing = array_diff($existing, [$obj->id]);
@@ -256,7 +256,7 @@ class TaskStageController extends Controller
                 $fetchStart = microtime(true);
                 $stage = TaskStage::findOrFail($id);
                 $this->logExecutionTime($fetchStart, $action, 'fetchStage');
-                if ($stage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+                if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
                 Log::info("[{$base}::{$action}] fetching", ['stageId' => $id, 'method' => $method]);
                 if (!ViewFacade::exists($viewPath)) {
                     Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
@@ -289,7 +289,7 @@ class TaskStageController extends Controller
             $fetchStart = microtime(true);
             $stage = TaskStage::findOrFail($id);
             $this->logExecutionTime($fetchStart, $action, 'fetchStage');
-            if ($stage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+            if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
             $valStart = microtime(true);
             $validator = Validator::make($req->all(), ['name' => 'required|max:20', 'color' => 'required|regex:/^[0-9A-Fa-f]{6}$/']);
             $this->logExecutionTime($valStart, $action, 'buildValidator');
@@ -332,7 +332,7 @@ class TaskStageController extends Controller
                 $fetchStart = microtime(true);
                 $stage = TaskStage::findOrFail($id);
                 $this->logExecutionTime($fetchStart, $action, 'fetchStage');
-                if ($stage[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
+                if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
                 $txnStart = microtime(true);
                 DB::transaction(function () use ($stage, $action) {
                     $delStart = microtime(true);

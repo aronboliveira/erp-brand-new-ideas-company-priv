@@ -52,8 +52,8 @@ class PayslipTypeSeeder extends Seeder
 				$m->{$min}      = $row[$min];
 				$m->{$max}      = $row[$max];
 				$m->{$rla}      = $row[$rla]; // ? mutator normaliza array|string|null
-				$m->{DC::TABLE_CREATOR} = $systemUserId;
-				$m->setAttribute(DC::TABLE_UPDATER, null);
+				$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
+				$m->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$m->save();
 			}
 
@@ -85,8 +85,8 @@ class PayslipTypeSeeder extends Seeder
 				$m->{$min}      = '0';
 				$m->{$max}      = '9999999.99';
 				$m->{$rla}      = $rolesUpToHere;
-				$m->{DC::TABLE_CREATOR} = $systemUserId;
-				$m->setAttribute(DC::TABLE_UPDATER, null);
+				$m->{DC::COL_TABLE_CREATOR} = $systemUserId;
+				$m->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$m->save();
 			}
 		}, 3);

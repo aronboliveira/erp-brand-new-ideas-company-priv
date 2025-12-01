@@ -11,10 +11,25 @@ class JobApplication extends Model
     use UsesUuids;
 
     private const FILLABLE_FIELDS = [
-        'job', 'name', 'email', 'phone', 'profile', 'resume',
-        'cover_letter', 'dob', 'gender', 'country', 'state',
-        'city', 'stage', 'order', 'skill', 'rating', 'is_archive',
-        'custom_question', DatabaseConstants::TABLE_CREATOR
+        'job',
+        'name',
+        'email',
+        'phone',
+        'profile',
+        'resume',
+        'cover_letter',
+        'dob',
+        'gender',
+        'country',
+        'state',
+        'city',
+        'stage',
+        'order',
+        'skill',
+        'rating',
+        'is_archive',
+        'custom_question',
+        DatabaseConstants::COL_TABLE_CREATOR
     ];                                         // ! CHANGED
 
     protected $fillable = self::FILLABLE_FIELDS; // ! CHANGED

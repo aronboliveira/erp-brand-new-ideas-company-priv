@@ -83,8 +83,8 @@ class Vendor extends Authenticatable
 
     protected $guarded = [
         'id',
-        DC::TABLE_CREATOR,
-        DC::TABLE_UPDATER,
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
     ];
 
     protected $hidden = [
@@ -452,7 +452,7 @@ class Vendor extends Authenticatable
             PermissionsConstants::SA,
         ])
             ? $this->id
-            : ($this->{DC::TABLE_CREATOR} ?? $this->id);
+            : ($this->{DC::COL_TABLE_CREATOR} ?? $this->id);
     }
 
     public function currentLanguage(): string

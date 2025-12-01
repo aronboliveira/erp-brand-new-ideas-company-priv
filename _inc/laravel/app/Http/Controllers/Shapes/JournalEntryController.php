@@ -50,7 +50,7 @@ class JournalEntryController extends Controller
 
             try {
                 $t = microtime(true);
-                $entries = JournalEntry::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $entries = JournalEntry::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 $this->logExecutionTime($t, $sig, 'fetchEntries');
                 Log::info("$sig fetched", ['count' => $entries->count()]);
 
@@ -87,7 +87,7 @@ class JournalEntryController extends Controller
 
             $t = microtime(true);
             $accounts = ChartOfAccount::selectRaw("CONCAT(code,' - ',name) AS code_name, id")
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->pluck('code_name', 'id');
             $this->logExecutionTime($t, $sig, 'pluckChartOfAccounts');
 
@@ -155,7 +155,7 @@ class JournalEntryController extends Controller
                         'date'        => $request->date,
                         'reference'   => $request->reference,
                         'description' => $request->description,
-                        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                     Log::info("$sig created journal", ['id' => $journal->id]);
 
@@ -196,8 +196,8 @@ class JournalEntryController extends Controller
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
-            if ($journalEntry[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
-                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::TABLE_CREATOR]]);
+            if ($journalEntry[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::COL_TABLE_CREATOR]]);
                 return defaultPermissionDenial(request(), new AuthorizationException(), "$class::$action");
             }
 
@@ -232,14 +232,14 @@ class JournalEntryController extends Controller
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
-            if ($journalEntry[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
-                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::TABLE_CREATOR]]);
+            if ($journalEntry[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::COL_TABLE_CREATOR]]);
                 return defaultPermissionDenial(request(), new AuthorizationException(), "$class::$action");
             }
 
             $t = microtime(true);
             $accounts = ChartOfAccount::selectRaw("CONCAT(code,' - ',name) AS code_name, id")
-                ->where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->pluck('code_name', 'id');
             $this->logExecutionTime($t, $sig, 'pluckChartOfAccounts');
 
@@ -268,8 +268,8 @@ class JournalEntryController extends Controller
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
-            if ($journalEntry[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
-                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::TABLE_CREATOR]]);
+            if ($journalEntry[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::COL_TABLE_CREATOR]]);
                 return defaultPermissionDenial($request, new AuthorizationException(), "$class::$action");
             }
 
@@ -355,8 +355,8 @@ class JournalEntryController extends Controller
                 Log::warning("$sig denied", ['user' => Auth::id()]);
                 return $c;
             }
-            if ($journalEntry[DatabaseConstants::TABLE_CREATOR] !== $user?->creatorId()) {
-                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::TABLE_CREATOR]]);
+            if ($journalEntry[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+                Log::warning("$sig forbidden", ['owner' => $journalEntry[DatabaseConstants::COL_TABLE_CREATOR]]);
                 return defaultPermissionDenial(request(), new AuthorizationException(), "$class::$action");
             }
 
@@ -469,7 +469,7 @@ class JournalEntryController extends Controller
         if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
         $user = $userOrRedirect;
 
-        $latest = JournalEntry::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+        $latest = JournalEntry::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
             ->latest()
             ->first();
 

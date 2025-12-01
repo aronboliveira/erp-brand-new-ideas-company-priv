@@ -82,8 +82,8 @@ final class BasicFavoritesSeeder extends Seeder
 						'favorite_id'     => $favId,
 						'created_at'      => $ts,
 						'updated_at'      => $ts,
-						DC::TABLE_CREATOR => $systemUserId,
-						DC::TABLE_UPDATER => null,
+						DC::COL_TABLE_CREATOR => $systemUserId,
+						DC::COL_TABLE_UPDATER => null,
 					]);
 				}
 			}

@@ -55,8 +55,8 @@ final class DesignationSeeder extends Seeder
 				$d->{CPC::COL_VTO}          = $validTo;
 				$d->description             = $faker->boolean(55) ? $faker->sentence(12) : null;
 				$d->notes                   = $faker->boolean(35) ? $faker->sentence(10) : null;
-				$d->{DC::TABLE_CREATOR}     = $creatorId;
-				$d->setAttribute(DC::TABLE_UPDATER, null);
+				$d->{DC::COL_TABLE_CREATOR}     = $creatorId;
+				$d->setAttribute(DC::COL_TABLE_UPDATER, null);
 				$d->save();
 			}
 		}, 3);

@@ -34,7 +34,7 @@ class GoalTypeController extends Controller
             if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
             if (($redirect = $this->_authorize($request, 'manage goal type')) instanceof RedirectResponse) return $redirect;
             $user = $request->user();
-            $goalTypes = GoalType::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $goalTypes = GoalType::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
             if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $action);
             return view($view, compact('goalTypes'));
         });
@@ -69,7 +69,7 @@ class GoalTypeController extends Controller
             $user = $request->user();
             GoalType::create([
                 'name' => $request->name,
-                DatabaseConstants::TABLE_CREATOR => $user?->creatorId()
+                DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()
             ]);
             return redirect()->route(ViewsConstants::GL_TP . '.index')->with('success', __('GoalType successfully created.'));
         });

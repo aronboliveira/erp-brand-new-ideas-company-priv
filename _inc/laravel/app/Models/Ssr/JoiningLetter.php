@@ -18,7 +18,7 @@ class JoiningLetter extends Model
     protected $fillable = [
         TemplatesConstants::COL_LG,
         TemplatesConstants::COL_CT,
-        DatabaseConstants::TABLE_CREATOR,
+        DatabaseConstants::COL_TABLE_CREATOR,
     ];
     private const DEFAULT_JOINING_LETTER = [
 
@@ -4772,7 +4772,7 @@ class JoiningLetter extends Model
                 self::firstOrCreate(
                     [
                         TemplatesConstants::COL_LG       => $lang,
-                        DatabaseConstants::TABLE_CREATOR => $createdBy,
+                        DatabaseConstants::COL_TABLE_CREATOR => $createdBy,
                     ],
                     [
                         TemplatesConstants::COL_CT       => $content,
@@ -4796,7 +4796,7 @@ class JoiningLetter extends Model
                 [
                     TemplatesConstants::COL_LG => $lang,
                     TemplatesConstants::COL_CT => $content,
-                    DatabaseConstants::TABLE_CREATOR => $userId,
+                    DatabaseConstants::COL_TABLE_CREATOR => $userId,
 
                 ]
             );

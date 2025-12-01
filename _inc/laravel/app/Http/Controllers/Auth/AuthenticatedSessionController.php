@@ -1064,7 +1064,7 @@ class AuthenticatedSessionController extends Controller
         'ip' => $ip,
         'date' => now(),
         'Details' => $details,
-        DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+        DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
       ]);
       $this->logExecutionTime($stepStart, 'persistLoginDetail', 'completed');
     }, ['user_id' => $user?->id, 'ip' => $req->server('REMOTE_ADDR')]);

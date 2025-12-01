@@ -48,9 +48,9 @@ final class DocumentUploadController extends Controller
             Log::info("$action loading list", [UsersConstants::COL_USER_ID => $user?->id]);
 
             $documents = $user[UsersConstants::COL_TP] === PermissionsConstants::CPN
-                ? DocumentUpload::where(DatabaseConstants::TABLE_CREATOR, $creatorId)->get()
+                ? DocumentUpload::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->get()
                 : DocumentUpload::whereIn('role', [$user?->roles->first()->id, 0])
-                ->where(DatabaseConstants::TABLE_CREATOR, $creatorId)
+                ->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)
                 ->get();
 
             if (!ViewFacade::exists($view)) {
@@ -73,7 +73,7 @@ final class DocumentUploadController extends Controller
             if (($redirect = self::guard($request, 'create document', self::REDIRECT_INDEX)) !== true) return $redirect;
 
             $user = $userOrRedirect;
-            $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->pluck('name', 'id')->prepend('All', '0');
 
             Log::info("$action preparing form", [UsersConstants::COL_USER_ID => $user?->id]);
@@ -101,7 +101,7 @@ final class DocumentUploadController extends Controller
             DB::beginTransaction();
             try {
                 $data = $request->only(['name', 'role', 'description']);
-                $data[DatabaseConstants::TABLE_CREATOR] = $user?->creatorId();
+                $data[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
 
                 if ($file = $request->file('document')) {
                     $safe = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
@@ -148,7 +148,7 @@ final class DocumentUploadController extends Controller
             if ($doc->created_by !== $user?->creatorId())
                 return defaultPermissionDenial($request, new \Exception('owner'), $action, route(self::REDIRECT_INDEX));
 
-            $roles = Role::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())
+            $roles = Role::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
                 ->pluck('name', 'id')->prepend('All', '0');
 
             Log::info("$action loading", ['document_id' => $id, UsersConstants::COL_USER_ID => $user?->id]);

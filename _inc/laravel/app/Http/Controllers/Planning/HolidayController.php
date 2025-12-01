@@ -34,7 +34,7 @@ class HolidayController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (!$user?->can(PermissionsConstants::MNG_HLD)) return defaultPermissionDenial($request, null, $action);
-            $q = Holiday::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+            $q = Holiday::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
             if ($request->filled('start_date')) $q->where('date', '>=', $request->start_date);
             if ($request->filled('end_date')) $q->where('date', '<=', $request->end_date);
             $holidays = $q->get();
@@ -80,7 +80,7 @@ class HolidayController extends Controller
                 'date'       => $data['date'],
                 'end_date'   => $data['end_date'] ?? $data['date'],
                 'occasion'   => $data['occasion'],
-                DatabaseConstants::TABLE_CREATOR => $user?->creatorId(),
+                DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
             ]);
             $setting = Utility::settings($user?->creatorId());
             $notifyData = ['holiday_title' => $holiday->occasion, 'holiday_date' => $holiday->date];
@@ -181,7 +181,7 @@ class HolidayController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (!$user?->can(PermissionsConstants::MNG_HLD)) return defaultPermissionDenial($request, null, $action);
-            $q = Holiday::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId());
+            $q = Holiday::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId());
             if ($request->filled('start_date')) $q->where('date', '>=', $request->start_date);
             if ($request->filled('end_date')) $q->where('date', '<=', $request->end_date);
             $holidays = $q->get();
@@ -216,7 +216,7 @@ class HolidayController extends Controller
             if (!$user?->can(PermissionsConstants::MNG_HLD)) return defaultPermissionDenial($request, null, $action);
             $calendarType = $request->get('calendar_type');
             if ($calendarType === 'google_calendar') return Utility::getCalendarData('holiday');
-            $data = Holiday::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+            $data = Holiday::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
             $arrayJson = [];
             foreach ($data as $val) {
                 $arrayJson[] = [

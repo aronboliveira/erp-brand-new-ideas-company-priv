@@ -29,7 +29,7 @@ class ProposalProductController extends Controller
             if (($user = self::_checkLogin()) instanceof RedirectResponse) return $user;
             if (($redirect = self::guard($request, 'manage proposal product', self::REDIRECT_INDEX)) !== true) return $redirect;
             try {
-                $products = ProposalProduct::where(DatabaseConstants::TABLE_CREATOR, $user?->creatorId())->get();
+                $products = ProposalProduct::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
                 return view($view, compact('products'));
             } catch (\Throwable $e) {
                 Log::error("$action error", ['error' => $e->getMessage()]);
@@ -103,7 +103,7 @@ class ProposalProductController extends Controller
                     'name'        => $request->input('name'),
                     'description' => $request->input('description'),
                     'price'       => $request->input('price'),
-                    DatabaseConstants::TABLE_CREATOR  => $user?->creatorId(),
+                    DatabaseConstants::COL_TABLE_CREATOR  => $user?->creatorId(),
                 ]);
                 DB::commit();
                 return redirect()->route(self::REDIRECT_INDEX)

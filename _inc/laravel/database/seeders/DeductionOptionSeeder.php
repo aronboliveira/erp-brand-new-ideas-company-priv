@@ -129,7 +129,7 @@ final class DeductionOptionSeeder extends Seeder
 
 				$model = DeductionOption::updateOrCreate(
 					$key,
-					array_merge($data, [DC::TABLE_CREATOR => $systemUserId])
+					array_merge($data, [DC::COL_TABLE_CREATOR => $systemUserId])
 				);
 
 				$model->wasRecentlyCreated ? $created++ : $updated++;

@@ -102,7 +102,7 @@ final class ChartOfAccountSeeder extends Seeder
 							CHTC::COL_ENB        => 1,
 							CHTC::COL_DESC       => $faker->sentence(12),
 							UC::COL_USER_ID      => $systemUserId,
-							DC::TABLE_CREATOR    => $systemUserId,
+							DC::COL_TABLE_CREATOR    => $systemUserId,
 						];
 
 						/** @var ChartOfAccount $model */

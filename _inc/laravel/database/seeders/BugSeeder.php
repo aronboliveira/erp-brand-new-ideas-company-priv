@@ -61,8 +61,8 @@ final class BugSeeder extends Seeder
 				$b->{AC::COL_TSK_STT} = $faker->randomElement($statuses); // alinhar com sua estratégia (FK vs string)
 				$b->{PJC::COL_ASGN}  = $assigned;
 				$b->setAttribute('order', $i);
-				$b->{DC::TABLE_CREATOR} = $systemUserId;
-				$b->setAttribute(DC::TABLE_UPDATER, null);
+				$b->{DC::COL_TABLE_CREATOR} = $systemUserId;
+				$b->setAttribute(DC::COL_TABLE_UPDATER, null);
 
 				$b->save();
 			}

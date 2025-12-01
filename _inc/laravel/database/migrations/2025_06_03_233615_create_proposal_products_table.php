@@ -21,12 +21,14 @@ class CreateProposalProductsTable extends Migration
             $table->decimal('price', 16, 2)->default(0.00);   // ! CHANGED field name/type
             $table->text('description')->nullable();        // ! CHANGED added
             $table->timestamps();
-            $table->uuid(DatabaseConstants::TABLE_CREATOR)->nullable();
-            foreach ([
-                self::COL_PROPOSAL               => DatabaseConstants::TABLE_PROPOSALS,
-                self::COL_PRODUCT                => DatabaseConstants::TABLE_PRODUCTS,
-                DatabaseConstants::TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-            ] as $column => $referencedTable)
+            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
+            foreach (
+                [
+                    self::COL_PROPOSAL               => DatabaseConstants::TABLE_PROPOSALS,
+                    self::COL_PRODUCT                => DatabaseConstants::TABLE_PRODUCTS,
+                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                ] as $column => $referencedTable
+            )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
@@ -37,11 +39,13 @@ class CreateProposalProductsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach ([
-                self::COL_PROPOSAL,
-                self::COL_PRODUCT,
-                DatabaseConstants::TABLE_CREATOR,
-            ] as $column) {
+            foreach (
+                [
+                    self::COL_PROPOSAL,
+                    self::COL_PRODUCT,
+                    DatabaseConstants::COL_TABLE_CREATOR,
+                ] as $column
+            ) {
                 try {
                     Schema::hasColumn(self::TABLE, $column)
                         && $table->dropForeign([$column]);

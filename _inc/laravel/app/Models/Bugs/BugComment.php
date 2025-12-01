@@ -18,7 +18,7 @@ class BugComment extends Model
     ];
     protected $guarded  = [
         'id',
-        DC::TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
     protected $with = ['bug'];
     protected $casts = [
@@ -60,6 +60,6 @@ class BugComment extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, DC::TABLE_CREATOR, 'id');
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id');
     }
 }
