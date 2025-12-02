@@ -18,6 +18,14 @@ use Illuminate\Support\Str;
 
 class DebitNoteSeeder extends Seeder
 {
+	// --- Parâmetros fixos (sem env) ---
+	private const COUNT            = 120;
+	private const OPTIONALITY      = 0.92;
+	private const BILL_RATIO       = 0.70; // viés para bill (débito)
+	private const CARD_RATIO       = 0.95;
+	private const ATTACH_RATIO     = 0.78;
+	private const RECONCILE_RATIO  = 0.38;
+
 	public function run(): void
 	{
 		if (!Schema::hasTable(DC::TABLE_DB_NOTES)) {
@@ -25,9 +33,8 @@ class DebitNoteSeeder extends Seeder
 			return;
 		}
 
-		// FKs
 		$customers  = $this->pluckIds(DC::TABLE_CUSTOMERS ?? 'customers');
-		$vendors    = $this->pluckIds(DC::TABLE_VENDORS ?? 'vendors'); // obrigatório em DebitNote
+		$vendors    = $this->pluckIds(DC::TABLE_VENDORS ?? 'vendors');
 		$invoices   = $this->pluckIds(DC::TABLE_INVS ?? 'invoices');
 		$bills      = $this->pluckIds(DC::TABLE_BILLS ?? 'bills');
 		$accounts   = $this->pluckIds(DC::TABLE_BANK_ACC ?? 'bank_accounts');
@@ -43,21 +50,13 @@ class DebitNoteSeeder extends Seeder
 			return;
 		}
 		if (!$vendors) {
-			$this->command?->warn('Sem vendors (UC::COL_VD_ID é obrigatório). Abortando DebitNoteSeeder.');
+			$this->command?->warn('Sem vendors. Abortando DebitNoteSeeder.');
 			return;
 		}
 		if (!$invoices && !$bills) {
-			$this->command?->warn('Sem invoices/bills para vínculo obrigatório. Abortando DebitNoteSeeder.');
+			$this->command?->warn('Sem invoices/bills. Abortando DebitNoteSeeder.');
 			return;
 		}
-
-		// Parâmetros (com viés a bill para notas de débito)
-		$count        = (int) env('DBN_COUNT', 120);
-		$optFill      = max(0.0, min(1.0, (float) env('DBN_OPTIONALITY', 0.92)));
-		$billRatio    = max(0.0, min(1.0, (float) env('DBN_BILL_RATIO', 0.70))); // débito tende a bill/vendor
-		$cardRatio    = max(0.0, min(1.0, (float) env('DBN_CARD_RATIO', 0.95)));
-		$attachRatio  = max(0.0, min(1.0, (float) env('DBN_ATTACH_RATIO', 0.78)));
-		$reconRatio   = max(0.0, min(1.0, (float) env('DBN_RECONCILE_RATIO', 0.38)));
 
 		$statusVals = array_map(fn($c) => $c->value, PaymentStatus::cases());
 		$methodVals = array_map(fn($c) => $c->value, PaymentMethod::cases());
@@ -73,12 +72,6 @@ class DebitNoteSeeder extends Seeder
 		$seenLast4 = [];
 
 		DB::transaction(function () use (
-			$count,
-			$optFill,
-			$billRatio,
-			$cardRatio,
-			$attachRatio,
-			$reconRatio,
 			$customers,
 			$vendors,
 			$invoices,
@@ -101,12 +94,11 @@ class DebitNoteSeeder extends Seeder
 			&$seenPan,
 			&$seenLast4
 		) {
-			for ($i = 1; $i <= $count; $i++) {
+			for ($i = 1; $i <= self::COUNT; $i++) {
 				$customerId = Arr::random($customers);
 				$vendorId   = Arr::random($vendors);
 
-				// Vínculo obrigatório: invoice OU bill (viés para bill)
-				$preferBill = $bills && (!$invoices || fake()->boolean((int) round($billRatio * 100)));
+				$preferBill = $bills && (!$invoices || fake()->boolean((int) round(self::BILL_RATIO * 100)));
 				$billId     = $preferBill ? Arr::random($bills) : null;
 				$invoiceId  = !$preferBill && $invoices ? Arr::random($invoices) : null;
 
@@ -119,25 +111,20 @@ class DebitNoteSeeder extends Seeder
 				$taxFee   = (float) fake()->randomFloat(2, 0, round($amount * 0.11, 2));
 				$currency = config('app.currency', 'BRL');
 
-				$status = Arr::random($statusVals);
-				$pmLbl  = Arr::random($methodVals);
-				$pmInt  = fake()->boolean() ? 1 : 0;
-
+				$status  = Arr::random($statusVals);
+				$pmLbl   = Arr::random($methodVals);
+				$pmInt   = fake()->boolean() ? 1 : 0;
 				$trfType = Arr::random($trfVals);
 				$ppsCode = Arr::random(['300', '101', '202', '710', '905']);
 
-				$taxList = fake()->boolean((int) round($optFill * 100)) ? $this->makeTaxList($ref) : null;
-				$attachments = fake()->boolean((int) round($attachRatio * 100)) ? $this->makeAttachments($ref, $seenFiles) : null;
-				$terms = fake()->boolean((int) round($optFill * 100))
-					? [
-						'Scope: debit note adjustment/charge.',
-						'Subject to reconciliation and settlement windows.',
-						'Non-transferable.',
-					]
+				$taxList     = fake()->boolean((int) round(self::OPTIONALITY * 100)) ? $this->makeTaxList($ref) : null;
+				$attachments = fake()->boolean((int) round(self::ATTACH_RATIO * 100)) ? $this->makeAttachments($ref, $seenFiles) : null;
+				$terms       = fake()->boolean((int) round(self::OPTIONALITY * 100))
+					? ['Scope: debit note adjustment/charge.', 'Subject to reconciliation and settlement windows.', 'Non-transferable.']
 					: null;
 
-				$autoRcc  = fake()->boolean((int) round($optFill * 100));
-				$rccAt    = $autoRcc && fake()->boolean((int) round($reconRatio * 100))
+				$autoRcc  = fake()->boolean((int) round(self::OPTIONALITY * 100));
+				$rccAt    = $autoRcc && fake()->boolean((int) round(self::RECONCILE_RATIO * 100))
 					? now()->subMinutes(fake()->numberBetween(5, 900))
 					: null;
 				$rccBy    = $rccAt && $users ? Arr::random($users) : null;
@@ -150,11 +137,11 @@ class DebitNoteSeeder extends Seeder
 				$unit       = $units     ? Arr::random($units)     : null;
 				$payslip    = $payslips  ? Arr::random($payslips)  : null;
 
-				$nInst  = fake()->numberBetween(1, 12);
+				$nInst   = fake()->numberBetween(1, 12);
 				$curInst = fake()->numberBetween(1, $nInst);
 
 				$card = null;
-				if (fake()->boolean((int) round($cardRatio * 100))) {
+				if (fake()->boolean((int) round(self::CARD_RATIO * 100))) {
 					$flag   = Arr::random(['visa', 'mastercard', 'amex', 'elo', 'hipercard']);
 					$holder = strtoupper(fake()->firstName() . ' ' . fake()->lastName());
 					$year   = (int) now()->format('Y') + fake()->numberBetween(0, 5);
@@ -180,7 +167,7 @@ class DebitNoteSeeder extends Seeder
 					BC::COL_CUR_ID       => $currency,
 					'reference'          => $ref,
 					'description'        => "Debit note {$ref}",
-					'notes'              => fake()->boolean((int) round($optFill * 100)) ? fake()->sentence(12) : null,
+					'notes'              => fake()->boolean((int) round(self::OPTIONALITY * 100)) ? fake()->sentence(12) : null,
 					'attachments'        => $attachments,
 					BC::COL_TC           => $terms,
 
@@ -200,7 +187,7 @@ class DebitNoteSeeder extends Seeder
 					BC::COL_PAY_MTD_LB   => $pmLbl,
 					BC::COL_TRF_TP       => $trfType,
 					BC::COL_PPS_CD       => $ppsCode,
-					BC::COL_PPS_DS       => fake()->boolean((int) round($optFill * 100)) ? 'charge/adjustment' : null,
+					BC::COL_PPS_DS       => fake()->boolean((int) round(self::OPTIONALITY * 100)) ? 'charge/adjustment' : null,
 
 					BC::COL_IS_SCD       => fake()->boolean(9),
 					BC::COL_CAN_CHG_BK   => fake()->boolean(5),
@@ -214,7 +201,6 @@ class DebitNoteSeeder extends Seeder
 					BC::COL_PRD_SV_UNT   => $unit,
 					'payslip'            => $payslip,
 
-					// Obrigatório do modelo DebitNote
 					\App\Config\Constants\UsersConstants::COL_VD_ID => $vendorId,
 				];
 
@@ -233,7 +219,6 @@ class DebitNoteSeeder extends Seeder
 					$note->{BC::COL_CD_DG}   = $card['last4'];
 				}
 
-				// Vínculo garantido
 				if (!$note->{'invoice'} && !$note->{BC::COL_BL_ID}) {
 					if ($bills) {
 						$note->{BC::COL_BL_ID} = Arr::random($bills);
@@ -242,6 +227,7 @@ class DebitNoteSeeder extends Seeder
 					}
 				}
 
+				// Novos nomes de coluna
 				if (Schema::hasColumn(DC::TABLE_DB_NOTES, DC::COL_TABLE_CREATOR) && $users) {
 					$note->{DC::COL_TABLE_CREATOR} = Arr::random($users);
 				}
@@ -253,15 +239,13 @@ class DebitNoteSeeder extends Seeder
 			}
 		});
 
-		$this->command?->info("DebitNoteSeeder: {$count} registros inseridos.");
+		$this->command?->info("DebitNoteSeeder: " . self::COUNT . " registros inseridos.");
 	}
-
-	/** Utils (iguais ao seeder de crédito) */
 
 	private function pluckIds(string $table): array
 	{
 		if (!Schema::hasTable($table)) return [];
-		return DB::table($table)->limit(5000)->pluck('id')->filter()->values()->all();
+		return \DB::table($table)->limit(5000)->pluck('id')->filter()->values()->all();
 	}
 
 	private function uniqueRef(string $prefix, array &$seen): string

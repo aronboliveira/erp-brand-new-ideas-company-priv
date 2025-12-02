@@ -1,45 +1,41 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC};
+use App\Enums\RecruitmentRole;
+use App\Traits\{EmployeeConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateEmployeeAnnouncementsTable extends Migration
 {
-    private const ENTITY = 'employee';
-    private const TABLE = self::ENTITY . '_announcements';
-    private const COL_EMPLOYEE = self::ENTITY . '_id';
-    private const COL_ANNOUNCEMENT = 'announcement_id';
+    use EmployeeConnected, HasNullableAuditColumns;
+    private const TABLE = DC::TABLE_EANC;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
-            $table->uuid('id')->primary();           // ! CHANGED
-            $table->uuid(self::COL_ANNOUNCEMENT);         // ! CHANGED
-            $table->uuid(self::COL_EMPLOYEE);             // ! CHANGED
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);              // ! CHANGED
-            foreach (
-                [
-                    self::COL_ANNOUNCEMENT                   => self::TABLE,
-                    self::COL_EMPLOYEE                       => DatabaseConstants::TABLE_EMPLOYEES,
-                    DatabaseConstants::COL_TABLE_CREATOR     => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable
-            )
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->uuid(AC::COL_ANC_ID)->index();
+            $this->addEmployeeColumns($table, nullable: false, cascade: false);
+            $table->enum('role', RecruitmentRole::values())->default(RecruitmentRole::Other)->nullable(); // ? nullable for testing purposes
+            $table->json(AC::COL_PRT)->nullable(); // ? nullable for testing purposes
+            $table->json('participation')->nullable(); // ? nullable for testing purposes
+            $table->text('notes')->nullable();
+            $table->foreign(AC::COL_ANC_ID)
+                ->references('id')
+                ->on(DC::TABLE_ANC)
+                ->cascadeOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropEmployeeColumnForeign($table, self::TABLE);
             foreach (
                 [
-                    self::COL_ANNOUNCEMENT,
-                    self::COL_EMPLOYEE,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    AC::COL_ANC_ID,
                 ] as $column
             ) {
                 try {

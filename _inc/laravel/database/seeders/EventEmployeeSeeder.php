@@ -15,14 +15,14 @@ use Carbon\CarbonImmutable as Carbon;
 
 class EventEmployeeSeeder extends Seeder
 {
+	// Parâmetros fixos (sem env)
+	private const OPTIONALITY      = 0.60; // antes: EVENT_EMP_OPTIONALITY
+	private const PER_EVENT_MIN    = 2;    // antes: EVENT_EMP_PER_EVENT_MIN
+	private const PER_EVENT_MAX    = 5;    // antes: EVENT_EMP_PER_EVENT_MAX
+
 	/**
-	 * Opções:
-	 *   --count=INT                    Limite aproximado de vínculos a criar (opcional).
-	 *
-	 * Variáveis de ambiente (opcionais):
-	 *   EVENT_EMP_OPTIONALITY=0..1     Percentual médio de campos opcionais preenchidos (padrão 0.6).
-	 *   EVENT_EMP_PER_EVENT_MIN=INT    Mín. vínculos por evento (padrão 2).
-	 *   EVENT_EMP_PER_EVENT_MAX=INT    Máx. vínculos por evento (padrão 5).
+	 * Opções CLI:
+	 *   --count=INT   Limite aproximado de vínculos a criar (opcional).
 	 */
 	public function run(): void
 	{
@@ -35,27 +35,17 @@ class EventEmployeeSeeder extends Seeder
 			return;
 		}
 
-		$optionality = (float) env('EVENT_EMP_OPTIONALITY', 0.60);
-		$optionality = max(0.0, min(1.0, $optionality)); // clamp
+		$optionality = self::OPTIONALITY;
+		$perEventMin = self::PER_EVENT_MIN;
+		$perEventMax = self::PER_EVENT_MAX;
 
-		$perEventMin = (int) env('EVENT_EMP_PER_EVENT_MIN', 2);
-		$perEventMax = (int) env('EVENT_EMP_PER_EVENT_MAX', 5);
-		if ($perEventMin < 0) {
-			$perEventMin = 0;
-		}
-		if ($perEventMax < $perEventMin) {
-			$perEventMax = $perEventMin;
-		}
+		$targetCount = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
 
-		$targetCount = (int) ($this->command?->option('count') ?? 0);
-
-		// Helpers
 		$maybe = fn(callable $producer) =>
 		fake()->boolean((int) round($optionality * 100)) ? $producer() : null;
 
 		$encode = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-		// Base sets
 		$eventIds = DB::table(DC::TABLE_EVENTS)->pluck('id')->all();
 		$empIds   = DB::table(DC::TABLE_EMPLOYEES)->pluck('id')->all();
 		$userIds  = Schema::hasTable(DC::TABLE_USERS) ? DB::table(DC::TABLE_USERS)->pluck('id')->all() : [];
@@ -65,7 +55,6 @@ class EventEmployeeSeeder extends Seeder
 			return;
 		}
 
-		// Mapa existente para evitar duplicidade
 		$existingPairs = DB::table(DC::TABLE_EV_EMP)
 			->select(AC::COL_EV_ID, UC::COL_EMP_ID)
 			->get()
@@ -74,7 +63,6 @@ class EventEmployeeSeeder extends Seeder
 				return $carry;
 			}, []);
 
-		// Distribuição ponderada de papéis
 		$roleBag = [
 			EventRole::Responsible->value,
 			EventRole::Organizer->value,
@@ -93,35 +81,20 @@ class EventEmployeeSeeder extends Seeder
 		$totalPlanned = 0;
 
 		foreach ($eventIds as $evId) {
-			// Decide quantos vínculos para este evento
 			$desired = fake()->numberBetween($perEventMin, $perEventMax);
-			if ($targetCount > 0) {
-				// Recalibra para não ultrapassar o alvo aproximado
-				if ($totalPlanned + $desired > $targetCount) {
-					$desired = max(0, $targetCount - $totalPlanned);
-				}
+			if ($targetCount > 0 && $totalPlanned + $desired > $targetCount) {
+				$desired = max(0, $targetCount - $totalPlanned);
 			}
-			if ($desired === 0) {
-				continue;
-			}
+			if ($desired === 0) continue;
 
-			// Seleciona N empregados distintos
-			$poolCount = min($desired, count($empIds));
-			$picked = (array) Arr::random($empIds, $poolCount);
+			$picked = (array) Arr::random($empIds, min($desired, count($empIds)));
 
 			$hasResponsible = false;
-			foreach ($picked as $idx => $empId) {
+			foreach ($picked as $empId) {
 				$key = $evId . '|' . $empId;
-				if (isset($existingPairs[$key])) {
-					continue; // já existe, não recria
-				}
+				if (isset($existingPairs[$key])) continue;
 
-				// Papel (às vezes nulo para acionar default da migration)
-				$role = $maybe(function () use ($roleBag) {
-					return Arr::random($roleBag);
-				});
-
-				// Garante no máx. um "Responsible" por evento
+				$role = $maybe(fn() => Arr::random($roleBag));
 				if ($role === EventRole::Responsible->value) {
 					if ($hasResponsible) {
 						$role = Arr::random(array_values(array_filter(
@@ -133,7 +106,6 @@ class EventEmployeeSeeder extends Seeder
 					}
 				}
 
-				// Metadados variáveis por papel
 				$metadata = $maybe(function () use ($role) {
 					$base = [
 						'note' => fake()->boolean(60) ? fake()->realText(80) : null,
@@ -150,7 +122,7 @@ class EventEmployeeSeeder extends Seeder
 							'duration' => fake()->numberBetween(15, 50),
 						],
 						EventRole::Organizer->value, EventRole::Responsible->value => [
-							'permissions' => Arr::random(['full', 'edit', 'view'], 1)[0],
+							'permissions' => Arr::random(['full', 'edit', 'view']),
 							'channel'     => Arr::random(['email', 'chat', 'phone']),
 						],
 						EventRole::Sponsor->value => [
@@ -166,39 +138,31 @@ class EventEmployeeSeeder extends Seeder
 						],
 					};
 
-					// Remove nulls e retorna array
 					return array_filter($base + $roleExtras, fn($v) => $v !== null && $v !== []);
 				});
 
-				// Audit (opcional)
-				$creator = $maybe(function () use ($userIds) {
-					return $userIds ? Arr::random($userIds) : null;
-				});
-				$updater = $maybe(function () use ($userIds) {
-					return $userIds ? Arr::random($userIds) : null;
-				});
+				$creator = $maybe(fn() => $userIds ? Arr::random($userIds) : null);
+				$updater = $maybe(fn() => $userIds ? Arr::random($userIds) : null);
 
 				$createdAt = $now->subDays(fake()->numberBetween(0, 20))->subMinutes(fake()->numberBetween(0, 1440));
 				$updatedAt = $createdAt->addMinutes(fake()->numberBetween(0, 1440));
 
 				$rows[] = array_filter([
-					'id'             => (string) Str::uuid(),
-					AC::COL_EV_ID    => $evId,
-					UC::COL_EMP_ID   => $empId,
-					'role'           => $role,                            // pode ser null
-					'metadata'       => $encode($metadata),              // JSON string ou null
-					DC::COL_TABLE_CREATOR => $creator,                       // pode ser null
-					DC::COL_TABLE_UPDATER => $updater,                       // pode ser null
-					'created_at'     => $createdAt->toDateTimeString(),
-					'updated_at'     => $updatedAt->toDateTimeString(),
+					'id'                  => (string) Str::uuid(),
+					AC::COL_EV_ID         => $evId,
+					UC::COL_EMP_ID        => $empId,
+					'role'                => $role,
+					'metadata'            => $encode($metadata),
+					DC::COL_TABLE_CREATOR => $creator,
+					DC::COL_TABLE_UPDATER => $updater,
+					'created_at'          => $createdAt->toDateTimeString(),
+					'updated_at'          => $updatedAt->toDateTimeString(),
 				], fn($v) => $v !== null);
 
 				$existingPairs[$key] = true;
 				$totalPlanned++;
 
-				if ($targetCount > 0 && $totalPlanned >= $targetCount) {
-					break 2; // atingiu o limite global
-				}
+				if ($targetCount > 0 && $totalPlanned >= $targetCount) break 2;
 			}
 		}
 
@@ -207,14 +171,12 @@ class EventEmployeeSeeder extends Seeder
 			return;
 		}
 
-		// Upsert em chunks para respeitar UNIQUE (event_id, employee_id)
 		DB::transaction(function () use ($rows) {
-			$chunks = array_chunk($rows, 500);
-			foreach ($chunks as $chunk) {
+			foreach (array_chunk($rows, 500) as $chunk) {
 				DB::table(DC::TABLE_EV_EMP)->upsert(
 					$chunk,
-					[AC::COL_EV_ID, UC::COL_EMP_ID], // uniqueBy
-					['role', 'metadata', DC::COL_TABLE_UPDATER, 'updated_at'] // update columns
+					[AC::COL_EV_ID, UC::COL_EMP_ID],
+					['role', 'metadata', DC::COL_TABLE_UPDATER, 'updated_at']
 				);
 			}
 		});

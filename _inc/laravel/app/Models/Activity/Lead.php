@@ -2,87 +2,284 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
+use App\Config\Constants\{
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC
+};
+use App\Traits\{
+    HasAuditFields,
+    NormalizesAddresses,
+    NormalizesArrays,
+    UsesUuids
+};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
-use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany, HasOne};
+use Illuminate\Database\Eloquent\Relations\{
+    BelongsTo,
+    BelongsToMany,
+    HasMany
+};
 use Illuminate\Support\Collection;
 
 class Lead extends Model
 {
+    use HasAuditFields;
     use HasFactory;
+    use NormalizesAddresses;
+    use NormalizesArrays;
     use UsesUuids;
+
+    protected $table = DC::TABLE_LEADS;
+
     protected $fillable = [
-        'name', 'email', 'phone', 'subject', 'user_id', 'pipeline_id',
-        'stage_id', 'sources', 'products', 'notes', 'labels', 'order',
-        'created_by', 'is_active', 'is_converted', 'date'
+        'name',
+        'email',
+        'phone',
+        'subject',
+        UC::COL_USER_ID,
+        PJC::COL_PPL_ID,
+        PJC::COL_STG_ID,
+        'sources',
+        'products',
+        'labels',
+        'order',
+        'notes',
+        PJC::COL_CNV,
+        PJC::COL_CRT,
+        'date',
+        'caller',
+        'involved',
+        DC::COL_TABLE_CREATOR,
     ];
-    public function labels(): Collection
+
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
+    ];
+
+    protected $casts = [
+        'order'          => 'integer',
+        PJC::COL_CNV     => 'boolean',
+        PJC::COL_CRT     => 'boolean',
+        'date'           => 'date',
+        'involved'       => 'array',
+    ];
+
+    protected $with = [
+        'stage',
+        'pipeline',
+        'user',
+        'createdBy',
+        'updatedBy',
+    ];
+
+    protected static function booted(): void
     {
-        return $this->labels
-            ? Label::whereIn('id', explode(',', $this->labels))->get()
-            : collect();
+        static::saving(function (Lead $lead) {
+            $involved = $lead->normalizeInvolved(
+                is_array($lead->involved) ? $lead->involved : $lead->involved ?? []
+            );
+            if ($lead->{UC::COL_USER_ID})
+                $involved['users'][] = $lead->{UC::COL_USER_ID};
+            if ($lead->caller)
+                $involved['employees'][] = $lead->caller;
+            if ($lead->{DC::COL_TABLE_CREATOR})
+                $involved['users'][] = $lead->{DC::COL_TABLE_CREATOR};
+            $lead->involved = $lead->uniqueInvolved($involved);
+            if ($lead->email)
+                $lead->email = self::normalizeEmail($lead->email, 'Lead email', $lead->id ?? null) ?: null;
+            $lead->phone = static::normalizePhone(
+                $lead->phone ?? null,
+                'pos_billing',
+                $lead->id
+            );
+            $lead->involved = self::normalizeArrayField($lead->involved ?? null);
+            if ($lead->{PJC::COL_CNV} === null)
+                $lead->{PJC::COL_CNV} = false;
+            if ($lead->{PJC::COL_CRT} === null)
+                $lead->{PJC::COL_CRT} = false;
+        });
     }
-    public function stage(): HasOne
+
+    public function stage(): BelongsTo
     {
-        return $this->hasOne(LeadStage::class, 'id', 'stage_id');
+        return $this->belongsTo(LeadStage::class, PJC::COL_STG_ID);
     }
+
+    public function pipeline(): BelongsTo
+    {
+        return $this->belongsTo(Pipeline::class, PJC::COL_PPL_ID);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, UC::COL_USER_ID);
+    }
+
+    public function caller(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'caller');
+    }
+
     public function files(): HasMany
     {
-        return $this->hasMany(LeadFile::class, 'lead_id', 'id');
+        return $this->hasMany(LeadFile::class, PJC::COL_LD_ID);
     }
-    public function pipeline(): HasOne
+
+    public function activities(): HasMany
     {
-        return $this->hasOne(Pipeline::class, 'id', 'pipeline_id');
+        return $this
+            ->hasMany(LeadActivityLog::class, PJC::COL_LD_ID)
+            ->orderByDesc('id');
     }
-    public function products(): Collection
+
+    public function discussions(): HasMany
     {
-        return $this->products
-            ? ProductService::whereIn('id', explode(',', $this->products))
-            ->get()
-            : collect();
+        return $this
+            ->hasMany(LeadDiscussion::class, PJC::COL_LD_ID)
+            ->orderByDesc('id');
     }
-    public function sources(): Collection
+
+    public function calls(): HasMany
     {
-        return $this->sources
-            ? Source::whereIn('id', explode(',', $this->sources))
-            ->get()
-            : collect();
+        return $this->hasMany(LeadCall::class, PJC::COL_LD_ID);
     }
+
+    public function emails(): HasMany
+    {
+        return $this
+            ->hasMany(LeadEmail::class, PJC::COL_LD_ID)
+            ->orderByDesc('id');
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(
             User::class,
             'user_leads',
-            'lead_id',
-            'user_id'
+            PJC::COL_LD_ID,
+            UC::COL_USER_ID
         );
     }
-    public function activities(): HasMany
+
+    public function labels(): Collection
     {
-        return $this->hasMany(
-            LeadActivityLog::class,
-            'lead_id',
-            'id'
-        )->orderByDesc('id');
+        if (!$this->labels) return collect();
+
+        return Label::whereIn('id', explode(',', $this->labels))->get();
     }
-    public function discussions(): HasMany
+
+    public function products(): Collection
     {
-        return $this->hasMany(
-            LeadDiscussion::class,
-            'lead_id',
-            'id'
-        )->orderByDesc('id');
+        if (!$this->products) return collect();
+
+        return ProductService::whereIn('id', explode(',', $this->products))->get();
     }
-    public function calls(): HasMany
+
+    public function sources(): Collection
     {
-        return $this->hasMany(LeadCall::class, 'lead_id', 'id');
+        if (!$this->sources) return collect();
+
+        return Source::whereIn('id', explode(',', $this->sources))->get();
     }
-    public function emails(): HasMany
+
+    public function involvedUsers(): Collection
     {
-        return $this->hasMany(
-            LeadEmail::class,
-            'lead_id',
-            'id'
-        )->orderByDesc('id');
+        $ids = $this->involved['users'] ?? [];
+
+        if (!$ids) return collect();
+
+        return User::whereIn('id', $ids)->get();
+    }
+
+    public function involvedEmployees(): Collection
+    {
+        $ids = $this->involved['employees'] ?? [];
+
+        if (!$ids) return collect();
+
+        return Employee::whereIn('id', $ids)->get();
+    }
+
+    public function isCritical(): bool
+    {
+        return (bool) $this->{PJC::COL_CRT};
+    }
+
+    public function markCritical(): self
+    {
+        $this->{PJC::COL_CRT} = true;
+
+        $this->save();
+
+        return $this;
+    }
+
+    public function unmarkCritical(): self
+    {
+        $this->{PJC::COL_CRT} = false;
+
+        $this->save();
+
+        return $this;
+    }
+
+    public function isConverted(): bool
+    {
+        return (bool) $this->{PJC::COL_CNV};
+    }
+
+    public function scopeCritical($query)
+    {
+        return $query->where(PJC::COL_CRT, true);
+    }
+
+    public function scopeForPipeline($query, string $pipelineId)
+    {
+        return $query->where(PJC::COL_PPL_ID, $pipelineId);
+    }
+
+    public function scopeInvolvedWith($query, string $id)
+    {
+        return $query
+            ->where(function ($q) use ($id) {
+                $q->whereJsonContains('involved->users', $id)
+                    ->orWhereJsonContains('involved->employees', $id);
+            });
+    }
+
+    protected function normalizeInvolved($raw): array
+    {
+        $payload = [
+            'users'     => [],
+            'employees' => [],
+        ];
+
+        if (!is_array($raw)) return $payload;
+
+        if (array_key_exists('users', $raw) || array_key_exists('employees', $raw)) {
+            if (isset($raw['users']) && is_array($raw['users']))
+                $payload['users'] = array_values(array_filter($raw['users']));
+
+            if (isset($raw['employees']) && is_array($raw['employees']))
+                $payload['employees'] = array_values(array_filter($raw['employees']));
+
+            return $payload;
+        }
+
+        foreach ($raw as $id)
+            if (is_string($id) && $id !== '')
+                $payload['users'][] = $id;
+
+        return $payload;
+    }
+
+    protected function uniqueInvolved(array $payload): array
+    {
+        $payload['users'] = array_values(array_unique($payload['users'] ?? []));
+        $payload['employees'] = array_values(array_unique($payload['employees'] ?? []));
+
+        return $payload;
     }
 }

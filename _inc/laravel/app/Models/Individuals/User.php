@@ -13,7 +13,11 @@ use App\Config\Constants\{
     SettingsConstants as SC,
     UsersConstants as UC
 };
-use App\Traits\{ChecksLogin, UsesUuids};
+use App\Traits\{
+    ChecksLogin,
+    NormalizesAddresses,
+    UsesUuids
+};
 use Carbon\Carbon;
 use Illuminate\{
     Contracts\Auth\MustVerifyEmail,
@@ -32,7 +36,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property int|string $id
  */
 class User extends Authenticatable implements MustVerifyEmail
-
 {
     use ChecksLogin,
         HasApiTokens,
@@ -40,10 +43,10 @@ class User extends Authenticatable implements MustVerifyEmail
         HasRoles,
         Notifiable,
         TwoFactorAuthenticatable,
-        UsesUuids;
-
-    private const APPENDS       = ['profile'];
-    private const FILLABLE_FIELDS = [
+        UsesUuids,
+        NormalizesAddresses;
+    protected $appends  = ['profile'];
+    protected $fillable = [
         UC::COL_NM,
         UC::COL_EM,
         UC::COL_PW,
@@ -64,24 +67,23 @@ class User extends Authenticatable implements MustVerifyEmail
         UC::COL_MC,
         UC::COL_DPL,
         UC::COL_A_ST,
-        UC::COL_DM
+        UC::COL_DM,
+        'preferences',
     ];
-    private const HIDDEN_FIELDS = [UC::COL_PW, UC::COL_RT];
-    private const CASTS_FIELDS  = [
-        // UC::COL_PW => 'hashed', // ! CAST QUANDO SAIR DO TESTE
-        UC::COL_EM_V_AT => 'datetime'
+    protected $hidden   = [UC::COL_PW, UC::COL_RT];
+    protected $casts    = [
+        // UC::COL_PW => 'hashed', // habilitar quando sair do teste
+        UC::COL_EM_V_AT => 'datetime',
     ];
-    protected $appends = self::APPENDS;
-    protected $fillable = self::FILLABLE_FIELDS;
-    protected $hidden = self::HIDDEN_FIELDS;
-    protected $casts = self::CASTS_FIELDS;
-    private const REL_PROJECTS  = DC::TABLE_PROJECTS;
-    private const COL_PROJECT_ID = PJC::COL_PJ_ID;
+
+    private const REL_PROJECTS    = DC::TABLE_PROJECTS;
+    private const COL_PROJECT_ID  = PJC::COL_PJ_ID;
+
     private const DEFAULT_WAREHOUSE = [
         UC::COL_NM     => 'North Warehouse',
-        'address'  => '723 N. Tillamook Street Portland, OR Portland, United States',
-        'city'     => 'Portland',
-        'zip' => 97227,
+        'address'      => '723 N. Tillamook Street Portland, OR Portland, United States',
+        'city'         => 'Portland',
+        'zip'          => 97227,
     ];
 
     private const DEFAULT_BANK_ACCOUNT = [
@@ -94,6 +96,29 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     public $settings;
+
+    /**
+     * Normalizações e defaults defensivos.
+     */
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::saving(function (User $user): void {
+            $user->{UC::COL_EM} = self::normalizeEmail(
+                $user->{UC::COL_EM} ?? null,
+                'user.email',
+                $user->getAttribute('id') ?? null
+            );
+            if (is_string($user->{UC::COL_EM}))
+                $user->{UC::COL_EM} = mb_strtolower($user->{UC::COL_EM});
+            $user->ensureJsonAttributesAreEncoded(['preferences']);
+            if (array_key_exists(UC::COL_A_ST, $user->attributes) && $user->{UC::COL_A_ST} === null)
+                $user->{UC::COL_A_ST} = 1;
+            if (array_key_exists(UC::COL_DM, $user->attributes) && $user->{UC::COL_DM} === null)
+                $user->{UC::COL_DM} = 0;
+        });
+    }
 
     public function getProfileAttribute(): string
     {

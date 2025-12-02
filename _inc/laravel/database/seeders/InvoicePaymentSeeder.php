@@ -17,16 +17,6 @@ use Carbon\CarbonImmutable as Carbon;
 
 class InvoicePaymentSeeder extends Seeder
 {
-	/**
-	 * Opções de execução:
-	 *   --count=INT                     Alvo aproximado de registros a criar (opcional).
-	 *
-	 * Variáveis de ambiente (opcionais):
-	 *   INV_PAY_OPTIONALITY=0..1        Prob. média de preencher campos opcionais (padrão 0.65).
-	 *   INV_PAY_PER_INV_MIN=INT         Mín. pagamentos por fatura (padrão 1).
-	 *   INV_PAY_PER_INV_MAX=INT         Máx. pagamentos por fatura (padrão 3).
-	 *   INV_PAY_FORCE_FULLY_PAID=0|1    Se 1, tenta somar exatamente o valor da fatura (padrão 0).
-	 */
 	public function run(): void
 	{
 		// Verificações de existência
@@ -39,21 +29,12 @@ class InvoicePaymentSeeder extends Seeder
 			return;
 		}
 
-		// Parâmetros
-		$optionality = (float) env('INV_PAY_OPTIONALITY', 0.65);
-		$optionality = max(0.0, min(1.0, $optionality));
-
-		$perInvMin = (int) env('INV_PAY_PER_INV_MIN', 1);
-		$perInvMax = (int) env('INV_PAY_PER_INV_MAX', 3);
-		if ($perInvMin < 0) {
-			$perInvMin = 0;
-		}
-		if ($perInvMax < $perInvMin) {
-			$perInvMax = $perInvMin;
-		}
-
-		$forceFull = (bool) env('INV_PAY_FORCE_FULLY_PAID', false);
-		$targetCount = (int) ($this->command?->option('count') ?? 0);
+		// Parâmetros fixos para mocks
+		$optionality = 0.65;
+		$perInvMin = 1;
+		$perInvMax = 3;
+		$forceFull = false;
+		$targetCount = 0; // 0 = sem limite
 
 		$maybe = fn(callable $fn) => fake()->boolean((int) round($optionality * 100)) ? $fn() : null;
 		$json  = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -170,9 +151,7 @@ class InvoicePaymentSeeder extends Seeder
 				$reconciledAt = $maybe(function () use ($isCompletedLike, $updatedAt) {
 					return $isCompletedLike ? $updatedAt->toDateTimeString() : null;
 				});
-				$reconciledBy = $reconciledAt && $GLOBALS['__userIds'] = null ? null : $maybe(function () use ($userIds) {
-					return $userIds ? Arr::random($userIds) : null;
-				});
+				$reconciledBy = $reconciledAt && $userIds ? $maybe(fn() => Arr::random($userIds)) : null;
 
 				// Tipo / método de pagamento
 				$payType  = Arr::random($typeBag);

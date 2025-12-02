@@ -7,11 +7,11 @@ use Illuminate\Database\Schema\Blueprint;
 
 trait HasBasicUserLikeColumns
 {
-	protected function addUserLikeColumns(Blueprint $table, ?string $defaultAvatar = null, bool $hasPassword = false): void
+	protected function addUserLikeColumns(Blueprint $table, ?string $defaultAvatar = null, bool $hasPassword = false, bool $nullableName = false): void
 	{
 		$defaultAvatar ??= config('chatify.user_avatar.default');
 		$table->uuid('id')->primary();
-		$table->string(UC::COL_NM)->index()->nullable();
+		$nullableName ? $table->string(UC::COL_NM)->index()->nullable() : $table->string(UC::COL_NM)->index();
 		$table->string(UC::COL_EM)->unique()->index()->nullable();
 		$table->timestamp(UC::COL_EM_V_AT)->nullable();
 		$table->string(UC::COL_AV)->default($defaultAvatar)->nullable();

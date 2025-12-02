@@ -15,15 +15,15 @@ use Illuminate\Support\Str;
 
 class BillPaymentSeeder extends Seeder
 {
+	// Parâmetros fixos (sem env)
+	private const OPTIONALITY  = 0.65;     // probabilidade média de opcionais
+	private const PER_BILL_MIN = 0;        // mín. de pagamentos por bill
+	private const PER_BILL_MAX = 2;        // máx. de pagamentos por bill
+	private const MAX_AMOUNT   = 5000.00;  // teto para amount
+
 	/**
-	 * Parâmetros (CLI e ENV):
-	 *
-	 *  --count=INT                    Limite aproximado de pagamentos totais (opcional).
-	 *
-	 *  BL_PAY_OPTIONALITY=0..1        Probabilidade média de preencher campos opcionais. (padrão: 0.65)
-	 *  BL_PAY_PER_BILL_MIN=INT        Mínimo de pagamentos por conta/pagável (padrão: 0)
-	 *  BL_PAY_PER_BILL_MAX=INT        Máximo de pagamentos por conta/pagável (padrão: 2)
-	 *  BL_PAY_MAX_AMT=number          Valor máximo para amount (padrão: 5000.00)
+	 * Opções CLI:
+	 *  --count=INT   Limite aproximado de pagamentos totais (opcional).
 	 */
 	public function run(): void
 	{
@@ -55,13 +55,12 @@ class BillPaymentSeeder extends Seeder
 		$categories  = Schema::hasTable(DC::TABLE_PROD_SERV_CATS)   ? DB::table(DC::TABLE_PROD_SERV_CATS)->pluck('id')->all() : [];
 		$prodUnits   = Schema::hasTable(DC::TABLE_PROD_SERV_UNITS)  ? DB::table(DC::TABLE_PROD_SERV_UNITS)->pluck('id')->all() : [];
 
-		// Parâmetros de geração
-		$opt        = (float) env('BL_PAY_OPTIONALITY', 0.65);
-		$opt        = max(0.0, min(1.0, $opt));
-		$perMin     = (int) env('BL_PAY_PER_BILL_MIN', 0);
-		$perMax     = (int) env('BL_PAY_PER_BILL_MAX', 2);
-		$maxAmount  = (float) env('BL_PAY_MAX_AMT', 5000.00);
-		$target     = (int) ($this->command?->option('count') ?? 0);
+		// Parâmetros de geração (fixos)
+		$opt        = self::OPTIONALITY;
+		$perMin     = self::PER_BILL_MIN;
+		$perMax     = self::PER_BILL_MAX;
+		$maxAmount  = self::MAX_AMOUNT;
+		$target     = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
 
 		if ($perMin < 0) $perMin = 0;
 		if ($perMax < $perMin) $perMax = $perMin;
@@ -148,7 +147,7 @@ class BillPaymentSeeder extends Seeder
 				$payslipId   = $maybe(fn() => $payslips   ? Arr::random($payslips) : null);
 				$categoryId  = $maybe(fn() => $categories ? Arr::random($categories) : null);
 				$unitId      = $maybe(fn() => $prodUnits  ? Arr::random($prodUnits) : null);
-				$accountId   = Arr::random($bankAccounts); // obrigatório pela migration (restrict)
+				$accountId   = Arr::random($bankAccounts); // obrigatório
 
 				$currency = $bill->currency_id ?: 'BRL'; // espelha no legacy 'currency'
 
@@ -170,7 +169,7 @@ class BillPaymentSeeder extends Seeder
 					'attachments'          => $json($attachments),
 					BC::COL_TC             => $json($maybe(fn() => ['terms' => fake()->sentence()])),
 
-					// pagamento em si (campos do trait HasPaymentColumns)
+					// pagamento (HasPaymentColumns)
 					'date'                 => $date->toDateString(),
 					BC::COL_PPS_CD         => $ppsCode,
 					BC::COL_TRF_TP         => $trfType,
@@ -185,8 +184,8 @@ class BillPaymentSeeder extends Seeder
 					BC::COL_RCC_AT         => $rccAt?->toDateTimeString(),
 					BC::COL_RCC_BY         => $rccBy,
 
-					// conclusão do pagamento
-					BC::COL_BACC_ID        => $accountId,        // NOT NULL (restrict)
+					// conclusão
+					BC::COL_BACC_ID        => $accountId,
 					BC::COL_CAT_ID         => $categoryId,
 					BC::COL_ADD_RCP        => $maybe(fn() => fake()->boolean(20) ? 'yes' : null),
 					BC::COL_RCP_MD         => $json($receiptMeta),
@@ -202,8 +201,8 @@ class BillPaymentSeeder extends Seeder
 					'receipt'              => $maybe(fn() => fake()->lexify('rcpt-????????')),
 
 					// auditoria
-					DC::COL_TABLE_CREATOR      => $maybe(fn() => $users ? Arr::random($users) : null),
-					DC::COL_TABLE_UPDATER      => $maybe(fn() => $users ? Arr::random($users) : null),
+					DC::COL_TABLE_CREATOR  => $maybe(fn() => $users ? Arr::random($users) : null),
+					DC::COL_TABLE_UPDATER  => $maybe(fn() => $users ? Arr::random($users) : null),
 					'created_at'           => $createdAt->toDateTimeString(),
 					'updated_at'           => $updatedAt->toDateTimeString(),
 				];

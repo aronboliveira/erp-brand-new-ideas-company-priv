@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 
 class WarehouseSeeder extends Seeder
 {
+	// Parâmetro fixo: sem env/pseudo-env
+	private const FAKE_COUNT = 15;
+
 	public function run(): void
 	{
 		// Evita cair em produção por engano
@@ -26,8 +29,8 @@ class WarehouseSeeder extends Seeder
 		DB::beginTransaction();
 		try {
 			// Pré-carrega valores existentes para evitar colisões em execuções repetidas
-			$usedCodes = Warehouse::query()->pluck('code')->filter()->map(fn($v) => (string)$v)->all();
-			$usedNames = Warehouse::query()->pluck('name')->filter()->map(fn($v) => (string)$v)->all();
+			$usedCodes  = Warehouse::query()->pluck('code')->filter()->map(fn($v) => (string)$v)->all();
+			$usedNames  = Warehouse::query()->pluck('name')->filter()->map(fn($v) => (string)$v)->all();
 			$usedEmails = Warehouse::query()->pluck('email')->filter()->map(fn($v) => strtolower((string)$v))->all();
 
 			$usedCodeSet  = array_fill_keys($usedCodes, true);
@@ -109,19 +112,17 @@ class WarehouseSeeder extends Seeder
 				}
 			}
 
-			// -------- MASSA ALEATÓRIA (UNICIDADE APENAS AQUI) --------
-			$count = (int) (env('WAREHOUSE_FAKE_COUNT', 15));
+			// -------- MASSA ALEATÓRIA --------
+			$count = self::FAKE_COUNT;
 
 			for ($i = 0; $i < $count; $i++) {
 				// código único
-				$code = null;
 				do {
 					$candidate = 'WRH-' . Str::upper(fake()->bothify('??-###'));
 				} while (isset($usedCodeSet[$candidate]) || Warehouse::where('code', $candidate)->exists());
 				$usedCodeSet[$code = $candidate] = true;
 
 				// nome único
-				$name = null;
 				do {
 					$candidate = 'Armazém ' . fake()->city() . ' ' . fake()->numberBetween(1, 99);
 				} while (isset($usedNameSet[$candidate]) || Warehouse::where('name', $candidate)->exists());
@@ -130,15 +131,14 @@ class WarehouseSeeder extends Seeder
 				// email único (quando gerado)
 				$email = null;
 				if (fake()->boolean(70)) {
-					// formato determinístico com o code para minimizar colisão
-					$candidate = Str::of($code)->lower()->replace(['wrh-', '-'], '')->toString();
-					$emailCandidate = "wh-{$candidate}@" . fake()->freeEmailDomain();
+					$slug   = Str::of($code)->lower()->replace(['wrh-', '-'], '')->toString();
+					$domain = fake()->freeEmailDomain();
+					$emailCandidate = "wh-{$slug}@{$domain}";
 
-					// se ainda assim existir, agrega sufixo numérico
 					$suffix = 1;
 					$emailUnique = $emailCandidate;
 					while (isset($usedEmailSet[strtolower($emailUnique)]) || Warehouse::where('email', $emailUnique)->exists()) {
-						$emailUnique = "wh-{$candidate}-{$suffix}@" . fake()->freeEmailDomain();
+						$emailUnique = "wh-{$slug}-{$suffix}@" . fake()->freeEmailDomain();
 						$suffix++;
 					}
 					$email = $emailUnique;
@@ -157,7 +157,7 @@ class WarehouseSeeder extends Seeder
 				Warehouse::query()->create([
 					'code'                  => $code,
 					'name'                  => $name,
-					CC::COL_CP_ID          => null,
+					CC::COL_CP_ID           => null,
 					'zip'                   => fake()->postcode(),
 					'country'               => 'BR',
 					'state'                 => $state,
@@ -182,8 +182,8 @@ class WarehouseSeeder extends Seeder
 					CC::COL_REACH           => fake()->randomElements(['SP', 'RJ', 'MG', 'ES', 'PR', 'SC', 'RS', 'GO'], fake()->numberBetween(1, 4)),
 					CC::COL_OP_TM           => $open,
 					CC::COL_CL_TM           => $close,
-					CC::COL_WK_DYS          => $mondayToFriday, // já normalizado
-					UC::COL_AVG_RT          => fake()->randomFloat(2, 3.5, 5.0), // o Model aplica clamp se preciso
+					CC::COL_WK_DYS          => $mondayToFriday,
+					UC::COL_AVG_RT          => fake()->randomFloat(2, 3.5, 5.0),
 				]);
 			}
 

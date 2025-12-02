@@ -15,7 +15,7 @@ class CreateInvoiceProductsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid(BC::COL_INV_ID)->index();
             $table->uuid(BC::COL_PRD_ID)->index();
-            $table->$table->unsignedInteger('quantity')->min(1)->default(1);
+            $table->unsignedInteger('quantity')->min(1)->default(1);
             $table->string('tax', 50)->nullable(); // * this will kept for legacy
             $table->decimal('price', 16, 2)->default(0.00);
             $table->string(BC::COL_CUR_ID, 3)->default(SC::DEF_SITE_CURRENCY_ID)->nullable(); // ? nullable for testing purposes

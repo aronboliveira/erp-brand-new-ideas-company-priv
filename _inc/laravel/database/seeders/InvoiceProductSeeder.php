@@ -13,39 +13,32 @@ use Carbon\CarbonImmutable as Carbon;
 
 class InvoiceProductSeeder extends Seeder
 {
+	// Parâmetros fixos (sem env)
+	private const OPTIONALITY   = 0.65; // antes: INV_PRD_OPTIONALITY
+	private const PER_INV_MIN   = 1;    // antes: INV_PRD_PER_INV_MIN
+	private const PER_INV_MAX   = 5;    // antes: INV_PRD_PER_INV_MAX
+	private const MAX_QTY       = 6;    // antes: INV_PRD_MAX_QTY
+
 	/**
-	 * Opções:
-	 *   --count=INT                      Limite aproximado de linhas (global).
-	 *
-	 * Env (opcionais):
-	 *   INV_PRD_OPTIONALITY=0..1         Probabilidade média de preencher campos opcionais (padrão 0.65).
-	 *   INV_PRD_PER_INV_MIN=INT         Mínimo de itens por fatura (padrão 1).
-	 *   INV_PRD_PER_INV_MAX=INT         Máximo de itens por fatura (padrão 5).
-	 *   INV_PRD_MAX_QTY=INT             Máximo de quantidade por item (padrão 6).
+	 * Opções CLI:
+	 *   --count=INT   Limite aproximado de linhas (global).
 	 */
 	public function run(): void
 	{
-		// Tabelas essenciais
 		if (!Schema::hasTable(DC::TABLE_INV_PRD) || !Schema::hasTable(DC::TABLE_INVS)) {
 			$this->command?->warn('Tabelas de faturas/itens de fatura ausentes. Pulando.');
 			return;
 		}
 
-		// Parâmetros
-		$opt      = (float) env('INV_PRD_OPTIONALITY', 0.65);
-		$opt      = max(0.0, min(1.0, $opt));
-		$perMin   = (int) env('INV_PRD_PER_INV_MIN', 1);
-		$perMax   = (int) env('INV_PRD_PER_INV_MAX', 5);
-		$maxQty   = (int) env('INV_PRD_MAX_QTY', 6);
-		$maxQty   = $maxQty > 0 ? $maxQty : 6;
-		if ($perMin < 0) $perMin = 0;
-		if ($perMax < $perMin) $perMax = $perMin;
-		$target   = (int) ($this->command?->option('count') ?? 0);
+		$opt      = self::OPTIONALITY;
+		$perMin   = self::PER_INV_MIN;
+		$perMax   = self::PER_INV_MAX;
+		$maxQty   = self::MAX_QTY;
+		$target   = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
 
 		$maybe = fn(callable $fn) => fake()->boolean((int) round($opt * 100)) ? $fn() : null;
 		$json  = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-		// Lookups principais
 		$invoices = DB::table(DC::TABLE_INVS)->select('id', BC::COL_CUR_ID . ' as currency_id')->get();
 		if ($invoices->isEmpty()) {
 			$this->command?->warn('Nenhuma fatura encontrada. Pulando.');
@@ -57,7 +50,6 @@ class InvoiceProductSeeder extends Seeder
 			return;
 		}
 
-		// Busca produtos/serviços com preços, se existirem colunas conhecidas
 		$productCols = ['id', BC::COL_SL_PRC, BC::COL_PC_PRC, 'price', 'sale_price', 'unit_price'];
 		$existingCols = array_values(array_filter($productCols, fn($c) => Schema::hasColumn(DC::TABLE_PROD_SERVS, $c)));
 		$products = DB::table(DC::TABLE_PROD_SERVS)->select($existingCols)->get();
@@ -66,7 +58,6 @@ class InvoiceProductSeeder extends Seeder
 			return;
 		}
 
-		// FKs opcionais
 		$warehouseIds = Schema::hasTable(DC::TABLE_WRH) ? DB::table(DC::TABLE_WRH)->pluck('id')->all() : [];
 		$loanIds      = Schema::hasTable(DC::TABLE_LN) ? DB::table(DC::TABLE_LN)->pluck('id')->all() : [];
 		$contractIds  = Schema::hasTable(DC::TABLE_CONTRACTS) ? DB::table(DC::TABLE_CONTRACTS)->pluck('id')->all() : [];
@@ -150,7 +141,6 @@ class InvoiceProductSeeder extends Seeder
 					'loan'               => $maybe(fn() => $loanIds ? Arr::random($loanIds) : null),
 					BC::COL_WRH_ID       => $maybe(fn() => $warehouseIds ? Arr::random($warehouseIds) : null),
 
-					// auditoria (seus traits tratam nullable, então preenchemos quando possível)
 					DC::COL_TABLE_CREATOR    => $maybe(fn() => $userIds ? Arr::random($userIds) : null),
 					'created_at'         => $createdAt->toDateTimeString(),
 					'updated_at'         => $updatedAt->toDateTimeString(),
@@ -174,9 +164,6 @@ class InvoiceProductSeeder extends Seeder
 		$this->command?->info("InvoiceProductSeeder: {$totalPlanned} itens inseridos.");
 	}
 
-	/**
-	 * Escolhe um preço disponível no registro do produto/serviço.
-	 */
 	private function pickPrice(object $p): float
 	{
 		foreach ([BC::COL_SL_PRC, BC::COL_PC_PRC, 'price', 'sale_price', 'unit_price'] as $c) {

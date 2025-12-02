@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Enums\ContactKeyType;
 use Illuminate\Support\Facades\Log;
 
 trait NormalizesAddresses
@@ -88,5 +89,118 @@ trait NormalizesAddresses
 			'/^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/',
 			$value
 		);
+	}
+
+	public static function normalizeContactKey(string $key): string
+	{
+		$key = mb_strtolower(trim($key));
+		$key = str_replace([' ', '-', '.', '–', '—'], '_', $key);
+		return preg_replace('/_+/', '_', $key);
+	}
+
+	public static function keyIsEmail(string $normalizedKey): bool
+	{
+		return in_array($normalizedKey, ContactKeyType::EMAIL_KEYS, true);
+	}
+
+	public static function keyIsPhone(string $normalizedKey): bool
+	{
+		return in_array($normalizedKey, ContactKeyType::PHONE_KEYS, true);
+	}
+
+	public static function keyIsGenericContact(string $normalizedKey): bool
+	{
+		return in_array($normalizedKey, ContactKeyType::CONTACT_KEYS, true);
+	}
+
+	protected function normalizeContactFields(array $attr, array $secondaryAttrs, string|int $ownerId): void
+	{
+		if (is_array($attr)) {
+			$attr = $this->normalizeContactArrayRecursive(
+				$attr,
+				'event.participants',
+				$ownerId
+			);
+		}
+
+		// organizers / confirmed / sponsors
+		foreach ($secondaryAttrs as $field) {
+			$value = $this->{$field};
+
+			if (!is_array($value)) {
+				continue;
+			}
+
+			$this->{$field} = $this->normalizeContactArrayRecursive(
+				$value,
+				'event.' . $field,
+				$ownerId
+			);
+		}
+	}
+
+	protected function normalizeContactArrayRecursive(
+		array $data,
+		string $context,
+		string|int|null $ownerId
+	): array {
+		foreach ($data as $key => $value) {
+			if (is_array($value)) {
+				$data[$key] = $this->normalizeContactArrayRecursive(
+					$value,
+					$context . '.' . (is_string($key) ? $key : (string) $key),
+					$ownerId
+				);
+				continue;
+			}
+
+			if (!is_scalar($value)) {
+				continue;
+			}
+
+			$normalizedKey = $this->normalizeContactKey((string) $key);
+			$stringValue   = (string) $value;
+
+			if ($this->keyIsEmail($normalizedKey)) {
+				if (preg_match(ContactKeyType::EMAIL_REGEX, $stringValue)) {
+					$data[$key] = static::normalizeEmail(
+						$stringValue,
+						$context . '.' . $key,
+						$ownerId
+					);
+				}
+				continue;
+			}
+
+			if ($this->keyIsPhone($normalizedKey)) {
+				if (preg_match(ContactKeyType::PHONE_REGEX, $stringValue)) {
+					$data[$key] = static::normalizePhone(
+						$stringValue,
+						$context . '.' . $key,
+						$ownerId
+					);
+				}
+				continue;
+			}
+
+			// chave genérica de contato: tenta primeiro email, depois phone
+			if ($this->keyIsGenericContact($normalizedKey)) {
+				if (preg_match(ContactKeyType::EMAIL_REGEX, $stringValue)) {
+					$data[$key] = static::normalizeEmail(
+						$stringValue,
+						$context . '.' . $key,
+						$ownerId
+					);
+				} elseif (preg_match(ContactKeyType::PHONE_REGEX, $stringValue)) {
+					$data[$key] = static::normalizePhone(
+						$stringValue,
+						$context . '.' . $key,
+						$ownerId
+					);
+				}
+			}
+		}
+
+		return $data;
 	}
 }

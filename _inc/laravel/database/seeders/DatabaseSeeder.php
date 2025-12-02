@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
         try {
             foreach (
                 [
+                    UserSeeder::class,
                     ClientSeeder::class,
                     PasswordResetsSeeder::class,
                     DocumentSeeder::class,
@@ -124,6 +125,14 @@ class DatabaseSeeder extends Seeder
                     TransactionSeeder::class,
                     CreditNoteSeeder::class,
                     DebitNoteSeeder::class,
+                    LeadStageSeeder::class,
+                    LeadSeeder::class,
+                    LeadActivityLogSeeder::class,
+                    LeadDiscussionSeeder::class,
+                    UserLeadSeeder::class,
+                    LeadEmailSeeder::class,
+                    LeadFileSeeder::class,
+                    LeadCallSeeder::class,
                     BasicFavoritesSeeder::class
                 ] as $mockSeeder
             ) {

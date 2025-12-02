@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\{Log, Schema};
 
 trait IsCardNote
 {
+	use CustomerConnected, HasCreditCardInfo, HasPaymentColumns, HasPaymentConclusionColumns;
 	protected function addCardNoteColumns(Blueprint $table, bool $nullableCustomer = false, $onDeleteCustomer = 'restrict', bool $nullableReconcile = true, bool $nullableInvoice = true, bool $nullableAcc = true, bool $nullableCat = true, $onDeleteAcc = 'set null', $onDeleteCat = 'set null'): void
 	{
 		$onDeleteCustomer = strtolower((string) trim($onDeleteCustomer));
@@ -29,12 +30,11 @@ trait IsCardNote
 		$this->addPaymentColumns($table, nullableReconcile: $nullableReconcile, nullableInvoice: $nullableInvoice);
 		$this->addPaymentConclusionColumns($table, nullableAcc: $nullableAcc, nullableCat: $nullableCat, onDeleteAcc: $onDeleteAcc, onDeleteCat: $onDeleteCat); // ? acc nullable for tests
 		$table->uuid(BC::COL_BL_ID)->index()->nullable(); // * booted/saving should ensure that this Debit note belongs to either a bill or an invoice, else rollback and an error is thrown
-		$table->unsignedSmallInteger(BC::COL_CURR_N_INTR)->default(1)->nullable(); // ? nullable for tests, should be booted/created at model level if null, never lower than 1
 		$table->foreign(BC::COL_BL_ID)
 			->references('id')
 			->on(DC::TABLE_BILLS)
 			->nullOnDelete();
-		$table->addCreditCardInfoColumns($table); // * this is nullable only for tests
+		$this->addCreditCardInfoColumns($table); // * this is nullable only for tests
 	}
 	protected function dropCardNoteColumnForeigns(Blueprint $table, string $tableName): void
 	{

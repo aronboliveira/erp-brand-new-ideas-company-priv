@@ -1,59 +1,57 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC, UsersConstants as UC};
+use App\Traits\{HasBasicUserLikeColumns, HasNullableAuditColumns, PipelineConnected};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateLeadsTable extends Migration
 {
-    private const TABLE = DatabaseConstants::TABLE_LEADS;
-    private const COL_USER = 'user_id';
-    private const COL_PL = 'pipeline_id';
-    private const COL_STG = 'stage_id';
+    use HasBasicUserLikeColumns, HasNullableAuditColumns, PipelineConnected;
+    private const TABLE = DC::TABLE_LEADS;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();          // ! CHANGED
-            $table->string('name');
-            $table->string('email')->unique();
+            $this->addUserLikeColumns($table, nullableName: true);
             $table->string('phone')->nullable();
             $table->string('subject');
-            $table->uuid(self::COL_USER); // ! CHANGED
-            $table->uuid(self::COL_PL); // ! CHANGED
-            $table->uuid(self::COL_STG); // ! CHANGED
-            $table->string('sources')->nullable();
-            $table->string('products')->nullable();
-            $table->text('notes')->nullable();
-            $table->string('labels')->nullable();
+            $table->boolean(PJC::COL_CRT)->default(false)->nullable();
+            $table->uuid(UC::COL_USER_ID)->index()->nullable(); // ? not every lead is assigned to a user
+            $this->addPipelineColumns($table, nullable: true, cascade: false);
+            $table->uuid(PJC::COL_STG_ID)->nullable();
+            $table->string('sources')->nullable(); // ? list of uuids, keys or names for querying into Source
+            $table->string('products')->nullable(); // ? list of uuids, keys or names for querying into ProductService
+            $table->string('labels')->nullable(); // ? list of uuids, keys or names for querying into Label
             $table->integer('order')->default(0);
-            $table->integer('is_active')->default(1);
-            $table->integer('is_converted')->default(0);
-            $table->date('date')->nullable();
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
+            $table->text('notes')->nullable();
+            $table->integer(PJC::COL_CNV)->default(0);
+            $table->date('date')->nullable(); // * it's not clear what this deat is about, but might be the day of response and follow-up
+            $table->uuid('caller')->nullable();
+            $table->json('involved')->nullable(); // ? list of uuids of users + employees (filtering redundant on boot/save) involved with the lead
             foreach (
                 [
-                    self::COL_USER                        => DatabaseConstants::TABLE_USERS,
-                    self::COL_PL                    => DatabaseConstants::TABLE_PIPELINES,
-                    self::COL_STG                       => DatabaseConstants::TABLE_LEAD_STAGES,
-                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
+                    UC::COL_USER_ID => DC::TABLE_USERS,
+                    'caller' => DC::TABLE_EMPLOYEES,
+                    PJC::COL_STG_ID => DC::TABLE_LEAD_STAGES,
                 ] as $column => $referencedTable
             )
                 $table->foreign($column)
                     ->references('id')
                     ->on($referencedTable)
-                    ->cascadeOnDelete();
+                    ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropPipelineColumnForeign($table, self::TABLE);
             foreach (
                 [
-                    self::COL_USER,
-                    self::COL_PL,
-                    self::COL_STG,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    UC::COL_USER_ID,
+                    'caller',
+                    PJC::COL_STG_ID,
                 ] as $column
             ) {
                 try {

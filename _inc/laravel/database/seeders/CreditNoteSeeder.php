@@ -18,6 +18,14 @@ use Illuminate\Support\Str;
 
 class CreditNoteSeeder extends Seeder
 {
+	// --- Parâmetros fixos (sem env) ---
+	private const COUNT            = 120;
+	private const OPTIONALITY      = 0.92; // prob. de preencher opcionais
+	private const INVOICE_RATIO    = 0.75; // viés para invoice (crédito)
+	private const CARD_RATIO       = 0.97; // prob. de haver cartão
+	private const ATTACH_RATIO     = 0.80; // prob. de anexos
+	private const RECONCILE_RATIO  = 0.40; // prob. de conciliação automática ter data/autor
+
 	public function run(): void
 	{
 		if (!Schema::hasTable(DC::TABLE_CR_NOTES)) {
@@ -25,7 +33,7 @@ class CreditNoteSeeder extends Seeder
 			return;
 		}
 
-		// Coleta de FKs necessárias
+		// Coleta de FKs
 		$customers  = $this->pluckIds(DC::TABLE_CUSTOMERS ?? 'customers');
 		$invoices   = $this->pluckIds(DC::TABLE_INVS ?? 'invoices');
 		$bills      = $this->pluckIds(DC::TABLE_BILLS ?? 'bills');
@@ -46,36 +54,21 @@ class CreditNoteSeeder extends Seeder
 			return;
 		}
 
-		// Parâmetros
-		$count        = (int) env('CRN_COUNT', 120);
-		$optFill      = max(0.0, min(1.0, (float) env('CRN_OPTIONALITY', 0.92)));
-		$invoiceRatio = max(0.0, min(1.0, (float) env('CRN_INVOICE_RATIO', 0.75))); // crédito normalmente ligado a invoice
-		$cardRatio    = max(0.0, min(1.0, (float) env('CRN_CARD_RATIO', 0.97)));
-		$attachRatio  = max(0.0, min(1.0, (float) env('CRN_ATTACH_RATIO', 0.80)));
-		$reconRatio   = max(0.0, min(1.0, (float) env('CRN_RECONCILE_RATIO', 0.40)));
-
 		$statusVals = array_map(fn($c) => $c->value, PaymentStatus::cases());
 		$methodVals = array_map(fn($c) => $c->value, PaymentMethod::cases());
 		$trfVals    = array_map(fn($c) => $c->value, TransferType::cases());
 		$monthVals  = array_map(fn($c) => $c->value, MonthName::cases());
 
-		// Janela temporal
 		$today   = Carbon::today();
 		$fromDay = $today->subDays(150);
 
-		// Conjuntos para unicidade
-		$seenRef     = [];
-		$seenFiles   = [];
-		$seenPan     = [];
-		$seenLast4   = [];
+		// Conjuntos para unicidade local
+		$seenRef   = [];
+		$seenFiles = [];
+		$seenPan   = [];
+		$seenLast4 = [];
 
 		DB::transaction(function () use (
-			$count,
-			$optFill,
-			$invoiceRatio,
-			$cardRatio,
-			$attachRatio,
-			$reconRatio,
 			$customers,
 			$invoices,
 			$bills,
@@ -97,11 +90,9 @@ class CreditNoteSeeder extends Seeder
 			&$seenPan,
 			&$seenLast4
 		) {
-			for ($i = 1; $i <= $count; $i++) {
-				$customerId = Arr::random($customers);
-
-				// Vínculo obrigatório: invoice OU bill
-				$preferInvoice = $invoices && (!$bills || fake()->boolean((int) round($invoiceRatio * 100)));
+			for ($i = 1; $i <= self::COUNT; $i++) {
+				$customerId   = Arr::random($customers);
+				$preferInvoice = $invoices && (!$bills || fake()->boolean((int) round(self::INVOICE_RATIO * 100)));
 				$invoiceId     = $preferInvoice ? Arr::random($invoices) : null;
 				$billId        = !$preferInvoice && $bills ? Arr::random($bills) : null;
 
@@ -116,23 +107,18 @@ class CreditNoteSeeder extends Seeder
 
 				$status = Arr::random($statusVals);
 				$pmLbl  = Arr::random($methodVals);
-				$pmInt  = fake()->boolean() ? 1 : 0; // 0/1 para compatibilidade
-
+				$pmInt  = fake()->boolean() ? 1 : 0;
 				$trfType = Arr::random($trfVals);
 				$ppsCode = Arr::random(['300', '101', '202', '710', '905']);
 
-				$taxList = fake()->boolean((int) round($optFill * 100)) ? $this->makeTaxList($ref) : null;
-				$attachments = fake()->boolean((int) round($attachRatio * 100)) ? $this->makeAttachments($ref, $seenFiles) : null;
-				$terms = fake()->boolean((int) round($optFill * 100))
-					? [
-						'Scope: credit note adjustment/refund.',
-						'Subject to reconciliation and settlement windows.',
-						'Non-transferable.',
-					]
+				$taxList     = fake()->boolean((int) round(self::OPTIONALITY * 100)) ? $this->makeTaxList($ref) : null;
+				$attachments = fake()->boolean((int) round(self::ATTACH_RATIO * 100)) ? $this->makeAttachments($ref, $seenFiles) : null;
+				$terms       = fake()->boolean((int) round(self::OPTIONALITY * 100))
+					? ['Scope: credit note adjustment/refund.', 'Subject to reconciliation and settlement windows.', 'Non-transferable.']
 					: null;
 
-				$autoRcc  = fake()->boolean((int) round($optFill * 100));
-				$rccAt    = $autoRcc && fake()->boolean((int) round($reconRatio * 100))
+				$autoRcc  = fake()->boolean((int) round(self::OPTIONALITY * 100));
+				$rccAt    = $autoRcc && fake()->boolean((int) round(self::RECONCILE_RATIO * 100))
 					? now()->subMinutes(fake()->numberBetween(10, 1000))
 					: null;
 				$rccBy    = $rccAt && $users ? Arr::random($users) : null;
@@ -145,12 +131,11 @@ class CreditNoteSeeder extends Seeder
 				$unit       = $units     ? Arr::random($units)     : null;
 				$payslip    = $payslips  ? Arr::random($payslips)  : null;
 
-				$nInst  = fake()->numberBetween(1, 12);
+				$nInst   = fake()->numberBetween(1, 12);
 				$curInst = fake()->numberBetween(1, $nInst);
 
-				// Cartão (quase sempre)
 				$card = null;
-				if (fake()->boolean((int) round($cardRatio * 100))) {
+				if (fake()->boolean((int) round(self::CARD_RATIO * 100))) {
 					$flag   = Arr::random(['visa', 'mastercard', 'amex', 'elo', 'hipercard']);
 					$holder = strtoupper(fake()->firstName() . ' ' . fake()->lastName());
 					$year   = (int) now()->format('Y') + fake()->numberBetween(0, 5);
@@ -176,7 +161,7 @@ class CreditNoteSeeder extends Seeder
 					BC::COL_CUR_ID       => $currency,
 					'reference'          => $ref,
 					'description'        => "Credit note {$ref}",
-					'notes'              => fake()->boolean((int) round($optFill * 100)) ? fake()->sentence(12) : null,
+					'notes'              => fake()->boolean((int) round(self::OPTIONALITY * 100)) ? fake()->sentence(12) : null,
 					'attachments'        => $attachments,
 					BC::COL_TC           => $terms,
 
@@ -196,7 +181,7 @@ class CreditNoteSeeder extends Seeder
 					BC::COL_PAY_MTD_LB   => $pmLbl,
 					BC::COL_TRF_TP       => $trfType,
 					BC::COL_PPS_CD       => $ppsCode,
-					BC::COL_PPS_DS       => fake()->boolean((int) round($optFill * 100)) ? 'refund/adjustment' : null,
+					BC::COL_PPS_DS       => fake()->boolean((int) round(self::OPTIONALITY * 100)) ? 'refund/adjustment' : null,
 
 					BC::COL_IS_SCD       => fake()->boolean(8),
 					BC::COL_CAN_CHG_BK   => fake()->boolean(4),
@@ -226,7 +211,7 @@ class CreditNoteSeeder extends Seeder
 					$note->{BC::COL_CD_DG}   = $card['last4'];
 				}
 
-				// Garantia final do vínculo (modelo exige um dos dois)
+				// Garantia do vínculo exigido pelo Model
 				if (!$note->{'invoice'} && !$note->{BC::COL_BL_ID}) {
 					if ($invoices) {
 						$note->{'invoice'} = Arr::random($invoices);
@@ -235,7 +220,7 @@ class CreditNoteSeeder extends Seeder
 					}
 				}
 
-				// Criador/Atualizador (se existirem colunas)
+				// Uso dos novos nomes de colunas
 				if (Schema::hasColumn(DC::TABLE_CR_NOTES, DC::COL_TABLE_CREATOR) && $users) {
 					$note->{DC::COL_TABLE_CREATOR} = Arr::random($users);
 				}
@@ -247,10 +232,8 @@ class CreditNoteSeeder extends Seeder
 			}
 		});
 
-		$this->command?->info("CreditNoteSeeder: {$count} registros inseridos.");
+		$this->command?->info("CreditNoteSeeder: " . self::COUNT . " registros inseridos.");
 	}
-
-	/** Utils */
 
 	private function pluckIds(string $table): array
 	{

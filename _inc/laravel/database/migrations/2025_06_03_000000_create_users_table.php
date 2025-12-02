@@ -2,6 +2,7 @@
 
 use App\Config\Constants\{DatabaseConstants as DC, UsersConstants as UC};
 use App\Traits\HasBasicUserLikeColumns;
+use App\Enums\UserType;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\Schema;
 
@@ -13,7 +14,7 @@ class CreateUsersTable extends Migration
     {
         Schema::create(self::TABLE_NAME, function (Blueprint $table) {
             $this->addUserLikeColumns($table, defaultAvatar: 'chatify.user_avatar.default', hasPassword: true);
-            $table->string(UC::COL_TP, 100)->nullable();
+            $table->enum(UC::COL_TP, UserType::values())->default(UserType::Client)->nullable();
             $table->float(UC::COL_SL)->default(1024.00);
             $table->string(UC::COL_MC)->default('#2180f3'); // * NOT IN MODEL FILLABLE
             $table->boolean(UC::COL_A_ST)->default(0);        // * NOT IN MODEL FILLABLE
@@ -27,6 +28,7 @@ class CreateUsersTable extends Migration
             $table->uuid(UC::COL_PL)->default(DC::DEFAULT_PLAN);
             $table->date(UC::COL_PED)->nullable();
             $table->uuid(DC::COL_TABLE_CREATOR)->default(DC::DEFAULT_UUID);
+            $table->uuid(DC::COL_TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
             $table->timestamps();
         });
     }

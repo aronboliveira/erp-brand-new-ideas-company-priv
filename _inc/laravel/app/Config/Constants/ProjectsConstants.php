@@ -63,6 +63,7 @@ class ProjectsConstants
 	public const COL_APV_BY = 'approved_by';
 	public const COL_M_METRIC = 'main_metric';
 	public const COL_CRT = 'is_critical';
+	public const COL_CNV = 'is_converted';
 	public const COL_EXT_DY = 'extensible_days';
 	public const COL_HLT_RL = 'is_health_related';
 	public const COL_SL_MIN_DD_PCT = 'salary_minimum_deduction_percent';
@@ -73,6 +74,11 @@ class ProjectsConstants
 	public const COL_MIN_DR = 'minimum_duration';
 	public const COL_EXP_DR = 'expected_duration';
 	public const COL_MAX_DR = 'maximum_duration';
+	public const COL_EST_CC = 'estimated_chance_of_continuation';
+	public const COL_STG_ID = 'stage_id';
+	public const COL_LD_ID = 'lead_id';
+	public const COL_ATC_FRULES = 'attachment_filter_rules';
+	public const COL_IS_FUP = 'is_follow_up';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

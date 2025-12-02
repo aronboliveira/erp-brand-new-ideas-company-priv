@@ -131,6 +131,13 @@ class DatabaseConstants
 	public const TABLE_BL_PAY = 'bill_payments';
 	public const TABLE_CR_NOTES = 'credit_notes';
 	public const TABLE_DB_NOTES = 'debit_notes';
+	public const TABLE_EANC = 'employee_announcements';
+	public const TABLE_USR_LD = 'user_leads';
+	public const TABLE_LD_ACT_LOGS = 'lead_activity_logs';
+	public const TABLE_LD_DSC = 'lead_discussions';
+	public const TABLE_LD_FILES = 'lead_files';
+	public const TABLE_LD_EMAILS = 'lead_emails';
+	public const TABLE_LD_CALLS = 'lead_calls';
 
 	// * FIELD NAMES
 	// invoice
@@ -158,9 +165,11 @@ class DatabaseConstants
 	public const COL_RL_CAT = 'related_categories';
 	public const COL_PRO_IMG = 'pro_image';
 	public const COL_FL_PT = 'file_path';
+	public const COL_FL_NM = 'file_name';
+	public const COL_FL_SZ = 'file_size';
 	public const COL_MM_TP = 'mime_type';
 	public const COL_EXP_DT = 'expiration_date';
-	public const COL_DL_TP = 'download_count';
+	public const COL_DL_CT = 'download_count';
 	public const COL_PERM_RLS = 'permission_rules';
 	public const COL_IR = 'is_required';
 	public const COL_IPV = 'is_private';

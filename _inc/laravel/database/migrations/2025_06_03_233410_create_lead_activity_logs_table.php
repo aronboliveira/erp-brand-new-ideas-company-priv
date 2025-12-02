@@ -1,45 +1,65 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
-use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
-use Illuminate\Support\Facades\{Log, Schema};
+use App\Config\Constants\{
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC
+};
+use App\Enums\{AppModuleType, LogType, UserType};
+use App\Traits\{
+    HasNullableAuditColumns,
+    LeadConnected
+};
+use Illuminate\Database\{
+    Migrations\Migration,
+    Schema\Blueprint
+};
+use Illuminate\Support\Facades\{
+    Log,
+    Schema
+};
 
 class CreateLeadActivityLogsTable extends Migration
 {
-    private const TABLE = 'lead_activity_logs';
-    private const COL_USER = 'user_id';
-    private const COL_LEAD = 'lead_id';
+    use HasNullableAuditColumns;
+    use LeadConnected;
+
+    private const TABLE    = DC::TABLE_LD_ACT_LOGS;
+
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();          // ! CHANGED
-            $table->uuid(self::COL_USER); // ! CHANGED
-            $table->uuid(self::COL_LEAD); // ! CHANGED
-            $table->string('log_type');
+            $table->uuid('id')->primary();
+            $table->uuid(UC::COL_USER_ID)->index();
+            $table->string(UC::COL_U_TP, UserType::values())->default(UserType::Client)->nullable();
+            $this->addLeadColumns($table, unique: false, nullable: false, cascade: true);
+            $table->enum(AC::COL_LOG_TP, LogType::values())
+                ->default(LogType::Other)
+                ->index();
             $table->text('remark')->nullable();
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
-            foreach (
-                [
-                    self::COL_USER                   => DatabaseConstants::TABLE_USERS,
-                    self::COL_LEAD                   => DatabaseConstants::TABLE_LEADS,
-                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable
-            )
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->cascadeOnDelete();
+            $table->enum(AC::COL_MD, AppModuleType::values())->default(AppModuleType::Other)->nullable()->index();
+            $table->string('label', 255)->nullable();
+            $table->text('description')->nullable();
+            $table->json(DC::COL_RL_CAT)->nullable();
+            $table->json(PJC::COL_TAGS)->nullable();
+            $table->json(DC::COL_ER_LG)->nullable();
+            $table->foreign(UC::COL_USER_ID)
+                ->references('id')
+                ->on(DC::TABLE_USERS)
+                ->cascadeOnDelete();
+            $this->addAuditColumns($table);
         });
     }
+
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropLeadColumnForeign($table, self::TABLE);
             foreach (
                 [
-                    self::COL_USER,
-                    self::COL_LEAD,
-                    DatabaseConstants::COL_TABLE_CREATOR,
+                    UC::COL_USER_ID,
                 ] as $column
             ) {
                 try {
@@ -57,6 +77,7 @@ class CreateLeadActivityLogsTable extends Migration
                 }
             }
         });
+
         Schema::dropIfExists(self::TABLE);
     }
 }

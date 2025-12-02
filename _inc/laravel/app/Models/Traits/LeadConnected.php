@@ -2,51 +2,59 @@
 
 namespace App\Traits;
 
-use App\Models\Lead;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Log;
+use App\Config\Constants\{
+  DatabaseConstants as DC,
+  ProjectsConstants as PJC
+};
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\{
+  Log,
+  Schema
+};
 
 trait LeadConnected
 {
-  public static function bootLeadConnected()
-  {
-    static::creating(function ($model) {
-      $model->mergeFillable(['lead_id']);
-    });
-    static::updating(function ($model) {
-      $model->mergeFillable(['lead_id']);
-    });
+  protected function addLeadColumns(
+    Blueprint $table,
+    bool $unique = false,
+    bool $nullable = false,
+    bool $cascade = true
+  ): void {
+    $column = PJC::COL_LD_ID;
+    if ($unique)
+      $nullable
+        ? $table->uuid($column)->unique()->nullable()->index()
+        : $table->uuid($column)->unique()->index();
+    else
+      $nullable
+        ? $table->uuid($column)->nullable()->index()
+        : $table->uuid($column)->index();
+    $foreign = $table->foreign($column)
+      ->references('id')
+      ->on(DC::TABLE_LEADS);
+    if ($nullable)
+      $foreign->nullOnDelete();
+    elseif ($cascade)
+      $foreign->cascadeOnDelete();
+    else
+      $foreign->restrictOnDelete();
   }
-  public function lead(): BelongsTo
+  protected function dropLeadColumnForeign(Blueprint $table, string $tableName): void
   {
-    return $this->belongsTo(Lead::class);
-  }
-  public function getLeadById(string $leadId): ?Lead
-  {
+    $column = PJC::COL_LD_ID;
+
     try {
-      $ld = Lead::find($leadId);
-      if (!$ld) {
-        Log::warning(sprintf('No Lead found with ID %s in %s', $leadId, static::class));
-        return null;
-      }
-      return $ld;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Lead by ID %s: %s', $leadId, $e->getMessage()), ['exception' => $e]);
-      return null;
-    }
-  }
-  public function getLeadByName(string $name): ?Lead
-  {
-    try {
-      $ld = Lead::where('name', $name)->first();
-      if (!$ld) {
-        Log::warning(sprintf('No Lead found with name %s in %s', $name, static::class));
-        return null;
-      }
-      return $ld;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Lead by name %s: %s', $name, $e->getMessage()), ['exception' => $e]);
-      return null;
+      Schema::hasColumn($tableName, $column)
+        && $table->dropForeign([$column]);
+    } catch (\Exception $e) {
+      Log::warning(
+        'Failed to drop foreign key for '
+          . $column
+          . ' on table '
+          . $tableName
+          . ': '
+          . $e->getMessage()
+      );
     }
   }
 }

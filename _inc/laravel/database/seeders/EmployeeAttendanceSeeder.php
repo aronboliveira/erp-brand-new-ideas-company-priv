@@ -16,13 +16,15 @@ use Illuminate\Support\Str;
 
 class EmployeeAttendanceSeeder extends Seeder
 {
+	// Parâmetros fixos (sem env)
+	private const OPTIONALITY   = 0.65;
+	private const BACK_DAYS     = 30;
+	private const PER_EMP_MIN   = 8;
+	private const PER_EMP_MAX   = 18;
+
 	/**
-	 * Parâmetros (ENV/CLI):
-	 *  EATD_OPTIONALITY=0..1    Probabilidade média de preencher campos opcionais (default 0.65)
-	 *  EATD_BACK_DAYS=INT       Quantos dias no passado semear (default 30)
-	 *  EATD_PER_EMP_MIN=INT     Registros mínimos por empregado (default 8)
-	 *  EATD_PER_EMP_MAX=INT     Registros máximos por empregado (default 18)
-	 *  --count=INT              Teto aproximado de registros a inserir (opcional)
+	 * Opção CLI:
+	 *  --count=INT   Teto aproximado de registros a inserir (opcional).
 	 */
 	public function run(): void
 	{
@@ -45,13 +47,14 @@ class EmployeeAttendanceSeeder extends Seeder
 			? DB::table(DC::TABLE_OVT ?? 'overtimes')->pluck('id')->all()
 			: [];
 
-		$opt         = max(0.0, min(1.0, (float) env('EATD_OPTIONALITY', 0.65)));
-		$backDays    = (int) env('EATD_BACK_DAYS', 30);
-		$perEmpMin   = (int) env('EATD_PER_EMP_MIN', 8);
-		$perEmpMax   = (int) env('EATD_PER_EMP_MAX', 18);
+		// Parâmetros (fixos)
+		$opt         = self::OPTIONALITY;
+		$backDays    = self::BACK_DAYS;
+		$perEmpMin   = self::PER_EMP_MIN;
+		$perEmpMax   = self::PER_EMP_MAX;
 		if ($perEmpMax < $perEmpMin) $perEmpMax = $perEmpMin;
 
-		$target = (int) ($this->command?->option('count') ?? 0);
+		$target   = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
 		$inserted = 0;
 
 		$maybe = fn(callable $fn) => fake()->boolean((int) round($opt * 100)) ? $fn() : null;
@@ -68,7 +71,6 @@ class EmployeeAttendanceSeeder extends Seeder
 		};
 
 		$zero = '00:00:00';
-
 		$today = Carbon::today();
 
 		DB::transaction(function () use (
@@ -82,6 +84,7 @@ class EmployeeAttendanceSeeder extends Seeder
 			$today,
 			$perEmpMin,
 			$perEmpMax,
+			$backDays,
 			$target,
 			&$inserted
 		) {
@@ -89,10 +92,10 @@ class EmployeeAttendanceSeeder extends Seeder
 				if ($target > 0 && $inserted >= $target) break;
 
 				$daysToSeed = fake()->numberBetween($perEmpMin, $perEmpMax);
-				// Sorteia datas nos últimos $backDays dias (evita fins de semana parcialmente)
+				// Sorteia datas nos últimos $backDays dias
 				$dates = [];
 				for ($i = 0; $i < $daysToSeed; $i++) {
-					$d = $today->subDays(fake()->numberBetween(1, max(2, (int) env('EATD_BACK_DAYS', 30))));
+					$d = $today->subDays(fake()->numberBetween(1, max(2, $backDays)));
 					$dates[] = $d->toDateString();
 				}
 				$dates = array_values(array_unique($dates));
@@ -100,7 +103,7 @@ class EmployeeAttendanceSeeder extends Seeder
 				foreach ($dates as $date) {
 					if ($target > 0 && $inserted >= $target) break;
 
-					// Status distribuído: Present/Remote predominam
+					// Status distribuído
 					$status = Arr::random([
 						AttendanceStatus::Present->value,
 						AttendanceStatus::Present->value,
@@ -114,60 +117,50 @@ class EmployeeAttendanceSeeder extends Seeder
 					$clkInBase  = $t(9, 0);
 					$clkOutBase = $t(18, 0);
 
-					// Variações de chegada/saída
-					$clkIn  = $addMin($clkInBase, fake()->numberBetween(-20, 45));  // pode adiantar ou atrasar
-					$clkOut = $addMin($clkOutBase, fake()->numberBetween(-60, 150)); // pode sair cedo ou fazer hora extra
+					// Variações
+					$clkIn  = $addMin($clkInBase, fake()->numberBetween(-20, 45));
+					$clkOut = $addMin($clkOutBase, fake()->numberBetween(-60, 150));
 
-					// Para Absent/Leave, zeramos clocks
 					if (in_array($status, [AttendanceStatus::Absent->value, AttendanceStatus::Leave->value], true)) {
 						$clkIn  = $zero;
 						$clkOut = $zero;
 					}
 
-					// Early arrival (antes do clock-in) — opcional
 					$erlArr = $maybe(function () use ($clkIn, $addMin, $zero) {
 						if ($clkIn === $zero) return null;
 						$min = fake()->numberBetween(5, 30);
 						return $addMin($clkIn, -$min);
 					});
 
-					// Late (após clock-in) — sempre presente como coluna; 00:00:00 se nenhum atraso
 					$late = in_array($status, [AttendanceStatus::Present->value, AttendanceStatus::Remote->value], true)
 						? (fake()->boolean(35) && $clkIn !== '00:00:00'
 							? $addMin($clkIn, fake()->numberBetween(3, 30))
 							: $zero)
 						: $zero;
 
-					// Early leave (antes do clock-out) — opcional
 					$erlLeave = $maybe(function () use ($clkOut, $addMin, $zero) {
 						if ($clkOut === $zero) return null;
 						return fake()->boolean(25) ? $addMin($clkOut, -fake()->numberBetween(5, 45)) : $zero;
 					});
 
-					// Overtime (após clock-out) — sempre presente como coluna; 00:00:00 quando não houver
 					$overtime = ($clkOut !== $zero && fake()->boolean(30))
 						? $addMin($clkOut, fake()->numberBetween(15, 120))
 						: $zero;
 
-					// Contadores opcionais (deixe null às vezes para o boot normalizar para 0)
 					$erlArrCount = $maybe(fn() => $erlArr && $erlArr !== $zero ? fake()->numberBetween(1, 3) : 0);
 					$lateCount   = $maybe(fn() => $late !== $zero ? fake()->numberBetween(1, 4) : 0);
 					$erlLvCount  = $maybe(fn() => $erlLeave && $erlLeave !== $zero ? fake()->numberBetween(1, 2) : 0);
 					$ovtCount    = $maybe(fn() => $overtime !== $zero ? fake()->numberBetween(1, 3) : 0);
 
-					// Descanso total (opcional; se null, Model setará/normalizará)
 					$ttRest = $maybe(function () use ($t) {
 						$mins = Arr::random([0, 15, 30, 45, 60, 90]);
 						return $t(intdiv($mins, 60), $mins % 60, 0);
 					});
 
-					// TT_WRK: às vezes deixa null para ser calculado por calculateTotalWork()
-					$ttWork = fake()->boolean(40) ? null : null; // força mais variação
+					$ttWork = fake()->boolean(40) ? null : null;
 
-					// Vínculo com overtime_id às vezes
 					$ovtId = $maybe(fn() => $overtimes ? Arr::random($overtimes) : null);
 
-					// Monta e cria via Model para acionar normalizações
 					$row = new EmployeeAttendance([
 						'id'                   => (string) Str::uuid(),
 						UC::COL_EMP_ID         => $empId,
@@ -177,20 +170,19 @@ class EmployeeAttendanceSeeder extends Seeder
 						AC::COL_CLK_OUT        => $clkOut,
 
 						AC::COL_ERL_ARV        => $erlArr ?? null,
-						AC::COL_ERL_AV_CT      => $erlArrCount,        // pode ser null
+						AC::COL_ERL_AV_CT      => $erlArrCount,
 						'late'                 => $late,
-						AC::COL_LT_CT          => $lateCount,          // pode ser null
-						AC::COL_ERL_LV         => $erlLeave ?? $zero,  // coluna não-nullable; usa 00:00:00 se ausente
-						AC::COL_ERL_LV_CT      => $erlLvCount,         // pode ser null
-						'overtime'             => $overtime,           // coluna não-nullable
-						AC::COL_OVT_CT         => $ovtCount,           // pode ser null
+						AC::COL_LT_CT          => $lateCount,
+						AC::COL_ERL_LV         => $erlLeave ?? $zero,
+						AC::COL_ERL_LV_CT      => $erlLvCount,
+						'overtime'             => $overtime,
+						AC::COL_OVT_CT         => $ovtCount,
 						AC::COL_OVT_ID         => $ovtId,
 
-						AC::COL_TT_RST         => $ttRest,             // pode ser null
-						AC::COL_TT_WRK         => $ttWork,             // pode ser null
+						AC::COL_TT_RST         => $ttRest,
+						AC::COL_TT_WRK         => $ttWork,
 					]);
 
-					// Marcas de auditoria (se existirem como fillable/trait)
 					if (Schema::hasColumn(DC::TABLE_EATD, DC::COL_TABLE_CREATOR)) {
 						$row->{DC::COL_TABLE_CREATOR} = $maybe(fn() => Arr::random($employees));
 					}

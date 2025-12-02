@@ -26,14 +26,17 @@ use Illuminate\Support\Str;
 
 class InvoiceSeeder extends Seeder
 {
+	private const RECORDS       = 120;
+	private const OPTIONAL_RATE = 0.65;
+
 	private int $records;
 	private float $optionalRate;
 	private \Faker\Generator $faker;
 
 	public function __construct()
 	{
-		$this->records      = (int) env('SEED_PAYMENTS', 120);
-		$this->optionalRate = max(0.0, min(1.0, (float) env('SEED_OPTIONALS_RATE', 0.65)));
+		$this->records      = self::RECORDS;
+		$this->optionalRate = self::OPTIONAL_RATE;
 		$this->faker        = \Faker\Factory::create('pt_BR');
 	}
 
@@ -50,48 +53,39 @@ class InvoiceSeeder extends Seeder
 		for ($done = 0; $done < $this->records; $done += $chunk) {
 			DB::transaction(function () use ($chunk, $bankIds, $coaIds, $vdIds, $catIds, $labelsPt) {
 				for ($i = 0; $i < $chunk; $i++) {
-					// Datas base
 					$date   = $this->faker->dateTimeBetween('-180 days', 'now');
 					$sched  = $this->maybe(0.35) ? $this->faker->dateTimeBetween($date, '+20 days') : null;
 
-					// Método e status
 					$method = $this->randomPaymentMethod();
-					$pstat  = $this->randomPaymentStatus();       // para BC::COL_PAY_STT
-					$status = $this->alignRowStatus($pstat);       // para coluna 'status' (HasPaymentColumns)
+					$pstat  = $this->randomPaymentStatus();
+					$status = $this->alignRowStatus($pstat);
 
-					// Valores
 					$principal = $this->money($this->faker->randomFloat(2, 50, 25000));
 					$interest  = $this->maybe(0.40) ? $this->money($principal * $this->randPct(0, 6)) : 0.00;
 					$svcFee    = $this->maybe(0.30) ? $this->money($principal * $this->randPct(0, 2)) : 0.00;
 					$taxFee    = $this->maybe(0.45) ? $this->money($principal * $this->randPct(0, 9)) : 0.00;
 					$discount  = $this->maybe(0.50) ? $this->money(min($principal * $this->randPct(0, 20), $principal)) : 0.00;
 
-					// Relacionamentos opcionais
 					$accFrom  = $this->maybe(0.55) && $bankIds ? $this->faker->randomElement($bankIds) : null;
 					$accTo    = $this->maybe(0.55) && $bankIds ? $this->faker->randomElement($bankIds) : null;
 					$coa      = $this->maybe(0.60) && $coaIds   ? $this->faker->randomElement($coaIds)   : null;
 					$vendorId = $this->maybe(0.70) && $vdIds    ? $this->faker->randomElement($vdIds)    : null;
 					$catId    = $this->maybe(0.50) && $catIds   ? $this->faker->randomElement($catIds)   : null;
 
-					// Transfer type / purpose
 					$trfType  = $this->randomTransferType();
 					$purpose  = $this->maybe(0.60) ? (string) $this->faker->numberBetween(100, 399) : '300';
 
-					// Metadados de recebimento
 					$receiptMeta = $this->maybe(0.30) ? [
 						'nsu'         => strtoupper($this->faker->bothify('NSU########')),
 						'auth_code'   => strtoupper($this->faker->bothify('AU####')),
 						'gateway'     => $this->faker->randomElement(['CIELO', 'REDE', 'PAGARME', 'MERCADOPAGO']),
 					] : null;
 
-					// Campos de billing (grupo opcional)
 					$bill = $this->maybe() ? $this->fakeBilling() : [];
 
-					// Campos variáveis de segurança e reconciliação
-					$canChargeback = $this->maybe(0.15); // chargeback raramente permitido
+					$canChargeback = $this->maybe(0.15);
 					$isSecured     = $this->maybe(0.25);
 
-					// Timestamps por status
 					$executedAt = null;
 					$completedAt = null;
 					$cancelledAt = null;
@@ -102,39 +96,33 @@ class InvoiceSeeder extends Seeder
 						$cancelledAt = $this->faker->dateTimeBetween($date, '+10 days');
 					}
 
-					// Montagem do payload
 					$data = array_filter([
 						'date'                     => $date->format('Y-m-d'),
 						'discount'                 => $discount,
 						'recurring'                => $this->maybe(0.15) ? 'monthly' : null,
 
-						// HasPaymentColumns
 						'status'                   => $status->value,
 						BC::COL_PAY_STT           => $pstat->value,
 						BC::COL_STT_LB            => $labelsPt[$status->value] ?? ucfirst($status->value),
 						BC::COL_PAY_MTD           => $method->value,
 
-						// Relacionamentos/contas
-						BC::COL_BACC_ID           => $coa ? null : ($accFrom ?? $accTo), // preferir conta quando não há CoA
+						BC::COL_BACC_ID           => $coa ? null : ($accFrom ?? $accTo),
 						BC::COL_ACC_FROM          => $accFrom,
 						BC::COL_ACC_TO            => $accTo,
 						BKC::COL_COA              => $coa,
 						UC::COL_VD_ID             => $vendorId,
 						BC::COL_CAT_ID            => $catId,
 
-						// Valores
 						BC::COL_PRC_AMT           => $principal,
 						BC::COL_INTR_AMT          => $interest,
 						BC::COL_SVC_FEE           => $svcFee,
 						BC::COL_TXS_FEE           => $taxFee,
 
-						// Regras/flags
 						BC::COL_TRF_TP            => $trfType->value,
 						BC::COL_PPS_CD            => $purpose,
 						BC::COL_IS_SCD            => $isSecured,
 						BC::COL_CAN_CHG_BK        => $canChargeback,
 
-						// Timestamps
 						BC::COL_SCHD_TRF_TS       => $sched?->format('Y-m-d H:i:s'),
 						BC::COL_EXC_AT            => $executedAt?->format('Y-m-d H:i:s'),
 						BC::COL_CMP_AT            => $completedAt?->format('Y-m-d H:i:s'),
@@ -146,18 +134,13 @@ class InvoiceSeeder extends Seeder
 							'Dados inválidos'
 						]) : null,
 
-						// Recebimento
 						BC::COL_RCP_MD            => $receiptMeta,
 
-						// Outras descrições
 						BC::COL_PPS_DS            => $this->maybe(0.40) ? $this->faker->sentence(6) : null,
 						BC::COL_TXS_LST           => $this->maybe(0.35) ? $this->fakeTaxesList($principal, $discount) : null,
 					], static fn($v) => $v !== null);
 
-					// Billing (grupo) — merge
 					$data = array_merge($data, $bill);
-
-					// Ajustes por método de pagamento
 					$this->applyMethodSpecificEnrichment($data, $method);
 
 					try {
@@ -173,7 +156,6 @@ class InvoiceSeeder extends Seeder
 		}
 	}
 
-	/** Mantém mesma ideia de “densidade” de opcionais */
 	private function maybe(?float $p = null): bool
 	{
 		$p = $p ?? $this->optionalRate;
@@ -184,7 +166,6 @@ class InvoiceSeeder extends Seeder
 	{
 		return round(max($v, 0.0), 2);
 	}
-
 	private function randPct(float $min = 0, float $max = 20): float
 	{
 		return $this->faker->randomFloat(4, $min / 100, $max / 100);
@@ -192,7 +173,6 @@ class InvoiceSeeder extends Seeder
 
 	private function randomPaymentMethod(): PaymentMethod
 	{
-		// distribuição levemente inclinada para Pix/cartão/transferência
 		$pool = [
 			PaymentMethod::Pix,
 			PaymentMethod::Pix,
@@ -211,7 +191,6 @@ class InvoiceSeeder extends Seeder
 
 	private function randomPaymentStatus(): PaymentStatus
 	{
-		// distribuição prática para rotinas reais
 		$pool = [
 			PaymentStatus::Completed,
 			PaymentStatus::Completed,
@@ -232,7 +211,6 @@ class InvoiceSeeder extends Seeder
 
 	private function alignRowStatus(PaymentStatus $p): PaymentStatus
 	{
-		// Em geral, mantemos o mesmo; em casos “intermediários”, normalizamos
 		return match ($p) {
 			PaymentStatus::Undefined => PaymentStatus::Pending,
 			default => $p,
@@ -256,16 +234,14 @@ class InvoiceSeeder extends Seeder
 
 	private function applyMethodSpecificEnrichment(array &$data, PaymentMethod $method): void
 	{
-		// Cartão: digitos finais, bandeira, etc.
 		if ($method->isCard()) {
-			$data[BC::COL_CD_DG]  = $this->faker->numerify('####');
-			$data[BC::COL_CD_FLG] = $this->faker->randomElement(['VISA', 'MASTERCARD', 'ELO', 'AMEX']);
+			$data[BC::COL_CD_DG]   = $this->faker->numerify('####');
+			$data[BC::COL_CD_FLG]  = $this->faker->randomElement(['VISA', 'MASTERCARD', 'ELO', 'AMEX']);
 			$data[BC::COL_CD_EX_M] = (string) $this->faker->numberBetween(1, 12);
 			$data[BC::COL_CD_EX_Y] = (string) $this->faker->numberBetween((int) date('Y'), (int) date('Y') + 6);
-			$data[BC::COL_CD_HNM] = Str::upper($this->faker->name());
+			$data[BC::COL_CD_HNM]  = Str::upper($this->faker->name());
 		}
 
-		// Pix: chave e QR
 		if ($method === PaymentMethod::Pix) {
 			$data[BC::COL_PIX_KEY] = $this->faker->randomElement([
 				$this->faker->email(),
@@ -273,7 +249,7 @@ class InvoiceSeeder extends Seeder
 				$this->faker->cellphoneNumber()
 			]);
 			if ($this->maybe(0.40)) {
-				$data[BC::COL_PIX_QR] = '00020126...'; // string simbólica
+				$data[BC::COL_PIX_QR] = '00020126...';
 			}
 		}
 	}

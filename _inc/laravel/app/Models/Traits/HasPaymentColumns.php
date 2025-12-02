@@ -13,7 +13,7 @@ trait HasPaymentColumns
 	use HasFinancialIssuingColumns;
 	protected function addPaymentColumns(Blueprint $table, bool $nullableReconcile = true, bool $nullableInvoice = true): void
 	{
-		$this->addFinancialIssuingColumns($table, $nullableReconcile);
+		$this->addFinancingIssuingColumns($table, $nullableReconcile);
 		// ? a transfer can be scheduled for a future date
 		$table->boolean(BC::COL_IS_SCD)->default(false)->nullable(); // ? nullable for testing purposes
 		$table->boolean(BC::COL_CAN_CHG_BK)->default(false)->nullable(); // ? nullable for testing purposes

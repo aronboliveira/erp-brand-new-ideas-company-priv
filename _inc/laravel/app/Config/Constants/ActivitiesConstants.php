@@ -48,4 +48,19 @@ class ActivitiesConstants
 	public const COL_TT_RST = 'total_rest';
 	public const COL_TT_WRK = 'total_work';
 	public const COL_OVT_ID = 'overtime_id';
+	public const COL_RCT_RL = 'recruitment_role';
+	public const COL_ANC_ID = 'announcement_id';
+	public const COL_PRT = 'participations';
+	public const COL_LOG_TP = 'log_type';
+	public const COL_CAN_NADM_DL = 'can_non_admin_delete';
+	public const COL_IS_FLAG = 'is_flagged';
+	public const COL_IS_RPL = 'is_reply';
+	public const COL_IS_RPLD = 'is_replied';
+	public const COL_CAN_MK_DCS = 'can_make_decisions';
+	public const COL_CL_DT = 'call_datetime';
+	public const COL_CL_TP = 'call_type';
+	public const COL_CL_DUR = 'call_duration';
+	public const COL_CL_RS = 'call_result';
+	public const COL_FRM_ID = 'from_id';
+	public const COL_TO_ID = 'to_id';
 }

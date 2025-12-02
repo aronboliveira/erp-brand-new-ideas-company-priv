@@ -1,58 +1,29 @@
 <?php
 
-use App\Config\Constants\DatabaseConstants;
+use App\Config\Constants\{DatabaseConstants as DC};
+use App\Traits\{HasDocumentColumns, HasNullableAuditColumns, LeadConnected};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateLeadFilesTable extends Migration
 {
-    private const TABLE = 'lead_files';
-    private const COL_LEAD = 'lead_id';
-    private const FL = 'file';
+    use HasDocumentColumns, HasNullableAuditColumns, LeadConnected;
+    private const TABLE = DC::TABLE_LD_FILES;
     public function up(): void
     {
-        Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();       // ! CHANGED
-            $table->uuid(self::COL_LEAD);             // ! CHANGED
-            $table->string(self::FL . '_name');
-            $table->string(self::FL . '_path');
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR)->nullable();
-            foreach (
-                [
-                    self::COL_LEAD                   => DatabaseConstants::TABLE_LEADS,
-                    DatabaseConstants::COL_TABLE_CREATOR => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable
-            )
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->cascadeOnDelete();
+        Schema::create(self::TABLE, function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $this->addLeadColumns($table);
+            $table->string(DC::COL_FL_NM)->nullable();
+            $this->addDocumentColumns($table);
+            $this->addAuditColumns($table);
         });
     }
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach (
-                [
-                    self::COL_LEAD,
-                    DatabaseConstants::COL_TABLE_CREATOR,
-                ] as $column
-            ) {
-                try {
-                    Schema::hasColumn(self::TABLE, $column)
-                        && $table->dropForeign([$column]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $column
-                            . ' on table '
-                            . self::TABLE
-                            . ': '
-                            . $e->getMessage()
-                    );
-                }
-            }
+            $this->dropLeadColumnForeign($table, self::TABLE);
+            $this->dropAuditColumnForeigns($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

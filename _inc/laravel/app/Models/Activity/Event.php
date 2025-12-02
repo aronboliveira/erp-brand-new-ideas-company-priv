@@ -11,6 +11,7 @@ use App\Config\Constants\{
 };
 use App\Traits\{
     HasAuditFields,
+    NormalizesAddresses,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -25,8 +26,22 @@ class Event extends Model
     use HasAuditFields;
     use HasFactory;
     use UsesUuids;
+    use NormalizesAddresses;
 
     protected $table = DC::TABLE_EVENTS;
+
+    private const JSON_FIELDS = [
+        'attachments',
+        'invited',
+        'conditions',
+        'reminders',
+        'tags',
+        'organizers',
+        'confirmed',
+        'gifts',
+        'sponsors',
+        'participants',
+    ];
 
     protected $fillable = [
         // planejamento
@@ -58,6 +73,8 @@ class Event extends Model
         'organizers',
         'confirmed',
         'gifts',
+        'sponsors',
+        'participants',
 
         // visual e conteúdo
         'color',
@@ -90,13 +107,37 @@ class Event extends Model
         'organizers'            => 'array',
         'confirmed'             => 'array',
         'gifts'                 => 'array',
+        'sponsors'              => 'array',
+        'participants'          => 'array',
     ];
 
     protected static function booted(): void
     {
         parent::booted();
+
         static::saving(function (self $event): void {
             $event->syncParticipantsFromAttributes();
+            $ownerId = $event->id ?? null;
+            $participants = self::normalizeArrayField($event->participants);
+            $participants = $event->normalizeContactArrayRecursive(
+                $participants,
+                'event.participants',
+                $ownerId
+            );
+            $event->participants = $participants;
+            foreach (['organizers', 'confirmed', 'sponsors'] as $field) {
+                $value = self::normalizeArrayField($event->{$field} ?? null);
+                if ($value === []) {
+                    $event->{$field} = [];
+                    continue;
+                }
+                $event->{$field} = $event->normalizeContactArrayRecursive(
+                    $value,
+                    'event.' . $field,
+                    $ownerId
+                );
+            }
+            $event->ensureJsonFieldsEncoded();
         });
     }
 
@@ -129,16 +170,13 @@ class Event extends Model
     {
         $date = $this->getAttribute('date');
 
-        if (!$date) {
+        if (!$date)
             return null;
-        }
 
         $dateString = $date instanceof Carbon
             ? $date->format('Y-m-d')
             : (string) $date;
-
         $time = (string) ($this->getAttribute('time') ?: '00:00:00');
-
         try {
             return Carbon::createFromFormat('Y-m-d H:i:s', $dateString . ' ' . $time);
         } catch (\Throwable) {
@@ -149,7 +187,6 @@ class Event extends Model
     public function getIsPastAttribute(): bool
     {
         $start = $this->start_at;
-
         return $start ? $start->isPast() : false;
     }
 
@@ -165,21 +202,11 @@ class Event extends Model
         return is_array($organizers) ? count($organizers) : 0;
     }
 
-    public function getSponsorsAttribute(): array
-    {
-        $sponsors = $this->sponsors;
-        return is_array($sponsors) ? $sponsors : [];
-    }
-
     public function getSponsorsCountAttribute(): int
     {
         $sponsors = $this->sponsors;
-        return is_array($sponsors) ? count($sponsors) : 0;
-    }
 
-    public function setSponsorsAttribute(?array $value): void
-    {
-        $this->attributes['sponsors'] = $value === null ? null : json_encode($value);
+        return is_array($sponsors) ? count($sponsors) : 0;
     }
 
     public function getConfirmedCountAttribute(): int
@@ -204,6 +231,76 @@ class Event extends Model
         return !$this->isInternal();
     }
 
+    /*
+     |--------------------------------------------------------------------------
+     | Mutators para todos os campos JSON
+     |--------------------------------------------------------------------------
+     | Usam encodeJsonAttribute() vindo de NormalizesArrays.
+     |--------------------------------------------------------------------------
+     */
+
+    public function setAttachmentsAttribute($value): void
+    {
+        $this->encodeJsonAttribute('attachments', $value);
+    }
+
+    public function setInvitedAttribute($value): void
+    {
+        $this->encodeJsonAttribute('invited', $value);
+    }
+
+    public function setConditionsAttribute($value): void
+    {
+        $this->encodeJsonAttribute('conditions', $value);
+    }
+
+    public function setRemindersAttribute($value): void
+    {
+        $this->encodeJsonAttribute('reminders', $value);
+    }
+
+    public function setTagsAttribute($value): void
+    {
+        $this->encodeJsonAttribute('tags', $value);
+    }
+
+    public function setOrganizersAttribute($value): void
+    {
+        $this->encodeJsonAttribute('organizers', $value);
+    }
+
+    public function setConfirmedAttribute($value): void
+    {
+        $this->encodeJsonAttribute('confirmed', $value);
+    }
+
+    public function setGiftsAttribute($value): void
+    {
+        $this->encodeJsonAttribute('gifts', $value);
+    }
+
+    public function setSponsorsAttribute($value): void
+    {
+        $this->encodeJsonAttribute('sponsors', $value);
+    }
+
+    public function setParticipantsAttribute($value): void
+    {
+        $this->encodeJsonAttribute('participants', $value);
+    }
+
+    protected function ensureJsonFieldsEncoded(): void
+    {
+        foreach (self::JSON_FIELDS as $field) {
+            if (!array_key_exists($field, $this->attributes))
+                continue;
+            $current = $this->attributes[$field] ?? null;
+            if (is_array($current) || is_object($current))
+                $this->encodeJsonAttribute($field, $current);
+            elseif (is_string($current) && $current !== '' && !self::looksLikeJson($current))
+                $this->encodeJsonAttribute($field, $current);
+        }
+    }
 
     private function syncParticipantsFromAttributes(): void
     {
@@ -222,19 +319,15 @@ class Event extends Model
                     $participants = $this->addParticipantIfMissing($participants, $attendee);
         // host (employee_id)
         $employeeId = $this->{UC::COL_EMP_ID} ?? null;
-        if ($employeeId) {
-            $host = [
+        if ($employeeId)
+            $participants = $this->addParticipantIfMissing($participants, [
                 'id'     => (string) $employeeId,
                 'type'   => 'employee',
                 'source' => 'host',
-            ];
-            $participants = $this->addParticipantIfMissing($participants, $host);
-        }
-
+            ]);
         // responsável (responsible_id + nome)
         $responsibleId   = $this->{AC::COL_RES_ID} ?? null;
         $responsibleName = $this->getAttribute('responsible');
-
         if ($responsibleId || $responsibleName) {
             $responsible = [
                 'id'     => $responsibleId ? (string) $responsibleId : null,
@@ -242,8 +335,7 @@ class Event extends Model
                 'type'   => 'user',
                 'source' => 'responsible',
             ];
-
-            $responsible = \array_filter(
+            $responsible = array_filter(
                 $responsible,
                 static fn($v) => $v !== null && $v !== ''
             );
@@ -251,8 +343,7 @@ class Event extends Model
             if ($responsible !== [])
                 $participants = $this->addParticipantIfMissing($participants, $responsible);
         }
-
-        $this->participants = \array_values($participants);
+        $this->participants = array_values($participants);
     }
 
     private function addParticipantIfMissing(array $participants, array $candidate): array
@@ -267,6 +358,7 @@ class Event extends Model
     {
         $candidateId   = $candidate['id']   ?? null;
         $candidateName = $candidate['name'] ?? null;
+
         foreach ($participants as $participant) {
             if (!is_array($participant))
                 continue;
@@ -277,7 +369,7 @@ class Event extends Model
                 return true;
             if (
                 $candidateName !== null && isset($participant['name']) &&
-                \mb_strtolower((string) $participant['name']) === \mb_strtolower((string) $candidateName)
+                mb_strtolower((string) $participant['name']) === mb_strtolower((string) $candidateName)
             )
                 return true;
         }

@@ -19,6 +19,10 @@ use Illuminate\Support\Str;
 class ProductServiceUnitSeeder extends Seeder
 {
 	use EnsuresSystemUser;
+
+	// Parâmetro fixo (sem env)
+	private const ORPHANS = 6; // units without product linkage
+
 	public function run(): void
 	{
 		$this->ensureSystemUser();
@@ -28,7 +32,7 @@ class ProductServiceUnitSeeder extends Seeder
 		// Tunables
 		$perProductMin = 1;
 		$perProductMax = 3;
-		$orphans       = (int) env('PSU_ORPHANS', 6); // units without product linkage
+		$orphans       = self::ORPHANS;
 
 		DB::beginTransaction();
 		try {
@@ -40,7 +44,6 @@ class ProductServiceUnitSeeder extends Seeder
 			$usedName = array_fill_keys($existingNames, true);
 
 			// ---- Stable fixtures (idempotent) --------------------------------
-			// Helpful to keep at least two deterministic rows for tests/demos
 			$fixtures = [
 				[
 					'code'                    => 'PSU-STD-ITEM',
@@ -53,7 +56,7 @@ class ProductServiceUnitSeeder extends Seeder
 					BC::COL_CUR_ID            => strtoupper(substr(SC::DEF_SITE_CURRENCY_ID, 0, 3)),
 					'attributes'              => ['pack' => 'std', 'warranty_months' => 12],
 					'notes'                   => 'Stable fixture (standard item).',
-					BC::COL_PRD_SV_ID         => null, // can be reassigned later if desired
+					BC::COL_PRD_SV_ID         => null,
 				],
 				[
 					'code'                    => 'PSU-HOUR-SVC',
@@ -71,14 +74,8 @@ class ProductServiceUnitSeeder extends Seeder
 			];
 
 			foreach ($fixtures as $fx) {
-				// Enforce uniqueness for code/name at seeder level
-				if (isset($usedCode[$fx['code']])) {
-					// If a code already exists, keep idempotency using updateOrCreate by 'code'
-					ProductServiceUnit::query()->updateOrCreate(['code' => $fx['code']], $fx);
-				} else {
-					ProductServiceUnit::query()->updateOrCreate(['code' => $fx['code']], $fx);
-					$usedCode[$fx['code']] = true;
-				}
+				ProductServiceUnit::query()->updateOrCreate(['code' => $fx['code']], $fx);
+				$usedCode[$fx['code']] = true;
 				$usedName[$fx['name']] = true;
 			}
 
@@ -87,11 +84,9 @@ class ProductServiceUnitSeeder extends Seeder
 			$currencies = ['BRL', 'USD', 'EUR'];
 
 			$uniqueCode = function (?string $hint = null) use (&$usedCode): string {
-				// Try to incorporate hint for readability
 				$prefix = 'PSU-';
 				$seed   = $hint ? Str::of($hint)->upper()->replace([' ', '/', '\\', '.', ','], '-')->substr(0, 8) : null;
 
-				// Few attempts with hint
 				for ($i = 0; $i < 5; $i++) {
 					$candidate = $prefix . ($seed ?: Str::upper(fake()->bothify('??'))) . '-' . Str::upper(fake()->bothify('###'));
 					if (!isset($usedCode[$candidate]) && !ProductServiceUnit::withTrashed()->where('code', $candidate)->exists()) {
@@ -99,7 +94,7 @@ class ProductServiceUnitSeeder extends Seeder
 						return $candidate;
 					}
 				}
-				// Fallback: random until free
+
 				do {
 					$candidate = $prefix . Str::upper(fake()->bothify('??-####'));
 				} while (isset($usedCode[$candidate]) || ProductServiceUnit::withTrashed()->where('code', $candidate)->exists());
@@ -108,7 +103,6 @@ class ProductServiceUnitSeeder extends Seeder
 			};
 
 			$uniqueName = function (string $base) use (&$usedName): string {
-				// Name is not unique in DB, but we keep it unique in the dataset to simplify tests
 				$try = $base;
 				$suffix = 1;
 				while (isset($usedName[$try]) || ProductServiceUnit::withTrashed()->where('name', $try)->exists()) {
@@ -119,13 +113,11 @@ class ProductServiceUnitSeeder extends Seeder
 				return $try;
 			};
 
-			$randStatus = function (): string {
-				return fake()->randomElement([
-					ProductStatus::Active->value,
-					ProductStatus::Paused->value,
-					ProductStatus::Inactive->value,
-				]);
-			};
+			$randStatus = fn(): string => fake()->randomElement([
+				ProductStatus::Active->value,
+				ProductStatus::Paused->value,
+				ProductStatus::Inactive->value,
+			]);
 
 			$mkAttributes = function (): array {
 				return fake()->randomElements([
@@ -157,7 +149,7 @@ class ProductServiceUnitSeeder extends Seeder
 						'code'                    => $code,
 						'status'                  => $randStatus(),
 						AC::COL_MUNIT             => $unitLabel,
-						BC::COL_PRC_IDX           => $i, // 1..N in purchase order
+						BC::COL_PRC_IDX           => $i,
 						BC::COL_BS_PRC            => $price,
 						'discount'                => $discount,
 						BC::COL_CUR_ID            => fake()->randomElement($currencies),
@@ -177,7 +169,7 @@ class ProductServiceUnitSeeder extends Seeder
 				$discount  = fake()->boolean(25) ? min($price, fake()->randomFloat(4, 1, $price * 0.25)) : 0.0;
 
 				ProductServiceUnit::query()->create([
-					'product_service_id'      => null, // remains valid (nullable)
+					'product_service_id'      => null,
 					'name'                    => $name,
 					'code'                    => $code,
 					'status'                  => $randStatus(),
@@ -185,7 +177,7 @@ class ProductServiceUnitSeeder extends Seeder
 					BC::COL_PRC_IDX           => 1,
 					BC::COL_BS_PRC            => $price,
 					'discount'                => $discount,
-					BC::COL_CUR_ID            => fake()->randomElement($currencies),
+					BC::COL_CUR_ID            => fake()->randomElement(['BRL', 'USD', 'EUR']),
 					'attributes'              => $mkAttributes(),
 					'notes'                   => fake()->optional(0.3)->sentence(10),
 				]);

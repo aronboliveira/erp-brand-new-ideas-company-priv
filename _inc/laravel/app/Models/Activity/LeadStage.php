@@ -3,48 +3,100 @@
 namespace App\Models;
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    ProjectsConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    PermissionsConstants as PMC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC
 };
-use App\Traits\{ChecksLogin, UsesUuids};
-use Illuminate\Database\Eloquent\{Collection, Model, Factories\HasFactory};
+use App\Traits\{
+    ChecksLogin,
+    HasAuditFields,
+    UsesUuids
+};
+use Illuminate\Database\Eloquent\{Collection, Factories\HasFactory, Model, Relations\BelongsTo};
+use Illuminate\Http\RedirectResponse;
 
 class LeadStage extends Model
 {
-    use ChecksLogin, HasFactory, UsesUuids;
+    use ChecksLogin;
+    use HasAuditFields;
+    use HasFactory;
+    use UsesUuids;
+
+    protected $table = DC::TABLE_LEAD_STAGES;
+
     protected $fillable = [
-        ProjectsConstants::COL_STG_NM,
-        ProjectsConstants::COL_PPL_ID,
-        DatabaseConstants::COL_TABLE_CREATOR,
-        ActivitiesConstants::COL_OD
+        PJC::COL_STG_NM,
+        PJC::COL_PPL_ID,
+        AC::COL_OD,
+        'notes',
+        PJC::COL_EST_CC,
+        PJC::COL_CRT,
     ];
-    private const USER_TYPE_COMPANY = 'company';
-    private const PIVOT_USER_LEADS = 'user_leads';
-    private const LEADS_TABLE      = DatabaseConstants::TABLE_LEADS;
-    private const ORDER_COLUMN     = ActivitiesConstants::COL_OD;
-    public function lead(): Collection
+
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+    ];
+
+    protected $casts = [
+        AC::COL_OD     => 'integer',
+        PJC::COL_EST_CC => 'integer',
+        PJC::COL_CRT   => 'boolean',
+    ];
+
+    protected $with = [
+        'pipeline',
+    ];
+
+    public function pipeline(): BelongsTo
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof \Illuminate\Http\RedirectResponse
-        )
-            return $userOrRedirect;
+        return $this->belongsTo(Pipeline::class, PJC::COL_PPL_ID);
+    }
+
+    public function leads(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Lead::class, PJC::COL_STG_ID);
+    }
+
+    public function lead(): Collection|RedirectResponse
+    {
+        $userOrRedirect = self::_checkLogin();
+        if ($userOrRedirect instanceof RedirectResponse) return $userOrRedirect;
+
         $user = $userOrRedirect;
-        return $user->type == self::USER_TYPE_COMPANY
-            ? Lead::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-            ->where('stage_id', $this->id)
-            ->orderBy(self::ORDER_COLUMN)
-            ->get()
-            : Lead::join(
-                self::PIVOT_USER_LEADS,
-                self::PIVOT_USER_LEADS . '.lead_id',
-                '=',
-                self::LEADS_TABLE . '.id'
-            )
-            ->where(self::PIVOT_USER_LEADS . '.user_id', $user?->id)
-            ->where('stage_id', $this->id)
-            ->orderBy(self::LEADS_TABLE . '.' . self::ORDER_COLUMN)
+
+        if ($user->type === PMC::CPN)
+            return Lead::where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+                ->where(PJC::COL_STG_ID, $this->id)
+                ->orderBy(AC::COL_OD)
+                ->get();
+
+        return Lead::join(
+            DC::TABLE_USR_LD,
+            DC::TABLE_USR_LD . '.' . PJC::COL_LD_ID,
+            '=',
+            DC::TABLE_LEADS . '.id'
+        )
+            ->where(DC::TABLE_USR_LD . '.' . UC::COL_USER_ID, $user?->id)
+            ->where(PJC::COL_STG_ID, $this->id)
+            ->orderBy(DC::TABLE_LEADS . '.' . AC::COL_OD)
             ->get();
+    }
+
+    public function isCritical(): bool
+    {
+        return (bool) $this->getAttribute(PJC::COL_CRT);
+    }
+
+    public function hasNotes(): bool
+    {
+        return (bool) $this->getAttribute('notes');
+    }
+
+    public function estimatedCloseChance(): int
+    {
+        return (int) $this->getAttribute(PJC::COL_EST_CC);
     }
 }

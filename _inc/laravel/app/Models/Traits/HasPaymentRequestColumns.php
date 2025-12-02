@@ -23,7 +23,6 @@ trait HasPaymentRequestColumns
 		$table->enum(BC::COL_PAY_STT, PaymentStatus::values())->default(PaymentStatus::Processing)->index()->nullable(); // ? nullable para testes
 		$table->unsignedTinyInteger(BC::COL_SHIP_DSP)->default(1);
 		$table->unsignedTinyInteger(BC::COL_DSC_APL)->default(0); // ? whether or not it is eligible for discount
-		$table->unsignedDecimal('discount', 15, 2)->default(0.00)->nullable();
 		// * it is not clear why 'discount' was not listed in the old implementation, so its added here as nullable for now
 		// * booted ans saving should ensure that 'discount' is always <= 'amount'
 		$table->json('taxes')->nullable();

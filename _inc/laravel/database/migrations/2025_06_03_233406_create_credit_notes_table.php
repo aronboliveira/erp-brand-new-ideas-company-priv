@@ -23,23 +23,6 @@ class CreateCreditNotesTable extends Migration
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropCardNoteColumnForeigns($table, self::TABLE);
             $this->dropAuditColumnForeigns($table, self::TABLE);
-            foreach (
-                [
-                    BC::COL_BL_ID
-                ] as $col
-            ) {
-                try {
-                    Schema::hasColumn(self::TABLE, $col) &&
-                        $table->dropForeign([$col]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $col
-                            . ': '
-                            . $e->getMessage()
-                    );
-                }
-            }
         });
         Schema::dropIfExists(self::TABLE);
     }

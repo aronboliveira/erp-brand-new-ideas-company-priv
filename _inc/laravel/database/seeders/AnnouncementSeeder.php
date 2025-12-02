@@ -27,6 +27,7 @@ class AnnouncementSeeder extends Seeder
 		DB::transaction(function (): void {
 			$faker = Faker::create('pt_BR');
 
+			// Coleções base
 			$branchIds = Branch::query()->pluck('id')->all();
 			if (empty($branchIds)) {
 				$branch = Branch::query()->create([
@@ -46,8 +47,9 @@ class AnnouncementSeeder extends Seeder
 				$deptIds = [$dept->id];
 			}
 
-			$empIds = Employee::query()->pluck('id')->all();
+			$empIds = Employee::query()->pluck('id')->all(); // opcional
 
+			// Catálogo de títulos
 			$titles = [
 				'Analista de Suporte N2',
 				'Desenvolvedor(a) PHP/Laravel Pleno',
@@ -68,25 +70,29 @@ class AnnouncementSeeder extends Seeder
 				$deptId   = $this->pick($deptIds);
 				$employee = $this->pickOrNull($empIds, 0.7);
 				$recruit  = $this->pickOrNull($empIds, 0.6);
-				$start   = today()->addDays(random_int(0, 10));
+
+				// Datas
+				$start   = Carbon::today()->addDays(random_int(0, 10));
 				$planned = (clone $start)->addDays(random_int(7, 30));
 				$end     = random_int(0, 1) ? (clone $planned)->addDays(random_int(15, 60)) : null;
+
+				// Steps / pipeline
 				$steps = [
 					[
 						'name'     => 'Triagem de currículos',
-						'target'   => (clone $start)->addDays(3)->format('Y-m-d'),
+						'target'   => $start->copy()->addDays(3)->toDateString(),
 						'status'   => 'pending', // pending | doing | done
 						'owner'    => $faker->firstName() . ' ' . $faker->lastName(),
 					],
 					[
 						'name'     => 'Entrevista técnica',
-						'target'   => (clone $start)->addDays(7)->format('Y-m-d'),
+						'target'   => $start->copy()->addDays(7)->toDateString(),
 						'status'   => 'pending',
 						'owner'    => $faker->firstName() . ' ' . $faker->lastName(),
 					],
 					[
 						'name'     => 'Proposta',
-						'target'   => (clone $planned)->subDays(2)->format('Y-m-d'),
+						'target'   => $planned->copy()->subDays(2)->toDateString(),
 						'status'   => 'pending',
 						'owner'    => $faker->firstName() . ' ' . $faker->lastName(),
 					],
@@ -127,15 +133,15 @@ class AnnouncementSeeder extends Seeder
 					['title' => $title, CC::COL_BRC_ID => $branchId],
 					[
 						'id'                 => (string) Str::uuid(),
-						PJC::COL_S_DT        => $start->format('Y-m-d'),
-						PJC::COL_E_DT        => $end?->format('Y-m-d'),
+						PJC::COL_S_DT        => $start->toDateString(),
+						PJC::COL_E_DT        => $end?->toDateString(),
 						CC::COL_DEP_ID       => $deptId,
 						UC::COL_EMP_ID       => $employee,
 						'recruiter'          => $recruit,
 						'description'        => $faker->paragraphs(2, true),
 						UC::COL_IA           => true,
 						UC::COL_IS_RD        => true,
-						PJC::COL_PLN_ST      => $planned->format('Y-m-d'),
+						PJC::COL_PLN_ST      => $planned->toDateString(),
 						'requirements'       => $requirements,
 						'tags'               => $tags,
 						'steps'              => $steps,

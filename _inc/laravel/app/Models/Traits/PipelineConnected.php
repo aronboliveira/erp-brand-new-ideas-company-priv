@@ -2,50 +2,43 @@
 
 namespace App\Traits;
 
-use App\Models\Pipeline;
-use Illuminate\{Database\Eloquent\Relations\BelongsTo, Support\Facades\Log};
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\{Log, Schema};
 
 trait PipelineConnected
 {
-  public static function bootPipelineConnected()
+  protected function addPipelineColumns(Blueprint $table, bool $unique = false, bool $nullable = false, bool $cascade = true): void
   {
-    static::creating(function ($model) {
-      $model->mergeFillable(['pipeline_id']);
-    });
-    static::updating(function ($model) {
-      $model->mergeFillable(['pipeline_id']);
-    });
+    $unique ? ($nullable ? $table->uuid(PJC::COL_PPL_ID)->unique()->nullable()->index() : $table->uuid(PJC::COL_PPL_ID)->index()) : ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->index() : $table->uuid(PJC::COL_PPL_ID)->index());
+    $nullable ?
+      $table->foreign(PJC::COL_PPL_ID)
+      ->references('id')
+      ->on(DC::TABLE_PIPELINES)
+      ->nullOnDelete() : ($cascade ?
+        $table->foreign(PJC::COL_PPL_ID)
+        ->references('id')
+        ->on(DC::TABLE_PIPELINES)
+        ->cascadeOnDelete() :
+        $table->foreign(PJC::COL_PPL_ID)
+        ->references('id')
+        ->on(DC::TABLE_PIPELINES)
+        ->restrictOnDelete());
   }
-  public function pipeline(): BelongsTo
-  {
-    return $this->belongsTo(Pipeline::class);
-  }
-  public function getPipelineById(string $pipelineId): ?Pipeline
+  protected function dropPipelineColumnForeign(Blueprint $table, string $tableName): void
   {
     try {
-      $pl = Pipeline::find($pipelineId);
-      if (!$pl) {
-        Log::warning(sprintf('No Pipeline found with ID %s in %s', $pipelineId, static::class));
-        return null;
-      }
-      return $pl;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Pipeline by ID %s: %s', $pipelineId, $e->getMessage()), ['exception' => $e]);
-      return null;
-    }
-  }
-  public function getPipelineByName(string $name): ?Pipeline
-  {
-    try {
-      $pl = Pipeline::where('name', $name)->first();
-      if (!$pl) {
-        Log::warning(sprintf('No Pipeline found with name %s in %s', $name, static::class));
-        return null;
-      }
-      return $pl;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Pipeline by name %s: %s', $name, $e->getMessage()), ['exception' => $e]);
-      return null;
+      Schema::hasColumn($tableName, PJC::COL_PPL_ID) &&
+        $table->dropForeign([PJC::COL_PPL_ID]);
+    } catch (\Exception $e) {
+      Log::warning(
+        'Failed to drop foreign key for '
+          . PJC::COL_PPL_ID
+          . ' on table '
+          . $tableName
+          . ': '
+          . $e->getMessage()
+      );
     }
   }
 }

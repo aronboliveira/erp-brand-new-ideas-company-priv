@@ -2,31 +2,257 @@
 
 namespace App\Models;
 
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
-use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasOne};
+use App\Config\Constants\{
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC
+};
+use App\Enums\{
+    LeadRole,
+    UserType
+};
+use App\Traits\{
+    HasAuditFields,
+    NormalizesArrays,
+    UsesUuids
+};
+use Illuminate\Database\Eloquent\{
+    Factories\HasFactory,
+    Model
+};
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserLead extends Model
+final class UserLead extends Model
 {
-    use HasFactory, UsesUuids;
+    use HasFactory;
+    use HasAuditFields;
+    use NormalizesArrays;
+    use UsesUuids;
 
-    protected $fillable = ['user_id', 'lead_id'];
+    protected $table = DC::TABLE_USR_LD;
 
-    private const FK_LEAD = 'lead_id';
-    private const FK_USER = 'user_id';
+    protected $fillable = [
+        UC::COL_USER_ID,          // user_id
+        PJC::COL_LD_ID,           // lead_id
+        'role',
+        AC::COL_CAN_MK_DCS,       // can_make_decisions
+        'logs',
+    ];
 
-    public function getLeadUser(): HasOne
+    protected $guarded = [
+        'id',
+        DC::COL_TABLE_CREATOR,
+        DC::COL_TABLE_UPDATER,
+    ];
+
+    protected $casts = [
+        'role'               => LeadRole::class,
+        AC::COL_CAN_MK_DCS   => 'bool',
+        'logs'               => 'array',
+    ];
+
+    protected $with = [
+        'user',
+        'lead',
+    ];
+
+    protected $appends = [
+        'can_act_as_management',
+        'log_count',
+    ];
+
+    private const FK_LEAD = PJC::COL_LD_ID;
+    private const FK_USER = UC::COL_USER_ID;
+
+    /**
+     * Boot / saving hooks.
+     */
+    protected static function booted(): void
     {
-        return $this->hasOne(User::class, 'id', 'user_id');
+        parent::booted();
+
+        static::saving(function (UserLead $model): void {
+            $model->normalizeRole();
+            $model->syncDecisionFlagFromRoleAndUser();
+            $model->filterLogsByExistingActivity();
+            $model->ensureJsonAttributesAreEncoded(['logs']);
+        });
     }
 
-    public function lead(): BelongsTo // * ADDED
+    public function getLeadUser(): BelongsTo
+    {
+        return $this->user();
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, self::FK_USER, 'id');
+    }
+
+    public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class, self::FK_LEAD, 'id');
     }
 
-    public function user(): BelongsTo // * ADDED
+    public function getCanActAsManagementAttribute(): bool
     {
-        return $this->belongsTo(User::class, self::FK_USER, 'id');
+        return $this->getEffectiveDecisionCapability();
+    }
+
+    public function getLogCountAttribute(): int
+    {
+        $logs = $this->logs;
+
+        return is_array($logs) ? count($logs) : 0;
+    }
+
+    public function getCanMakeDecisionsAttribute($value): bool
+    {
+        $attrValue = (bool) $value;
+        if ($this->getEffectiveDecisionCapability())
+            return true;
+        return $attrValue;
+    }
+
+    private function normalizeRole(): void
+    {
+        if ($this->role instanceof LeadRole)
+            return;
+        $raw = $this->getAttribute('role');
+        $this->role = LeadRole::normalize(
+            is_string($raw) ? $raw : null
+        );
+    }
+
+    /**
+     * Ajusta AC::COL_CAN_MK_DCS com base em:
+     * - role (manager/supervisor);
+     * - user_type do usuário (Admin / SuperAdmin).
+     */
+    private function syncDecisionFlagFromRoleAndUser(): void
+    {
+        $role = $this->role instanceof LeadRole
+            ? $this->role
+            : LeadRole::normalize(
+                is_string($this->getAttribute('role'))
+                    ? $this->getAttribute('role')
+                    : null
+            );
+
+        $can = $role?->isManagement() ?? false;
+
+        if (!$can && $this->getAttribute(self::FK_USER)) {
+            $user = $this->relationLoaded('user')
+                ? $this->user
+                : $this->user()->first();
+
+            if ($user) {
+                $normalizedUserType = UserType::normalize(
+                    $user->{UC::COL_U_TP} ?? null
+                );
+
+                if ($normalizedUserType && in_array(
+                    $normalizedUserType,
+                    [UserType::SuperAdmin, UserType::Admin],
+                    true
+                )) {
+                    $can = true;
+                }
+            }
+        }
+
+        $this->{AC::COL_CAN_MK_DCS} = $can;
+    }
+
+    private function filterLogsByExistingActivity(): void
+    {
+        $current = self::normalizeArrayField($this->logs);
+
+        if ($current === []) {
+            $this->logs = [];
+            return;
+        }
+
+        $candidateIds = [];
+        foreach ($current as $entry) {
+            if (!is_array($entry))
+                continue;
+            $id = $entry['id'] ?? null;
+            if (!is_string($id) || $id === '')
+                continue;
+            $candidateIds[] = $id;
+        }
+
+        if ($candidateIds === []) {
+            $this->logs = [];
+            return;
+        }
+
+        $uniqueIds = array_values(array_unique($candidateIds));
+
+        $existingIds = LeadActivityLog::query()
+            ->whereIn('id', $uniqueIds)
+            ->pluck('id')
+            ->all();
+
+        if ($existingIds === []) {
+            $this->logs = [];
+            return;
+        }
+
+        $allowed = array_flip($existingIds);
+
+        $filtered = [];
+        foreach ($current as $entry) {
+            if (!is_array($entry))
+                continue;
+            $id = $entry['id'] ?? null;
+            if (is_string($id) && isset($allowed[$id]))
+                $filtered[] = $entry;
+        }
+        $this->logs = $filtered;
+    }
+
+    /**
+     * Capacidade efetiva de decisão, combinando:
+     * - role;
+     * - user_type;
+     * - flag de banco.
+     */
+    private function getEffectiveDecisionCapability(): bool
+    {
+        $role = $this->role instanceof LeadRole
+            ? $this->role
+            : LeadRole::normalize(
+                is_string($this->getAttribute('role'))
+                    ? $this->getAttribute('role')
+                    : null
+            );
+
+        if ($role && $role->isManagement())
+            return true;
+
+        $user = $this->relationLoaded('user')
+            ? $this->user
+            : null;
+
+        if (!$user && $this->getAttribute(self::FK_USER))
+            $user = $this->user()->first();
+
+        if ($user) {
+            $normalizedUserType = UserType::normalize(
+                $user->{UC::COL_U_TP} ?? null
+            );
+
+            if ($normalizedUserType && in_array(
+                $normalizedUserType,
+                [UserType::SuperAdmin, UserType::Admin],
+                true
+            ))
+                return true;
+        }
+
+        return (bool) ($this->getAttributes()[AC::COL_CAN_MK_DCS] ?? false);
     }
 }

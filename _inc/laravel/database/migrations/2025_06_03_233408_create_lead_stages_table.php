@@ -1,62 +1,36 @@
 <?php
 
 use App\Config\Constants\{
-    ActivitiesConstants,
-    DatabaseConstants,
-    ProjectsConstants
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC
 };
+use App\Traits\{HasNullableAuditColumns, PipelineConnected};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateLeadStagesTable extends Migration
 {
-    private const TABLE = DatabaseConstants::TABLE_LEAD_STAGES;
-    private const COL_PL = ProjectsConstants::COL_PPL_ID;
+    use HasNullableAuditColumns, PipelineConnected;
+    private const TABLE = DC::TABLE_LEAD_STAGES;
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->uuid('id')->primary();      // ! CHANGED
-            $table->string(ProjectsConstants::COL_STG_NM);
-            $table->uuid(self::COL_PL);        // ! CHANGED
-            $table->integer(ActivitiesConstants::COL_OD)->default(0);
-            $table->timestamps();
-            $table->uuid(DatabaseConstants::COL_TABLE_CREATOR);         // ! CHANGED
-            foreach (
-                [
-                    self::COL_PL                        => DatabaseConstants::TABLE_PIPELINES,
-                    DatabaseConstants::COL_TABLE_CREATOR     => DatabaseConstants::TABLE_USERS,
-                ] as $column => $referencedTable
-            ) {
-                $table->foreign($column)
-                    ->references('id')
-                    ->on($referencedTable)
-                    ->cascadeOnDelete();
-            }
+            $table->uuid('id')->primary();
+            $table->string(PJC::COL_STG_NM)->index(); // * in a more mature system this may be a enum
+            $this->addPipelineColumns($table, nullable: false, cascade: false);
+            $table->integer(AC::COL_OD)->default(0);
+            $table->text('notes')->nullable();
+            $table->integer(PJC::COL_EST_CC)->default(0)->nullable();
+            $table->boolean(PJC::COL_CRT)->default(false)->nullable(); // ? nullable for testing purposes, defaulted in boot/saving for now
+            $this->addAuditColumns($table);
         });
     }
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            foreach (
-                [
-                    self::COL_PL,
-                    DatabaseConstants::COL_TABLE_CREATOR,
-                ] as $column
-            ) {
-                try {
-                    Schema::hasColumn(self::TABLE, $column)
-                        && $table->dropForeign([$column]);
-                } catch (\Exception $e) {
-                    Log::warning(
-                        'Failed to drop foreign key for '
-                            . $column
-                            . ' on table '
-                            . self::TABLE
-                            . ': '
-                            . $e->getMessage()
-                    );
-                }
-            }
+            $this->dropAuditColumnForeigns($table, self::TABLE);
+            $this->dropPipelineColumnForeign($table, self::TABLE);
         });
         Schema::dropIfExists(self::TABLE);
     }

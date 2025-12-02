@@ -17,20 +17,20 @@ use Illuminate\Support\Str;
 
 class TransactionSeeder extends Seeder
 {
+	// Parâmetros fixos (sem env)
+	private const OPTIONALITY     = 0.65;
+	private const PER_BILL_MIN    = 0;
+	private const PER_BILL_MAX    = 2;
+	private const PER_INV_MIN     = 0;
+	private const PER_INV_MAX     = 2;
+	private const PER_POS_MIN     = 0;
+	private const PER_POS_MAX     = 2;
+	private const OTHER_COUNT     = 20;
+	private const MAX_AMOUNT      = 8000.00;
+
 	/**
-	 * Parâmetros (ENV e CLI):
-	 *
-	 *  --count=INT                     Limita o total aproximado de transações.
-	 *
-	 *  TRX_OPTIONALITY=0..1            Probabilidade média de preencher campos opcionais (default: 0.65).
-	 *  TRX_PER_BILL_MIN=INT            Transações mín. por Bill (default: 0)
-	 *  TRX_PER_BILL_MAX=INT            Transações máx. por Bill (default: 2)
-	 *  TRX_PER_INV_MIN=INT             Transações mín. por Invoice (default: 0)
-	 *  TRX_PER_INV_MAX=INT             Transações máx. por Invoice (default: 2)
-	 *  TRX_PER_POS_MIN=INT             Transações mín. por POS (default: 0)
-	 *  TRX_PER_POS_MAX=INT             Transações máx. por POS (default: 2)
-	 *  TRX_OTHER_COUNT=INT             Quantidade extra de transações do tipo "other" (default: 20)
-	 *  TRX_MAX_AMT=number              Valor máximo para amount (default: 8000.00)
+	 * Opção CLI:
+	 *  --count=INT   Limita o total aproximado de transações.
 	 */
 	public function run(): void
 	{
@@ -48,22 +48,19 @@ class TransactionSeeder extends Seeder
 		$invoices = Schema::hasTable(DC::TABLE_INVS)  ? DB::table(DC::TABLE_INVS)->pluck('id')->all()  : [];
 		$poses    = Schema::hasTable(DC::TABLE_POS ?? 'pos') && Schema::hasColumn(DC::TABLE_POS ?? 'pos', 'id')
 			? DB::table(DC::TABLE_POS ?? 'pos')->pluck('id')->all()
-			: []; // fallback de nome de tabela caso a constante não exista
+			: [];
 
-		// Parâmetros
-		$opt = (float) env('TRX_OPTIONALITY', 0.65);
-		$opt = max(0.0, min(1.0, $opt));
-
-		$perBillMin = (int) env('TRX_PER_BILL_MIN', 0);
-		$perBillMax = (int) env('TRX_PER_BILL_MAX', 2);
-		$perInvMin  = (int) env('TRX_PER_INV_MIN', 0);
-		$perInvMax  = (int) env('TRX_PER_INV_MAX', 2);
-		$perPosMin  = (int) env('TRX_PER_POS_MIN', 0);
-		$perPosMax  = (int) env('TRX_PER_POS_MAX', 2);
-
-		$otherCount = (int) env('TRX_OTHER_COUNT', 20);
-		$maxAmount  = (float) env('TRX_MAX_AMT', 8000.00);
-		$target     = (int) ($this->command?->option('count') ?? 0);
+		// Parâmetros (fixos)
+		$opt         = self::OPTIONALITY;
+		$perBillMin  = self::PER_BILL_MIN;
+		$perBillMax  = self::PER_BILL_MAX;
+		$perInvMin   = self::PER_INV_MIN;
+		$perInvMax   = self::PER_INV_MAX;
+		$perPosMin   = self::PER_POS_MIN;
+		$perPosMax   = self::PER_POS_MAX;
+		$otherCount  = self::OTHER_COUNT;
+		$maxAmount   = self::MAX_AMOUNT;
+		$target      = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
 
 		$clampRange = function (int $min, int $max): array {
 			if ($min < 0) $min = 0;
@@ -71,8 +68,8 @@ class TransactionSeeder extends Seeder
 			return [$min, $max];
 		};
 		[$perBillMin, $perBillMax] = $clampRange($perBillMin, $perBillMax);
-		[$perInvMin,  $perInvMax] = $clampRange($perInvMin,  $perInvMax);
-		[$perPosMin,  $perPosMax] = $clampRange($perPosMin,  $perPosMax);
+		[$perInvMin,  $perInvMax]  = $clampRange($perInvMin,  $perInvMax);
+		[$perPosMin,  $perPosMax]  = $clampRange($perPosMin,  $perPosMax);
 
 		$maybe = fn(callable $fn) => fake()->boolean((int) round($opt * 100)) ? $fn() : null;
 		$json  = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -143,7 +140,7 @@ class TransactionSeeder extends Seeder
 
 					// Flags e metadados de pagamento
 					$methodCode  = fake()->randomElement([0, 1]);
-					$methodLabel = Arr::random(PaymentMethod::values()); // compatível com ENUM da migration
+					$methodLabel = Arr::random(PaymentMethod::values());
 					$ppsCode     = $maybe(fn() => fake()->randomElement(['300', '301', '302']));
 					$trfType     = $maybe(fn() => Arr::random(TransferType::values()));
 					$ppsDesc     = $maybe(fn() => fake()->sentence());
@@ -163,7 +160,7 @@ class TransactionSeeder extends Seeder
 						UC::COL_U_TP         => $uType,
 						BC::COL_PAY_TP       => $type->value,
 						BC::COL_PAY_ID       => $srcId,
-						'category'           => $type->value, // compat.
+						'category'           => $type->value,
 						BC::COL_CUR_ID       => config('app.currency', 'BRL'),
 						'amount'             => $amount,
 						BC::COL_SVC_FEE      => $svcFee,
@@ -221,9 +218,9 @@ class TransactionSeeder extends Seeder
 			for ($i = 0; $i < $qtd; $i++) {
 				if ($target > 0 && $inserted >= $target) break;
 
-				$amount   = round(fake()->randomFloat(2, 10.00, $maxAmount), 2);
-				$svcFee   = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.02), 2));
-				$taxFee   = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.04), 2));
+				$amount    = round(fake()->randomFloat(2, 10.00, $maxAmount), 2);
+				$svcFee    = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.02), 2));
+				$taxFee    = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.04), 2));
 				$createdAt = $now->subDays(fake()->numberBetween(0, 90))->subMinutes(fake()->numberBetween(0, 720));
 
 				$row = [

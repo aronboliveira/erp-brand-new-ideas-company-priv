@@ -8,18 +8,22 @@ use Illuminate\Support\Facades\{Log, Schema};
 
 trait EmployeeConnected
 {
-  protected function addEmployeeColumns(Blueprint $table, bool $unique = false, bool $nullable = false): void
+  protected function addEmployeeColumns(Blueprint $table, bool $unique = false, bool $nullable = false, bool $cascade = true): void
   {
     $unique ? ($nullable ? $table->uuid(UC::COL_EMP_ID)->unique()->nullable()->index() : $table->uuid(UC::COL_EMP_ID)->index()) : ($nullable ? $table->uuid(UC::COL_EMP_ID)->nullable()->index() : $table->uuid(UC::COL_EMP_ID)->index());
     $nullable ?
       $table->foreign(UC::COL_EMP_ID)
       ->references('id')
       ->on(DC::TABLE_EMPLOYEES)
-      ->nullOnDelete() :
-      $table->foreign(UC::COL_EMP_ID)
-      ->references('id')
-      ->on(DC::TABLE_EMPLOYEES)
-      ->cascadeOnDelete();
+      ->nullOnDelete() : ($cascade ?
+        $table->foreign(UC::COL_EMP_ID)
+        ->references('id')
+        ->on(DC::TABLE_EMPLOYEES)
+        ->cascadeOnDelete() :
+        $table->foreign(UC::COL_EMP_ID)
+        ->references('id')
+        ->on(DC::TABLE_EMPLOYEES)
+        ->restrictOnDelete());
   }
   protected function dropEmployeeColumnForeign(Blueprint $table, string $tableName): void
   {

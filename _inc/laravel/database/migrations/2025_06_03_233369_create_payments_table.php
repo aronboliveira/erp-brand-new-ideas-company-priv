@@ -15,10 +15,8 @@ class CreatePaymentsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid(BC::COL_BACC_ID)->nullable();
             $table->uuid(BC::COL_ACC_TO)->nullable(); // * the account to which the payment is made, can be null for cash payments, and managed at controller level
-            $table->unsignedDecimal('discount', 16, 2)->nullable()->default('0.00');
             $table->uuid(BKC::COL_COA)->default(DC::DEFAULT_UUID)->nullable(); // * this should be nullable for cases where the payment method is cash or pix, and managed at controller level // * defaulted to system id to avoid issues with legacy data
             $table->uuid(UC::COL_VD_ID)->index()->nullable();
-            // !
             $table->uuid(BC::COL_CAT_ID)->index()->nullable();
             $table->string('recurring')->nullable();
             $this->addPaymentColumns($table);

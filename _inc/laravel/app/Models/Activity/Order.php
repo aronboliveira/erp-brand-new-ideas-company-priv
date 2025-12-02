@@ -171,19 +171,12 @@ class Order extends Model
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (self $m): void {
-            // Normalização básica de strings
             foreach (['name'] as $field)
                 if (isset($m->{$field}) && is_string($m->{$field}))
                     $m->{$field} = trim($m->{$field});
-
-            // E-mail
-            if ($m->email) {
-                $normalizedEmail = self::normalizeEmail($m->email, 'Order email', $m->id ?? null);
-                $m->email        = $normalizedEmail ?: null;
-            }
-
+            if ($m->email)
+                $m->email        = self::normalizeEmail($m->email, 'Order email', $m->id ?? null) ?: null;
             $price    = (float) ($m->price ?? 0.0);
             $discount = (float) ($m->discount ?? 0.0);
 

@@ -65,7 +65,7 @@ class CreateBillsTable extends Migration
         Schema::table(self::TABLE, function (Blueprint $table): void {
             $this->dropPaymentRequestColumnForeigns($table, self::TABLE);
             $this->dropAuditColumnForeigns($table, self::TABLE);
-            foreach ([BC::COL_OD_ID, UC::COL_VD_ID, BC::COL_CAT_ID] as $col) {
+            foreach ([BC::COL_OD_ID, UC::COL_VD_ID] as $col) {
                 try {
                     Schema::hasColumn(self::TABLE, $col) && $table->dropForeign([$col]);
                 } catch (\Exception $e) {

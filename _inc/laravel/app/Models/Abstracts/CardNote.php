@@ -21,7 +21,7 @@ abstract class CardNote extends Model
 
 	protected const BASE_FILLABLE = [
 		BC::COL_CST_ID,
-		'invoice',
+		BC::COL_INV_ID,
 		BC::COL_BL_ID,
 		'amount',
 		'discount',
@@ -107,7 +107,7 @@ abstract class CardNote extends Model
 		static::saving(function (self $model): void {
 			$model->status = PaymentStatus::normalize($model->status ?? null)->value;
 
-			if (!$model->{BC::COL_BL_ID} && !$model->{'invoice'})
+			if (!$model->{BC::COL_BL_ID} && !$model->{BC::COL_INV_ID})
 				throw new RuntimeException('Card notes must be linked to a bill or an invoice.');
 
 			$model->{BC::COL_CURR_N_INTR} = $model->normalizedCurrentInstallment();
@@ -124,22 +124,22 @@ abstract class CardNote extends Model
 		return $this->belongsTo(Customer::class, BC::COL_CST_ID);
 	}
 
-	public function invoice(): BelongsTo
+	public function invoice(): ?BelongsTo
 	{
-		return $this->belongsTo(Invoice::class, 'invoice', 'id');
+		return $this->belongsTo(Invoice::class, BC::COL_INV_ID, 'id');
 	}
 
-	public function bill(): BelongsTo
+	public function bill(): ?BelongsTo
 	{
 		return $this->belongsTo(Bill::class, BC::COL_BL_ID);
 	}
 
-	public function bankAccount(): BelongsTo
+	public function bankAccount(): ?BelongsTo
 	{
 		return $this->belongsTo(BankAccount::class, BC::COL_BACC_ID);
 	}
 
-	public function category(): BelongsTo
+	public function category(): ?BelongsTo
 	{
 		return $this->belongsTo(ProductServiceCategory::class, BC::COL_CAT_ID);
 	}
@@ -170,7 +170,7 @@ abstract class CardNote extends Model
 
 	public function isLinkedToInvoice(): bool
 	{
-		return (bool) $this->{'invoice'};
+		return (bool) $this->{BC::COL_INV_ID};
 	}
 
 	public function isLinkedToBill(): bool
@@ -188,7 +188,7 @@ abstract class CardNote extends Model
 
 	public function getEffectiveDocumentId(): ?string
 	{
-		if ($this->isLinkedToInvoice()) return $this->{'invoice'};
+		if ($this->isLinkedToInvoice()) return $this->{BC::COL_INV_ID};
 		if ($this->isLinkedToBill()) return $this->{BC::COL_BL_ID};
 
 		return null;

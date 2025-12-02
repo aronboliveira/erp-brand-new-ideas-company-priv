@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Config\Constants\{
     ActivitiesConstants,
-    DatabaseConstants,
+    DatabaseConstants as DC,
     PermissionsConstants,
     ProjectsConstants,
-    UsersConstants,
+    UsersConstants as UC,
     ViewsConstants
 };
 use App\Mail\SendLeadEmail;
@@ -80,10 +80,10 @@ class LeadController extends Controller
                 $creatorId = $user?->creatorId();
                 Log::info("[{$class}::{$action}] start", ['creator_id' => $creatorId, 'user_id' => $user?->id]);
                 $pipeSelStart = microtime(true);
-                $pipeline = $user[UsersConstants::COL_DPL] ? Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('id', $user[UsersConstants::COL_DPL])->first() ?? Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->first() : Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->first();
+                $pipeline = $user[UC::COL_DPL] ? Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->where('id', $user[UC::COL_DPL])->first() ?? Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->first() : Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->first();
                 $this->logExecutionTime($pipeSelStart, $action, 'selectPipeline');
                 $pipesStart = microtime(true);
-                $pipelines = Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(ProjectsConstants::COL_PPL_NM, 'id');
+                $pipelines = Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck(ProjectsConstants::COL_PPL_NM, 'id');
                 $this->logExecutionTime($pipesStart, $action, 'pluckPipelines');
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] ready", ['pipelines_count' => count($pipelines ?? []), 'selected_pipeline_id' => $pipeline?->id]);
@@ -114,13 +114,13 @@ class LeadController extends Controller
                 $creatorId = $user?->creatorId();
                 Log::info("[{$class}::{$action}] start", ['creator_id' => $creatorId, 'user_id' => $user?->id]);
                 $pipeSelStart = microtime(true);
-                $pipeline = $user[UsersConstants::COL_DPL] ? Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('id', $user[UsersConstants::COL_DPL])->first() ?? Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->first() : Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->first();
+                $pipeline = $user[UC::COL_DPL] ? Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->where('id', $user[UC::COL_DPL])->first() ?? Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->first() : Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->first();
                 $this->logExecutionTime($pipeSelStart, $action, 'selectPipeline');
                 $pipesStart = microtime(true);
-                $pipelines = Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(ProjectsConstants::COL_PPL_NM, 'id');
+                $pipelines = Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck(ProjectsConstants::COL_PPL_NM, 'id');
                 $this->logExecutionTime($pipesStart, $action, 'pluckPipelines');
                 $leadsStart = microtime(true);
-                $leads = Lead::select(ViewsConstants::LD . '.*')->join('user_leads', 'user_leads.lead_id', '=', ViewsConstants::LD . '.id')->where('user_leads.' . UsersConstants::COL_USER_ID, $user?->id)->where(ViewsConstants::LD . '.' . ProjectsConstants::COL_PPL_ID, $pipeline->id)->orderBy(ViewsConstants::LD . '.' . ActivitiesConstants::COL_OD)->get();
+                $leads = Lead::select(ViewsConstants::LD . '.*')->join('user_leads', 'user_leads.lead_id', '=', ViewsConstants::LD . '.id')->where('user_leads.' . UC::COL_USER_ID, $user?->id)->where(ViewsConstants::LD . '.' . ProjectsConstants::COL_PPL_ID, $pipeline->id)->orderBy(ViewsConstants::LD . '.' . ActivitiesConstants::COL_OD)->get();
                 $this->logExecutionTime($leadsStart, $action, 'fetchLeads');
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] ready", ['pipelines_count' => count($pipelines ?? []), 'leads_count' => $leads->count(), 'selected_pipeline_id' => $pipeline?->id]);
@@ -149,7 +149,7 @@ class LeadController extends Controller
                 $this->logExecutionTime($authStart, $action, 'authorize');
                 $creatorId = $req->user()->creatorId();
                 $userFetchStart = microtime(true);
-                $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereNotIn(UsersConstants::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->where('id', '<>', $req->user()->id)->pluck(UsersConstants::COL_NM, 'id')->prepend(__('Select User'), '');
+                $users = User::where(DC::COL_TABLE_CREATOR, $creatorId)->whereNotIn(UC::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->where('id', '<>', $req->user()->id)->pluck(UC::COL_NM, 'id')->prepend(__('Select User'), '');
                 $this->logExecutionTime($userFetchStart, $action, 'fetchAssignableUsers');
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] ready", ['creator_id' => $creatorId, 'users_count' => count($users ?? [])]);
@@ -182,18 +182,18 @@ class LeadController extends Controller
                 $creatorId = $user?->creatorId();
                 Log::info("[{$class}::{$action}] start", ['creator_id' => $creatorId, 'user_id' => $user?->id]);
                 $pipeSelStart = microtime(true);
-                $pipeline = $user[UsersConstants::COL_DPL] ? Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->where('id', $user[UsersConstants::COL_DPL])->first() ?? Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->first() : Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->first();
+                $pipeline = $user[UC::COL_DPL] ? Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->where('id', $user[UC::COL_DPL])->first() ?? Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->first() : Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->first();
                 $this->logExecutionTime($pipeSelStart, $action, 'selectPipeline');
                 $stageStart = microtime(true);
                 $stage = LeadStage::where(ProjectsConstants::COL_PPL_ID, $pipeline->id)->first();
                 $this->logExecutionTime($stageStart, $action, 'fetchStage');
                 if (!$stage) return redirect()->back()->with('error', __('Please Create Stage for This Pipeline.'));
                 $createStart = microtime(true);
-                $lead = Lead::create(['name' => $data['name'], 'email' => $data['email'], 'phone' => $req->input('phone'), 'subject' => $data['subject'], UsersConstants::COL_USER_ID => $req->input(UsersConstants::COL_USER_ID), ProjectsConstants::COL_PPL_ID => $pipeline->id, 'stage_id' => $stage->id, DatabaseConstants::COL_TABLE_CREATOR => $creatorId, 'date' => now()->toDateString()]);
+                $lead = Lead::create(['name' => $data['name'], 'email' => $data['email'], 'phone' => $req->input('phone'), 'subject' => $data['subject'], UC::COL_USER_ID => $req->input(UC::COL_USER_ID), ProjectsConstants::COL_PPL_ID => $pipeline->id, 'stage_id' => $stage->id, DC::COL_TABLE_CREATOR => $creatorId, 'date' => now()->toDateString()]);
                 $this->logExecutionTime($createStart, $action, 'createLead');
                 $uidsStart = microtime(true);
-                $userIds = array_unique(array_filter([$user?->id, $req->input(UsersConstants::COL_USER_ID) !== $user?->id ? $req->input(UsersConstants::COL_USER_ID) : null]));
-                foreach ($userIds as $uid) UserLead::create([UsersConstants::COL_USER_ID => $uid, 'lead_id' => $lead->id]);
+                $userIds = array_unique(array_filter([$user?->id, $req->input(UC::COL_USER_ID) !== $user?->id ? $req->input(UC::COL_USER_ID) : null]));
+                foreach ($userIds as $uid) UserLead::create([UC::COL_USER_ID => $uid, 'lead_id' => $lead->id]);
                 $this->logExecutionTime($uidsStart, $action, 'linkUsersToLead');
                 $mailCheckStart = microtime(true);
                 if (Utility::settings($creatorId)['lead_assigned'] ?? 0) Utility::sendEmailTemplate('lead_assigned', [$lead->user_id => User::find($lead->user_id)->email], ['lead_name' => $lead->name, 'lead_email' => $lead->email, 'lead_subject' => $lead->subject, 'lead_pipeline' => $pipeline->name, 'lead_stage' => $stage->name]);
@@ -243,7 +243,7 @@ class LeadController extends Controller
                 $deal = Deal::find($lead->isConverted);
                 $this->logExecutionTime($dealStart, $action, 'findDeal');
                 $stageStart = microtime(true);
-                $stageIds = LeadStage::where(ProjectsConstants::COL_PPL_ID, $lead[ProjectsConstants::COL_PPL_ID])->where(DatabaseConstants::COL_TABLE_CREATOR, $lead[DatabaseConstants::COL_TABLE_CREATOR])->pluck('id');
+                $stageIds = LeadStage::where(ProjectsConstants::COL_PPL_ID, $lead[ProjectsConstants::COL_PPL_ID])->where(DC::COL_TABLE_CREATOR, $lead[DC::COL_TABLE_CREATOR])->pluck('id');
                 $this->logExecutionTime($stageStart, $action, 'pluckStageIds');
                 $position = $stageIds->search($lead->stageId) + 1;
                 $percentage = number_format($position * 100 / $stageIds->count());
@@ -276,16 +276,16 @@ class LeadController extends Controller
                 $creatorId = $req->user()->creatorId();
                 Log::info("[{$class}::{$action}] start", ['lead_id' => $lead->id, 'creator_id' => $creatorId]);
                 $pipesStart = microtime(true);
-                $pipelines = Pipeline::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(ProjectsConstants::COL_PPL_NM, 'id')->prepend(__('Select Pipeline'), '');
+                $pipelines = Pipeline::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck(ProjectsConstants::COL_PPL_NM, 'id')->prepend(__('Select Pipeline'), '');
                 $this->logExecutionTime($pipesStart, $action, 'pluckPipelines');
                 $srcStart = microtime(true);
-                $sources = Source::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+                $sources = Source::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
                 $this->logExecutionTime($srcStart, $action, 'pluckSources');
                 $prdStart = microtime(true);
-                $products = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+                $products = ProductService::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
                 $this->logExecutionTime($prdStart, $action, 'pluckProducts');
                 $usrStart = microtime(true);
-                $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereNotIn(UsersConstants::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->where('id', '<>', $req->user()->id)->pluck(UsersConstants::COL_NM, 'id');
+                $users = User::where(DC::COL_TABLE_CREATOR, $creatorId)->whereNotIn(UC::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->where('id', '<>', $req->user()->id)->pluck(UC::COL_NM, 'id');
                 $this->logExecutionTime($usrStart, $action, 'pluckUsers');
                 $lead->sources = explode(',', $lead->sources);
                 $lead->products = explode(',', $lead->products);
@@ -315,9 +315,9 @@ class LeadController extends Controller
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 Log::info("[{$class}::{$action}] start", ['lead_id' => $lead->id]);
                 $valStart = microtime(true);
-                $data = $req->validate(['subject' => 'required', 'name' => 'required', 'email' => 'required|unique:leads,email,' . $lead->id, ProjectsConstants::COL_PPL_ID => 'required', UsersConstants::COL_USER_ID => 'required', 'stage_id' => 'required', 'sources' => 'required', 'products' => 'required']);
+                $data = $req->validate(['subject' => 'required', 'name' => 'required', 'email' => 'required|unique:leads,email,' . $lead->id, ProjectsConstants::COL_PPL_ID => 'required', UC::COL_USER_ID => 'required', 'stage_id' => 'required', 'sources' => 'required', 'products' => 'required']);
                 $this->logExecutionTime($valStart, $action, 'validate');
-                $payload = ['name' => $data['name'], 'email' => $data['email'], 'phone' => $req->input('phone'), 'subject' => $data['subject'], UsersConstants::COL_USER_ID => $data[UsersConstants::COL_USER_ID], ProjectsConstants::COL_PPL_ID => $data[ProjectsConstants::COL_PPL_ID], 'stage_id' => $data['stage_id'], 'sources' => implode(',', array_filter($req->input('sources'))), 'products' => implode(',', array_filter($req->input('products'))), 'notes' => $req->input('notes')];
+                $payload = ['name' => $data['name'], 'email' => $data['email'], 'phone' => $req->input('phone'), 'subject' => $data['subject'], UC::COL_USER_ID => $data[UC::COL_USER_ID], ProjectsConstants::COL_PPL_ID => $data[ProjectsConstants::COL_PPL_ID], 'stage_id' => $data['stage_id'], 'sources' => implode(',', array_filter($req->input('sources'))), 'products' => implode(',', array_filter($req->input('products'))), 'notes' => $req->input('notes')];
                 $saveStart = microtime(true);
                 $lead->fill($payload)->save();
                 $this->logExecutionTime($saveStart, $action, 'saveLead');
@@ -444,7 +444,7 @@ class LeadController extends Controller
                     $ret['success_msg'] = '';
                 }
                 $logStart = microtime(true);
-                LeadActivityLog::create([UsersConstants::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Upload File', 'remark' => json_encode(['file_name' => $name])]);
+                LeadActivityLog::create([UC::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Upload File', 'remark' => json_encode(['file_name' => $name])]);
                 $this->logExecutionTime($logStart, $action, 'createActivityLog');
                 Log::info("[{$class}::{$action}] uploaded", ['lead_id' => $lead->id, 'file_id' => $file->id, 'size' => $size, 'limit_ok' => $limitOk]);
                 return response()->json($ret, 200);
@@ -588,7 +588,7 @@ class LeadController extends Controller
                 self::_authorizeOwner($req, $lead, 'edit lead');
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 $labelsStart = microtime(true);
-                $labels = Label::where(ProjectsConstants::COL_PPL_ID, $lead[ProjectsConstants::COL_PPL_ID])->where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
+                $labels = Label::where(ProjectsConstants::COL_PPL_ID, $lead[ProjectsConstants::COL_PPL_ID])->where(DC::COL_TABLE_CREATOR, $req->user()->creatorId())->get();
                 $this->logExecutionTime($labelsStart, $action, 'fetchLabels');
                 $selectedStart = microtime(true);
                 $selected = $lead->labels()?->pluck('name', 'id')->toArray() ?? [];
@@ -656,9 +656,9 @@ class LeadController extends Controller
                 self::_authorizeOwner($req, $lead, 'edit lead');
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 $usersStart = microtime(true);
-                $users = User::where(DatabaseConstants::COL_TABLE_CREATOR, $req->user()->creatorId())->whereNotIn(UsersConstants::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->whereNotIn('id', function ($q) use ($lead) {
-                    $q->select(UsersConstants::COL_USER_ID)->from('user_leads')->where('lead_id', $lead->id);
-                })->pluck(UsersConstants::COL_NM, 'id');
+                $users = User::where(DC::COL_TABLE_CREATOR, $req->user()->creatorId())->whereNotIn(UC::COL_TP, [PermissionsConstants::CL, PermissionsConstants::CPN])->whereNotIn('id', function ($q) use ($lead) {
+                    $q->select(UC::COL_USER_ID)->from('user_leads')->where('lead_id', $lead->id);
+                })->pluck(UC::COL_NM, 'id');
                 $this->logExecutionTime($usersStart, $action, 'pluckAssignableUsers');
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] ready", ['lead_id' => $lead->id, 'users_count' => count($users ?? [])]);
@@ -689,11 +689,11 @@ class LeadController extends Controller
                 $findStart = microtime(true);
                 $lead = Lead::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findLead');
-                if ($lead[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
+                if ($lead[DC::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
                 $ids = array_filter($req->input('users', []));
                 if ($ids) {
                     $linkStart = microtime(true);
-                    foreach ($ids as $uid) UserLead::create(['lead_id' => $lead->id, UsersConstants::COL_USER_ID => $uid]);
+                    foreach ($ids as $uid) UserLead::create(['lead_id' => $lead->id, UC::COL_USER_ID => $uid]);
                     $this->logExecutionTime($linkStart, $action, 'linkUsersToLead');
                     Log::info("[{$class}::{$action}] users updated", ['lead_id' => $lead->id, 'count' => count($ids)]);
                     return redirect()->back()->with('success', __('Users successfully updated!'));
@@ -726,7 +726,7 @@ class LeadController extends Controller
                 self::_authorizeOwner($req, $lead, 'edit lead');
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 $delStart = microtime(true);
-                UserLead::where('lead_id', $lead->id)->where(UsersConstants::COL_USER_ID, $userId)->delete();
+                UserLead::where('lead_id', $lead->id)->where(UC::COL_USER_ID, $userId)->delete();
                 $this->logExecutionTime($delStart, $action, 'unlinkUserFromLead');
                 Log::info("[{$class}::{$action}] user unlinked", ['lead_id' => $lead->id, 'user_id' => $userId]);
                 return redirect()->back()->with('success', __('User successfully deleted!'));
@@ -759,7 +759,7 @@ class LeadController extends Controller
                 $creatorId = $req->user()->creatorId();
                 $excluded = explode(',', $lead->products);
                 $prodStart = microtime(true);
-                $products = ProductService::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->whereNotIn('id', $excluded)->pluck('name', 'id');
+                $products = ProductService::where(DC::COL_TABLE_CREATOR, $creatorId)->whereNotIn('id', $excluded)->pluck('name', 'id');
                 $this->logExecutionTime($prodStart, $action, 'pluckProducts');
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] ready", ['lead_id' => $lead->id, 'products' => count($products ?? []), 'excluded_count' => count(array_filter($excluded))]);
@@ -801,7 +801,7 @@ class LeadController extends Controller
                     $names = ProductService::whereIn('id', $new)->pluck('name')->toArray();
                     $this->logExecutionTime($namesStart, $action, 'pluckNewProductNames');
                     $logStart = microtime(true);
-                    LeadActivityLog::create([UsersConstants::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Add Product', 'remark' => json_encode(['title' => implode(',', $names)])]);
+                    LeadActivityLog::create([UC::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Add Product', 'remark' => json_encode(['title' => implode(',', $names)])]);
                     $this->logExecutionTime($logStart, $action, 'createActivityLog');
                     Log::info("[{$class}::{$action}] products updated", ['lead_id' => $lead->id, 'added_count' => count($new)]);
                     return redirect()->back()->with('success', __('Products successfully updated!'))->with('status', 'products');
@@ -870,7 +870,7 @@ class LeadController extends Controller
                 $creatorId = $req->user()->creatorId();
                 Log::info("[{$class}::{$action}] start", ['lead_id' => $lead->id, 'creator_id' => $creatorId]);
                 $srcStart = microtime(true);
-                $sources = Source::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
+                $sources = Source::where(DC::COL_TABLE_CREATOR, $creatorId)->pluck('name', 'id');
                 $this->logExecutionTime($srcStart, $action, 'pluckSources');
                 $selStart = microtime(true);
                 $selected = $lead->sources()?->pluck('name', 'id')->toArray() ?? [];
@@ -910,7 +910,7 @@ class LeadController extends Controller
                 $lead->save();
                 $this->logExecutionTime($saveStart, $action, 'saveLeadSources');
                 $logStart = microtime(true);
-                LeadActivityLog::create([UsersConstants::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Update Sources', 'remark' => json_encode(['title' => 'Update Sources'])]);
+                LeadActivityLog::create([UC::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Update Sources', 'remark' => json_encode(['title' => 'Update Sources'])]);
                 $this->logExecutionTime($logStart, $action, 'createActivityLog');
                 Log::info("[{$class}::{$action}] sources updated", ['lead_id' => $lead->id, 'count' => count($arr)]);
                 return redirect()->back()->with('success', __('Sources successfully updated!'))->with('status', 'sources');
@@ -1002,7 +1002,7 @@ class LeadController extends Controller
                 self::_authorizeOwner($req, $lead, 'edit lead');
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 $buildStart = microtime(true);
-                $disc = new LeadDiscussion(['comment' => $req->input('comment'), 'lead_id' => $lead->id, DatabaseConstants::COL_TABLE_CREATOR => $req->user()->id]);
+                $disc = new LeadDiscussion(['comment' => $req->input('comment'), 'lead_id' => $lead->id, DC::COL_TABLE_CREATOR => $req->user()->id]);
                 $this->logExecutionTime($buildStart, $action, 'buildDiscussion');
                 $saveStart = microtime(true);
                 $disc->save();
@@ -1040,7 +1040,7 @@ class LeadController extends Controller
                     $new = LeadStage::findOrFail($post['stage_id']);
                     $this->logExecutionTime($newStageStart, $action, 'findNewStage');
                     $logMoveStart = microtime(true);
-                    LeadActivityLog::create([UsersConstants::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Move', 'remark' => json_encode(['title' => $lead->name, 'old_status' => $lead->stage->name, 'new_status' => $new->name])]);
+                    LeadActivityLog::create([UC::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Move', 'remark' => json_encode(['title' => $lead->name, 'old_status' => $lead->stage->name, 'new_status' => $new->name])]);
                     $this->logExecutionTime($logMoveStart, $action, 'createMoveActivityLog');
                     $emailStart = microtime(true);
                     Utility::sendEmailTemplate('Move Lead', $lead->users->pluck('email', 'id')->toArray(), ['lead_name' => $lead->name, 'lead_pipeline' => $lead->pipeline->name, 'lead_stage' => $lead->stage->name, 'lead_old_stage' => $lead->stage->name, 'lead_new_stage' => $new->name]);
@@ -1085,10 +1085,10 @@ class LeadController extends Controller
                 $creatorId = $req->user()->creatorId();
                 Log::info("[{$class}::{$action}] start", ['lead_id' => $lead->id, 'creator_id' => $creatorId, 'lead_email' => $lead->email]);
                 $existStart = microtime(true);
-                $exist = User::where(UsersConstants::COL_TP, PermissionsConstants::CL)->where(UsersConstants::COL_EM, $lead->email)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->first();
+                $exist = User::where(UC::COL_TP, PermissionsConstants::CL)->where(UC::COL_EM, $lead->email)->where(DC::COL_TABLE_CREATOR, $creatorId)->first();
                 $this->logExecutionTime($existStart, $action, 'findExistingClientByEmail');
                 $clientsStart = microtime(true);
-                $clients = User::where(UsersConstants::COL_TP, PermissionsConstants::CL)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->pluck(UsersConstants::COL_NM, 'id');
+                $clients = User::where(UC::COL_TP, PermissionsConstants::CL)->where(DC::COL_TABLE_CREATOR, $creatorId)->pluck(UC::COL_NM, 'id');
                 $this->logExecutionTime($clientsStart, $action, 'pluckClients');
                 if (!ViewFacade::exists($viewPath)) return redirect()->back()->with('error', "HTTP 404: Page {$viewPath} not found!");
                 Log::info("[{$class}::{$action}] ready", ['lead_id' => $lead->id, 'has_existing' => (bool) $exist, 'clients_count' => is_countable($clients) ? count($clients) : 0]);
@@ -1126,27 +1126,27 @@ class LeadController extends Controller
                     $clientId = $req->validate(['clients' => 'required'])['clients'];
                     $this->logExecutionTime($tValExist, $action, 'validateExistingClient');
                     $tFindClient = microtime(true);
-                    $client = User::where(UsersConstants::COL_TP, PermissionsConstants::CL)->where(UsersConstants::COL_EM, $clientId)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
+                    $client = User::where(UC::COL_TP, PermissionsConstants::CL)->where(UC::COL_EM, $clientId)->where(DC::COL_TABLE_CREATOR, $creatorId)->firstOrFail();
                     $this->logExecutionTime($tFindClient, $action, 'findExistingClient');
                 } else {
                     $tValNew = microtime(true);
                     $data = $req->validate(['client_name' => 'required', 'client_email' => 'required|email|unique:users,email', 'client_password' => 'required']);
                     $this->logExecutionTime($tValNew, $action, 'validateNewClient');
                     $tCreateClient = microtime(true);
-                    $client = User::create([UsersConstants::COL_NM => $data['client_name'], UsersConstants::COL_EM => $data['client_email'], UsersConstants::COL_PW => Hash::make($data['client_password']), UsersConstants::COL_TP => PermissionsConstants::CL, UsersConstants::COL_LG => DatabaseConstants::DEFAULT_LANG, DatabaseConstants::COL_TABLE_CREATOR => $creatorId]);
+                    $client = User::create([UC::COL_NM => $data['client_name'], UC::COL_EM => $data['client_email'], UC::COL_PW => Hash::make($data['client_password']), UC::COL_TP => PermissionsConstants::CL, UC::COL_LG => DC::DEFAULT_LANG, DC::COL_TABLE_CREATOR => $creatorId]);
                     $this->logExecutionTime($tCreateClient, $action, 'createClient');
                     $tAssignRole = microtime(true);
                     $client->assignRole(Role::findByName(PermissionsConstants::CL));
                     $this->logExecutionTime($tAssignRole, $action, 'assignClientRole');
                     $tEmailNew = microtime(true);
-                    Utility::sendEmailTemplate('New User', [$client->id => $client->email], [UsersConstants::COL_EM => $data['client_email'], 'password' => $data['client_password']]);
+                    Utility::sendEmailTemplate('New User', [$client->id => $client->email], [UC::COL_EM => $data['client_email'], 'password' => $data['client_password']]);
                     $this->logExecutionTime($tEmailNew, $action, 'emailNewUser');
                 }
                 $tFindStage = microtime(true);
                 $stage = Stage::where(ProjectsConstants::COL_PPL_ID, $lead[ProjectsConstants::COL_PPL_ID])->firstOrFail();
                 $this->logExecutionTime($tFindStage, $action, 'findStage');
                 $tCreateDeal = microtime(true);
-                $deal = Deal::create(['name' => $req->input('name'), 'price' => $req->input('price', 0), ProjectsConstants::COL_PPL_ID => $lead[ProjectsConstants::COL_PPL_ID], 'stage_id' => $stage->id, 'sources' => $req->input('is_transfer', []) ? implode(',', $lead->sourcesArray) : '', 'products' => $req->input('is_transfer', []) ? implode(',', $lead->productsArray) : '', 'notes' => $req->input('is_transfer', []) ? $lead->notes : '', 'labels' => $lead->labels, 'status' => 'Active', DatabaseConstants::COL_TABLE_CREATOR => $lead[DatabaseConstants::COL_TABLE_CREATOR]]);
+                $deal = Deal::create(['name' => $req->input('name'), 'price' => $req->input('price', 0), ProjectsConstants::COL_PPL_ID => $lead[ProjectsConstants::COL_PPL_ID], 'stage_id' => $stage->id, 'sources' => $req->input('is_transfer', []) ? implode(',', $lead->sourcesArray) : '', 'products' => $req->input('is_transfer', []) ? implode(',', $lead->productsArray) : '', 'notes' => $req->input('is_transfer', []) ? $lead->notes : '', 'labels' => $lead->labels, 'status' => 'Active', DC::COL_TABLE_CREATOR => $lead[DC::COL_TABLE_CREATOR]]);
                 $this->logExecutionTime($tCreateDeal, $action, 'createDeal');
                 $tLinkClient = microtime(true);
                 ClientDeal::create(['deal_id' => $deal->id, 'client_id' => $client->id]);
@@ -1155,11 +1155,11 @@ class LeadController extends Controller
                 Utility::sendEmailTemplate('Assign Deal', [$client->id => $client->email], ['deal_name' => $deal->name, 'deal_pipeline' => Pipeline::find($lead[ProjectsConstants::COL_PPL_ID])->name, 'deal_stage' => $stage->name, 'deal_status' => $deal->status, 'deal_price' => $user?->priceFormat($deal->price)]);
                 $this->logExecutionTime($tAssignEmail, $action, 'emailAssignDeal');
                 $tLinkUsers = microtime(true);
-                foreach (UserLead::where('lead_id', $lead->id)->pluck(UsersConstants::COL_USER_ID) as $uid) UserDeal::create([UsersConstants::COL_USER_ID => $uid, 'deal_id' => $deal->id]);
+                foreach (UserLead::where('lead_id', $lead->id)->pluck(UC::COL_USER_ID) as $uid) UserDeal::create([UC::COL_USER_ID => $uid, 'deal_id' => $deal->id]);
                 $this->logExecutionTime($tLinkUsers, $action, 'linkUsersToDeal');
                 if (in_array('discussion', $req->input('is_transfer', []))) {
                     $tTransDisc = microtime(true);
-                    foreach (LeadDiscussion::where('lead_id', $lead->id)->get() as $d) DealDiscussion::create($d->only(['comment', DatabaseConstants::COL_TABLE_CREATOR]) + ['deal_id' => $deal->id]);
+                    foreach (LeadDiscussion::where('lead_id', $lead->id)->get() as $d) DealDiscussion::create($d->only(['comment', DC::COL_TABLE_CREATOR]) + ['deal_id' => $deal->id]);
                     $this->logExecutionTime($tTransDisc, $action, 'transferDiscussions');
                 }
                 if (in_array('files', $req->input('is_transfer', []))) {
@@ -1172,7 +1172,7 @@ class LeadController extends Controller
                 }
                 if (in_array('calls', $req->input('is_transfer', []))) {
                     $tTransCalls = microtime(true);
-                    foreach (LeadCall::where('lead_id', $lead->id)->get() as $c) DealCall::create($c->only(['subject', 'call_type', 'duration', UsersConstants::COL_USER_ID, 'description', 'call_result']) + ['deal_id' => $deal->id]);
+                    foreach (LeadCall::where('lead_id', $lead->id)->get() as $c) DealCall::create($c->only(['subject', 'call_type', 'duration', UC::COL_USER_ID, 'description', 'call_result']) + ['deal_id' => $deal->id]);
                     $this->logExecutionTime($tTransCalls, $action, 'transferCalls');
                 }
                 if (in_array('emails', $req->input('is_transfer', []))) {
@@ -1265,13 +1265,13 @@ class LeadController extends Controller
                 self::_authorizeOwner($req, $lead, 'create lead call');
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 $valStart = microtime(true);
-                $data = $req->validate(['subject' => 'required', 'call_type' => 'required', UsersConstants::COL_USER_ID => 'required']);
+                $data = $req->validate(['subject' => 'required', 'call_type' => 'required', UC::COL_USER_ID => 'required']);
                 $this->logExecutionTime($valStart, $action, 'validate');
                 $createStart = microtime(true);
-                $call = LeadCall::create(['lead_id' => $lead->id, 'subject' => $data['subject'], 'call_type' => $data['call_type'], 'duration' => $req->input('duration'), UsersConstants::COL_USER_ID => $data[UsersConstants::COL_USER_ID], 'description' => $req->input('description'), 'call_result' => $req->input('call_result')]);
+                $call = LeadCall::create(['lead_id' => $lead->id, 'subject' => $data['subject'], 'call_type' => $data['call_type'], 'duration' => $req->input('duration'), UC::COL_USER_ID => $data[UC::COL_USER_ID], 'description' => $req->input('description'), 'call_result' => $req->input('call_result')]);
                 $this->logExecutionTime($createStart, $action, 'createLeadCall');
                 $logStart = microtime(true);
-                LeadActivityLog::create([UsersConstants::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Create Lead Call', 'remark' => json_encode(['title' => $call->subject])]);
+                LeadActivityLog::create([UC::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Create Lead Call', 'remark' => json_encode(['title' => $call->subject])]);
                 $this->logExecutionTime($logStart, $action, 'createActivityLog');
                 Log::info("[{$class}::{$action}] created", ['lead_id' => $lead->id, 'call_id' => $call->id, 'user_id' => $req->user()->id]);
                 return redirect()->back()->with('success', __('Call successfully created!'))->with('status', 'calls');
@@ -1339,13 +1339,13 @@ class LeadController extends Controller
                 self::_authorizeOwner($req, $lead, 'edit lead call');
                 $this->logExecutionTime($t2, $action, 'authorizeOwner');
                 $t3 = microtime(true);
-                $data = $req->validate(['subject' => 'required', 'call_type' => 'required', UsersConstants::COL_USER_ID => 'required']);
+                $data = $req->validate(['subject' => 'required', 'call_type' => 'required', UC::COL_USER_ID => 'required']);
                 $this->logExecutionTime($t3, $action, 'validate');
                 $t4 = microtime(true);
                 $call = LeadCall::findOrFail($callId);
                 $this->logExecutionTime($t4, $action, 'findLeadCall');
                 $t5 = microtime(true);
-                $call->update(['subject' => $data['subject'], 'call_type' => $data['call_type'], 'duration' => $req->input('duration'), UsersConstants::COL_USER_ID => $data[UsersConstants::COL_USER_ID], 'description' => $req->input('description'), 'call_result' => $req->input('call_result')]);
+                $call->update(['subject' => $data['subject'], 'call_type' => $data['call_type'], 'duration' => $req->input('duration'), UC::COL_USER_ID => $data[UC::COL_USER_ID], 'description' => $req->input('description'), 'call_result' => $req->input('call_result')]);
                 $this->logExecutionTime($t5, $action, 'updateLeadCall');
                 Log::info("[{$class}::{$action}] updated", ['lead_id' => $lead->id, 'call_id' => $call->id]);
                 return redirect()->back()->with('success', __('Call successfully updated!'))->with('status', 'calls');
@@ -1455,7 +1455,7 @@ class LeadController extends Controller
                     Log::debug("[{$class}::{$action}] smtp send failure", ['lead_id' => $id, 'to' => $data['to'], 'subject' => $data['subject'], 'message' => $e->getMessage()]);
                 }
                 $activityStart = microtime(true);
-                LeadActivityLog::create([UsersConstants::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Create Lead Email', 'remark' => json_encode(['title' => 'Create new Lead Email'])]);
+                LeadActivityLog::create([UC::COL_USER_ID => $req->user()->id, 'lead_id' => $lead->id, 'log_type' => 'Create Lead Email', 'remark' => json_encode(['title' => 'Create new Lead Email'])]);
                 $this->logExecutionTime($activityStart, $action, 'createActivityLog');
                 return redirect()->back()->with('success', __('Email successfully created!') . ($smtpError ? '<br><span class="text-danger">' . $smtpError . '</span>' : ''))->with('status', 'emails');
             } catch (ValidationException $e) {
@@ -1506,7 +1506,7 @@ class LeadController extends Controller
     protected static function _authorizeOwner(Request $request, Lead $lead, string $permission): void
     {
         self::_authorize($request, $permission);
-        if ($lead[DatabaseConstants::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
+        if ($lead[DC::COL_TABLE_CREATOR] !== $request->user()->creatorId()) {
             throw new AuthorizationException();
         }
     }
