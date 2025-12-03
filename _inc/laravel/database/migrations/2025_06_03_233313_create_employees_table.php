@@ -14,8 +14,8 @@ class CreateEmployeesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->uuid(UC::COL_EMP_ID)->unique()->index(); // ? This is a secondary identifier for employees, used for querying
-            $table->uuid(UC::COL_USER_ID)->unique()->index()->nullable(); // ? A employee may not have a user account
+            $table->uuid(UC::COL_EMP_ID)->unique(); // ? This is a secondary identifier for employees, used for querying
+            $table->uuid(UC::COL_USER_ID)->unique()->nullable(); // ? A employee may not have a user account
             $table->string('name')->nullable()->index();
             $table->string('phone')->nullable()->unique(); // ? This is checked for regex pattern when creating and updated
             $table->string('email')->nullable()->unique(); // ? This is checked for regex pattern when creating and updated

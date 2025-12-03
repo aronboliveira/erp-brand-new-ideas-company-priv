@@ -14,7 +14,7 @@ class CreateInvoicePaymentsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('code')->unique()->index()->nullable(); // ? nullable for tests, should be booted/created at model level if null
+            $table->uuid('code')->unique()->nullable(); // ? nullable for tests, should be booted/created at model level if null
             $this->addPaymentColumns($table, nullableReconcile: true, nullableInvoice: false);
             $this->addPaymentConclusionColumns($table, nullableAcc: false, nullableCat: true, onDeleteAcc: 'restrict', onDeleteCat: 'set null');
             $table->enum(BC::COL_PAY_TP, PaymentType::values())->default(PaymentType::Manual);

@@ -25,7 +25,7 @@ class CreateLeadsTable extends Migration
             $table->integer('order')->default(0);
             $table->text('notes')->nullable();
             $table->integer(PJC::COL_CNV)->default(0);
-            $table->date('date')->nullable(); // * it's not clear what this deat is about, but might be the day of response and follow-up
+            $table->date('date')->nullable(); // * it's not clear what this date is about, but might be the day of response and follow-up
             $table->uuid('caller')->nullable();
             $table->json('involved')->nullable(); // ? list of uuids of users + employees (filtering redundant on boot/save) involved with the lead
             foreach (

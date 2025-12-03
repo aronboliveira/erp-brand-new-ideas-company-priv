@@ -1,7 +1,7 @@
 <?php
 
 use App\Config\Constants\{CompaniesConstants as CC, DatabaseConstants as DC, UsersConstants as UC};
-use App\Traits\{HasNullableAuditColumns, RegistersShipping};
+use App\Traits\{HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Schema};
 
@@ -13,8 +13,8 @@ class CreateWarehousesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('code')->unique()->index()->nullable(); // ? nullable for tests
-            $table->string('name')->unique()->index();
+            $table->string('code')->unique()->nullable(); // ? nullable for tests
+            $table->string('name')->unique();
             $table->uuid(CC::COL_CP_ID)->index()->nullable(); // ? nullable for tests
             $table->string('zip')->index();
             $table->string('country', 256)->nullable(); // ? nullable for tests

@@ -205,6 +205,9 @@ class Vendor extends Authenticatable
                 $vendor->id ?? null
             );
 
+            self::normalizeBillingCountry($vendor);
+            self::normalizeShippingCountry($vendor);
+
             if ($vendor->balance === null || !is_numeric($vendor->balance) || $vendor->balance < 0)
                 $vendor->balance = 0.00;
 
@@ -356,44 +359,46 @@ class Vendor extends Authenticatable
         ];
 
         try {
-            $offers = $this->offers ?? [];
-            if (!is_array($offers))
-                $offers = self::normalizeArrayField($offers);
-
-            if (!$offers)
+            $raw = $this->offers ?? [];
+            if ($raw instanceof \Illuminate\Support\Collection || $raw instanceof \Illuminate\Database\Eloquent\Collection)
+                $offers = $raw->toArray();
+            elseif (!is_array($raw))
+                $offers = self::normalizeArrayField($raw);
+            else
+                $offers = $raw;
+            if (!$offers || !is_array($offers))
                 return $result;
-
             foreach ($offers as $offer) {
-                if (!is_array($offer))
-                    continue;
-
-                $identifier = $offer['id'] ?? $offer['key'] ?? null;
-                if ($identifier === null)
-                    continue;
-
-                $productService = $this->resolveOfferProductService($identifier);
-
-                if ($productService) {
-                    $result['registered'][] = [
-                        'offer'           => $offer,
-                        'product_service' => $productService,
-                    ];
-                } else {
-                    $result['unregistered'][] = [
-                        'offer'           => $offer,
-                        'product_service' => null,
-                    ];
+                if (!is_array($offer)) {
+                    if ($offer instanceof \JsonSerializable)
+                        $offer = (array) $offer->jsonSerialize();
+                    elseif (is_object($offer))
+                        $offer = (array) $offer;
+                    else
+                        continue;
                 }
+                $identifier = $offer['id'] ?? $offer['key'] ?? null;
+                if (!is_string($identifier))
+                    continue;
+                $identifier = trim($identifier);
+                if ($identifier === '')
+                    continue;
+                $productService = $this->resolveOfferProductService($identifier);
+                $bucket = $productService ? 'registered' : 'unregistered';
+                $result[$bucket][] = [
+                    'offer'           => $offer,
+                    'product_service' => $productService,
+                ];
             }
         } catch (\Throwable $e) {
-            Log::error(self::class . '::classifyOffers failed', [
-                UC::COL_VD_ID => $this->id ?? null,
-                'error'     => $e->getMessage(),
+            Log::error(static::class . '::classifyOffers failed', [
+                'model_id' => $this->id ?? null,
+                'error'    => $e->getMessage(),
             ]);
         }
-
         return $result;
     }
+
 
     public function getRegisteredOffers(): array
     {

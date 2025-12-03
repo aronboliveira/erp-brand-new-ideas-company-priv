@@ -17,7 +17,7 @@ class CreateContractsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->uuid('type')->nullable();
-            $table->string(PJC::COL_CN)->unique()->index()->nullable(); // ? nullable for initial tests
+            $table->string(PJC::COL_CN)->unique()->nullable(); // ? nullable for initial tests
             $table->string('title')->index()->nullable();               // ? nullable for initial tests
             $table->string('subject')->nullable();
             $table->string('value')->nullable(); // TODO mudar posteriormente para decimal

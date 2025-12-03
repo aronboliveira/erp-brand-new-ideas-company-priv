@@ -188,14 +188,14 @@ class LeadFileSeeder extends Seeder
 
 				// Tamanho plausível por categoria (bytes)
 				$size = match ($category) {
-					'video'       => fake()->numberBetween(2_000_000, 120_000_000),
-					'audio'       => fake()->numberBetween(200_000, 12_000_000),
-					'image'       => fake()->numberBetween(40_000, 8_000_000),
-					'archive'     => fake()->numberBetween(500_000, 80_000_000),
-					'document'    => fake()->numberBetween(10_000, 6_000_000),
-					'spreadsheet' => fake()->numberBetween(50_000, 5_000_000),
-					'presentation' => fake()->numberBetween(80_000, 10_000_000),
-					default       => fake()->numberBetween(20_000, 3_000_000),
+					'video'       => fake()->numberBetween(2000000, 120000000),
+					'audio'       => fake()->numberBetween(200000, 12000000),
+					'image'       => fake()->numberBetween(40000, 8000000),
+					'archive'     => fake()->numberBetween(500000, 80000000),
+					'document'    => fake()->numberBetween(10000, 6000000),
+					'spreadsheet' => fake()->numberBetween(50000, 5000000),
+					'presentation' => fake()->numberBetween(80000, 10000000),
+					default       => fake()->numberBetween(20000, 3000000),
 				};
 
 				// Datas
@@ -262,7 +262,7 @@ class LeadFileSeeder extends Seeder
 				}
 
 				// Remove apenas nulls (manter 0/false)
-				$rows[] = array_filter($row, static fn($v) => $v !== null);
+				$rows[] = $row;
 				$inserted++;
 			}
 		}

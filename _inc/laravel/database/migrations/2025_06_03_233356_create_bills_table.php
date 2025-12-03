@@ -33,7 +33,7 @@ class CreateBillsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $this->addPaymentRequestColumns($table);
-            $table->uuid(BC::COL_BL_ID)->default(DC::DEFAULT_UUID)->unique()->index(); // ? secondary identifier for querying
+            $table->uuid(BC::COL_BL_ID)->default(DC::DEFAULT_UUID)->unique(); // ? secondary identifier for querying
             $table->date(BC::COL_BL_DT)->index();
             // * booted and saving should ensure that 'send_date', 'due_date' and 'bill_date' and never null (defaulting, respectively, to today / today + 1 day / today + 2 days) and that the ['bill_date', 'send_date'] are always <= 'due_date'
             $table->uuid(UC::COL_VD_ID)->nullable()->index();

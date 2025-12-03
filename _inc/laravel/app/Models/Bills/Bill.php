@@ -18,7 +18,7 @@ use App\Enums\{
 };
 use App\Traits\{
     HasAuditFields,
-    NormalizesArrays,
+    NormalizesAddresses,
     UsesUuids
 };
 use Carbon\Carbon;
@@ -34,7 +34,7 @@ class Bill extends Model
 {
     use HasAuditFields;
     use HasFactory;
-    use NormalizesArrays;
+    use NormalizesAddresses;
     use UsesUuids;
 
     protected $table = DC::TABLE_BILLS;
@@ -53,14 +53,26 @@ class Bill extends Model
         'type',
         UC::COL_U_TP,
         BC::COL_PRC_CUR,
+        BC::COL_CUR_ID,
         BC::COL_SHIP_DSP,
+        // Financial issuing
         'amount',
-        BC::COL_DSC_APL,
         'discount',
-        'taxes',
-        'items',
+        BC::COL_SVC_FEE,
+        BC::COL_TXS_FEE,
+        'reference',
+        'description',
         'notes',
         'attachments',
+        BC::COL_TC,
+        BC::COL_AUTORCC,
+        BC::COL_RCC_RL,
+        'contract',
+        'loan',
+        BC::COL_PRD_SV_UNT,
+        // Aggregated taxes / items
+        'taxes',
+        'items',
         // billing
         BC::COL_BL_NAME,
         BC::COL_BL_EMAIL,
@@ -86,24 +98,33 @@ class Bill extends Model
     protected $guarded = [
         'id',
         DC::COL_TABLE_CREATOR,
-        DC::COL_TABLE_UPDATER,
     ];
 
     protected $casts = [
-        BC::COL_BL_DT    => 'date',
-        BC::COL_SD_DT    => 'date',
-        PJC::COL_D_DATE  => 'date',
-        PJC::COL_STATUS  => 'integer',
-        BC::COL_STT_LB   => BillStatus::class,
-        BC::COL_PAY_STT  => PaymentStatus::class,
-        UC::COL_U_TP     => UserType::class,
-        'amount'         => 'decimal:2',
-        'discount'       => 'decimal:2',
-        BC::COL_DSC_APL  => 'integer',
-        BC::COL_SHIP_DSP => 'integer',
-        'taxes'          => 'array',
-        'items'          => 'array',
-        'attachments'    => 'array',
+        BC::COL_BL_DT        => 'date',
+        BC::COL_SD_DT        => 'date',
+        PJC::COL_D_DATE      => 'date',
+        PJC::COL_STATUS      => 'integer',
+        BC::COL_STT_LB       => BillStatus::class,
+        BC::COL_PAY_STT      => PaymentStatus::class,
+        UC::COL_U_TP         => UserType::class,
+        BC::COL_CUR_ID       => 'string',
+        'amount'             => 'decimal:2',
+        'discount'           => 'decimal:2',
+        BC::COL_SVC_FEE      => 'decimal:2',
+        BC::COL_TXS_FEE      => 'decimal:2',
+        BC::COL_DSC_APL      => 'integer',
+        BC::COL_SHIP_DSP     => 'integer',
+        BC::COL_AUTORCC      => 'boolean',
+        BC::COL_TC           => 'array',
+        BC::COL_RCC_RL       => 'array',
+        'taxes'              => 'array',
+        'items'              => 'array',
+        'attachments'        => 'array',
+        BC::COL_SCHD_TRF_TS  => 'datetime',
+        BC::COL_EXC_AT       => 'datetime',
+        BC::COL_CNC_AT       => 'datetime',
+        BC::COL_CMP_AT       => 'datetime',
     ];
 
     protected $with = [
@@ -115,15 +136,11 @@ class Bill extends Model
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (self $bill): void {
             try {
-                // Trim simple string fields
                 foreach ([BC::COL_PRC_CUR, 'notes'] as $field)
                     if (isset($bill->{$field}) && is_string($bill->{$field}))
                         $bill->{$field} = trim($bill->{$field});
-
-                // Currency normalization / default
                 if ($bill->{BC::COL_PRC_CUR}) {
                     $curr = strtoupper(trim((string) $bill->{BC::COL_PRC_CUR}));
                     if (strlen($curr) < 3)
@@ -131,42 +148,39 @@ class Bill extends Model
                     elseif (strlen($curr) > 10)
                         $curr = substr($curr, 0, 10);
                     $bill->{BC::COL_PRC_CUR} = $curr;
-                } else {
+                } else
                     $bill->{BC::COL_PRC_CUR} = strtoupper(SC::DEF_SITE_CURRENCY_ID);
-                }
-
+                $bill->{BC::COL_CUR_ID} = strtoupper(substr(
+                    (string) $bill->{BC::COL_PRC_CUR},
+                    0,
+                    3
+                ));
                 $today    = Carbon::today();
                 $sendDate = self::safeParseDate($bill->{BC::COL_SD_DT} ?? null) ?? $today->copy();
                 $dueDate  = self::safeParseDate($bill->{PJC::COL_D_DATE} ?? null) ?? $today->copy()->addDay();
                 $billDate = self::safeParseDate($bill->{BC::COL_BL_DT} ?? null) ?? $today->copy()->addDays(2);
-
-                // due_date must be >= bill_date and >= send_date
                 $maxDate = $dueDate;
-                if ($sendDate->gt($maxDate)) $maxDate = $sendDate;
-                if ($billDate->gt($maxDate)) $maxDate = $billDate;
+                if ($sendDate->gt($maxDate))
+                    $maxDate = $sendDate;
+                if ($billDate->gt($maxDate))
+                    $maxDate = $billDate;
                 $dueDate = $maxDate;
-
                 $bill->{BC::COL_SD_DT}   = $sendDate->toDateString();
                 $bill->{PJC::COL_D_DATE} = $dueDate->toDateString();
                 $bill->{BC::COL_BL_DT}   = $billDate->toDateString();
-
                 $status = $bill->{BC::COL_STT_LB} ?? null;
                 if ($status instanceof BillStatus)
                     $billStatus = $status;
                 else
                     $billStatus = BillStatus::tryFrom((string) $status) ?? BillStatus::Draft;
                 $bill->{BC::COL_STT_LB} = $billStatus;
-
                 $originalRaw  = $bill->getOriginal(BC::COL_PAY_STT);
                 $originalEnum = $originalRaw !== null
                     ? PaymentStatus::normalize($originalRaw)
                     : PaymentStatus::Processing;
-
                 $newEnum = PaymentStatus::normalize($bill->{BC::COL_PAY_STT} ?? null);
-
                 if (!$bill->exists && $newEnum === PaymentStatus::Undefined)
                     $newEnum = PaymentStatus::Processing;
-
                 $finalStatuses = [
                     PaymentStatus::Completed,
                     PaymentStatus::Cancelled,
@@ -176,15 +190,14 @@ class Bill extends Model
                     PaymentStatus::Expired,
                     PaymentStatus::Disputed,
                 ];
-
                 if (
                     $bill->exists
                     && in_array($originalEnum, $finalStatuses, true)
                     && $newEnum !== $originalEnum
-                ) $bill->{BC::COL_PAY_STT} = $originalEnum;
+                )
+                    $bill->{BC::COL_PAY_STT} = $originalEnum;
                 else
                     $bill->{BC::COL_PAY_STT} = $newEnum;
-
                 $allowedTypes = [];
                 try {
                     $allowedTypes = array_unique(array_merge(
@@ -199,41 +212,63 @@ class Bill extends Model
                         'error' => $e->getMessage(),
                     ]);
                 }
-
                 $rawType = strtolower(trim((string) ($bill->type ?? '')));
-                if ($rawType === '') $rawType = ConsumableType::Other->value;
+                if ($rawType === '')
+                    $rawType = ConsumableType::Other->value;
                 if ($allowedTypes && !in_array($rawType, $allowedTypes, true))
                     $rawType = ConsumableType::Other->value;
                 $bill->type = $rawType;
-
                 $userType = $bill->{UC::COL_U_TP} ?? null;
                 if ($userType instanceof UserType)
                     $bill->{UC::COL_U_TP} = $userType;
                 else
                     $bill->{UC::COL_U_TP} = UserType::tryFrom((string) $userType) ?? UserType::Customer;
-
                 $amount = (float) ($bill->amount ?? 0.0);
-                if ($amount < 0) $amount = 0.0;
+                if ($amount < 0)
+                    $amount = 0.0;
                 $amount = round($amount, 2);
-
                 $discount = (float) ($bill->discount ?? 0.0);
-                if ($discount < 0) $discount = 0.0;
-                if ($discount > $amount) $discount = $amount;
-
+                if ($discount < 0)
+                    $discount = 0.0;
+                if ($discount > $amount)
+                    $discount = $amount;
                 $bill->amount   = $amount;
                 $bill->discount = $discount;
-
+                $svcFee = (float) ($bill->{BC::COL_SVC_FEE} ?? 0.0);
+                if ($svcFee < 0)
+                    $svcFee = 0.0;
+                $bill->{BC::COL_SVC_FEE} = round($svcFee, 2);
+                $taxFee = (float) ($bill->{BC::COL_TXS_FEE} ?? 0.0);
+                if ($taxFee < 0)
+                    $taxFee = 0.0;
+                $bill->{BC::COL_TXS_FEE} = round($taxFee, 2);
                 $bill->{BC::COL_DSC_APL} = (int) ($bill->{BC::COL_DSC_APL} ?? 0);
-                if ($bill->{BC::COL_DSC_APL} < 0) $bill->{BC::COL_DSC_APL} = 0;
-                if ($bill->{BC::COL_DSC_APL} > 1) $bill->{BC::COL_DSC_APL} = 1;
-
+                if ($bill->{BC::COL_DSC_APL} < 0)
+                    $bill->{BC::COL_DSC_APL} = 0;
+                if ($bill->{BC::COL_DSC_APL} > 1)
+                    $bill->{BC::COL_DSC_APL} = 1;
                 $bill->{BC::COL_SHIP_DSP} = (int) ($bill->{BC::COL_SHIP_DSP} ?? 1);
-                if ($bill->{BC::COL_SHIP_DSP} < 0) $bill->{BC::COL_SHIP_DSP} = 0;
-                if ($bill->{BC::COL_SHIP_DSP} > 1) $bill->{BC::COL_SHIP_DSP} = 1;
-
+                if ($bill->{BC::COL_SHIP_DSP} < 0)
+                    $bill->{BC::COL_SHIP_DSP} = 0;
+                if ($bill->{BC::COL_SHIP_DSP} > 1)
+                    $bill->{BC::COL_SHIP_DSP} = 1;
                 $bill->taxes       = self::sanitizeTaxes($bill->taxes ?? null);
                 $bill->items       = self::normalizeArrayField($bill->items ?? null);
                 $bill->attachments = self::normalizeArrayField($bill->attachments ?? null);
+                self::normalizeBillingCountry($bill);
+                self::normalizeShippingCountry($bill);
+                if (!empty($bill->{BC::COL_BL_EMAIL}))
+                    $bill->{BC::COL_BL_EMAIL}    = self::normalizeEmail($bill->{BC::COL_BL_EMAIL}, $bill->{BC::COL_BL_NAME} ?? null, $bill->id);
+                if (!empty($bill->{BC::COL_SHIP_EMAIL}))
+                    $bill->{BC::COL_SHIP_EMAIL}  = self::normalizeEmail($bill->{BC::COL_SHIP_EMAIL}, $bill->{BC::COL_SHIP_NAME} ?? null, $bill->id);
+                if (!empty($bill->{BC::COL_BL_TEL}))
+                    $bill->{BC::COL_BL_TEL} = self::normalizePhone($bill->{BC::COL_BL_TEL}, $bill->{BC::COL_BL_NAME} ?? null, $bill->id);
+                if (!empty($bill->{BC::COL_SHIP_TEL}))
+                    $bill->{BC::COL_SHIP_TEL}   = self::normalizePhone($bill->{BC::COL_SHIP_TEL}, $bill->{BC::COL_SHIP_NAME} ?? null, $bill->id);
+                if (!empty($bill->{BC::COL_BL_ZIP}) && !empty($bill->{BC::COL_BL_CTR}))
+                    $bill->{BC::COL_BL_ZIP}     = self::normalizeZip($bill->{BC::COL_BL_ZIP}, $bill->{BC::COL_BL_CTR}, $bill->{BC::COL_BL_CTR} ?? null, $bill->id);
+                if (!empty($bill->{BC::COL_SHIP_ZIP}) && !empty($bill->{BC::COL_SHIP_CTR}))
+                    $bill->{BC::COL_SHIP_ZIP}   = self::normalizeZip($bill->{BC::COL_SHIP_ZIP}, $bill->{BC::COL_SHIP_CTR}, $bill->{BC::COL_SHIP_NAME} ?? null, $bill->id);
             } catch (\Throwable $e) {
                 Log::warning(self::class . '::saving normalization failed', [
                     'id'    => $bill->id ?? null,
@@ -263,18 +298,14 @@ class Bill extends Model
         foreach ($items as $item) {
             if (!is_array($item))
                 continue;
-
             $value = $item['id']
                 ?? $item['tax_id']
                 ?? $item['key']
                 ?? null;
-
             if (is_string($value))
                 $value = trim($value);
-
             if ($value === null || $value === '')
                 continue;
-
             try {
                 if (Tax::where('id', $value)->exists())
                     $valid[] = $item;
@@ -402,7 +433,7 @@ class Bill extends Model
         );
     }
 
-    public function category(): BelongsTo // * kepted for compatibility, don't reuse
+    public function category(): BelongsTo // * kept for compatibility
     {
         return $this->productServiceCategory();
     }

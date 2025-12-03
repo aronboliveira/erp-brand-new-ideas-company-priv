@@ -45,4 +45,5 @@ class CompaniesConstants
 	public const COL_HAS_CMR_OFF = 'has_camera_off_by_default';
 	public const COL_HAS_SCR_ENB = 'has_screen_sharing_enabled_by_default';
 	public const COL_INV_CD = 'invitation_code';
+	public const COL_GIVEN_BY = 'given_by';
 }

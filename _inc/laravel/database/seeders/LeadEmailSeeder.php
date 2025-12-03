@@ -91,12 +91,12 @@ class LeadEmailSeeder extends Seeder
 				$userEmail = $userEmails ? Arr::random($userEmails) : null;
 
 				// from: remetente pode ser alguém do sistema ou caixa genérica
-				$fromOptions = array_values(array_filter([
+				$fromOptions = array_values([
 					$userEmail,
 					$maybe(fn() => 'sales@' . fake()->domainName()),
 					$maybe(fn() => 'support@' . fake()->domainName()),
 					$maybe(fn() => 'noreply@' . fake()->domainName()),
-				]));
+				]);
 				$from = $fromOptions ? Arr::random($fromOptions) : 'noreply@example.test';
 
 				// to: prioridade: e-mail do lead -> e-mail de usuário -> fallback determinístico
@@ -151,6 +151,7 @@ class LeadEmailSeeder extends Seeder
 				$row = [
 					'id'                       => (string) Str::uuid(),
 					PJC::COL_LD_ID             => $lead->id,
+					UC::COL_USER_ID            => $userIds ? Arr::random($userIds) : null,
 					'from'                     => $maybe(fn() => $from), // "from" é nullable
 					'to'                       => $to,                    // "to" é obrigatório
 					'subject'                  => $subject,
@@ -172,7 +173,7 @@ class LeadEmailSeeder extends Seeder
 				}
 
 				// Remove apenas nulls; manter 0/false
-				$rows[] = array_filter($row, static fn($v) => $v !== null);
+				$rows[] = $row;
 				$inserted++;
 			}
 		}

@@ -159,6 +159,18 @@ class BillsConstants
 	public const COL_ADD_RCP = 'add_receipt';
 	public const COL_ISS_DT = 'issue_date';
 	public const COL_REF_N = 'ref_number';
+	public const COL_DSC_TP = 'discount_type';
+	public const COL_MIN_UNLCK = 'minimum_to_unlock';
+	public const COL_MAX_DSC = 'maximum_discount';
+	public const COL_EXC_PRD = 'excluded_products';
+	public const COL_EXC_CAT = 'excluded_categories';
+	public const COL_APL_CAT = 'applicable_categories';
+	public const COL_DT_LMT_TO_USER = 'date_limit_to_user';
+	public const COL_MUST_BE_VRF = 'must_be_verified';
+	public const COL_EXC_RLS = 'excluded_roles';
+	public const COL_MIN_PRV_ORD = 'minimum_previous_orders';
+	public const COL_MAX_PRV_ORD = 'maximum_previous_orders';
+	public const COL_CAN_BE_GIFT = 'can_be_gifted';
 
 	// * VALORES
 

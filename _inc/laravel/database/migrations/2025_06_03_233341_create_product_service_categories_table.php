@@ -15,7 +15,7 @@ class CreateProductServiceCategoriesTable extends Migration
         Schema::create(self::TABLE_NAME, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->index();
-            $table->string('code')->unique()->index()->nullable(); // ? nullable for testing
+            $table->string('code')->unique()->nullable(); // ? nullable for testing
             $table->string('type')->default('0'); // * this is not clear yet, so it will be kept for compatibility, but probably referes to the index of the label, so 0 to 9
             $table->enum(DC::COL_TP_LB, ConsumableType::values())->default(ConsumableType::Service->value)->nullable()->index();
             $table->uuid(BKC::COL_COA)->nullable();

@@ -182,12 +182,27 @@ class Customer extends Authenticatable
                 $customer->id ?? null
             );
 
+            self::normalizeBillingCountry($customer);
+            self::normalizeShippingCountry($customer);
+
             if ($customer->{BC::COL_TX_N}) {
-                $digits = preg_replace('/\D+/', '', (string) $customer->{BC::COL_TX_N});
-                if (strlen($digits) === 11 || strlen($digits) === 14)
-                    $customer->{BC::COL_TX_N} = $digits;
-                else
-                    $customer->{BC::COL_TX_N} = null;
+                if (!is_string($customer->{BC::COL_TX_N})) {
+                    if (is_numeric($customer->{BC::COL_TX_N}))
+                        $customer->{BC::COL_TX_N} = (string) $customer->{BC::COL_TX_N};
+                    else
+                        $customer->{BC::COL_TX_N} = null;
+                } else {
+                    $raw = trim((string) $customer->{BC::COL_TX_N});
+                    if (static::looksLikeUuid($raw))
+                        $customer->{BC::COL_TX_N} = strtolower($raw);
+                    else {
+                        $digits = preg_replace('/\D+/', '', $raw);
+                        if (strlen($digits) === 11 || strlen($digits) === 14)
+                            $customer->{BC::COL_TX_N} = $digits;
+                        else
+                            $customer->{BC::COL_TX_N} = null;
+                    }
+                }
             }
 
             try {
@@ -228,15 +243,12 @@ class Customer extends Authenticatable
             else
                 $customer->{UC::COL_LG} = DC::DEFAULT_LANG;
 
-            // Países (billing + shipping)
             $billingCountryEnum = CountryName::normalize($customer->{BC::COL_BL_CTR} ?? null)
                 ?? CountryName::Brazil;
             $shippingCountryEnum = CountryName::normalize($customer->{BC::COL_SHIP_CTR} ?? null)
                 ?? CountryName::Brazil;
-
             $customer->{BC::COL_BL_CTR}   = $billingCountryEnum->value;
             $customer->{BC::COL_SHIP_CTR} = $shippingCountryEnum->value;
-
             self::normalizeStateField($customer, BC::COL_BL_ST, $billingCountryEnum);
             self::normalizeStateField($customer, BC::COL_SHIP_ST, $shippingCountryEnum);
 
@@ -263,33 +275,6 @@ class Customer extends Authenticatable
             if (!$customer->{BC::COL_CST_ID} && auth()->check())
                 $customer->{BC::COL_CST_ID} = auth()->id();
         });
-    }
-
-    protected static function normalizeStateField(self $customer, string $column, CountryName $country): void
-    {
-        $raw = $customer->{$column} ?? null;
-        $normalized = null;
-
-        switch ($country) {
-            case CountryName::Brazil:
-                $normalized = BrazilState::normalize($raw) ?? BrazilState::RJ;
-                break;
-            case CountryName::Portugal:
-                $normalized = PortugalState::normalize($raw) ?? PortugalState::LS;
-                break;
-            case CountryName::UnitedStates:
-                $normalized = UnitedStatesState::normalize($raw) ?? UnitedStatesState::CA;
-                break;
-            case CountryName::China:
-                $normalized = ChinaState::normalize($raw) ?? ChinaState::BJ;
-                break;
-            default:
-                if (is_string($raw))
-                    $customer->{$column} = strtoupper(trim($raw));
-                return;
-        }
-
-        $customer->{$column} = $normalized->value;
     }
 
     public function getIsVerifiedAttribute(): bool

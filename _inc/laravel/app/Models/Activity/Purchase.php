@@ -129,7 +129,7 @@ class Purchase extends Model
         return $user?->priceFormat($total);
     }
 
-    public static function getPurchaseReportChart(): array
+    public static function getPurchaseReportChart(): array|RedirectResponse
     {
         if (
             ($userOrRedirect = self::_checkLogin())

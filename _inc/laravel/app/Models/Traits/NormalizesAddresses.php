@@ -2,7 +2,10 @@
 
 namespace App\Traits;
 
-use App\Enums\ContactKeyType;
+use App\Config\Constants\BillsConstants as BC;
+use App\Enums\{BrazilState, ChinaState, ContactKeyType, CountryName, PortugalState, UnitedStatesState};
+use App\Models\Utility;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
 trait NormalizesAddresses
@@ -85,10 +88,7 @@ trait NormalizesAddresses
 
 	public static function looksLikeUuid(string $value): bool
 	{
-		return (bool) preg_match(
-			'/^[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}$/',
-			$value
-		);
+		return Utility::looksLikeUuid($value);
 	}
 
 	public static function normalizeContactKey(string $key): string
@@ -202,5 +202,45 @@ trait NormalizesAddresses
 		}
 
 		return $data;
+	}
+	protected static function normalizeBillingCountry(Model $model): void
+	{
+		$billingCountryEnum = CountryName::normalize($model->{BC::COL_BL_CTR} ?? null)
+			?? CountryName::Brazil;
+		$model->{BC::COL_BL_CTR}   = $billingCountryEnum->value;
+		self::normalizeStateField($model, BC::COL_BL_ST, $billingCountryEnum);
+	}
+	protected static function normalizeShippingCountry(Model $model): void
+	{
+		$shippingCountryEnum = CountryName::normalize($model->{BC::COL_SHIP_CTR} ?? null)
+			?? CountryName::Brazil;
+		$model->{BC::COL_SHIP_CTR} = $shippingCountryEnum->value;
+		self::normalizeStateField($model, BC::COL_SHIP_ST, $shippingCountryEnum);
+	}
+	protected static function normalizeStateField(self $customer, string $column, CountryName $country): void
+	{
+		$raw = $customer->{$column} ?? null;
+		$normalized = null;
+
+		switch ($country) {
+			case CountryName::Brazil:
+				$normalized = BrazilState::normalize($raw) ?? BrazilState::RJ;
+				break;
+			case CountryName::Portugal:
+				$normalized = PortugalState::normalize($raw) ?? PortugalState::LS;
+				break;
+			case CountryName::UnitedStates:
+				$normalized = UnitedStatesState::normalize($raw) ?? UnitedStatesState::CA;
+				break;
+			case CountryName::China:
+				$normalized = ChinaState::normalize($raw) ?? ChinaState::BJ;
+				break;
+			default:
+				if (is_string($raw))
+					$customer->{$column} = strtoupper(trim($raw));
+				return;
+		}
+
+		$customer->{$column} = $normalized->value;
 	}
 }

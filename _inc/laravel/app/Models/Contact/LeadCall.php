@@ -9,18 +9,19 @@ use App\Config\Constants\{
     UsersConstants as UC
 };
 use App\Enums\CallType;
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LeadCall extends Model
 {
-    use UsesUuids;
     use HasAuditFields;
+    use NormalizesAddresses;
+    use UsesUuids;
 
     protected $table = DC::TABLE_LD_CALLS;
 
-    private const FILLABLE_FIELDS = [
+    protected $fillable = [
         UC::COL_USER_ID,
         'from',
         AC::COL_TO_ID,
@@ -36,8 +37,6 @@ class LeadCall extends Model
         AC::COL_CL_RS,
         'notes',
     ];
-
-    protected $fillable = self::FILLABLE_FIELDS;
 
     protected $guarded = [
         'id',
@@ -64,6 +63,8 @@ class LeadCall extends Model
             $model->normalizeEndpoints();
             $model->normalizeCallType();
             $model->normalizeDurations();
+            if ($model->phone)
+                $model->phone = self::normalizePhone($model->phone, 'Lead Call Phone', $model->id ?? null);
         });
     }
 

@@ -13,7 +13,7 @@ class CreateMeetingEmployeesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string(CC::COL_INV_CD)->unique()->index()->nullable(); // ? nullable for testing purposes
+            $table->string(CC::COL_INV_CD)->unique()->nullable(); // ? nullable for testing purposes
             $table->uuid(CC::COL_MT_ID)->index();
             $this->addEmployeeColumns($table, unique: false, nullable: false);
             $table->unique([CC::COL_MT_ID, UC::COL_EMP_ID])->nullable(); // ? nullable for testing purposes

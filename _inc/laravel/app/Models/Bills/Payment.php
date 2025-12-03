@@ -138,40 +138,31 @@ class Payment extends Model
                 'payment_billing',
                 $ownerId
             );
-
+            self::normalizeBillingCountry($m);
             if ($m->discount !== null) {
                 $disc = (float) $m->discount;
-                if ($disc < 0.0) {
+                if ($disc < 0.0)
                     $disc = 0.0;
-                }
                 $m->discount = $disc;
             }
 
             foreach ([BC::COL_PRC_AMT, BC::COL_INTR_AMT, BC::COL_SVC_FEE] as $field) {
                 if ($m->{$field} !== null) {
                     $val = (float) $m->{$field};
-                    if ($val < 0.0) {
+                    if ($val < 0.0)
                         $val = 0.0;
-                    }
                     $m->{$field} = $val;
                 }
             }
 
-            if ($m->status !== null) {
+            if ($m->status !== null)
                 $m->status = PaymentStatus::normalize($m->status);
-            }
-
-            if ($m->{BC::COL_PAY_STT} ?? null) {
+            if ($m->{BC::COL_PAY_STT} ?? null)
                 $m->{BC::COL_PAY_STT} = PaymentStatus::normalize($m->{BC::COL_PAY_STT});
-            }
-
-            if ($m->{BC::COL_PAY_MTD} ?? null) {
+            if ($m->{BC::COL_PAY_MTD} ?? null)
                 $m->{BC::COL_PAY_MTD} = PaymentMethod::normalize($m->{BC::COL_PAY_MTD});
-            }
-
-            if ($m->{BC::COL_TRF_TP} ?? null) {
+            if ($m->{BC::COL_TRF_TP} ?? null)
                 $m->{BC::COL_TRF_TP} = TransferType::normalize($m->{BC::COL_TRF_TP});
-            }
         });
     }
 

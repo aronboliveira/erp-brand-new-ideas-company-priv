@@ -14,6 +14,7 @@ class CreateUsersTable extends Migration
     {
         Schema::create(self::TABLE_NAME, function (Blueprint $table) {
             $this->addUserLikeColumns($table, defaultAvatar: 'chatify.user_avatar.default', hasPassword: true);
+            $table->string('phone')->nullable()->unique();
             $table->enum(UC::COL_TP, UserType::values())->default(UserType::Client)->nullable();
             $table->float(UC::COL_SL)->default(1024.00);
             $table->string(UC::COL_MC)->default('#2180f3'); // * NOT IN MODEL FILLABLE

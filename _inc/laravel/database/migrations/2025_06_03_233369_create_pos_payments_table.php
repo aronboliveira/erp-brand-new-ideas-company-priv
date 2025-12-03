@@ -1,7 +1,7 @@
 <?php
 
 use App\Config\Constants\{BillsConstants as BC, DatabaseConstants as DC};
-use App\Traits\{HasNullableAuditColumns, RegistersShipping};
+use App\Traits\{HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
@@ -9,7 +9,7 @@ class CreatePosPaymentsTable extends Migration
 {
     // * it's not celar why POS payments are separated from regular payments, but it's in the legacy specs
     // * since this entity is redundant, all additional fields are found in the payments table and should be assured to align (with the data on the pos_payments table being the source of truth for POS-related payments) via ::booted and ::saving
-    use HasNullableAuditColumns, RegistersShipping;
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_POS_PAY;
     public function up(): void
     {

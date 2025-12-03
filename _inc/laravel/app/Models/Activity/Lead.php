@@ -49,7 +49,6 @@ class Lead extends Model
         'date',
         'caller',
         'involved',
-        DC::COL_TABLE_CREATOR,
     ];
 
     protected $guarded = [
@@ -76,25 +75,38 @@ class Lead extends Model
 
     protected static function booted(): void
     {
+        parent::booted();
         static::saving(function (Lead $lead) {
+            $attributes = $lead->getAttributes();
+
             $involved = $lead->normalizeInvolved(
-                is_array($lead->involved) ? $lead->involved : $lead->involved ?? []
+                is_array($lead->involved) ? $lead->involved : ($lead->involved ?? [])
             );
-            if ($lead->{UC::COL_USER_ID})
-                $involved['users'][] = $lead->{UC::COL_USER_ID};
-            if ($lead->caller)
-                $involved['employees'][] = $lead->caller;
-            if ($lead->{DC::COL_TABLE_CREATOR})
-                $involved['users'][] = $lead->{DC::COL_TABLE_CREATOR};
+
+            $userId = $attributes[UC::COL_USER_ID] ?? null;
+            $callerId = $attributes['caller'] ?? null;
+            $creatorId = $attributes[DC::COL_TABLE_CREATOR] ?? null;
+
+            if ($userId)
+                $involved['users'][] = $userId;
+            if ($callerId)
+                $involved['employees'][] = $callerId;
+            if ($creatorId)
+                $involved['users'][] = $creatorId;
+
             $lead->involved = $lead->uniqueInvolved($involved);
+
             if ($lead->email)
                 $lead->email = self::normalizeEmail($lead->email, 'Lead email', $lead->id ?? null) ?: null;
+
             $lead->phone = static::normalizePhone(
                 $lead->phone ?? null,
                 'pos_billing',
                 $lead->id
             );
+
             $lead->involved = self::normalizeArrayField($lead->involved ?? null);
+
             if ($lead->{PJC::COL_CNV} === null)
                 $lead->{PJC::COL_CNV} = false;
             if ($lead->{PJC::COL_CRT} === null)

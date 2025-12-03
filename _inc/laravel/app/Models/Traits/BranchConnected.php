@@ -10,7 +10,7 @@ trait BranchConnected
 {
 	protected function addBranchColumns(Blueprint $table, bool $unique = false, bool $nullable = false): void
 	{
-		$unique ? ($nullable ? $table->uuid(CC::COL_BRC_ID)->unique()->nullable()->index() : $table->uuid(CC::COL_BRC_ID)->index()) : ($nullable ? $table->uuid(CC::COL_BRC_ID)->nullable()->index() : $table->uuid(CC::COL_BRC_ID)->index());
+		$unique ? ($nullable ? $table->uuid(CC::COL_BRC_ID)->nullable()->unique() : $table->uuid(CC::COL_BRC_ID)->index()) : ($nullable ? $table->uuid(CC::COL_BRC_ID)->nullable()->index() : $table->uuid(CC::COL_BRC_ID)->index());
 		$nullable ?
 			$table->foreign(CC::COL_BRC_ID)
 			->references('id')
@@ -21,7 +21,7 @@ trait BranchConnected
 			->on(DC::TABLE_BRANCHES)
 			->cascadeOnDelete();
 	}
-	protected function dropBranchForeign(Blueprint $table, string $tableName): void
+	protected function dropBranchColumnForeign(Blueprint $table, string $tableName): void
 	{
 		try {
 			Schema::hasColumn($tableName, CC::COL_BRC_ID) &&

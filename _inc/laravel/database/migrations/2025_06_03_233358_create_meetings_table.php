@@ -13,7 +13,7 @@ class CreateMeetingsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('code')->unique()->index()->nullable(); // ? nullable for testing purposes
+            $table->uuid('code')->unique()->nullable(); // ? nullable for testing purposes
             $this->addPlanningColumns($table, nullableTitle: false, nullableFixedDate: false, nullableFixedTime: false, nullableDept: true, onDeleteDept: 'set null');
             $this->addEmployeeColumns($table, false, true);
             $this->addBranchColumns($table, false, true);
@@ -23,7 +23,7 @@ class CreateMeetingsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            $this->dropBranchForeign($table, self::TABLE);
+            $this->dropBranchColumnForeign($table, self::TABLE);
             $this->dropEmployeeColumnForeign($table, self::TABLE);
             $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (

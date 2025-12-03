@@ -79,6 +79,7 @@ class ProjectsConstants
 	public const COL_LD_ID = 'lead_id';
 	public const COL_ATC_FRULES = 'attachment_filter_rules';
 	public const COL_IS_FUP = 'is_follow_up';
+	public const COL_GRP_ID = 'group_id';
 
 	public const STT_INP_K					 = 'in_progress';
 	public const STT_ONH_K					 = 'on_hold';

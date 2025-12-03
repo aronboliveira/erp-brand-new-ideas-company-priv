@@ -23,8 +23,8 @@ trait LeadConnected
     $column = PJC::COL_LD_ID;
     if ($unique)
       $nullable
-        ? $table->uuid($column)->unique()->nullable()->index()
-        : $table->uuid($column)->unique()->index();
+        ? $table->uuid($column)->nullable()->unique()
+        : $table->uuid($column)->unique();
     else
       $nullable
         ? $table->uuid($column)->nullable()->index()

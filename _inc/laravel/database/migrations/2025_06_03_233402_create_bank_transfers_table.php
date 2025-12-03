@@ -14,7 +14,7 @@ class CreateBankTransfersTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string(BKC::COL_TRF_CD)->unique()->index()->nullable(); // ? nullable for testing purposes
+            $table->string(BKC::COL_TRF_CD)->unique()->nullable(); // ? nullable for testing purposes
             $table->uuid(BC::COL_ACC_FROM)->index()->nullable(); // * these should be prevented from being deleted at Controller level, according to HTTP method called and user calling
             $table->uuid(BC::COL_ACC_TO)->index()->nullable();
             $this->addPaymentColumns($table);

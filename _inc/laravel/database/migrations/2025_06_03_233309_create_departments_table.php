@@ -1,39 +1,31 @@
 <?php
 
 use App\Config\Constants\{CompaniesConstants as CPC, DatabaseConstants as DC};
+use App\Traits\{BranchConnected, HasNullableAuditColumns};
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateDepartmentsTable extends Migration
 {
+    use BranchConnected, HasNullableAuditColumns;
     private const TABLE = DC::TABLE_DEPARTMENTS;
-    private const COL_BRANCH = 'branch_id';
     private const UNQ_BDEP = 'unique_branch_department';
     public function up(): void
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid(self::COL_BRANCH)->index();
             $table->string(CPC::COL_DEP_NM)->index();
+            $this->addBranchColumns($table, unique: false, nullable: false);
             $table->text('description')->nullable();
             $table->string('phone', 32)->nullable()->index();
             $table->string('email')->nullable();
             $table->uuid(CPC::COL_MNG)->nullable();
-            $table->uuid(DC::COL_TABLE_CREATOR)->default(DC::DEFAULT_UUID)->nullable();
-            $table->uuid(DC::COL_TABLE_UPDATER)->default(DC::DEFAULT_UUID)->nullable();
-            $table->timestamps();
-            $table->decimal('budget', 10, 2)->default(0.00);
-            $table->decimal('expenses', 10, 2)->default(0.00);
-            $table->decimal('profit', 10, 2)->default(0.00);
-            $table->unique([self::COL_BRANCH, CPC::COL_DEP_NM], self::UNQ_BDEP);
-            $table->foreign(self::COL_BRANCH)
-                ->references('id')
-                ->on(DC::TABLE_BRANCHES)
-                ->cascadeOnDelete();
+            $table->decimal('budget', 15, 2)->default(0.00);
+            $table->decimal('expenses', 15, 2)->default(0.00);
+            $table->decimal('profit', 15, 2)->default(0.00);
+            $table->unique([CPC::COL_BRC_ID, CPC::COL_DEP_NM], self::UNQ_BDEP);
             foreach (
                 [
-                    DC::COL_TABLE_CREATOR  => DC::TABLE_USERS,
-                    DC::COL_TABLE_UPDATER  => DC::TABLE_USERS,
                     CPC::COL_MNG       => DC::TABLE_USERS,
                 ] as $column => $referencedTable
             )
@@ -41,6 +33,7 @@ class CreateDepartmentsTable extends Migration
                     ->references('id')
                     ->on($referencedTable)
                     ->nullOnDelete();
+            $this->addAuditColumns($table);
         });
     }
 
@@ -55,11 +48,10 @@ class CreateDepartmentsTable extends Migration
                         . $e->getMessage()
                 );
             }
+            $this->dropBranchColumnForeign($table, self::TABLE);
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             foreach (
                 [
-                    self::COL_BRANCH,
-                    DC::COL_TABLE_CREATOR,
-                    DC::COL_TABLE_UPDATER,
                     CPC::COL_MNG,
                 ] as $column
             ) {

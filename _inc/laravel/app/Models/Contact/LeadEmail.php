@@ -6,13 +6,13 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
-use App\Traits\{HasAuditFields, UsesUuids};
+use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LeadEmail extends Model
 {
-    use HasAuditFields, UsesUuids;
+    use HasAuditFields, UsesUuids, NormalizesAddresses;
 
     protected $table = DC::TABLE_LD_EMAILS;
 
@@ -43,6 +43,16 @@ class LeadEmail extends Model
         'createdBy',
         'updatedBy',
     ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::saving(function (LeadEmail $leadEmail): void {
+            self::normalizeEmail($leadEmail->from, 'LeadEmail from', $leadEmail->id ?? null);
+            self::normalizeEmail($leadEmail->to, 'LeadEmail to', $leadEmail->id ?? null);
+        });
+    }
 
     public function lead(): BelongsTo
     {

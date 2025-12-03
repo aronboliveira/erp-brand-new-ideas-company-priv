@@ -24,7 +24,7 @@ class CreateEventsTable extends Migration
             $table->json('sponsors')->nullable(); // * list of sponsors' names and contacts, and the id they are linked to if registered in the system
             $table->string('color')->default('#3788d8');
             $table->text('description')->nullable();
-            $this->addBranchColumns($table);
+            $this->addBranchColumns($table, nullable: true, unique: false);
             $this->addEmployeeColumns($table, unique: false, nullable: true);
             foreach (
                 [
@@ -42,7 +42,7 @@ class CreateEventsTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
-            $this->dropBranchForeign($table, self::TABLE);
+            $this->dropBranchColumnForeign($table, self::TABLE);
             $this->dropEmployeeColumnForeign($table, self::TABLE);
             $this->dropPlanningColumnForeigns($table, self::TABLE);
             $this->dropAuditColumnForeigns($table, self::TABLE);

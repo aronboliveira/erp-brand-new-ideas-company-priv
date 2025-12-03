@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Config\Constants\ActivitiesConstants as AC;
 use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\PermissionsConstants as PMC;
 use App\Config\Constants\UsersConstants as UC;
 use App\Enums\AttendanceStatus;
 use App\Models\EmployeeAttendance;
@@ -37,6 +38,7 @@ class EmployeeAttendanceSeeder extends Seeder
 		$employees = Schema::hasTable(DC::TABLE_EMPLOYEES ?? 'employees')
 			? DB::table(DC::TABLE_EMPLOYEES ?? 'employees')->pluck('id')->all()
 			: [];
+		$editors = DB::table(DC::TABLE_USERS ?? 'users')->whereIn(UC::COL_TP, [PMC::HR, PMC::ADM, PMC::SA, PMC::CPN])->pluck('id')->all();
 
 		if (!$employees) {
 			$this->command?->warn('Nenhum empregado encontrado. Abortado.');
@@ -75,6 +77,7 @@ class EmployeeAttendanceSeeder extends Seeder
 
 		DB::transaction(function () use (
 			$employees,
+			$editors,
 			$overtimes,
 			$maybe,
 			$opt,
@@ -184,10 +187,10 @@ class EmployeeAttendanceSeeder extends Seeder
 					]);
 
 					if (Schema::hasColumn(DC::TABLE_EATD, DC::COL_TABLE_CREATOR)) {
-						$row->{DC::COL_TABLE_CREATOR} = $maybe(fn() => Arr::random($employees));
+						$row->{DC::COL_TABLE_CREATOR} = $maybe(fn() => Arr::random($editors));
 					}
 					if (Schema::hasColumn(DC::TABLE_EATD, DC::COL_TABLE_UPDATER)) {
-						$row->{DC::COL_TABLE_UPDATER} = $maybe(fn() => Arr::random($employees));
+						$row->{DC::COL_TABLE_UPDATER} = $maybe(fn() => Arr::random($editors));
 					}
 
 					$row->save();

@@ -14,7 +14,7 @@ class CreateProductServicesTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->index();
-            $table->string('sku')->unique()->index();
+            $table->string('sku')->unique();
             $table->decimal(BC::COL_SL_PRC, 15, 4)->default(0.0000);
             $table->decimal(BC::COL_PC_PRC, 15, 4)->default(0.0000);
             $table->json(BC::COL_AC_CUR)->nullable(); // * kept nullable for tests, but should be imposed as at least accepting the site default currency at booted and save

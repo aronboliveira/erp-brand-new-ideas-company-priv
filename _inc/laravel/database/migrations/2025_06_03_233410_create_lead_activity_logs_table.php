@@ -32,10 +32,10 @@ class CreateLeadActivityLogsTable extends Migration
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid(UC::COL_USER_ID)->index();
-            $table->string(UC::COL_U_TP, UserType::values())->default(UserType::Client)->nullable();
+            $table->enum(UC::COL_U_TP, UserType::values())->default(UserType::Client->value)->nullable();
             $this->addLeadColumns($table, unique: false, nullable: false, cascade: true);
             $table->enum(AC::COL_LOG_TP, LogType::values())
-                ->default(LogType::Other)
+                ->default(LogType::Other->value)
                 ->index();
             $table->text('remark')->nullable();
             $table->enum(AC::COL_MD, AppModuleType::values())->default(AppModuleType::Other)->nullable()->index();

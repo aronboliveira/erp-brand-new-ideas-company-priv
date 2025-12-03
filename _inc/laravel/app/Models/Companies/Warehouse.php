@@ -135,11 +135,10 @@ class Warehouse extends Model
             $ratingField = UC::COL_AVG_RT;
             if ($m->{$ratingField} !== null) {
                 $val = (float) $m->{$ratingField};
-                if ($val < 0.0) {
+                if ($val < 0.0)
                     $val = 0.0;
-                } elseif ($val > 5.0) {
+                elseif ($val > 5.0)
                     $val = 5.0;
-                }
                 $m->{$ratingField} = $val;
             }
         });

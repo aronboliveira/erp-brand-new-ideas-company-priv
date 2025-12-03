@@ -11,8 +11,10 @@ enum AttendanceStatus: string
 	case Leave = 'leave';
 	case Remote = 'remote';
 
-	public static function normalize(?string $value): self
+	public static function normalize(string|AttendanceStatus|null $value): self
 	{
+		if ($value instanceof self)
+			return $value;
 		if ($value === null)
 			return self::Absent;
 		$v = strtolower(trim($value));

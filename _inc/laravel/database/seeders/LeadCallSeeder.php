@@ -36,15 +36,7 @@ class LeadCallSeeder extends Seeder
 		$userSelect = ['id'];
 		$hasEmail   = Schema::hasColumn(DC::TABLE_USERS, 'email');
 		if ($hasEmail) $userSelect[] = 'email';
-		$phoneCols = array_values(array_filter([
-			'phone',
-			Schema::hasColumn(DC::TABLE_USERS, 'mobile') ? 'mobile' : null,
-			Schema::hasColumn(DC::TABLE_USERS, 'cellphone') ? 'cellphone' : null,
-			Schema::hasColumn(DC::TABLE_USERS, 'contact_phone') ? 'contact_phone' : null,
-			Schema::hasColumn(DC::TABLE_USERS, 'whatsapp') ? 'whatsapp' : null,
-			Schema::hasColumn(DC::TABLE_USERS, 'phone_number') ? 'phone_number' : null,
-		]));
-		$userSelect = array_values(array_unique(array_merge($userSelect, $phoneCols)));
+		$userSelect = array_values(array_unique($userSelect));
 
 		$users = DB::table(DC::TABLE_USERS)->select($userSelect)->get();
 		if ($users->isEmpty()) {
@@ -52,16 +44,9 @@ class LeadCallSeeder extends Seeder
 			return;
 		}
 
-		$userRows = $users->map(function ($u) use ($hasEmail, $phoneCols) {
+		$userRows = $users->map(function ($u) use ($hasEmail) {
 			$email = $hasEmail ? (is_string($u->email ?? null) ? trim((string) $u->email) : null) : null;
-			$phone = null;
-			foreach ($phoneCols as $c) {
-				$v = $u->{$c} ?? null;
-				if (is_string($v) && trim($v) !== '') {
-					$phone = $v;
-					break;
-				}
-			}
+			$phone = $u->phone ?? null;
 			return ['id' => $u->id, 'email' => $email, 'phone' => $phone];
 		})->all();
 
@@ -166,8 +151,7 @@ class LeadCallSeeder extends Seeder
 					$row[DC::COL_TABLE_UPDATER] = $toUser['id'] ?? null;
 				}
 
-				// Remove apenas nulls
-				$rows[] = array_filter($row, static fn($v) => $v !== null);
+				$rows[] = $row;
 				$inserted++;
 			}
 		}

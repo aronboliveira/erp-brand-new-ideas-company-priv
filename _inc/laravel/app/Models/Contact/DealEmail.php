@@ -2,24 +2,94 @@
 
 namespace App\Models;
 
-use App\Models\Deal;
-use App\Traits\UsesUuids;
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
+use App\Config\Constants\{
+    ActivitiesConstants as AC,
+    DatabaseConstants as DC,
+    ProjectsConstants as PJC,
+    UsersConstants as UC
+};
+use App\Traits\{HasAuditFields, NormalizesAddresses, UsesUuids};
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DealEmail extends Model
 {
-    use UsesUuids;
+    use HasAuditFields, UsesUuids, NormalizesAddresses;
+
+    protected $table = DC::TABLE_DL_EMAILS;
 
     private const FILLABLE_FIELDS = [
-        'deal_id', 'to', 'subject', 'description'
+        AC::COL_DL,              // deal_id
+        UC::COL_USER_ID,         // user_id (dono do registro/contato)
+        'from',                  // endereço/telefone origem
+        'to',                    // endereço/telefone destino
+        'subject',
+        'description',
+        'notes',
+        'counter',
+        PJC::COL_IS_FUP,         // is_follow_up
+        'attachments',
+        PJC::COL_ATC_FRULES,     // attachment_filter_rules
+        DC::COL_TABLE_CREATOR,
     ];
+
     protected $fillable = self::FILLABLE_FIELDS;
 
-    protected $with = ['deal']; // * eager load deal relation
+    protected $casts = [
+        'counter'           => 'integer',
+        PJC::COL_IS_FUP     => 'boolean',
+        'attachments'       => 'array',
+        PJC::COL_ATC_FRULES => 'array',
+    ];
+
+    protected $with = [
+        'deal',
+        'user',
+        'fromUser',
+        'toUser',
+        'createdBy',
+        'updatedBy',
+    ];
+
+    protected static function booted(): void
+    {
+        parent::booted();
+
+        static::saving(function (DealEmail $dealEmail): void {
+            self::normalizeEmail($dealEmail->from, 'DealEmail from', $dealEmail->id ?? null);
+            self::normalizeEmail($dealEmail->to, 'DealEmail to', $dealEmail->id ?? null);
+        });
+    }
 
     public function deal(): BelongsTo
     {
-        return $this->belongsTo(Deal::class, 'deal_id', 'id');
-        // * consider scopes for filtering by deal
+        return $this->belongsTo(Deal::class, AC::COL_DL, 'id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, UC::COL_USER_ID, 'id');
+    }
+
+    public function fromUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, AC::COL_FRM_ID, 'id');
+    }
+
+    public function toUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, AC::COL_TO_ID, 'id');
+    }
+
+    public function isFollowUp(): bool
+    {
+        return (bool) $this->{PJC::COL_IS_FUP};
+    }
+
+    public function hasAttachments(): bool
+    {
+        $attachments = $this->attachments ?? [];
+
+        return is_array($attachments) && count($attachments) > 0;
     }
 }

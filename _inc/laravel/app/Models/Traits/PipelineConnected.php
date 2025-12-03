@@ -10,7 +10,7 @@ trait PipelineConnected
 {
   protected function addPipelineColumns(Blueprint $table, bool $unique = false, bool $nullable = false, bool $cascade = true): void
   {
-    $unique ? ($nullable ? $table->uuid(PJC::COL_PPL_ID)->unique()->nullable()->index() : $table->uuid(PJC::COL_PPL_ID)->index()) : ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->index() : $table->uuid(PJC::COL_PPL_ID)->index());
+    $unique ? ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->unique() : $table->uuid(PJC::COL_PPL_ID)->index()) : ($nullable ? $table->uuid(PJC::COL_PPL_ID)->nullable()->index() : $table->uuid(PJC::COL_PPL_ID)->index());
     $nullable ?
       $table->foreign(PJC::COL_PPL_ID)
       ->references('id')

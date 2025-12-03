@@ -15,7 +15,7 @@ class LeadSeeder extends Seeder
 {
 	// ---------- Parâmetros fixos (mocking: não usar env) ----------
 	private const SEED            = 20251201;
-	private const DEFAULT_COUNT   = 80;    // total objetivo (ajustável via --count)
+	private const DEFAULT_COUNT   = 64;    // total objetivo (ajustável via --count)
 	private const OPTIONALITY     = 0.65;  // prob. média de preencher campos opcionais
 	private const MAX_TAGS        = 3;     // máx. IDs em sources/products/labels
 
@@ -43,7 +43,7 @@ class LeadSeeder extends Seeder
 		$labelIds        = Schema::hasTable('labels')              ? DB::table('labels')->pluck('id')->all()              : [];
 		$sourceIds       = Schema::hasTable('sources')             ? DB::table('sources')->pluck('id')->all()             : [];
 
-		$target = (int) ($this->command?->option('count') ?? self::DEFAULT_COUNT);
+		$target = (int) ($this->command instanceof \Illuminate\Console\Command && $this->command?->hasOption('count') ? $this->command?->option('count') : self::DEFAULT_COUNT);
 		$target = max(1, $target);
 
 		$inserted = 0;

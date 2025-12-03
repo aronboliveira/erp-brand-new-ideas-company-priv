@@ -25,7 +25,7 @@ class CreateProductServiceUnitsTable extends Migration
             $table->uuid('id')->primary();
             $table->uuid(BC::COL_PRD_SV_ID)->nullable(); // ? nullable para testes
             $table->string('name')->index();
-            $table->string('code')->unique()->index()->nullable(); // ? nullable para testes
+            $table->string('code')->unique()->nullable(); // ? nullable para testes
             $table->enum('status', [ProductStatus::Active->value, ProductStatus::Paused->value, ProductStatus::Inactive->value, ProductStatus::Undefined->value])->default(ProductStatus::Inactive->value)
                 ->index()->nullable(); // ? nullable para testes
             $table->string(AC::COL_MUNIT)->nullable(); // * e.g.: hour, session, item, license, etc

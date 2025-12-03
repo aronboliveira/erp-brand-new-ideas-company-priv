@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\UsersConstants as UC;
 use App\Config\Constants\PermissionsConstants as PMC;
+use App\Config\Constants\SettingsConstants as SC;
 use App\Enums\UserType;
 use App\Models\User;
 use Carbon\CarbonImmutable as Carbon;
@@ -54,23 +55,25 @@ class UserSeeder extends Seeder
 				$label = Str::title(str_replace('_', ' ', $type));
 				$fixtures[] = [
 					UC::COL_NM  => "{$label} User",
-					UC::COL_EM  => mb_strtolower($type) . '@example.test',
+					'phone' => fake()->unique()->phoneNumber(),
+					UC::COL_EM  => fake()->unique()->safeEmail(),
 					UC::COL_PW  => Hash::make('Password123!'),
 					UC::COL_TP  => $type,
-					UC::COL_SL  => 1024.00,
-					UC::COL_LG  => config('app.locale', 'en'),
-					UC::COL_MD  => 'light',
-					UC::COL_D_ST => 1,
-					UC::COL_A_ST => 1,
-					UC::COL_DM  => 0,
-					UC::COL_IB  => 0,
+					UC::COL_SL  => Arr::random([1024.00, 2048.00, 5120.00, 10240.00]),
+					UC::COL_LG  => config('app.locale', DC::DEFAULT_LANG),
+					UC::COL_MD  => Arr::random(['light', 'dark']),
+					UC::COL_D_ST => fake()->boolean(20) ? 0 : 1,
+					UC::COL_A_ST => fake()->boolean(30) ? 1 : 0,
+					UC::COL_DM  => Arr::random([0, 1]),
+					UC::COL_IB  => fake()->boolean(10) ? 1 : 0,
 					UC::COL_MC  => '#2180f3',
 					// JSON será normalizado/codificado pelo Model (NormalizesArrays)
 					'preferences' => [
 						'theme'      => 'light',
-						'lang'       => config('app.locale', 'en'),
+						'lang'       => config('app.locale', DC::DEFAULT_LANG),
 						'notify'     => ['email' => true, 'sms' => false],
 						'timezone'   => config('app.timezone', 'America/Sao_Paulo'),
+						'language'	 => DC::DEFAULT_LANG_LONG,
 					],
 				];
 			}
@@ -88,7 +91,7 @@ class UserSeeder extends Seeder
 
 				$name = fake()->name();
 				$mode = fake()->randomElement(['light', 'dark']);
-				$lang = fake()->randomElement([config('app.locale', 'en'), 'pt-br', 'en', 'es']);
+				$lang = fake()->randomElement([config('app.locale', DC::DEFAULT_LANG), 'pt-br', DC::DEFAULT_LANG, 'es']);
 
 				// E-mail único e estável para evitar colisão com UNIQUE
 				$emailLocal = Str::slug($name, '.') . '.' . Str::lower(Str::random(6));

@@ -17,7 +17,7 @@ class CreateOrdersTable extends Migration
             $table->uuid(UC::COL_USER_ID)->index()->nullable(); // ? not every buyer is a registered user
             $table->uuid(BC::COL_OD_ID)->index(); // ? external order identifier, not clear purpose yet
             $table->string('name', 1024)->nullable();
-            $table->string('email', 256)->unique()->nullable();
+            $table->string('email', 256)->nullable()->unique();
             $table->uuid(UC::COL_PLAN_ID)->index();
             $table->string(UC::COL_PLAN_NM, 124)->nullable(); // * when the system is more mature, then this can be enumerated
 

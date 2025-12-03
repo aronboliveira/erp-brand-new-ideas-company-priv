@@ -13,7 +13,7 @@ class CreatePayslipTypesTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary(); // ! CHANGED
-            $table->string('name')->unique()->index();
+            $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->decimal(BC::COL_MIN_AMT, 15, 2)->default(0.00)->nullable();
             $table->decimal(BC::COL_MAX_AMT, 15, 2)->default(9999999999.99)->nullable();

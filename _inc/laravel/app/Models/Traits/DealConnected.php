@@ -2,51 +2,59 @@
 
 namespace App\Traits;
 
-use App\Models\Deal;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Log;
+use App\Config\Constants\{
+  ActivitiesConstants as AC,
+  DatabaseConstants as DC,
+};
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\{
+  Log,
+  Schema
+};
 
 trait DealConnected
 {
-  public static function bootDealConnected(): void
-  {
-    static::creating(function ($model) {
-      $model->mergeFillable(['deal_id']);
-    });
-    static::updating(function ($model) {
-      $model->mergeFillable(['deal_id']);
-    });
+  protected function addDealColumns(
+    Blueprint $table,
+    bool $unique = false,
+    bool $nullable = false,
+    bool $cascade = true
+  ): void {
+    $column = AC::COL_DL;
+    if ($unique)
+      $nullable
+        ? $table->uuid($column)->nullable()->unique()
+        : $table->uuid($column)->unique();
+    else
+      $nullable
+        ? $table->uuid($column)->nullable()->index()
+        : $table->uuid($column)->index();
+    $foreign = $table->foreign($column)
+      ->references('id')
+      ->on(DC::TABLE_DEALS);
+    if ($nullable)
+      $foreign->nullOnDelete();
+    elseif ($cascade)
+      $foreign->cascadeOnDelete();
+    else
+      $foreign->restrictOnDelete();
   }
-  public function deal(): BelongsTo
+  protected function dropDealColumnForeign(Blueprint $table, string $tableName): void
   {
-    return $this->belongsTo(Deal::class);
-  }
-  public function getDealById(string $dealId): ?Deal
-  {
+    $column = AC::COL_DL;
+
     try {
-      $deal = Deal::find($dealId);
-      if (!$deal) {
-        Log::warning(sprintf('No Deal found with ID %s in %s', $dealId, static::class));
-        return null;
-      }
-      return $deal;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Deal by ID %s: %s', $dealId, $e->getMessage()), ['exception' => $e]);
-      return null;
-    }
-  }
-  public function getDealByName(string $name): ?Deal
-  {
-    try {
-      $deal = Deal::where('name', $name)->first();
-      if (!$deal) {
-        Log::warning(sprintf('No Deal found with name %s in %s', $name, static::class));
-        return null;
-      }
-      return $deal;
-    } catch (\Throwable $e) {
-      Log::error(sprintf('Error fetching Deal by name %s: %s', $name, $e->getMessage()), ['exception' => $e]);
-      return null;
+      Schema::hasColumn($tableName, $column)
+        && $table->dropForeign([$column]);
+    } catch (\Exception $e) {
+      Log::warning(
+        'Failed to drop foreign key for '
+          . $column
+          . ' on table '
+          . $tableName
+          . ': '
+          . $e->getMessage()
+      );
     }
   }
 }

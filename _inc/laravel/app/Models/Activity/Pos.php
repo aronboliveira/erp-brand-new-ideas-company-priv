@@ -8,7 +8,7 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     UsersConstants as UC
 };
-use App\Enums\{PosStatus, PosType, TransactionType};
+use App\Enums\{CountryName, PosStatus, PosType, TransactionType};
 use App\Traits\{
     ChecksLogin,
     HasAuditFields,
@@ -156,6 +156,8 @@ class Pos extends Model
                 'pos_billing',
                 $ownerId
             );
+
+            self::normalizeBillingCountry($m);
 
             foreach ([BC::COL_TRS_CNT, DC::COL_RTR_CT] as $intField) {
                 if ($m->{$intField} !== null) {

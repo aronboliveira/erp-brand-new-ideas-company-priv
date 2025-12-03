@@ -133,6 +133,8 @@ class DatabaseSeeder extends Seeder
                     LeadEmailSeeder::class,
                     LeadFileSeeder::class,
                     LeadCallSeeder::class,
+                    DealEmailSeeder::class,
+                    DealCallSeeder::class,
                     BasicFavoritesSeeder::class
                 ] as $mockSeeder
             ) {
@@ -142,10 +144,10 @@ class DatabaseSeeder extends Seeder
                     $lastSeeder = $mockSeeder;
                     $output->writeln('<info>Seeding mocks for: ' . $mockSeeder . '</info>');
                     Log::notice('Mock Seeder ' . $mockSeeder . ' executed successfully.');
-                    sleep(2);
+                    sleep(1);
                 } catch (\Exception $e) {
-                    $output->writeln('<error>Seeding mocks for ' . $mockSeeder . ' failed: ' . $e->getMessage() . '</error>');
-                    Log::warning('Seeding mocks for ' . $mockSeeder . ' failed: ', ['message' => $e->getMessage()]);
+                    $output->writeln('<error>Seeding mocks for ' . $mockSeeder . ' failed: ' . substr($e->getMessage(), 0, 1024) . '</error>');
+                    Log::warning('Seeding mocks for ' . $mockSeeder . ' failed: ', ['message' => substr($e->getMessage(), 0, 1024)]);
                 }
             }
         } catch (\Exception $e) {

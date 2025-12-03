@@ -14,7 +14,7 @@ class CreateClientsTable extends Migration
 		Schema::create(self::TABLE, function (Blueprint $table): void {
 			$table->uuid('id')->primary();
 			$table->string(UC::COL_NM)->nullable();
-			$table->string(UC::COL_EM)->unique()->nullable();
+			$table->string(UC::COL_EM)->nullable()->unique();
 			$table->timestamp(UC::COL_EM_V_AT)->nullable();
 			$table->string(UC::COL_PW)->nullable();
 			$table->string(UC::COL_LG, 100)->default(DC::DEFAULT_LANG);

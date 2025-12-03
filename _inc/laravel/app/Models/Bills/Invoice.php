@@ -14,7 +14,7 @@ use App\Enums\{
 };
 use App\Traits\{
     HasAuditFields,
-    NormalizesArrays,
+    NormalizesAddresses,
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
@@ -29,7 +29,7 @@ class Invoice extends Model
 {
     use HasAuditFields;
     use HasFactory;
-    use NormalizesArrays;
+    use NormalizesAddresses;
     use UsesUuids;
 
     protected $table = DC::TABLE_INVS;
@@ -148,6 +148,20 @@ class Invoice extends Model
                 $discount = $amount;
             $m->amount   = $amount;
             $m->discount = $discount;
+            self::normalizeBillingCountry($m);
+            self::normalizeShippingCountry($m);
+            if (!empty($m->{BC::COL_BL_EMAIL}))
+                $m->{BC::COL_BL_EMAIL}    = self::normalizeEmail($m->{BC::COL_BL_EMAIL}, $m->{BC::COL_BL_NAME} ?? null, $m->id);
+            if (!empty($m->{BC::COL_SHIP_EMAIL}))
+                $m->{BC::COL_SHIP_EMAIL}  = self::normalizeEmail($m->{BC::COL_SHIP_EMAIL}, $m->{BC::COL_SHIP_NAME} ?? null, $m->id);
+            if (!empty($m->{BC::COL_BL_TEL}))
+                $m->{BC::COL_BL_TEL} = self::normalizePhone($m->{BC::COL_BL_TEL}, $m->{BC::COL_BL_NAME} ?? null, $m->id);
+            if (!empty($m->{BC::COL_SHIP_TEL}))
+                $m->{BC::COL_SHIP_TEL}   = self::normalizePhone($m->{BC::COL_SHIP_TEL}, $m->{BC::COL_SHIP_NAME} ?? null, $m->id);
+            if (!empty($m->{BC::COL_BL_ZIP}) && !empty($m->{BC::COL_BL_CTR}))
+                $m->{BC::COL_BL_ZIP}     = self::normalizeZip($m->{BC::COL_BL_ZIP}, $m->{BC::COL_BL_CTR}, $m->{BC::COL_BL_CTR} ?? null, $m->id);
+            if (!empty($m->{BC::COL_SHIP_ZIP}) && !empty($m->{BC::COL_SHIP_CTR}))
+                $m->{BC::COL_SHIP_ZIP}   = self::normalizeZip($m->{BC::COL_SHIP_ZIP}, $m->{BC::COL_SHIP_CTR}, $m->{BC::COL_SHIP_NAME} ?? null, $m->id);
             $m->attachments           = static::normalizeArrayField($m->attachments ?? null);
             $m->taxes                 = static::normalizeArrayField($m->taxes ?? null);
             $m->{BC::COL_TC}          = static::normalizeArrayField($m->{BC::COL_TC} ?? null);

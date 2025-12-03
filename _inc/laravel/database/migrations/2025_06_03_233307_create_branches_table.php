@@ -4,11 +4,13 @@ use App\Config\Constants\{
     CompaniesConstants as CPC,
     DatabaseConstants as DC
 };
+use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
 use Illuminate\Support\Facades\{Log, Schema};
 
 class CreateBranchesTable extends Migration
 {
+    use HasNullableAuditColumns;
     private const TABLE = DC::TABLE_BRANCHES;
 
     public function up(): void
@@ -16,21 +18,19 @@ class CreateBranchesTable extends Migration
         if (!Schema::hasTable(self::TABLE))
             Schema::create(self::TABLE, function (Blueprint $table) {
                 $table->uuid('id')->primary();
-                $table->string(CPC::COL_BRC_NM)->unique()->index();
-                $table->string('address', 252)->nullable()->index();
+                $table->string(CPC::COL_BRC_NM)->unique();
+                $table->string('address', 252)->nullable()->index(); // todo normalize on model
                 $table->string('phone', 32)->nullable();
                 $table->string(CPC::COL_FND)->nullable()->default(DC::DEFAULT_UUID);
                 $table->uuid(CPC::COL_MNG)->nullable()->default(DC::DEFAULT_UUID);
                 $table->uuid(CPC::COL_ADM)->nullable()->default(DC::DEFAULT_UUID);
                 $table->text('description')->nullable();
                 $table->text('departments')->nullable();
-                $table->decimal('budget', 10, 2)->default(0.00);
-                $table->decimal('expenses', 10, 2)->default(0.00);
-                $table->decimal('profit', 10, 2)->default(0.00);
-                $table->timestamps();
-                $table->uuid(DC::COL_TABLE_CREATOR)->nullable()->default(DC::DEFAULT_UUID);
-                $table->uuid(DC::COL_TABLE_UPDATER)->nullable()->default(DC::DEFAULT_UUID);
-                foreach ([DC::COL_TABLE_CREATOR, DC::COL_TABLE_UPDATER, CPC::COL_ADM, CPC::COL_MNG] as $col)
+                $table->decimal('budget', 15, 2)->default(0.00);
+                $table->decimal('expenses', 15, 2)->default(0.00);
+                $table->decimal('profit', 15, 2)->default(0.00);
+                $this->addAuditColumns($table);
+                foreach ([CPC::COL_ADM, CPC::COL_MNG] as $col)
                     $table->foreign($col)
                         ->references('id')
                         ->on(DC::TABLE_USERS)
@@ -41,8 +41,9 @@ class CreateBranchesTable extends Migration
     public function down(): void
     {
         Schema::table(self::TABLE, function (Blueprint $table): void {
+            $this->dropAuditColumnForeigns($table, self::TABLE);
             try {
-                foreach ([CPC::COL_ADM, CPC::COL_MNG, DC::COL_TABLE_UPDATER, DC::COL_TABLE_CREATOR] as $col) {
+                foreach ([CPC::COL_ADM, CPC::COL_MNG] as $col) {
                     Schema::hasColumn(self::TABLE, $col)
                         && $table->dropForeign([$col]);
                 }

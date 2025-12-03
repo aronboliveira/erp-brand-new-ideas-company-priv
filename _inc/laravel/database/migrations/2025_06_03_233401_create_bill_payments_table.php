@@ -14,7 +14,7 @@ class CreateBillPaymentsTable extends Migration
     {
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('code')->unique()->index()->nullable(); // ? nullable for tests, should be booted/created at model level if null
+            $table->uuid('code')->unique()->nullable(); // ? nullable for tests, should be booted/created at model level if null
             $table->uuid(BC::COL_BL_ID)->index();
             $table->uuid(BC::COL_OD_ID)->nullable();
             $this->addPaymentColumns($table, nullableReconcile: true, nullableInvoice: true);

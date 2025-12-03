@@ -6,6 +6,7 @@ use App\Config\Constants\BillsConstants as BC;
 use App\Config\Constants\DatabaseConstants as DC;
 use App\Config\Constants\UsersConstants as UC;
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Enums\TransactionType;
 use App\Enums\TransferType;
 use Carbon\CarbonImmutable as Carbon;
@@ -18,265 +19,446 @@ use Illuminate\Support\Str;
 class TransactionSeeder extends Seeder
 {
 	// Parâmetros fixos (sem env)
-	private const OPTIONALITY     = 0.65;
-	private const PER_BILL_MIN    = 0;
-	private const PER_BILL_MAX    = 2;
-	private const PER_INV_MIN     = 0;
-	private const PER_INV_MAX     = 2;
-	private const PER_POS_MIN     = 0;
-	private const PER_POS_MAX     = 2;
-	private const OTHER_COUNT     = 20;
-	private const MAX_AMOUNT      = 8000.00;
+	private const OPTIONALITY  = 0.65;
+	private const PER_BILL_MIN = 0;
+	private const PER_BILL_MAX = 2;
+	private const PER_INV_MIN  = 0;
+	private const PER_INV_MAX  = 2;
+	private const PER_POS_MIN  = 0;
+	private const PER_POS_MAX  = 2;
+
+	// Qtd máxima de "others" quando precisar complementar a meta
+	private const OTHER_MAX  = 256;
+	private const MAX_AMOUNT = 8000.00;
 
 	/**
 	 * Opção CLI:
-	 *  --count=INT   Limita o total aproximado de transações.
+	 *  --count=INT   Limita o total aproximado de transações (mas mantendo 64 × n como piso).
 	 */
 	public function run(): void
 	{
-		// Tabelas essenciais
 		if (!Schema::hasTable(DC::TABLE_TRS)) {
-			$this->command?->warn('Tabela de transactions ausente. Seeder abortado.');
+			$this->command?->warn('TransactionSeeder: tabela de transactions ausente. Seeder abortado.');
 			return;
 		}
 
-		// Coleções base
-		$bankAccounts = Schema::hasTable(DC::TABLE_BANK_ACC) ? DB::table(DC::TABLE_BANK_ACC)->pluck('id')->all() : [];
-		$users        = Schema::hasTable(DC::TABLE_USERS)    ? DB::table(DC::TABLE_USERS)->pluck('id')->all()      : [];
+		// --------- Coleções base usando *models* sempre que possível ---------
 
-		$bills    = Schema::hasTable(DC::TABLE_BILLS) ? DB::table(DC::TABLE_BILLS)->pluck('id')->all() : [];
-		$invoices = Schema::hasTable(DC::TABLE_INVS)  ? DB::table(DC::TABLE_INVS)->pluck('id')->all()  : [];
-		$poses    = Schema::hasTable(DC::TABLE_POS ?? 'pos') && Schema::hasColumn(DC::TABLE_POS ?? 'pos', 'id')
-			? DB::table(DC::TABLE_POS ?? 'pos')->pluck('id')->all()
+		// BankAccount
+		$bankAccounts = $this->pluckModelIds(\App\Models\BankAccount::class);
+		if (!$bankAccounts && Schema::hasTable(DC::TABLE_BANK_ACC)) {
+			$bankAccounts = DB::table(DC::TABLE_BANK_ACC)->pluck('id')->all();
+		}
+
+		// User
+		$users = $this->pluckModelIds(\App\Models\User::class);
+		if (!$users && Schema::hasTable(DC::TABLE_USERS)) {
+			$users = DB::table(DC::TABLE_USERS)->pluck('id')->all();
+		}
+
+		// Bills (ainda via tabela; não foi pedido ênfase em Bill aqui)
+		$bills = Schema::hasTable(DC::TABLE_BILLS)
+			? DB::table(DC::TABLE_BILLS)->pluck('id')->all()
 			: [];
 
-		// Parâmetros (fixos)
-		$opt         = self::OPTIONALITY;
-		$perBillMin  = self::PER_BILL_MIN;
-		$perBillMax  = self::PER_BILL_MAX;
-		$perInvMin   = self::PER_INV_MIN;
-		$perInvMax   = self::PER_INV_MAX;
-		$perPosMin   = self::PER_POS_MIN;
-		$perPosMax   = self::PER_POS_MAX;
-		$otherCount  = self::OTHER_COUNT;
-		$maxAmount   = self::MAX_AMOUNT;
-		$target      = (int) ($this->command && $this->command instanceof \Illuminate\Console\Command && $this->command->hasOption('count') ? $this->command?->option('count') : 64);
+		// Invoice via model
+		$invoices = $this->pluckModelIds(\App\Models\Invoice::class);
+		if (!$invoices && Schema::hasTable(DC::TABLE_INVS)) {
+			$invoices = DB::table(DC::TABLE_INVS)->pluck('id')->all();
+		}
 
-		$clampRange = function (int $min, int $max): array {
-			if ($min < 0) $min = 0;
-			if ($max < $min) $max = $min;
-			return [$min, $max];
+		// Contracts
+		$contracts = $this->pluckModelIds(\App\Models\Contract::class);
+
+		// Loans
+		$loans = $this->pluckModelIds(\App\Models\Loan::class);
+
+		// ProductServiceUnit
+		$productUnits = $this->pluckModelIds(\App\Models\ProductServiceUnit::class);
+
+		// Payslip
+		$payslips = $this->pluckModelIds(\App\Models\Payslip::class);
+
+		// Payment (genérico)
+		$payments = $this->pluckModelIds(\App\Models\Payment::class);
+
+		// Tabela de POS pode estar com nome em constantes ou legado simples
+		$posTable = \defined(DC::class . '::TABLE_POS') ? DC::TABLE_POS : 'pos';
+		$poses    = Schema::hasTable($posTable)
+			? DB::table($posTable)->pluck('id')->all()
+			: [];
+
+		// Base para piso 64 × n
+		$baseCount = \count($bills) + \count($invoices) + \count($poses);
+		if ($baseCount <= 0) {
+			// Para não ficar sem mocks se não houver relacionamentos ainda
+			$baseCount = 1;
+		}
+
+		// Regra 64 × n como piso, com override aproximado por --count
+		$cliCount = 0;
+		if (
+			$this->command instanceof \Illuminate\Console\Command
+			&& $this->command->hasOption('count')
+		) {
+			$cliCount = (int) $this->command->option('count');
+		}
+
+		$minTarget = 64 * $baseCount;
+		$target    = max($minTarget, $cliCount > 0 ? $cliCount : $minTarget);
+
+		$opt       = self::OPTIONALITY;
+		$maxAmount = self::MAX_AMOUNT;
+		$now       = Carbon::now();
+
+		$maybe = static function (callable $fn) use ($opt) {
+			return fake()->boolean((int) round($opt * 100)) ? $fn() : null;
 		};
-		[$perBillMin, $perBillMax] = $clampRange($perBillMin, $perBillMax);
-		[$perInvMin,  $perInvMax]  = $clampRange($perInvMin,  $perInvMax);
-		[$perPosMin,  $perPosMax]  = $clampRange($perPosMin,  $perPosMax);
 
-		$maybe = fn(callable $fn) => fake()->boolean((int) round($opt * 100)) ? $fn() : null;
-		$json  = fn($v) => $v === null ? null : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		$json = static function ($v) {
+			return $v === null
+				? null
+				: json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		};
 
-		$rows = [];
+		// Flags para auditoria (evita erro se colunas forem alteradas no futuro)
+		$hasCreatorCol = Schema::hasColumn(DC::TABLE_TRS, DC::COL_TABLE_CREATOR);
+		$hasUpdaterCol = Schema::hasColumn(DC::TABLE_TRS, DC::COL_TABLE_UPDATER);
+
 		$inserted = 0;
-		$now = Carbon::now();
 
-		// Helper para incluir colunas somente se existirem
-		$addIfHas = function (&$row, string $column, $value) {
-			if ($value === null) return;
-			if (Schema::hasColumn(DC::TABLE_TRS, $column)) {
-				$row[$column] = $value;
-			}
-		};
-
-		// --------- Geradores por origem (Bill / Invoice / POS) ----------
-		$genFor = function (array $ids, TransactionType $type, int $min, int $max) use (
-			&$rows,
-			&$inserted,
-			$target,
-			$maybe,
-			$json,
-			$now,
+		DB::transaction(function () use (
 			$bankAccounts,
 			$users,
+			$bills,
+			$invoices,
+			$poses,
+			$contracts,
+			$loans,
+			$productUnits,
+			$payslips,
+			$payments,
+			$baseCount,
+			$target,
 			$maxAmount,
-			$addIfHas
+			$now,
+			$maybe,
+			$json,
+			$hasCreatorCol,
+			$hasUpdaterCol,
+			&$inserted
 		) {
-			foreach ($ids as $srcId) {
-				if ($target > 0 && $inserted >= $target) break;
-
-				$count = fake()->numberBetween($min, $max);
-				for ($i = 0; $i < $count; $i++) {
-					if ($target > 0 && $inserted >= $target) break;
-
-					// Valores
-					$amount = round(fake()->randomFloat(2, 20.00, $maxAmount), 2);
-					$svcFee = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.03), 2));
-					$taxFee = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.05), 2));
-
-					// Datas/schedule
-					$createdAt = $now->subDays(fake()->numberBetween(0, 120))->subMinutes(fake()->numberBetween(0, 1_440));
-					$executed  = $maybe(fn() => $createdAt->addDays(fake()->numberBetween(0, 10))->addMinutes(fake()->numberBetween(0, 1_440)));
-					$completed = $maybe(fn() => $executed ? $executed->addMinutes(fake()->numberBetween(5, 600)) : null);
-					$canceled  = $completed ? null : $maybe(fn() => $createdAt->addDays(fake()->numberBetween(0, 15)));
-
-					// JSON e campos opcionais
-					$taxesList = $maybe(function () {
-						$pool = [
-							['name' => 'ISS',    'rate' => 2.00],
-							['name' => 'PIS',    'rate' => 1.65],
-							['name' => 'COFINS', 'rate' => 7.60],
-						];
-						return Arr::random($pool, fake()->numberBetween(1, 2));
-					});
-
-					$attachments = $maybe(fn() => [
-						['path' => fake()->lexify('docs/doc-????.pdf'), 'extension' => 'pdf'],
-						['path' => fake()->lexify('imgs/proof-????.png'), 'extension' => 'png'],
-					]);
-
-					$reconcileRules = $maybe(fn() => [
-						'auto_match'   => fake()->boolean(60),
-						'amount_delta' => fake()->randomFloat(2, 0.00, 5.00),
-						'date_tolerance_days' => fake()->randomElement([0, 1, 2, 3]),
-					]);
-
-					// Flags e metadados de pagamento
-					$methodCode  = fake()->randomElement([0, 1]);
-					$methodLabel = Arr::random(PaymentMethod::values());
-					$ppsCode     = $maybe(fn() => fake()->randomElement(['300', '301', '302']));
-					$trfType     = $maybe(fn() => Arr::random(TransferType::values()));
-					$ppsDesc     = $maybe(fn() => fake()->sentence());
-
-					// Relacionamentos opcionais
-					$accountId = $maybe(fn() => $bankAccounts ? Arr::random($bankAccounts) : null);
-					$userId    = $maybe(fn() => $users ? Arr::random($users) : null);
-					$rccBy     = $maybe(fn() => $users ? Arr::random($users) : null);
-
-					$uType = Arr::random(['admin', 'employee', 'client', 'system']);
-
-					// Montagem do registro
-					$row = [
-						'id'                 => (string) Str::uuid(),
-						'account'            => $accountId,
-						UC::COL_USER_ID      => $userId,
-						UC::COL_U_TP         => $uType,
-						BC::COL_PAY_TP       => $type->value,
-						BC::COL_PAY_ID       => $srcId,
-						'category'           => $type->value,
-						BC::COL_CUR_ID       => config('app.currency', 'BRL'),
-						'amount'             => $amount,
-						BC::COL_SVC_FEE      => $svcFee,
-						BC::COL_TXS_FEE      => $taxFee,
-						BC::COL_TXS_LST      => $json($taxesList),
-						BC::COL_PAY_MTD      => $methodCode,
-						BC::COL_PAY_MTD_LB   => $methodLabel,
-						BC::COL_N_INTR       => $maybe(fn() => fake()->numberBetween(1, 6)),
-						BC::COL_CURR_N_INTR  => $maybe(fn() => fake()->numberBetween(1, 6)),
-						BC::COL_IS_SCD       => $maybe(fn() => fake()->boolean(15)),
-						BC::COL_CAN_CHG_BK   => $maybe(fn() => fake()->boolean(10)),
-						BC::COL_PPS_CD       => $ppsCode,
-						BC::COL_TRF_TP       => $trfType,
-						BC::COL_PPS_DS       => $ppsDesc,
-						BC::COL_TC           => $json($maybe(fn() => ['notes' => fake()->sentence()])),
-						BC::COL_AUTORCC      => $maybe(fn() => fake()->boolean(30)),
-						BC::COL_RCC_RL       => $json($reconcileRules),
-						BC::COL_RCC_AT       => $maybe(fn() => $completed?->addMinutes(fake()->numberBetween(0, 240))?->toDateTimeString()),
-						BC::COL_RCC_BY       => $rccBy,
-						'reference'          => $maybe(fn() => 'TRX-' . strtoupper(Str::random(8))),
-						'description'        => 'Transação gerada pelo seeder',
-						'notes'              => $maybe(fn() => fake()->realText(120)),
-						'attachments'        => $json($attachments),
-						'type'               => $maybe(fn() => Arr::random(['gateway_a', 'gateway_b', 'manual', 'reconciliation'])),
-						'date'               => $createdAt->toDateString(),
-						'created_at'         => $createdAt->toDateTimeString(),
-						'updated_at'         => $createdAt->addMinutes(fake()->numberBetween(0, 10_080))->toDateTimeString(),
-					];
-
-					// Campos de schedule (trait AcceptsSchedule)
-					$row[BC::COL_SCHD_TRF_TS] = $maybe(fn() => $now->addDays(fake()->numberBetween(0, 20))->toDateTimeString());
-					$row[BC::COL_EXC_AT]      = $executed?->toDateTimeString();
-					$row[BC::COL_CNC_AT]      = $canceled?->toDateTimeString();
-					$row[BC::COL_CMP_AT]      = $completed?->toDateTimeString();
-					$row[BC::COL_CNC_RS]      = $canceled ? fake()->sentence() : null;
-
-					// Colunas de auditoria (se existirem)
-					$addIfHas($row, DC::COL_TABLE_CREATOR, $maybe(fn() => $users ? Arr::random($users) : null));
-					$addIfHas($row, DC::COL_TABLE_UPDATER, $maybe(fn() => $users ? Arr::random($users) : null));
-
-					// Remover apenas nulls; manter 0/false
-					$rows[] = array_filter($row, static fn($v) => $v !== null);
-					$inserted++;
+			// Helper único de criação de uma linha de transação
+			$buildRow = function (
+				TransactionType $type,
+				?string $payId,
+				?string $accountId,
+				?string $userId,
+				string $userType,
+				?string $sourceType,
+				Carbon $createdAt
+			) use (
+				$bankAccounts,
+				$users,
+				$contracts,
+				$loans,
+				$productUnits,
+				$invoices,
+				$payslips,
+				$payments,
+				$maxAmount,
+				$now,
+				$maybe,
+				$json,
+				$hasCreatorCol,
+				$hasUpdaterCol
+			): array {
+				// Se não veio payId e houver Payment para transações "other",
+				// podemos referenciar um Payment real.
+				if ($payId === null && $type === TransactionType::Other && $payments) {
+					$payId = Arr::random($payments);
 				}
-			}
-		};
 
-		// Gerar por fonte
-		$genFor($bills,    TransactionType::Bill,    $perBillMin, $perBillMax);
-		$genFor($invoices, TransactionType::Invoice, $perInvMin,  $perInvMax);
-		$genFor($poses,    TransactionType::Pos,     $perPosMin,  $perPosMax);
+				$amount   = round(fake()->randomFloat(2, 20.0, $maxAmount), 2);
+				$discount = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.20), 2)) ?? 0.00;
 
-		// Extras "other"
-		$genOther = function (int $qtd) use (&$rows, &$inserted, $target, $maybe, $json, $now, $bankAccounts, $users, $maxAmount, $addIfHas) {
-			for ($i = 0; $i < $qtd; $i++) {
-				if ($target > 0 && $inserted >= $target) break;
+				// taxas e serviços
+				$svcFee = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.03), 2));
+				$taxFee = $maybe(fn() => round(($amount - $discount) * fake()->randomFloat(2, 0.00, 0.05), 2));
 
-				$amount    = round(fake()->randomFloat(2, 10.00, $maxAmount), 2);
-				$svcFee    = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.02), 2));
-				$taxFee    = $maybe(fn() => round($amount * fake()->randomFloat(2, 0.00, 0.04), 2));
-				$createdAt = $now->subDays(fake()->numberBetween(0, 90))->subMinutes(fake()->numberBetween(0, 720));
+				// datas principais
+				$updatedAt  = $createdAt->addMinutes(fake()->numberBetween(0, 60 * 24 * 30));
+				$executedAt = $maybe(fn() => $createdAt->addDays(fake()->numberBetween(0, 10))
+					->addMinutes(fake()->numberBetween(0, 24 * 60)));
+				$completedAt = $maybe(function () use ($executedAt) {
+					if (!$executedAt) {
+						return null;
+					}
+					return $executedAt->addMinutes(fake()->numberBetween(5, 24 * 60));
+				});
+				$cancelledAt = $completedAt
+					? null
+					: $maybe(fn() => $createdAt->addDays(fake()->numberBetween(0, 15)));
+
+				// schedule
+				$scheduledTs = $maybe(fn() => $now->addDays(fake()->numberBetween(0, 20))
+					->addMinutes(fake()->numberBetween(0, 24 * 60)));
+
+				// lista de impostos (para BC::COL_TXS_LST)
+				$taxesList = $maybe(function () {
+					$pool = [
+						['name' => 'ISS',    'rate' => 2.00],
+						['name' => 'PIS',    'rate' => 1.65],
+						['name' => 'COFINS', 'rate' => 7.60],
+					];
+					return Arr::random($pool, fake()->numberBetween(1, 2));
+				});
+
+				// Anexos
+				$attachments = $maybe(fn() => [
+					['path' => fake()->lexify('docs/doc-????.pdf'), 'extension' => 'pdf'],
+					['path' => fake()->lexify('imgs/proof-????.png'), 'extension' => 'png'],
+				]);
+
+				// Regras de conciliação
+				$reconcileRules = $maybe(fn() => [
+					'auto_match'          => fake()->boolean(60),
+					'amount_delta'        => fake()->randomFloat(2, 0.00, 5.00),
+					'date_tolerance_days' => fake()->randomElement([0, 1, 2, 3]),
+				]);
+
+				// Termos / contrato
+				$terms = $maybe(fn() => ['notes' => fake()->sentence()]);
+
+				// Ponteiros relacionais opcionais **usando models**
+				$contractId = $maybe(fn() => $contracts ? Arr::random($contracts) : null);
+				$loanId     = $maybe(fn() => $loans ? Arr::random($loans) : null);
+				$psuId      = $maybe(fn() => $productUnits ? Arr::random($productUnits) : null);
+
+				// Pagamento / transferências
+				$methodCode   = fake()->randomElement([0, 1]);
+				$methodLabel  = Arr::random(PaymentMethod::values());
+				$purposeCode  = $maybe(fn() => fake()->randomElement(['300', '301', '302']));
+				$transferType = $maybe(fn() => Arr::random(TransferType::values()));
+				$purposeDesc  = $maybe(fn() => fake()->sentence(8));
+
+				$numInstallments    = $maybe(fn() => fake()->numberBetween(1, 12)) ?? 1;
+				$currentInstallment = $maybe(fn() => fake()->numberBetween(1, (int) $numInstallments));
+				$autoReconcile      = $maybe(fn() => fake()->boolean(35));
+
+				// Status de pagamento
+				$status = Arr::random(PaymentStatus::values());
+
+				// Reconciliation
+				$reconciledAt = $maybe(function () use ($completedAt, $executedAt, $updatedAt) {
+					$base = $completedAt ?? $executedAt ?? $updatedAt;
+					return $base?->addMinutes(fake()->numberBetween(0, 24 * 60));
+				});
+
+				$reconciledBy = $reconciledAt
+					? $maybe(fn() => $users ? Arr::random($users) : null)
+					: null;
+
+				// invoice/payslip opcionais **usando models**
+				$invoiceId = $maybe(fn() => $invoices ? Arr::random($invoices) : null);
+				$payslipId = $maybe(fn() => $payslips ? Arr::random($payslips) : null);
+
+				// Cancel reason
+				$cancelReason = $cancelledAt ? fake()->sentence() : null;
+
+				// Auditoria (se existir)
+				$creator = $maybe(fn() => $users ? Arr::random($users) : null);
+				$updater = $maybe(fn() => $users ? Arr::random($users) : null);
 
 				$row = [
 					'id'               => (string) Str::uuid(),
-					'account'          => $maybe(fn() => $bankAccounts ? Arr::random($bankAccounts) : null),
-					UC::COL_USER_ID    => $maybe(fn() => $users ? Arr::random($users) : null),
-					UC::COL_U_TP       => Arr::random(['system', 'admin', 'employee']),
-					BC::COL_PAY_TP     => TransactionType::Other->value,
-					BC::COL_PAY_ID     => null,
-					'category'         => TransactionType::Other->value,
+					'account'          => $accountId,
+					UC::COL_USER_ID    => $userId,
+					UC::COL_U_TP       => $userType,
+					BC::COL_PAY_TP     => $type->value,
+					BC::COL_PAY_ID     => $payId,
+					'category'         => $type->value, // compatibilidade legado
 					BC::COL_CUR_ID     => config('app.currency', 'BRL'),
+					// HasFinancialIssuingColumns
 					'amount'           => $amount,
+					'discount'         => $discount,
 					BC::COL_SVC_FEE    => $svcFee,
 					BC::COL_TXS_FEE    => $taxFee,
-					BC::COL_PAY_MTD    => fake()->randomElement([0, 1]),
-					BC::COL_PAY_MTD_LB => Arr::random(PaymentMethod::values()),
-					'description'      => 'Lançamento avulso (other) gerado pelo seeder',
 					'reference'        => $maybe(fn() => 'TRX-' . strtoupper(Str::random(8))),
-					'attachments'      => $json($maybe(fn() => [
-						['path' => fake()->lexify('other/att-????.pdf'), 'extension' => 'pdf'],
-					])),
-					'date'             => $createdAt->toDateString(),
-					'created_at'       => $createdAt->toDateTimeString(),
-					'updated_at'       => $createdAt->addMinutes(fake()->numberBetween(0, 10080))->toDateTimeString(),
+					'description'      => 'Transação gerada pelo seeder',
+					'notes'            => $maybe(fn() => fake()->realText(120)),
+					'attachments'      => $json($attachments),
+					BC::COL_TC         => $json($terms),
+					BC::COL_AUTORCC    => $autoReconcile,
+					BC::COL_RCC_RL     => $json($reconcileRules),
+					'contract'         => $contractId,
+					'loan'             => $loanId,
+					BC::COL_PRD_SV_UNT => $psuId,
+					// HasPaymentColumns
+					BC::COL_IS_SCD      => $maybe(fn() => fake()->boolean(20)),
+					BC::COL_CAN_CHG_BK  => $maybe(fn() => fake()->boolean(10)),
+					BC::COL_PPS_CD      => $purposeCode,
+					BC::COL_TRF_TP      => $transferType,
+					BC::COL_PPS_DS      => $purposeDesc,
+					BC::COL_TXS_LST     => $json($taxesList),
+					BC::COL_PAY_MTD     => $methodCode,
+					BC::COL_PAY_MTD_LB  => $methodLabel,
+					'status'            => $status,
+					BC::COL_N_INTR      => $numInstallments,
+					BC::COL_CURR_N_INTR => $currentInstallment,
+					BC::COL_RCC_AT      => $reconciledAt?->toDateTimeString(),
+					BC::COL_RCC_BY      => $reconciledBy,
+					'invoice'           => $invoiceId,
+					'payslip'           => $payslipId,
+					// AcceptsSchedule
+					BC::COL_SCHD_TRF_TS => $scheduledTs?->toDateTimeString(),
+					BC::COL_EXC_AT      => $executedAt?->toDateTimeString(),
+					BC::COL_CNC_AT      => $cancelledAt?->toDateTimeString(),
+					BC::COL_CMP_AT      => $completedAt?->toDateTimeString(),
+					BC::COL_CNC_RS      => $cancelReason,
+					// Outras colunas da tabela
+					'type'              => $sourceType,
+					'date'              => $createdAt->toDateString(),
+					'created_at'        => $createdAt->toDateTimeString(),
+					'updated_at'        => $updatedAt->toDateTimeString(),
 				];
 
-				// schedule
-				$row[BC::COL_SCHD_TRF_TS] = $maybe(fn() => $now->addDays(fake()->numberBetween(0, 10))->toDateTimeString());
+				if ($hasCreatorCol) {
+					$row[DC::COL_TABLE_CREATOR] = $creator;
+				}
+				if ($hasUpdaterCol) {
+					$row[DC::COL_TABLE_UPDATER] = $updater;
+				}
 
-				// auditoria condicional
-				$addIfHas($row, DC::COL_TABLE_CREATOR, $maybe(fn() => $users ? Arr::random($users) : null));
-				$addIfHas($row, DC::COL_TABLE_UPDATER, $maybe(fn() => $users ? Arr::random($users) : null));
+				// Remove apenas nulls; 0 e false permanecem
+				return array_filter($row, static fn($v) => $v !== null);
+			};
 
-				$rows[] = array_filter($row, static fn($v) => $v !== null);
+			// Gerador baseado em um conjunto (bills / invoices / pos)
+			$genFor = function (
+				array $ids,
+				TransactionType $type,
+				int $min,
+				int $max,
+				?string $sourceTypeLabel = null
+			) use (
+				&$inserted,
+				$target,
+				$bankAccounts,
+				$users,
+				$now,
+				$buildRow
+			): void {
+				if (!$ids) {
+					return;
+				}
+
+				foreach ($ids as $id) {
+					if ($target > 0 && $inserted >= $target) {
+						return;
+					}
+
+					$count = fake()->numberBetween(max(0, $min), max($min, $max));
+
+					for ($i = 0; $i < $count; $i++) {
+						if ($target > 0 && $inserted >= $target) {
+							return;
+						}
+
+						$createdAt = $now
+							->subDays(fake()->numberBetween(0, 120))
+							->subMinutes(fake()->numberBetween(0, 24 * 60));
+
+						$accountId = $bankAccounts
+							? Arr::random($bankAccounts)
+							: null;
+
+						$userId = $users
+							? Arr::random($users)
+							: null;
+
+						$userType = Arr::random(['admin', 'employee', 'client', 'system']);
+
+						$row = $buildRow(
+							$type,
+							$id,
+							$accountId,
+							$userId,
+							$userType,
+							$sourceTypeLabel,
+							$createdAt
+						);
+
+						DB::table(DC::TABLE_TRS)->insert($row);
+						$inserted++;
+					}
+				}
+			};
+
+			// 1) Gerar transações ligadas às entidades base
+			$genFor($bills,    TransactionType::Bill,    self::PER_BILL_MIN, self::PER_BILL_MAX, 'bill_payment');
+			$genFor($invoices, TransactionType::Invoice, self::PER_INV_MIN,  self::PER_INV_MAX,  'invoice_payment');
+			$genFor($poses,    TransactionType::Pos,     self::PER_POS_MIN,  self::PER_POS_MAX,  'pos');
+
+			// 2) Complementar com transações "other" até atingir a meta (no máximo OTHER_MAX)
+			$remaining  = max(0, $target - $inserted);
+			$otherCount = min($remaining, self::OTHER_MAX);
+
+			for ($i = 0; $i < $otherCount; $i++) {
+				if ($target > 0 && $inserted >= $target) {
+					break;
+				}
+
+				$createdAt = $now
+					->subDays(fake()->numberBetween(0, 90))
+					->subMinutes(fake()->numberBetween(0, 24 * 60));
+
+				$accountId = $bankAccounts
+					? Arr::random($bankAccounts)
+					: null;
+
+				$userId = $users
+					? Arr::random($users)
+					: null;
+
+				$userType = Arr::random(['system', 'admin', 'employee']);
+
+				$row = $buildRow(
+					TransactionType::Other,
+					null, // payId: para "other" podemos eventualmente usar Payment real
+					$accountId,
+					$userId,
+					$userType,
+					Arr::random(['manual', 'gateway_a', 'gateway_b', 'reconciliation', 'import']),
+					$createdAt
+				);
+
+				// Ajuste de descrição para destacar que é "other"
+				$row['description'] = 'Lançamento avulso (other) gerado pelo seeder';
+
+				DB::table(DC::TABLE_TRS)->insert($row);
 				$inserted++;
-			}
-		};
-
-		if ($target > 0) {
-			$remaining = max(0, $target - $inserted);
-			$genOther(min($remaining, $otherCount));
-		} else {
-			$genOther($otherCount);
-		}
-
-		if (!$rows) {
-			$this->command?->info('TransactionSeeder: nada a inserir.');
-			return;
-		}
-
-		DB::transaction(function () use ($rows) {
-			foreach (array_chunk($rows, 1000) as $chunk) {
-				DB::table(DC::TABLE_TRS)->insert($chunk);
 			}
 		});
 
 		$this->command?->info("TransactionSeeder: {$inserted} transações inseridas em " . DC::TABLE_TRS . ".");
+	}
+
+	/**
+	 * Tenta buscar todos os IDs de um Model de forma defensiva.
+	 * Se o model não existir ou a query falhar, retorna array vazio.
+	 */
+	private function pluckModelIds(string $fqcn): array
+	{
+		if (!class_exists($fqcn)) {
+			return [];
+		}
+
+		try {
+			/** @var \Illuminate\Database\Eloquent\Model $fqcn */
+			return $fqcn::query()->pluck('id')->all();
+		} catch (\Throwable) {
+			return [];
+		}
 	}
 }

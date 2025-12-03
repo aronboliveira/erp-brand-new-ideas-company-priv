@@ -25,7 +25,7 @@ trait CustomerConnected
 			default:
 				$onDelete = 'cascade';
 		}
-		$unique ? ($nullable ? $table->uuid(BC::COL_CST_ID)->unique()->nullable()->index() : $table->uuid(BC::COL_CST_ID)->index()) : ($nullable ? $table->uuid(BC::COL_CST_ID)->nullable()->index() : $table->uuid(BC::COL_CST_ID)->index());
+		$unique ? ($nullable ? $table->uuid(BC::COL_CST_ID)->nullable()->unique() : $table->uuid(BC::COL_CST_ID)->index()) : ($nullable ? $table->uuid(BC::COL_CST_ID)->nullable()->index() : $table->uuid(BC::COL_CST_ID)->index());
 		$table->foreign(BC::COL_CST_ID)
 			->references('id')
 			->on(DC::TABLE_CUSTOMERS)

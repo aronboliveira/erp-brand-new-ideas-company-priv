@@ -98,6 +98,7 @@ class Revenue extends Model
         BC::COL_IS_SCD        => 'bool',
         BC::COL_CAN_CHG_BK    => 'bool',
         BC::COL_RCP_MD        => 'array',
+        BC::COL_RCC_RL        => 'array',
         BC::COL_PAY_MTD       => PaymentMethod::class,
         'status'              => PaymentStatus::class,
         BC::COL_TRF_TP        => TransferType::class,

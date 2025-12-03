@@ -20,7 +20,7 @@ class CreateChartOfAccountSubTypesTable extends Migration
 
         Schema::create(self::TABLE, function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->string(CHTC::COL_CD)->unique()->index()->nullable();
+            $table->string(CHTC::COL_CD)->unique()->nullable();
             $table->string(CHTC::COL_NM)->nullable();
             $table->uuid(CHTC::COL_TP)->index();
             $table->string(CHTC::COL_TP_NM);

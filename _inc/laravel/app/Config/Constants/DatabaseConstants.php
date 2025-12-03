@@ -138,6 +138,9 @@ class DatabaseConstants
 	public const TABLE_LD_FILES = 'lead_files';
 	public const TABLE_LD_EMAILS = 'lead_emails';
 	public const TABLE_LD_CALLS = 'lead_calls';
+	public const TABLE_DL_EMAILS = 'deal_emails';
+	public const TABLE_DL_CALLS = 'deal_calls';
+	public const TABLE_USR_CPNS = 'user_coupons';
 
 	// * FIELD NAMES
 	// invoice

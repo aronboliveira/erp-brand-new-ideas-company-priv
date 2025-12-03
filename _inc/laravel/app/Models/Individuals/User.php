@@ -49,6 +49,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         UC::COL_NM,
         UC::COL_EM,
+        'phone',
         UC::COL_PW,
         UC::COL_TP,
         UC::COL_SL,
@@ -103,9 +104,14 @@ class User extends Authenticatable implements MustVerifyEmail
     protected static function booted(): void
     {
         parent::booted();
-
         static::saving(function (User $user): void {
-            $user->{UC::COL_EM} = self::normalizeEmail(
+            if ($user->phone)
+                $user->phone = self::normalizePhone(
+                    $user->phone,
+                    'user.phone',
+                    $user->getAttribute('id') ?? null
+                );
+            if ($user->{UC::COL_EM}) $user->{UC::COL_EM} = self::normalizeEmail(
                 $user->{UC::COL_EM} ?? null,
                 'user.email',
                 $user->getAttribute('id') ?? null
